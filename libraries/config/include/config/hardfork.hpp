@@ -26,6 +26,9 @@ void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 struct AspenHardfork {
   uint64_t block_num = -1;
   taraxa::uint256_t max_supply{"0x26C62AD77DC602DAE0000000"};  // 12 Billion
+  // total generated rewards from block 1 to block_num
+  // It is partially estimated for blocks between the aspen hf release block and actual aspen hf block_num
+  taraxa::uint256_t generated_rewards{0};
 
   HAS_RLP_FIELDS
 };
