@@ -33,14 +33,16 @@ Json::Value enc_json(const AspenHardfork& obj) {
   Json::Value json(Json::objectValue);
   json["block_num"] = dev::toJS(obj.block_num);
   json["max_supply"] = dev::toJS(obj.max_supply);
+  json["generated_rewards"] = dev::toJS(obj.generated_rewards);
   return json;
 }
 
 void dec_json(const Json::Value& json, AspenHardfork& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
   obj.max_supply = dev::jsToU256(json["max_supply"].asString());
+  obj.generated_rewards = dev::jsToU256(json["generated_rewards"].asString());
 }
-RLP_FIELDS_DEFINE(AspenHardfork, block_num, max_supply)
+RLP_FIELDS_DEFINE(AspenHardfork, block_num, max_supply, generated_rewards)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
