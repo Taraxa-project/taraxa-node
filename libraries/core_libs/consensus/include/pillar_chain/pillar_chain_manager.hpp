@@ -77,6 +77,16 @@ class PillarChainManager {
   std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(const PillarBlock::Hash pillar_block_hash) const;
 
  private:
+  /**
+   * @brief Return a vector of validators stakes changes between the current and previous pillar block
+   *        Changes are ordered based on validators addresses
+   *
+   * @param block
+   * @return ordered vector of validators stakes changes
+   */
+  std::vector<PillarBlock::ValidatorStakeChange> getOrderedValidatorsStakesChanges(EthBlockNumber block) const;
+
+ private:
   std::shared_ptr<DbStorage> db_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
@@ -89,6 +99,8 @@ class PillarChainManager {
 
   // Last processed pillar block
   // TODO: might be just atomic hash
+  // TODO: !!! Important to load last pillar block from db on restart etc... If not, pillar chain mgr will not work
+  // properly
   std::shared_ptr<PillarBlock> last_pillar_block_;
 
   // 2t+1 threshold for last pillar block period
