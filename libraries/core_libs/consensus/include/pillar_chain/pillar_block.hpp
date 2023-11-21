@@ -26,9 +26,8 @@ class PillarBlock {
   };
 
  public:
-  // TODO: use real merkle root
-  PillarBlock(PbftPeriod period, blk_hash_t epoch_blocks_merkle_root,
-              std::vector<ValidatorStakeChange>&& validator_stakes_changes, blk_hash_t previous_pillar_block_hash);
+  PillarBlock(PbftPeriod period, h256 state_root, std::vector<ValidatorStakeChange>&& validator_stakes_changes,
+              blk_hash_t previous_pillar_block_hash);
 
   /**
    * @return pillar block hash
@@ -50,8 +49,8 @@ class PillarBlock {
   // Pillar block pbft period
   PbftPeriod period_;
 
-  // TODO: replace with actual merkle root
-  blk_hash_t epoch_blocks_merkle_root_{0};
+  // Pbft block(for period_) state root
+  h256 state_root{};
 
   // Delta change of validators stakes between current and latest pillar block
   std::vector<ValidatorStakeChange> validators_stakes_changes_{};

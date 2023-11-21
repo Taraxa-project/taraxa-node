@@ -14,11 +14,11 @@ dev::bytes PillarBlock::ValidatorStakeChange::getRlp() const {
   return s.invalidate();
 }
 
-PillarBlock::PillarBlock(PbftPeriod period, blk_hash_t epoch_blocks_merkle_root,
+PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
                          std::vector<ValidatorStakeChange>&& validator_stakes_changes,
                          PillarBlock::Hash previous_pillar_block_hash)
     : period_(period),
-      epoch_blocks_merkle_root_(epoch_blocks_merkle_root),
+      state_root(state_root),
       validators_stakes_changes_(std::move(validator_stakes_changes)),
       previous_pillar_block_hash_(previous_pillar_block_hash),
       kCachedHash(dev::sha3(getRlp())) {}
@@ -26,7 +26,7 @@ PillarBlock::PillarBlock(PbftPeriod period, blk_hash_t epoch_blocks_merkle_root,
 dev::bytes PillarBlock::getRlp() const {
   dev::RLPStream s(4);
   s << period_;
-  s << epoch_blocks_merkle_root_;
+  s << state_root;
   s << previous_pillar_block_hash_;
 
   s.appendList(validators_stakes_changes_.size());
