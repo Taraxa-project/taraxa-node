@@ -34,11 +34,18 @@ class PillarChainManager {
                      const libff::alt_bn128_Fr& bls_secret_key, addr_t node_addr);
 
   /**
-   * @Process new final block
+   * @Process Creates new pillar block and broadcasts bls signature
    *
    * @param block_data
    */
-  void newFinalBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
+  void createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
+
+  /**
+   * @brief Check if there is 2t+1 BLS signatures for latest pillar block. If not, request them
+   *
+   * @param block_num - current block number
+   */
+  void checkTwoTPlusOneBlsSignatures(EthBlockNumber block_num) const;
 
   /**
    * @brief Set network as a weak pointer
@@ -122,12 +129,13 @@ class PillarChainManager {
   // Nodes start to broadcast BLS signatures for pillar blocks with small delay to make sure that
   // all up-to-date nodes already processed the pillar block
   // TODO: validation: kBlsSigBroadcastDelayBlocks should be way smaller than kEpochBlocksNum
-  static constexpr uint16_t kBlsSigBroadcastDelayBlocks = 5;
+  // TODO: remove - broadcast signature right away
+  // static constexpr uint16_t kBlsSigBroadcastDelayBlocks = 5;
 
   // How often to check if node has 2t+1 bls signature for the latest pillar block & potentially trigger syncing
   // TODO: validation: kCheckLatestBlockBlsSigs should be way smaller than kEpochBlocksNum and bigger than
   // kBlsSigBroadcastDelayBlocks
-  static constexpr uint16_t kCheckLatestBlockBlsSigs = 10;
+  static constexpr uint16_t kCheckLatestBlockBlsSigs = 25;
 
   LOG_OBJECTS_DEFINE
 };
