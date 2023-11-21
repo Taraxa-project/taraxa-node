@@ -326,11 +326,17 @@ void FullNode::start() {
         },
         subscription_pool_);
 
-  // TODO: send new block to pillar chain for processing
   final_chain_->block_finalized_.subscribe(
-      [pillar_chain_weak = as_weak(pillar_chain_)](const auto &res) {
+      [pillar_block_periods = conf_.genesis.state.hardforks.ficus_hf.pillar_block_periods,
+       pillar_chain_weak = as_weak(pillar_chain_)](const auto &res) {
         if (auto pillar_chain = pillar_chain_weak.lock()) {
-          pillar_chain->newFinalBlock(res);
+          const auto block_num = res->final_chain_blk->number;
+
+          if (block_num % pillar_block_periods == 0) {
+            pillar_chain->createPillarBlock(res);
+          } else {
+            pillar_chain->checkTwoTPlusOneBlsSignatures(block_num);
+          }
         }
       },
       subscription_pool_);
