@@ -29,6 +29,19 @@ void dec_json(const Json::Value& json, MagnoliaHardfork& obj) {
 }
 RLP_FIELDS_DEFINE(MagnoliaHardfork, block_num, jail_time)
 
+Json::Value enc_json(const FicusHardfork& obj) {
+  Json::Value json(Json::objectValue);
+  json["block_num"] = dev::toJS(obj.block_num);
+  json["pillar_block_periods"] = dev::toJS(obj.pillar_block_periods);
+  return json;
+}
+
+void dec_json(const Json::Value& json, FicusHardfork& obj) {
+  obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
+  obj.pillar_block_periods = dev::getUInt(json["pillar_block_periods"]);
+}
+RLP_FIELDS_DEFINE(FicusHardfork, block_num, pillar_block_periods)
+
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
@@ -44,7 +57,7 @@ Json::Value enc_json(const HardforksConfig& obj) {
   }
 
   json["magnolia_hf"] = enc_json(obj.magnolia_hf);
-  json["ficus_hf_block_num"] = dev::toJS(obj.ficus_hf_block_num);
+  json["ficus_hf"] = enc_json(obj.ficus_hf);
 
   return json;
 }
@@ -70,9 +83,8 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
     dec_json(e, obj.magnolia_hf);
   }
 
-  obj.ficus_hf_block_num =
-      json["ficus_hf_block_num"].isUInt64() ? dev::getUInt(json["ficus_hf_block_num"]) : uint64_t(-1);
+  dec_json(json["ficus_hf"], obj.ficus_hf);
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
-                  ficus_hf_block_num)
+                  ficus_hf)

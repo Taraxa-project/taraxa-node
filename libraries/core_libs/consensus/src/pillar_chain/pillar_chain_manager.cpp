@@ -31,31 +31,28 @@ PillarChainManager::PillarChainManager(std::shared_ptr<DbStorage> db,
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
 
-void PillarChainManager::newFinalBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data) {
+void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data) {
   const auto block_num = block_data->final_chain_blk->number;
+
   // There should always be last_pillar_block_, except for the very first pillar block
   assert(block_num <= kEpochBlocksNum || last_pillar_block_);
 
-  // TODO: add each final block to final blocks merkle tree
-  const auto epoch_blocks_merkle_root = block_data->final_chain_blk->hash;
+  // TODO: this will not work for light node
+  // Get validators stakes changes between the current and previous pillar block
+  auto stakes_changes = getOrderedValidatorsStakesChanges(block_num);
 
-  // Create pillar block and broadcast BLS signature
-  if (block_num % kEpochBlocksNum == 0) {
-    // TODO: this will not work for light node
-    // Get validators stakes changes between the current and previous pillar block
-    auto stakes_changes = getOrderedValidatorsStakesChanges(block_num);
+  const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root,
+                                                          std::move(stakes_changes), last_pillar_block_->getHash());
 
-    const auto pillar_block = std::make_shared<PillarBlock>(block_num, epoch_blocks_merkle_root,
-                                                            std::move(stakes_changes), last_pillar_block_->getHash());
+  // Get 2t+1 threshold
+  // Note: do not use signature->getPeriod() - 1 as in votes processing - signature are made after the block is
+  // finalized, not before as votes
+  const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(block_num, PbftVoteTypes::cert_vote);
+  // getPbftTwoTPlusOne returns empty optional only when requested period is too far ahead and that should never
+  // happen as newFinalBlock is triggered only after the block is finalized
+  assert(two_t_plus_one.has_value());
 
-    // Get 2t+1 threshold
-    // Note: do not use signature->getPeriod() - 1 as in votes processing - signature are made after the block is
-    // finalized, not before as votes
-    const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(pillar_block->getPeriod(), PbftVoteTypes::cert_vote);
-    // getPbftTwoTPlusOne returns empty optional only when requested period is too far ahead and that should never
-    // happen as newFinalBlock is triggered only after the block is finalized
-    assert(two_t_plus_one.has_value());
-
+  {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
     last_pillar_block_ = pillar_block;
     last_pillar_block_signatures_.clear();
@@ -63,59 +60,70 @@ void PillarChainManager::newFinalBlock(const std::shared_ptr<final_chain::Finali
     if (two_t_plus_one.has_value()) [[likely]] {
       last_pillar_block_two_t_plus_one_ = *two_t_plus_one;
     }
+  }
 
+  // Create and broadcast own bls signature
+  // TODO: do not create & gossip own sig or request other signatures if the node is in syncing state
+
+  // Check if node is eligible validator
+  try {
+    if (!final_chain_->dpos_is_eligible(block_num, node_addr_)) {
+      return;
+    }
+  } catch (state_api::ErrFutureBlock& e) {
+    assert(false);  // This should never happen as newFinalBlock is triggered after the new block is finalized
     return;
   }
 
-  // TODO: do not create & gossip own sig or request other signatures if the node is in syncing state
-  // Create and broadcast own bls signature
-  if (block_num % (kEpochBlocksNum + kBlsSigBroadcastDelayBlocks) == 0) {
-    // Check if node is eligible validator
-    try {
-      if (!final_chain_->dpos_is_eligible(block_num, node_addr_)) {
-        return;
-      }
-    } catch (state_api::ErrFutureBlock& e) {
-      assert(false);  // This should never happen as newFinalBlock is triggered after the new block is finalized
-      return;
-    }
+  if (!key_manager_->getBlsKey(block_num, node_addr_)) {
+    LOG(log_er_) << "No bls public key registered in dpos contract !";
+    return;
+  }
 
-    if (!key_manager_->getBlsKey(block_num, node_addr_)) {
-      LOG(log_er_) << "No bls public key registered in dpos contract !";
-      return;
-    }
+  // Creates bls signature
+  // TODO: maybe dont use the delay and accept signatures with right period ???
+  std::shared_ptr<BlsSignature> signature;
+  {
+    // TODO: pillar_block can be used instead of last_pillar_block_ -> no lock needed ?
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    signature = std::make_shared<BlsSignature>(last_pillar_block_->getHash(), block_num, node_addr_, kBlsSecretKey);
+  }
 
-    // Create and broadcast bls signature with kBlsSigBroadcastDelayBlocks delay to make sure other up-to-date nodes
-    // already processed the latest pillar block
-    // TODO: maybe dont use the delay and accept signatures with right period ???
-    std::shared_ptr<BlsSignature> signature;
-    {
-      std::shared_lock<std::shared_mutex> lock(mutex_);
-      signature = std::make_shared<BlsSignature>(last_pillar_block_->getHash(), block_num, node_addr_, kBlsSecretKey);
-    }
-
-    addVerifiedBlsSig(signature);
-
+  // Broadcasts bls signature
+  if (addVerifiedBlsSig(signature)) {
     if (auto net = network_.lock()) {
       net->gossipBlsSignature(signature);
     }
+  }
+}
 
+void PillarChainManager::checkTwoTPlusOneBlsSignatures(EthBlockNumber block_num) const {
+  // Perform the check only every kCheckLatestBlockBlsSigs blocks
+  if (block_num % kCheckLatestBlockBlsSigs != 0) {
     return;
   }
 
-  // Check (& request) 2t+1 signatures
-  // TODO: fix bls sigs requesting - do it every N blocks after pillar block was created
-  if (block_num % kCheckLatestBlockBlsSigs == 0) {
-    PillarBlock::Hash last_pillar_block_hash;
-    {
-      std::shared_lock<std::shared_mutex> lock(mutex_);
-      last_pillar_block_hash = last_pillar_block_->getHash();
+  PillarBlock::Hash last_pillar_block_hash;
+  {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+
+    // No last pillar block registered... This should happen only before the first pillar block is created
+    if (!last_pillar_block_) [[unlikely]] {
+      return;
     }
 
-    // TODO: Request signature only if node does not have 2t+1 bls signatures
-    if (auto net = network_.lock()) {
-      net->requestBlsSigBundle(last_pillar_block_hash);
+    // Check 2t+1 signatures
+    if (last_pillar_block_signatures_weight_ >= last_pillar_block_two_t_plus_one_) {
+      // There is >= 2t+1 bls signatures
+      return;
     }
+
+    last_pillar_block_hash = last_pillar_block_->getHash();
+  }
+
+  // There is < 2t+1 bls signatures, request it
+  if (auto net = network_.lock()) {
+    net->requestBlsSigBundle(last_pillar_block_hash);
   }
 }
 

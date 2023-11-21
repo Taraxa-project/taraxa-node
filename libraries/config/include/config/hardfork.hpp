@@ -23,6 +23,15 @@ struct MagnoliaHardfork {
 Json::Value enc_json(const MagnoliaHardfork& obj);
 void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 
+struct FicusHardfork {
+  uint64_t block_num = -1;
+  uint64_t pillar_block_periods = 0;  // number of blocks
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const FicusHardfork& obj);
+void dec_json(const Json::Value& json, FicusHardfork& obj);
+
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
@@ -51,7 +60,7 @@ struct HardforksConfig {
   MagnoliaHardfork magnolia_hf;
 
   // Ficus hardfork: implementation of pillar block & bls signatures required for bridge
-  uint64_t ficus_hf_block_num = -1;
+  FicusHardfork ficus_hf;
 
   HAS_RLP_FIELDS
 };
