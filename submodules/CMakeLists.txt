@@ -84,11 +84,11 @@ add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} &
 # Add taraxa-evm
 set(EVM_BUILD_DIR ${BUILD_DIR_PREFIX}/taraxa-evm)
 ## add include of libs
-set(EVM_BUILD_INCLUDE -I${CONAN_INCLUDE_DIRS_ROCKSDB})
+set(EVM_BUILD_INCLUDE -I${rocksdb_SOURCE_DIR}/include)
 ## set C flags
 set(EVM_BUILD_CGO_CFLAGS -O3 ${EVM_BUILD_INCLUDE})
 ## add link of libs
-set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb -L${CONAN_LIB_DIRS_LZ4} -llz4)
+set(EVM_BUILD_LD -L${CMAKE_BINARY_DIR}/lib -lrocksdb -L${CONAN_LIB_DIRS_LZ4} -llz4)
 ## if we need full static build use flag
 if(TARAXA_STATIC_BUILD)
     if (NOT APPLE)
@@ -126,6 +126,7 @@ add_custom_command(
     COMMENT "Building taraxa-evm library")
 
 add_custom_target(taraxa_evm_build DEPENDS ${EVM_BUILD_DIR}/lib/${EVM_LIBRARY_NAME})
+add_dependencies(taraxa_evm_build rocksdb)
 
 add_library(taraxa-evm INTERFACE)
 add_dependencies(taraxa-evm taraxa_evm_build)
