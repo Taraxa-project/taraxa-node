@@ -484,6 +484,24 @@ commands:
               docker push taraxa/${IMAGE}:${RC_TAG}
             fi
 
+  push_builder:
+    description: Push images to Docker Hub (builder)
+    steps:
+      - run:
+          name: Login into Docker Hub
+          command: |
+            echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+
+      - run:
+          name: Push Images
+          command: |
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
+              docker push taraxa/${IMAGE}:${TAG}
+              docker push taraxa/${IMAGE}:latest
+            else
+              docker push taraxa/${IMAGE}:${VERSION}
+            fi
 
   test:
     description: Run tests
@@ -734,7 +752,7 @@ jobs:
           command: |
             docker history taraxa-builder:${VERSION}
       - tag_builder
-      - push_dockerhub
+      - push_builder
 
 
   release-docker-image:
