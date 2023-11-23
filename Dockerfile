@@ -27,7 +27,6 @@ RUN cd $BUILD_OUTPUT_DIR && make -j$(nproc) all \
 
 # Set LD_LIBRARY_PATH so taraxad binary finds shared libs
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/taraxa/$BUILD_OUTPUT_DIR/lib/
 
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
