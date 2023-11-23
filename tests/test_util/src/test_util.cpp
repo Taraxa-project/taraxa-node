@@ -211,7 +211,7 @@ NodesTest::NodesTest() {
         taraxa::NodeConfig{"7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e9"
                            "20e14b57a259a09c41767dd50d1da27b627412a",
                            "127.0.0.1", 10003});
-    cfg.genesis.state.hardforks.ficus_hf_block_num = 0;
+    cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfgs.emplace_back(cfg);
   }
   node_cfgs.front().node_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd");
@@ -291,7 +291,7 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
     }
 
     std::optional<libff::alt_bn128_G2> bls_key;
-    if (cfg.genesis.state.hardforks.ficus_hf_block_num == 0) {
+    if (cfg.genesis.state.hardforks.ficus_hf.block_num == 0) {
       bls_key = getBlsPublicKey(cfg.bls_secret);
     }
 
