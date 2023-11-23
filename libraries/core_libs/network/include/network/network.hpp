@@ -71,9 +71,10 @@ class Network {
   /**
    * @brief Request bls signatures bundle packet from random peer
    *
+   * @param period
    * @param pillar_block_hash
    */
-  void requestBlsSigBundle(const PillarBlock::Hash &pillar_block_hash);
+  void requestBlsSigBundle(PbftPeriod period, const PillarBlock::Hash &pillar_block_hash);
 
   // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>

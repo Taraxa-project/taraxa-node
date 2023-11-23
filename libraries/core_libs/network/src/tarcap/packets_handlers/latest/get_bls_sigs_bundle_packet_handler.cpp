@@ -21,12 +21,12 @@ void GetBlsSigsBundlePacketHandler::validatePacketRlpFormat(
 
 void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                             const std::shared_ptr<TaraxaPeer> &peer) {
-  // TODO: use without [0] ?
-  const PillarBlock::Hash pillar_block_hash = packet_data.rlp_[0].toHash<PillarBlock::Hash>();
+  const PbftPeriod period = packet_data.rlp_[0].toInt();
+  const PillarBlock::Hash pillar_block_hash = packet_data.rlp_[1].toHash<PillarBlock::Hash>();
 
-  const auto signatures = pillar_chain_manager_->getVerifiedBlsSignatures(pillar_block_hash);
+  const auto signatures = pillar_chain_manager_->getVerifiedBlsSignatures(period, pillar_block_hash);
   if (signatures.empty()) {
-    LOG(log_dg_) << "No BLS signatures for " << pillar_block_hash;
+    LOG(log_dg_) << "No BLS signatures for period " << period << "and pillar block hash " << pillar_block_hash;
     return;
   }
 
@@ -45,14 +45,15 @@ void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet
   }
 }
 
-void GetBlsSigsBundlePacketHandler::requestBlsSigsBundle(const PillarBlock::Hash &pillar_block_hash,
+void GetBlsSigsBundlePacketHandler::requestBlsSigsBundle(PbftPeriod period, const PillarBlock::Hash &pillar_block_hash,
                                                          const std::shared_ptr<TaraxaPeer> &peer) {
-  dev::RLPStream s(1);
+  dev::RLPStream s(2);
+  s << period;
   s << pillar_block_hash;
 
   sealAndSend(peer->getId(), SubprotocolPacketType::GetBlsSigsBundlePacket, std::move(s));
-  LOG(log_dg_) << "Requested BLS signatures bundle for pillar block " << pillar_block_hash << " from peer "
-               << peer->getId();
+  LOG(log_dg_) << "Requested BLS signatures bundle for period " << period << " and pillar block " << pillar_block_hash
+               << " from peer " << peer->getId();
 }
 
 }  // namespace taraxa::network::tarcap
