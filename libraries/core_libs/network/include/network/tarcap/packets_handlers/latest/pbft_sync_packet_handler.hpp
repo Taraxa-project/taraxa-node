@@ -30,6 +30,8 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
   void pbftSyncComplete();
   void delayedPbftSync(int counter);
 
+  static constexpr uint32_t kDelayedPbftSyncDelayMs = 10;
+
   std::shared_ptr<VoteManager> vote_mgr_;
   util::ThreadPool periodic_events_tp_;
 

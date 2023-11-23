@@ -1444,7 +1444,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
 
     if (pushPbftBlock_(std::move(period_data.first), std::move(period_data.second))) {
       LOG(log_dg_) << "Pushed synced PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
-      net->setSyncStatePeriod(pbft_block_period);
+      net->setSyncStatePeriod(pbftSyncingPeriod());
     } else {
       LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
       break;
