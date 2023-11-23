@@ -10,15 +10,15 @@
   },
   "dpos": {
     "delegation_delay": "0x5",
-    "delegation_locking_period": "0x5",
-    "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
-    "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
-    "validator_maximum_stake": "0x84595161401484A000000",
-    "minimum_deposit": "0x0",
+    "delegation_locking_period": "0x5460",
+    "eligibility_balance_threshold": "0x69E10DE76676D0800000",
+    "vote_eligibility_balance_step": "0x3635C9ADC5DEA00000",
+    "validator_maximum_stake": "0x422CA8B0A00A4250000000",
+    "minimum_deposit": "0x3635C9ADC5DEA00000",
     "max_block_author_reward": "0x5",
     "dag_proposers_reward": "0x32",
-    "commission_change_delta": "0x0",
-    "commission_change_frequency": "0x0",
+    "commission_change_delta": "0x1F4",
+    "commission_change_frequency": "0x1C814",
     "yield_percentage": "0x14",
     "initial_validators": [
       {
@@ -28,7 +28,7 @@
         "endpoint": "",
         "description": "Taraxa validator 1",
         "delegations": {
-          "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+          "0xee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x84595161401484a000000"
         },
         "vrf_key": "05fe580fd2d461ee5f762a33bbe669403bb04a851f2e9ed8d2579a9c9b77c3ec"
       },
@@ -39,7 +39,7 @@
         "endpoint": "",
         "description": "Taraxa validator 2",
         "delegations": {
-          "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+          "0xee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x84595161401484a000000"
         },
         "vrf_key": "70d34c86787e5f7bd0f266cad291cb521e23176fa37c6efc034858a1620ac69e"
       },
@@ -50,7 +50,7 @@
         "endpoint": "",
         "description": "Taraxa validator 3",
         "delegations": {
-          "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+          "0xee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x84595161401484a000000"
         },
         "vrf_key": "f8d5c00ce9fa3058341e051b36a1e6ccf69df81fb865568b2bf1507d085691e2"
       }
@@ -59,7 +59,8 @@
   "initial_balances": {
     "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
     "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x27e72f1f12813088000000",
-    "fF310642f352E0b6b5266CE492e91D6af1241F41": "0x27e72f1f12813088000000"
+    "fF310642f352E0b6b5266CE492e91D6af1241F41": "0x27e72f1f12813088000000",
+    "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x1027e72f1f12813088000000"
   },
   "gas_price": {
     "blocks": 200,
