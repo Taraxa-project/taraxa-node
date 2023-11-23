@@ -29,6 +29,20 @@ class FinalChain;
  */
 class PillarChainManager {
  public:
+  struct BlsSignatures {
+    struct PillarBlockBlsSignatures {
+      std::unordered_map<BlsSignature::Hash, std::shared_ptr<BlsSignature>> signatures;
+      uint64_t weight{0};  // Signatures weight
+    };
+
+    std::unordered_map<PillarBlock::Hash, PillarBlockBlsSignatures> pillar_block_signatures;
+    std::unordered_map<addr_t, BlsSignature::Hash> unique_signers;
+
+    // 2t+1 threshold for pillar block period
+    uint64_t two_t_plus_one{0};
+  };
+
+ public:
   PillarChainManager(std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
                      std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
                      const libff::alt_bn128_Fr& bls_secret_key, addr_t node_addr);
@@ -62,6 +76,14 @@ class PillarChainManager {
   bool isRelevantBlsSig(const std::shared_ptr<BlsSignature> signature) const;
 
   /**
+   * @brief Checks if signature is unique per period & validator (signer)
+   *
+   * @param signature
+   * @return true if unique, otherwise false
+   */
+  bool isUniqueBlsSig(const std::shared_ptr<BlsSignature> signature) const;
+
+  /**
    * @brief Validates bls signature
    *
    * @param signature
@@ -79,9 +101,14 @@ class PillarChainManager {
 
   /**
    * @brief Get all bls signatures for specified pillar block
-   * @return all bls signatures
+   *
+   * @param period
+   * @param pillar_block_hash
+   *
+   * @return all bls signatures for specified period and pillar block hash
    */
-  std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(const PillarBlock::Hash pillar_block_hash) const;
+  std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(PbftPeriod period,
+                                                                      const PillarBlock::Hash pillar_block_hash) const;
 
  private:
   /**
@@ -106,35 +133,22 @@ class PillarChainManager {
 
   // Last processed pillar block
   // TODO: might be just atomic hash
-  // TODO: !!! Important to load last pillar block from db on restart etc... If not, pillar chain mgr will not work
-  // properly
+  // TODO: !!! Important to load last pillar block from db in ctor (on restart etc...) If not, pillar chain mgr will not
+  // work properly
   std::shared_ptr<PillarBlock> last_pillar_block_;
 
-  // 2t+1 threshold for last pillar block period
-  uint64_t last_pillar_block_two_t_plus_one_;
+  // Bls signatures for last_pillar_block_.period and potential +1 future pillar block period
+  std::map<PbftPeriod, BlsSignatures> bls_signatures_;
 
-  // Last processed pillar block signatures
-  std::unordered_map<BlsSignature::Hash, std::shared_ptr<BlsSignature>> last_pillar_block_signatures_;
-
-  // Last processed pillar block signatures weight
-  uint64_t last_pillar_block_signatures_weight_;
-
-  // Protects last_pillar_block_ & last_pillar_block_signatures_ & last_pillar_block_signatures_weight_
+  // Protects last_pillar_block_ & bls_signatures
   mutable std::shared_mutex mutex_;
 
   // How often is pillar block created
-  // TODO: put in config
+  // TODO: use from config
   static constexpr uint16_t kEpochBlocksNum = 100;
 
-  // Nodes start to broadcast BLS signatures for pillar blocks with small delay to make sure that
-  // all up-to-date nodes already processed the pillar block
-  // TODO: validation: kBlsSigBroadcastDelayBlocks should be way smaller than kEpochBlocksNum
-  // TODO: remove - broadcast signature right away
-  // static constexpr uint16_t kBlsSigBroadcastDelayBlocks = 5;
-
   // How often to check if node has 2t+1 bls signature for the latest pillar block & potentially trigger syncing
-  // TODO: validation: kCheckLatestBlockBlsSigs should be way smaller than kEpochBlocksNum and bigger than
-  // kBlsSigBroadcastDelayBlocks
+  // TODO: validation: kCheckLatestBlockBlsSigs should be way smaller than kEpochBlocksNum
   static constexpr uint16_t kCheckLatestBlockBlsSigs = 25;
 
   LOG_OBJECTS_DEFINE
