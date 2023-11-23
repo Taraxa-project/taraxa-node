@@ -334,7 +334,7 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
   return max_chain_peer;
 }
 
-void Network::requestBlsSigBundle(const PillarBlock::Hash &pillar_block_hash) {
+void Network::requestBlsSigBundle(PbftPeriod period, const PillarBlock::Hash &pillar_block_hash) {
   for (const auto &tarcap : tarcaps_) {
     // Try to get most up-to-date peer
     const auto peer =
@@ -346,7 +346,7 @@ void Network::requestBlsSigBundle(const PillarBlock::Hash &pillar_block_hash) {
 
     // TODO: is it good enough to request it just from 1 peer without knowing if he has all of the signatures ?
     tarcap.second->getSpecificHandler<network::tarcap::GetBlsSigsBundlePacketHandler>()->requestBlsSigsBundle(
-        pillar_block_hash, peer);
+        period, pillar_block_hash, peer);
   }
 }
 

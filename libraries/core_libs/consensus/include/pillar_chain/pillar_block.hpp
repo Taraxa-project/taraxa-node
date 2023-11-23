@@ -47,15 +47,15 @@ class PillarBlock {
 
  private:
   // Pillar block pbft period
-  PbftPeriod period_;
+  const PbftPeriod period_{0};
 
   // Pbft block(for period_) state root
-  h256 state_root{};
+  const h256 state_root{};
 
   // Delta change of validators stakes between current and latest pillar block
-  std::vector<ValidatorStakeChange> validators_stakes_changes_{};
+  const std::vector<ValidatorStakeChange> validators_stakes_changes_{};
 
-  Hash previous_pillar_block_hash_{0};
+  const Hash previous_pillar_block_hash_{0};
 
   const Hash kCachedHash;
 };
