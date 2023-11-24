@@ -23,12 +23,31 @@ struct MagnoliaHardfork {
 Json::Value enc_json(const MagnoliaHardfork& obj);
 void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 
-struct AspenHardfork {
+struct AspenHfPartOne {
+  uint64_t block_num = -1;
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const AspenHfPartOne& obj);
+void dec_json(const Json::Value& json, AspenHfPartOne& obj);
+
+struct AspenHfPartTwo {
   uint64_t block_num = -1;
   taraxa::uint256_t max_supply{"0x26C62AD77DC602DAE0000000"};  // 12 Billion
   // total generated rewards from block 1 to block_num
   // It is partially estimated for blocks between the aspen hf release block and actual aspen hf block_num
   taraxa::uint256_t generated_rewards{0};
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const AspenHfPartTwo& obj);
+void dec_json(const Json::Value& json, AspenHfPartTwo& obj);
+
+struct AspenHardfork {
+  // Part 1 prepares db data that are required for part 2 to be functional
+  AspenHfPartOne part_one;
+  // Part 2 implements new yield curve
+  AspenHfPartTwo part_two;
 
   HAS_RLP_FIELDS
 };
