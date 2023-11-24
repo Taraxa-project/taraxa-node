@@ -29,7 +29,18 @@ void dec_json(const Json::Value& json, MagnoliaHardfork& obj) {
 }
 RLP_FIELDS_DEFINE(MagnoliaHardfork, block_num, jail_time)
 
-Json::Value enc_json(const AspenHardfork& obj) {
+Json::Value enc_json(const AspenHfPartOne& obj) {
+  Json::Value json(Json::objectValue);
+  json["block_num"] = dev::toJS(obj.block_num);
+  return json;
+}
+
+void dec_json(const Json::Value& json, AspenHfPartOne& obj) {
+  obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
+}
+RLP_FIELDS_DEFINE(AspenHfPartOne, block_num)
+
+Json::Value enc_json(const AspenHfPartTwo& obj) {
   Json::Value json(Json::objectValue);
   json["block_num"] = dev::toJS(obj.block_num);
   json["max_supply"] = dev::toJS(obj.max_supply);
@@ -37,12 +48,25 @@ Json::Value enc_json(const AspenHardfork& obj) {
   return json;
 }
 
-void dec_json(const Json::Value& json, AspenHardfork& obj) {
+void dec_json(const Json::Value& json, AspenHfPartTwo& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
   obj.max_supply = dev::jsToU256(json["max_supply"].asString());
   obj.generated_rewards = dev::jsToU256(json["generated_rewards"].asString());
 }
-RLP_FIELDS_DEFINE(AspenHardfork, block_num, max_supply, generated_rewards)
+RLP_FIELDS_DEFINE(AspenHfPartTwo, block_num, max_supply, generated_rewards)
+
+Json::Value enc_json(const AspenHardfork& obj) {
+  Json::Value json(Json::objectValue);
+  json["part_one"] = enc_json(obj.part_one);
+  json["part_two"] = enc_json(obj.part_two);
+  return json;
+}
+
+void dec_json(const Json::Value& json, AspenHardfork& obj) {
+  dec_json(json["part_one"], obj.part_one);
+  dec_json(json["part_two"], obj.part_two);
+}
+RLP_FIELDS_DEFINE(AspenHardfork, part_one, part_two)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
