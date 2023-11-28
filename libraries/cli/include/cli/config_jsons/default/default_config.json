@@ -34,7 +34,7 @@
     "sync_level_size": 25,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
-    "deep_syncing_threshold": 10,
+    "deep_syncing_threshold": 50,
     "boot_nodes": [
     ]
   },
