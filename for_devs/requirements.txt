@@ -7,7 +7,7 @@ certifi==2023.7.22
 chardet==4.0.0
 click==8.0.1
 cytoolz==0.11.0
-eth-abi==2.1.1
+eth-abi==4.2.0
 eth-account==0.5.9
 eth-hash==0.3.1
 eth-keyfile==0.5.1
