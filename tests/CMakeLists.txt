@@ -112,6 +112,7 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${GO_TEST_SCRIPT}
 file(WRITE ${GO_TEST_SCRIPT}
 "#!/bin/bash
 cd ${CMAKE_SOURCE_DIR}/submodules/taraxa-evm/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CMAKE_BINARY_DIR}/lib
 export ${EVM_BUILD_ENV_STRING}
 go test ./..."
 )

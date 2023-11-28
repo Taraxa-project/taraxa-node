@@ -1,4 +1,4 @@
-aiohttp==3.8.5
+aiohttp==3.8.6
 async-timeout==3.0.1
 attrs==21.2.0
 base58==2.1.0
@@ -32,7 +32,7 @@ rlp==2.0.1
 six==1.16.0
 toolz==0.11.1
 typing-extensions==3.10.0.0
-urllib3==1.26.5
+urllib3==1.26.18
 varint==1.0.2
 web3==5.20.0
 websockets==8.1
