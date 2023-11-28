@@ -19,7 +19,6 @@ class TaraxaConan(ConanFile):
         self.requires("cryptopp/8.7.0")
         self.requires("gtest/1.14.0")
         self.requires("lz4/1.9.4")
-        self.requires("rocksdb/6.29.5")
         self.requires("prometheus-cpp/1.1.0")
         self.requires("jsoncpp/1.9.5")
 
@@ -61,8 +60,6 @@ class TaraxaConan(ConanFile):
         self.options["gtest"].build_gmock = False
         # this links cppcheck to prce library
         self.options["cppcheck"].have_rules = False
-        self.options["rocksdb"].use_rtti = True
-        self.options["rocksdb"].with_lz4 = True
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
 
