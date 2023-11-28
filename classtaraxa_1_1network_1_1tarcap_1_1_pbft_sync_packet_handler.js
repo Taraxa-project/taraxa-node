@@ -9,6 +9,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler =
     [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aebd34946803c22de53ac28291378910a", null ],
     [ "validatePacketRlpFormat", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#afc51445649de8728518ebc123a8edcd8", null ],
     [ "kChainSyncedPacketSize", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a307897cbbc80fec08f494e95ceae3b01", null ],
+    [ "kDelayedPbftSyncDelayMs", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a53f27a56a3e96fef9808b008e52382cb", null ],
     [ "kPacketType_", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aab076aac8ccb972af61d6fa6aa80759b", null ],
     [ "kStandardPacketSize", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a873c967fbda707c00a691333d84808e4", null ],
     [ "periodic_events_tp_", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a39a047abf54b401f19ddaa5793758d44", null ],

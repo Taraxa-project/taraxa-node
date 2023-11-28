@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"namespacetaraxa.html#ace279b5bb50e6cdeb99932ac0a0f3416":[16,0,1,3,0,0,5,2,1],
 "namespacetaraxa.html#adf04d5c498c76dd7cd8ec1e713dfb391":[16,0,1,4,0,0,7,0,0,3],
 "namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39":[16,0,1,3,0,0,0,0,3],
 "namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce":[16,0,1,3,0,0,0,0,6],
@@ -8,8 +9,8 @@ var NAVTREEINDEX20 =
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[16,0,1,3,0,0,5,0],
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[16,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[16,0,1,4,0,0,7,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,7,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,7,0,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,7,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[16,0,1,4,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[16,0,1,4,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[16,0,1,4,1,2,0,6,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "state__config_8hpp_source.html":[16,0,1,3,0,0,7],
 "static__init_8hpp.html":[16,0,1,2,0,0,10],
 "static__init_8hpp.html#a72f9ee3b7086152f2ee1cacfce1640fe":[16,0,1,2,0,0,10,0],
-"static__init_8hpp_source.html":[16,0,1,2,0,0,10],
-"status__packet__handler_8cpp.html":[16,0,1,4,1,3,0,0,0,7]
+"static__init_8hpp_source.html":[16,0,1,2,0,0,10]
 };
