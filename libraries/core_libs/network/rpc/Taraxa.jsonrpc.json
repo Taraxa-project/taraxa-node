@@ -64,6 +64,16 @@
     "params": [""],
     "order": [],
     "returns": ""
+  },
+  {
+    "name": "taraxa_getMultiProof",
+    "params": [
+      "",
+      [],
+      ""
+    ],
+    "order": [],
+    "returns": {}
   }
 ]
 

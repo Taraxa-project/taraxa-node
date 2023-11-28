@@ -347,7 +347,7 @@ class EthClient : public jsonrpc::Client {
     p.append(param1);
     p.append(param2);
     p.append(param3);
-    Json::Value result = this->CallMethod("eth_getStorageAt", p);
+    Json::Value result = this->CallMethod("eth_getProof", p);
     if (result.isString())
       return result.asString();
     else

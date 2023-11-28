@@ -29,6 +29,8 @@ class Taraxa : public TaraxaFace {
   virtual std::string taraxa_pbftBlockHashByPeriod(const std::string& _period) override;
   virtual Json::Value taraxa_getConfig() override;
   virtual Json::Value taraxa_getChainStats() override;
+  virtual Json::Value taraxa_getMultiProof(const string& _address, const Json::Value& _keys,
+                                           const Json::Value& _block) override;
 
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;
@@ -38,6 +40,8 @@ class Taraxa : public TaraxaFace {
   Json::Value version;
 
   NodePtr tryGetNode();
+  EthBlockNumber parse_blk_num(const string& blk_num_str);
+  EthBlockNumber get_block_number_from_json(const Json::Value& json);
 };
 
 }  // namespace taraxa::net

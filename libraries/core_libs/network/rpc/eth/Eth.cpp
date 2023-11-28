@@ -506,15 +506,8 @@ class EthImpl : public Eth, EthParams {
     return ret;
   }
 
-  static optional<EthBlockNumber> parse_blk_num_specific(const string& blk_num_str) {
-    if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str == "safe" || blk_num_str == "finalized") {
-      return std::nullopt;
-    }
-    return blk_num_str == "earliest" ? 0 : jsToInt(blk_num_str);
-  }
-
   EthBlockNumber parse_blk_num(const string& blk_num_str) {
-    auto ret = parse_blk_num_specific(blk_num_str);
+    auto ret = taraxa::net::parse_blk_num_specific(blk_num_str);
     return ret ? *ret : final_chain->last_block_number();
   }
 
@@ -544,7 +537,7 @@ class EthImpl : public Eth, EthParams {
       from_block = final_chain->last_block_number();
     }
     if (const auto& toBlock = json["toBlock"]; !toBlock.empty()) {
-      to_block = parse_blk_num_specific(toBlock.asString());
+      to_block = taraxa::net::parse_blk_num_specific(toBlock.asString());
     }
     if (const auto& address = json["address"]; !address.empty()) {
       if (address.isArray()) {

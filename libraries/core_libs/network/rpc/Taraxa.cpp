@@ -9,6 +9,7 @@
 
 #include "dag/dag_manager.hpp"
 #include "json/reader.h"
+#include "multiproofs.hpp"
 #include "network/rpc/eth/data.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -151,6 +152,52 @@ Json::Value Taraxa::taraxa_getChainStats() {
   }
 
   return res;
+}
+
+EthBlockNumber Taraxa::parse_blk_num(const string& blk_num_str) {
+  auto ret = parse_blk_num_specific(blk_num_str);
+  if (ret) {
+    return *ret;
+  } else if (auto node = full_node_.lock()) {
+    return node->getFinalChain()->last_block_number();
+  }
+}
+
+EthBlockNumber Taraxa::get_block_number_from_json(const Json::Value& json) {
+  if (json.isObject()) {
+    if (!json["blockNumber"].empty()) {
+      return parse_blk_num(json["blockNumber"].asString());
+    }
+    if (!json["blockHash"].empty()) {
+      if (auto node = full_node_.lock()) {
+        if (auto ret = node->getFinalChain()->block_number(dev::jsToFixed<32>(json["blockHash"].asString()))) {
+          return *ret;
+        }
+      }
+      throw std::runtime_error("Resource not found");
+    }
+  }
+  return parse_blk_num(json.asString());
+}
+
+Json::Value Taraxa::taraxa_getMultiProof(const string& _address, const Json::Value& _keys, const Json::Value& _block) {
+  const auto block_number = get_block_number_from_json(_block);
+  std::vector<h256> keys;
+  keys.reserve(_keys.size());
+  std::transform(_keys.begin(), _keys.end(), std::back_inserter(keys),
+                 [](const auto& k) { return dev::jsToFixed<32>(k.asString()); });
+  if (auto node = full_node_.lock()) {
+    auto proof = node->getFinalChain()->get_proof(block_number, addr_t(_address), keys);
+    auto proof_json = taraxa::net::rpc::eth::toJson(proof);
+    const auto [acc_index, trie] = generate_multiproof(proof);
+    Json::Value res(Json::objectValue);
+    res["multiproof"] = toJson(trie);
+    res["accountMap"] = taraxa::net::rpc::eth::toJsonArray(acc_index);
+    proof_json["address"] = _address;
+    proof_json["storageProof"] = res;
+    return proof_json;
+  }
+  return Json::Value();
 }
 
 }  // namespace taraxa::net

@@ -27,7 +27,7 @@ PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_
       period_(period),
       beneficiary_(beneficiary),
       reward_votes_(reward_votes) {
-  timestamp_ = dev::utcTime();
+  timestamp_ = time(0);  // current utc time
   signature_ = dev::sign(sk, sha3(false));
   calculateHash_();
   checkUniqueRewardVotes();

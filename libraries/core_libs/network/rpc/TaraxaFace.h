@@ -7,6 +7,7 @@
 
 #include <libweb3jsonrpc/ModularServer.h>
 
+#include "utils.hpp"
 namespace taraxa {
 namespace net {
 class TaraxaFace : public ServerInterface<TaraxaFace> {
@@ -44,6 +45,11 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_pbftBlockHashByPeriod", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::TaraxaFace::taraxa_pbftBlockHashByPeriodI);
+
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getMultiProof", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
+                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_ARRAY, "param3", JSON_ANY, NULL),
+        &taraxa::net::TaraxaFace::taraxa_getMultiProofI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response) {
@@ -82,6 +88,9 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   inline virtual void taraxa_pbftBlockHashByPeriodI(const Json::Value &request, Json::Value &response) {
     response = this->taraxa_pbftBlockHashByPeriod(request[0u].asString());
   }
+  inline virtual void taraxa_getMultiProofI(const Json::Value &request, Json::Value &response) {
+    response = this->taraxa_getMultiProof(request[0u].asString(), request[1u], request[2u]);
+  }
 
   virtual std::string taraxa_protocolVersion() = 0;
   virtual Json::Value taraxa_getVersion() = 0;
@@ -93,6 +102,8 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   virtual Json::Value taraxa_getConfig() = 0;
   virtual Json::Value taraxa_getChainStats() = 0;
   virtual std::string taraxa_pbftBlockHashByPeriod(const std::string &param1) = 0;
+  virtual Json::Value taraxa_getMultiProof(const std::string &param1, const Json::Value &param2,
+                                           const Json::Value &param3) = 0;
 };
 
 }  // namespace net

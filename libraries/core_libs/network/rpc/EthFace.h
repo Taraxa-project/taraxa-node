@@ -7,10 +7,9 @@
 
 #include <libweb3jsonrpc/ModularServer.h>
 
+#include "utils.hpp"
 namespace taraxa {
 namespace net {
-// Please read README
-const int JSON_ANY = 0;
 class EthFace : public ServerInterface<EthFace> {
  public:
   EthFace() {

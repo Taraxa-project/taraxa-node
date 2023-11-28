@@ -40,7 +40,7 @@ DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_t
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
       gas_estimation_(std::move(est)),
-      timestamp_(dev::utcTime()),
+      timestamp_(time(0)),  // Current UTC time
       vdf_(std::move(vdf)) {
   sig_ = dev::sign(sk, sha3(false));
 }
