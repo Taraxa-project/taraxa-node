@@ -94,9 +94,13 @@ class VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
 
   /**
    * @brief Verify VRF sortition
+   *
+   * @param strict strict validation
    * @return true if passed
    */
-  bool verify(const vrf_pk_t& pk) const { return VrfSortitionBase::verify(pk, pbft_msg_.getRlpBytes()); }
+  bool verify(const vrf_pk_t& pk, bool strict = true) const {
+    return VrfSortitionBase::verify(pk, pbft_msg_.getRlpBytes(), 1, strict);
+  }
 
   bool operator==(VrfPbftSortition const& other) const {
     return pbft_msg_ == other.pbft_msg_ && vrf_wrapper::VrfSortitionBase::operator==(other);

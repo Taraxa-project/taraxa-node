@@ -333,4 +333,9 @@ void WsServer::newPendingTransaction(trx_hash_t const &trx_hash) {
   }
 }
 
+uint32_t WsServer::numberOfSessions() {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
+  return sessions.size();
+}
+
 }  // namespace taraxa::net

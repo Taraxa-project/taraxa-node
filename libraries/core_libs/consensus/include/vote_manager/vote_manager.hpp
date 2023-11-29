@@ -180,9 +180,10 @@ class VoteManager {
    * @brief Validates vote
    *
    * @param vote to be validated
+   * @param strict strict validation
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote>& vote, bool strict = true) const;
 
   /**
    * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
