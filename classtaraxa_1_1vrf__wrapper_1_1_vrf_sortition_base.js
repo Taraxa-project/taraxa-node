@@ -6,7 +6,7 @@ var classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base =
     [ "operator==", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a7641113bd46296f25e93fdc3aa0a0521", null ],
     [ "print", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a1b4c859bbeeabf8c3a657333a0b8de63", null ],
     [ "thresholdFromOutput", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a2d060968af1594d11a58c232ac11022c", null ],
-    [ "verify", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a1aa1db36788f9520f693fe0f33c7c422", null ],
+    [ "verify", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ae6c6f54f0fe48669ec83150763093d5c", null ],
     [ "operator<<", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a42f0f1326bee252bb2595857f46228f4", null ],
     [ "output_", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a56388610d05fbabd1b779dde87510b2b", null ],
     [ "proof_", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ad5d2ebb95d8cdffa2c4c2273319af50c", null ],

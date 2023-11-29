@@ -32,7 +32,7 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "saveOwnVerifiedVote", "group___vote.html#ae8e01d0552ee78e7c6c7c88b96840a6c", null ],
     [ "setCurrentPbftPeriodAndRound", "group___vote.html#aad3b0005eb4bf67641018be3db3e1962", null ],
     [ "setNetwork", "group___vote.html#a4f02ca46c944d4c4b207e249eb4a1621", null ],
-    [ "validateVote", "group___vote.html#ab9c76fd16cd8a3a857f6c4c3c0acd3ce", null ],
+    [ "validateVote", "group___vote.html#aa5f8f92269a197cb43fb7992033d555d", null ],
     [ "voteAlreadyValidated", "group___vote.html#a193d24f9eef71f33996cfdd0589a248a", null ],
     [ "voteInVerifiedMap", "group___vote.html#aa0c587e8e6442373845d257b13fa7813", null ],
     [ "already_validated_votes_", "group___vote.html#abfa06d654af953615950305eb24d00b0", null ],

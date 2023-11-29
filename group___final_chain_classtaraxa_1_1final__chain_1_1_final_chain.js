@@ -31,6 +31,7 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
     [ "transactionCount", "group___final_chain.html#a5a66aac1a5470ce24bb4437eb7fb1752", null ],
     [ "transactions", "group___final_chain.html#a30e8d0c8a0085d31299ba486459f670d", null ],
     [ "update_state_config", "group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756", null ],
+    [ "wait_for_finalized", "group___final_chain.html#a3a00aa3275b682ab3ea6af0cefd2a58a", null ],
     [ "withBlockBloom", "group___final_chain.html#ad2a6bb5c605c2add276e34fa1fdfad08", null ],
     [ "block_applying_", "group___final_chain.html#a34e1f0898ade4066d3047e079e77d191", null ],
     [ "block_applying_emitter_", "group___final_chain.html#a754f940f1f13e0ee8ce8b53f55cc6487", null ],

@@ -1,12 +1,13 @@
 var NAVTREEINDEX12 =
 {
+"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ad97840a63e2ea38f4b44d1b3f1475e6c":[15,0,3,10,0,19],
+"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#adce61e332b72402cd70a2c7252d90542":[15,0,3,10,0,22],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ae3eeb84358d8e96ce679aa0610d1e180":[15,0,3,10,0,23],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ae8bd25a0be4f6eb1b5bb4f15971a63af":[15,0,3,10,0,21],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#aee2911fa3d63e88528631183a8e41af3":[15,0,3,10,0,2],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html":[15,0,3,11,0],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a004fe2754a9002b4b51c46becd19730f":[15,0,3,11,0,2],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a19ce2bc4c110b4f08fe0727a56ffb974":[15,0,3,11,0,0],
-"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a1aa1db36788f9520f693fe0f33c7c422":[15,0,3,11,0,6],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a1b4c859bbeeabf8c3a657333a0b8de63":[15,0,3,11,0,4],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a2d060968af1594d11a58c232ac11022c":[15,0,3,11,0,5],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a42f0f1326bee252bb2595857f46228f4":[15,0,3,11,0,7],
@@ -15,6 +16,7 @@ var NAVTREEINDEX12 =
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#abbc35c8fb82056da4dd605e470675435":[15,0,3,11,0,1],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ad14a49dc8baf16ecf7edc8ac5d08218a":[15,0,3,11,0,10],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ad5d2ebb95d8cdffa2c4c2273319af50c":[15,0,3,11,0,9],
+"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ae6c6f54f0fe48669ec83150763093d5c":[15,0,3,11,0,6],
 "cli_2include_2cli_2config_8hpp.html":[16,0,1,1,0,0,0],
 "cli_2include_2cli_2config_8hpp_source.html":[16,0,1,1,0,0,0],
 "cli_2src_2config_8cpp.html":[16,0,1,1,1,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX12 =
 "dir_ea6c053127f18ba1c240c4a868d1807d.html":[16,0,1,7,3],
 "dir_edb7e34652b53c5afb3da386073ea469.html":[16,0,1,4,1,2,0],
 "dir_f0a9d803e2389a89dc70d4681c28fef3.html":[16,0,1,4,1,3,0],
-"dir_f0f6fe1338f36effd660c7494293974c.html":[16,0,1,7,2,1],
-"dir_f45dd31e4ad37b4869c3267d94b29ec5.html":[16,0,1,4,1,1,0,0,0,0,0],
-"dir_f7551ecb51caaf87735ee43ce07dac37.html":[16,0,1,5]
+"dir_f0f6fe1338f36effd660c7494293974c.html":[16,0,1,7,2,1]
 };

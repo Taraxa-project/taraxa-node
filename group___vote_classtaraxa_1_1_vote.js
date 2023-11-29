@@ -26,7 +26,7 @@ var group___vote_classtaraxa_1_1_vote =
     [ "sha3", "group___vote.html#ad1ee3c8e4288b4e166d2aedd9ee325b6", null ],
     [ "toJSON", "group___vote.html#a202fee0792473c18cec0b6374b4c0cff", null ],
     [ "verifyVote", "group___vote.html#a6528bb14bb94e196d5ffb65693acda19", null ],
-    [ "verifyVrfSortition", "group___vote.html#a8ad105bcb6457cd15953cc1cf146b3dd", null ],
+    [ "verifyVrfSortition", "group___vote.html#aa7e93b6f327c65d17fd348b6f08b0d45", null ],
     [ "operator<<", "group___vote.html#a98ee040183ce7e5147bbee2283263cd9", null ],
     [ "blockhash_", "group___vote.html#ac78ef9dfd827f78306480e741808ba91", null ],
     [ "cached_voter_", "group___vote.html#a8c13ad83a1e42c3db9b894ee6882c99c", null ],

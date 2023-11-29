@@ -1094,6 +1094,9 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:a7206ab974911e06f78e50084b1f0f87a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a">prune</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n)=0</td></tr>
 <tr class="memdesc:a7206ab974911e06f78e50084b1f0f87a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prune state db for all blocks older than blk_n.  <a href="group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a">More...</a><br /></td></tr>
 <tr class="separator:a7206ab974911e06f78e50084b1f0f87a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a00aa3275b682ab3ea6af0cefd2a58a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a3a00aa3275b682ab3ea6af0cefd2a58a">wait_for_finalized</a> ()=0</td></tr>
+<tr class="memdesc:a3a00aa3275b682ab3ea6af0cefd2a58a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait until next block is finalized.  <a href="group___final_chain.html#a3a00aa3275b682ab3ea6af0cefd2a58a">More...</a><br /></td></tr>
+<tr class="separator:a3a00aa3275b682ab3ea6af0cefd2a58a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9f46da3a897b3cf463ef9d40d768614"><td class="memItemLeft" align="right" valign="top">virtual std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake">state_api::ValidatorStake</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ad9f46da3a897b3cf463ef9d40d768614">dpos_validators_total_stakes</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const =0</td></tr>
 <tr class="separator:ad9f46da3a897b3cf463ef9d40d768614"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcb9ccbdd87a08842e591ed1c228d66f"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#afcb9ccbdd87a08842e591ed1c228d66f">getBalance</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr) const</td></tr>
@@ -2258,6 +2261,35 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 </dl>
 
 <p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">taraxa::final_chain::FinalChainImpl</a>.</p>
+
+</div>
+</div>
+<a id="a3a00aa3275b682ab3ea6af0cefd2a58a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a00aa3275b682ab3ea6af0cefd2a58a">&#9670;&nbsp;</a></span>wait_for_finalized()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::final_chain::FinalChain::wait_for_finalized </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Wait until next block is finalized. </p>
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab1a01a55286bd3b168086446252b3101">taraxa::final_chain::FinalChainImpl</a>.</p>
 
 </div>
 </div>
