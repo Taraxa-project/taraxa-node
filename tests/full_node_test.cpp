@@ -388,7 +388,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   auto node_cfgs = make_node_cfgs(5, 1, 20);
   for (const auto &cfg : node_cfgs) {
-    std::cout << "cfg.genesis.state.hardforks.ficus_hf_block_num: " << cfg.genesis.state.hardforks.ficus_hf_block_num
+    std::cout << "cfg.genesis.state.hardforks.ficus_hf_block_num: " << cfg.genesis.state.hardforks.ficus_hf.block_num
               << std::endl;
     std::cout << "cfg.bls_secret: " << blsSecretToStr(cfg.bls_secret) << std::endl;
 
