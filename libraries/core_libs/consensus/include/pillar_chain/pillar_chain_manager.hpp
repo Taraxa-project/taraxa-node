@@ -43,9 +43,10 @@ class PillarChainManager {
   };
 
  public:
-  PillarChainManager(std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
-                     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
-                     const libff::alt_bn128_Fr& bls_secret_key, addr_t node_addr);
+  PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
+                     std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<VoteManager> vote_mgr,
+                     std::shared_ptr<KeyManager> key_manager, const libff::alt_bn128_Fr& bls_secret_key,
+                     addr_t node_addr);
 
   /**
    * @Process Creates new pillar block and broadcasts bls signature
@@ -121,6 +122,9 @@ class PillarChainManager {
   std::vector<PillarBlock::ValidatorStakeChange> getOrderedValidatorsStakesChanges(EthBlockNumber block) const;
 
  private:
+  // Node config
+  const FicusHardforkConfig kFicusHfConfig;
+
   std::shared_ptr<DbStorage> db_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
@@ -142,14 +146,6 @@ class PillarChainManager {
 
   // Protects last_pillar_block_ & bls_signatures
   mutable std::shared_mutex mutex_;
-
-  // How often is pillar block created
-  // TODO: use from config
-  static constexpr uint16_t kEpochBlocksNum = 100;
-
-  // How often to check if node has 2t+1 bls signature for the latest pillar block & potentially trigger syncing
-  // TODO: validation: kCheckLatestBlockBlsSigs should be way smaller than kEpochBlocksNum
-  static constexpr uint16_t kCheckLatestBlockBlsSigs = 25;
 
   LOG_OBJECTS_DEFINE
 };

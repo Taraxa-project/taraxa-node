@@ -142,8 +142,8 @@ void FullNode::init() {
       conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
       getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit, conf_.genesis.state);
 
-  pillar_chain_ =
-      std::make_shared<PillarChainManager>(db_, final_chain_, vote_mgr_, key_manager_, conf_.bls_secret, node_addr);
+  pillar_chain_ = std::make_shared<PillarChainManager>(conf_.genesis.state.hardforks.ficus_hf, db_, final_chain_,
+                                                       vote_mgr_, key_manager_, conf_.bls_secret, node_addr);
   network_ =
       std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
                                 vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_);
@@ -327,14 +327,15 @@ void FullNode::start() {
         subscription_pool_);
 
   final_chain_->block_finalized_.subscribe(
-      [pillar_block_periods = conf_.genesis.state.hardforks.ficus_hf.pillar_block_periods,
+      [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf,
        pillar_chain_weak = as_weak(pillar_chain_)](const auto &res) {
         if (auto pillar_chain = pillar_chain_weak.lock()) {
           const auto block_num = res->final_chain_blk->number;
 
-          if (block_num % pillar_block_periods == 0) {
+          if (block_num % ficus_hf_config.pillar_block_periods == 0) {
             pillar_chain->createPillarBlock(res);
-          } else {
+          } else if (block_num % ficus_hf_config.signatures_check_periods == 0) {
+            // TODO: could be optimized - do not checked after there is 2t+1 signatures
             pillar_chain->checkTwoTPlusOneBlsSignatures(block_num);
           }
         }
