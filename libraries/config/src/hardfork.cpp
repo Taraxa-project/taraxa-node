@@ -29,18 +29,20 @@ void dec_json(const Json::Value& json, MagnoliaHardfork& obj) {
 }
 RLP_FIELDS_DEFINE(MagnoliaHardfork, block_num, jail_time)
 
-Json::Value enc_json(const FicusHardfork& obj) {
+Json::Value enc_json(const FicusHardforkConfig& obj) {
   Json::Value json(Json::objectValue);
   json["block_num"] = dev::toJS(obj.block_num);
   json["pillar_block_periods"] = dev::toJS(obj.pillar_block_periods);
+  json["signatures_check_periods"] = dev::toJS(obj.signatures_check_periods);
   return json;
 }
 
-void dec_json(const Json::Value& json, FicusHardfork& obj) {
+void dec_json(const Json::Value& json, FicusHardforkConfig& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
   obj.pillar_block_periods = dev::getUInt(json["pillar_block_periods"]);
+  obj.signatures_check_periods = dev::getUInt(json["signatures_check_periods"]);
 }
-RLP_FIELDS_DEFINE(FicusHardfork, block_num, pillar_block_periods)
+RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_block_periods, signatures_check_periods)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);

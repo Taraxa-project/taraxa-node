@@ -679,6 +679,69 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
+void DbStorage::savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) {
+  dev::RLPStream s;
+  s.appendRaw(pillar_block->getRlp());
+
+  insert(Columns::pillar_blocks, toSlice(pillar_block->getPeriod()), toSlice(s.invalidate()));
+}
+
+std::shared_ptr<PillarBlock> DbStorage::getPillarBlock(PbftPeriod period) const {
+  const auto bytes = asBytes(lookup(toSlice(period), Columns::pillar_blocks));
+  if (bytes.empty()) {
+    return nullptr;
+  }
+
+  return std::make_shared<PillarBlock>(dev::RLP(bytes));
+}
+
+std::shared_ptr<PillarBlock> DbStorage::getLatestPillarBlock() const {
+  level_t level = 0;
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pillar_blocks)));
+  it->SeekToLast();
+  if (!it->Valid()) {
+    return nullptr;
+  }
+
+  return std::make_shared<PillarBlock>(dev::RLP(it->value().data()));
+}
+
+// void DbStorage::saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& bls_signature) {
+//
+// }
+//
+// std::shared_ptr<BlsSignature> DbStorage::getOwnLatestBlsSignature() const {
+//  const auto bytes = asBytes(lookup(toSlice(period), Columns::latest_pillar_block_own_signature));
+//  return std::make_shared<PillarBlock>(dev::RLP(bytes));
+// }
+
+void DbStorage::saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<BlsSignature>>& bls_signatures) {
+  assert(!bls_signatures.empty());
+
+  std::vector<libff::alt_bn128_G1> bls_signatures_g1;
+  dev::RLPStream signers_addresses_rlp;
+
+  signers_addresses_rlp.appendList(bls_signatures.size());
+  for (const auto& bls_sig : bls_signatures) {
+    signers_addresses_rlp << bls_sig->getSignerAddr();
+    bls_signatures_g1.push_back(bls_sig->getSignature());
+  }
+
+  // Create aggregated bls signature and save it to db
+  libff::alt_bn128_G1 aggregated_signature = libBLS::Bls::Aggregate(bls_signatures_g1);
+
+  std::stringstream aggregated_signature_ss;
+  aggregated_signature_ss << aggregated_signature;
+
+  dev::RLPStream bls_aggregated_sig_rlp(3);
+  bls_aggregated_sig_rlp << (*bls_signatures.begin())->getPillarBlockHash();
+  bls_aggregated_sig_rlp << aggregated_signature_ss.str();
+  bls_aggregated_sig_rlp.appendRaw(signers_addresses_rlp.invalidate());
+
+  insert(Columns::aggregated_bls_signatures, toSlice((*bls_signatures.begin())->getPeriod()),
+         toSlice(bls_aggregated_sig_rlp.invalidate()));
+}
+
 void DbStorage::saveTransaction(Transaction const& trx) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }

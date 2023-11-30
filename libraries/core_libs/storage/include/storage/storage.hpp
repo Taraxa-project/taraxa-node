@@ -14,6 +14,8 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/period_data.hpp"
+#include "pillar_chain/bls_signature.hpp"
+#include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
 #include "transaction/transaction.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -122,6 +124,13 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     COLUMN_W_COMP(block_rewards_stats, getIntComparator<uint64_t>());
 
+    // Pillar blocks
+    COLUMN_W_COMP(pillar_blocks, getIntComparator<PbftPeriod>());
+    // 2t+1 bls aggregated signature for pillar blocks
+    COLUMN_W_COMP(aggregated_bls_signatures, getIntComparator<PbftPeriod>());
+    // Latest pillar block own bls signature
+    COLUMN(latest_pillar_block_own_signature);
+
 #undef COLUMN
 #undef COLUMN_W_COMP
   };
@@ -204,6 +213,13 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
+
+  void savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block);
+  std::shared_ptr<PillarBlock> getPillarBlock(PbftPeriod period) const;
+  std::shared_ptr<PillarBlock> getLatestPillarBlock() const;
+  void saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& bls_signature);
+  std::shared_ptr<BlsSignature> getOwnLatestBlsSignature() const;
+  void saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<BlsSignature>>& bls_signatures);
 
   /**
    * @brief Gets finalized transactions from provided hashes
