@@ -43,6 +43,13 @@ class BlsSignature {
   dev::bytes getRlp(bool include_sig = true) const;
 
   /**
+   * @return Optimized rlp containing only signer address + signature
+   *
+   * @note It is used for saving 2t+1 bls signatures where pillar block hash & period is known
+   */
+  dev::bytes getOptimizedRlp() const;
+
+  /**
    * @return bls signature hash
    */
   Hash getHash() const;
