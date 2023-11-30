@@ -39,14 +39,16 @@ struct AspenHardfork {
 Json::Value enc_json(const AspenHardfork& obj);
 void dec_json(const Json::Value& json, AspenHardfork& obj);
 
-struct FicusHardfork {
+struct FicusHardforkConfig {
   uint64_t block_num = -1;
-  uint64_t pillar_block_periods = 0;  // number of blocks
+  uint64_t pillar_block_periods{100};  // number of blocks - how often is the new pillar block created
+  uint64_t signatures_check_periods{
+      25};  // number of blocks - how often is 2t+1 bls signatures for latest pillar block checked
 
   HAS_RLP_FIELDS
 };
-Json::Value enc_json(const FicusHardfork& obj);
-void dec_json(const Json::Value& json, FicusHardfork& obj);
+Json::Value enc_json(const FicusHardforkConfig& obj);
+void dec_json(const Json::Value& json, FicusHardforkConfig& obj);
 
 struct HardforksConfig {
   // disable it by default (set to max uint64)
@@ -84,7 +86,7 @@ struct HardforksConfig {
   bool isAspenHardforkPartTwo(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_two; }
 
   // Ficus hardfork: implementation of pillar block & bls signatures required for bridge
-  FicusHardfork ficus_hf;
+  FicusHardforkConfig ficus_hf;
 
   HAS_RLP_FIELDS
 };

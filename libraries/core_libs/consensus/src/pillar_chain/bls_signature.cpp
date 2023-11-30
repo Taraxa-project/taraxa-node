@@ -49,6 +49,17 @@ dev::bytes BlsSignature::getRlp(bool include_sig) const {
   return s.invalidate();
 }
 
+dev::bytes BlsSignature::getOptimizedRlp() const {
+  dev::RLPStream s(2);
+  s << signer_addr_;
+
+  std::stringstream sig_ss;
+  sig_ss << signature_;
+  s << sig_ss.str();
+
+  return s.invalidate();
+}
+
 BlsSignature::Hash BlsSignature::getHash() const {
   if (!cached_hash_.has_value()) {
     cached_hash_ = dev::sha3(getRlp(false));

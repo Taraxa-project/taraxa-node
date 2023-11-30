@@ -10,23 +10,24 @@
 
 namespace taraxa {
 
-PillarChainManager::PillarChainManager(std::shared_ptr<DbStorage> db,
+PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<final_chain::FinalChain> final_chain,
                                        std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
                                        const libff::alt_bn128_Fr& bls_secret_key, addr_t node_addr)
-    : db_(std::move(db)),
+    : kFicusHfConfig(ficusHfConfig),
+      db_(std::move(db)),
       network_{},
       final_chain_{std::move(final_chain)},
       vote_mgr_(std::move(vote_mgr)),
       key_manager_(std::move(key_manager)),
       node_addr_(node_addr),
       kBlsSecretKey(bls_secret_key),
-      last_pillar_block_{nullptr},
+      last_pillar_block_{db_->getLatestPillarBlock()},
       bls_signatures_{},
       mutex_{} {
   libBLS::ThresholdUtils::initCurve();
 
-  // TODO: load last_pillar_block_ from db
+  // TODO: load latest own bls signature from db
 
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
@@ -35,7 +36,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
   const auto block_num = block_data->final_chain_blk->number;
 
   // There should always be last_pillar_block_, except for the very first pillar block
-  assert(block_num <= kEpochBlocksNum || last_pillar_block_);
+  assert(block_num <= kFicusHfConfig.pillar_block_periods || last_pillar_block_);
 
   // TODO: this will not work for light node
   // Get validators stakes changes between the current and previous pillar block
@@ -52,16 +53,18 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
     });
   }
 
+  // Saves pillar block to db
+  db_->savePillarBlock(pillar_block);
+
   // Create and broadcast own bls signature
   // TODO: do not create & gossip own sig or request other signatures if the node is in syncing state
 
-  // Check if node is eligible validator
+  // Check if node is an eligible validator
   try {
     if (!final_chain_->dpos_is_eligible(block_num, node_addr_)) {
       return;
     }
   } catch (state_api::ErrFutureBlock& e) {
-    // TODO: true ???
     assert(false);  // This should never happen as newFinalBlock is triggered after the new block is finalized
     return;
   }
@@ -76,6 +79,8 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
 
   // Broadcasts bls signature
   if (validateBlsSignature(signature) && addVerifiedBlsSig(signature)) {
+    // TODO: add own bls signature into db
+
     if (auto net = network_.lock()) {
       net->gossipBlsSignature(signature);
     }
@@ -83,11 +88,6 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
 }
 
 void PillarChainManager::checkTwoTPlusOneBlsSignatures(EthBlockNumber block_num) const {
-  // Perform the check only every kCheckLatestBlockBlsSigs blocks
-  if (block_num % kCheckLatestBlockBlsSigs != 0) {
-    return;
-  }
-
   std::shared_ptr<PillarBlock> last_pillar_block{nullptr};
   {
     std::shared_lock<std::shared_mutex> lock(mutex_);
@@ -98,18 +98,18 @@ void PillarChainManager::checkTwoTPlusOneBlsSignatures(EthBlockNumber block_num)
     }
 
     // Check 2t+1 signatures
-    const auto period_signatures = bls_signatures_.find(last_pillar_block_->getPeriod());
-    if (period_signatures == bls_signatures_.end()) [[unlikely]] {
+    const auto found_period_signatures = bls_signatures_.find(last_pillar_block_->getPeriod());
+    if (found_period_signatures == bls_signatures_.end()) [[unlikely]] {
       return;
     }
 
-    const auto pillar_block_signatures =
-        period_signatures->second.pillar_block_signatures.find(last_pillar_block_->getHash());
-    if (pillar_block_signatures == period_signatures->second.pillar_block_signatures.end()) [[unlikely]] {
+    const auto found_pillar_block_signatures =
+        found_period_signatures->second.pillar_block_signatures.find(last_pillar_block_->getHash());
+    if (found_pillar_block_signatures == found_period_signatures->second.pillar_block_signatures.end()) [[unlikely]] {
       return;
     }
 
-    if (pillar_block_signatures->second.weight >= period_signatures->second.two_t_plus_one) {
+    if (found_pillar_block_signatures->second.weight >= found_period_signatures->second.two_t_plus_one) {
       // There is >= 2t+1 bls signatures
       return;
     }
@@ -127,14 +127,20 @@ bool PillarChainManager::isRelevantBlsSig(const std::shared_ptr<BlsSignature> si
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
   const auto signature_period = signature->getPeriod();
-  // TODO: last_pillar_block_ might be empty
-  if (signature_period == last_pillar_block_->getPeriod()) {
+  // Empty last_pillar_block_ means there was no pillar block created yet at all
+  if (!last_pillar_block_ && signature_period != kFicusHfConfig.pillar_block_periods) [[unlikely]] {
+    LOG(log_er_) << "Received signature's period " << signature_period
+                 << ", no pillar block created yet. Accepting signatures with " << kFicusHfConfig.pillar_block_periods
+                 << " period";
+    return false;
+  } else if (signature_period == last_pillar_block_->getPeriod()) {
     if (signature->getPillarBlockHash() != last_pillar_block_->getHash()) {
       LOG(log_er_) << "Received signature's block hash " << signature->getPillarBlockHash()
                    << " != last pillar block hash " << last_pillar_block_->getHash();
       return false;
     }
-  } else if (signature_period != last_pillar_block_->getPeriod() + kEpochBlocksNum /* +1 future pillar block */) {
+  } else if (signature_period !=
+             last_pillar_block_->getPeriod() + kFicusHfConfig.pillar_block_periods /* +1 future pillar block */) {
     LOG(log_er_) << "Received signature's period " << signature_period << ", last pillar block period "
                  << last_pillar_block_->getPeriod();
     return false;
@@ -234,10 +240,7 @@ bool PillarChainManager::addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& 
     return false;
   }
 
-  std::vector<libff::alt_bn128_G1> bls_signatures;
-  dev::RLPStream signers_addresses_rlp;
-  PillarBlock::Hash pillar_block_hash;
-
+  std::vector<std::shared_ptr<BlsSignature>> signatures_copy;
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
 
@@ -278,27 +281,13 @@ bool PillarChainManager::addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& 
       return true;
     }
 
-    pillar_block_hash = signature->getPillarBlockHash();
-
-    signers_addresses_rlp.appendList(pillar_block_signatures->second.signatures.size());
-    for (const auto& bls_sig : pillar_block_signatures->second.signatures) {
-      signers_addresses_rlp << bls_sig.second->getSignerAddr();
-      bls_signatures.push_back(bls_sig.second->getSignature());
-    }
+    signatures_copy.reserve(pillar_block_signatures->second.signatures.size());
+    std::transform(pillar_block_signatures->second.signatures.begin(), pillar_block_signatures->second.signatures.end(),
+                   std::back_inserter(signatures_copy), [](const auto& p) { return p.second; });
   }
 
-  // Create aggregated bls signature and save it to db
-  libff::alt_bn128_G1 aggregated_signature = libBLS::Bls::Aggregate(bls_signatures);
-
-  std::stringstream aggregated_signature_ss;
-  aggregated_signature_ss << aggregated_signature;
-
-  dev::RLPStream bls_aggregated_sig_rlp(3);
-  bls_aggregated_sig_rlp << pillar_block_hash;
-  bls_aggregated_sig_rlp << aggregated_signature_ss.str();
-  bls_aggregated_sig_rlp.appendRaw(signers_addresses_rlp.invalidate());
-
-  // TODO: save bls_aggregated_sig_rlp to db
+  // Save 2t+1 bls signatures to db
+  db_->saveTwoTPlusOneBlsSignatures(signatures_copy);
 
   return true;
 }
@@ -328,7 +317,7 @@ std::vector<std::shared_ptr<BlsSignature>> PillarChainManager::getVerifiedBlsSig
 
 std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedValidatorsStakesChanges(
     EthBlockNumber block) const {
-  assert(block % kEpochBlocksNum == 0);
+  assert(block % kFicusHfConfig.pillar_block_periods == 0);
 
   auto current_stakes = final_chain_->dpos_validators_total_stakes(block);
 
@@ -336,18 +325,17 @@ std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedVal
   if (!last_pillar_block_) {
     std::vector<PillarBlock::ValidatorStakeChange> changes;
     changes.reserve(current_stakes.size());
-    std::transform(current_stakes.begin(), current_stakes.end(), std::back_inserter(changes), [](auto& stake) {
-      return PillarBlock::ValidatorStakeChange{stake.addr, stake.stake};
-    });
+    std::transform(current_stakes.begin(), current_stakes.end(), std::back_inserter(changes),
+                   [](auto& stake) { return PillarBlock::ValidatorStakeChange(stake.addr, stake.stake); });
 
     return changes;
   }
 
-  auto transformToMap = [](const std::vector<state_api::ValidatorStake>& changes) {
+  auto transformToMapChanges = [](const std::vector<state_api::ValidatorStake>& stakes) {
     std::map<addr_t, PillarBlock::ValidatorStakeChange> changes_map;
-    for (const auto& change : changes) {
+    for (const auto& stake : stakes) {
       // Convert ValidatorStake.stake uint256 to ValidatorStakeChange.stake int256
-      changes_map[change.addr] = PillarBlock::ValidatorStakeChange{change.addr, change.stake};
+      changes_map.emplace(stake.addr, PillarBlock::ValidatorStakeChange(stake.addr, dev::s256(stake.stake)));
     }
 
     return changes_map;
@@ -355,8 +343,8 @@ std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedVal
 
   auto previous_stakes = final_chain_->dpos_validators_total_stakes(last_pillar_block_->getPeriod());
 
-  auto current_stakes_map = transformToMap(current_stakes);
-  auto previous_stakes_map = transformToMap(previous_stakes);
+  auto current_stakes_map = transformToMapChanges(current_stakes);
+  auto previous_stakes_map = transformToMapChanges(previous_stakes);
 
   // First create ordered map so the changes are ordered by validator addresses
   std::map<addr_t, PillarBlock::ValidatorStakeChange> changes_map;
@@ -370,8 +358,9 @@ std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedVal
     }
 
     // Previous stakes contains validator address from current stakes -> substitute the stakes
-    changes_map[current_stake.first] = PillarBlock::ValidatorStakeChange{
-        current_stake.first, current_stake.second.stake - previous_stake->second.stake};
+    changes_map.emplace(current_stake.first,
+                        PillarBlock::ValidatorStakeChange(current_stake.first,
+                                                          current_stake.second.stake_ - previous_stake->second.stake_));
 
     // Delete item from previous_stakes - based on left stakes we know which delegators undelegated all tokens
     previous_stakes_map.erase(previous_stake);
@@ -380,7 +369,7 @@ std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedVal
   // All previous stakes that were not deleted are delegators who undelegated all of their tokens between current and
   // previous pillar block. Add these stakes as negative numbers into changes
   for (auto& previous_stake_left : previous_stakes_map) {
-    previous_stake_left.second.stake *= -1;
+    previous_stake_left.second.stake_ *= -1;
     changes_map.emplace(std::move(previous_stake_left));
   }
 
