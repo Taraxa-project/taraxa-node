@@ -19,6 +19,7 @@ set(USE_RTTI 1)
 set(WITH_LZ4 ON)
 set(WITH_GFLAGS OFF)
 set(FAIL_ON_WARNINGS OFF)
+set(PORTABLE 1 CACHE STRING "Override: Minimum CPU arch to support") # Disable -march=native
 set(WITH_TESTS OFF CACHE INTERNAL "")
 set(WITH_JNI OFF CACHE INTERNAL "")
 set(WITH_TOOLS OFF CACHE INTERNAL "")
