@@ -24,10 +24,9 @@ Json::Value enc_json(const MagnoliaHardfork& obj);
 void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 
 struct FicusHardforkConfig {
-  uint64_t block_num = -1;
-  uint64_t pillar_block_periods{100};  // number of blocks - how often is the new pillar block created
-  uint64_t signatures_check_periods{
-      25};  // number of blocks - how often is 2t+1 bls signatures for latest pillar block checked
+  uint64_t block_num{0};
+  uint64_t pillar_block_periods{100};     // [periods] how often is the new pillar block created
+  uint64_t signatures_check_periods{25};  // [periods] how often is 2t+1 bls signatures for latest pillar block checked
 
   HAS_RLP_FIELDS
 };

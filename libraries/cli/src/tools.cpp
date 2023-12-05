@@ -252,10 +252,7 @@ Json::Value createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrap
   json["vrf_public"] = pk.toString();
 
   json["bls_secret"] = blsSecretToStr(bls_secret);
-
-  std::stringstream bls_pub_key_ss;
-  bls_pub_key_ss << bls_pub_key;
-  json["bls_public"] = bls_pub_key_ss.str();
+  json["bls_public"] = blsPubKeyToStr(bls_pub_key);
 
   return json;
 }
