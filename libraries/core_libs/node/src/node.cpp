@@ -327,21 +327,21 @@ void FullNode::start() {
         },
         subscription_pool_);
 
-  final_chain_->block_finalized_.subscribe(
-      [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf,
-       pillar_chain_weak = as_weak(pillar_chain_)](const auto &res) {
-        if (auto pillar_chain = pillar_chain_weak.lock()) {
-          const auto block_num = res->final_chain_blk->number;
+    final_chain_->block_finalized_.subscribe(
+        [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf,
+         pillar_chain_weak = as_weak(pillar_chain_)](const auto &res) {
+          if (auto pillar_chain = pillar_chain_weak.lock()) {
+            const auto block_num = res->final_chain_blk->number;
 
-          if (block_num % ficus_hf_config.pillar_block_periods == 0) {
-            pillar_chain->createPillarBlock(res);
-          } else if (block_num % ficus_hf_config.signatures_check_periods == 0) {
-            // TODO: could be optimized - do not checked after there is 2t+1 signatures
-            pillar_chain->checkTwoTPlusOneBlsSignatures(block_num);
+            if (block_num % ficus_hf_config.pillar_block_periods == 0) {
+              pillar_chain->createPillarBlock(res);
+            } else if (block_num % ficus_hf_config.signatures_check_periods == 0) {
+              // TODO: could be optimized - do not checked after there is 2t+1 signatures
+              pillar_chain->checkTwoTPlusOneBlsSignatures(block_num);
+            }
           }
-        }
-      },
-      subscription_pool_);
+        },
+        subscription_pool_);
   }
 
   vote_mgr_->setNetwork(network_);
