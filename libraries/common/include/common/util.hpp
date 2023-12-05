@@ -33,6 +33,7 @@ namespace taraxa {
 std::string jsonToUnstyledString(const Json::Value &value);
 
 libff::alt_bn128_G2 getBlsPublicKey(const libff::alt_bn128_Fr &bls_secret);
+std::string blsPubKeyToStr(const libff::alt_bn128_G2 &bls_pub_key);
 
 template <typename T>
 std::weak_ptr<T> as_weak(std::shared_ptr<T> sp) {

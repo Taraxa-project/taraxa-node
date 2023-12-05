@@ -35,15 +35,19 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
 void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data) {
   const auto block_num = block_data->final_chain_blk->number;
 
-  // There should always be last_pillar_block_, except for the very first pillar block
-  assert(block_num <= kFicusHfConfig.pillar_block_periods || last_pillar_block_);
+  PillarBlock::Hash last_pillar_block_hash{};                        // null block hash
+  if (block_num > kFicusHfConfig.pillar_block_periods) [[likely]] {  // Not the first pillar block epoch
+    // There should always be last_pillar_block_, except for the very first pillar block
+    assert(last_pillar_block_);
+    last_pillar_block_hash = last_pillar_block_->getHash();
+  }
 
-  // TODO: this will not work for light node
+  // TODO: this will not work for light node - save previous pillar block validators stakes in memory & db
   // Get validators stakes changes between the current and previous pillar block
   auto stakes_changes = getOrderedValidatorsStakesChanges(block_num);
 
   const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root,
-                                                          std::move(stakes_changes), last_pillar_block_->getHash());
+                                                          std::move(stakes_changes), last_pillar_block_hash);
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
     last_pillar_block_ = pillar_block;
