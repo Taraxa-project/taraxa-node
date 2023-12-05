@@ -73,10 +73,14 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
   auto proof = dev::sign(sender_node_cfg.node_secret, dev::sha3(addr)).asBytes();
   // We need this for eth compatibility
   proof[64] += 27;
+
+  const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret);
+  const auto bls_pub_key = getBlsPublicKey(sender_node_cfg.bls_secret);
+
   const auto input = final_chain::ContractInterface::packFunctionCall(
-      "registerValidator(address,bytes,bytes,uint16,string,string)", addr, proof,
-      vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret).asBytes(), 10, dev::asBytes("test"),
-      dev::asBytes("test"));
+      "registerValidator(address,bytes,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(),
+      dev::asBytes(blsPubKeyToStr(bls_pub_key)), 10, dev::asBytes("test"), dev::asBytes("test"));
+
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
