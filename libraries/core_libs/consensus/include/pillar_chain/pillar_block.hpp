@@ -4,6 +4,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
+#include "final_chain/state_api_data.hpp"
 
 namespace taraxa {
 
@@ -23,9 +24,11 @@ class PillarBlock {
   // Validator stake change
   struct ValidatorStakeChange {
     addr_t addr_;
-    dev::s256 stake_;  // can be both positive or negative
+    dev::s256 stake_change_;  // can be both positive or negative
 
-    ValidatorStakeChange(addr_t addr, dev::s256 stake);
+    ValidatorStakeChange(ValidatorStakeChange&&) = default;
+    ValidatorStakeChange(const state_api::ValidatorStake& stake);
+    ValidatorStakeChange(addr_t addr, dev::s256 stake_change);
     ValidatorStakeChange(const dev::RLP& rlp);
     dev::bytes getRlp() const;
   };

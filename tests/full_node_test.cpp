@@ -393,9 +393,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     std::cout << "cfg.bls_secret: " << blsSecretToStr(cfg.bls_secret) << std::endl;
 
     auto pub_key = getBlsPublicKey(cfg.bls_secret);
-
     std::stringstream pk_ss;
     pk_ss << std::hex << pub_key;
+
     std::cout << "cfg.bls_pub: " << pk_ss.str() << std::endl;
     std::cout << "cfg.bls_pub.size: " << pk_ss.str().size() << std::endl;
     for (auto c : pk_ss.str()) {
