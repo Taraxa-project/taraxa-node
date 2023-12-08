@@ -679,11 +679,11 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
-void DbStorage::savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) {
+void DbStorage::savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block, Batch& write_batch) {
   dev::RLPStream s;
   s.appendRaw(pillar_block->getRlp());
 
-  insert(Columns::pillar_blocks, toSlice(pillar_block->getPeriod()), toSlice(s.invalidate()));
+  insert(write_batch, Columns::pillar_blocks, toSlice(pillar_block->getPeriod()), toSlice(s.invalidate()));
 }
 
 std::shared_ptr<PillarBlock> DbStorage::getPillarBlock(PbftPeriod period) const {
@@ -740,6 +740,26 @@ void DbStorage::saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<B
 
   insert(Columns::aggregated_bls_signatures, toSlice((*bls_signatures.begin())->getPeriod()),
          toSlice(bls_aggregated_sig_rlp.invalidate()));
+}
+
+void DbStorage::saveLastPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
+                                          Batch& write_batch) {
+  assert(!latest_pillar_block_stakes.empty());
+
+  dev::RLPStream stakes_rlp(latest_pillar_block_stakes.size());
+  for (const auto& stake : latest_pillar_block_stakes) {
+    dev::RLPStream stake_rlp(2);
+    stake_rlp << stake.addr;
+    stake_rlp << stake.stake;
+
+    stakes_rlp.appendRaw(stake_rlp.invalidate());
+  }
+
+  insert(write_batch, Columns::latest_pillar_block_stakes, 0, stakes_rlp.invalidate());
+}
+
+std::vector<state_api::ValidatorStake> DbStorage::getLastPillarBlockStakes() const {
+
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {
