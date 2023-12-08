@@ -6,16 +6,20 @@
 
 namespace taraxa {
 
-PillarBlock::ValidatorStakeChange::ValidatorStakeChange(addr_t addr, dev::s256 stake) : addr_(addr), stake_(stake) {}
+PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const state_api::ValidatorStake& stake)
+    : addr_(stake.addr), stake_change_(dev::s256(stake.stake)) {}
+
+PillarBlock::ValidatorStakeChange::ValidatorStakeChange(addr_t addr, dev::s256 stake_change)
+    : addr_(addr), stake_change_(stake_change) {}
 
 PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const dev::RLP& rlp) {
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), addr_, stake_);
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), addr_, stake_change_);
 }
 
 dev::bytes PillarBlock::ValidatorStakeChange::getRlp() const {
   dev::RLPStream s(2);
   s << addr_;
-  s << stake_;
+  s << stake_change_;
 
   return s.invalidate();
 }

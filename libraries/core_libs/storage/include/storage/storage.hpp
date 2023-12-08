@@ -130,6 +130,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN_W_COMP(aggregated_bls_signatures, getIntComparator<PbftPeriod>());
     // Latest pillar block own bls signature
     COLUMN(latest_pillar_block_own_signature);
+    // Latest pillar block validators stakes
+    COLUMN(latest_pillar_block_stakes);
 
 #undef COLUMN
 #undef COLUMN_W_COMP
@@ -214,12 +216,16 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
 
-  void savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block);
+  // Pillar chain
+  void savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block, Batch& write_batch);
   std::shared_ptr<PillarBlock> getPillarBlock(PbftPeriod period) const;
   std::shared_ptr<PillarBlock> getLatestPillarBlock() const;
   void saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& bls_signature);
   std::shared_ptr<BlsSignature> getOwnLatestBlsSignature() const;
   void saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<BlsSignature>>& bls_signatures);
+  void saveLastPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
+                                 Batch& write_batch);
+  std::vector<state_api::ValidatorStake> getLastPillarBlockStakes() const;
 
   /**
    * @brief Gets finalized transactions from provided hashes
