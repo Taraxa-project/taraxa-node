@@ -69,7 +69,7 @@ class PillarChainManager {
   void setNetwork(std::weak_ptr<Network> network);
 
   /**
-   * @brief Checks if signature is related to saved last_pillar_block_ and it is not already saved
+   * @brief Checks if signature is related to saved latest_pillar_block_ and it is not already saved
    *
    * @param signature
    * @return true if relevant, otherwise false
@@ -116,10 +116,13 @@ class PillarChainManager {
    * @brief Return a vector of validators stakes changes between the current and previous pillar block
    *        Changes are ordered based on validators addresses
    *
-   * @param block
+   * @param current_stakes
+   * @param previous_pillar_block_stakes
    * @return ordered vector of validators stakes changes
    */
-  std::vector<PillarBlock::ValidatorStakeChange> getOrderedValidatorsStakesChanges(EthBlockNumber block) const;
+  std::vector<PillarBlock::ValidatorStakeChange> getOrderedValidatorsStakesChanges(
+      const std::vector<state_api::ValidatorStake>& current_stakes,
+      const std::vector<state_api::ValidatorStake>& previous_pillar_block_stakes);
 
  private:
   // Node config
@@ -139,12 +142,14 @@ class PillarChainManager {
   // TODO: might be just atomic hash
   // TODO: !!! Important to load last pillar block from db in ctor (on restart etc...) If not, pillar chain mgr will not
   // work properly
-  std::shared_ptr<PillarBlock> last_pillar_block_;
+  std::shared_ptr<PillarBlock> latest_pillar_block_;
+  // Full list of validators stakes during last pillar block period
+  std::vector<state_api::ValidatorStake> latest_pillar_block_stakes_;
 
-  // Bls signatures for last_pillar_block_.period and potential +1 future pillar block period
+  // Bls signatures for latest_pillar_block_.period and potential +1 future pillar block period
   std::map<PbftPeriod, BlsSignatures> bls_signatures_;
 
-  // Protects last_pillar_block_ & bls_signatures
+  // Protects latest_pillar_block_ & bls_signatures
   mutable std::shared_mutex mutex_;
 
   LOG_OBJECTS_DEFINE
