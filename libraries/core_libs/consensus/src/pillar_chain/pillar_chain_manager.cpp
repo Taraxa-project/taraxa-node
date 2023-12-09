@@ -23,7 +23,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
       node_addr_(node_addr),
       kBlsSecretKey(bls_secret_key),
       latest_pillar_block_{db_->getLatestPillarBlock()},
-      latest_pillar_block_stakes_{db_->getLastPillarBlockStakes()},
+      latest_pillar_block_stakes_{db_->getLatestPillarBlockStakes()},
       bls_signatures_{},
       mutex_{} {
   libBLS::ThresholdUtils::initCurve();
@@ -42,12 +42,16 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
   if (block_num > kFicusHfConfig.pillar_block_periods) [[likely]] {  // Not the first pillar block epoch
     // There should always be latest_pillar_block_, except for the very first pillar block
     assert(latest_pillar_block_);
+    assert(!latest_pillar_block_stakes_.empty());
     latest_pillar_block_hash = latest_pillar_block_->getHash();
   }
 
-  // TODO: this will not work for light node - save previous pillar block validators stakes in memory & db
-  // Get validators stakes changes between the current and previous pillar block
   auto current_stakes = final_chain_->dpos_validators_total_stakes(block_num);
+  // Saves current stakes to db
+  auto batch = db_->createWriteBatch();
+  db_->saveLatestPillarBlockStakes(current_stakes, batch);
+
+  // Get validators stakes changes between the current and previous pillar block
   auto stakes_changes = getOrderedValidatorsStakesChanges(current_stakes, latest_pillar_block_stakes_);
 
   const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root,
@@ -63,8 +67,8 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
   }
 
   // Saves pillar block to db
-  db_->savePillarBlock(pillar_block);
-  // TODO: save also current_stakes to db
+  db_->savePillarBlock(pillar_block, batch);
+  db_->commitWriteBatch(batch);
 
   // Create and broadcast own bls signature
   // TODO: do not create & gossip own sig or request other signatures if the node is in syncing state

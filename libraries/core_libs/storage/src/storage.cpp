@@ -680,14 +680,11 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
 }
 
 void DbStorage::savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block, Batch& write_batch) {
-  dev::RLPStream s;
-  s.appendRaw(pillar_block->getRlp());
-
-  insert(write_batch, Columns::pillar_blocks, toSlice(pillar_block->getPeriod()), toSlice(s.invalidate()));
+  insert(write_batch, Columns::pillar_blocks, pillar_block->getPeriod(), pillar_block->getRlp());
 }
 
 std::shared_ptr<PillarBlock> DbStorage::getPillarBlock(PbftPeriod period) const {
-  const auto bytes = asBytes(lookup(toSlice(period), Columns::pillar_blocks));
+  const auto bytes = asBytes(lookup(period, Columns::pillar_blocks));
   if (bytes.empty()) {
     return nullptr;
   }
@@ -742,8 +739,8 @@ void DbStorage::saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<B
          toSlice(bls_aggregated_sig_rlp.invalidate()));
 }
 
-void DbStorage::saveLastPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
-                                          Batch& write_batch) {
+void DbStorage::saveLatestPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
+                                            Batch& write_batch) {
   assert(!latest_pillar_block_stakes.empty());
 
   dev::RLPStream stakes_rlp(latest_pillar_block_stakes.size());
@@ -758,8 +755,20 @@ void DbStorage::saveLastPillarBlockStakes(const std::vector<state_api::Validator
   insert(write_batch, Columns::latest_pillar_block_stakes, 0, stakes_rlp.invalidate());
 }
 
-std::vector<state_api::ValidatorStake> DbStorage::getLastPillarBlockStakes() const {
+std::vector<state_api::ValidatorStake> DbStorage::getLatestPillarBlockStakes() const {
+  std::vector<state_api::ValidatorStake> stakes;
 
+  auto i =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_pillar_block_stakes)));
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    auto bytes = asBytes(i->value().ToString());
+    const dev::RLP rlp(bytes);
+    assert(rlp.itemCount() == 2);
+
+    stakes.emplace_back(state_api::ValidatorStake{rlp[0].toHash<addr_t>(), u256(rlp[1])});
+  }
+
+  return stakes;
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {
