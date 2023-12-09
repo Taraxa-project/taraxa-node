@@ -223,9 +223,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& bls_signature);
   std::shared_ptr<BlsSignature> getOwnLatestBlsSignature() const;
   void saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<BlsSignature>>& bls_signatures);
-  void saveLastPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
-                                 Batch& write_batch);
-  std::vector<state_api::ValidatorStake> getLastPillarBlockStakes() const;
+  void saveLatestPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
+                                   Batch& write_batch);
+  std::vector<state_api::ValidatorStake> getLatestPillarBlockStakes() const;
 
   /**
    * @brief Gets finalized transactions from provided hashes
