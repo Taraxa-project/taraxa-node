@@ -199,6 +199,21 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
 
+  // Pillar chain
+  batch = db.createWriteBatch();
+  EthBlockNumber block_num(123);
+  h256 state_root(456);
+  PillarBlock::Hash latest_pillar_block_hash(789);
+  std::vector<PillarBlock::ValidatorStakeChange> stakes_changes;
+  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s256(1));
+  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
+  const auto pillar_block =
+      std::make_shared<PillarBlock>(block_num, state_root, std::move(stakes_changes), latest_pillar_block_hash);
+  db.savePillarBlock(pillar_block, batch);
+  db.commitWriteBatch(batch);
+  const auto pillar_block_db = db.getPillarBlock(pillar_block->getPeriod());
+  EXPECT_EQ(pillar_block->getHash(), pillar_block_db->getHash());
+
   // status
   db.saveStatusField(StatusDbField::TrxCount, 5);
   db.saveStatusField(StatusDbField::ExecutedBlkCount, 6);

@@ -47,9 +47,9 @@ PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
 
 dev::bytes PillarBlock::getRlp() const {
   dev::RLPStream s(4);
-  s << period_;
-  s << state_root_;
-  s << previous_pillar_block_hash_;
+  s <<period_;
+  s <<state_root_;
+  s <<previous_pillar_block_hash_;
 
   s.appendList(validators_stakes_changes_.size());
   for (const auto& stake_change : validators_stakes_changes_) {
