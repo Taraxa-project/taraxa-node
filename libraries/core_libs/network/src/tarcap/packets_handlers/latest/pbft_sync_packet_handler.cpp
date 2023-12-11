@@ -252,8 +252,9 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
 }
 
 void PbftSyncPacketHandler::delayedPbftSync(int counter) {
+  const uint32_t max_delayed_pbft_sync_count = 60000 / kDelayedPbftSyncDelayMs;
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
-  if (counter > 60) {
+  if (counter > max_delayed_pbft_sync_count) {
     LOG(log_er_) << "Pbft blocks stuck in queue, no new block processed in 60 seconds " << pbft_sync_period << " "
                  << pbft_chain_->getPbftChainSize();
     pbft_syncing_state_->setPbftSyncing(false);
