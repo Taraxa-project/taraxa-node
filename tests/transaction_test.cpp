@@ -258,10 +258,10 @@ TEST_F(TransactionTest, transaction_concurrency) {
   TransactionManager trx_mgr(cfg, db, NewFinalChain(db, cfg), addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
+  for (auto const& t : *g_signed_trx_samples) {
+    trx_mgr.insertTransaction(t);
+  }
   std::thread insertTrx([&trx_mgr, &stopped]() {
-    for (auto const& t : *g_signed_trx_samples) {
-      trx_mgr.insertTransaction(t);
-    }
     while (!stopped) {
       for (auto const& t : *g_signed_trx_samples) {
         EXPECT_FALSE(trx_mgr.insertTransaction(t).first);

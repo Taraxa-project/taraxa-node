@@ -238,7 +238,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
-  std::vector<bool> transactionsInDb(std::vector<trx_hash_t> const& trx_hashes);
   std::vector<bool> transactionsFinalized(std::vector<trx_hash_t> const& trx_hashes);
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
