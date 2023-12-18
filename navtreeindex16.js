@@ -1,6 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"group___p_b_f_t.html#classtaraxa_1_1_pbft_block":[13,2,3],
 "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain":[13,2,0],
 "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager":[13,2,1],
 "group___p_b_f_t.html#classtaraxa_1_1_period_data":[13,2,4],
@@ -249,5 +248,6 @@ var NAVTREEINDEX16 =
 "hardfork_8cpp.html#ae6551b937467c5972009ffa1ac192aec":[16,0,1,3,1,4,1],
 "hardfork_8cpp.html#aee3750fcf3856743f5e71f64f88ad959":[16,0,1,3,1,4,0],
 "hardfork_8hpp.html":[16,0,1,3,0,0,4],
-"hardfork_8hpp.html#a0a1bce881907c35aac6c6307406de332":[16,0,1,3,0,0,4,0,1]
+"hardfork_8hpp.html#a0a1bce881907c35aac6c6307406de332":[16,0,1,3,0,0,4,0,1],
+"hardfork_8hpp.html#a0cc5109c876dfe88dc53cbb75ea1c91a":[16,0,1,3,0,0,4,0,0]
 };

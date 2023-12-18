@@ -1,6 +1,5 @@
 var NAVTREEINDEX15 =
 {
-"group___final_chain.html#abd94382ec0e65196486c46500019bf33":[13,1,7,4],
 "group___final_chain.html#abe6ee3b520176804d81ddbea0770fe7d":[13,1,6,26],
 "group___final_chain.html#ac2cc9992f262b4521602a568b003ae59":[13,1,6,1],
 "group___final_chain.html#ac43a3d514db134411f3f0cc1d9389d30":[13,1,7,21],
@@ -249,5 +248,6 @@ var NAVTREEINDEX15 =
 "group___p_b_f_t.html#afbd2c241d5dec6c56ad05a47f59cf781":[13,2,1,102],
 "group___p_b_f_t.html#afcaa3b3656d18f6a1bc5bb36761aa079":[13,2,1,36],
 "group___p_b_f_t.html#afe4427d4c3cf84e1bc69322057167721":[13,2,1,87],
-"group___p_b_f_t.html#aff67b5756e75c87bbba873522c6692c5":[13,2,1,81]
+"group___p_b_f_t.html#aff67b5756e75c87bbba873522c6692c5":[13,2,1,81],
+"group___p_b_f_t.html#classtaraxa_1_1_pbft_block":[13,2,3]
 };

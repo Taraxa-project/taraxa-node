@@ -1,6 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ad97840a63e2ea38f4b44d1b3f1475e6c":[15,0,3,10,0,19],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#adce61e332b72402cd70a2c7252d90542":[15,0,3,10,0,22],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ae3eeb84358d8e96ce679aa0610d1e180":[15,0,3,10,0,23],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ae8bd25a0be4f6eb1b5bb4f15971a63af":[15,0,3,10,0,21],
@@ -249,5 +248,6 @@ var NAVTREEINDEX12 =
 "dir_ea6c053127f18ba1c240c4a868d1807d.html":[16,0,1,7,3],
 "dir_edb7e34652b53c5afb3da386073ea469.html":[16,0,1,4,1,2,0],
 "dir_f0a9d803e2389a89dc70d4681c28fef3.html":[16,0,1,4,1,3,0],
-"dir_f0f6fe1338f36effd660c7494293974c.html":[16,0,1,7,2,1]
+"dir_f0f6fe1338f36effd660c7494293974c.html":[16,0,1,7,2,1],
+"dir_f45dd31e4ad37b4869c3267d94b29ec5.html":[16,0,1,4,1,1,0,0,0,0,0]
 };
