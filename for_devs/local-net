@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3
 
 import click
 import subprocess
@@ -28,7 +28,7 @@ worker_colors = {}
 chain_id = 0
 faucet_private_key = ''
 faucet_public_address = ''
-boot_nodes_public_addresses = {}
+consensus_nodes_public_addresses = {}
 
 data_dir = 'local-net-data'
 if not os.path.isdir(f'./{data_dir}'):
@@ -36,47 +36,63 @@ if not os.path.isdir(f'./{data_dir}'):
 
 local_net = os.path.realpath(f'./{data_dir}')
 
-
 @click.group()
 def cli():
-    """Local Net CLI"""
+    """Local Net CLI - A tool for managing and simulating a local blockchain testnet."""
     pass
 
-
 @cli.command()
-@click.option('--boot-nodes', default=3, help='Number of boot nodes')
-@click.option('--rpc-nodes', default=3, help='Number of RPC nodes')
-@click.option('--tps', default=0, help='Number of transactions per second (if zero the faucet will not start)')
-@click.option('--enable-test-rpc', is_flag=True, default=False, help='Enables Test JsonRPC')
+@click.option('--consensus-nodes', default=3, show_default=True,
+              help='Number of consensus nodes to initialize. This determines the number of nodes that will participate in consensus processes.')
+@click.option('--rpc-nodes', default=3, show_default=True,
+              help='Number of RPC nodes to initialize. These nodes provide a remote procedure call interface.')
+@click.option('--tps', default=0, show_default=True,
+              help='Transactions per second for the faucet to simulate. If set to zero, the faucet will not start.')
+@click.option('--enable-test-rpc', is_flag=True, default=False, show_default=True,
+              help='Flag to enable Test JsonRPC endpoints, useful for testing and debugging purposes.')
 @click.argument('binary')
-def start(boot_nodes, rpc_nodes, tps, enable_test_rpc, binary):
-    """Start a local testnet"""
+
+def start(consensus_nodes, rpc_nodes, tps, enable_test_rpc, binary):
+    """
+    Start a local testnet with configurable consensus and RPC nodes.
+
+    This command initializes a local blockchain testnet environment, allowing you
+    to simulate blockchain operations and test various configurations.
+
+    Example:
+      Start a testnet with default settings:
+      $ local-net start --binary /path/to/binary
+    """
+    # Validate the binary path
+    if not os.path.exists(binary):
+        raise click.BadParameter(f"The specified binary path does not exist: {binary}")
+
     binary = os.path.realpath(binary)
 
-    config(binary, boot_nodes, rpc_nodes)
-    start_workers(binary, boot_nodes, rpc_nodes, tps, enable_test_rpc)
+    config(binary, consensus_nodes, rpc_nodes)
+    start_workers(binary, consensus_nodes, rpc_nodes, tps, enable_test_rpc)
 
 
-def config(binary, boot_nodes, rpc_nodes):
-    global boot_nodes_public_addresses
+def config(binary, consensus_nodes, rpc_nodes):
+    global consensus_nodes_public_addresses
 
-    boot_nodes_flags = []
+    consensus_nodes_flags = []
     private_keys = {}
     vrf_secrets = {}
-    for i in range(boot_nodes):
-        worker_name = f'boot-node-{i}'
-        wallet_path = f'wallet-boot-node-{i}.json'
+    for i in range(consensus_nodes):
+        worker_name = f'consensus-node-{i}'
+        wallet_path = f'wallet-consensus-node-{i}.json'
 
         (private_key, public_key, public_address, vrf_secret, vrf_public) = generate_node_wallet(binary, wallet_path)
 
         private_keys[worker_name] = private_key
         vrf_secrets[worker_name] = vrf_secret
-        boot_nodes_public_addresses[worker_name] = [public_address, vrf_public]
+        consensus_nodes_public_addresses[worker_name] = [public_address, vrf_public]
 
-        boot_nodes_flags.append(
+        consensus_nodes_flags.append(
             f'127.0.0.1:10{i+1}02/{public_key}')
 
-    boot_nodes_flags = " ".join(boot_nodes_flags)
+    consensus_nodes_flags = " ".join(consensus_nodes_flags)
 
     generate_faucet_wallet(binary)
 
@@ -85,15 +101,15 @@ def config(binary, boot_nodes, rpc_nodes):
     existing_genesis = None
     existing_genesis_node = None
 
-    for type in ("boot", "rpc"):
-        if type == "boot":
-            nodes = boot_nodes
+    for type in ("consensus", "rpc"):
+        if type == "consensus":
+            nodes = consensus_nodes
         else:
             nodes = rpc_nodes
 
         for i in range(nodes):
-            if type == "boot":
-                worker_name = f'boot-node-{i}'
+            if type == "consensus":
+                worker_name = f'consensus-node-{i}'
             else:
                 worker_name = f'rpc-node-{i}'
 
@@ -118,22 +134,22 @@ def config(binary, boot_nodes, rpc_nodes):
                 timestamp = tmp_genesis['dag_genesis_block']['timestamp']
                 continue
 
-            if type == "boot" and existing_genesis:
-                sys.exit("Cannot increase number of boot nodes without resetting the network")
+            if type == "consensus" and existing_genesis:
+                sys.exit("Cannot increase number of consensus nodes without resetting the network")
 
             if not os.path.isdir(f'{local_net}/db-{worker_name}'):
                 os.mkdir(f'{local_net}/db-{worker_name}')
 
             cmd = ''
-            cmd += f'{binary} --command config --chain-id {chain_id} '
-            cmd += f'--boot-nodes {boot_nodes_flags} '
+            cmd += f'{binary} --overwrite-config --command config --chain-id {chain_id} '
+            cmd += f'--boot-nodes {consensus_nodes_flags} '
 
-            if type == "boot":
-                # cmd += '--boot-node ' // TODO: we should replace this with bootnode binary?
+            if type == "consensus":
+                # cmd += '--consensus-node ' // TODO: we should replace this with consensusnode binary?
                 cmd += f'--node-secret {private_keys[worker_name]} '
                 cmd += f'--vrf-secret {vrf_secrets[worker_name]} '
 
-            if type == "boot":
+            if type == "consensus":
                 port_prefix = '0'
             else:
                 port_prefix = '1'
@@ -159,9 +175,9 @@ def config(binary, boot_nodes, rpc_nodes):
             else:
                 default_validator = genesis['dpos']['initial_validators'][0]
                 genesis['dpos']['initial_validators'] = []
-                print("boot_nodes_public_addresses: ",boot_nodes_public_addresses)
-                for key in boot_nodes_public_addresses:
-                    address, vrf_key = boot_nodes_public_addresses[key]
+                print("consensus_nodes_public_addresses: ",consensus_nodes_public_addresses)
+                for key in consensus_nodes_public_addresses:
+                    address, vrf_key = consensus_nodes_public_addresses[key]
                     default_validator["address"] = address
                     default_validator["owner"] = address
                     default_validator["vrf_key"] = vrf_key
@@ -248,17 +264,17 @@ def generate_wallet(binary):
     return (private_key, public_key, public_address, vrf_secret, vrf_key)
 
 
-def start_workers(binary, boot_nodes, rpc_nodes, tps, enable_test_rpc):
+def start_workers(binary, consensus_nodes, rpc_nodes, tps, enable_test_rpc):
     c = list(colors.keys())
-    for type in ("boot", "rpc"):
-        if type == "boot":
-            nodes = boot_nodes
+    for type in ("consensus", "rpc"):
+        if type == "consensus":
+            nodes = consensus_nodes
         else:
             nodes = rpc_nodes
 
         for i in range(nodes):
-            if type == "boot":
-                worker_name = f'boot-node-{i}'
+            if type == "consensus":
+                worker_name = f'consensus-node-{i}'
             else:
                 worker_name = f'rpc-node-{i}'
 
@@ -296,21 +312,21 @@ def faucet_worker(tps):
     # Wait for the nodes to start
     time.sleep(10)
     web3 = Web3(Web3.HTTPProvider('http://127.0.0.1:7017'))
-    nonce = web3.eth.getTransactionCount(
-        Web3.toChecksumAddress(faucet_public_address))
+    nonce = web3.eth.get_transaction_count(
+        Web3.to_checksum_address(faucet_public_address))
 
-    boot_nodes = list(boot_nodes_public_addresses.keys())
+    consensus_nodes = list(consensus_nodes_public_addresses.keys())
 
     while True:
         time.sleep(1/tps)
-        to, _ = boot_nodes_public_addresses[boot_nodes[randint(
-            0, len(boot_nodes)-1)]]
+        to, _ = consensus_nodes_public_addresses[consensus_nodes[randint(
+            0, len(consensus_nodes)-1)]]
         tx = {
             'nonce': nonce,
-            'to': Web3.toChecksumAddress(to),
-            'value': web3.toWei(100000000, 'gwei'),
+            'to': Web3.to_checksum_address(to),
+            'value': web3.to_wei(100000000, 'gwei'),
             'gas': 21000,
-            'gasPrice': web3.toWei(1, 'gwei'),
+            'gasPrice': web3.to_wei(1, 'gwei'),
             'chainId': int(chain_id)
         }
         nonce = nonce + 1
@@ -320,11 +336,11 @@ def faucet_worker(tps):
         t = time.strftime('%Y-%m-%d %H:%M:%S', current_time)
 
         try:
-            tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+            tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
             log_format(
-                'faucet', f'{t} Dripped to {to}, tx_hash: {web3.toHex(tx_hash)}')
-        except:
-            log_format('faucet', f'{t} Failed to drip to {to}')
+                'faucet', f'{t} Dripped to {to}, tx_hash: {web3.to_hex(tx_hash)}')
+        except Exception as e:
+            log_format('faucet', f'{t} Failed to drip to {to}. Error: {str(e)}')
             pass
 
 
