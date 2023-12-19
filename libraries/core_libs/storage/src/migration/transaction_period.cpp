@@ -44,7 +44,7 @@ void TransactionPeriod::migrate(logger::Logger& log) {
     });
     // This should slow down main loop so we are not using too much memory
     while (executor.num_pending_tasks() > (executor.capacity() * 3)) {
-      taraxa::thisThreadSleepForMilliSeconds(50);
+      taraxa::thisThreadSleepForMilliSeconds(1);
     }
     auto percentage = (period - start_period) * 100 / diff;
     if (percentage > curr_progress) {
