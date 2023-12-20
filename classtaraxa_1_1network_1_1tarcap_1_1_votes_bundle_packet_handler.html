@@ -91,7 +91,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1network_1_1tarcap_1_1_v
 </div><!--header-->
 <div class="contents">
 
-<p><code>#include &lt;<a class="el" href="latest_2votes__bundle__packet__handler_8hpp_source.html">votes_bundle_packet_handler.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="votes__bundle__packet__handler_8hpp_source.html">votes_bundle_packet_handler.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for taraxa::network::tarcap::VotesBundlePacketHandler:</div>
 <div class="dyncontent">
@@ -188,9 +188,9 @@ Static Public Attributes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:ac1c79fbaa5d939d44dd41460aa4aaf8b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#ac1c79fbaa5d939d44dd41460aa4aaf8b">validatePacketRlpFormat</a> (const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;packet_data) const override</td></tr>
-<tr class="memdesc:ac1c79fbaa5d939d44dd41460aa4aaf8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates packet rlp format - items count.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#ac1c79fbaa5d939d44dd41460aa4aaf8b">More...</a><br /></td></tr>
-<tr class="separator:ac1c79fbaa5d939d44dd41460aa4aaf8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac407f78e86fc3d53eb225256c4542ecf"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#ac407f78e86fc3d53eb225256c4542ecf">validatePacketRlpFormat</a> (const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;packet_data) const override</td></tr>
+<tr class="memdesc:ac407f78e86fc3d53eb225256c4542ecf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates packet rlp format - items count.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#ac407f78e86fc3d53eb225256c4542ecf">More...</a><br /></td></tr>
+<tr class="separator:ac407f78e86fc3d53eb225256c4542ecf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10a212641e266f1ca1fea9e898e5448b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#a10a212641e266f1ca1fea9e898e5448b">process</a> (const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;packet_data, const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;peer) override</td></tr>
 <tr class="memdesc:a10a212641e266f1ca1fea9e898e5448b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main packet processing function.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#a10a212641e266f1ca1fea9e898e5448b">More...</a><br /></td></tr>
 <tr class="separator:a10a212641e266f1ca1fea9e898e5448b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -387,8 +387,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="ac1c79fbaa5d939d44dd41460aa4aaf8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac1c79fbaa5d939d44dd41460aa4aaf8b">&#9670;&nbsp;</a></span>validatePacketRlpFormat()</h2>
+<a id="ac407f78e86fc3d53eb225256c4542ecf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac407f78e86fc3d53eb225256c4542ecf">&#9670;&nbsp;</a></span>validatePacketRlpFormat()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -397,7 +397,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void taraxa::network::tarcap::VotesBundlePacketHandler::validatePacketRlpFormat </td>
+          <td class="memname">void taraxa::network::tarcap::VotesBundlePacketHandler::validatePacketRlpFormat </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;&#160;</td>
           <td class="paramname"><em>packet_data</em></td><td>)</td>
@@ -420,8 +420,6 @@ Additional Inherited Members</h2></td></tr>
 </dl>
 
 <p>Implements <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a8b79b9dcf21dae474f34f198b07ffb4a">taraxa::network::tarcap::PacketHandler</a>.</p>
-
-<p>Reimplemented in <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html#a16f7e39f330c3de9c3424ec81748c97a">taraxa::network::tarcap::v1::VotesBundlePacketHandler</a>.</p>
 
 </div>
 </div>
@@ -449,8 +447,8 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>libraries/core_libs/network/include/network/tarcap/packets_handlers/latest/<a class="el" href="latest_2votes__bundle__packet__handler_8hpp_source.html">votes_bundle_packet_handler.hpp</a></li>
-<li>libraries/core_libs/network/src/tarcap/packets_handlers/latest/<a class="el" href="latest_2votes__bundle__packet__handler_8cpp.html">votes_bundle_packet_handler.cpp</a></li>
+<li>libraries/core_libs/network/include/network/tarcap/packets_handlers/latest/<a class="el" href="votes__bundle__packet__handler_8hpp_source.html">votes_bundle_packet_handler.hpp</a></li>
+<li>libraries/core_libs/network/src/tarcap/packets_handlers/latest/<a class="el" href="votes__bundle__packet__handler_8cpp.html">votes_bundle_packet_handler.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -192,12 +192,6 @@ var annotated_dup =
       ] ],
       [ "network", "namespacetaraxa_1_1network.html", [
         [ "tarcap", "namespacetaraxa_1_1network_1_1tarcap.html", [
-          [ "v1", "namespacetaraxa_1_1network_1_1tarcap_1_1v1.html", [
-            [ "GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_next_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_next_votes_bundle_packet_handler" ],
-            [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_pbft_sync_packet_handler" ],
-            [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler" ],
-            [ "VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler" ]
-          ] ],
           [ "PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler" ],
           [ "ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler" ],
           [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler" ],

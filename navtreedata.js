@@ -35,7 +35,7 @@ var NAVTREE =
       [ "Useful doc", "index.html#autotoc_md11", null ],
       [ "System Requirements", "index.html#autotoc_md12", null ]
     ] ],
-    [ "Multiple taraxa capabilities support", "md_libraries_core_libs_network_src_tarcap_packets_handlers_v1_readme.html", null ],
+    [ "Multiple taraxa capabilities support", "md_libraries_core_libs_network_src_tarcap_packets_handlers_latest_readme.html", null ],
     [ "Building taraxa-node", "md_doc_building.html", [
       [ "Building on Ubuntu 22.04", "md_doc_building.html#autotoc_md30", [
         [ "Compile-Time Options (cmake)", "md_doc_building.html#autotoc_md28", [
@@ -347,20 +347,20 @@ var NAVTREEINDEX =
 "classtaraxa_1_1net_1_1_taraxa_face.html#aef0be6005f9ad2c151d79c37d9dc4ce7",
 "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#acbf5e3be4a8bff032f757845621f47d8",
 "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a8d801b7364fab5d508a30bf43dc1eae6",
-"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#adce61e332b72402cd70a2c7252d90542",
-"dir_f7551ecb51caaf87735ee43ce07dac37.html",
-"group___d_a_g.html#a51f92bbc51d4495b915b48458f580169",
-"group___final_chain.html#abe6ee3b520176804d81ddbea0770fe7d",
-"group___p_b_f_t.html#classtaraxa_1_1_pbft_chain",
-"hardfork_8hpp.html#a140e1c40a480c0d3611731f477359f49",
-"libp2p_2_common_8h.html#a8c95b56f8954977600cf4abf15a98ab1",
-"md_doc_coding_practices.html#autotoc_md168",
-"namespacetaraxa.html#acb88135b62c8aadb5c6636e1796ec016",
-"static__init_8hpp_source.html",
-"structdev_1_1p2p_1_1_neighbours.html#ab15a3d180f424da02831b0dd3ec04624",
-"structstd_1_1hash_3_01dev_1_1h64_01_4.html",
-"structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html",
-"vector__ref_8h.html#a5ce9bb6fcbd33dd9a2fa1123f8c09cab"
+"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a7641113bd46296f25e93fdc3aa0a0521",
+"encoding__rlp_8hpp.html#a5804acc66b96d45af0f06a6081d375d7",
+"group___d_a_g.html#a57c86f961e3bb98987d0183e61ac8abc",
+"group___final_chain.html#ad38f8f50303002a562cf95abaf18097a",
+"group___p_b_f_t.html#ga788b2a39c7312a656ddb0116585697b9",
+"hardfork_8hpp.html#aa9c5e8031eb5d3ffaf6e76c0aed1180f",
+"libp2p_2_common_8h.html#acf8a99e82c7f19f577df3ef7a0ead94b",
+"md_doc_coding_practices.html#autotoc_md190",
+"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a83c89173bf3649ac188c323f010567c3",
+"storage_8hpp.html#ac3d6a3ed52a696ba79164a87e643e901a1a52fe6b564c8ef4d0d4df7a31ed41ec",
+"structdev_1_1p2p_1_1_network_config.html#a307da441278a1eeaa417d47809fca66c",
+"structtaraxa_1_1_dag_frontier.html#a5d3bc6de92ff877d054586e901c5ef0a",
+"structtaraxa_1_1util_1_1_range_view.html#ac5b3188c07e028070655bbec6ac59b6b",
+"votes__bundle__rlp_8hpp_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

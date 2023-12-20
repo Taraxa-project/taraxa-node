@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['lazy_2ehpp_4169',['lazy.hpp',['../lazy_8hpp.html',1,'']]],
-  ['libsnark_2ecpp_4170',['LibSnark.cpp',['../_lib_snark_8cpp.html',1,'']]],
-  ['libsnark_2eh_4171',['LibSnark.h',['../_lib_snark_8h.html',1,'']]],
-  ['log_2ecpp_4172',['log.cpp',['../log_8cpp.html',1,'']]],
-  ['log_2eh_4173',['Log.h',['../_log_8h.html',1,'']]],
-  ['log_2ehpp_4174',['log.hpp',['../log_8hpp.html',1,'']]],
-  ['logfilter_2ecpp_4175',['LogFilter.cpp',['../_log_filter_8cpp.html',1,'']]],
-  ['logfilter_2ehpp_4176',['LogFilter.hpp',['../_log_filter_8hpp.html',1,'']]],
-  ['logger_2ecpp_4177',['logger.cpp',['../logger_8cpp.html',1,'']]],
-  ['logger_2ehpp_4178',['logger.hpp',['../logger_8hpp.html',1,'']]],
-  ['logger_5fconfig_2ecpp_4179',['logger_config.cpp',['../logger__config_8cpp.html',1,'']]],
-  ['logger_5fconfig_2ehpp_4180',['logger_config.hpp',['../logger__config_8hpp.html',1,'']]]
+  ['main_2ecpp_4171',['main.cpp',['../taraxa-bootnode_2main_8cpp.html',1,'(Global Namespace)'],['../taraxad_2main_8cpp.html',1,'(Global Namespace)']]],
+  ['max_5fstats_2ecpp_4172',['max_stats.cpp',['../max__stats_8cpp.html',1,'']]],
+  ['max_5fstats_2ehpp_4173',['max_stats.hpp',['../max__stats_8hpp.html',1,'']]],
+  ['metrics_5fgroup_2ehpp_4174',['metrics_group.hpp',['../metrics__group_8hpp.html',1,'']]],
+  ['metrics_5fservice_2ecpp_4175',['metrics_service.cpp',['../metrics__service_8cpp.html',1,'']]],
+  ['metrics_5fservice_2ehpp_4176',['metrics_service.hpp',['../metrics__service_8hpp.html',1,'']]],
+  ['migration_5fbase_2ehpp_4177',['migration_base.hpp',['../migration__base_8hpp.html',1,'']]],
+  ['migration_5fmanager_2ecpp_4178',['migration_manager.cpp',['../migration__manager_8cpp.html',1,'']]],
+  ['migration_5fmanager_2ehpp_4179',['migration_manager.hpp',['../migration__manager_8hpp.html',1,'']]],
+  ['modularserver_2eh_4180',['ModularServer.h',['../_modular_server_8h.html',1,'']]],
+  ['mutation_2ecpp_4181',['mutation.cpp',['../mutation_8cpp.html',1,'']]],
+  ['mutation_2ehpp_4182',['mutation.hpp',['../mutation_8hpp.html',1,'']]]
 ];
