@@ -45,7 +45,6 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void on_accept(beast::error_code ec);
   void do_read();
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
-  void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
 
   virtual std::string processRequest(const std::string_view& request) = 0;
 
@@ -59,12 +58,13 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   LOG_OBJECTS_DEFINE
 
  protected:
+  void processAsync();
+  void writeAsync(std::string&& message);
   void writeImpl(std::string&& message);
-  void write();
+  std::mutex write_mutex_;
   std::queue<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
-  std::string write_buffer_;
   int subscription_id_ = 0;
   int new_heads_subscription_ = 0;
   int new_dag_blocks_subscription_ = 0;

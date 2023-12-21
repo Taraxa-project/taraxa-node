@@ -53,40 +53,52 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   LOG(log_tr_) << "WS READ " << (static_cast<char *>(buffer_.data().data()));
 
-  const std::string_view str_view(static_cast<const char *>(buffer_.data().data()), buffer_.size());
-  const auto response = processRequest(str_view);
-
-  // Clear the buffer
-  buffer_.consume(buffer_.size());
-
-  auto executor = ws_.get_executor();
-  if (!executor) {
-    LOG(log_tr_) << "Executor missing - WS closed";
-    return close(false);
-  }
-
-  boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
+  processAsync();
   // Do another read
   do_read();
 }
 
-void WsSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transferred) {
-  LOG(log_tr_) << "WS ASYNC WRITE COMPLETE"
-               << " " << &ws_;
-  // Pop on successful write
-  queue_messages_.pop();
-  if (is_closed()) return;
-
-  // For any error close the connection
-  if (ec) {
-    LOG(log_nf_) << "WS closed in on_write " << ec;
-    return close(is_normal(ec));
+void WsSession::processAsync() {
+  std::string request(static_cast<char *>(buffer_.data().data()), buffer_.size());
+  buffer_.consume(buffer_.size());
+  LOG(log_tr_) << "processAsync " << request;
+  auto executor = ws_.get_executor();
+  if (!executor) {
+    LOG(log_tr_) << "Executor missing - WS closed";
+    closed_ = true;
+    return;
   }
 
-  boost::ignore_unused(bytes_transferred);
-  if (queue_messages_.size() > 0) {
-    write();
+  LOG(log_tr_) << "Before executor.post ";
+  boost::asio::post(executor, [this, request = std::move(request)]() mutable { writeImpl(processRequest(request)); });
+  LOG(log_tr_) << "After executor.post ";
+}
+
+void WsSession::writeAsync(std::string &&message) {
+  LOG(log_tr_) << "WS WRITE " << message.c_str();
+  auto executor = ws_.get_executor();
+  if (!executor) {
+    LOG(log_tr_) << "Executor missing - WS closed";
+    closed_ = true;
+    return;
   }
+
+  LOG(log_tr_) << "Before executor.post ";
+  boost::asio::post(executor, [this, message = std::move(message)]() mutable { writeImpl(std::move(message)); });
+  LOG(log_tr_) << "After executors.post ";
+}
+
+void WsSession::writeImpl(std::string &&message) {
+  ws_.text(true);  // as we are using text msg here
+  try {
+    // lock write_mutex_ to prevent concurrent write
+    std::lock_guard<std::mutex> lock(write_mutex_);
+    ws_.write(boost::asio::buffer(message));
+  } catch (const boost::system::system_error &e) {
+    LOG(log_nf_) << "WS closed in on_write " << e.what();
+    return close(is_normal(e.code()));
+  }
+  LOG(log_tr_) << "WS WRITE COMPLETE " << &ws_;
 }
 
 void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, const TransactionHashes &trx_hashes) {
@@ -105,27 +117,9 @@ void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, c
       LOG(log_tr_) << "Executor missing - WS closed";
       return close(false);
     }
-    boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
+    writeAsync(std::move(response));
   }
 }
-
-void WsSession::write() {
-  write_buffer_ = std::move(queue_messages_.front());
-  ws_.text(true);  // as we are using text msg here
-  LOG(log_tr_) << "WS ASYNC WRITE " << write_buffer_.c_str() << " " << &ws_;
-  ws_.async_write(boost::asio::buffer(write_buffer_),
-                  beast::bind_front_handler(&WsSession::on_write_no_read, shared_from_this()));
-}
-
-void WsSession::writeImpl(std::string &&message) {
-  queue_messages_.push(std::move(message));
-  if (queue_messages_.size() > 1) {
-    // outstanding async_write
-    return;
-  }
-  write();
-}
-
 void WsSession::newDagBlock(DagBlock const &blk) {
   if (new_dag_blocks_subscription_) {
     Json::Value res, params;
@@ -140,7 +134,7 @@ void WsSession::newDagBlock(DagBlock const &blk) {
       LOG(log_tr_) << "Executor missing - WS closed";
       return close(false);
     }
-    boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
+    writeAsync(std::move(response));
   }
 }
 
@@ -160,7 +154,7 @@ void WsSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
       LOG(log_tr_) << "Executor missing - WS closed";
       return close(false);
     }
-    boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
+    writeAsync(std::move(response));
   }
 }
 
@@ -179,7 +173,7 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
       LOG(log_tr_) << "Executor missing - WS closed";
       return close(false);
     }
-    boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
+    writeAsync(std::move(response));
   }
 }
 
@@ -197,7 +191,7 @@ void WsSession::newPendingTransaction(trx_hash_t const &trx_hash) {
       LOG(log_tr_) << "Executor missing - WS closed";
       return close(false);
     }
-    boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
+    writeAsync(std::move(response));
   }
 }
 
@@ -266,8 +260,7 @@ WsServer::~WsServer() {
 
 void WsServer::do_accept() {
   // The new connection gets its own strand
-  acceptor_.async_accept(boost::asio::make_strand(ioc_),
-                         beast::bind_front_handler(&WsServer::on_accept, shared_from_this()));
+  acceptor_.async_accept(ioc_, beast::bind_front_handler(&WsServer::on_accept, shared_from_this()));
 }
 
 void WsServer::on_accept(beast::error_code ec, tcp::socket socket) {
