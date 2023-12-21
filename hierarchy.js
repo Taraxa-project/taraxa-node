@@ -9,6 +9,7 @@ var hierarchy =
     ] ],
     [ "graphql::taraxa::Account", "classgraphql_1_1taraxa_1_1_account.html", null ],
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
+    [ "AspenHardfork", "hardfork_8hpp.html#struct_aspen_hardfork", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
       [ "taraxa::storage::migration::PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", null ]
     ] ],

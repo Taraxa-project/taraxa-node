@@ -335,6 +335,7 @@ var annotated_dup =
       [ "SortitionParams", "structtaraxa_1_1_sortition_params.html", "structtaraxa_1_1_sortition_params" ],
       [ "SortitionConfig", "structtaraxa_1_1_sortition_config.html", "structtaraxa_1_1_sortition_config" ]
     ] ],
+    [ "AspenHardfork", "hardfork_8hpp.html#struct_aspen_hardfork", "hardfork_8hpp_struct_aspen_hardfork" ],
     [ "ExpirationBlockNumberCache", "class_expiration_block_number_cache.html", "class_expiration_block_number_cache" ],
     [ "ExpirationCache", "class_expiration_cache.html", "class_expiration_cache" ],
     [ "ExpirationCacheMap", "class_expiration_cache_map.html", "class_expiration_cache_map" ],

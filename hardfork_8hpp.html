@@ -157,6 +157,8 @@ Classes</h2></td></tr>
 <tr class="separator:struct_redelegation"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:struct_magnolia_hardfork"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#struct_magnolia_hardfork">MagnoliaHardfork</a></td></tr>
 <tr class="separator:struct_magnolia_hardfork"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:struct_aspen_hardfork"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#struct_aspen_hardfork">AspenHardfork</a></td></tr>
+<tr class="separator:struct_aspen_hardfork"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:struct_hardforks_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a></td></tr>
 <tr class="separator:struct_hardforks_config"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -170,6 +172,10 @@ Functions</h2></td></tr>
 <tr class="separator:abd62dbe54ecc518f4c7dc601eb4b7f7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6551b937467c5972009ffa1ac192aec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#ae6551b937467c5972009ffa1ac192aec">dec_json</a> (const Json::Value &amp;json, <a class="el" href="hardfork_8hpp.html#struct_magnolia_hardfork">MagnoliaHardfork</a> &amp;obj)</td></tr>
 <tr class="separator:ae6551b937467c5972009ffa1ac192aec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae26fc5741c9165c093419908b665d18a"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#ae26fc5741c9165c093419908b665d18a">enc_json</a> (const <a class="el" href="hardfork_8hpp.html#struct_aspen_hardfork">AspenHardfork</a> &amp;obj)</td></tr>
+<tr class="separator:ae26fc5741c9165c093419908b665d18a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f5bc0b7b5eec75c54920eefa9816f71"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#a7f5bc0b7b5eec75c54920eefa9816f71">dec_json</a> (const Json::Value &amp;json, <a class="el" href="hardfork_8hpp.html#struct_aspen_hardfork">AspenHardfork</a> &amp;obj)</td></tr>
+<tr class="separator:a7f5bc0b7b5eec75c54920eefa9816f71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6a85b139db5ad20b93828cf63d51c7c"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#ab6a85b139db5ad20b93828cf63d51c7c">enc_json</a> (const <a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a> &amp;obj)</td></tr>
 <tr class="separator:ab6a85b139db5ad20b93828cf63d51c7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee3750fcf3856743f5e71f64f88ad959"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="hardfork_8hpp.html#aee3750fcf3856743f5e71f64f88ad959">dec_json</a> (const Json::Value &amp;json, <a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a> &amp;obj)</td></tr>
@@ -240,6 +246,47 @@ jail_time</td>
 
 </div>
 </div>
+<a name="struct_aspen_hardfork" id="struct_aspen_hardfork"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#struct_aspen_hardfork">&#9670;&nbsp;</a></span>AspenHardfork</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct AspenHardfork</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="ac0627efe03cab76f78f2b09a1f7343fd"></a>uint64_t</td>
+<td class="fieldname">
+block_num_part_one</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="aec2c948da670da2af8a79242401a0670"></a>uint64_t</td>
+<td class="fieldname">
+block_num_part_two</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="af5cc679b10ee8950384d348f784ea72b"></a>uint256_t</td>
+<td class="fieldname">
+generated_rewards</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="a1882d3b74432e41a3b9acb01eed78d83"></a>uint256_t</td>
+<td class="fieldname">
+max_supply</td>
+<td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
 <a name="struct_hardforks_config" id="struct_hardforks_config"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#struct_hardforks_config">&#9670;&nbsp;</a></span>HardforksConfig</h2>
 
@@ -256,8 +303,9 @@ Collaboration diagram for HardforksConfig:</div>
 <div class="dyncontent">
 <div class="center"><img src="struct_hardforks_config__coll__graph.png" border="0" usemap="#a_hardforks_config_coll__map" alt="Collaboration graph"/></div>
 <map name="a_hardforks_config_coll__map" id="a_hardforks_config_coll__map">
-<area shape="rect" title=" " alt="" coords="11,95,138,121"/>
+<area shape="rect" title=" " alt="" coords="87,95,214,121"/>
 <area shape="rect" href="hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="5,5,144,32"/>
+<area shape="rect" href="hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="169,5,287,32"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="fieldtable">
@@ -271,6 +319,12 @@ RewardsDistributionMap</td>
 </table>
 <table class="fieldtable">
 <tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="ac4719b967f9304e95b0bf069bef05dc7"></a><a class="el" href="hardfork_8hpp.html#struct_aspen_hardfork">AspenHardfork</a></td>
+<td class="fieldname">
+aspen_hf</td>
+<td class="fielddoc">
+</td></tr>
 <tr><td class="fieldtype">
 <a id="a77aafaddfae6fa9126b68b718be3f84c"></a>uint64_t</td>
 <td class="fieldname">
@@ -300,8 +354,36 @@ rewards_distribution_frequency</td>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a7f5bc0b7b5eec75c54920eefa9816f71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f5bc0b7b5eec75c54920eefa9816f71">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void dec_json </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="hardfork_8hpp.html#struct_aspen_hardfork">AspenHardfork</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aee3750fcf3856743f5e71f64f88ad959"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee3750fcf3856743f5e71f64f88ad959">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aee3750fcf3856743f5e71f64f88ad959">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -329,7 +411,7 @@ rewards_distribution_frequency</td>
 </div>
 </div>
 <a id="ae6551b937467c5972009ffa1ac192aec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae6551b937467c5972009ffa1ac192aec">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6551b937467c5972009ffa1ac192aec">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -357,7 +439,7 @@ rewards_distribution_frequency</td>
 </div>
 </div>
 <a id="a3d203167ce341d6ad0ebba86baf013fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d203167ce341d6ad0ebba86baf013fc">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d203167ce341d6ad0ebba86baf013fc">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -384,8 +466,26 @@ rewards_distribution_frequency</td>
 
 </div>
 </div>
+<a id="ae26fc5741c9165c093419908b665d18a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae26fc5741c9165c093419908b665d18a">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Json::Value enc_json </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="hardfork_8hpp.html#struct_aspen_hardfork">AspenHardfork</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab6a85b139db5ad20b93828cf63d51c7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab6a85b139db5ad20b93828cf63d51c7c">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6a85b139db5ad20b93828cf63d51c7c">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -403,7 +503,7 @@ rewards_distribution_frequency</td>
 </div>
 </div>
 <a id="abd62dbe54ecc518f4c7dc601eb4b7f7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abd62dbe54ecc518f4c7dc601eb4b7f7f">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#abd62dbe54ecc518f4c7dc601eb4b7f7f">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -421,7 +521,7 @@ rewards_distribution_frequency</td>
 </div>
 </div>
 <a id="a280d6fe653a1c7e6c87fd8f2162a2090"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a280d6fe653a1c7e6c87fd8f2162a2090">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a280d6fe653a1c7e6c87fd8f2162a2090">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">

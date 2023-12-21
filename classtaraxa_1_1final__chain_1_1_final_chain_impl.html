@@ -99,15 +99,16 @@ Collaboration diagram for taraxa::final_chain::FinalChainImpl:</div>
 <area shape="rect" title=" " alt="" coords="1627,388,1769,429"/>
 <area shape="rect" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain" title="main responsibility is blocks execution in EVM, getting data from EVM state" alt="" coords="1209,68,1351,109"/>
 <area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="649,5,904,76"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,72,516,113"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,60,516,101"/>
 <area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="677,100,876,141"/>
-<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,65,207,121"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,53,207,109"/>
 <area shape="rect" href="classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="1179,133,1381,175"/>
 <area shape="rect" href="classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="1171,199,1389,240"/>
 <area shape="rect" href="classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="1147,265,1413,321"/>
 <area shape="rect" href="classtaraxa_1_1rewards_1_1_stats.html" title="class that is managing rewards stats processing and hardforks(intervals changes) So intermediate bloc..." alt="" coords="1197,345,1363,371"/>
 <area shape="rect" href="hardfork_8hpp.html#struct_hardforks_config" title=" " alt="" coords="713,345,840,371"/>
-<area shape="rect" href="hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="339,345,477,371"/>
+<area shape="rect" href="hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="339,319,477,346"/>
+<area shape="rect" href="hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="349,370,467,397"/>
 <area shape="rect" title=" " alt="" coords="1248,395,1312,422"/>
 <area shape="rect" href="classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="1179,446,1381,502"/>
 <area shape="rect" href="classtaraxa_1_1_map_by_block_cache.html" title=" " alt="" coords="1175,527,1385,568"/>
@@ -205,6 +206,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab1a01a55286bd3b168086446252b3101"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab1a01a55286bd3b168086446252b3101">wait_for_finalized</a> () override</td></tr>
 <tr class="memdesc:ab1a01a55286bd3b168086446252b3101"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait until next block is finalized.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab1a01a55286bd3b168086446252b3101">More...</a><br /></td></tr>
 <tr class="separator:ab1a01a55286bd3b168086446252b3101"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa3c2118b09ebe56f4504965571da7a5"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aaa3c2118b09ebe56f4504965571da7a5">dpos_yield</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const override</td></tr>
+<tr class="separator:aaa3c2118b09ebe56f4504965571da7a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55f0e0af06c0bb259b660514cdfc5c05"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a55f0e0af06c0bb259b660514cdfc5c05">dpos_total_supply</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const override</td></tr>
+<tr class="separator:a55f0e0af06c0bb259b660514cdfc5c05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_group___final_chain"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_group___final_chain')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">taraxa::final_chain::FinalChain</a></td></tr>
 <tr class="memitem:ababdb83aed2fc614d815944b986a60ed inherit pub_methods_group___final_chain"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ababdb83aed2fc614d815944b986a60ed">FinalChain</a> ()=default</td></tr>
 <tr class="separator:ababdb83aed2fc614d815944b986a60ed inherit pub_methods_group___final_chain"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -846,6 +851,41 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a55f0e0af06c0bb259b660514cdfc5c05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55f0e0af06c0bb259b660514cdfc5c05">&#9670;&nbsp;</a></span>dpos_total_supply()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a> taraxa::final_chain::FinalChainImpl::dpos_total_supply </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_num</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blk_num</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>total supply </dd></dl>
+
+<p>Implements <a class="el" href="group___final_chain.html#aeefd42d4c2ad52e63a2753ef1928d858">taraxa::final_chain::FinalChain</a>.</p>
+
+</div>
+</div>
 <a id="ae864ae14f6ce00db133024bda8626be1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae864ae14f6ce00db133024bda8626be1">&#9670;&nbsp;</a></span>dpos_validators_total_stakes()</h2>
 
@@ -871,6 +911,41 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="group___final_chain.html#ad9f46da3a897b3cf463ef9d40d768614">taraxa::final_chain::FinalChain</a>.</p>
+
+</div>
+</div>
+<a id="aaa3c2118b09ebe56f4504965571da7a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa3c2118b09ebe56f4504965571da7a5">&#9670;&nbsp;</a></span>dpos_yield()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::final_chain::FinalChainImpl::dpos_yield </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_num</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blk_num</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>yield </dd></dl>
+
+<p>Implements <a class="el" href="group___final_chain.html#a26219b4de9c395dc0289e4a4ee512bd7">taraxa::final_chain::FinalChain</a>.</p>
 
 </div>
 </div>

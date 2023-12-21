@@ -552,17 +552,58 @@ Example</h3>
 <div class="line">    &quot;transactions_executed&quot;: 200</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md307"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md307"></a>
+taraxa_yield</h2>
+<p>Returns yield for specified period</p>
+<h3><a class="anchor" id="autotoc_md308"></a>
+Parameters</h3>
+<p><code>QUANTITY</code> - period</p>
+<h3><a class="anchor" id="autotoc_md309"></a>
+Returns</h3>
+<p><code>String</code> - yield</p>
+<p>To transform returned yield to percents -&gt; <code>decimal(yield) / 1e4</code>\ To transform returned yield to fraction -&gt; <code>decimal(yield) / 1e6</code></p>
+<h3><a class="anchor" id="autotoc_md310"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_yield&quot;,&quot;params&quot;:[&quot;0x1D533B&quot;],&quot;id&quot;:1}&#39;</div>
+<div class="line"> </div>
+<div class="line">// Result</div>
+<div class="line">{</div>
+<div class="line">  &quot;id&quot;: 1,</div>
+<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
+<div class="line">  &quot;result&quot;: &quot;0x30D40&quot;</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md311"></a>
+taraxa_totalSupply</h2>
+<p>Returns total supply for specified period</p>
+<h3><a class="anchor" id="autotoc_md312"></a>
+Parameters</h3>
+<p><code>QUANTITY</code> - period</p>
+<h3><a class="anchor" id="autotoc_md313"></a>
+Returns</h3>
+<p><code>String</code> - total supply</p>
+<h3><a class="anchor" id="autotoc_md314"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_totalSupply&quot;,&quot;params&quot;:[&quot;0x1D533B&quot;],&quot;id&quot;:1}&#39;</div>
+<div class="line"> </div>
+<div class="line">// Result</div>
+<div class="line">{</div>
+<div class="line">  &quot;id&quot;: 1,</div>
+<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
+<div class="line">  &quot;result&quot;: &quot;0x204FCE5E3E25026110000000&quot;</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md315"></a>
 Test API</h1>
-<h2><a class="anchor" id="autotoc_md308"></a>
+<h2><a class="anchor" id="autotoc_md316"></a>
 get_sortition_change</h2>
 <p>Get sortition params changes for closest smaller period to specified</p>
-<h3><a class="anchor" id="autotoc_md309"></a>
+<h3><a class="anchor" id="autotoc_md317"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - param is wrapped into object</p><ul>
 <li><code>period</code>: QUANTITY` - period number to get sortition parameters for</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md310"></a>
+<h3><a class="anchor" id="autotoc_md318"></a>
 Returns</h3>
 <p><code>OBJECT</code> - sortition parameters</p><ul>
 <li><code>interval_efficiency</code>: <code>QUANTITY</code> - efficiency of interval</li>
@@ -570,7 +611,7 @@ Returns</h3>
 <li><code>threshold_upper</code>: <code>QUANTITY</code> - upper bound of selection</li>
 <li><code>kThresholdUpperMinValue</code>: <code>QUANTITY</code> - const that represents minimum value of <code>threshold_upper</code></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md311"></a>
+<h3><a class="anchor" id="autotoc_md319"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_sortition_change&quot;,&quot;params&quot;:[{&quot;period&quot;: 3000}],&quot;id&quot;:1}&#39;</div>
@@ -586,10 +627,10 @@ Example</h3>
 <div class="line">    &quot;threshold_upper&quot;: 31953</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md312"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md320"></a>
 send_coin_transaction</h2>
 <p>Method to create and send transfer transaction. Used in some tests and CI</p>
-<h3><a class="anchor" id="autotoc_md313"></a>
+<h3><a class="anchor" id="autotoc_md321"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transaction from</li>
@@ -599,10 +640,10 @@ Parameters</h3>
 <li><code>gas</code>: <code>QUANTITY</code> - Amount of gas transaction can use</li>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Address of receiver account</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md314"></a>
+<h3><a class="anchor" id="autotoc_md322"></a>
 Returns</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md315"></a>
+<h3><a class="anchor" id="autotoc_md323"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;send_coin_transaction&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -613,10 +654,10 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: null</div>
 <div class="line">}</div>
-</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md316"></a>
+</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md324"></a>
 send_coin_transactions</h2>
 <p>Method to create and send multiple transaction. Used to create high transactions load in tests</p>
-<h3><a class="anchor" id="autotoc_md317"></a>
+<h3><a class="anchor" id="autotoc_md325"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transactions from</li>
@@ -627,19 +668,19 @@ Parameters</h3>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Array of Addresses of receiver account</li>
 <li><code>transaction_count</code>: <code>QUANTITY</code>, - Number of transactions to create</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md318"></a>
+<h3><a class="anchor" id="autotoc_md326"></a>
 Returns</h3>
 <p>Number of transactions inserted successfully, in case of transaction insertion failure, error message is returned</p>
-<h2><a class="anchor" id="autotoc_md319"></a>
+<h2><a class="anchor" id="autotoc_md327"></a>
 get_account_address</h2>
 <p>Returns address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md320"></a>
+<h3><a class="anchor" id="autotoc_md328"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md321"></a>
+<h3><a class="anchor" id="autotoc_md329"></a>
 Returns</h3>
 <p><code>DATA</code>, 20 Bytes - address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md322"></a>
+<h3><a class="anchor" id="autotoc_md330"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_account_address&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -652,16 +693,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: &quot;b3888b0bafcf1f9481a0ec97ff032d84f22254ec&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md323"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md331"></a>
 get_peer_count</h2>
 <p>Returns count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md324"></a>
+<h3><a class="anchor" id="autotoc_md332"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md325"></a>
+<h3><a class="anchor" id="autotoc_md333"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md326"></a>
+<h3><a class="anchor" id="autotoc_md334"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_peer_count&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -674,16 +715,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: 50</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md327"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md335"></a>
 get_node_status</h2>
 <p>Returns current taraxa network protocol version</p>
-<h3><a class="anchor" id="autotoc_md328"></a>
+<h3><a class="anchor" id="autotoc_md336"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md329"></a>
+<h3><a class="anchor" id="autotoc_md337"></a>
 Returns</h3>
 <p><code>OBJECT</code> - with a lot of info about node status including networking. See Example</p>
-<h3><a class="anchor" id="autotoc_md330"></a>
+<h3><a class="anchor" id="autotoc_md338"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_node_status&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -730,16 +771,16 @@ Example</h3>
 <div class="line">    &quot;trx_pool_size&quot;: 7</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md331"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md339"></a>
 get_all_nodes</h2>
 <p>Returns info of current connected nodes including its id, ip_address and port</p>
-<h3><a class="anchor" id="autotoc_md332"></a>
+<h3><a class="anchor" id="autotoc_md340"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md333"></a>
+<h3><a class="anchor" id="autotoc_md341"></a>
 Returns</h3>
 <p><code>STRING</code> - string that contains info about peer if format <code>id ip_address:port</code> separated with <code>\n</code>.</p>
-<h3><a class="anchor" id="autotoc_md334"></a>
+<h3><a class="anchor" id="autotoc_md342"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_all_nodes&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -750,15 +791,15 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;f8ff62f2df819566023ec3cda97f73697e789089b5c97c22a24c175edec3256242796a7a843fe1b949558160dae0fd5510e31c93440798212ef99a55c64e7b0f 66.94.114.186:10002\n45022ea1765d3a569003e2088a0893ffe00656c25f32ee414b39c6e45c8aa05cc41453158d832c67b5bba710edb648223f654fae9e2a1f513d7e42447f25a2d6 38.242.218.203:10002&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md335"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md343"></a>
 Debug API</h1>
-<h2><a class="anchor" id="autotoc_md336"></a>
+<h2><a class="anchor" id="autotoc_md344"></a>
 debug_getPeriodTransactionsWithReceipts</h2>
 <p>Returns all transactions from block at specified period</p>
-<h3><a class="anchor" id="autotoc_md337"></a>
+<h3><a class="anchor" id="autotoc_md345"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md338"></a>
+<h3><a class="anchor" id="autotoc_md346"></a>
 Returns</h3>
 <p><code>ARRAY</code> of <code>OBJECT</code> - Object that is result of transaction and receipt objects merging <br  />
 </p><ul>
@@ -783,7 +824,7 @@ Returns</h3>
 <li><code>logsBloom</code>: <code>DATA</code>, 256 Bytes - Bloom filter for light clients to quickly retrieve related logs.</li>
 <li><code>status</code>: <code>QUANTITY</code> either 1 (success) or 0 (failure)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md339"></a>
+<h3><a class="anchor" id="autotoc_md347"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPeriodTransactionsWithReceipts&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
@@ -818,13 +859,13 @@ Example</h3>
 <div class="line">    }, ...</div>
 <div class="line">  ]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md340"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md348"></a>
 debug_getPeriodDagBlocks</h2>
 <p>Returns all dag blocks for specified period</p>
-<h3><a class="anchor" id="autotoc_md341"></a>
+<h3><a class="anchor" id="autotoc_md349"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md342"></a>
+<h3><a class="anchor" id="autotoc_md350"></a>
 Returns</h3>
 <p><code>ARRAY</code> of <code>OBJECT</code> - A DAG block object:</p><ul>
 <li><code>pivot</code>: <code>DATA</code>, 32 Bytes -</li>
@@ -846,7 +887,7 @@ Returns</h3>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md343"></a>
+<h3><a class="anchor" id="autotoc_md351"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPeriodDagBlocks&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
@@ -876,13 +917,13 @@ Example</h3>
 <div class="line">    }, ...</div>
 <div class="line">  ]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md344"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md352"></a>
 debug_getPreviousBlockCertVotes</h2>
 <p>Returns all previous block cert votes for specified period</p>
-<h3><a class="anchor" id="autotoc_md345"></a>
+<h3><a class="anchor" id="autotoc_md353"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md346"></a>
+<h3><a class="anchor" id="autotoc_md354"></a>
 Returns</h3>
 <p><code>ARRAY</code> of <code>OBJECT</code> - A Vote block object:</p><ul>
 <li><code>hash</code>: <code>DATA</code>, 32 Bytes - Hash of the vote</li>
@@ -891,7 +932,7 @@ Returns</h3>
 <li><code>block_hash</code>: <code>DATA</code>, 32 Bytes - Hash of the block vote</li>
 <li><code>weight</code>: <code>QUANTITY</code> - weight of the vote</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md347"></a>
+<h3><a class="anchor" id="autotoc_md355"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPreviousBlockCertVotes&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>

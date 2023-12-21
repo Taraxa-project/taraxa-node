@@ -13,6 +13,8 @@ var classtaraxa_1_1net_1_1_taraxa =
     [ "taraxa_getVersion", "classtaraxa_1_1net_1_1_taraxa.html#a2b43dc7e443c4eb2c6c6e390f04cba74", null ],
     [ "taraxa_pbftBlockHashByPeriod", "classtaraxa_1_1net_1_1_taraxa.html#a3dba65272713169e722deba2da5e7ee2", null ],
     [ "taraxa_protocolVersion", "classtaraxa_1_1net_1_1_taraxa.html#a527aeb1708223067b08610c7a0afa587", null ],
+    [ "taraxa_totalSupply", "classtaraxa_1_1net_1_1_taraxa.html#a881240e856b8d0845c82baf92b820749", null ],
+    [ "taraxa_yield", "classtaraxa_1_1net_1_1_taraxa.html#aff0d367292edba63b7097f201c7eb41f", null ],
     [ "tryGetNode", "classtaraxa_1_1net_1_1_taraxa.html#adacc718a58626bf15b71f3a8e606bc41", null ],
     [ "full_node_", "classtaraxa_1_1net_1_1_taraxa.html#aef887e1a99c134121d894c6e9be617ed", null ],
     [ "version", "classtaraxa_1_1net_1_1_taraxa.html#a6e9d6492d8ceca86d65bce7aec2aa075", null ]

@@ -20,5 +20,10 @@ var classtaraxa_1_1net_1_1_taraxa_face =
     [ "taraxa_pbftBlockHashByPeriod", "classtaraxa_1_1net_1_1_taraxa_face.html#ac375ea121999019886bfdfe4f5fbbce8", null ],
     [ "taraxa_pbftBlockHashByPeriodI", "classtaraxa_1_1net_1_1_taraxa_face.html#a1ccfd8cc1bc665984158ec3e44df7ad7", null ],
     [ "taraxa_protocolVersion", "classtaraxa_1_1net_1_1_taraxa_face.html#a4998140d6d826fc772298b0b1ff9ab48", null ],
-    [ "taraxa_protocolVersionI", "classtaraxa_1_1net_1_1_taraxa_face.html#ae1df39f8c71c6964350a9116aa60084a", null ]
+    [ "taraxa_protocolVersionI", "classtaraxa_1_1net_1_1_taraxa_face.html#ae1df39f8c71c6964350a9116aa60084a", null ],
+    [ "taraxa_totalSupply", "classtaraxa_1_1net_1_1_taraxa_face.html#a187b36de335759d109c6b93ca4fc9fae", null ],
+    [ "taraxa_totalSupplyI", "classtaraxa_1_1net_1_1_taraxa_face.html#a1fe28953fe6bd63eaff39b2521385186", null ],
+    [ "taraxa_yield", "classtaraxa_1_1net_1_1_taraxa_face.html#a57daf15be3c242029cd51fa7a33d6f33", null ],
+    [ "taraxa_yieldI", "classtaraxa_1_1net_1_1_taraxa_face.html#a416b81f6dbba2f43c671df70fce3cf0a", null ],
+    [ "JSON_ANY", "classtaraxa_1_1net_1_1_taraxa_face.html#a55d21f8ec1178f37386fa7bd8a3b156b", null ]
 ];

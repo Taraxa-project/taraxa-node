@@ -5,7 +5,7 @@
 <area shape="rect" id="node4" href="$structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="1766,242,1937,269"/>
 <area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1379,145,1563,187"/>
 <area shape="rect" id="node6" title=" " alt="" coords="1067,86,1126,113"/>
-<area shape="rect" id="node33" href="$structtaraxa_1_1_network_config.html" title=" " alt="" coords="1387,211,1555,238"/>
+<area shape="rect" id="node34" href="$structtaraxa_1_1_network_config.html" title=" " alt="" coords="1387,211,1555,238"/>
 <area shape="rect" id="node7" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts" title=" " alt="" coords="1385,323,1556,350"/>
 <area shape="rect" id="node8" href="$structtaraxa_1_1_genesis_config.html" title=" " alt="" coords="1388,273,1553,299"/>
 <area shape="rect" id="node9" href="$structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="1013,318,1181,345"/>
@@ -24,13 +24,14 @@
 <area shape="rect" id="node22" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config" title=" " alt="" coords="616,215,756,256"/>
 <area shape="rect" id="node23" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config" title=" " alt="" coords="616,280,756,321"/>
 <area shape="rect" id="node24" href="$hardfork_8hpp.html#struct_hardforks_config" title=" " alt="" coords="623,163,749,190"/>
-<area shape="rect" id="node25" href="$hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="289,163,427,190"/>
-<area shape="rect" id="node26" href="$structtaraxa_1_1_gas_price_config.html" title=" " alt="" coords="1011,369,1182,395"/>
-<area shape="rect" id="node27" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="1027,419,1166,446"/>
-<area shape="rect" id="node28" href="$structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1027,201,1166,227"/>
-<area shape="rect" id="node29" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="591,97,781,139"/>
-<area shape="rect" id="node30" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1389,5,1553,47"/>
-<area shape="rect" id="node31" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1017,13,1176,39"/>
-<area shape="rect" id="node32" href="$namespacetaraxa.html#structtaraxa_1_1_d_b_config" title=" " alt="" coords="1405,374,1537,401"/>
-<area shape="rect" id="node34" href="$structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="991,150,1203,177"/>
+<area shape="rect" id="node25" href="$hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="289,189,427,215"/>
+<area shape="rect" id="node26" href="$hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="299,138,417,165"/>
+<area shape="rect" id="node27" href="$structtaraxa_1_1_gas_price_config.html" title=" " alt="" coords="1011,369,1182,395"/>
+<area shape="rect" id="node28" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="1027,419,1166,446"/>
+<area shape="rect" id="node29" href="$structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1027,201,1166,227"/>
+<area shape="rect" id="node30" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="591,97,781,139"/>
+<area shape="rect" id="node31" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1389,5,1553,47"/>
+<area shape="rect" id="node32" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1017,13,1176,39"/>
+<area shape="rect" id="node33" href="$namespacetaraxa.html#structtaraxa_1_1_d_b_config" title=" " alt="" coords="1405,374,1537,401"/>
+<area shape="rect" id="node35" href="$structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="991,150,1203,177"/>
 </map>
