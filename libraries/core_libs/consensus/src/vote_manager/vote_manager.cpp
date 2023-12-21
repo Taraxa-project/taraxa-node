@@ -30,8 +30,6 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
       already_validated_votes_(1000000, 1000) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
-  auto db_votes = db_->getAllTwoTPlusOneVotes();
-
   auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<Vote>>& votes, bool set_reward_votes_info = false) {
     bool rewards_info_already_set = false;
     for (const auto& vote : votes) {
@@ -136,33 +134,37 @@ void VoteManager::setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound
   // a period or round that we are not yet in
   for (const auto& two_t_plus_one_voted_block : found_round_it->second.two_t_plus_one_voted_blocks_) {
     const TwoTPlusOneVotedBlockType two_t_plus_one_voted_block_type = two_t_plus_one_voted_block.first;
-    const auto& [two_t_plus_one_voted_block_hash, two_t_plus_one_voted_block_step] = two_t_plus_one_voted_block.second;
+    // 2t+1 cert voted blocks are only saved to the database in a db batch when block is pushed to the chain
+    if (two_t_plus_one_voted_block_type != TwoTPlusOneVotedBlockType::CertVotedBlock) {
+      const auto& [two_t_plus_one_voted_block_hash, two_t_plus_one_voted_block_step] =
+          two_t_plus_one_voted_block.second;
 
-    const auto found_step_votes_it = found_round_it->second.step_votes.find(two_t_plus_one_voted_block_step);
-    if (found_step_votes_it == found_round_it->second.step_votes.end()) {
-      LOG(log_er_) << "Unable to find 2t+1 votes in verified_votes for period " << pbft_period << ", round "
-                   << pbft_round << ", step " << two_t_plus_one_voted_block_step;
-      assert(false);
-      return;
+      const auto found_step_votes_it = found_round_it->second.step_votes.find(two_t_plus_one_voted_block_step);
+      if (found_step_votes_it == found_round_it->second.step_votes.end()) {
+        LOG(log_er_) << "Unable to find 2t+1 votes in verified_votes for period " << pbft_period << ", round "
+                     << pbft_round << ", step " << two_t_plus_one_voted_block_step;
+        assert(false);
+        return;
+      }
+
+      // Find verified votes for specified block_hash based on found 2t+1 voted block of type "type"
+      const auto found_verified_votes_it = found_step_votes_it->second.votes.find(two_t_plus_one_voted_block_hash);
+      if (found_verified_votes_it == found_step_votes_it->second.votes.end()) {
+        LOG(log_er_) << "Unable to find 2t+1 votes in verified_votes for period " << pbft_period << ", round "
+                     << pbft_round << ", step " << two_t_plus_one_voted_block_step << ", block hash "
+                     << two_t_plus_one_voted_block_hash;
+        assert(false);
+        return;
+      }
+
+      std::vector<std::shared_ptr<Vote>> votes;
+      votes.reserve(found_verified_votes_it->second.second.size());
+      for (const auto& vote : found_verified_votes_it->second.second) {
+        votes.push_back(vote.second);
+      }
+
+      db_->replaceTwoTPlusOneVotes(two_t_plus_one_voted_block_type, votes);
     }
-
-    // Find verified votes for specified block_hash based on found 2t+1 voted block of type "type"
-    const auto found_verified_votes_it = found_step_votes_it->second.votes.find(two_t_plus_one_voted_block_hash);
-    if (found_verified_votes_it == found_step_votes_it->second.votes.end()) {
-      LOG(log_er_) << "Unable to find 2t+1 votes in verified_votes for period " << pbft_period << ", round "
-                   << pbft_round << ", step " << two_t_plus_one_voted_block_step << ", block hash "
-                   << two_t_plus_one_voted_block_hash;
-      assert(false);
-      return;
-    }
-
-    std::vector<std::shared_ptr<Vote>> votes;
-    votes.reserve(found_verified_votes_it->second.second.size());
-    for (const auto& vote : found_verified_votes_it->second.second) {
-      votes.push_back(vote.second);
-    }
-
-    db_->replaceTwoTPlusOneVotes(two_t_plus_one_voted_block_type, votes);
   }
 }
 
@@ -872,7 +874,7 @@ std::shared_ptr<Vote> VoteManager::generateVote(const blk_hash_t& blockhash, Pbf
   return std::make_shared<Vote>(kNodeSk, std::move(vrf_sortition), blockhash);
 }
 
-std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote) const {
+std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote, bool strict) const {
   std::stringstream err_msg;
   const uint64_t vote_period = vote->getPeriod();
 
@@ -901,7 +903,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
       return {false, err_msg.str()};
     }
 
-    if (!vote->verifyVrfSortition(*pk)) {
+    if (!vote->verifyVrfSortition(*pk, strict)) {
       err_msg << "Invalid vote " << vote->getHash() << ": invalid vrf proof";
       return {false, err_msg.str()};
     }

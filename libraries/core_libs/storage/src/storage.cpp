@@ -871,17 +871,6 @@ bool DbStorage::transactionFinalized(trx_hash_t const& hash) {
   return exist(toSlice(hash.asBytes()), Columns::trx_period);
 }
 
-std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx_hashes) {
-  std::vector<bool> result(trx_hashes.size(), false);
-  for (size_t i = 0; i < trx_hashes.size(); ++i) {
-    const auto key = trx_hashes[i].asBytes();
-    if (exist(toSlice(key), Columns::transactions) || exist(toSlice(key), Columns::trx_period)) {
-      result[i] = true;
-    }
-  }
-  return result;
-}
-
 uint64_t DbStorage::getStatusField(StatusDbField const& field) {
   auto status = lookup(toSlice((uint8_t)field), Columns::status);
   if (!status.empty()) {

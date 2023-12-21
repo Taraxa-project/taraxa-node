@@ -34,7 +34,7 @@
     "sync_level_size": 25,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
-    "deep_syncing_threshold": 10,
+    "deep_syncing_threshold": 50,
     "boot_nodes": [
       {
         "id": "fdcf4c860d9bb1f17608cbf2dd10ac3ae8d0ba41aa20b3e43fb85a72617a356f8609475d68b44e25dd508a0e5b36da75e7ae9aaf93360f4f002464d1d75fd353",
@@ -66,14 +66,6 @@
         "channels": [
           {
             "name": "SUMMARY",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "PBFT_MGR",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "DAG_PROPOSER",
             "verbosity": "INFO"
           }
         ],

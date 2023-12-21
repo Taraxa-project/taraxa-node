@@ -223,7 +223,25 @@ class FinalChain {
    */
   virtual void prune(EthBlockNumber blk_n) = 0;
 
+  /**
+   * @brief Wait until next block is finalized
+   */
+  virtual void wait_for_finalized() = 0;
+
   virtual std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const = 0;
+
+  /**
+   * @param blk_num
+   * @return yield
+   */
+  virtual uint64_t dpos_yield(EthBlockNumber blk_num) const = 0;
+
+  /**
+   * @param blk_num
+   * @return total supply
+   */
+  virtual u256 dpos_total_supply(EthBlockNumber blk_num) const = 0;
+
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

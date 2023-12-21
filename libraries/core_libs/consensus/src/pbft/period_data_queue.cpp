@@ -38,7 +38,9 @@ bool PeriodDataQueue::push(PeriodData &&period_data, const dev::p2p::NodeID &nod
   const auto period = period_data.pbft_blk->getPeriod();
   std::unique_lock lock(queue_access_);
 
-  if (period != std::max(period_, max_pbft_size) + 1) {
+  // It needs to be block after the last block in the queue or max_pbft_size + 1 or max_pbft_size + 2 since it is
+  // possible that block max_pbft_size + 1 is removed from the queue but not yet pushed in the chain
+  if (period != std::max(period_, max_pbft_size) + 1 && (queue_.empty() && period != max_pbft_size + 2)) {
     return false;
   }
   if (max_pbft_size > period_ && !queue_.empty()) queue_.clear();

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
-set(TARAXA_MINOR_VERSION 5)
+set(TARAXA_MINOR_VERSION 6)
 set(TARAXA_PATCH_VERSION 0)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
@@ -215,6 +215,9 @@ include(ExternalProject)
 # use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)
+
+# rocksdb build
+include(${PROJECT_SOURCE_DIR}/CMakeModules/rocksdb.cmake)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)
