@@ -66,7 +66,7 @@ class PillarBlock {
 
   Hash previous_pillar_block_hash_{0};
 
-  const Hash kCachedHash;
+  mutable Hash kCachedHash;
 };
 
 /** @}*/
