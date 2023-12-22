@@ -38,7 +38,7 @@ void WsSession::on_accept(beast::error_code ec) {
 
 void WsSession::do_read() {
   // Read a message into our buffer
-  ws_.async_read(buffer_, beast::bind_front_handler(&WsSession::on_read, shared_from_this()));
+  ws_.async_read(read_buffer_, beast::bind_front_handler(&WsSession::on_read, shared_from_this()));
 }
 
 void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
@@ -51,7 +51,7 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     return close(is_normal(ec));
   }
 
-  LOG(log_tr_) << "WS READ " << (static_cast<char *>(buffer_.data().data()));
+  LOG(log_tr_) << "WS READ " << (static_cast<char *>(read_buffer_.data().data()));
 
   processAsync();
   // Do another read
@@ -59,8 +59,8 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 }
 
 void WsSession::processAsync() {
-  std::string request(static_cast<char *>(buffer_.data().data()), buffer_.size());
-  buffer_.consume(buffer_.size());
+  std::string request(static_cast<char *>(read_buffer_.data().data()), read_buffer_.size());
+  read_buffer_.consume(read_buffer_.size());
   LOG(log_tr_) << "processAsync " << request;
   auto executor = ws_.get_executor();
   if (!executor) {
@@ -70,7 +70,7 @@ void WsSession::processAsync() {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [this, request = std::move(request)]() mutable { writeImpl(processRequest(request)); });
+  boost::asio::post(executor, [this, request = std::move(request)]() mutable { writeAsync(processRequest(request)); });
   LOG(log_tr_) << "After executor.post ";
 }
 
@@ -84,15 +84,13 @@ void WsSession::writeAsync(std::string &&message) {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [this, message = std::move(message)]() mutable { writeImpl(std::move(message)); });
+  boost::asio::post(write_strand_, [this, message = std::move(message)]() mutable { writeImpl(std::move(message)); });
   LOG(log_tr_) << "After executors.post ";
 }
 
 void WsSession::writeImpl(std::string &&message) {
   ws_.text(true);  // as we are using text msg here
   try {
-    // lock write_mutex_ to prevent concurrent write
-    std::lock_guard<std::mutex> lock(write_mutex_);
     ws_.write(boost::asio::buffer(message));
   } catch (const boost::system::system_error &e) {
     LOG(log_nf_) << "WS closed in on_write " << e.what();
@@ -112,11 +110,6 @@ void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, c
     res["params"] = params;
     auto response = util::to_string(res);
     LOG(log_tr_) << "WS WRITE " << response.c_str();
-    auto executor = ws_.get_executor();
-    if (!executor) {
-      LOG(log_tr_) << "Executor missing - WS closed";
-      return close(false);
-    }
     writeAsync(std::move(response));
   }
 }
@@ -149,11 +142,6 @@ void WsSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
     params["subscription"] = dev::toJS(new_dag_block_finalized_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
-    auto executor = ws_.get_executor();
-    if (!executor) {
-      LOG(log_tr_) << "Executor missing - WS closed";
-      return close(false);
-    }
     writeAsync(std::move(response));
   }
 }
@@ -168,11 +156,6 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
     params["subscription"] = dev::toJS(new_pbft_block_executed_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
-    auto executor = ws_.get_executor();
-    if (!executor) {
-      LOG(log_tr_) << "Executor missing - WS closed";
-      return close(false);
-    }
     writeAsync(std::move(response));
   }
 }
@@ -186,11 +169,6 @@ void WsSession::newPendingTransaction(trx_hash_t const &trx_hash) {
     params["subscription"] = dev::toJS(new_transactions_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
-    auto executor = ws_.get_executor();
-    if (!executor) {
-      LOG(log_tr_) << "Executor missing - WS closed";
-      return close(false);
-    }
     writeAsync(std::move(response));
   }
 }

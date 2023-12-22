@@ -33,7 +33,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
  public:
   // Take ownership of the socket
   explicit WsSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WsServer> ws_server)
-      : ws_(std::move(socket)) {
+      : ws_(std::move(socket)), write_strand_(boost::asio::make_strand(ws_.get_executor())) {
     LOG_OBJECTS_CREATE("WS_SESSION");
     ws_server_ = ws_server;
   }
@@ -55,16 +55,16 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newPendingTransaction(const trx_hash_t& trx_hash);
   bool is_closed() const { return closed_; }
   bool is_normal(const beast::error_code& ec) const;
+  void on_write(beast::error_code ec, std::size_t bytes_transferred);
   LOG_OBJECTS_DEFINE
 
  protected:
   void processAsync();
   void writeAsync(std::string&& message);
   void writeImpl(std::string&& message);
-  std::mutex write_mutex_;
-  std::queue<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
-  beast::flat_buffer buffer_;
+  boost::asio::strand<boost::asio::any_io_executor> write_strand_;
+  beast::flat_buffer read_buffer_;
   int subscription_id_ = 0;
   int new_heads_subscription_ = 0;
   int new_dag_blocks_subscription_ = 0;
