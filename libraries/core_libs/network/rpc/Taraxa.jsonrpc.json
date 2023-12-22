@@ -64,6 +64,18 @@
     "params": [""],
     "order": [],
     "returns": ""
+  },
+  {
+    "name": "taraxa_yield",
+    "params": [""],
+    "order": [],
+    "returns": ""
+  },
+  {
+    "name": "taraxa_totalSupply",
+    "params": [""],
+    "order": [],
+    "returns": ""
   }
 ]
 

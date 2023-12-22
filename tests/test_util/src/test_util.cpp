@@ -260,10 +260,29 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
   taraxa::state_api::BalanceMap initial_balances;
   std::vector<taraxa::state_api::ValidatorInfo> initial_validators;
 
+  // Calculate initial balance based on AspenHf.MaxSupply so "Yield = (MaxSupply - Genesis Balances Sum) / Genesis
+  // Balances Sum = 20%
+
+  // Yield [%] = 100 * (max_supply - total_supply) / total_supply
+  // Yield * total_supply = 100 * max_supply - 100 * total_supply
+  // (Yield * total_supply) + (100 * total_supply) = 100 * max_supply
+  // total_supply * (100 + yield) = 100 * max_supply
+  // total_supply = 100 * max_supply / (100 + yield)
+  // total_supply = num_of_nodes * init_balance
+  // num_of_nodes * init_balance = 100 * max_supply / (100 + yield)
+  // init_balance = 100 * max_supply / ((100 + yield) * num_of_nodes)
+
+  const taraxa::uint256_t yield{20};  // [%]
+  const taraxa::uint256_t hundred{100};
+  const taraxa::uint256_t num_of_nodes{total_count};
+  const taraxa::uint256_t max_supply = ret_configs.back().genesis.state.hardforks.aspen_hf.max_supply;
+
+  const taraxa::uint256_t init_balance = (hundred * max_supply) / ((hundred + yield) * num_of_nodes);
+
   for (size_t idx = 0; idx < total_count; idx++) {
     const auto& cfg = ret_configs[idx];
     const auto& node_addr = dev::toAddress(cfg.node_secret);
-    initial_balances[node_addr] = 9007199254740991;
+    initial_balances[node_addr] = init_balance;
 
     if (idx >= validators_count) {
       continue;

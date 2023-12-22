@@ -216,6 +216,9 @@ include(ExternalProject)
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)
 
+# rocksdb build
+include(${PROJECT_SOURCE_DIR}/CMakeModules/rocksdb.cmake)
+
 # Add sub-directories cmakes
 add_subdirectory(submodules)
 add_subdirectory(libraries)

@@ -195,13 +195,6 @@ class PbftManager {
   blk_hash_t lastPbftBlockHashFromQueueOrChain();
 
   /**
-   * @brief Add rebuild DB with provided data
-   * @param block period data
-   * @param current_block_cert_votes cert votes for PeriodData pbft block period
-   */
-  void addRebuildDBPeriodData(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes);
-
-  /**
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
@@ -266,12 +259,6 @@ class PbftManager {
    */
   void testBroadcatVotesFunctionality();
 
- private:
-  /**
-   * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
-   */
-  void broadcastVotes();
-
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
    */
@@ -282,6 +269,12 @@ class PbftManager {
    * @brief wait for DPOS period finalization
    */
   void waitForPeriodFinalization();
+
+ private:
+  /**
+   * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
+   */
+  void broadcastVotes();
 
   /**
    * @brief Reset PBFT step to 1

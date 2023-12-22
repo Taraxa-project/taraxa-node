@@ -22,7 +22,8 @@ bool isValidVrfPublicKey(vrf_pk_t const &pk);
 // get proof if public is valid
 std::optional<vrf_proof_t> getVrfProof(vrf_sk_t const &pk, bytes const &msg);
 // get output if proff is valid
-std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &proof, bytes const &msg);
+std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &proof, bytes const &msg,
+                                         bool strict = true);
 
 class VrfSortitionBase {
  public:
@@ -38,7 +39,7 @@ class VrfSortitionBase {
 
   static dev::bytes makeVrfInput(taraxa::level_t level, const dev::h256 &period_hash);
 
-  bool verify(const vrf_pk_t &pk, const bytes &msg, uint16_t vote_count = 1) const;
+  bool verify(const vrf_pk_t &pk, const bytes &msg, uint16_t vote_count = 1, bool strict = true) const;
 
   bool operator==(VrfSortitionBase const &other) const { return proof_ == other.proof_ && output_ == other.output_; }
 

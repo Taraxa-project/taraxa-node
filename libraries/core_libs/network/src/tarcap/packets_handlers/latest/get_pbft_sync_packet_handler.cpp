@@ -76,20 +76,27 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
     auto data = db_->getPeriodDataRaw(block_period);
 
     if (data.size() == 0) {
+      // This can happen when switching from light node to full node setting
       LOG(log_er_) << "DB corrupted. Cannot find period " << block_period << " PBFT block in db";
-      assert(false);
+      return;
     }
 
     dev::RLPStream s;
     if (pbft_chain_synced && last_block) {
-      s.appendList(3);
-      s << last_block;
-      s.appendRaw(data);
-
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
       const auto reward_votes = vote_mgr_->getRewardVotes();
       assert(!reward_votes.empty());
-      s.appendRaw(encodeVotesBundleRlp(reward_votes, false));
+      // It is possible that the node pushed another block to the chain in the meantime
+      if (reward_votes[0]->getPeriod() == block_period) {
+        s.appendList(3);
+        s << last_block;
+        s.appendRaw(data);
+        s.appendRaw(encodeVotesBundleRlp(reward_votes, false));
+      } else {
+        s.appendList(2);
+        s << last_block;
+        s.appendRaw(data);
+      }
     } else {
       s.appendList(2);
       s << last_block;
