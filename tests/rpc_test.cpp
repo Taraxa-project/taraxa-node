@@ -22,7 +22,7 @@ TEST_F(RPCTest, eth_estimateGas) {
 
   const auto from = dev::toHex(dev::toAddress(node_cfg.front().node_secret));
   auto check_estimation_is_in_range = [&](const Json::Value& trx, const std::string& e) {
-    auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(trx));
+    auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(trx, ""));
     auto expected = dev::jsToInt(e);
     EXPECT_GE(estimate, expected);
     EXPECT_GE(expected / 20, estimate - expected);
@@ -61,7 +61,7 @@ TEST_F(RPCTest, eth_estimateGas) {
     trx["value"] = 1000;
     trx["to"] = dev::toHex(addr_t::random());
     trx["from"] = dev::toHex(addr_t::random());
-    EXPECT_THROW(eth_json_rpc->eth_estimateGas(trx), std::exception);
+    EXPECT_THROW(eth_json_rpc->eth_estimateGas(trx, ""), std::exception);
   }
 }
 
