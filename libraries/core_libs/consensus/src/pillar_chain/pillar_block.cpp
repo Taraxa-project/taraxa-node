@@ -25,15 +25,16 @@ dev::bytes PillarBlock::ValidatorStakeChange::getRlp() const {
 }
 
 PillarBlock::PillarBlock(const dev::RLP& rlp) {
-  dev::bytes stakes_changes;
+  std::vector<dev::bytes> stakes_changes;
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), period_, state_root_, previous_pillar_block_hash_, stakes_changes);
 
-  dev::RLP stakes_changes_rlp(stakes_changes);
-
-  validators_stakes_changes_.reserve(stakes_changes_rlp.itemCount());
-  for (const auto stake_change_rlp : stakes_changes_rlp) {
+  validators_stakes_changes_.reserve(stakes_changes.size());
+  for (const auto& stake_change_bytes : stakes_changes) {
+    dev::RLP stake_change_rlp(stake_change_bytes);
     validators_stakes_changes_.emplace_back(stake_change_rlp);
   }
+
+  kCachedHash = dev::sha3(getRlp());
 }
 
 PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
@@ -47,13 +48,13 @@ PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
 
 dev::bytes PillarBlock::getRlp() const {
   dev::RLPStream s(4);
-  s <<period_;
-  s <<state_root_;
-  s <<previous_pillar_block_hash_;
+  s << period_;
+  s << state_root_;
+  s << previous_pillar_block_hash_;
 
   s.appendList(validators_stakes_changes_.size());
   for (const auto& stake_change : validators_stakes_changes_) {
-    s.appendRaw(stake_change.getRlp());
+    s.append(stake_change.getRlp());
   }
 
   return s.invalidate();
