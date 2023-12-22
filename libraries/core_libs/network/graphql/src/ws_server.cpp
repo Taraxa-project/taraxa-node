@@ -81,17 +81,7 @@ void GraphQlWsSession::triggerTestSubscribtion(unsigned int number) {
   res["params"] = params;
   auto response = util::to_string(res);
   ws_.text(ws_.got_text());
-  LOG(log_tr_) << "triggerTestSubscribtion: WS WRITE " << response.c_str();
-  auto executor = ws_.get_executor();
-  if (!executor) {
-    LOG(log_tr_) << "triggerTestSubscribtion: Executor missing - WS closed";
-    closed_ = true;
-    return;
-  }
-
-  LOG(log_tr_) << "***triggerTestSubscribtion: Before executor.post ";
-  boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
-  LOG(log_tr_) << "***triggerTestSubscribtion: After executors.post ";
+  writeAsync(std::move(response));
 }
 
 std::shared_ptr<WsSession> GraphQlWsServer::createSession(tcp::socket&& socket) {
