@@ -6,7 +6,7 @@ var classtaraxa_1_1net_1_1_eth_client =
     [ "eth_call", "classtaraxa_1_1net_1_1_eth_client.html#a0705a9082cd73f627a8042f7197144d7", null ],
     [ "eth_chainId", "classtaraxa_1_1net_1_1_eth_client.html#a0a581dc17ddefc02e6802091df644944", null ],
     [ "eth_coinbase", "classtaraxa_1_1net_1_1_eth_client.html#a215e18a806fd19c28c95a215978e4cec", null ],
-    [ "eth_estimateGas", "classtaraxa_1_1net_1_1_eth_client.html#a93d0fb910f1e7e451c650ab62a0f2ba2", null ],
+    [ "eth_estimateGas", "classtaraxa_1_1net_1_1_eth_client.html#ac887c931f26c85824f5e17272f47c719", null ],
     [ "eth_gasPrice", "classtaraxa_1_1net_1_1_eth_client.html#ac102359192af6e052d24e993d351016b", null ],
     [ "eth_getBalance", "classtaraxa_1_1net_1_1_eth_client.html#ab01190dd8770c7f6a3cc7cc6b1d7d254", null ],
     [ "eth_getBlockByHash", "classtaraxa_1_1net_1_1_eth_client.html#ad3792cc0450ff3305a223b6d63a14cd9", null ],

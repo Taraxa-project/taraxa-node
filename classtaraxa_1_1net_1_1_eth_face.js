@@ -11,7 +11,7 @@ var classtaraxa_1_1net_1_1_eth_face =
     [ "eth_chainIdI", "classtaraxa_1_1net_1_1_eth_face.html#a565fbd2e0b7505d626c9ec5f2a305fe1", null ],
     [ "eth_coinbase", "classtaraxa_1_1net_1_1_eth_face.html#ab15d24f19f67df3931d46721f84b15f7", null ],
     [ "eth_coinbaseI", "classtaraxa_1_1net_1_1_eth_face.html#a99b615c43dbe8445896ce9df8515e0fd", null ],
-    [ "eth_estimateGas", "classtaraxa_1_1net_1_1_eth_face.html#aa0f51d422299a1592792a8d6de960a4e", null ],
+    [ "eth_estimateGas", "classtaraxa_1_1net_1_1_eth_face.html#af360e7f380edf5be9a0d65a9d96d4f2e", null ],
     [ "eth_estimateGasI", "classtaraxa_1_1net_1_1_eth_face.html#a5b9a6d8cacaf1d7ae6b42a60a0abfe7b", null ],
     [ "eth_gasPrice", "classtaraxa_1_1net_1_1_eth_face.html#afa0577e286f0a1c2f691161e79e6906e", null ],
     [ "eth_gasPriceI", "classtaraxa_1_1net_1_1_eth_face.html#ad11a3b56a8432768715a18b352ae4b48", null ],

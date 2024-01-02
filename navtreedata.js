@@ -353,11 +353,11 @@ var NAVTREEINDEX =
 "classgraphql_1_1taraxa_1_1_dag_block.html#a4887648782bbf8804a839821c0136683",
 "classtaraxa_1_1_db_storage.html#a9123ca0b983ccc62667b671bb98e6cc1",
 "classtaraxa_1_1_status_table.html#a6678fe7127e7b08a3598df5cb6e2fa2b",
-"classtaraxa_1_1net_1_1_eth_client.html",
-"classtaraxa_1_1net_1_1_taraxa_face.html#a6d78297490d7b3d399048a25ab01012c",
-"classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ae00924c5e98fd3682d3604f34b41e920",
-"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a8ca8ec0d164aca81f25ebedffa45b733",
-"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#adce61e332b72402cd70a2c7252d90542",
+"classtaraxa_1_1net_1_1_debug_face.html#aeee7ba1e8e9a82aec57332efbfa017df",
+"classtaraxa_1_1net_1_1_taraxa_face.html#a63434bd84cf95644d3ca4865d378b497",
+"classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#acc3ebcac8f0d502e645dd8bc901bb726",
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a76e477c62ee058b54a26bff8c18870c6",
+"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ab0c4a04cfc97ab4e0bc70526149bde7b",
 "dir_fac46b9a442b8be946ed03b86b621c86.html",
 "group___d_a_g.html#a4c55ee1e958605b26c0242e3b5130ba4",
 "group___final_chain.html#aba2b5e89ccae051a42b7ac3d624760e6",
@@ -366,11 +366,11 @@ var NAVTREEINDEX =
 "libp2p_2_common_8h.html#a7274a51a9b4a19f79ef51d454368ce6a",
 "md_doc_coding_practices.html#autotoc_md157",
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2",
-"state__config_8hpp.html#a142767c95d8323471aee83d86833ee8c",
-"structdev_1_1p2p_1_1_host.html#af45455e39c329fdc3efe6af597288b6f",
-"structdev_1_1p2p_1_1_session_capability.html#ad43750aa3e037ab1e90fc18278c1817d",
-"structtaraxa_1_1state__api_1_1_config.html#aeab9bb1152bb8cb61bf1f41cdd18f5c3",
-"vdf_2src_2config_8cpp.html#ae0a80ee1e12601b8b3a49abeb7bbcbe9"
+"state__config_8cpp.html#a8430d4247900167bc1ac842c70484cc3",
+"structdev_1_1p2p_1_1_host.html#ae22165e38e451d0e7142e5baf871e711",
+"structdev_1_1p2p_1_1_session.html#structdev_1_1p2p_1_1_session_1_1_send_request",
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html#ab98cef7462cdd992e5aa8a1cdf27af58",
+"vdf_2src_2config_8cpp.html#a307376581a485cafa078a7f978c336af"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

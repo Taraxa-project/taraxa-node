@@ -1,5 +1,8 @@
 var NAVTREEINDEX12 =
 {
+"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ab0c4a04cfc97ab4e0bc70526149bde7b":[15,0,3,10,0,4],
+"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#abeaa0f177f7d3861b5f9ab37f11b0f54":[15,0,3,10,0,3],
+"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ad97840a63e2ea38f4b44d1b3f1475e6c":[15,0,3,10,0,19],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#adce61e332b72402cd70a2c7252d90542":[15,0,3,10,0,22],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ae3eeb84358d8e96ce679aa0610d1e180":[15,0,3,10,0,23],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ae8bd25a0be4f6eb1b5bb4f15971a63af":[15,0,3,10,0,21],
@@ -106,9 +109,6 @@ var NAVTREEINDEX12 =
 "core__libs_2network_2include_2network_2network_8hpp.html":[16,0,1,4,1,1,0,3],
 "core__libs_2network_2include_2network_2network_8hpp_source.html":[16,0,1,4,1,1,0,3],
 "core__libs_2network_2src_2_network_8cpp.html":[16,0,1,4,1,3,3],
-"core__libs_2storage_2include_2storage_2migration_2period__data_8hpp.html":[16,0,1,4,3,0,0,0,2],
-"core__libs_2storage_2include_2storage_2migration_2period__data_8hpp_source.html":[16,0,1,4,3,0,0,0,2],
-"core__libs_2storage_2src_2migration_2period__data_8cpp.html":[16,0,1,4,3,1,0,1],
 "current__state_8cpp.html":[16,0,1,4,1,0,1,0,0],
 "current__state_8hpp.html":[16,0,1,4,1,0,0,0,0,0],
 "current__state_8hpp_source.html":[16,0,1,4,1,0,0,0,0,0],

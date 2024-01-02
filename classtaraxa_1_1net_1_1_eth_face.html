@@ -236,8 +236,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0c2b89cdfc863f189cecb992a5230826"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf914196bd6399b63207ec64827d7b9a"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#aaf914196bd6399b63207ec64827d7b9a">eth_syncing</a> ()=0</td></tr>
 <tr class="separator:aaf914196bd6399b63207ec64827d7b9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0f51d422299a1592792a8d6de960a4e"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#aa0f51d422299a1592792a8d6de960a4e">eth_estimateGas</a> (const Json::Value &amp;param1)=0</td></tr>
-<tr class="separator:aa0f51d422299a1592792a8d6de960a4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af360e7f380edf5be9a0d65a9d96d4f2e"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#af360e7f380edf5be9a0d65a9d96d4f2e">eth_estimateGas</a> (const Json::Value &amp;param1, const std::string &amp;param2)=0</td></tr>
+<tr class="separator:af360e7f380edf5be9a0d65a9d96d4f2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a68be17a7bfc518ad55239187b7496c"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a8a68be17a7bfc518ad55239187b7496c">eth_chainId</a> ()=0</td></tr>
 <tr class="separator:a8a68be17a7bfc518ad55239187b7496c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_server_interface"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_server_interface')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_server_interface.html">ServerInterface&lt; EthFace &gt;</a></td></tr>
@@ -626,8 +626,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="aa0f51d422299a1592792a8d6de960a4e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0f51d422299a1592792a8d6de960a4e">&#9670;&nbsp;</a></span>eth_estimateGas()</h2>
+<a id="af360e7f380edf5be9a0d65a9d96d4f2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af360e7f380edf5be9a0d65a9d96d4f2e">&#9670;&nbsp;</a></span>eth_estimateGas()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -639,8 +639,18 @@ Additional Inherited Members</h2></td></tr>
           <td class="memname">virtual std::string taraxa::net::EthFace::eth_estimateGas </td>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
-          <td class="paramname"><em>param1</em></td><td>)</td>
+          <td class="paramname"><em>param1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>param2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -649,8 +659,6 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a5d0805a7dcefc9584b729a1813ebc305">taraxa::net::rpc::eth::EthImpl</a>.</p>
 
 </div>
 </div>

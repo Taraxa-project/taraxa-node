@@ -23,6 +23,7 @@ var classtaraxa_1_1cli_1_1_config =
     [ "DESTROY_DB", "classtaraxa_1_1cli_1_1_config.html#a31fcb2a538b5031bb86c5c1dcdffad6c", null ],
     [ "ENABLE_DEBUG", "classtaraxa_1_1cli_1_1_config.html#aab26fbddd5f44a333ae4ecf7854d3d30", null ],
     [ "ENABLE_TEST_RPC", "classtaraxa_1_1cli_1_1_config.html#a1a03d46a5abdcaed8f4f57ed4416a081", null ],
+    [ "FIX_TRX_PERIOD", "classtaraxa_1_1cli_1_1_config.html#ab009f512c87035f9dd28e409681b1b61", null ],
     [ "GENESIS", "classtaraxa_1_1cli_1_1_config.html#a1e2dc176594b61dd572df519b8f63752", null ],
     [ "HELP", "classtaraxa_1_1cli_1_1_config.html#aa731c143ec5fdbb7bb6c770457616c93", null ],
     [ "LIGHT", "classtaraxa_1_1cli_1_1_config.html#a17a06d58df51645a20c2b3bcfcfaa335", null ],

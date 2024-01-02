@@ -11,7 +11,7 @@ var hierarchy =
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
     [ "AspenHardfork", "hardfork_8hpp.html#struct_aspen_hardfork", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
-      [ "taraxa::storage::migration::PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", null ]
+      [ "taraxa::storage::migration::TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", null ]
     ] ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
     [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],

@@ -255,7 +255,7 @@ var annotated_dup =
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
           [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
-          [ "PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", "classtaraxa_1_1storage_1_1migration_1_1_period_data" ]
+          [ "TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period" ]
         ] ]
       ] ],
       [ "util", "namespacetaraxa_1_1util.html", [
