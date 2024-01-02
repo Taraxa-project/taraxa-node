@@ -115,6 +115,28 @@ void FullNode::init() {
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
+  // Calculate total rewards distributed until aspen hardfork part 1 block num
+  if (conf_.genesis.state.hardforks.aspen_hf.block_num_part_one == 0) {
+    std::cout << "aspen_hf.block_num_part_one is set to 0" << std::endl;
+    assert(false);
+  }
+
+  if (final_chain_->last_block_number() < conf_.genesis.state.hardforks.aspen_hf.block_num_part_one - 1) {
+    std::cout << "Unable to calculate total rewards generated between until block "
+              << conf_.genesis.state.hardforks.aspen_hf.block_num_part_one << ". Latest block num is "
+              << final_chain_->last_block_number() << std::endl;
+  } else {
+    u256 aspen_hf_rewards = 0;
+    for (size_t block_num = 1; block_num < conf_.genesis.state.hardforks.aspen_hf.block_num_part_one; block_num++) {
+      auto block_reward = final_chain_->block_header(block_num)->total_reward;
+      std::cout << "block " << block_num << " reward: " << block_reward << std::endl;
+      aspen_hf_rewards += block_reward;
+    }
+    std::cout << "Total rewards generated between until block "
+              << conf_.genesis.state.hardforks.aspen_hf.block_num_part_one << ": " << aspen_hf_rewards << std::endl;
+    assert(false);
+  }
+
   auto genesis_hash = conf_.genesis.genesisHash();
   auto genesis_hash_from_db = db_->getGenesisHash();
   if (!genesis_hash_from_db.has_value()) {
