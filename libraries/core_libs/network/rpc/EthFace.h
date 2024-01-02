@@ -111,9 +111,10 @@ class EthFace : public ServerInterface<EthFace> {
                            &taraxa::net::EthFace::eth_sendRawTransactionI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_syncing", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_syncingI);
-    this->bindAndAddMethod(jsonrpc::Procedure("eth_estimateGas", jsonrpc::PARAMS_BY_POSITION_WITH_OPTIONAL, jsonrpc::JSON_STRING,
-                                              "param1", jsonrpc::JSON_OBJECT, "param2", JSON_ANY, NULL),
-                           &taraxa::net::EthFace::eth_estimateGasI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_estimateGas", jsonrpc::PARAMS_BY_POSITION_WITH_OPTIONAL, jsonrpc::JSON_STRING, "param1",
+                           jsonrpc::JSON_OBJECT, "param2", JSON_ANY, NULL),
+        &taraxa::net::EthFace::eth_estimateGasI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_chainId", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_chainIdI);
   }
