@@ -6,6 +6,7 @@
 !CMakeModules
 !tests
 !clang-format
+!.clang-format
 !.gitmodules
 !CMakeLists.txt
 !LICENSE
