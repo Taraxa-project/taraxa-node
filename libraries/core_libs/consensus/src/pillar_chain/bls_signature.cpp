@@ -7,10 +7,9 @@
 namespace taraxa {
 
 BlsSignature::BlsSignature(const dev::RLP& rlp) {
-  std::string sig_str;
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pillar_block_hash_, period_, signer_addr_, sig_str);
-
-  std::stringstream(sig_str) >> signature_;
+  *this = util::rlp_dec<BlsSignature>(rlp);
+  // TODO: try if rlp.data().toBytes() produces the same output as getRlp()
+  kCachedHash = dev::sha3(getRlp());
 }
 
 BlsSignature::BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator,
@@ -18,10 +17,11 @@ BlsSignature::BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod perio
     : pillar_block_hash_(pillar_block_hash),
       period_(period),
       signer_addr_(validator),
-      signature_(libBLS::Bls::CoreSignAggregated(getHash().toString(), secret)) {}
+      signature_(libBLS::Bls::CoreSignAggregated(dev::sha3(getRlp(false)).toString(), secret)),
+      kCachedHash(dev::sha3(getRlp())) {}
 
 bool BlsSignature::isValid(const std::shared_ptr<libff::alt_bn128_G2>& bls_pub_key) const {
-  return libBLS::Bls::CoreVerify(*bls_pub_key, getHash().toString(), signature_);
+  return libBLS::Bls::CoreVerify(*bls_pub_key, dev::sha3(getRlp(false)).toString(), signature_);
 }
 
 blk_hash_t BlsSignature::getPillarBlockHash() const { return pillar_block_hash_; }
@@ -33,39 +33,29 @@ addr_t BlsSignature::getSignerAddr() const { return signer_addr_; }
 libff::alt_bn128_G1 BlsSignature::getSignature() const { return signature_; }
 
 dev::bytes BlsSignature::getRlp(bool include_sig) const {
-  size_t rlp_size = include_sig ? kRlpSize : kRlpSize - 1;
-
-  dev::RLPStream s(rlp_size);
-  s << pillar_block_hash_;
-  s << period_;
-  s << signer_addr_;
-
   if (include_sig) {
-    std::stringstream sig_ss;
-    sig_ss << signature_;
-    s << sig_ss.str();
+    return util::rlp_enc(*this);
   }
 
-  return s.invalidate();
+  // rlp without signature
+  dev::RLPStream encoding;
+  util::rlp_tuple(encoding, pillar_block_hash_, period_, signer_addr_);
+  return encoding.invalidate();
 }
 
-dev::bytes BlsSignature::getOptimizedRlp() const {
-  dev::RLPStream s(2);
-  s << signer_addr_;
+// dev::bytes BlsSignature::getOptimizedRlp() const {
+//   dev::RLPStream s(2);
+//   s << signer_addr_;
+//
+//   std::stringstream sig_ss;
+//   sig_ss << signature_;
+//   s << sig_ss.str();
+//
+//   return s.invalidate();
+// }
 
-  std::stringstream sig_ss;
-  sig_ss << signature_;
-  s << sig_ss.str();
+BlsSignature::Hash BlsSignature::getHash() const { return kCachedHash; }
 
-  return s.invalidate();
-}
-
-BlsSignature::Hash BlsSignature::getHash() const {
-  if (!cached_hash_.has_value()) {
-    cached_hash_ = dev::sha3(getRlp(false));
-  }
-
-  return *cached_hash_;
-}
+RLP_FIELDS_DEFINE(BlsSignature, pillar_block_hash_, period_, signer_addr_, signature_)
 
 }  // namespace taraxa
