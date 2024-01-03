@@ -46,6 +46,12 @@ inline auto rlp(RLPEncoderRef encoding, std::string const& target) { encoding.ap
 
 inline auto rlp(RLPEncoderRef encoding, const libff::alt_bn128_G2& target) { encoding.append(blsPubKeyToStr(target)); }
 
+inline auto rlp(RLPEncoderRef encoding, const libff::alt_bn128_G1& target) {
+  std::stringstream sig_ss;
+  sig_ss << target;
+  encoding.append(sig_ss.str());
+}
+
 inline auto rlp(RLPEncoderRef encoding, bytes const& target) { encoding.append(target); }
 
 template <typename Param>
@@ -109,6 +115,10 @@ void rlp(RLPDecoderRef encoding, dev::FixedHash<N>& target) {
 inline auto rlp(RLPDecoderRef encoding, std::string& target) { target = encoding.value.toString(encoding.strictness); }
 
 inline auto rlp(RLPDecoderRef encoding, libff::alt_bn128_G2& target) {
+  std::stringstream(encoding.value.toString(encoding.strictness)) >> target;
+}
+
+inline auto rlp(RLPDecoderRef encoding, libff::alt_bn128_G1& target) {
   std::stringstream(encoding.value.toString(encoding.strictness)) >> target;
 }
 
