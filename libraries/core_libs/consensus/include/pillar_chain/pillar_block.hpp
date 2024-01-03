@@ -26,15 +26,18 @@ class PillarBlock {
     addr_t addr_;
     dev::s256 stake_change_;  // can be both positive or negative
 
+    ValidatorStakeChange() = default;
     ValidatorStakeChange(const ValidatorStakeChange&) = default;
     ValidatorStakeChange(ValidatorStakeChange&&) = default;
     ValidatorStakeChange(const state_api::ValidatorStake& stake);
     ValidatorStakeChange(addr_t addr, dev::s256 stake_change);
     ValidatorStakeChange(const dev::RLP& rlp);
-    dev::bytes getRlp() const;
+
+    HAS_RLP_FIELDS
   };
 
  public:
+  PillarBlock() = default;
   PillarBlock(const dev::RLP& rlp);
   PillarBlock(PbftPeriod period, h256 state_root, std::vector<ValidatorStakeChange>&& validator_stakes_changes,
               blk_hash_t previous_pillar_block_hash);
@@ -53,6 +56,8 @@ class PillarBlock {
    * @return pillar block rlp
    */
   dev::bytes getRlp() const;
+
+  HAS_RLP_FIELDS
 
  private:
   // Pillar block pbft period
