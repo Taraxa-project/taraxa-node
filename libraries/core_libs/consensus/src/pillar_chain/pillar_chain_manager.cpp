@@ -28,7 +28,9 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
       mutex_{} {
   libBLS::ThresholdUtils::initCurve();
 
-  // TODO: load latest own bls signature from db
+  if (const auto signature = db_->getOwnLatestBlsSignature(); signature) {
+    addVerifiedBlsSig(signature);
+  }
 
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
@@ -47,6 +49,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
   }
 
   auto current_stakes = final_chain_->dpos_validators_total_stakes(block_num);
+
   // Saves current stakes to db
   auto batch = db_->createWriteBatch();
   db_->saveLatestPillarBlockStakes(current_stakes, batch);
@@ -93,7 +96,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
 
   // Broadcasts bls signature
   if (validateBlsSignature(signature) && addVerifiedBlsSig(signature)) {
-    // TODO: add own bls signature into db
+    db_->saveOwnLatestBlsSignature(signature);
 
     if (auto net = network_.lock()) {
       net->gossipBlsSignature(signature);

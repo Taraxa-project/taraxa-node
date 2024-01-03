@@ -693,24 +693,23 @@ std::shared_ptr<PillarBlock> DbStorage::getPillarBlock(PbftPeriod period) const 
 }
 
 std::shared_ptr<PillarBlock> DbStorage::getLatestPillarBlock() const {
-  level_t level = 0;
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pillar_blocks)));
   it->SeekToLast();
   if (!it->Valid()) {
     return nullptr;
   }
 
-  return std::make_shared<PillarBlock>(dev::RLP(it->value().data()));
+  return std::make_shared<PillarBlock>(dev::RLP(it->value().ToString()));
 }
 
-// void DbStorage::saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& bls_signature) {
-//
-// }
-//
-// std::shared_ptr<BlsSignature> DbStorage::getOwnLatestBlsSignature() const {
-//  const auto bytes = asBytes(lookup(toSlice(period), Columns::latest_pillar_block_own_signature));
-//  return std::make_shared<PillarBlock>(dev::RLP(bytes));
-// }
+void DbStorage::saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& bls_signature) {
+  insert(Columns::latest_pillar_block_own_signature, 0, bls_signature->getRlp());
+}
+
+std::shared_ptr<BlsSignature> DbStorage::getOwnLatestBlsSignature() const {
+  const auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_own_signature));
+  return std::make_shared<BlsSignature>(dev::RLP(bytes));
+}
 
 void DbStorage::saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<BlsSignature>>& bls_signatures) {
   assert(!bls_signatures.empty());
@@ -742,33 +741,12 @@ void DbStorage::saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<B
 void DbStorage::saveLatestPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
                                             Batch& write_batch) {
   assert(!latest_pillar_block_stakes.empty());
-
-  dev::RLPStream stakes_rlp(latest_pillar_block_stakes.size());
-  for (const auto& stake : latest_pillar_block_stakes) {
-    dev::RLPStream stake_rlp(2);
-    stake_rlp << stake.addr;
-    stake_rlp << stake.stake;
-
-    stakes_rlp.appendRaw(stake_rlp.invalidate());
-  }
-
-  insert(write_batch, Columns::latest_pillar_block_stakes, 0, stakes_rlp.invalidate());
+  insert(write_batch, Columns::latest_pillar_block_stakes, 0, util::rlp_enc(latest_pillar_block_stakes));
 }
 
 std::vector<state_api::ValidatorStake> DbStorage::getLatestPillarBlockStakes() const {
-  std::vector<state_api::ValidatorStake> stakes;
-
-  auto i =
-      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_pillar_block_stakes)));
-  for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    auto bytes = asBytes(i->value().ToString());
-    const dev::RLP rlp(bytes);
-    assert(rlp.itemCount() == 2);
-
-    stakes.emplace_back(state_api::ValidatorStake{rlp[0].toHash<addr_t>(), u256(rlp[1])});
-  }
-
-  return stakes;
+  auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_stakes));
+  return util::rlp_dec<std::vector<state_api::ValidatorStake>>(dev::RLP(bytes));
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {

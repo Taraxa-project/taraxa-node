@@ -24,6 +24,7 @@ class BlsSignature {
   constexpr static size_t kRlpSize{4};
 
  public:
+  BlsSignature() = default;
   BlsSignature(const dev::RLP& rlp);
   BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator,
                const libff::alt_bn128_Fr& secret);
@@ -47,7 +48,7 @@ class BlsSignature {
    *
    * @note It is used for saving 2t+1 bls signatures where pillar block hash & period is known
    */
-  dev::bytes getOptimizedRlp() const;
+  // dev::bytes getOptimizedRlp() const;
 
   /**
    * @return bls signature hash
@@ -74,6 +75,7 @@ class BlsSignature {
    */
   libff::alt_bn128_G1 getSignature() const;
 
+  HAS_RLP_FIELDS
  private:
   PillarBlock::Hash pillar_block_hash_{0};
   // Pbft period of pillar block & period during which was the signature created
@@ -81,7 +83,7 @@ class BlsSignature {
   addr_t signer_addr_;
   libff::alt_bn128_G1 signature_;
 
-  mutable std::optional<Hash> cached_hash_;
+  mutable Hash kCachedHash;
 };
 
 /** @}*/
