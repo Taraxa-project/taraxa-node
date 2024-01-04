@@ -708,6 +708,10 @@ void DbStorage::saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& b
 
 std::shared_ptr<BlsSignature> DbStorage::getOwnLatestBlsSignature() const {
   const auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_own_signature));
+  if (bytes.empty()) {
+    return nullptr;
+  }
+
   return std::make_shared<BlsSignature>(dev::RLP(bytes));
 }
 
@@ -746,6 +750,10 @@ void DbStorage::saveLatestPillarBlockStakes(const std::vector<state_api::Validat
 
 std::vector<state_api::ValidatorStake> DbStorage::getLatestPillarBlockStakes() const {
   auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_stakes));
+  if (bytes.empty()) {
+    return {};
+  }
+
   return util::rlp_dec<std::vector<state_api::ValidatorStake>>(dev::RLP(bytes));
 }
 
