@@ -80,7 +80,8 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
   // Find the hash
   const auto it = queue_transactions_.find(hash);
   if (it == queue_transactions_.end()) {
-    return non_proposable_transactions_.erase(hash) > 0;
+    non_proposable_transactions_.erase(hash);
+    return false;
   }
 
   const auto &account_it = account_nonce_transactions_.find(it->second->getSender());

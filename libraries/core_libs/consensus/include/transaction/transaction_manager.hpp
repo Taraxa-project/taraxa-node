@@ -104,7 +104,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param status transaction status
    * @return true if successfully inserted unseen transactions
    */
-  bool insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, const TransactionStatus status);
+  std::pair<bool, TransactionStatus> insertValidatedTransaction(std::shared_ptr<Transaction> &&tx,
+                                                                TransactionStatus status);
 
   /**
    * @param trx_hash transaction hash
@@ -220,12 +221,16 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   mutable std::shared_mutex transactions_mutex_;
   TransactionQueue transactions_pool_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
+
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
+  std::vector<std::vector<trx_hash_t>> recently_finalized_transactions_per_block_;
   uint64_t trx_count_ = 0;
 
   const uint64_t kDagBlockGasLimit;
   const uint64_t kEstimateGasLimit = 200000;
   const uint64_t kRecentlyFinalizedTransactionsMax = 50000;
+  // IMPORTANT! This number needs to be larger than max execution delay which is 5
+  const uint64_t kRecentlyFinalizedTransactionsBlockNum = 10;
 
   std::shared_ptr<DbStorage> db_{nullptr};
   std::shared_ptr<FinalChain> final_chain_{nullptr};

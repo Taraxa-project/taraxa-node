@@ -1372,8 +1372,8 @@ TEST_F(NetworkTest, node_full_sync) {
 
 TEST_F(NetworkTest, suspicious_packets) {
   network::tarcap::TaraxaPeer peer;
-  // Verify that after 1000 reported suspicious packets true is returned
-  for (int i = 0; i < 1000; i++) {
+  // Verify that after 10000 reported suspicious packets true is returned
+  for (int i = 0; i < 10000; i++) {
     EXPECT_FALSE(peer.reportSuspiciousPacket());
   }
   EXPECT_TRUE(peer.reportSuspiciousPacket());

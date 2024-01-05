@@ -43,8 +43,8 @@ class TransactionQueue {
    * @brief remove transaction from queue
    *
    * @param hash
-   * @return true
-   * @return false
+   * @return true if a proposable transaction was erased
+   * @return false if transaction not present or a non-proposable transaction erased
    */
   bool erase(const trx_hash_t& hash);
 

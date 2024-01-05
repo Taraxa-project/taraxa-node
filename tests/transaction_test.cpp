@@ -215,10 +215,9 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   db->commitWriteBatch(batch);
   final_chain->finalize(std::move(period_data), {dag_blk.getHash()}).get();
 
-  // Verify low nonce transaction is detected in verification
+  // Verify low nonce transaction is detected in insertion
   auto low_nonce_trx = std::make_shared<Transaction>(1, 101, 0, 100000, dev::bytes(), g_secret, addr_t::random());
   auto result = trx_mgr.verifyTransaction(low_nonce_trx);
-  EXPECT_EQ(result.first, TransactionStatus::LowNonce);
   EXPECT_FALSE(trx_mgr.insertTransaction(low_nonce_trx).first);
 
   // Verify dag blocks will pass verification if contain low nonce transactions
@@ -227,12 +226,11 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   trx_mgr.insertValidatedTransaction(std::move(low_nonce_trx), TransactionStatus::LowNonce);
   EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
 
-  // Verify insufficient balance transaction is detected in verification
+  // Verify insufficient balance transaction is detected in insertion
   auto trx_insufficient_balance =
       std::make_shared<Transaction>(3, final_chain->get_account(dev::toAddress(g_secret))->balance + 1, 0, 100000,
                                     dev::bytes(), g_secret, addr_t::random());
   result = trx_mgr.verifyTransaction(trx_insufficient_balance);
-  EXPECT_EQ(result.first, TransactionStatus::InsufficentBalance);
   EXPECT_FALSE(trx_mgr.insertTransaction(trx_insufficient_balance).first);
 
   // Verify dag blocks will pass verification if contain insufficient balance transactions
@@ -278,6 +276,9 @@ TEST_F(TransactionTest, transaction_concurrency) {
   for (size_t i = 0; i < g_signed_trx_samples->size() / 3; i++) {
     db->saveTransactionPeriod(g_signed_trx_samples[i]->getHash(), 1, i);
     PeriodData period_data;
+    std::vector<vote_hash_t> votes;
+    period_data.pbft_blk = std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash,
+                                                       1, addr_t(0), dev::KeyPair::create().secret(), std::move(votes));
     period_data.transactions = {g_signed_trx_samples[i]};
     trx_mgr.updateFinalizedTransactionsStatus(period_data);
   }

@@ -73,18 +73,6 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
         err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
         throw MaliciousPeerException(err_msg.str());
       }
-      case TransactionStatus::InsufficentBalance:
-      case TransactionStatus::LowNonce: {
-        // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
-        if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
-          std::ostringstream err_msg;
-          err_msg << "Suspicious packets over the limit on DagBlock transaction " << transaction->getHash()
-                  << " validation: " << reason;
-          throw MaliciousPeerException(err_msg.str());
-        }
-
-        break;
-      }
       case TransactionStatus::Verified:
         break;
       default:
@@ -92,8 +80,18 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     }
 
     received_trx_count_++;
-    if (trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status))) {
+    auto result = trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status));
+    if (result.first) {
       unique_received_trx_count_++;
+    }
+    if (result.second == TransactionStatus::InsufficentBalance || result.second == TransactionStatus::LowNonce) {
+      // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
+      if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
+        std::ostringstream err_msg;
+        err_msg << "Suspicious packets over the limit on DagBlock transaction " << trx_hash
+                << " validation: " << reason;
+        throw MaliciousPeerException(err_msg.str());
+      }
     }
   }
 

@@ -1176,6 +1176,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
                                         nodes[receiver_index]->getAddress());
       // broadcast trx and insert
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
+      // Some sleep needed to prevent trnsaction reordering and dropping because of low nonce
+      thisThreadSleepForMicroSeconds(500);
       trxs_count++;
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
@@ -1183,7 +1185,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   nonce = nonces[0];
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({50s, 3s}, [&](auto &ctx) {
+  wait({60s, 3s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
