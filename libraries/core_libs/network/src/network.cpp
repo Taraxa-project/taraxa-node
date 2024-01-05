@@ -8,14 +8,14 @@
 #include <ranges>
 
 #include "config/version.hpp"
-#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/bls_sig_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
@@ -300,6 +300,12 @@ void Network::gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes,
   for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(votes,
                                                                                                          rebroadcast);
+  }
+}
+
+void Network::gossipBlsSignature(const std::shared_ptr<BlsSignature> &signature) {
+  for (const auto &tarcap : tarcaps_) {
+    tarcap.second->getSpecificHandler<network::tarcap::BlsSigPacketHandler>()->onNewBlsSig(signature);
   }
 }
 
