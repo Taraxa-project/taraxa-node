@@ -584,7 +584,8 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   return {non_finalized_blks_.size(), blocks_counter};
 }
 
-DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
+DagManager::VerifyBlockReturnType DagManager::verifyBlock(
+    const DagBlock &blk, const std::unordered_map<blk_hash_t, std::shared_ptr<Transaction>> &trxs) {
   const auto &block_hash = blk.getHash();
 
   // Verify tips/pivot count amd uniqueness
@@ -604,7 +605,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
 
   // Verify transactions
-  auto transactions = trx_mgr_->getBlockTransactions(blk);
+  auto transactions = trx_mgr_->getBlockTransactions(blk, trxs);
   if (!transactions.has_value()) {
     LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
     // This can be a valid block so just remove it from the seen list

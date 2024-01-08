@@ -371,16 +371,30 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
 }
 
 // Verify all block transactions are present
-std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBlock const &blk) {
+std::optional<SharedTransactions> TransactionManager::getBlockTransactions(
+    DagBlock const &blk, const std::unordered_map<blk_hash_t, std::shared_ptr<Transaction>> &trxs) {
   vec_trx_t finalized_trx_hashes;
-  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
+  vec_trx_t all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     LOG(log_er_) << "Ignore block " << blk.getHash() << " since it has no transactions";
     return std::nullopt;
   }
-
   SharedTransactions transactions;
   transactions.reserve(all_block_trx_hashes.size());
+
+  if (trxs.size() != 0) {
+    vec_trx_t trx_hashes;
+    for (auto const &tx_hash : all_block_trx_hashes) {
+      auto trx_it = trxs.find(tx_hash);
+      if (trx_it != trxs.end()) {
+        transactions.emplace_back(trx_it->second);
+      } else {
+        trx_hashes.emplace_back(tx_hash);
+      }
+    }
+    all_block_trx_hashes = trx_hashes;
+  }
+
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     for (auto const &tx_hash : all_block_trx_hashes) {

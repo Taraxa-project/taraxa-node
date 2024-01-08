@@ -79,7 +79,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @param blk Block to verify
    * @return verification result
    */
-  VerifyBlockReturnType verifyBlock(const DagBlock &blk);
+  VerifyBlockReturnType verifyBlock(const DagBlock &blk,
+                                    const std::unordered_map<blk_hash_t, std::shared_ptr<Transaction>> &trxs = {});
 
   /**
    * @brief Checks if block pivot and tips are in DAG
