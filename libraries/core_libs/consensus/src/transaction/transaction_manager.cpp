@@ -127,7 +127,7 @@ std::pair<bool, TransactionStatus> TransactionManager::insertValidatedTransactio
   // It is very important to lock transaction pool checking to be
   // protected from new DAG block and Period data transactions insertions.
   std::unique_lock transactions_lock(transactions_mutex_);
-  if (nonfinalized_transactions_in_dag_.contains(trx_hash)) {
+  if (nonfinalized_transactions_in_dag_.contains(trx_hash) || recently_finalized_transactions_.contains(trx_hash)) {
     return {false, status};
   }
 
