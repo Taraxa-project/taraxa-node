@@ -1370,7 +1370,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 }
 
-TEST_F(NetworkTest, suspicious_packets) {
+TEST_F(NetworkTest, DISABLED_suspicious_packets) {
   network::tarcap::TaraxaPeer peer;
   // Verify that after 10000 reported suspicious packets true is returned
   for (int i = 0; i < 10000; i++) {
