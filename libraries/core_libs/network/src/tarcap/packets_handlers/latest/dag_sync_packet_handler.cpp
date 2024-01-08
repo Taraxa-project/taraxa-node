@@ -116,7 +116,7 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
   for (auto& block : dag_blocks) {
     dag_blocks_to_log.push_back(block.getHash());
 
-    const auto verified = dag_mgr_->verifyBlock(block);
+    const auto verified = dag_mgr_->verifyBlock(block, transactions);
     if (verified != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
       err_msg << "DagBlock " << block.getHash() << " failed verification with error code "
