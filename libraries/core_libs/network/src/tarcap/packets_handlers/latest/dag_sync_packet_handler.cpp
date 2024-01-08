@@ -52,7 +52,7 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
   }
 
   std::vector<trx_hash_t> transactions_to_log;
-  SharedTransactions transactions;
+  std::unordered_map<blk_hash_t, std::shared_ptr<Transaction>> transactions;
   const auto trx_count = (*it).itemCount();
   transactions.reserve(trx_count);
   transactions_to_log.reserve(trx_count);
@@ -61,7 +61,7 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
     try {
       auto trx = std::make_shared<Transaction>(tx_rlp);
       peer->markTransactionAsKnown(trx->getHash());
-      transactions.emplace_back(std::move(trx));
+      transactions.emplace(trx->getHash(), std::move(trx));
     } catch (const Transaction::InvalidTransaction& e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
@@ -85,20 +85,20 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
 
   for (auto& trx : transactions) {
     // Verify the transactions sent within this packet are only transactions that belong to the dag blocks
-    if (!trx_hashes.contains(trx->getHash())) {
-      throw MaliciousPeerException("Transaction not in dag block: " + trx->getHash().abridged());
+    if (!trx_hashes.contains(trx.first)) {
+      throw MaliciousPeerException("Transaction not in dag block: " + trx.first.abridged());
     }
 
-    transactions_to_log.push_back(trx->getHash());
-    if (trx_mgr_->isTransactionKnown(trx->getHash())) {
+    transactions_to_log.push_back(trx.first);
+    if (trx_mgr_->isTransactionKnown(trx.first)) {
       continue;
     }
 
-    auto [status, reason] = trx_mgr_->verifyTransaction(trx);
+    auto [status, reason] = trx_mgr_->verifyTransaction(trx.second);
     switch (status) {
       case TransactionStatus::Invalid: {
         std::ostringstream err_msg;
-        err_msg << "DagBlock transaction " << trx->getHash() << " validation failed: " << reason;
+        err_msg << "DagBlock transaction " << trx.first << " validation failed: " << reason;
         throw MaliciousPeerException(err_msg.str());
       }
       case TransactionStatus::InsufficentBalance:
@@ -111,7 +111,6 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
       default:
         assert(false);
     }
-    trx_mgr_->insertValidatedTransaction(std::move(trx), std::move(status));
   }
 
   for (auto& block : dag_blocks) {
@@ -127,8 +126,13 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
 
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
-    auto pool_transactions = trx_mgr_->getPoolTransactions(block.getTrxs()).first;
-    auto status = dag_mgr_->addDagBlock(std::move(block), std::move(pool_transactions));
+    SharedTransactions block_transactions;
+    block_transactions.reserve(block.getTrxs().size());
+    for (auto trx_hash : block.getTrxs()) {
+      auto trx = transactions.find(trx_hash);
+      if (trx != transactions.end()) block_transactions.push_back(trx->second);
+    }
+    auto status = dag_mgr_->addDagBlock(std::move(block), std::move(block_transactions));
     if (!status.first) {
       std::ostringstream err_msg;
       if (status.second.size() > 0)
