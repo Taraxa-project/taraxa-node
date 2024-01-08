@@ -1648,6 +1648,11 @@
       "block_num_part_two" : 8572000,
       "max_supply": "0x26C62AD77DC602DAE0000000",
       "generated_rewards": "0x105674788D280AE305A6EC0"
+    },
+    "ficus_hf" : {
+      "block_num" : -1,
+      "pillar_block_periods" : 100,
+      "signatures_check_periods" : 25
     }
   }
 }
