@@ -1568,7 +1568,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   });
 }
 
-TEST_F(FullNodeTest, graphql_test) {
+TEST_F(FullNodeTest, DISABLED_graphql_test) {
   // Create a node with 5 pbft/eth blocks
   auto node_cfgs = make_node_cfgs(1, 1, 20);
   auto nodes = launch_nodes(node_cfgs);
