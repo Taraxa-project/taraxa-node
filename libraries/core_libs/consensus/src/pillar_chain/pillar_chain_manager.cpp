@@ -8,6 +8,8 @@
 // TODO: should ne #include <libBLS/tools/utils.h>
 #include <tools/utils.h>
 
+#include <libff/common/profiling.hpp>
+
 namespace taraxa {
 
 PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
@@ -27,6 +29,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
       bls_signatures_{},
       mutex_{} {
   libBLS::ThresholdUtils::initCurve();
+  libff::inhibit_profiling_info = true;  // disable libff (use for bls signatures) internal logging
 
   if (const auto signature = db_->getOwnLatestBlsSignature(); signature) {
     addVerifiedBlsSig(signature);
@@ -145,7 +148,7 @@ bool PillarChainManager::isRelevantBlsSig(const std::shared_ptr<BlsSignature> si
 
   const auto signature_period = signature->getPeriod();
   // Empty latest_pillar_block_ means there was no pillar block created yet at all
-  if (!latest_pillar_block_ && signature_period != kFicusHfConfig.pillar_block_periods) [[unlikely]] {
+  if (!latest_pillar_block_) [[unlikely]] {
     LOG(log_er_) << "Received signature's period " << signature_period
                  << ", no pillar block created yet. Accepting signatures with " << kFicusHfConfig.pillar_block_periods
                  << " period";
