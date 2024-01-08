@@ -335,7 +335,7 @@ void FullNode::start() {
             if (block_num % ficus_hf_config.pillar_block_periods == 0) {
               pillar_chain->createPillarBlock(res);
             } else if (block_num % ficus_hf_config.signatures_check_periods == 0) {
-              // TODO: could be optimized - do not checked after there is 2t+1 signatures
+              // TODO: could be optimized - do not check after there is 2t+1 signatures
               pillar_chain->checkTwoTPlusOneBlsSignatures(block_num);
             }
           }
