@@ -536,7 +536,7 @@ TEST_F(FinalChainTest, revert_reason) {
     est["to"] = dev::toHex(*test_contract_addr);
     est["from"] = dev::toHex(from);
     est["data"] = call_data;
-    EXPECT_THROW_WITH(dev::jsToInt(eth_json_rpc->eth_estimateGas(est)), std::exception,
+    EXPECT_THROW_WITH(dev::jsToInt(eth_json_rpc->eth_estimateGas(est, "")), std::exception,
                       "evm: execution reverted: arg required");
     EXPECT_THROW_WITH(eth_json_rpc->eth_call(est, "latest"), std::exception, "evm: execution reverted: arg required");
 
@@ -617,7 +617,7 @@ TEST_F(FinalChainTest, incorrect_estimation_regress) {
     est["from"] = dev::toHex(from);
     est["value"] = value;
     est["data"] = call_data;
-    auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(est));
+    auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(est, ""));
     est["gas"] = dev::toJS(estimate);
     eth_json_rpc->eth_call(est, "latest");
   }
