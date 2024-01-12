@@ -34,6 +34,10 @@ namespace metrics {
 class MetricsService;
 }
 
+namespace pillar_chain {
+class PillarChainManager;
+}
+
 class Network;
 class DagBlockProposer;
 class DagManager;
@@ -42,7 +46,6 @@ struct Transaction;
 class TransactionManager;
 class GasPricer;
 class PbftManager;
-class PillarChainManager;
 struct NetworkConfig;
 class KeyManager;
 
@@ -107,7 +110,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<PillarChainManager> pillar_chain_;
+  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_;
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<net::HttpServer> jsonrpc_http_;

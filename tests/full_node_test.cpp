@@ -203,16 +203,17 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   EthBlockNumber block_num(123);
   h256 state_root(456);
-  PillarBlock::Hash latest_pillar_block_hash(789);
-  std::vector<PillarBlock::ValidatorStakeChange> stakes_changes;
+  pillar_chain::PillarBlock::Hash latest_pillar_block_hash(789);
+  std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> stakes_changes;
   const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s256(1));
   const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
-  const auto pillar_block =
-      std::make_shared<PillarBlock>(block_num, state_root, std::move(stakes_changes), latest_pillar_block_hash);
-  const auto previous_pillar_block = std::make_shared<PillarBlock>(
-      block_num - 1, h256{}, std::vector<PillarBlock::ValidatorStakeChange>{}, PillarBlock::Hash{});
-  db.savePillarBlock(pillar_block, batch);
-  db.savePillarBlock(previous_pillar_block, batch);
+  const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
+      block_num, state_root, std::move(stakes_changes), latest_pillar_block_hash);
+  const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
+      block_num - 1, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{},
+      pillar_chain::PillarBlock::Hash{});
+  db.savePillarBlockWithSignatures(pillar_block, batch);
+  db.savePillarBlockWithSignatures(previous_pillar_block, batch);
   db.commitWriteBatch(batch);
   const auto pillar_block_db = db.getPillarBlock(pillar_block->getPeriod());
   EXPECT_EQ(pillar_block->getHash(), pillar_block_db->getHash());
@@ -220,28 +221,13 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(pillar_block->getHash(), latest_pillar_block_db->getHash());
 
   // Pillar chain - bls signature
-  auto signature = std::make_shared<BlsSignature>(pillar_block->getHash(), pillar_block->getPeriod(), addr_t(1),
-                                                  libBLS::Bls::KeyGeneration().first);
+  auto signature = std::make_shared<pillar_chain::BlsSignature>(pillar_block->getHash(), pillar_block->getPeriod(),
+                                                                addr_t(1), libBLS::Bls::KeyGeneration().first);
   db.saveOwnLatestBlsSignature(signature);
   auto signature_db = db.getOwnLatestBlsSignature();
   EXPECT_EQ(signature->getHash(), signature_db->getHash());
 
   // TODO: Pillar chain - 2t+1 bls signatures
-
-  // Pillar chain - validators stakes
-  batch = db.createWriteBatch();
-  std::vector<state_api::ValidatorStake> stakes;
-  for (size_t idx = 0; idx < 10; idx++) {
-    stakes.emplace_back(state_api::ValidatorStake{addr_t(idx), u256(idx)});
-  }
-  db.saveLatestPillarBlockStakes(stakes, batch);
-  db.commitWriteBatch(batch);
-  std::vector<state_api::ValidatorStake> db_stakes = db.getLatestPillarBlockStakes();
-  EXPECT_EQ(stakes.size(), db_stakes.size());
-  for (size_t idx = 0; idx < stakes.size(); idx++) {
-    EXPECT_EQ(stakes[idx].addr, db_stakes[idx].addr);
-    EXPECT_EQ(stakes[idx].stake, db_stakes[idx].stake);
-  }
 
   // status
   db.saveStatusField(StatusDbField::TrxCount, 5);

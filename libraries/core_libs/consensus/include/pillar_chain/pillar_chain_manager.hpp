@@ -5,20 +5,22 @@
 #include "config/config.hpp"
 #include "final_chain/data.hpp"
 #include "logger/logger.hpp"
-#include "pillar_chain/bls_signature.hpp"
 #include "pillar_chain/pillar_block.hpp"
+#include "pillar_chain/signatures.hpp"
 
 namespace taraxa {
-
 class DbStorage;
 class Network;
 class BlsSignature;
 class KeyManager;
 class VoteManager;
+}  // namespace taraxa
 
-namespace final_chain {
+namespace taraxa::final_chain {
 class FinalChain;
 }
+
+namespace taraxa::pillar_chain {
 
 /** @addtogroup PILLAR_CHAIN
  * @{
@@ -28,20 +30,6 @@ class FinalChain;
  * @brief PillarChainMgr class contains functionality related to pillar chain
  */
 class PillarChainManager {
- public:
-  struct BlsSignatures {
-    struct PillarBlockBlsSignatures {
-      std::unordered_map<BlsSignature::Hash, std::shared_ptr<BlsSignature>> signatures;
-      uint64_t weight{0};  // Signatures weight
-    };
-
-    std::unordered_map<PillarBlock::Hash, PillarBlockBlsSignatures> pillar_block_signatures;
-    std::unordered_map<addr_t, BlsSignature::Hash> unique_signers;
-
-    // 2t+1 threshold for pillar block period
-    uint64_t two_t_plus_one{0};
-  };
-
  public:
   PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
                      std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<VoteManager> vote_mgr,
@@ -124,6 +112,14 @@ class PillarChainManager {
       const std::vector<state_api::ValidatorStake>& current_stakes,
       const std::vector<state_api::ValidatorStake>& previous_pillar_block_stakes);
 
+  /**
+   * @brief Checks if the latest pillar block is finalized - has 2t+1 signatures
+   *
+   * @param new_block_period
+   * @return
+   */
+  bool isPreviousPillarBlockFinalized(PbftPeriod new_block_period) const;
+
  private:
   // Node config
   const FicusHardforkConfig kFicusHfConfig;
@@ -146,8 +142,10 @@ class PillarChainManager {
   // Full list of validators stakes during last pillar block period
   std::vector<state_api::ValidatorStake> latest_pillar_block_stakes_;
 
-  // Bls signatures for latest_pillar_block_.period and potential +1 future pillar block period
-  std::map<PbftPeriod, BlsSignatures> bls_signatures_;
+  // Bls signatures for latest_pillar_block_.period - 1, latest_pillar_block_.period and potential +1 future pillar
+  // block period
+  // std::map<PbftPeriod, BlsSignatures> bls_signatures_;
+  Signatures signatures_;
 
   // Protects latest_pillar_block_ & bls_signatures
   mutable std::shared_mutex mutex_;
@@ -157,4 +155,4 @@ class PillarChainManager {
 
 /** @}*/
 
-}  // namespace taraxa
+}  // namespace taraxa::pillar_chain
