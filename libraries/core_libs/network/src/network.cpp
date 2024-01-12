@@ -162,13 +162,18 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   uint64_t lambda_ms = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
 
   // Send new transactions
-  auto sendTxs = [this, trx_mgr = trx_mgr]() {
+  std::function<void()> sendTxs = [this, &sendTxs, trx_mgr = trx_mgr]() {
+    auto now = std::chrono::steady_clock::now();
     for (auto &tarcap : tarcaps_) {
       auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
       tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
     }
+    uint64_t send_time_ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count();
+    // If sending transactions is slow, reduce sending interval
+    periodic_events_tp_.post({std::max((uint64_t)kConf.network.transaction_interval_ms, 2 * send_time_ms)}, sendTxs);
   };
-  periodic_events_tp_.post_loop({kConf.network.transaction_interval_ms}, sendTxs);
+  periodic_events_tp_.post({kConf.network.transaction_interval_ms}, sendTxs);
 
   // Send status packet
   auto sendStatus = [this]() {
