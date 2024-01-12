@@ -8,12 +8,12 @@ namespace taraxa::network::tarcap {
 
 ExtBlsSigPacketHandler::ExtBlsSigPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                                               std::shared_ptr<PillarChainManager> pillar_chain_manager,
+                                               std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
                                                const addr_t &node_addr, const std::string &log_channel)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel),
       pillar_chain_manager_{std::move(pillar_chain_manager)} {}
 
-void ExtBlsSigPacketHandler::processBlsSignature(const std::shared_ptr<BlsSignature> &signature,
+void ExtBlsSigPacketHandler::processBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature,
                                                  const std::shared_ptr<TaraxaPeer> &peer) {
   if (!pillar_chain_manager_->isRelevantBlsSig(signature)) {
     LOG(log_dg_) << "Drop irrelevant signature " << signature->getHash() << " from peer " << peer->getId();
