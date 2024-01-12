@@ -856,10 +856,10 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
-  for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(1, 500, g_secret)) {
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
-  for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(501, 1000, g_secret)) {
     nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
 
@@ -896,10 +896,10 @@ TEST_F(FullNodeTest, persist_counter) {
     auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
-    for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(1, 500, g_secret)) {
       nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
-    for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(501, 1000, g_secret)) {
       nodes[1]->getTransactionManager()->insertTransaction(trx);
     }
 
@@ -1175,7 +1175,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
           std::make_shared<Transaction>(nonces[i]++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
                                         nodes[receiver_index]->getAddress());
       // broadcast trx and insert
-      nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
+      nodes[0]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
       // Some sleep needed to prevent trnsaction reordering and dropping because of low nonce
       thisThreadSleepForMicroSeconds(500);
       trxs_count++;

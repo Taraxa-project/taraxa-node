@@ -161,7 +161,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
           return res;
         }
         // Saves transactions and remove them from memory pool
-        trx_mgr_->saveTransactionsFromDagBlock(trxs);
+        trx_mgr_->saveTransactionsFromDagBlock(trxs, period_);
         // Save the dag block
         db_->saveDagBlock(blk);
       }

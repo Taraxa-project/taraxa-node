@@ -178,7 +178,7 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const
   return db_->getTransaction(hash);
 }
 
-void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &trxs) {
+void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &trxs, uint64_t period) {
   std::vector<trx_hash_t> accepted_transactions;
   accepted_transactions.reserve(trxs.size());
   auto write_batch = db_->createWriteBatch();
@@ -195,7 +195,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
       // finalized or not. The actual db query with db_->transactionFinalized should happen rarely since it is expected
       // that dag blocks should not contain transaction finalized long time ago
       bool save_transaction = false;
-      if (transactions_pool_.erase(trx_hash)) {
+      if (transactions_pool_.erase(trx_hash, period)) {
         LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
         save_transaction = true;
       } else {
@@ -348,7 +348,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
       } else {
         LOG(log_dg_) << "Transaction " << hash << " removed from nonfinalized transactions";
       }
-      if (transactions_pool_.erase(hash)) {
+      if (transactions_pool_.erase(hash, period_data.pbft_blk->getPeriod())) {
         LOG(log_dg_) << "Transaction " << hash << " removed from transactions_pool_";
       }
     }

@@ -79,7 +79,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   /**
    * Saves transactions from dag block which was added to the DAG. Removes transactions from memory pool
    */
-  void saveTransactionsFromDagBlock(const SharedTransactions &trxs);
+  void saveTransactionsFromDagBlock(const SharedTransactions &trxs, uint64_t period);
 
   /**
    * @brief Inserts and verify new transaction to transaction pool

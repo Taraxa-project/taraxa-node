@@ -72,11 +72,12 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
 SharedTransactions TransactionQueue::getAllTransactions() const {
   SharedTransactions ret;
   ret.reserve(queue_transactions_.size());
-  for (const auto &t : queue_transactions_) ret.push_back(t.second);
+  for (const auto &a : account_nonce_transactions_)
+    for (const auto &n : a.second) ret.push_back(n.second);
   return ret;
 }
 
-bool TransactionQueue::erase(const trx_hash_t &hash) {
+bool TransactionQueue::erase(const trx_hash_t &hash, uint64_t block_number, bool keep_lower_nonce_trx) {
   // Find the hash
   const auto it = queue_transactions_.find(hash);
   if (it == queue_transactions_.end()) {
@@ -86,15 +87,29 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
 
   const auto &account_it = account_nonce_transactions_.find(it->second->getSender());
   assert(account_it != account_nonce_transactions_.end());
-  const auto &nonce_it = account_it->second.find(it->second->getNonce());
-  assert(nonce_it != account_it->second.end());
-  assert(hash == nonce_it->second->getHash());
 
-  account_it->second.erase(nonce_it);
-  if (account_it->second.size() == 0) {
-    account_nonce_transactions_.erase(account_it);
+  for (auto nonce_it = account_it->second.begin(); nonce_it != account_it->second.end();) {
+    // Move all transactions from the same account with smaller nonce to non proposable transactions
+    if (nonce_it->first < it->second->getNonce()) {
+      if (keep_lower_nonce_trx) {
+        nonce_it++;
+        continue;
+      }
+      non_proposable_transactions_[nonce_it->second->getHash()] = {block_number, nonce_it->second};
+    }
+    if (nonce_it->first == it->second->getNonce()) {
+      account_it->second.erase(nonce_it);
+      if (account_it->second.size() == 0) {
+        account_nonce_transactions_.erase(account_it);
+      }
+      queue_transactions_.erase(it);
+
+      break;
+    }
+
+    queue_transactions_.erase(nonce_it->second->getHash());
+    nonce_it = account_it->second.erase(nonce_it);
   }
-  queue_transactions_.erase(it);
 
   return true;
 }
@@ -143,7 +158,7 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
         uint32_t counter = 0;
         for (auto it = ordered_transactions.rbegin(); it != ordered_transactions.rend(); it++) {
           transaction_overflow_time_ = std::chrono::system_clock::now();
-          erase((*it)->getHash());
+          erase((*it)->getHash(), last_block_number, true);
           known_txs_.erase((*it)->getHash());
           counter++;
           if (counter >= queue_size / 100) break;
