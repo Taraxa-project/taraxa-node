@@ -6,9 +6,7 @@
 #include "common/types.hpp"
 #include "final_chain/state_api_data.hpp"
 
-namespace taraxa {
-
-class DbStorage;
+namespace taraxa::pillar_chain {
 
 /** @addtogroup PILLAR_CHAIN
  * @{
@@ -76,4 +74,4 @@ class PillarBlock {
 
 /** @}*/
 
-}  // namespace taraxa
+}  // namespace taraxa::pillar_chain

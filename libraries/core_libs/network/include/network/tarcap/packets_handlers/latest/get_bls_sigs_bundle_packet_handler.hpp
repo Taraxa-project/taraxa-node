@@ -10,10 +10,10 @@ class GetBlsSigsBundlePacketHandler : public PacketHandler {
  public:
   GetBlsSigsBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                 std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                                std::shared_ptr<PillarChainManager> pillar_chain_manager, const addr_t& node_addr,
-                                const std::string& logs_prefix);
+                                std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
+                                const addr_t& node_addr, const std::string& logs_prefix);
 
-  void requestBlsSigsBundle(PbftPeriod period, const PillarBlock::Hash& pillar_block_hash,
+  void requestBlsSigsBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash& pillar_block_hash,
                             const std::shared_ptr<TaraxaPeer>& peer);
 
   // Packet type that is processed by this handler
@@ -26,7 +26,7 @@ class GetBlsSigsBundlePacketHandler : public PacketHandler {
  protected:
   constexpr static size_t kGetBlsSigsPacketSize{1};
 
-  std::shared_ptr<PillarChainManager> pillar_chain_manager_;
+  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager_;
 };
 
 }  // namespace taraxa::network::tarcap

@@ -8,7 +8,7 @@
 #include "common/types.hpp"
 #include "pillar_chain/pillar_block.hpp"
 
-namespace taraxa {
+namespace taraxa::pillar_chain {
 
 /** @addtogroup PILLAR_CHAIN
  * @{
@@ -88,4 +88,4 @@ class BlsSignature {
 
 /** @}*/
 
-}  // namespace taraxa
+}  // namespace taraxa::pillar_chain
