@@ -29,7 +29,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                  std::shared_ptr<SlashingManager> slashing_manager,
-                 std::shared_ptr<PillarChainManager> pillar_chain_mgr)
+                 std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr)
     : kConf(config),
       pub_key_(key.pub()),
       all_packets_stats_(nullptr),
@@ -303,7 +303,7 @@ void Network::gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes,
   }
 }
 
-void Network::gossipBlsSignature(const std::shared_ptr<BlsSignature> &signature) {
+void Network::gossipBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature) {
   for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::BlsSigPacketHandler>()->onNewBlsSig(signature);
   }
@@ -340,7 +340,7 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
   return max_chain_peer;
 }
 
-void Network::requestBlsSigBundle(PbftPeriod period, const PillarBlock::Hash &pillar_block_hash) {
+void Network::requestBlsSigBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash &pillar_block_hash) {
   for (const auto &tarcap : tarcaps_) {
     // Try to get most up-to-date peer
     const auto peer =

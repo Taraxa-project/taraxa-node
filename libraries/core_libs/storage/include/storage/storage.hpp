@@ -24,6 +24,10 @@ namespace taraxa {
 namespace fs = std::filesystem;
 struct SortitionParamsChange;
 
+namespace pillar_chain {
+struct PillarBlockData;
+}
+
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
   ExecutedTrxCount,
@@ -125,7 +129,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN_W_COMP(block_rewards_stats, getIntComparator<uint64_t>());
 
     // Pillar blocks
-    COLUMN_W_COMP(pillar_blocks, getIntComparator<PbftPeriod>());
+    COLUMN_W_COMP(pillar_block_data, getIntComparator<PbftPeriod>());
     // 2t+1 bls aggregated signature for pillar blocks
     COLUMN_W_COMP(aggregated_bls_signatures, getIntComparator<PbftPeriod>());
     // Latest pillar block own bls signature
@@ -217,15 +221,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
 
   // Pillar chain
-  void savePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block, Batch& write_batch);
-  std::shared_ptr<PillarBlock> getPillarBlock(PbftPeriod period) const;
-  std::shared_ptr<PillarBlock> getLatestPillarBlock() const;
-  void saveOwnLatestBlsSignature(const std::shared_ptr<BlsSignature>& bls_signature);
-  std::shared_ptr<BlsSignature> getOwnLatestBlsSignature() const;
-  void saveTwoTPlusOneBlsSignatures(const std::vector<std::shared_ptr<BlsSignature>>& bls_signatures);
-  void saveLatestPillarBlockStakes(const std::vector<state_api::ValidatorStake>& latest_pillar_block_stakes,
-                                   Batch& write_batch);
-  std::vector<state_api::ValidatorStake> getLatestPillarBlockStakes() const;
+  void savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
+  std::optional<pillar_chain::PillarBlockData> getPillarBlockData(PbftPeriod period) const;
+  std::optional<pillar_chain::PillarBlockData> getLatestPillarBlockData() const;
+  void saveOwnLatestBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature>& bls_signature);
+  std::shared_ptr<pillar_chain::BlsSignature> getOwnLatestBlsSignature() const;
 
   /**
    * @brief Gets finalized transactions from provided hashes

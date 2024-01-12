@@ -4,7 +4,7 @@
 
 #include "common/encoding_rlp.hpp"
 
-namespace taraxa {
+namespace taraxa::pillar_chain {
 
 PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const state_api::ValidatorStake& stake)
     : addr_(stake.addr), stake_change_(dev::s256(stake.stake)) {}
@@ -41,4 +41,4 @@ PillarBlock::Hash PillarBlock::getHash() const { return kCachedHash; }
 
 RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, previous_pillar_block_hash_, validators_stakes_changes_)
 
-}  // namespace taraxa
+}  // namespace taraxa::pillar_chain

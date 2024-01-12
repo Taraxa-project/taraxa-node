@@ -2,11 +2,11 @@
 
 namespace taraxa::network::tarcap {
 
-GetBlsSigsBundlePacketHandler::GetBlsSigsBundlePacketHandler(const FullNodeConfig &conf,
-                                                             std::shared_ptr<PeersState> peers_state,
-                                                             std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                                                             std::shared_ptr<PillarChainManager> pillar_chain_manager,
-                                                             const addr_t &node_addr, const std::string &logs_prefix)
+GetBlsSigsBundlePacketHandler::GetBlsSigsBundlePacketHandler(
+    const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
+    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const addr_t &node_addr,
+    const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "GET_BLS_SIGS_BUNDLE_PH"),
       pillar_chain_manager_(std::move(std::move(pillar_chain_manager))) {}
@@ -22,7 +22,8 @@ void GetBlsSigsBundlePacketHandler::validatePacketRlpFormat(
 void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                             const std::shared_ptr<TaraxaPeer> &peer) {
   const PbftPeriod period = packet_data.rlp_[0].toInt();
-  const PillarBlock::Hash pillar_block_hash = packet_data.rlp_[1].toHash<PillarBlock::Hash>();
+  const pillar_chain::PillarBlock::Hash pillar_block_hash =
+      packet_data.rlp_[1].toHash<pillar_chain::PillarBlock::Hash>();
 
   const auto signatures = pillar_chain_manager_->getVerifiedBlsSignatures(period, pillar_block_hash);
   if (signatures.empty()) {
@@ -45,7 +46,8 @@ void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet
   }
 }
 
-void GetBlsSigsBundlePacketHandler::requestBlsSigsBundle(PbftPeriod period, const PillarBlock::Hash &pillar_block_hash,
+void GetBlsSigsBundlePacketHandler::requestBlsSigsBundle(PbftPeriod period,
+                                                         const pillar_chain::PillarBlock::Hash &pillar_block_hash,
                                                          const std::shared_ptr<TaraxaPeer> &peer) {
   dev::RLPStream s(2);
   s << period;

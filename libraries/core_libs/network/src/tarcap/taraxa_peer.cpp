@@ -40,11 +40,13 @@ bool TaraxaPeer::markPbftBlockAsKnown(const blk_hash_t& hash) {
 
 bool TaraxaPeer::isPbftBlockKnown(const blk_hash_t& hash) const { return known_pbft_blocks_.contains(hash); }
 
-bool TaraxaPeer::markBlsSigAsKnown(const BlsSignature::Hash& hash) {
+bool TaraxaPeer::markBlsSigAsKnown(const pillar_chain::BlsSignature::Hash& hash) {
   return known_bls_signature_.insert(hash, pbft_chain_size_);
 }
 
-bool TaraxaPeer::isBlsSigKnown(const BlsSignature::Hash& hash) const { return known_bls_signature_.contains(hash); }
+bool TaraxaPeer::isBlsSigKnown(const pillar_chain::BlsSignature::Hash& hash) const {
+  return known_bls_signature_.contains(hash);
+}
 
 const dev::p2p::NodeID& TaraxaPeer::getId() const { return id_; }
 

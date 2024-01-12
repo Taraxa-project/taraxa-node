@@ -4,7 +4,7 @@
 
 #include "common/encoding_rlp.hpp"
 
-namespace taraxa {
+namespace taraxa::pillar_chain {
 
 BlsSignature::BlsSignature(const dev::RLP& rlp) {
   *this = util::rlp_dec<BlsSignature>(rlp);
@@ -58,4 +58,4 @@ BlsSignature::Hash BlsSignature::getHash() const { return kCachedHash; }
 
 RLP_FIELDS_DEFINE(BlsSignature, pillar_block_hash_, period_, signer_addr_, signature_)
 
-}  // namespace taraxa
+}  // namespace taraxa::pillar_chain

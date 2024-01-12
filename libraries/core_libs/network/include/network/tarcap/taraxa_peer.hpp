@@ -62,8 +62,8 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case bls signature was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markBlsSigAsKnown(const BlsSignature::Hash& hash);
-  bool isBlsSigKnown(const BlsSignature::Hash& hash) const;
+  bool markBlsSigAsKnown(const pillar_chain::BlsSignature::Hash& hash);
+  bool isBlsSigKnown(const pillar_chain::BlsSignature::Hash& hash) const;
 
   const dev::p2p::NodeID& getId() const;
 
