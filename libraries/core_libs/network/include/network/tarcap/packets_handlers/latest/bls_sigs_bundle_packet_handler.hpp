@@ -8,8 +8,8 @@ class BlsSigsBundlePacketHandler : public ExtBlsSigPacketHandler {
  public:
   BlsSigsBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                             std::shared_ptr<PillarChainManager> pillar_chain_manager, const addr_t& node_addr,
-                             const std::string& logs_prefix);
+                             std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
+                             const addr_t& node_addr, const std::string& logs_prefix);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::BlsSigsBundlePacket;

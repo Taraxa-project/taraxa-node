@@ -34,7 +34,7 @@ TaraxaCapability::TaraxaCapability(
     std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<SlashingManager> slashing_manager,
-    std::shared_ptr<PillarChainManager> pillar_chain_mgr, InitPacketsHandlers init_packets_handlers)
+    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, InitPacketsHandlers init_packets_handlers)
     : version_(version),
       all_packets_stats_(std::move(packets_stats)),
       kConf(conf),
@@ -215,7 +215,7 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
        const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
-       const std::shared_ptr<PillarChainManager> &pillar_chain_mgr, const addr_t &node_addr) {
+       const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, const addr_t &node_addr) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
