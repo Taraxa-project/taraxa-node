@@ -87,6 +87,36 @@ bool Signatures::periodDataInitialized(PbftPeriod period) const {
   return signatures_.contains(period);
 }
 
+bool Signatures::addVerifiedSig(const std::shared_ptr<BlsSignature>& signature, u_int64_t signer_vote_count) {
+  std::scoped_lock<std::shared_mutex> lock(mutex_);
+
+  auto found_period_signatures = signatures_.find(signature->getPeriod());
+  if (found_period_signatures == signatures_.end()) {
+    // Period must be initialized explicitly providing also 2t+1 weight before adding any signature
+    assert(false);
+    return false;
+  }
+
+  if (const auto unique_signer =
+          found_period_signatures->second.unique_signers.emplace(signature->getSignerAddr(), signature->getHash());
+      !unique_signer.second) {
+    if (unique_signer.first->second != signature->getHash()) {
+      // Non unique signature for the signer
+      return false;
+    }
+  }
+
+  auto pillar_block_signatures =
+      found_period_signatures->second.pillar_block_signatures.insert({signature->getPillarBlockHash(), {}}).first;
+
+  // Add signer vote count only if the signature is new
+  if (pillar_block_signatures->second.signatures.emplace(signature->getHash(), signature).second) {
+    pillar_block_signatures->second.weight += signer_vote_count;
+  }
+
+  return true;
+}
+
 void Signatures::initializePeriodData(PbftPeriod period, uint64_t period_two_t_plus_one) {
   std::scoped_lock<std::shared_mutex> lock(mutex_);
   signatures_.insert({period, PeriodSignatures{.two_t_plus_one = period_two_t_plus_one}});

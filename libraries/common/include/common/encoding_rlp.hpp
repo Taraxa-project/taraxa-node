@@ -64,6 +64,15 @@ void rlp(RLPEncoderRef encoding, std::optional<Param> const& target) {
 }
 
 template <typename Param>
+void rlp(RLPEncoderRef encoding, std::shared_ptr<Param> const& target) {
+  if (target) {
+    rlp(encoding, *target);
+  } else {
+    encoding.append(unsigned(0));
+  }
+}
+
+template <typename Param>
 void rlp(RLPEncoderRef encoding, RangeView<Param> const& target) {
   encoding.appendList(target.size);
   target.for_each([&](auto const& el) { rlp(encoding, el); });
@@ -130,6 +139,16 @@ void rlp(RLPDecoderRef encoding, std::optional<Param>& target) {
     target = std::nullopt;
   } else {
     rlp(encoding, target.emplace());
+  }
+}
+
+template <typename Param>
+void rlp(RLPDecoderRef encoding, std::shared_ptr<Param>& target) {
+  if (encoding.value.isNull() || encoding.value.isEmpty()) {
+    target = nullptr;
+  } else {
+    target = std::make_shared<Param>();
+    rlp(encoding, *target);
   }
 }
 

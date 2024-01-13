@@ -65,14 +65,6 @@ class PillarChainManager {
   bool isRelevantBlsSig(const std::shared_ptr<BlsSignature> signature) const;
 
   /**
-   * @brief Checks if signature is unique per period & validator (signer)
-   *
-   * @param signature
-   * @return true if unique, otherwise false
-   */
-  bool isUniqueBlsSig(const std::shared_ptr<BlsSignature> signature) const;
-
-  /**
    * @brief Validates bls signature
    *
    * @param signature
@@ -113,12 +105,14 @@ class PillarChainManager {
       const std::vector<state_api::ValidatorStake>& previous_pillar_block_stakes);
 
   /**
-   * @brief Checks if the latest pillar block is finalized - has 2t+1 signatures
+   * @brief Checks if the previous pillar block is finalized - has 2t+1 signatures
    *
+   * @param previous_pillar_block
    * @param new_block_period
    * @return
    */
-  bool isPreviousPillarBlockFinalized(PbftPeriod new_block_period) const;
+  bool isPreviousPillarBlockFinalized(const std::shared_ptr<PillarBlock>& previous_pillar_block,
+                                      PbftPeriod new_block_period) const;
 
  private:
   // Node config
@@ -134,20 +128,16 @@ class PillarChainManager {
 
   const libff::alt_bn128_Fr kBlsSecretKey;
 
-  // Last processed pillar block
-  // TODO: might be just atomic hash
-  // TODO: !!! Important to load last pillar block from db in ctor (on restart etc...) If not, pillar chain mgr will not
-  // work properly
+  // Latest processed/created pillar block
   std::shared_ptr<PillarBlock> latest_pillar_block_;
-  // Full list of validators stakes during last pillar block period
+  // Full list of validators stakes during last pillar block period - no concurrent access protection needed
   std::vector<state_api::ValidatorStake> latest_pillar_block_stakes_;
 
   // Bls signatures for latest_pillar_block_.period - 1, latest_pillar_block_.period and potential +1 future pillar
   // block period
-  // std::map<PbftPeriod, BlsSignatures> bls_signatures_;
   Signatures signatures_;
 
-  // Protects latest_pillar_block_ & bls_signatures
+  // Protects latest_pillar_block_
   mutable std::shared_mutex mutex_;
 
   LOG_OBJECTS_DEFINE
