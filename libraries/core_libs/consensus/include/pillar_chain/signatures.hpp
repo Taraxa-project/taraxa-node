@@ -65,10 +65,11 @@ class Signatures {
   /**
    * @brief Add a signature to the bls signatures map
    * @param signature signature
+   * @param signer_vote_count
    *
    * @return true if signature was successfully added, otherwise false
    */
-  bool addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& signature);
+  bool addVerifiedSig(const std::shared_ptr<BlsSignature>& signature, u_int64_t signer_vote_count);
 
   /**
    * @brief Get all bls signatures for specified pillar block
