@@ -130,12 +130,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     // Pillar blocks
     COLUMN_W_COMP(pillar_block_data, getIntComparator<PbftPeriod>());
-    // 2t+1 bls aggregated signature for pillar blocks
-    COLUMN_W_COMP(aggregated_bls_signatures, getIntComparator<PbftPeriod>());
     // Latest pillar block own bls signature
     COLUMN(latest_pillar_block_own_signature);
-    // Latest pillar block validators stakes
-    COLUMN(latest_pillar_block_stakes);
 
 #undef COLUMN
 #undef COLUMN_W_COMP

@@ -9,7 +9,7 @@
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
 #include "final_chain/final_chain.hpp"
-#include "pillar_chain/pillar_block_data.hpp"
+#include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
 #include "vote/vote.hpp"
@@ -715,35 +715,6 @@ std::shared_ptr<pillar_chain::BlsSignature> DbStorage::getOwnLatestBlsSignature(
 
   return std::make_shared<pillar_chain::BlsSignature>(dev::RLP(bytes));
 }
-
-// TODO: delete
-// void DbStorage::saveTwoTPlusOneBlsSignatures(
-//    const std::vector<std::shared_ptr<pillar_chain::BlsSignature>>& bls_signatures) {
-//  assert(!bls_signatures.empty());
-//
-//  std::vector<libff::alt_bn128_G1> bls_signatures_g1;
-//  dev::RLPStream signers_addresses_rlp;
-//
-//  signers_addresses_rlp.appendList(bls_signatures.size());
-//  for (const auto& bls_sig : bls_signatures) {
-//    signers_addresses_rlp << bls_sig->getSignerAddr();
-//    bls_signatures_g1.push_back(bls_sig->getSignature());
-//  }
-//
-//  // Create aggregated bls signature and save it to db
-//  libff::alt_bn128_G1 aggregated_signature = libBLS::Bls::Aggregate(bls_signatures_g1);
-//
-//  std::stringstream aggregated_signature_ss;
-//  aggregated_signature_ss << aggregated_signature;
-//
-//  dev::RLPStream bls_aggregated_sig_rlp(3);
-//  bls_aggregated_sig_rlp << (*bls_signatures.begin())->getPillarBlockHash();
-//  bls_aggregated_sig_rlp << aggregated_signature_ss.str();
-//  bls_aggregated_sig_rlp.appendRaw(signers_addresses_rlp.invalidate());
-//
-//  insert(Columns::aggregated_bls_signatures, toSlice((*bls_signatures.begin())->getPeriod()),
-//         toSlice(bls_aggregated_sig_rlp.invalidate()));
-//}
 
 void DbStorage::saveTransaction(Transaction const& trx) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
