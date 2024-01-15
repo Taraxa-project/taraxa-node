@@ -20,7 +20,7 @@ constexpr uint16_t kMaxLevelsPerPeriod = 100;
 constexpr uint32_t kDagExpiryLevelLimit = 1000;
 constexpr uint32_t kDagBlockMaxTips = 16;
 
-const uint32_t gkMaxTransactionsInPacket{2000};
+const uint32_t kMaxTransactionsInPacket{2000};
 
 const uint32_t kPeriodicEventsThreadCount{2};
 
