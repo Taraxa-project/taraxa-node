@@ -155,7 +155,7 @@ void Network::periodicSendTransactions(std::shared_ptr<TransactionManager> trx_m
   uint64_t send_time_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count();
   // If sending transactions is slow, reduce sending interval
-  periodic_events_tp_.post({std::max((uint64_t)kConf.network.transaction_interval_ms, 2 * send_time_ms)},
+  periodic_events_tp_.post({std::max((uint64_t)kConf.network.transaction_interval_ms, 10 * send_time_ms)},
                            [trx_mgr = std::move(trx_mgr), this] { periodicSendTransactions(trx_mgr); });
 }
 

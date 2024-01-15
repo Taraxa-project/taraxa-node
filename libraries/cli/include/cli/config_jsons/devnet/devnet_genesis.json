@@ -243,7 +243,7 @@
     "block_proposer": {
       "shard": 1
     },
-    "gas_limit": "0xc845880"
+    "gas_limit": "0x1908B100"
   },
   "sortition": {
     "changes_count_for_average": 10,
