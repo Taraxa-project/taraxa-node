@@ -107,6 +107,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<bool, TransactionStatus> insertValidatedTransaction(std::shared_ptr<Transaction> &&tx,
                                                                 TransactionStatus status);
 
+  std::vector<std::pair<bool, TransactionStatus>> insertValidatedTransactions(
+      std::vector<std::shared_ptr<Transaction>> &&tx);
+
   /**
    * @param trx_hash transaction hash
    * @return Returns true if tx is known (was successfully verified and pushed into the tx pool), oth

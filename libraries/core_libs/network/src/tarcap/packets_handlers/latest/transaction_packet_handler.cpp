@@ -47,6 +47,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     trx_hashes.emplace_back(std::move(trx_hash));
   }
 
+  SharedTransactions transactions;
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
     const auto &trx_hash = trx_hashes[tx_idx];
 
@@ -74,13 +75,16 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
         throw MaliciousPeerException(err_msg.str());
       }
       case TransactionStatus::Verified:
+        transactions.emplace_back(transaction);
         break;
       default:
         assert(false);
     }
 
     received_trx_count_++;
-    auto result = trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status));
+  }
+  auto results = trx_mgr_->insertValidatedTransactions(std::move(transactions));
+  for (auto result : results) {
     if (result.first) {
       unique_received_trx_count_++;
     }
@@ -88,8 +92,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
       // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
       if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
         std::ostringstream err_msg;
-        err_msg << "Suspicious packets over the limit on DagBlock transaction " << trx_hash
-                << " validation: " << reason;
+        err_msg << "Suspicious packets over the limit";
         throw MaliciousPeerException(err_msg.str());
       }
     }

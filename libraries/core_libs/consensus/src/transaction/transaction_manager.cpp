@@ -119,6 +119,50 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
   }
 }
 
+std::vector<std::pair<bool, TransactionStatus>> TransactionManager::insertValidatedTransactions(
+    std::vector<std::shared_ptr<Transaction>> &&txs) {
+  // This lock synchronizes inserting and removing transactions from transactions memory pool.
+  // It is very important to lock transaction pool checking to be
+  // protected from new DAG block and Period data transactions insertions.
+  std::unique_lock transactions_lock(transactions_mutex_);
+  std::vector<std::pair<bool, TransactionStatus>> res;
+  for (auto &tx : txs) {
+    TransactionStatus status = TransactionStatus::Verified;
+    const auto trx_hash = tx->getHash();
+
+    auto it_ac = account_nonce_.find(tx->getSender());
+    if (it_ac != account_nonce_.end()) {
+      if (it_ac->second >= tx->getNonce()) {
+        status = TransactionStatus::LowNonce;
+      }
+      // This is definitely a new transactions since last transaction from the same account that was pushed in the DAG
+      // has lower nonce so no additional checks needed
+    } else if (nonfinalized_transactions_in_dag_.contains(trx_hash) ||
+               recently_finalized_transactions_.contains(trx_hash)) {
+      res.push_back({false, status});
+      continue;
+    }
+
+    const auto account = final_chain_->get_account(tx->getSender()).value_or(taraxa::state_api::ZeroAccount);
+
+    // Ensure the transaction adheres to nonce ordering
+    if (account.nonce > tx->getNonce()) {
+      status = TransactionStatus::LowNonce;
+    }
+
+    // Transactor should have enough funds to cover the costs
+    // cost == V + GP * GL
+    if (account.balance < tx->getCost()) {
+      status = TransactionStatus::InsufficentBalance;
+    }
+
+    const auto last_block_number = final_chain_->last_block_number();
+    LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
+    res.push_back({transactions_pool_.insert(std::move(tx), status, last_block_number), status});
+  }
+  return res;
+}
+
 std::pair<bool, TransactionStatus> TransactionManager::insertValidatedTransaction(std::shared_ptr<Transaction> &&tx,
                                                                                   TransactionStatus status) {
   const auto trx_hash = tx->getHash();
@@ -134,7 +178,6 @@ std::pair<bool, TransactionStatus> TransactionManager::insertValidatedTransactio
   auto it_ac = account_nonce_.find(tx->getSender());
   if (it_ac != account_nonce_.end() && it_ac->second >= tx->getNonce()) {
     status = TransactionStatus::LowNonce;
-    return {false, status};
   }
 
   const auto account = final_chain_->get_account(tx->getSender()).value_or(taraxa::state_api::ZeroAccount);
