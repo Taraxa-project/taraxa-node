@@ -225,6 +225,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
   std::vector<std::vector<trx_hash_t>> recently_finalized_transactions_per_block_;
+  // This will keep the nonce per account for any transaction pushed to the DAG which might not be executed yet
+  std::unordered_map<addr_t, trx_nonce_t> account_nonce_;
   uint64_t trx_count_ = 0;
 
   const uint64_t kDagBlockGasLimit;

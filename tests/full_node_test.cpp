@@ -856,11 +856,8 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
-  for (const auto &trx : samples::createSignedTrxSamples(1, 500, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(1, 1000, g_secret)) {
     nodes[0]->getTransactionManager()->insertTransaction(trx);
-  }
-  for (const auto &trx : samples::createSignedTrxSamples(501, 1000, g_secret)) {
-    nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
 
   auto num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -896,21 +893,18 @@ TEST_F(FullNodeTest, persist_counter) {
     auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
-    for (const auto &trx : samples::createSignedTrxSamples(1, 500, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(1, 1000, g_secret)) {
       nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
-    for (const auto &trx : samples::createSignedTrxSamples(501, 1000, g_secret)) {
-      nodes[1]->getTransactionManager()->insertTransaction(trx);
-    }
 
-    num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
-    num_trx2 = nodes[1]->getTransactionManager()->getTransactionCount();
+    num_trx1 = nodes[0]->getDB()->getNumTransactionExecuted();
+    num_trx2 = nodes[1]->getDB()->getNumTransactionExecuted();
     // add more delay if sync is not done
     for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
       if (num_trx1 == 1000 && num_trx2 == 1000) break;
       taraxa::thisThreadSleepForMilliSeconds(500);
-      num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
-      num_trx2 = nodes[1]->getTransactionManager()->getTransactionCount();
+      num_trx1 = nodes[0]->getDB()->getNumTransactionExecuted();
+      num_trx2 = nodes[1]->getDB()->getNumTransactionExecuted();
     }
     EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 1000);
     EXPECT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), 1000);

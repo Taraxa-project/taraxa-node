@@ -131,6 +131,12 @@ std::pair<bool, TransactionStatus> TransactionManager::insertValidatedTransactio
     return {false, status};
   }
 
+  auto it_ac = account_nonce_.find(tx->getSender());
+  if (it_ac != account_nonce_.end() && it_ac->second >= tx->getNonce()) {
+    status = TransactionStatus::LowNonce;
+    return {false, status};
+  }
+
   const auto account = final_chain_->get_account(tx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
   // Ensure the transaction adheres to nonce ordering
@@ -188,6 +194,14 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     std::unique_lock transactions_lock(transactions_mutex_);
     for (const auto &trx : trxs) {
       auto const &trx_hash = trx->getHash();
+      auto it_ac = account_nonce_.find(trx->getSender());
+      if (it_ac != account_nonce_.end()) {
+        if (it_ac->second < trx->getNonce()) {
+          it_ac->second = trx->getNonce();
+        }
+      } else {
+        account_nonce_[trx->getSender()] = trx->getNonce();
+      }
       // We only save transaction if it has not already been saved:
       // 1. If it is part of transaction pool this guarantees that it is a new transaction so no additional check is
       // needed
@@ -345,6 +359,14 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
       transactions_pool_.markTransactionKnown(hash);
       if (!nonfinalized_transactions_in_dag_.erase(hash)) {
         trx_count_++;
+        auto it_ac = account_nonce_.find(trx->getSender());
+        if (it_ac != account_nonce_.end()) {
+          if (it_ac->second < trx->getNonce()) {
+            it_ac->second = trx->getNonce();
+          }
+        } else {
+          account_nonce_[trx->getSender()] = trx->getNonce();
+        }
       } else {
         LOG(log_dg_) << "Transaction " << hash << " removed from nonfinalized transactions";
       }
