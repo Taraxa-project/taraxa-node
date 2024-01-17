@@ -48,6 +48,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   }
 
   SharedTransactions transactions;
+  auto trxs_rlp = packet_data.rlp_[1];
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
     const auto &trx_hash = trx_hashes[tx_idx];
 
@@ -59,7 +60,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     std::shared_ptr<Transaction> transaction;
     // Deserialization is expensive, do it only for the transactions we are about to process
     try {
-      transaction = std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes());
+      transaction = std::make_shared<Transaction>(trxs_rlp[tx_idx].data().toBytes());
       received_transactions.emplace_back(trx_hash);
     } catch (const Transaction::InvalidTransaction &e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));

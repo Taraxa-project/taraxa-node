@@ -692,8 +692,10 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(
     if ((blk.getTips().size() + 1) > kPbftGasLimit / getDagConfig().gas_limit) {
       for (const auto &t : blk.getTips()) {
         const auto tip_blk = getDagBlock(t);
-        LOG(log_er_) << "DAG Block " << block_hash << " tip " << t << " not present";
-        if (tip_blk == nullptr) return VerifyBlockReturnType::MissingTip;
+        if (tip_blk == nullptr) {
+          LOG(log_er_) << "DAG Block " << block_hash << " tip " << t << " not present";
+          return VerifyBlockReturnType::MissingTip;
+        }
         block_gas_estimation += tip_blk->getGasEstimation();
       }
       if (block_gas_estimation > kPbftGasLimit) {
