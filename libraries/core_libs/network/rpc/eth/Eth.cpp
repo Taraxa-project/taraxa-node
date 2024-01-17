@@ -440,6 +440,9 @@ class EthImpl : public Eth, EthParams {
     if (!_json.isObject() || _json.empty()) {
       return ret;
     }
+    if (!_json["input"].empty() && !_json["data"].empty()) {
+      throw invalid_argument("input and data cannot be specified together");
+    }
     if (!_json["from"].empty()) {
       ret.from = toAddress(_json["from"].asString());
     }
@@ -458,6 +461,9 @@ class EthImpl : public Eth, EthParams {
     if (!_json["data"].empty()) {
       ret.data = jsToBytes(_json["data"].asString(), OnFailed::Throw);
     } else if (!_json["input"].empty()) {
+      ret.data = jsToBytes(_json["input"].asString(), OnFailed::Throw);
+    }
+    if (!_json["input"].empty()) {
       ret.data = jsToBytes(_json["input"].asString(), OnFailed::Throw);
     }
     if (!_json["code"].empty()) {
