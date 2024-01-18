@@ -91,13 +91,6 @@ void NetworkConfig::validate(uint32_t delegation_delay) const {
     throw ConfigException(std::string("network.sync_level_size cannot be 0"));
   }
 
-  // Max enabled number of threads for processing rpc requests
-  constexpr uint16_t MAX_PACKETS_PROCESSING_THREADS_NUM = 30;
-  if (packets_processing_threads < 3 || packets_processing_threads > MAX_PACKETS_PROCESSING_THREADS_NUM) {
-    throw ConfigException(std::string("network.packets_processing_threads must be in range [3, ") +
-                          std::to_string(MAX_PACKETS_PROCESSING_THREADS_NUM) + "]");
-  }
-
   if (transaction_interval_ms == 0) {
     throw ConfigException(std::string("network.transaction_interval_ms must be greater than zero"));
   }
