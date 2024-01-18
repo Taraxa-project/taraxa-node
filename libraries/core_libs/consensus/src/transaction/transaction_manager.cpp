@@ -121,12 +121,26 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
 
 std::vector<std::pair<bool, TransactionStatus>> TransactionManager::insertValidatedTransactions(
     std::vector<std::shared_ptr<Transaction>> &&txs) {
+  // Temporary performance testing code, TO REMOVE LATER
+  auto now = std::chrono::steady_clock::now();
+  static uint64_t count = 0;
+  static uint64_t count_low_nonce = 0;
+  static uint64_t count_known_transactions = 0;
+  static uint64_t count_inserted = 0;
+  static uint64_t t1 = 0;
+  static uint64_t t2 = 0;
+  static uint64_t t3 = 0;
+  static uint64_t t4 = 0;
+
   // This lock synchronizes inserting and removing transactions from transactions memory pool.
   // It is very important to lock transaction pool checking to be
   // protected from new DAG block and Period data transactions insertions.
   std::unique_lock transactions_lock(transactions_mutex_);
+  t1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+  count++;
   std::vector<std::pair<bool, TransactionStatus>> res;
   for (auto &tx : txs) {
+    now = std::chrono::steady_clock::now();
     TransactionStatus status = TransactionStatus::Verified;
     const auto trx_hash = tx->getHash();
 
@@ -134,20 +148,25 @@ std::vector<std::pair<bool, TransactionStatus>> TransactionManager::insertValida
     if (it_ac != account_nonce_.end()) {
       if (it_ac->second >= tx->getNonce()) {
         status = TransactionStatus::LowNonce;
+        count_low_nonce++;
       }
       // This is definitely a new transactions since last transaction from the same account that was pushed in the DAG
       // has lower nonce so no additional checks needed
     } else if (nonfinalized_transactions_in_dag_.contains(trx_hash) ||
                recently_finalized_transactions_.contains(trx_hash)) {
       res.push_back({false, status});
+      t2 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+      count_known_transactions++;
       continue;
     }
+    t2 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
 
     const auto account = final_chain_->get_account(tx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
     // Ensure the transaction adheres to nonce ordering
     if (account.nonce > tx->getNonce()) {
       status = TransactionStatus::LowNonce;
+      count_low_nonce++;
     }
 
     // Transactor should have enough funds to cover the costs
@@ -156,9 +175,28 @@ std::vector<std::pair<bool, TransactionStatus>> TransactionManager::insertValida
       status = TransactionStatus::InsufficentBalance;
     }
 
+    t3 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+
     const auto last_block_number = final_chain_->last_block_number();
     LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
     res.push_back({transactions_pool_.insert(std::move(tx), status, last_block_number), status});
+    if (res[res.size() - 1].first) count_inserted++;
+    t4 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+  }
+  // Log performance stats every 100 transaction packets
+  if (count % 100 == 0) {
+    LOG(log_si_) << "Packets: " << count << " Low nonce: " << count_low_nonce << " Inserted trx: " << count_inserted
+                 << " Known: " << count_known_transactions;
+    LOG(log_si_) << "Time1: " << t1 / 1000 << " Time2: " << t2 / 1000 << " Time3: " << (t3 - t2) / 1000
+                 << " Time4: " << (t4 - t3) / 1000;
+    t1 = 0;
+    t2 = 0;
+    t3 = 0;
+    t4 = 0;
+    count = 0;
+    count_low_nonce = 0;
+    count_inserted = 0;
+    count_known_transactions = 0;
   }
   return res;
 }
