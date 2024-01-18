@@ -39,6 +39,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
+  LOG(log_si_) << "PacketsThreads: " << config.network.packets_processing_threads;
 
   all_packets_stats_ = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
       kConf.network.ddos_protection.packets_stats_time_period_ms, node_addr);

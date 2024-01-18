@@ -39,6 +39,8 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   static uint64_t count_packets = 0;
   static uint64_t count_transactions = 0;
   static uint64_t count_known_transactions = 0;
+  static uint64_t count_known_transactions2 = 0;
+  static uint64_t count_known_transactions3 = 0;
   static uint64_t count_inserted = 0;
   static uint64_t t1 = 0;
   static uint64_t t2 = 0;
@@ -80,6 +82,11 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     } catch (const Transaction::InvalidTransaction &e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
+    // Skip any transactions that are already known to the trx mgr
+    if (trx_mgr_->isTransactionKnown(trx_hash)) {
+      count_known_transactions2++;
+      continue;
+    }
 
     TransactionStatus status;
     std::string reason;
@@ -91,6 +98,11 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
         throw MaliciousPeerException(err_msg.str());
       }
       case TransactionStatus::Verified:
+        // Skip any transactions that are already known to the trx mgr
+        if (trx_mgr_->isTransactionKnown(trx_hash)) {
+          count_known_transactions3++;
+          continue;
+        }
         transactions.emplace_back(transaction);
         break;
       default:
@@ -124,7 +136,8 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   // Log performance stats every 100 transaction packets
   if (count_packets % 100 == 0) {
     LOG(log_si_) << "Packets: " << count_packets << " Trxs: " << count_transactions
-                 << " Inserted trx: " << count_inserted << " Known: " << count_known_transactions;
+                 << " Inserted trx: " << count_inserted << " Known: " << count_known_transactions << " : "
+                 << count_known_transactions2 << " : " << count_known_transactions3;
     LOG(log_si_) << "Time1: " << t1 / 1000 << " Time2: " << (t2 - t1) / 1000 << " Time3: " << (t3 - t2) / 1000;
     t1 = 0;
     t2 = 0;
@@ -133,6 +146,8 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     count_transactions = 0;
     count_inserted = 0;
     count_known_transactions = 0;
+    count_known_transactions2 = 0;
+    count_known_transactions3 = 0;
   }
 
   if (transaction_count > 0) {

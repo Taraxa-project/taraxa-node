@@ -130,6 +130,9 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
   network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
   network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});
+  if (network.packets_processing_threads > std::thread::hardware_concurrency()) {
+    network.packets_processing_threads = std::thread::hardware_concurrency();
+  }
   network.peer_blacklist_timeout =
       getConfigDataAsUInt(json, {"peer_blacklist_timeout"}, true, NetworkConfig::kBlacklistTimeoutDefaultInSeconds);
   network.disable_peer_blacklist = getConfigDataAsBoolean(json, {"disable_peer_blacklist"}, true, false);
