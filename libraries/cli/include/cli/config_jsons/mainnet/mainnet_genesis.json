@@ -1627,6 +1627,7 @@
   },
   "hardforks": {
     "fix_redelegate_block_num": 3091000,
+    "phalaenopsis_hf_block_num": 6943000,
     "redelegations": [
       {
         "validator": "0x6671df8b597c0A14a9361b4B98F97AF1360e4352",
@@ -1635,10 +1636,10 @@
       }
     ],
     "rewards_distribution_frequency": {
-      "5730000" : 100
+      "5730000": 100
     },
-    "magnolia_hf" : {
-      "block_num" : 5730000,
+    "magnolia_hf": {
+      "block_num": 5730000,
       "jail_time": 163459
     }
   }
