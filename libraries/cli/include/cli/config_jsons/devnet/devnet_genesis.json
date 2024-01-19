@@ -265,7 +265,7 @@
   },
   "hardforks": {
     "fix_redelegate_block_num": 0,
-    "cora_hf_block_num": 0,
+    "phalaenopsis_hf_block_num": 1000,
     "rewards_distribution_frequency": {
       "0": 100
     },
