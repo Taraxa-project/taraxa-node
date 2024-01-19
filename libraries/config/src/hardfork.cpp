@@ -32,6 +32,7 @@ RLP_FIELDS_DEFINE(MagnoliaHardfork, block_num, jail_time)
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
+  json["fix_commission_block_num"] = dev::toJS(obj.fix_commission_block_num);
   json["initial_validators"] = Json::Value(Json::arrayValue);
   for (const auto& v : obj.redelegations) {
     json["redelegations"].append(enc_json(v));
@@ -50,6 +51,7 @@ Json::Value enc_json(const HardforksConfig& obj) {
 
 void dec_json(const Json::Value& json, HardforksConfig& obj) {
   obj.fix_redelegate_block_num = dev::getUInt(json["fix_redelegate_block_num"]);
+  obj.fix_commission_block_num = dev::getUInt(json["fix_commission_block_num"]);
 
   const auto& redelegations_json = json["redelegations"];
   obj.redelegations = std::vector<Redelegation>(redelegations_json.size());
