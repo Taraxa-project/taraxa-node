@@ -79,7 +79,9 @@ SharedTransactions TransactionQueue::getAllTransactions() const {
 bool TransactionQueue::erase(const trx_hash_t &hash) {
   // Find the hash
   const auto it = queue_transactions_.find(hash);
-  if (it == queue_transactions_.end()) return false;
+  if (it == queue_transactions_.end()) {
+    return non_proposable_transactions_.erase(hash) > 0;
+  }
 
   const auto &account_it = account_nonce_transactions_.find(it->second->getSender());
   assert(account_it != account_nonce_transactions_.end());

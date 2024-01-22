@@ -56,7 +56,7 @@ class Vote {
    * @brief Verify VRF sortition
    * @return true if passed
    */
-  bool verifyVrfSortition(const vrf_pk_t& pk) const { return vrf_sortition_.verify(pk); }
+  bool verifyVrfSortition(const vrf_pk_t& pk, bool strict) const { return vrf_sortition_.verify(pk, strict); }
 
   /**
    * @brief Get VRF sortition

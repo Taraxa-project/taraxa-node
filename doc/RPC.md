@@ -511,6 +511,61 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getChainStats","params":[
 }
 ```
 
+### taraxa_yield
+
+Returns yield for specified period
+
+#### Parameters
+
+`QUANTITY` - period
+
+#### Returns
+
+`String` - yield
+
+To transform returned yield to percents -> ```decimal(yield) / 1e4```\
+To transform returned yield to fraction -> ```decimal(yield) / 1e6```
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_yield","params":["0x1D533B"],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": "0x30D40"
+}
+```
+
+### taraxa_totalSupply
+
+Returns total supply for specified period
+
+#### Parameters
+
+`QUANTITY` - period
+
+#### Returns
+
+`String` - total supply
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_totalSupply","params":["0x1D533B"],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": "0x204FCE5E3E25026110000000"
+}
+```
+
 ## Test API
 
 ### get_sortition_change

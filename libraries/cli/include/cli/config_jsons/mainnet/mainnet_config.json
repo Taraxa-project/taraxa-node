@@ -34,7 +34,7 @@
     "sync_level_size": 10,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
-    "deep_syncing_threshold": 10,
+    "deep_syncing_threshold": 50,
     "boot_nodes": [
       {
         "id": "45949587c9f31f62e802175471c142da1618f4e456a77e51b0fcb3cc14b14bba7f585d44db15417fff96c29967a4778c60584ced00148bc905609a14fa7e538f",
