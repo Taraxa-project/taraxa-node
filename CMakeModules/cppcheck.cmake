@@ -32,6 +32,8 @@ else ()
             --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
             # exclude graphql generated
             -i ${PROJECT_SOURCE_DIR}/libraries/core_libs/network/graphql/gen/
+            -i ${PROJECT_SOURCE_DIR}/libraries/aleth/libsecp256k1/src
+            -i ${PROJECT_SOURCE_DIR}/libraries/aleth/libsecp256k1/examples
             # messy files
             --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/vector_ref.h
             --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/Common.h
