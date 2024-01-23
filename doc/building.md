@@ -38,7 +38,7 @@ will build out of the box without further effort:
     sudo apt install solc
 
     # Install conan package manager
-    sudo python3 -m pip install conan==1.59.0
+    sudo python3 -m pip install conan==1.60.0
 
     # Setup clang as default compiler either in your IDE or by env. variables"
     export CC="clang-14"
@@ -94,7 +94,7 @@ will build out of the box without further effort:
 
     # Install conan package manager
     # >= 1.36.0 version is required to work properly with clang-14
-    sudo python3 -m pip install conan==1.59.0
+    sudo python3 -m pip install conan==1.60.0
 
     # Install cmake
     # >= 3.20 version is required for JSON subcommand
