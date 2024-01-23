@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"namespacetaraxa.html#a3747de5ec38a001ef934c2764b539ef3":[16,0,1,4,0,0,7,0,0,2],
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,7,0,1,1],
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,7,0,0,0,1],
 "namespacetaraxa.html#a4f70ee014a414993cc75c52fb9c8c4cd":[16,0,1,3,0,0,0,0,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "state__config_8cpp.html#a0cdba49b2802bab1d0da7a671714e77b":[16,0,1,3,1,7,1],
 "state__config_8cpp.html#a142767c95d8323471aee83d86833ee8c":[16,0,1,3,1,7,4],
 "state__config_8cpp.html#a15046280f6cced1ba188ecded81bb15f":[16,0,1,3,1,7,9],
-"state__config_8cpp.html#a2041ed7b7b90eb378c7ef916d761ce3b":[16,0,1,3,1,7,8],
-"state__config_8cpp.html#a71678cb3f5feb67a738df3d7d2f45270":[16,0,1,3,1,7,2]
+"state__config_8cpp.html#a2041ed7b7b90eb378c7ef916d761ce3b":[16,0,1,3,1,7,8]
 };
