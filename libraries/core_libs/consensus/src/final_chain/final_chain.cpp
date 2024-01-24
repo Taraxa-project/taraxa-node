@@ -387,7 +387,7 @@ class FinalChainImpl final : public FinalChain {
     state_api_.update_state_config(new_config);
   }
 
-  u256 get_account_storage(addr_t const& addr, u256 const& key,
+  h256 get_account_storage(addr_t const& addr, u256 const& key,
                            std::optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.get_account_storage(last_if_absent(blk_n), addr, key);
   }
