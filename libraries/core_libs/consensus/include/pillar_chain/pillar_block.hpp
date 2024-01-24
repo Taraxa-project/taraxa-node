@@ -53,7 +53,7 @@ class PillarBlock {
   /**
    * @return pillar block hash
    */
-  Hash getHash() const;
+  Hash getHash();
 
   /**
    * @return pillar block pbft period
@@ -79,7 +79,8 @@ class PillarBlock {
 
   Hash previous_pillar_block_hash_{0};
 
-  mutable std::atomic<std::optional<Hash>> kCachedHash;
+  std::optional<Hash> hash_;
+  std::shared_mutex hash_mutex_;
 };
 
 struct PillarBlockData {
