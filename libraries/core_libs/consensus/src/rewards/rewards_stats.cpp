@@ -6,7 +6,7 @@ namespace taraxa::rewards {
 Stats::Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::shared_ptr<DB> db,
              std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count)
     : kCommitteeSize(committee_size),
-      kHardforks(hardforks),
+      kHardforksConfig(hardforks),
       db_(std::move(db)),
       dpos_eligible_total_vote_count_(dpos_eligible_total_vote_count) {
   loadFromDb();
@@ -28,7 +28,7 @@ void Stats::saveBlockStats(uint64_t period, const BlockStats& stats, DbStorage::
 }
 
 uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
-  auto distribution_frequencies = kHardforks.rewards_distribution_frequency;
+  auto distribution_frequencies = kHardforksConfig.rewards_distribution_frequency;
   auto itr = distribution_frequencies.upper_bound(current_block);
   if (distribution_frequencies.empty() || itr == distribution_frequencies.begin()) {
     return 1;
@@ -49,7 +49,7 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
   if (!blk.previous_block_cert_votes.empty()) [[likely]] {
     dpos_vote_count = dpos_eligible_total_vote_count_(blk.previous_block_cert_votes[0]->getPeriod() - 1);
   }
-  if (blk.pbft_blk->getPeriod() < kHardforks.magnolia_hf.block_num) {
+  if (blk.pbft_blk->getPeriod() < kHardforksConfig.magnolia_hf.block_num) {
     return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize};
   }
 
@@ -58,10 +58,10 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
 
 std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
                                             DbStorage::Batch& write_batch) {
-  std::vector<BlockStats> res;
   const auto current_period = current_blk.pbft_blk->getPeriod();
   const auto frequency = getCurrentDistributionFrequency(current_period);
   auto block_stats = getBlockStats(current_blk, trxs_gas_used);
+
   // Distribute rewards every block
   if (frequency == 1) {
     return {block_stats};
@@ -75,9 +75,31 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const
     return {};
   }
 
-  res.reserve(blocks_stats_.size());
-  std::transform(blocks_stats_.begin(), blocks_stats_.end(), std::back_inserter(res),
-                 [](auto& t) { return std::move(t.second); });
+  // Transform ordered (or unordered) blocks stats into vector
+  auto transformStatsToVector = [](auto&& blocks_stats) {
+    std::vector<BlockStats> stats_vec;
+    stats_vec.reserve(blocks_stats.size());
+
+    std::transform(blocks_stats.begin(), blocks_stats.end(), std::back_inserter(stats_vec),
+                   [](auto&& t) { return std::move(t.second); });
+    return stats_vec;
+  };
+
+  std::vector<BlockStats> res;
+
+  // Blocks stats were not sorted by period before aspen hardfork part one
+  if (current_period < kHardforksConfig.aspen_hf.block_num_part_one) {
+    res = transformStatsToVector(std::move(blocks_stats_));
+  } else {
+    // Blocks stats are sorted by period after aspen hardfork part one
+    std::map<PbftPeriod, BlockStats> ordered_blocks_stats;
+    std::transform(blocks_stats_.begin(), blocks_stats_.end(),
+                   std::inserter(ordered_blocks_stats, ordered_blocks_stats.end()),
+                   [](auto& t) { return std::move(t); });
+
+    res = transformStatsToVector(std::move(ordered_blocks_stats));
+  }
+
   clear();
   return res;
 }
