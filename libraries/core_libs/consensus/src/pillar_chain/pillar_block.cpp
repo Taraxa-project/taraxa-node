@@ -19,11 +19,7 @@ PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const dev::RLP& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), addr_, stake_change_);
 }
 
-PillarBlock::PillarBlock(const dev::RLP& rlp) {
-  *this = util::rlp_dec<PillarBlock>(rlp);
-  // TODO: try if rlp.data().toBytes() produces the same output as getRlp()
-  kCachedHash = dev::sha3(getRlp());
-}
+PillarBlock::PillarBlock(const dev::RLP& rlp) { *this = util::rlp_dec<PillarBlock>(rlp); }
 
 PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
                          std::vector<ValidatorStakeChange>&& validator_stakes_changes,
@@ -31,31 +27,36 @@ PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
     : period_(period),
       state_root_(state_root),
       validators_stakes_changes_(std::move(validator_stakes_changes)),
-      previous_pillar_block_hash_(previous_pillar_block_hash),
-      kCachedHash(dev::sha3(getRlp())) {}
+      previous_pillar_block_hash_(previous_pillar_block_hash) {}
 
 PillarBlock::PillarBlock(const PillarBlock& pillar_block)
     : period_(pillar_block.period_),
       state_root_(pillar_block.state_root_),
       validators_stakes_changes_(pillar_block.validators_stakes_changes_),
-      previous_pillar_block_hash_(pillar_block.previous_pillar_block_hash_),
-      kCachedHash(dev::sha3(getRlp())) {}
+      previous_pillar_block_hash_(pillar_block.previous_pillar_block_hash_) {}
 
 PillarBlock& PillarBlock::operator=(const PillarBlock& pillar_block) {
   period_ = pillar_block.period_;
   state_root_ = pillar_block.state_root_;
   validators_stakes_changes_ = pillar_block.validators_stakes_changes_;
   previous_pillar_block_hash_ = pillar_block.previous_pillar_block_hash_;
-  kCachedHash = dev::sha3(getRlp());
 }
 
 dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
 
 PbftPeriod PillarBlock::getPeriod() const { return period_; }
 
-PillarBlock::Hash PillarBlock::getHash() const {
-  if (kCachedHash.)
-  return kCachedHash;
+PillarBlock::Hash PillarBlock::getHash() {
+  {
+    std::shared_lock lock(hash_mutex_);
+    if (hash_.has_value()) {
+      return *hash_;
+    }
+  }
+
+  std::scoped_lock lock(hash_mutex_);
+  hash_ = dev::sha3(getRlp());
+  return *hash_;
 }
 
 RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, previous_pillar_block_hash_, validators_stakes_changes_)

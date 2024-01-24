@@ -29,6 +29,9 @@ class BlsSignature {
   BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator,
                const libff::alt_bn128_Fr& secret);
 
+  BlsSignature(const BlsSignature& bls_signature);
+  BlsSignature& operator=(const BlsSignature& bls_signature);
+
   /**
    * @brief Validates BLS signature
    *
@@ -53,7 +56,7 @@ class BlsSignature {
   /**
    * @return bls signature hash
    */
-  Hash getHash() const;
+  Hash getHash();
 
   /**
    * @return pillar block hash
@@ -83,7 +86,8 @@ class BlsSignature {
   addr_t signer_addr_;
   libff::alt_bn128_G1 signature_;
 
-  mutable Hash kCachedHash;
+  std::optional<Hash> hash_;
+  std::shared_mutex hash_mutex_;
 };
 
 /** @}*/
