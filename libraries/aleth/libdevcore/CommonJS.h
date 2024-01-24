@@ -47,14 +47,8 @@ std::string toJS(SecureFixedHash<T> const& _i) {
 template <typename T>
 std::string toJS(T const& _i) {
   std::stringstream stream;
-  stream << std::hex << _i;
-  std::string hex = stream.str();
-
-  // Prepend '0' if the length of the hex string is odd
-  if (hex.length() % 2 != 0) {
-    hex = "0" + hex;
-  }
-  return "0x" + hex;
+  stream << "0x" << std::hex << _i;
+  return stream.str();
 }
 
 enum class OnFailed { InterpretRaw, Empty, Throw };
