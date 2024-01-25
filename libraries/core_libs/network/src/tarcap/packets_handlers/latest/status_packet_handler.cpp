@@ -98,12 +98,13 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
 
     peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
-    LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
+    LOG(log_si_) << "Received initial status message from " << packet_data.from_node_id_
+                 << " node address: " << dev::toAddress(packet_data.from_node_id_).toString() << ", network id "
                  << peer_chain_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
                  << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
                  << std::boolalpha << selected_peer->syncing_ << ", peer pbft period " << selected_peer->pbft_period_
-                 << ", peer pbft round " << selected_peer->pbft_round_ << ", node major version" << node_major_version
-                 << ", node minor version" << node_minor_version << ", node patch version" << node_patch_version;
+                 << ", peer pbft round " << selected_peer->pbft_round_ << ", node major version " << node_major_version
+                 << ", node minor version " << node_minor_version << ", node patch version" << node_patch_version;
 
   } else {  // Standard status packet
     // TODO: initial and standard status packet could be separated...
