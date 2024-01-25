@@ -103,11 +103,22 @@ bool DagBlockProposer::proposeDagBlock() {
     }
   }
 
+  auto now = std::chrono::steady_clock::now();
+  static uint64_t count = 0;
+  static uint64_t t1 = 0;
+
   auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
     num_tries_ = 0;
     return false;
+  }
+
+  t1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+  count++;
+  if (count % 10 == 0) {
+    LOG(log_si_) << " getShardedTrxs " << t1 / 1000 << " " << count;
+    t1 = 0;
   }
 
   dev::bytes vdf_msg = DagManager::getVdfMessage(frontier.pivot, transactions);
