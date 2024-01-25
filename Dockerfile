@@ -63,7 +63,7 @@ RUN ln -s /usr/bin/clang-${LLVM_VERSION} /usr/bin/clang
 RUN ln -s /usr/bin/clang++-${LLVM_VERSION} /usr/bin/clang++
 
 # Install conan
-RUN pip3 install conan==1.59.0
+RUN pip3 install conan==1.60.0
 
 ENV CONAN_REVISIONS_ENABLED=1
 

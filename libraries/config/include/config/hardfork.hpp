@@ -42,6 +42,8 @@ void dec_json(const Json::Value& json, AspenHardfork& obj);
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
+  // disable it by default (set to max uint64)
+  uint64_t phalaenopsis_hf_block_num = -1;
   std::vector<Redelegation> redelegations;
   /*
    * @brief key is block number at which change is applied and value is new distribution interval.
