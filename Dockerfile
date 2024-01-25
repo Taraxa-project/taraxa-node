@@ -119,7 +119,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages
-RUN pip3 install click eth-account eth-utils
+RUN pip3 install click eth-account eth-utils typing-extensions
 
 ARG BUILD_OUTPUT_DIR
 WORKDIR /root/.taraxa
