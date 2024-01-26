@@ -126,6 +126,7 @@ bool DagBlockProposer::proposeDagBlock() {
   if (vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
     thisThreadSleepForMilliSeconds(1000);
   }
+  auto latest_frontier = dag_mgr_->getDagFrontier();
   auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
   if (latest_level > propose_level) {
     last_propose_level_ = propose_level;
@@ -142,7 +143,7 @@ bool DagBlockProposer::proposeDagBlock() {
 
   std::future<void> result = sync.get_future();
   while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
-    auto latest_frontier = dag_mgr_->getDagFrontier();
+    latest_frontier = dag_mgr_->getDagFrontier();
     latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
     if (latest_level > propose_level && vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
       cancellation_token = true;
@@ -162,7 +163,7 @@ bool DagBlockProposer::proposeDagBlock() {
     // Computing VDF for a stale block is CPU extensive, there is a possibility that some dag blocks are in a queue,
     // give it a second to process these dag blocks
     thisThreadSleepForSeconds(1);
-    auto latest_frontier = dag_mgr_->getDagFrontier();
+    latest_frontier = dag_mgr_->getDagFrontier();
     latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
     if (latest_level > propose_level) {
       last_propose_level_ = propose_level;
