@@ -18,7 +18,7 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
     [ "dpos_yield", "group___final_chain.html#a26219b4de9c395dc0289e4a4ee512bd7", null ],
     [ "finalize", "group___final_chain.html#ae71c5be266ef7366c0650c6ff9a31947", null ],
     [ "get_account", "group___final_chain.html#a4dd6baa7b56ef75d07e95fe604458be5", null ],
-    [ "get_account_storage", "group___final_chain.html#a20d7b88f1fef839aacb13035bb65e2be", null ],
+    [ "get_account_storage", "group___final_chain.html#a21e6eadc2a9e6d645d2ac7621e861d08", null ],
     [ "get_code", "group___final_chain.html#aa66ce3061b2e802f2bd08e6428fb2159", null ],
     [ "getBalance", "group___final_chain.html#afcb9ccbdd87a08842e591ed1c228d66f", null ],
     [ "last_block_number", "group___final_chain.html#aa54056cae99ff621cbf5c2570eb382ac", null ],

@@ -1,5 +1,6 @@
 var NAVTREEINDEX24 =
 {
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#addd7616e449e6a1be95bb57bbdaa9a7a":[15,0,3,4,0,0,10,3],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#af80eca295cd68501c2f075783e02787d":[15,0,3,4,0,0,10,9],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html":[15,0,3,4,0,0,0],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html#ab98cef7462cdd992e5aa8a1cdf27af58":[15,0,3,4,0,0,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX24 =
 "vdf_2include_2vdf_2config_8hpp.html#ad2584bf1da77275f513d1378d392fd99":[16,0,1,8,0,0,0,4],
 "vdf_2include_2vdf_2config_8hpp_source.html":[16,0,1,8,0,0,0],
 "vdf_2src_2config_8cpp.html":[16,0,1,8,1,0],
-"vdf_2src_2config_8cpp.html#a1011e62c651406e635b897eb61b57cff":[16,0,1,8,1,0,4],
-"vdf_2src_2config_8cpp.html#a124545b9fa417446dd410b9c69701744":[16,0,1,8,1,0,1]
+"vdf_2src_2config_8cpp.html#a1011e62c651406e635b897eb61b57cff":[16,0,1,8,1,0,4]
 };

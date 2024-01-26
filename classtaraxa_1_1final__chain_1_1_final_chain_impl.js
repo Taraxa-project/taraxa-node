@@ -19,7 +19,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "finalize", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a482a920663a929ff27a62207cd378d22", null ],
     [ "finalize_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#afdd78da1c17921074f1428d31ca4048c", null ],
     [ "get_account", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a16089dcea8f2bcd095345a241121f32b", null ],
-    [ "get_account_storage", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8e1d7d3502a1452f0cbfb260970a516c", null ],
+    [ "get_account_storage", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a588c84b1dd08b79ec03892d6a687b2b2", null ],
     [ "get_block_hash", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a42dd6f267b93490439d3df4fafc6839c", null ],
     [ "get_block_header", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8c390a30ad0d8014c9028a18903d3bde", null ],
     [ "get_code", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a55413a1397ce7bd28d4616f72f2dddfe", null ],
