@@ -1241,7 +1241,7 @@ TEST_F(NetworkTest, node_full_sync) {
   for (int i(1); i < numberOfNodes - 1; i++) {
     const auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
     std::cout << "node" << i << " vertices " << node_vertices << std::endl;
-    if (node_vertices != node0_vertices) {
+    if (node_vertices != node0_vertices || node_vertices == 0) {
       dag_synced = false;
     }
   }
@@ -1256,6 +1256,7 @@ TEST_F(NetworkTest, node_full_sync) {
     wait({60s, 100ms}, [&](auto& ctx) {
       // Check 4 nodes syncing
       for (int j = 1; j < numberOfNodes - 1; j++) {
+        WAIT_EXPECT_GT(ctx, nodes[0]->getDagManager()->getNumVerticesInDag().first, 0);
         WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
                        nodes[0]->getDagManager()->getNumVerticesInDag().first);
         WAIT_EXPECT_EQ(ctx, nodes[j]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
