@@ -704,7 +704,7 @@ std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData
 }
 
 void DbStorage::saveOwnLatestBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature>& bls_signature) {
-  insert(Columns::latest_pillar_block_own_signature, 0, bls_signature->getRlp());
+  insert(Columns::latest_pillar_block_own_signature, 0, util::rlp_enc(bls_signature));
 }
 
 std::shared_ptr<pillar_chain::BlsSignature> DbStorage::getOwnLatestBlsSignature() const {
