@@ -19,7 +19,7 @@ PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const dev::RLP& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), addr_, stake_change_);
 }
 
-PillarBlock::PillarBlock(const dev::RLP& rlp) { *this = util::rlp_dec<PillarBlock>(rlp); }
+PillarBlock::PillarBlock(const dev::RLP& rlp) : PillarBlock(util::rlp_dec<PillarBlock>(rlp)) {}
 
 PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
                          std::vector<ValidatorStakeChange>&& validator_stakes_changes,
@@ -34,13 +34,6 @@ PillarBlock::PillarBlock(const PillarBlock& pillar_block)
       state_root_(pillar_block.state_root_),
       validators_stakes_changes_(pillar_block.validators_stakes_changes_),
       previous_pillar_block_hash_(pillar_block.previous_pillar_block_hash_) {}
-
-PillarBlock& PillarBlock::operator=(const PillarBlock& pillar_block) {
-  period_ = pillar_block.period_;
-  state_root_ = pillar_block.state_root_;
-  validators_stakes_changes_ = pillar_block.validators_stakes_changes_;
-  previous_pillar_block_hash_ = pillar_block.previous_pillar_block_hash_;
-}
 
 dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
 

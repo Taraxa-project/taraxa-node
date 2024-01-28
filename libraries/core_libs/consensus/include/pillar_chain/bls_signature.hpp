@@ -20,7 +20,6 @@ namespace taraxa::pillar_chain {
 class BlsSignature {
  public:
   using Hash = uint256_hash_t;
-
   constexpr static size_t kRlpSize{4};
 
  public:
@@ -30,7 +29,7 @@ class BlsSignature {
                const libff::alt_bn128_Fr& secret);
 
   BlsSignature(const BlsSignature& bls_signature);
-  BlsSignature& operator=(const BlsSignature& bls_signature);
+  BlsSignature& operator=(const BlsSignature& bls_signature) = delete;
 
   /**
    * @brief Validates BLS signature
