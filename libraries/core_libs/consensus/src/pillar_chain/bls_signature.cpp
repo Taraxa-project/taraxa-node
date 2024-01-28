@@ -6,20 +6,13 @@
 
 namespace taraxa::pillar_chain {
 
-BlsSignature::BlsSignature(const dev::RLP& rlp) { *this = util::rlp_dec<BlsSignature>(rlp); }
+BlsSignature::BlsSignature(const dev::RLP& rlp) : BlsSignature(util::rlp_dec<BlsSignature>(rlp)) {}
 
 BlsSignature::BlsSignature(const BlsSignature& bls_signature)
     : pillar_block_hash_(bls_signature.getPillarBlockHash()),
       period_(bls_signature.getPeriod()),
       signer_addr_(bls_signature.getSignerAddr()),
       signature_(bls_signature.getSignature()) {}
-
-BlsSignature& BlsSignature::operator=(const BlsSignature& bls_signature) {
-  pillar_block_hash_ = bls_signature.getPillarBlockHash();
-  period_ = bls_signature.getPeriod();
-  signer_addr_ = bls_signature.getSignerAddr();
-  signature_ = bls_signature.getSignature();
-}
 
 BlsSignature::BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator,
                            const libff::alt_bn128_Fr& secret)
