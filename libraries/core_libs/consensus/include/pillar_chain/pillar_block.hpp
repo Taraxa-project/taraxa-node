@@ -48,7 +48,6 @@ class PillarBlock {
               blk_hash_t previous_pillar_block_hash);
 
   PillarBlock(const PillarBlock& pillar_block);
-  PillarBlock& operator=(const PillarBlock& pillar_block);
 
   /**
    * @return pillar block hash
