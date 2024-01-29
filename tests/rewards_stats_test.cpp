@@ -21,7 +21,8 @@ class TestableRewardsStats : public rewards::Stats {
  public:
   TestableRewardsStats(const HardforksConfig::RewardsDistributionMap& rdm, std::shared_ptr<DB> db)
       : rewards::Stats(
-            100, HardforksConfig{0, {}, rdm, MagnoliaHardfork{0, 0}, AspenHardfork{0, 0}, FicusHardforkConfig{0, 0, 0}},
+            100,
+            HardforksConfig{0, 0, {}, rdm, MagnoliaHardfork{0, 0}, AspenHardfork{0, 0}, FicusHardforkConfig{0, 0, 0}},
             db, [](auto) { return 100; }) {}
   auto getStats() { return blocks_stats_; }
 };
