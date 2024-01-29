@@ -171,13 +171,13 @@ bool DagBlockProposer::proposeDagBlock() {
       return false;
     }
   }
-  LOG(log_dg_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
+  LOG(log_si_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
 
   auto dag_block =
       createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
 
   if (dag_mgr_->addDagBlock(std::move(dag_block), std::move(transactions), true).first) {
-    LOG(log_nf_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
+    LOG(log_si_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
                  << " , txs num " << dag_block.getTrxs().size();
     proposed_blocks_count_ += 1;
   } else {
