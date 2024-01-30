@@ -7,11 +7,11 @@
 namespace taraxa::rewards {
 
 BlockStats::BlockStats(const PeriodData& block, const std::vector<gas_t>& trxs_gas_used, uint64_t dpos_vote_count,
-                       uint32_t committee_size)
+                       uint32_t committee_size, const bool aspen_dag_reward)
     : block_author_(block.pbft_blk->getBeneficiary()),
       max_votes_weight_(std::min<uint64_t>(committee_size, dpos_vote_count)) {
   initFeeByTrxHash(block.transactions, trxs_gas_used);
-  processStats(block);
+  processStats(block, aspen_dag_reward);
 }
 
 void BlockStats::initFeeByTrxHash(const SharedTransactions& transactions, const std::vector<gas_t>& trxs_gas_used) {
@@ -67,13 +67,24 @@ std::set<trx_hash_t> toTrxHashesSet(const SharedTransactions& transactions) {
   return block_transactions_hashes_;
 }
 
-void BlockStats::processStats(const PeriodData& block) {
+void BlockStats::processStats(const PeriodData& block, const bool aspen_dag_rewards) {
   // total unique transactions count should be always equal to transactions count in block
   assert(fee_by_trx_hash_.size() == block.transactions.size());
 
   validators_stats_.reserve(std::max(block.dag_blocks.size(), block.previous_block_cert_votes.size()));
-  auto block_transactions_hashes_ = toTrxHashesSet(block.transactions);
+  if (aspen_dag_rewards) {
+    processDagBlocksAspen(block);
+  } else {
+    processDagBlocks(block);
+  }
 
+  for (const auto& vote : block.previous_block_cert_votes) {
+    addVote(vote);
+  }
+}
+
+void BlockStats::processDagBlocks(const PeriodData& block) {
+  auto block_transactions_hashes_ = toTrxHashesSet(block.transactions);
   for (const auto& dag_block : block.dag_blocks) {
     const addr_t& dag_block_author = dag_block.getSender();
     bool has_unique_transactions = false;
@@ -94,9 +105,24 @@ void BlockStats::processStats(const PeriodData& block) {
       total_dag_blocks_count_ += 1;
     }
   }
+}
 
-  for (const auto& vote : block.previous_block_cert_votes) {
-    addVote(vote);
+void BlockStats::processDagBlocksAspen(const PeriodData& block) {
+  uint32_t min_difficulty = UINT32_MAX;
+  for (const auto& dag_block : block.dag_blocks) {
+    if (dag_block.getDifficulty() < min_difficulty) {
+      min_difficulty = dag_block.getDifficulty();
+    }
+  }
+  for (const auto& dag_block : block.dag_blocks) {
+    const addr_t& dag_block_author = dag_block.getSender();
+    if (dag_block.getDifficulty() == min_difficulty) {
+      validators_stats_[dag_block_author].dag_blocks_count_ += 1;
+      total_dag_blocks_count_ += 1;
+    }
+    for (const auto& tx_hash : dag_block.getTrxs()) {
+      addTransaction(tx_hash, dag_block_author);
+    }
   }
 }
 
