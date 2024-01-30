@@ -431,6 +431,8 @@ void FullNode::rebuildDb() {
   }
   stop_async = true;
   fut.wait();
+  // Handles the race case if some blocks are still in the queue
+  pbft_mgr_->pushSyncedPbftBlocksIntoChain();
   LOG(log_si_) << "Rebuild completed";
 }
 
