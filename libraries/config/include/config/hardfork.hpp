@@ -71,6 +71,9 @@ struct HardforksConfig {
   // Aspen hardfork implements new yield curve
   AspenHardfork aspen_hf;
 
+  bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
+  bool isAspenHardforkPartTwo(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_two; }
+
   HAS_RLP_FIELDS
 };
 
