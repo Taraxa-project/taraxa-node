@@ -333,11 +333,15 @@ void FullNode::start() {
           if (auto pillar_chain = pillar_chain_weak.lock()) {
             const auto block_num = res->final_chain_blk->number;
 
+            // Do not trigger(potentially) pillar chain syncing if there is no pillar block yet
+            if (block_num < ficus_hf_config.pillar_block_periods) [[unlikely]] {
+              return;
+            }
+
             if (block_num % ficus_hf_config.pillar_block_periods == 0) {
               pillar_chain->createPillarBlock(res);
-            } else if (block_num % ficus_hf_config.signatures_check_periods == 0) {
-              // TODO: could be optimized - do not check after there is 2t+1 signatures
-              pillar_chain->checkTwoTPlusOneBlsSignatures(block_num);
+            } else if (block_num % ficus_hf_config.pillar_chain_sync_periods == 0) {
+              pillar_chain->checkPillarChainSynced(block_num);
             }
           }
         },

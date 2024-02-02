@@ -142,6 +142,8 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
     case SubprotocolPacketType::BlsSigsBundlePacket:
     case SubprotocolPacketType::PbftSyncPacket:
     case SubprotocolPacketType::BlsSigPacket:  // Bls signature validation is not thread-safe
+    case SubprotocolPacketType::GetPillarChainSyncPacket:
+    case SubprotocolPacketType::PillarChainSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       break;
 
