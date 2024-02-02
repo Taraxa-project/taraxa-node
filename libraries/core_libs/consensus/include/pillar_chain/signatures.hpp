@@ -76,11 +76,13 @@ class Signatures {
    *
    * @param period
    * @param pillar_block_hash
+   * @param two_t_plus_one if true, return only if there is >= 2t+1 verified signatures
    *
    * @return all bls signatures for specified period and pillar block hash
    */
   std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(PbftPeriod period,
-                                                                      const PillarBlock::Hash pillar_block_hash) const;
+                                                                      const PillarBlock::Hash pillar_block_hash,
+                                                                      bool two_t_plus_one = false) const;
 
   /**
    * @brief Erases signatures wit period < min_period
