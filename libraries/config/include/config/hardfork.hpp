@@ -41,8 +41,9 @@ void dec_json(const Json::Value& json, AspenHardfork& obj);
 
 struct FicusHardforkConfig {
   uint64_t block_num{0};
-  uint64_t pillar_block_periods{100};     // [periods] how often is the new pillar block created
-  uint64_t signatures_check_periods{25};  // [periods] how often is 2t+1 bls signatures for latest pillar block checked
+  uint64_t pillar_block_periods{100};      // [periods] how often is the new pillar block created
+  uint64_t pillar_chain_sync_periods{25};  // [periods] how often is pillar chain checked if it is in sync (has all
+                                           // previous pillar blocks and 2t+1 bls signatures for latest pillar block)
 
   HAS_RLP_FIELDS
 };

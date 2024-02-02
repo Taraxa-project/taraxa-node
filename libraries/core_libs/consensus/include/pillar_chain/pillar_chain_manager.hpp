@@ -44,11 +44,12 @@ class PillarChainManager {
   void createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
 
   /**
-   * @brief Check if there is 2t+1 BLS signatures for latest pillar block. If not, request them
+   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+signatures) and there is 2t+1 BLS
+   * signatures for latest pillar block. If not, request them
    *
    * @param block_num - current block number
    */
-  void checkTwoTPlusOneBlsSignatures(EthBlockNumber block_num) const;
+  void checkPillarChainSynced(EthBlockNumber block_num) const;
 
   /**
    * @brief Set network as a weak pointer
@@ -81,6 +82,14 @@ class PillarChainManager {
   bool addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& signature);
 
   /**
+   * @brief Push new finalized pillar block
+   *
+   * @param pillarBlockData
+   * @return true if successfully pushed, otherwise false
+   */
+  bool pushPillarBlock(const PillarBlockData& pillarBlockData);
+
+  /**
    * @brief Get all bls signatures for specified pillar block
    *
    * @param period
@@ -90,6 +99,16 @@ class PillarChainManager {
    */
   std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(PbftPeriod period,
                                                                       const PillarBlock::Hash pillar_block_hash) const;
+
+  /**
+   * @return period of the latest finalized pillar block
+   */
+  std::optional<PbftPeriod> getLastFinalizedPillarBlockPeriod() const;
+
+  /**
+   * @return true if pillar block is valid - previous pillar block hash == last finalized pillar block hash
+   */
+  bool isValidPillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) const;
 
  private:
   /**
@@ -103,16 +122,6 @@ class PillarChainManager {
   std::vector<PillarBlock::ValidatorStakeChange> getOrderedValidatorsStakesChanges(
       const std::vector<state_api::ValidatorStake>& current_stakes,
       const std::vector<state_api::ValidatorStake>& previous_pillar_block_stakes);
-
-  /**
-   * @brief Checks if the previous pillar block is finalized - has 2t+1 signatures
-   *
-   * @param previous_pillar_block
-   * @param new_block_period
-   * @return
-   */
-  bool isPreviousPillarBlockFinalized(const std::shared_ptr<PillarBlock>& previous_pillar_block,
-                                      PbftPeriod new_block_period) const;
 
  private:
   // Node config
@@ -128,10 +137,12 @@ class PillarChainManager {
 
   const libff::alt_bn128_Fr kBlsSecretKey;
 
-  // Latest processed/created pillar block
-  std::shared_ptr<PillarBlock> latest_pillar_block_;
-  // Full list of validators stakes during last pillar block period - no concurrent access protection needed
-  std::vector<state_api::ValidatorStake> latest_pillar_block_stakes_;
+  // Last finalized pillar block - saved into db together with 2t+1 signatures
+  std::shared_ptr<PillarBlock> last_finalized_pillar_block_;
+  // Current pillar block
+  std::shared_ptr<PillarBlock> current_pillar_block_;
+  // Full list of validators stakes for tbe current pillar block period - no concurrent access protection needed
+  std::vector<state_api::ValidatorStake> current_pillar_block_stakes_;
 
   // Bls signatures for latest_pillar_block_.period - 1, latest_pillar_block_.period and potential +1 future pillar
   // block period

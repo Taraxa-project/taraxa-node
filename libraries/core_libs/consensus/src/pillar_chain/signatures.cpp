@@ -60,7 +60,7 @@ bool Signatures::hasTwoTPlusOneSignatures(PbftPeriod period, PillarBlock::Hash b
 }
 
 std::vector<std::shared_ptr<BlsSignature>> Signatures::getVerifiedBlsSignatures(
-    PbftPeriod period, const PillarBlock::Hash pillar_block_hash) const {
+    PbftPeriod period, const PillarBlock::Hash pillar_block_hash, bool two_t_plus_one) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
   const auto found_period_signatures = signatures_.find(period);
   if (found_period_signatures == signatures_.end()) {
@@ -70,6 +70,10 @@ std::vector<std::shared_ptr<BlsSignature>> Signatures::getVerifiedBlsSignatures(
   const auto found_pillar_block_signatures =
       found_period_signatures->second.pillar_block_signatures.find(pillar_block_hash);
   if (found_pillar_block_signatures == found_period_signatures->second.pillar_block_signatures.end()) {
+    return {};
+  }
+
+  if (two_t_plus_one && found_pillar_block_signatures->second.weight < found_period_signatures->second.two_t_plus_one) {
     return {};
   }
 
