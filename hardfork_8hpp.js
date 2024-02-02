@@ -15,15 +15,7 @@ var hardfork_8hpp =
       [ "generated_rewards", "hardfork_8hpp.html#af5cc679b10ee8950384d348f784ea72b", null ],
       [ "max_supply", "hardfork_8hpp.html#a1882d3b74432e41a3b9acb01eed78d83", null ]
     ] ],
-    [ "HardforksConfig", "hardfork_8hpp.html#struct_hardforks_config", [
-      [ "RewardsDistributionMap", "hardfork_8hpp.html#acb16472829830a5a64f89743062cb22a", null ],
-      [ "aspen_hf", "hardfork_8hpp.html#ac4719b967f9304e95b0bf069bef05dc7", null ],
-      [ "fix_redelegate_block_num", "hardfork_8hpp.html#a77aafaddfae6fa9126b68b718be3f84c", null ],
-      [ "magnolia_hf", "hardfork_8hpp.html#aa9c5e8031eb5d3ffaf6e76c0aed1180f", null ],
-      [ "phalaenopsis_hf_block_num", "hardfork_8hpp.html#a96cc85f6ef2a8464b06fd5058d33669b", null ],
-      [ "redelegations", "hardfork_8hpp.html#a140e1c40a480c0d3611731f477359f49", null ],
-      [ "rewards_distribution_frequency", "hardfork_8hpp.html#aa896570c6896f00ba2c02cf821def220", null ]
-    ] ],
+    [ "HardforksConfig", "struct_hardforks_config.html", "struct_hardforks_config" ],
     [ "dec_json", "hardfork_8hpp.html#a7f5bc0b7b5eec75c54920eefa9816f71", null ],
     [ "dec_json", "hardfork_8hpp.html#aee3750fcf3856743f5e71f64f88ad959", null ],
     [ "dec_json", "hardfork_8hpp.html#ae6551b937467c5972009ffa1ac192aec", null ],

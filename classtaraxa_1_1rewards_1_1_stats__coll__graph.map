@@ -1,6 +1,6 @@
 <map id="taraxa::rewards::Stats" name="taraxa::rewards::Stats">
 <area shape="rect" id="node1" title="class that is managing rewards stats processing and hardforks(intervals changes) So intermediate bloc..." alt="" coords="68,184,233,211"/>
-<area shape="rect" id="node2" href="$hardfork_8hpp.html#struct_hardforks_config" title=" " alt="" coords="87,95,214,121"/>
+<area shape="rect" id="node2" href="$struct_hardforks_config.html" title=" " alt="" coords="87,95,214,121"/>
 <area shape="rect" id="node3" href="$hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="5,5,144,32"/>
 <area shape="rect" id="node4" href="$hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="169,5,287,32"/>
 </map>

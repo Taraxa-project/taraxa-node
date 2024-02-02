@@ -339,7 +339,7 @@ var annotated_dup =
     [ "ExpirationBlockNumberCache", "class_expiration_block_number_cache.html", "class_expiration_block_number_cache" ],
     [ "ExpirationCache", "class_expiration_cache.html", "class_expiration_cache" ],
     [ "ExpirationCacheMap", "class_expiration_cache_map.html", "class_expiration_cache_map" ],
-    [ "HardforksConfig", "hardfork_8hpp.html#struct_hardforks_config", "hardfork_8hpp_struct_hardforks_config" ],
+    [ "HardforksConfig", "struct_hardforks_config.html", "struct_hardforks_config" ],
     [ "MagnoliaHardfork", "hardfork_8hpp.html#struct_magnolia_hardfork", "hardfork_8hpp_struct_magnolia_hardfork" ],
     [ "ModularServer", "class_modular_server.html", "class_modular_server" ],
     [ "ModularServer< I, Is... >", "class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html", "class_modular_server_3_01_i_00_01_is_8_8_8_01_4" ],

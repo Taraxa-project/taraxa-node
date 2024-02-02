@@ -165,7 +165,7 @@ var hierarchy =
     [ "GuardType", null, [
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],
-    [ "HardforksConfig", "hardfork_8hpp.html#struct_hardforks_config", null ],
+    [ "HardforksConfig", "struct_hardforks_config.html", null ],
     [ "dev::FixedHash< N >::hash", "structdev_1_1_fixed_hash_1_1hash.html", [
       [ "std::hash< dev::h128 >", "structstd_1_1hash_3_01dev_1_1h128_01_4.html", null ],
       [ "std::hash< dev::h160 >", "structstd_1_1hash_3_01dev_1_1h160_01_4.html", null ],
