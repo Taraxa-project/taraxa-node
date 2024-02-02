@@ -39,6 +39,8 @@ dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
 
 PbftPeriod PillarBlock::getPeriod() const { return period_; }
 
+PillarBlock::Hash PillarBlock::getPreviousBlockHash() const { return previous_pillar_block_hash_; }
+
 PillarBlock::Hash PillarBlock::getHash() {
   {
     std::shared_lock lock(hash_mutex_);
