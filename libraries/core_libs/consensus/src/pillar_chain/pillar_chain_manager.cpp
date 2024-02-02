@@ -25,8 +25,9 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
       key_manager_(std::move(key_manager)),
       node_addr_(node_addr),
       kBlsSecretKey(bls_secret_key),
-      latest_pillar_block_{},
-      latest_pillar_block_stakes_{},
+      last_finalized_pillar_block_{},
+      current_pillar_block_{},
+      current_pillar_block_stakes_{},
       signatures_{},
       mutex_{} {
   libBLS::ThresholdUtils::initCurve();
@@ -36,13 +37,18 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
     addVerifiedBlsSig(signature);
   }
 
-  if (auto latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
-    latest_pillar_block_ = std::move(latest_pillar_block_data->block);
-    for (const auto& signature : latest_pillar_block_data->signatures) {
-      addVerifiedBlsSig(signature);
-    }
+  if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
+    last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block);
+    // TODO: probably dont need this ???
+    //    for (const auto& signature : latest_pillar_block_data->signatures) {
+    //      addVerifiedBlsSig(signature);
+    //    }
 
-    latest_pillar_block_stakes_ = final_chain_->dpos_validators_total_stakes(latest_pillar_block_->getPeriod());
+    // TODO: get current pillar block from db
+    // current_pillar_block_ =
+
+    // TODO: we might need to sve this in db due to light node short history ???
+    current_pillar_block_stakes_ = final_chain_->dpos_validators_total_stakes(current_pillar_block_->getPeriod());
   }
 
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
@@ -52,7 +58,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
   const auto block_num = block_data->final_chain_blk->number;
 
   PillarBlock::Hash previous_pillar_block_hash{};  // null block hash
-  auto current_stakes = final_chain_->dpos_validators_total_stakes(block_num);
+  auto new_stakes = final_chain_->dpos_validators_total_stakes(block_num);
   std::vector<PillarBlock::ValidatorStakeChange> stakes_changes;
 
   // There should always be latest_pillar_block_, except for the very first pillar block
@@ -60,53 +66,62 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
     // TODO: do we need this mutex for latest_pillar_block_, latest_pillar_block_stakes_ and signatures_ ?
     std::shared_lock<std::shared_mutex> lock(mutex_);
 
-    if (!latest_pillar_block_) {
+    if (!current_pillar_block_) {
       LOG(log_er_) << "Empty previous pillar block, new pillar block period " << block_num;
       assert(false);
       return;
     }
 
-    if (latest_pillar_block_stakes_.empty()) {
-      LOG(log_er_) << "Empty previous pillar block stakes, new pillar block period " << block_num;
+    // Get 2t+1 verified signatures
+    const auto two_t_plus_one_signatures = signatures_.getVerifiedBlsSignatures(current_pillar_block_->getPeriod(),
+                                                                                current_pillar_block_->getHash(), true);
+    if (two_t_plus_one_signatures.empty()) {
+      LOG(log_er_) << "There is < 2t+1 signatures for current pillar block " << current_pillar_block_->getHash()
+                   << ", period: " << current_pillar_block_->getPeriod();
+      return;
+    }
+
+    // Save current pillar block and 2t+1 signatures into db
+    if (!pushPillarBlock(PillarBlockData{current_pillar_block_, two_t_plus_one_signatures})) {
+      // This should never happen
+      LOG(log_er_) << "Unable to push pillar block: " << current_pillar_block_->getHash();
       assert(false);
       return;
     }
 
-    const auto previous_pillar_block = latest_pillar_block_;
-
-    if (!isPreviousPillarBlockFinalized(previous_pillar_block, block_num)) {
-      LOG(log_er_) << "Cannot create new pillar block. Previous pillar block was not finalized";
-      // TODO: trigger pillar chain syncing ??? -> latest_pillar_block_ might be empty
+    // This should never happen
+    if (current_pillar_block_stakes_.empty()) {
+      LOG(log_er_) << "Empty current pillar block stakes, new pillar block period " << block_num;
+      assert(false);
       return;
     }
 
-    previous_pillar_block_hash = previous_pillar_block->getHash();
-
-    const auto two_t_plus_one_signatures =
-        signatures_.getVerifiedBlsSignatures(previous_pillar_block->getPeriod(), previous_pillar_block->getHash());
-    assert(!two_t_plus_one_signatures.empty());
-
-    // Save previous pillar block and 2t+1 signatures into db
-    db_->savePillarBlockData(PillarBlockData{previous_pillar_block, two_t_plus_one_signatures});
+    previous_pillar_block_hash = current_pillar_block_->getHash();
 
     // Get validators stakes changes between the current and previous pillar block
-    stakes_changes = getOrderedValidatorsStakesChanges(current_stakes, latest_pillar_block_stakes_);
-
+    stakes_changes = getOrderedValidatorsStakesChanges(new_stakes, current_pillar_block_stakes_);
   } else {
     // First pillar block - use all current stakes as changes
-    stakes_changes.reserve(current_stakes.size());
-    std::transform(current_stakes.begin(), current_stakes.end(), std::back_inserter(stakes_changes),
+    stakes_changes.reserve(new_stakes.size());
+    std::transform(new_stakes.begin(), new_stakes.end(), std::back_inserter(stakes_changes),
                    [](auto& stake) { return PillarBlock::ValidatorStakeChange(stake); });
   }
 
   const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root,
                                                           std::move(stakes_changes), previous_pillar_block_hash);
+
+  // Check if some pillar block was not skipped
+  if (!isValidPillarBlock(pillar_block)) {
+    LOG(log_er_) << "Newly created pillar block is invalid";
+    return;
+  }
+
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
-    latest_pillar_block_ = pillar_block;
-    latest_pillar_block_stakes_ = std::move(current_stakes);
-    // Erase all signatures except for current & previous pillar block
-    signatures_.eraseSignatures(pillar_block->getPeriod() - 1);
+    current_pillar_block_ = pillar_block;
+    current_pillar_block_stakes_ = std::move(new_stakes);
+
+    // TODO: save both current_pillar_block_ & current_pillar_block_stakes_ into db ???
   }
 
   // Create and broadcast own bls signature
@@ -128,6 +143,8 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
   }
 
   // Creates bls signature
+  // TODO: this is not good - what if there won't be consensus on pillar block, butpbft goes on ? We need some sort of
+  // repetitive voting
   auto signature = std::make_shared<BlsSignature>(pillar_block->getHash(), block_num, node_addr_, kBlsSecretKey);
 
   // Broadcasts bls signature
@@ -140,40 +157,55 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
   }
 }
 
-bool PillarChainManager::isPreviousPillarBlockFinalized(const std::shared_ptr<PillarBlock>& previous_pillar_block,
-                                                        PbftPeriod new_block_period) const {
-  // Check if some block was not skipped
-  if (previous_pillar_block->getPeriod() != new_block_period - kFicusHfConfig.pillar_block_periods) {
-    LOG(log_er_) << "Pillar block(s) was skipped. Current pillar block period: " << new_block_period
-                 << ", latest finalized pillar block period: " << previous_pillar_block->getPeriod();
+bool PillarChainManager::pushPillarBlock(const PillarBlockData& pillarBlockData) {
+  // Note: 2t+1 signatures should be validated before calling pushPillarBlock
+  if (!isValidPillarBlock(pillarBlockData.block)) {
+    LOG(log_er_) << "Trying to push invalid pillar block";
     return false;
   }
 
-  // Check if there is 2t+1 signatures
-  if (!signatures_.hasTwoTPlusOneSignatures(previous_pillar_block->getPeriod(), previous_pillar_block->getHash())) {
-    LOG(log_er_) << "There is < 2t+1 signatures for latest pillar block";
-    return false;
+  db_->savePillarBlockData(pillarBlockData);
+
+  {
+    std::scoped_lock<std::shared_mutex> lock(mutex_);
+    last_finalized_pillar_block_ = pillarBlockData.block;
+
+    // Erase signatures that are no longer needed
+    signatures_.eraseSignatures(last_finalized_pillar_block_->getPeriod());
   }
 
   return true;
 }
 
-void PillarChainManager::checkTwoTPlusOneBlsSignatures(EthBlockNumber block_num) const {
+void PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
-  // No last pillar block registered... This should happen only before the first pillar block is created
-  if (!latest_pillar_block_) [[unlikely]] {
+  // No current pillar block registered... This should happen only before the first pillar block is created
+  if (!current_pillar_block_) [[unlikely]] {
+    if (block_num > kFicusHfConfig.pillar_block_periods) {
+      LOG(log_er_) << "No current pillar block saved, period " << block_num;
+      assert(false);
+    }
+
     return;
   }
 
-  // Check 2t+1 signatures
-  if (signatures_.hasTwoTPlusOneSignatures(latest_pillar_block_->getPeriod(), latest_pillar_block_->getHash())) {
+  // Check if node has all previous pillar blocks
+  if ((block_num - (block_num % kFicusHfConfig.pillar_block_periods)) != current_pillar_block_->getPeriod()) {
+    // Some pillar blocks are missing - request it
+    if (auto net = network_.lock()) {
+      net->requestPillarBlocks(current_pillar_block_->getPeriod());
+    }
     return;
   }
 
-  // There is < 2t+1 bls signatures, request it
-  if (auto net = network_.lock()) {
-    net->requestBlsSigBundle(latest_pillar_block_->getPeriod(), latest_pillar_block_->getHash());
+  // Check 2t+1 signatures for the current pillar block
+  if (!signatures_.hasTwoTPlusOneSignatures(current_pillar_block_->getPeriod(), current_pillar_block_->getHash())) {
+    // There is < 2t+1 bls signatures, request it
+    if (auto net = network_.lock()) {
+      net->requestBlsSigBundle(current_pillar_block_->getPeriod(), current_pillar_block_->getHash());
+    }
+    return;
   }
 }
 
@@ -181,22 +213,22 @@ bool PillarChainManager::isRelevantBlsSig(const std::shared_ptr<BlsSignature> si
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
   const auto signature_period = signature->getPeriod();
-  // Empty latest_pillar_block_ means there was no pillar block created yet at all
-  if (!latest_pillar_block_) [[unlikely]] {
-    LOG(log_er_) << "Received signature's period " << signature_period
+  // Empty current_pillar_block_ means there was no pillar block created yet at all
+  if (!current_pillar_block_) [[unlikely]] {
+    LOG(log_nf_) << "Received signature's period " << signature_period
                  << ", no pillar block created yet. Accepting signatures with " << kFicusHfConfig.pillar_block_periods
                  << " period";
     return false;
-  } else if (signature_period == latest_pillar_block_->getPeriod()) {
-    if (signature->getPillarBlockHash() != latest_pillar_block_->getHash()) {
-      LOG(log_er_) << "Received signature's block hash " << signature->getPillarBlockHash()
-                   << " != last pillar block hash " << latest_pillar_block_->getHash();
+  } else if (signature_period == current_pillar_block_->getPeriod()) {
+    if (signature->getPillarBlockHash() != current_pillar_block_->getHash()) {
+      LOG(log_nf_) << "Received signature's block hash " << signature->getPillarBlockHash()
+                   << " != current pillar block hash " << current_pillar_block_->getHash();
       return false;
     }
   } else if (signature_period !=
-             latest_pillar_block_->getPeriod() + kFicusHfConfig.pillar_block_periods /* +1 future pillar block */) {
-    LOG(log_er_) << "Received signature's period " << signature_period << ", last pillar block period "
-                 << latest_pillar_block_->getPeriod();
+             current_pillar_block_->getPeriod() + kFicusHfConfig.pillar_block_periods /* +1 future pillar block */) {
+    LOG(log_nf_) << "Received signature's period " << signature_period << ", current pillar block period "
+                 << current_pillar_block_->getPeriod();
     return false;
   }
 
@@ -283,6 +315,38 @@ bool PillarChainManager::addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& 
 std::vector<std::shared_ptr<BlsSignature>> PillarChainManager::getVerifiedBlsSignatures(
     PbftPeriod period, const PillarBlock::Hash pillar_block_hash) const {
   return signatures_.getVerifiedBlsSignatures(period, pillar_block_hash);
+}
+
+std::optional<PbftPeriod> PillarChainManager::getLastFinalizedPillarBlockPeriod() const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+
+  if (!last_finalized_pillar_block_) {
+    return {};
+  }
+
+  return last_finalized_pillar_block_->getPeriod();
+}
+
+bool PillarChainManager::isValidPillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) const {
+  // First pillar block
+  if (pillar_block->getPeriod() == kFicusHfConfig.pillar_block_periods) {
+    return true;
+  }
+
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+  assert(last_finalized_pillar_block_);
+
+  // Check if some block was not skipped
+  if (pillar_block->getPeriod() - kFicusHfConfig.pillar_block_periods == last_finalized_pillar_block_->getPeriod() &&
+      pillar_block->getPreviousBlockHash() == last_finalized_pillar_block_->getHash()) {
+    return true;
+  }
+
+  LOG(log_er_) << "Invalid pillar block: last finalized pillar bock(period): "
+               << last_finalized_pillar_block_->getHash() << "(" << last_finalized_pillar_block_->getPeriod()
+               << "), new pillar block: " << pillar_block->getHash() << "(" << pillar_block->getPeriod()
+               << "), parent block hash: " << pillar_block->getPreviousBlockHash();
+  return false;
 }
 
 std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedValidatorsStakesChanges(

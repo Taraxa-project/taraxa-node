@@ -60,6 +60,11 @@ class PillarBlock {
   PbftPeriod getPeriod() const;
 
   /**
+   * @return pillar block previous block hash
+   */
+  Hash getPreviousBlockHash() const;
+
+  /**
    * @return pillar block rlp
    */
   dev::bytes getRlp() const;
