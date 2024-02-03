@@ -56,9 +56,6 @@ Json::Value enc_json(const ValidatorInfo& obj) {
   json["address"] = dev::toJS(obj.address);
   json["owner"] = dev::toJS(obj.owner);
   json["vrf_key"] = dev::toJS(obj.vrf_key);
-  if (obj.bls_key.has_value()) {
-    json["bls_key"] = dev::toJS(*obj.bls_key);
-  }
   json["commission"] = dev::toJS(obj.commission);
   json["endpoint"] = obj.endpoint;
   json["description"] = obj.description;
@@ -70,9 +67,6 @@ void dec_json(const Json::Value& json, ValidatorInfo& obj) {
   obj.address = addr_t(json["address"].asString());
   obj.owner = addr_t(json["owner"].asString());
   obj.vrf_key = vrf_wrapper::vrf_pk_t(json["vrf_key"].asString());
-  if (!json["bls_key"].isNull()) {
-    std::stringstream(json["bls_key"].asString()) >> *obj.bls_key;
-  }
   obj.commission = dev::getUInt(json["commission"]);
   obj.endpoint = json["endpoint"].asString();
   obj.description = json["description"].asString();
@@ -126,7 +120,7 @@ void dec_json(const Json::Value& json, DPOSConfig& obj) {
 }
 
 RLP_FIELDS_DEFINE(EVMChainConfig, chain_id)
-RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, bls_key, commission, endpoint, description, delegations)
+RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, commission, endpoint, description, delegations)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
                   minimum_deposit, max_block_author_reward, dag_proposers_reward, commission_change_delta,
                   commission_change_frequency, delegation_delay, delegation_locking_period, blocks_per_year,

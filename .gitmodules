@@ -14,6 +14,3 @@
 	path = submodules/taraxa-vrf
 	url = ../taraxa-vrf.git
 	ignore = dirty
-[submodule "submodules/libBLS"]
-	path = submodules/libBLS
-	url = https://github.com/skalenetwork/libBLS.git

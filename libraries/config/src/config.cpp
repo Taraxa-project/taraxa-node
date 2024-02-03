@@ -152,25 +152,6 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
     throw ConfigException(std::string("Could not parse vrf_public: ") + e.what());
   }
 
-  try {
-    bls_secret = libff::alt_bn128_Fr(wallet["bls_secret"].asString().c_str());
-  } catch (const dev::Exception &e) {
-    throw ConfigException(std::string("Could not parse bls_secret: ") + e.what());
-  }
-
-  try {
-    if (!wallet["bls_public"].isNull()) {
-      libff::alt_bn128_G2 config_bls_public;
-      std::stringstream(wallet["bls_public"].asString()) >> config_bls_public;
-
-      if (config_bls_public != getBlsPublicKey(bls_secret)) {
-        throw ConfigException(std::string("Bls secret key and public key in wallet do not match"));
-      }
-    }
-  } catch (const dev::Exception &e) {
-    throw ConfigException(std::string("Could not parse bls_public: ") + e.what());
-  }
-
   // TODO configurable
   opts_final_chain.expected_max_trx_per_block = 1000;
   opts_final_chain.max_trie_full_node_levels_to_cache = 4;
