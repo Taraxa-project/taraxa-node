@@ -19,8 +19,8 @@ SlashingManager::SlashingManager(std::shared_ptr<FinalChain> final_chain,
       kAddress(toAddress(node_sk)),
       kPrivateKey(std::move(node_sk)) {}
 
-bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a,
-                                              const std::shared_ptr<Vote> &vote_b) {
+bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<PbftVote> &vote_a,
+                                              const std::shared_ptr<PbftVote> &vote_b) {
   if (!kConfig.report_malicious_behaviour) {
     return false;
   }

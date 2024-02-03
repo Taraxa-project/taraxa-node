@@ -9,7 +9,7 @@
 #include "final_chain/cache.hpp"
 #include "final_chain/trie_common.hpp"
 #include "rewards/rewards_stats.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa::final_chain {
 

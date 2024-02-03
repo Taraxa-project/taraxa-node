@@ -143,7 +143,7 @@ class PbftManager {
    * @param order_hash the hash of all DAG blocks include in the PBFT block
    * @return optional<pair<PBFT block, PBFT block reward votes>>
    */
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> generatePbftBlock(
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> generatePbftBlock(
       PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
       const blk_hash_t &order_hash);
 
@@ -186,7 +186,7 @@ class PbftManager {
    * @param node_id peer node ID
    */
   void periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
-                           std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes);
+                           std::vector<std::shared_ptr<PbftVote>> &&current_block_cert_votes);
 
   /**
    * @brief Get last pbft block hash from queue or if queue empty, from chain
@@ -237,7 +237,7 @@ class PbftManager {
    * @param propose_vote
    */
   void processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
-                            const std::shared_ptr<Vote> &propose_vote);
+                            const std::shared_ptr<PbftVote> &propose_vote);
 
   // **** Notice: functions used only in tests ****
   /**
@@ -384,7 +384,7 @@ class PbftManager {
    * @param voted_block voted block object - should be == vote->voted_block. In case we dont have block object, nullptr
    *                    is provided
    */
-  bool placeVote(const std::shared_ptr<Vote> &vote, std::string_view log_vote_id,
+  bool placeVote(const std::shared_ptr<PbftVote> &vote, std::string_view log_vote_id,
                  const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
@@ -395,7 +395,7 @@ class PbftManager {
    * @return true if successful, otherwise false
    */
   bool genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block,
-                              std::vector<std::shared_ptr<Vote>> &&reward_votes);
+                              std::vector<std::shared_ptr<PbftVote>> &&reward_votes);
 
   /**
    * @brief Gossips newly generated vote to the other peers
@@ -404,14 +404,14 @@ class PbftManager {
    * @param voted_block
    * @return true if successful, otherwise false
    */
-  void gossipNewVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+  void gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
    * @brief Propose a new PBFT block
    * @return optional<pair<PBFT block, PBFT block reward votes>> in case new block was proposed, otherwise empty
    * optional
    */
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> proposePbftBlock();
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> proposePbftBlock();
 
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
@@ -428,7 +428,7 @@ class PbftManager {
    * @param vote vote
    * @return lowest hash of a vote
    */
-  h256 getProposal(const std::shared_ptr<Vote> &vote) const;
+  h256 getProposal(const std::shared_ptr<PbftVote> &vote) const;
 
   /**
    * @brief Validates pbft block. It checks if:
@@ -455,7 +455,7 @@ class PbftManager {
    * @return true if push a new PBFT block in chain
    */
   bool pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlock> &pbft_block,
-                                        std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes);
+                                        std::vector<std::shared_ptr<PbftVote>> &&current_round_cert_votes);
 
   /**
    * @brief Final chain executes a finalized PBFT block
@@ -472,7 +472,7 @@ class PbftManager {
    * @param cert_votes cert votes for pbft block period
    * @return true if push a new PBFT block into the PBFT chain
    */
-  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes);
+  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<PbftVote>> &&cert_votes);
 
   /**
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
@@ -488,7 +488,7 @@ class PbftManager {
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
    * @return period data with cert votes for the current period
    */
-  std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> processPeriodData();
+  std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> processPeriodData();
 
   /**
    * @brief Validates PBFT block cert votes
@@ -498,7 +498,7 @@ class PbftManager {
    * @return true if there is enough(2t+1) votes and all of them are valid, otherwise false
    */
   bool validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
-                                  const std::vector<std::shared_ptr<Vote>> &cert_votes) const;
+                                  const std::vector<std::shared_ptr<PbftVote>> &cert_votes) const;
 
   /**
    * @param period

@@ -540,7 +540,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
+  std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
@@ -596,7 +596,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream2 << blk2.getHash();
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
+  std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
       node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 1, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;

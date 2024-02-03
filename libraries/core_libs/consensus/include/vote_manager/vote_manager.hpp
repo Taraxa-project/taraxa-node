@@ -5,7 +5,7 @@
 #include "final_chain/final_chain.hpp"
 #include "key_manager/key_manager.hpp"
 #include "pbft/pbft_chain.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
 
 namespace taraxa {
@@ -48,26 +48,26 @@ class VoteManager {
    *
    * @return true if vote was successfully added, otherwise false
    */
-  bool addVerifiedVote(const std::shared_ptr<Vote>& vote);
+  bool addVerifiedVote(const std::shared_ptr<PbftVote>& vote);
 
   /**
    * @brief Check if the vote has been in the verified votes map
    * @param vote vote
    * @return true if exist
    */
-  bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote) const;
+  bool voteInVerifiedMap(std::shared_ptr<PbftVote> const& vote) const;
 
   /**
    * @param vote
    * @return <true, nullptr> if vote is unique per round & step & voter, otherwise <false, existing vote>
    */
-  std::pair<bool, std::shared_ptr<Vote>> isUniqueVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::shared_ptr<PbftVote>> isUniqueVote(const std::shared_ptr<PbftVote>& vote) const;
 
   /**
    * @brief Get all verified votes
    * @return all verified votes
    */
-  std::vector<std::shared_ptr<Vote>> getVerifiedVotes() const;
+  std::vector<std::shared_ptr<PbftVote>> getVerifiedVotes() const;
 
   /**
    * @brief Get the total size of all verified votes
@@ -87,7 +87,7 @@ class VoteManager {
    * @param round current PBFT round
    * @return all verified votes in proposal vote type for the current PBFT round
    */
-  std::vector<std::shared_ptr<Vote>> getProposalVotes(PbftPeriod period, PbftRound round) const;
+  std::vector<std::shared_ptr<PbftVote>> getProposalVotes(PbftPeriod period, PbftRound round) const;
 
   /**
    * @brief Check if there are enough next voting type votes to set PBFT to a forward round within period
@@ -116,15 +116,15 @@ class VoteManager {
    * @param copy_votes - if set to true, votes are copied and returned, otherwise votes are just checked if present
    * @return <true, votes> - votes are empty in case copy_votes is set to false
    */
-  std::pair<bool, std::vector<std::shared_ptr<Vote>>> checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block,
-                                                                       bool copy_votes);
+  std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block,
+                                                                           bool copy_votes);
 
   /**
    * @brief Get reward votes with the round during which was the previous block pushed
    *
    * @return vector of reward votes
    */
-  std::vector<std::shared_ptr<Vote>> getRewardVotes();
+  std::vector<std::shared_ptr<PbftVote>> getRewardVotes();
 
   /**
    * @brief Get current reward votes pbft block period
@@ -138,12 +138,12 @@ class VoteManager {
    *
    * @param vote
    */
-  void saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote);
+  void saveOwnVerifiedVote(const std::shared_ptr<PbftVote>& vote);
 
   /**
    * @return all own verified votes
    */
-  std::vector<std::shared_ptr<Vote>> getOwnVerifiedVotes();
+  std::vector<std::shared_ptr<PbftVote>> getOwnVerifiedVotes();
 
   /**
    * @brief Clear own verified votes
@@ -161,8 +161,8 @@ class VoteManager {
    * @param step PBFT step
    * @param step PBFT step
    */
-  std::shared_ptr<Vote> generateVoteWithWeight(const blk_hash_t& blockhash, PbftVoteTypes vote_type, PbftPeriod period,
-                                               PbftRound round, PbftStep step);
+  std::shared_ptr<PbftVote> generateVoteWithWeight(const blk_hash_t& blockhash, PbftVoteTypes vote_type,
+                                                   PbftPeriod period, PbftRound round, PbftStep step);
 
   /**
    * @brief Generate a vote
@@ -173,8 +173,8 @@ class VoteManager {
    * @param step PBFT step
    * @return vote
    */
-  std::shared_ptr<Vote> generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
-                                     PbftRound round, PbftStep step);
+  std::shared_ptr<PbftVote> generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
+                                         PbftRound round, PbftStep step);
 
   /**
    * @brief Validates vote
@@ -183,7 +183,7 @@ class VoteManager {
    * @param strict strict validation
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote>& vote, bool strict = true) const;
+  std::pair<bool, std::string> validateVote(const std::shared_ptr<PbftVote>& vote, bool strict = true) const;
 
   /**
    * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
@@ -224,8 +224,8 @@ class VoteManager {
    * @param type
    * @return vector of votes if 2t+1 voted block votes found, otherwise empty vector
    */
-  std::vector<std::shared_ptr<Vote>> getTwoTPlusOneVotedBlockVotes(PbftPeriod period, PbftRound round,
-                                                                   TwoTPlusOneVotedBlockType type) const;
+  std::vector<std::shared_ptr<PbftVote>> getTwoTPlusOneVotedBlockVotes(PbftPeriod period, PbftRound round,
+                                                                       TwoTPlusOneVotedBlockType type) const;
 
   /**
    * @brief Sets current pbft period & round. It also checks if we dont alredy have 2t+1 vote bundles(pf any type) for
@@ -252,14 +252,14 @@ class VoteManager {
    * @param vote
    * @return true if vote is valid potential reward vote
    */
-  bool isValidRewardVote(const std::shared_ptr<Vote>& vote) const;
+  bool isValidRewardVote(const std::shared_ptr<PbftVote>& vote) const;
 
   /**
    * @brief Inserts unique vote
    * @param vote
    * @return <true, nullptr> if vote is unique per round & step & voter, otherwise <false, existing vote>
    */
-  std::pair<bool, std::shared_ptr<Vote>> insertUniqueVote(const std::shared_ptr<Vote>& vote);
+  std::pair<bool, std::shared_ptr<PbftVote>> insertUniqueVote(const std::shared_ptr<PbftVote>& vote);
 
   /**
    * @brief Get PBFT sortition threshold for specific period
@@ -300,7 +300,7 @@ class VoteManager {
   mutable std::shared_mutex reward_votes_info_mutex_;
 
   // Own votes generated during current period & round
-  std::vector<std::shared_ptr<Vote>> own_verified_votes_;
+  std::vector<std::shared_ptr<PbftVote>> own_verified_votes_;
 
   // Cache for current 2T+1 - <Vote type, <period, two_t_plus_one for period>>
   // !!! Important: do not access it directly as it is not updated automatically, always call getPbftTwoTPlusOne instead

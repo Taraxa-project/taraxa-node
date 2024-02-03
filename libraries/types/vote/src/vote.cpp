@@ -1,92 +1,35 @@
-#include "vote/vote.hpp"
-
 #include <libdevcore/CommonJS.h>
 
 #include "common/encoding_rlp.hpp"
+#include "vote/vote.hpp"
 
 namespace taraxa {
 
-Vote::Vote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const& rlp)
-    : blockhash_(block_hash) {
-  vrf_wrapper::vrf_proof_t vrf_proof;
-  sig_t vote_signature;
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), vrf_proof, vote_signature);
-
-  VrfPbftSortition vrf_sortition;
-  vrf_sortition.pbft_msg_.period_ = period;
-  vrf_sortition.pbft_msg_.round_ = round;
-  vrf_sortition.pbft_msg_.step_ = step;
-  vrf_sortition.proof_ = vrf_proof;
-
-  vrf_sortition_ = std::move(vrf_sortition);
-  vote_signature_ = std::move(vote_signature);
-  vote_hash_ = sha3(true);
-}
-
-Vote::Vote(dev::RLP const& rlp) {
-  bytes vrf_bytes;
-  if (rlp.itemCount() == 3) {
-    util::rlp_tuple(util::RLPDecoderRef(rlp, true), blockhash_, vrf_bytes, vote_signature_);
-  } else {
-    util::rlp_tuple(util::RLPDecoderRef(rlp, true), blockhash_, vrf_bytes, vote_signature_, weight_);
-  }
-
-  vrf_sortition_ = VrfPbftSortition(vrf_bytes);
-  vote_hash_ = sha3(true);
-}
-
-Vote::Vote(bytes const& b) : Vote(dev::RLP(b)) {}
-
-Vote::Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash)
-    : blockhash_(blockhash), vrf_sortition_(std::move(vrf_sortition)) {
+Vote::Vote(secret_t const& node_sk, blk_hash_t const& blockhash) : block_hash_(blockhash) {
   vote_signature_ = dev::sign(node_sk, sha3(false));
   vote_hash_ = sha3(true);
   cached_voter_ = dev::toPublic(node_sk);
 }
 
-bytes Vote::rlp(bool inc_sig, bool inc_weight) const {
-  dev::RLPStream s;
-  uint32_t number_of_items = 2;
-  if (inc_sig) {
-    number_of_items++;
-  }
-  if (inc_weight && weight_) {
-    number_of_items++;
-  }
+const vote_hash_t& Vote::getHash() const { return vote_hash_; }
 
-  s.appendList(number_of_items);
-
-  s << blockhash_;
-  s << vrf_sortition_.getRlpBytes();
-  if (inc_sig) {
-    s << vote_signature_;
-  }
-  if (inc_weight && weight_) {
-    s << weight_.value();
-  }
-
-  return s.invalidate();
+const public_t& Vote::getVoter() const {
+  if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
+  return cached_voter_;
 }
 
-bytes Vote::optimizedRlp() const {
-  dev::RLPStream s(2);
-  s << vrf_sortition_.proof_;
-  s << vote_signature_;
-
-  return s.invalidate();
+const addr_t& Vote::getVoterAddr() const {
+  if (!cached_voter_addr_) cached_voter_addr_ = dev::toAddress(getVoter());
+  return cached_voter_addr_;
 }
 
-Json::Value Vote::toJSON() const {
-  Json::Value json(Json::objectValue);
-  json["hash"] = dev::toJS(getHash());
-  json["voter"] = dev::toJS(getVoterAddr());
-  json["signature"] = dev::toJS(getVoteSignature());
-  json["block_hash"] = dev::toJS(getBlockHash());
-  if (weight_.has_value()) {
-    json["weight"] = dev::toJS(*weight_);
-  }
+const sig_t& Vote::getVoteSignature() const { return vote_signature_; }
 
-  return json;
+const blk_hash_t& Vote::getBlockHash() const { return block_hash_; }
+
+bool Vote::verifyVote() const {
+  auto pk = getVoter();
+  return !pk.isZero();  // recoverd public key means that it was verified
 }
 
 }  // namespace taraxa
