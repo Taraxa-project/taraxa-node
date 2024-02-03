@@ -40,8 +40,8 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   const auto votes_bundle_votes_step = packet_data.rlp_[3].toInt<PbftStep>();
 
   const auto &reference_vote =
-      std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
-                             votes_bundle_votes_step, packet_data.rlp_[4][0]);
+      std::make_shared<PbftVote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
+                                 votes_bundle_votes_step, packet_data.rlp_[4][0]);
   const auto votes_bundle_votes_type = reference_vote->getType();
 
   // Votes sync bundles are allowed to cotain only votes bundles of the same type, period, round and step so if first
@@ -69,10 +69,10 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
     check_max_round_step = false;
   }
 
-  std::vector<std::shared_ptr<Vote>> votes;
+  std::vector<std::shared_ptr<PbftVote>> votes;
   for (const auto vote_rlp : packet_data.rlp_[4]) {
-    auto vote = std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
-                                       votes_bundle_votes_step, vote_rlp);
+    auto vote = std::make_shared<PbftVote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
+                                           votes_bundle_votes_step, vote_rlp);
     peer->markVoteAsKnown(vote->getHash());
 
     // Do not process vote that has already been validated
@@ -97,7 +97,8 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   onNewPbftVotesBundle(votes, false, packet_data.from_node_id_);
 }
 
-void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast,
+void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes,
+                                                    bool rebroadcast,
                                                     const std::optional<dev::p2p::NodeID> &exclude_node) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
@@ -108,7 +109,7 @@ void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::share
       continue;
     }
 
-    std::vector<std::shared_ptr<Vote>> peer_votes;
+    std::vector<std::shared_ptr<PbftVote>> peer_votes;
     for (const auto &vote : votes) {
       if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
         continue;

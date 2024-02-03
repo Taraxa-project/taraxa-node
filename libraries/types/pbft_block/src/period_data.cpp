@@ -5,7 +5,7 @@
 #include "dag/dag_block.hpp"
 #include "pbft/pbft_block.hpp"
 #include "transaction/transaction.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
@@ -13,7 +13,7 @@ namespace taraxa {
 using namespace std;
 
 PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
-                       const std::vector<std::shared_ptr<Vote>>& previous_block_cert_votes)
+                       const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes)
     : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes) {}
 
 PeriodData::PeriodData(const dev::RLP& rlp) {
@@ -22,7 +22,7 @@ PeriodData::PeriodData(const dev::RLP& rlp) {
     try {
       pbft_blk = std::make_shared<PbftBlock>(rlp[0]);
       for (auto const vote_rlp : rlp[1]) {
-        previous_block_cert_votes.emplace_back(std::make_shared<Vote>(vote_rlp));
+        previous_block_cert_votes.emplace_back(std::make_shared<PbftVote>(vote_rlp));
       }
 
       for (auto const dag_block_rlp : rlp[2]) {

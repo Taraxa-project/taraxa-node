@@ -22,7 +22,7 @@ constexpr static size_t kVotesBundleRlpSize{5};
  * @param validate_common_data validate if all votes have the same block_hash, period, round and step
  * @return votes bundle rlp bytes
  */
-dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes, bool validate_common_data);
+dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<PbftVote>>& votes, bool validate_common_data);
 
 /**
  * @brief Decodes votes from optimized votes bundle rlp
@@ -30,7 +30,7 @@ dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes,
  * @param votes_bundle_rlp
  * @return votes
  */
-std::vector<std::shared_ptr<Vote>> decodeVotesBundleRlp(const dev::RLP& votes_bundle_rlp);
+std::vector<std::shared_ptr<PbftVote>> decodeVotesBundleRlp(const dev::RLP& votes_bundle_rlp);
 
 /** @}*/
 

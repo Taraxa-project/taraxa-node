@@ -212,7 +212,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
-  std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;
+  std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
 
@@ -300,20 +300,20 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch);
 
   // Own votes for the latest round
-  void saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote);
-  std::vector<std::shared_ptr<Vote>> getOwnVerifiedVotes();
-  void clearOwnVerifiedVotes(Batch& write_batch, const std::vector<std::shared_ptr<Vote>>& own_verified_votes);
+  void saveOwnVerifiedVote(const std::shared_ptr<PbftVote>& vote);
+  std::vector<std::shared_ptr<PbftVote>> getOwnVerifiedVotes();
+  void clearOwnVerifiedVotes(Batch& write_batch, const std::vector<std::shared_ptr<PbftVote>>& own_verified_votes);
 
   // 2t+1 votes bundles for the latest round
-  void replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes);
-  void replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes,
-                                      Batch& write_batch);
-  std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneVotes();
+  void replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<PbftVote>>& votes);
+  void replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
+                                      const std::vector<std::shared_ptr<PbftVote>>& votes, Batch& write_batch);
+  std::vector<std::shared_ptr<PbftVote>> getAllTwoTPlusOneVotes();
 
   // Reward votes - cert votes for the latest finalized block
   void removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Batch& write_batch);
-  void saveExtraRewardVote(const std::shared_ptr<Vote>& vote);
-  std::vector<std::shared_ptr<Vote>> getRewardVotes();
+  void saveExtraRewardVote(const std::shared_ptr<PbftVote>& vote);
+  std::vector<std::shared_ptr<PbftVote>> getRewardVotes();
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);

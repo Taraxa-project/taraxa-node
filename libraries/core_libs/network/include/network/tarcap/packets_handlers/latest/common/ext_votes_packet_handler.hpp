@@ -40,7 +40,7 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @param validate_max_round_step
    * @return if vote was successfully processed, otherwise false
    */
-  bool processVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block,
+  bool processVote(const std::shared_ptr<PbftVote>& vote, const std::shared_ptr<PbftBlock>& pbft_block,
                    const std::shared_ptr<TaraxaPeer>& peer, bool validate_max_round_step);
 
   /**
@@ -48,9 +48,10 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @param vote
    * @return true if vote is relevant for current pbft state, otherwise false
    */
-  bool isPbftRelevantVote(const std::shared_ptr<Vote>& vote) const;
+  bool isPbftRelevantVote(const std::shared_ptr<PbftVote>& vote) const;
 
-  virtual void sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer>& peer, std::vector<std::shared_ptr<Vote>>&& votes);
+  virtual void sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer>& peer,
+                                   std::vector<std::shared_ptr<PbftVote>>&& votes);
 
  private:
   /**
@@ -61,7 +62,7 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @param validate_max_round_step validate also max round and step
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateVotePeriodRoundStep(const std::shared_ptr<Vote>& vote,
+  std::pair<bool, std::string> validateVotePeriodRoundStep(const std::shared_ptr<PbftVote>& vote,
                                                            const std::shared_ptr<TaraxaPeer>& peer,
                                                            bool validate_max_round_step);
 
@@ -72,7 +73,7 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @param pbft_block
    * @return true if validation successful, otherwise false
    */
-  bool validateVoteAndBlock(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
+  bool validateVoteAndBlock(const std::shared_ptr<PbftVote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
 
  protected:
   constexpr static size_t kMaxVotesInBundleRlp{1000};

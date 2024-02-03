@@ -42,7 +42,7 @@ bool BlockStats::addTransaction(const trx_hash_t& trx_hash, const addr_t& valida
   return true;
 }
 
-bool BlockStats::addVote(const std::shared_ptr<Vote>& vote) {
+bool BlockStats::addVote(const std::shared_ptr<PbftVote>& vote) {
   // Set valid cert vote to validator
   auto& validator_stats = validators_stats_[vote->getVoterAddr()];
   assert(validator_stats.vote_weight_ == 0);
