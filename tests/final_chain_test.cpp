@@ -12,7 +12,7 @@
 #include "test_util/gtest.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa::final_chain {
 using namespace taraxa::core_tests;
@@ -72,7 +72,7 @@ struct FinalChainTest : WithDataDir {
         std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
                                     addr_t::random(), pbft_proposer_keys.secret(), std::move(reward_votes_hashes));
 
-    std::vector<std::shared_ptr<Vote>> votes;
+    std::vector<std::shared_ptr<PbftVote>> votes;
     PeriodData period_data(pbft_block, votes);
     period_data.dag_blocks.push_back(dag_blk);
     period_data.transactions = trxs;
@@ -793,8 +793,8 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   }
 }
 
-std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<Vote>& vote_a,
-                                                     const std::shared_ptr<Vote>& vote_b, uint64_t nonce,
+std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<PbftVote>& vote_a,
+                                                     const std::shared_ptr<PbftVote>& vote_b, uint64_t nonce,
                                                      const dev::KeyPair& keys) {
   const auto kSlashingContractAddress = addr_t("0x00000000000000000000000000000000000000EE");
   // Create votes combination hash
@@ -842,9 +842,9 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   // submit double votes for one validator
   const auto [vrf_key, vrf_sk] = taraxa::vrf_wrapper::getVrfKeyPair();
   VrfPbftSortition vrf_sortition(vrf_sk, {PbftVoteTypes::propose_vote, 1, 1, 1});
-  auto vote_a = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(1));
+  auto vote_a = std::make_shared<PbftVote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(1));
   vote_a->calculateWeight(1, 1, 1);
-  auto vote_b = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(2));
+  auto vote_b = std::make_shared<PbftVote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(2));
   vote_b->calculateWeight(1, 1, 1);
 
   auto trx = makeDoubleVotingProofTx(vote_a, vote_b, 1, key);

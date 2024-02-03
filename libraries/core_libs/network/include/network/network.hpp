@@ -66,8 +66,9 @@ class Network {
   void setSyncStatePeriod(PbftPeriod period);
 
   void gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
-  void gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast = false);
-  void gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast = false);
+  void gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
+                  bool rebroadcast = false);
+  void gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes, bool rebroadcast = false);
   void gossipPillarBlockSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature);
   void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
   std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;

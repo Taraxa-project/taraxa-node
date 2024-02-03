@@ -63,7 +63,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // put into pbft chain and store into DB
   auto batch = db->createWriteBatch();
   // Add PBFT block in DB
-  std::vector<std::shared_ptr<Vote>> votes;
+  std::vector<std::shared_ptr<PbftVote>> votes;
 
   PeriodData period_data(std::make_shared<PbftBlock>(pbft_block), votes);
   period_data.dag_blocks.push_back(blk1);

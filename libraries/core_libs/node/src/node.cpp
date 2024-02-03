@@ -408,7 +408,7 @@ void FullNode::rebuildDb() {
   });
 
   while (true) {
-    std::vector<std::shared_ptr<Vote>> cert_votes;
+    std::vector<std::shared_ptr<PbftVote>> cert_votes;
     if (next_period_data != nullptr) {
       period_data = next_period_data;
     } else {

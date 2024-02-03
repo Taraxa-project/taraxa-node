@@ -4,7 +4,7 @@
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa::network::tarcap {
@@ -64,7 +64,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
     throw MaliciousPeerException("Unable to parse PeriodData: " + std::string(e.what()));
   }
 
-  std::vector<std::shared_ptr<Vote>> current_block_cert_votes;
+  std::vector<std::shared_ptr<PbftVote>> current_block_cert_votes;
   if (pbft_chain_synced) {
     current_block_cert_votes = decodeVotesBundle(packet_data.rlp_[2]);
   }
@@ -228,7 +228,8 @@ PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_r
   return PeriodData(period_data_rlp);
 }
 
-std::vector<std::shared_ptr<Vote>> PbftSyncPacketHandler::decodeVotesBundle(const dev::RLP &votes_bundle_rlp) const {
+std::vector<std::shared_ptr<PbftVote>> PbftSyncPacketHandler::decodeVotesBundle(
+    const dev::RLP &votes_bundle_rlp) const {
   return decodeVotesBundleRlp(votes_bundle_rlp);
 }
 

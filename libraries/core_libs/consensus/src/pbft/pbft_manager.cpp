@@ -541,8 +541,8 @@ void PbftManager::broadcastVotes() {
   }
 
   // Send votes to the other peers
-  auto gossipVotes = [this, &net](const std::vector<std::shared_ptr<Vote>> &votes, const std::string &votes_type_str,
-                                  bool rebroadcast) {
+  auto gossipVotes = [this, &net](const std::vector<std::shared_ptr<PbftVote>> &votes,
+                                  const std::string &votes_type_str, bool rebroadcast) {
     if (!votes.empty()) {
       LOG(log_dg_) << "Broadcast " << votes_type_str << " for period " << votes.back()->getPeriod() << ", round "
                    << votes.back()->getRound();
@@ -695,7 +695,7 @@ std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod per
   return block;
 }
 
-bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view log_vote_id,
+bool PbftManager::placeVote(const std::shared_ptr<PbftVote> &vote, std::string_view log_vote_id,
                             const std::shared_ptr<PbftBlock> &voted_block) {
   if (!vote_mgr_->addVerifiedVote(vote)) {
     LOG(log_er_) << "Unable to place vote " << vote->getHash() << " for block " << vote->getBlockHash() << ", period "
@@ -716,7 +716,7 @@ bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view 
 }
 
 bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block,
-                                         std::vector<std::shared_ptr<Vote>> &&reward_votes) {
+                                         std::vector<std::shared_ptr<PbftVote>> &&reward_votes) {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
   const auto current_pbft_step = getPbftStep();
 
@@ -751,7 +751,7 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
   return true;
 }
 
-void PbftManager::gossipNewVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &voted_block) {
+void PbftManager::gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block) {
   assert(!voted_block || vote->getBlockHash() == voted_block->getBlockHash());
 
   auto net = network_.lock();
@@ -1055,9 +1055,9 @@ void PbftManager::secondFinish_() {
   loop_back_finish_state_ = elapsedTimeInMs(second_finish_step_start_datetime_) > 2 * (lambda_ - kPollingIntervalMs);
 }
 
-std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> PbftManager::generatePbftBlock(
-    PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-    const blk_hash_t &order_hash) {
+std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>>
+PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
+                               const blk_hash_t &anchor_hash, const blk_hash_t &order_hash) {
   // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
   // into chain
   auto reward_votes = vote_mgr_->getRewardVotes();
@@ -1104,7 +1104,7 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<
 }
 
 void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
-                                       const std::shared_ptr<Vote> &propose_vote) {
+                                       const std::shared_ptr<PbftVote> &propose_vote) {
   if (proposed_blocks_.isInProposedBlocks(propose_vote->getPeriod(), propose_vote->getBlockHash())) {
     return;
   }
@@ -1146,7 +1146,7 @@ std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost
   return ghost[1];
 }
 
-std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>>
+std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>>
 PbftManager::proposePbftBlock() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
   if (!vote_mgr_->genAndValidateVrfSortition(current_pbft_period, current_pbft_round)) {
@@ -1250,7 +1250,7 @@ PbftManager::proposePbftBlock() {
   return {};
 }
 
-h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
+h256 PbftManager::getProposal(const std::shared_ptr<PbftVote> &vote) const {
   auto lowest_hash = getVoterIndexHash(vote->getCredential(), vote->getVoter(), 1);
   for (uint64_t i = 2; i <= vote->getWeight(); ++i) {
     auto tmp_hash = getVoterIndexHash(vote->getCredential(), vote->getVoter(), i);
@@ -1269,7 +1269,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
   auto votes = vote_mgr_->getProposalVotes(period, round);
 
   // Each leader candidate with <vote_signature_hash, vote>
-  std::map<h256, std::shared_ptr<Vote>> leader_candidates;
+  std::map<h256, std::shared_ptr<PbftVote>> leader_candidates;
 
   for (const auto &v : votes) {
     const auto proposed_block_hash = v->getBlockHash();
@@ -1399,7 +1399,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 }
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlock> &pbft_block,
-                                                   std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes) {
+                                                   std::vector<std::shared_ptr<PbftVote>> &&current_round_cert_votes) {
   PeriodData period_data;
   period_data.pbft_blk = pbft_block;
   if (pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
@@ -1533,7 +1533,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
   }
 }
 
-bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes) {
+bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<PbftVote>> &&cert_votes) {
   auto const &pbft_block_hash = period_data.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
@@ -1617,7 +1617,7 @@ PbftPeriod PbftManager::pbftSyncingPeriod() const {
   return std::max(sync_queue_.getPeriod(), pbft_chain_->getPbftChainSize());
 }
 
-std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftManager::processPeriodData() {
+std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> PbftManager::processPeriodData() {
   auto [period_data, cert_votes, node_id] = sync_queue_.pop();
   auto pbft_block_hash = period_data.pbft_blk->getBlockHash();
   LOG(log_dg_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
@@ -1728,12 +1728,12 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     }
   }
 
-  return std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>>(
+  return std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>>(
       {std::move(period_data), std::move(cert_votes)});
 }
 
 bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
-                                             const std::vector<std::shared_ptr<Vote>> &cert_votes) const {
+                                             const std::vector<std::shared_ptr<PbftVote>> &cert_votes) const {
   // To speed up syncing/rebuilding full strict vote verification is done for all votes on every
   // full_vote_validation_interval and for a random vote for each block
   const uint32_t full_vote_validation_interval = 100;
@@ -1839,7 +1839,7 @@ blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {
 bool PbftManager::periodDataQueueEmpty() const { return sync_queue_.empty(); }
 
 void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
-                                      std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes) {
+                                      std::vector<std::shared_ptr<PbftVote>> &&current_block_cert_votes) {
   const auto period = period_data.pbft_blk->getPeriod();
   if (!sync_queue_.push(std::move(period_data), node_id, pbft_chain_->getPbftChainSize(),
                         std::move(current_block_cert_votes))) {

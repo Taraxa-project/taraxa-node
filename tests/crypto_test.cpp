@@ -14,7 +14,7 @@
 #include "logger/logger.hpp"
 #include "test_util/gtest.hpp"
 #include "vdf/sortition.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa::core_tests {
 using namespace vdf;
