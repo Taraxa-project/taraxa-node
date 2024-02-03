@@ -1,10 +1,10 @@
 #include "vote/votes_bundle_rlp.hpp"
 
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa {
 
-dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes, bool validate_common_data) {
+dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<PbftVote>>& votes, bool validate_common_data) {
   if (votes.empty()) {
     assert(false);
     return {};
@@ -36,7 +36,7 @@ dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes,
   return votes_bundle_rlp.invalidate();
 }
 
-std::vector<std::shared_ptr<Vote>> decodeVotesBundleRlp(const dev::RLP& votes_bundle_rlp) {
+std::vector<std::shared_ptr<PbftVote>> decodeVotesBundleRlp(const dev::RLP& votes_bundle_rlp) {
   assert(votes_bundle_rlp.itemCount() == kVotesBundleRlpSize);
 
   const blk_hash_t votes_bundle_block_hash = votes_bundle_rlp[0].toHash<blk_hash_t>();
@@ -44,12 +44,12 @@ std::vector<std::shared_ptr<Vote>> decodeVotesBundleRlp(const dev::RLP& votes_bu
   const PbftRound votes_bundle_pbft_round = votes_bundle_rlp[2].toInt<PbftRound>();
   const PbftStep votes_bundle_votes_step = votes_bundle_rlp[3].toInt<PbftStep>();
 
-  std::vector<std::shared_ptr<Vote>> votes;
+  std::vector<std::shared_ptr<PbftVote>> votes;
   votes.reserve(votes_bundle_rlp[4].itemCount());
 
   for (const auto vote_rlp : votes_bundle_rlp[4]) {
-    auto vote = std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
-                                       votes_bundle_votes_step, vote_rlp);
+    auto vote = std::make_shared<PbftVote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
+                                           votes_bundle_votes_step, vote_rlp);
     votes.push_back(std::move(vote));
   }
 

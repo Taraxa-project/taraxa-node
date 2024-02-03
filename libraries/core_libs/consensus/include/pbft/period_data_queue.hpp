@@ -30,13 +30,13 @@ class PeriodDataQueue {
    * @return true if pushed
    */
   bool push(PeriodData &&period_data, const dev::p2p::NodeID &node_id, uint64_t max_pbft_size,
-            std::vector<std::shared_ptr<Vote>> &&cert_votes);
+            std::vector<std::shared_ptr<PbftVote>> &&cert_votes);
 
   /**
    * @brief Pop the first block from syncing queue
    * @return the first block, votes for the block if they are available and peer node ID
    */
-  std::tuple<PeriodData, std::vector<std::shared_ptr<Vote>>, dev::p2p::NodeID> pop();
+  std::tuple<PeriodData, std::vector<std::shared_ptr<PbftVote>>, dev::p2p::NodeID> pop();
 
   /**
    * @brief Clear the syncing queue and reset period to 0
@@ -79,7 +79,7 @@ class PeriodDataQueue {
   uint64_t period_{0};
   mutable std::shared_mutex queue_access_;
   // Once fully synced, this will keep the cert votes for the last block in the chain
-  std::vector<std::shared_ptr<Vote>> last_block_cert_votes_;
+  std::vector<std::shared_ptr<PbftVote>> last_block_cert_votes_;
 };
 
 /** @}*/
