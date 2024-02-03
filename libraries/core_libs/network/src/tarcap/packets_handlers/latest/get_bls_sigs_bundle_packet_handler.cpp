@@ -8,7 +8,7 @@ GetBlsSigsBundlePacketHandler::GetBlsSigsBundlePacketHandler(
     std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const addr_t &node_addr,
     const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
-                    logs_prefix + "GET_BLS_SIGS_BUNDLE_PH"),
+                    logs_prefix + "GET_PILLAR_SIGS_BUNDLE_PH"),
       pillar_chain_manager_(std::move(std::move(pillar_chain_manager))) {}
 
 void GetBlsSigsBundlePacketHandler::validatePacketRlpFormat(

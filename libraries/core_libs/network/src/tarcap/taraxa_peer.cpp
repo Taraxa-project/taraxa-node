@@ -6,8 +6,7 @@ TaraxaPeer::TaraxaPeer()
     : known_dag_blocks_(10000, 1000, 10),
       known_transactions_(100000, 10000, 10),
       known_pbft_blocks_(10000, 1000, 10),
-      known_votes_(10000, 1000, 10),
-      known_bls_signature_(10000, 1000, 10) {}
+      known_votes_(10000, 1000, 10) {}
 
 TaraxaPeer::TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size, std::string address)
     : address_(address),
@@ -15,8 +14,7 @@ TaraxaPeer::TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size,
       known_dag_blocks_(10000, 1000, 10),
       known_transactions_(transaction_pool_size * 1.2, transaction_pool_size / 10, 10),
       known_pbft_blocks_(10000, 1000, 10),
-      known_votes_(100000, 1000, 10),
-      known_bls_signature_(10000, 1000, 10) {}
+      known_votes_(100000, 1000, 10) {}
 
 bool TaraxaPeer::markDagBlockAsKnown(const blk_hash_t& hash) {
   return known_dag_blocks_.insert(hash, pbft_chain_size_);
@@ -40,12 +38,12 @@ bool TaraxaPeer::markPbftBlockAsKnown(const blk_hash_t& hash) {
 
 bool TaraxaPeer::isPbftBlockKnown(const blk_hash_t& hash) const { return known_pbft_blocks_.contains(hash); }
 
-bool TaraxaPeer::markBlsSigAsKnown(const pillar_chain::BlsSignature::Hash& hash) {
-  return known_bls_signature_.insert(hash, pbft_chain_size_);
+bool TaraxaPeer::markPillarBlockSigAsKnown(const pillar_chain::BlsSignature::Hash& hash) {
+  return known_pillar_chain_signatures_.insert(hash, pbft_chain_size_);
 }
 
-bool TaraxaPeer::isBlsSigKnown(const pillar_chain::BlsSignature::Hash& hash) const {
-  return known_bls_signature_.contains(hash);
+bool TaraxaPeer::isPillarBlockSigKnown(const pillar_chain::BlsSignature::Hash& hash) const {
+  return known_pillar_chain_signatures_.contains(hash);
 }
 
 const dev::p2p::NodeID& TaraxaPeer::getId() const { return id_; }

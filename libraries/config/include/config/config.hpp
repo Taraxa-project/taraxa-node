@@ -45,7 +45,6 @@ struct FullNodeConfig {
   std::filesystem::file_time_type last_json_update_time;
   dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
-  libff::alt_bn128_Fr bls_secret;
   fs::path data_path;
   fs::path db_path;
   fs::path log_path;

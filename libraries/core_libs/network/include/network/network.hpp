@@ -68,17 +68,17 @@ class Network {
   void gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
   void gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast = false);
   void gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast = false);
-  void gossipBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature);
+  void gossipPillarBlockSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature);
   void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
   std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;
 
   /**
-   * @brief Request bls signatures bundle packet from random peer
+   * @brief Request pillar block signatures bundle packet from random peer
    *
    * @param period
    * @param pillar_block_hash
    */
-  void requestBlsSigBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash &pillar_block_hash);
+  void requestPillarBlockSigBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash &pillar_block_hash);
 
   /**
    * @brief Request pillar blocks

@@ -17,7 +17,7 @@ bool Signatures::signatureExists(const std::shared_ptr<BlsSignature> signature) 
   return found_pillar_block_signatures->second.signatures.contains(signature->getHash());
 }
 
-bool Signatures::isUniqueBlsSig(const std::shared_ptr<BlsSignature> signature) const {
+bool Signatures::isUniqueSig(const std::shared_ptr<BlsSignature> signature) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
   const auto found_period_signatures = signatures_.find(signature->getPeriod());
@@ -55,12 +55,13 @@ bool Signatures::hasTwoTPlusOneSignatures(PbftPeriod period, PillarBlock::Hash b
     return false;
   }
 
-  // There is >= 2t+1 bls signatures
+  // There is >= 2t+1 signatures
   return true;
 }
 
-std::vector<std::shared_ptr<BlsSignature>> Signatures::getVerifiedBlsSignatures(
-    PbftPeriod period, const PillarBlock::Hash pillar_block_hash, bool two_t_plus_one) const {
+std::vector<std::shared_ptr<BlsSignature>> Signatures::getVerifiedSignatures(PbftPeriod period,
+                                                                             const PillarBlock::Hash pillar_block_hash,
+                                                                             bool two_t_plus_one) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
   const auto found_period_signatures = signatures_.find(period);
   if (found_period_signatures == signatures_.end()) {
