@@ -703,11 +703,11 @@ std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData
   return util::rlp_dec<pillar_chain::PillarBlockData>(dev::RLP(it->value().ToString()));
 }
 
-void DbStorage::saveOwnLatestBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature>& bls_signature) {
+void DbStorage::saveOwnPillarBlockSignature(const std::shared_ptr<pillar_chain::BlsSignature>& bls_signature) {
   insert(Columns::latest_pillar_block_own_signature, 0, util::rlp_enc(bls_signature));
 }
 
-std::shared_ptr<pillar_chain::BlsSignature> DbStorage::getOwnLatestBlsSignature() const {
+std::shared_ptr<pillar_chain::BlsSignature> DbStorage::getOwnPillarBlockSignature() const {
   const auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_own_signature));
   if (bytes.empty()) {
     return nullptr;

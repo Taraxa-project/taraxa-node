@@ -13,7 +13,6 @@
 #include <boost/thread.hpp>
 #include <fstream>
 #include <iostream>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 #include <list>
 #include <optional>
 #include <regex>
@@ -31,9 +30,6 @@ namespace taraxa {
  * @return unstyled json string (without new lines and whitespaces).
  */
 std::string jsonToUnstyledString(const Json::Value &value);
-
-libff::alt_bn128_G2 getBlsPublicKey(const libff::alt_bn128_Fr &bls_secret);
-std::string blsPubKeyToStr(const libff::alt_bn128_G2 &bls_pub_key);
 
 template <typename T>
 std::weak_ptr<T> as_weak(std::shared_ptr<T> sp) {

@@ -11,17 +11,6 @@ std::string jsonToUnstyledString(const Json::Value &value) {
   return Json::writeString(builder, value);
 }
 
-libff::alt_bn128_G2 getBlsPublicKey(const libff::alt_bn128_Fr &bls_secret) {
-  return bls_secret * libff::alt_bn128_G2::one();
-}
-
-std::string blsPubKeyToStr(const libff::alt_bn128_G2 &bls_pub_key) {
-  std::stringstream bls_pub_key_ss;
-  bls_pub_key_ss << bls_pub_key;
-
-  return bls_pub_key_ss.str();
-}
-
 void thisThreadSleepForSeconds(unsigned sec) { std::this_thread::sleep_for(std::chrono::seconds(sec)); }
 
 void thisThreadSleepForMilliSeconds(unsigned millisec) {

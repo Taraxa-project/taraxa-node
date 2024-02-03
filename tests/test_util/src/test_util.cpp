@@ -75,11 +75,10 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
   proof[64] += 27;
 
   const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret);
-  const auto bls_pub_key = getBlsPublicKey(sender_node_cfg.bls_secret);
 
   const auto input = final_chain::ContractInterface::packFunctionCall(
-      "registerValidator(address,bytes,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(),
-      dev::asBytes(blsPubKeyToStr(bls_pub_key)), 10, dev::asBytes("test"), dev::asBytes("test"));
+      "registerValidator(address,bytes,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(), 10,
+      dev::asBytes("test"), dev::asBytes("test"));
 
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
@@ -201,8 +200,6 @@ NodesTest::NodesTest() {
     cfg.network.rpc->http_port = 7778 + i;
     cfg.network.rpc->ws_port = 8778 + i;
     cfg.node_secret = dev::KeyPair::create().secret();
-    cfg.vrf_secret = taraxa::vdf_sortition::getVrfKeyPair().second;
-    cfg.bls_secret = libBLS::Bls::KeyGeneration().first;
     cfg.network.listen_port = 10003 + i;
 
     cfg.genesis.gas_price.minimum_price = 0;
@@ -294,15 +291,10 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
       continue;
     }
 
-    std::optional<libff::alt_bn128_G2> bls_key;
-    if (cfg.genesis.state.hardforks.ficus_hf.block_num == 0) {
-      bls_key = getBlsPublicKey(cfg.bls_secret);
-    }
-
     taraxa::state_api::BalanceMap delegations;
     delegations.emplace(node_addr, cfg.genesis.state.dpos.eligibility_balance_threshold);
     initial_validators.emplace_back(taraxa::state_api::ValidatorInfo{
-        node_addr, node_addr, taraxa::vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), bls_key, 100, "", "", delegations});
+        node_addr, node_addr, taraxa::vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), 100, "", "", delegations});
   }
 
   for (size_t idx = 0; idx < total_count; idx++) {

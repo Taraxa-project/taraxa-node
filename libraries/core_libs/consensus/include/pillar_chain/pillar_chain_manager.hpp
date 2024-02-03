@@ -33,18 +33,17 @@ class PillarChainManager {
  public:
   PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
                      std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<VoteManager> vote_mgr,
-                     std::shared_ptr<KeyManager> key_manager, const libff::alt_bn128_Fr& bls_secret_key,
-                     addr_t node_addr);
+                     std::shared_ptr<KeyManager> key_manager, addr_t node_addr);
 
   /**
-   * @Process Creates new pillar block and broadcasts bls signature
+   * @Process Creates new pillar block
    *
    * @param block_data
    */
   void createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
 
   /**
-   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+signatures) and there is 2t+1 BLS
+   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+signatures) and there is 2t+1
    * signatures for latest pillar block. If not, request them
    *
    * @param block_num - current block number

@@ -220,8 +220,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
   std::optional<pillar_chain::PillarBlockData> getPillarBlockData(PbftPeriod period) const;
   std::optional<pillar_chain::PillarBlockData> getLatestPillarBlockData() const;
-  void saveOwnLatestBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature>& bls_signature);
-  std::shared_ptr<pillar_chain::BlsSignature> getOwnLatestBlsSignature() const;
+  void saveOwnPillarBlockSignature(const std::shared_ptr<pillar_chain::BlsSignature>& signature);
+  std::shared_ptr<pillar_chain::BlsSignature> getOwnPillarBlockSignature() const;
 
   /**
    * @brief Gets finalized transactions from provided hashes

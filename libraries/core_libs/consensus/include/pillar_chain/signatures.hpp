@@ -36,7 +36,7 @@ class Signatures {
    * @param signature
    * @return true if unique, otherwise false
    */
-  bool isUniqueBlsSig(const std::shared_ptr<BlsSignature> signature) const;
+  bool isUniqueSig(const std::shared_ptr<BlsSignature> signature) const;
 
   /**
    * @brief Checks if there is 2t+1 signatures for specified period
@@ -63,7 +63,7 @@ class Signatures {
   void initializePeriodData(PbftPeriod period, uint64_t period_two_t_plus_one);
 
   /**
-   * @brief Add a signature to the bls signatures map
+   * @brief Add a signature to the signatures map
    * @param signature signature
    * @param signer_vote_count
    *
@@ -72,17 +72,17 @@ class Signatures {
   bool addVerifiedSig(const std::shared_ptr<BlsSignature>& signature, u_int64_t signer_vote_count);
 
   /**
-   * @brief Get all bls signatures for specified pillar block
+   * @brief Get all pillar block signatures for specified pillar block
    *
    * @param period
    * @param pillar_block_hash
    * @param two_t_plus_one if true, return only if there is >= 2t+1 verified signatures
    *
-   * @return all bls signatures for specified period and pillar block hash
+   * @return all pillar block signatures for specified period and pillar block hash
    */
-  std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(PbftPeriod period,
-                                                                      const PillarBlock::Hash pillar_block_hash,
-                                                                      bool two_t_plus_one = false) const;
+  std::vector<std::shared_ptr<BlsSignature>> getVerifiedSignatures(PbftPeriod period,
+                                                                   const PillarBlock::Hash pillar_block_hash,
+                                                                   bool two_t_plus_one = false) const;
 
   /**
    * @brief Erases signatures wit period < min_period

@@ -39,9 +39,7 @@ struct FinalChainTest : WithDataDir {
         10 * cfg.genesis.state.dpos.validator_maximum_stake;
     for (const auto& keys : {dag_proposer_keys, pbft_proposer_keys}) {
       const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
-      const auto bls_puk_key = libBLS::Bls::KeyGeneration().second;
-      state_api::ValidatorInfo validator{
-          keys.address(), validator_owner_keys.address(), vrf_pub_key, bls_puk_key, 0, "", "", {}};
+      state_api::ValidatorInfo validator{keys.address(), validator_owner_keys.address(), vrf_pub_key, 0, "", "", {}};
       validator.delegations.emplace(validator_owner_keys.address(), cfg.genesis.state.dpos.validator_maximum_stake);
       cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
     }
@@ -301,8 +299,7 @@ TEST_F(FinalChainTest, initial_validators) {
 
   for (const auto& vk : validator_keys) {
     const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
-    const auto bls_puk_key = libBLS::Bls::KeyGeneration().second;
-    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_pub_key, bls_puk_key, 0, "", "", {}};
+    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_pub_key, 0, "", "", {}};
     validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
     cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
   }
@@ -827,8 +824,7 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
 
   for (const auto& vk : validator_keys) {
     const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
-    const auto bls_puk_key = libBLS::Bls::KeyGeneration().second;
-    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_pub_key, bls_puk_key, 0, "", "", {}};
+    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_pub_key, 0, "", "", {}};
     validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
     cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
   }
@@ -866,10 +862,9 @@ TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
   const dev::KeyPair key = dev::KeyPair::create();
   const dev::KeyPair validator_key = dev::KeyPair::create();
   const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
-  const auto bls_puk_key = libBLS::Bls::KeyGeneration().second;
   fillConfigForGenesisTests(key.address());
 
-  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_pub_key, bls_puk_key, 0, "", "", {}};
+  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_pub_key, 0, "", "", {}};
   validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
   validator.delegations.emplace(validator_key.address(), cfg.genesis.state.dpos.minimum_deposit);
   cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
