@@ -35,7 +35,7 @@ TEST_F(RewardsStatsTest, defaultDistribution) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   auto batch = db->createWriteBatch();
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   auto rewards_stats = TestableRewardsStats({}, db);
 
   for (auto i = 1; i < 5; ++i) {
@@ -53,7 +53,7 @@ TEST_F(RewardsStatsTest, statsSaving) {
   // distribute every 5 blocks
   HardforksConfig::RewardsDistributionMap distribution{{0, 5}};
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   std::vector<addr_t> block_authors;
   {
     auto rewards_stats = TestableRewardsStats(distribution, db);
@@ -90,7 +90,7 @@ TEST_F(RewardsStatsTest, statsCleaning) {
   // distribute every 5 blocks
   HardforksConfig::RewardsDistributionMap distribution{{0, 5}};
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   std::vector<addr_t> block_authors;
   {
     auto rewards_stats = TestableRewardsStats(distribution, db);
@@ -122,7 +122,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
   auto rewards_stats = TestableRewardsStats({{0, 10}}, db);
   auto batch = db->createWriteBatch();
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   std::vector<addr_t> block_authors;
 
   // make blocks [1,9] and process them. output of processStats should be empty
@@ -162,7 +162,7 @@ TEST_F(RewardsStatsTest, distributionChange) {
 
   auto rewards_stats = TestableRewardsStats(distribution, db);
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   uint64_t period = 1;
   for (; period <= 5; ++period) {
     PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
@@ -194,7 +194,7 @@ TEST_F(RewardsStatsTest, feeRewards) {
 
   auto rewards_stats = TestableRewardsStats(distribution, db);
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   uint64_t period = 1;
   uint64_t nonce = 1;
 
@@ -231,7 +231,7 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   auto batch = db->createWriteBatch();
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   HardforksConfig hfc;
   hfc.aspen_hf.block_num_part_two = 4;
 

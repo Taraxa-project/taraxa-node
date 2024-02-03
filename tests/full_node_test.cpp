@@ -153,12 +153,12 @@ TEST_F(FullNodeTest, db_test) {
   auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
 
   // Certified votes
-  std::vector<std::shared_ptr<Vote>> cert_votes;
+  std::vector<std::shared_ptr<PbftVote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
     cert_votes.emplace_back(genDummyVote(PbftVoteTypes::cert_vote, 2, 2, 3, blk_hash_t(1)));
   }
 
-  std::vector<std::shared_ptr<Vote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
+  std::vector<std::shared_ptr<PbftVote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
   PeriodData period_data1(pbft_block1, cert_votes);
   PeriodData period_data2(pbft_block2, votes);
   PeriodData period_data3(pbft_block3, votes);
@@ -258,7 +258,7 @@ TEST_F(FullNodeTest, db_test) {
 
   // Own verified votes
   EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
-  std::vector<std::shared_ptr<Vote>> verified_votes;
+  std::vector<std::shared_ptr<PbftVote>> verified_votes;
   for (auto i = 0; i < 3; i++) {
     const auto vote = genDummyVote(PbftVoteTypes::soft_vote, i, i, 2);
     verified_votes.push_back(vote);
@@ -308,7 +308,7 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   // Reward votes - cert votes for the latest finalized block
-  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> verified_votes_map;
+  std::unordered_map<vote_hash_t, std::shared_ptr<PbftVote>> verified_votes_map;
   for (const auto &vote : verified_votes) {
     verified_votes_map[vote->getHash()] = vote;
   }

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-
-#include "vrf_sortition.hpp"
+#include "common/types.hpp"
 
 namespace taraxa {
 
@@ -16,175 +14,57 @@ namespace taraxa {
  */
 class Vote {
  public:
-  using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   Vote() = default;
-  Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash);
-
-  // Ctor for optimized rlp vote objects - only signature and vrf proof are in the rlp
-  explicit Vote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const& rlp);
-
-  // Ctors for full rlp vote objects - all data are encoded in the rlp
-  explicit Vote(dev::RLP const& rlp);
-  explicit Vote(bytes const& rlp);
-  bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
+  Vote(const secret_t& node_sk, const blk_hash_t& block_hash);
 
   /**
    * @brief Get vote hash
    * @return vote hash
    */
-  const vote_hash_t& getHash() const { return vote_hash_; }
+  const vote_hash_t& getHash() const;
 
   /**
    * @brief Get voter public key
    * @return voter public key
    */
-  const public_t& getVoter() const {
-    if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
-    return cached_voter_;
-  }
+  const public_t& getVoter() const;
 
   /**
    * @brief Get voter address
    * @return voter address
    */
-  const addr_t& getVoterAddr() const {
-    if (!cached_voter_addr_) cached_voter_addr_ = dev::toAddress(getVoter());
-    return cached_voter_addr_;
-  }
-
-  /**
-   * @brief Verify VRF sortition
-   * @return true if passed
-   */
-  bool verifyVrfSortition(const vrf_pk_t& pk, bool strict) const { return vrf_sortition_.verify(pk, strict); }
-
-  /**
-   * @brief Get VRF sortition
-   * @return VRF sortition
-   */
-  const VrfPbftSortition& getVrfSortition() const { return vrf_sortition_; }
-
-  /**
-   * @brief Get VRF sortition proof
-   * @return VRF sortition proof
-   */
-  const vrf_wrapper::vrf_proof_t& getSortitionProof() const { return vrf_sortition_.proof_; }
-
-  /**
-   * @brief Get VRF sortition output
-   * @return VRF sortition output
-   */
-  const vrf_wrapper::vrf_output_t& getCredential() const { return vrf_sortition_.output_; }
+  const addr_t& getVoterAddr() const;
 
   /**
    * @brief Get vote signature
    * @return vote signature
    */
-  const sig_t& getVoteSignature() const { return vote_signature_; }
+  const sig_t& getVoteSignature() const;
 
   /**
    * @brief Get PBFT block hash that votes on
    * @return PBFT block hash
    */
-  const blk_hash_t& getBlockHash() const { return blockhash_; }
-
-  /**
-   * @brief Get vote type
-   * @return vote type
-   */
-  PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg_.getType(); }
-
-  /**
-   * @brief Get vote PBFT period
-   * @return vote PBFT period
-   */
-  PbftPeriod getPeriod() const { return vrf_sortition_.pbft_msg_.period_; }
-
-  /**
-   * @brief Get vote PBFT round
-   * @return vote PBFT round
-   */
-  PbftRound getRound() const { return vrf_sortition_.pbft_msg_.round_; }
-
-  /**
-   * @brief Get vote PBFT step
-   * @return vote PBFT step
-   */
-  PbftStep getStep() const { return vrf_sortition_.pbft_msg_.step_; }
-
-  /**
-   * @brief Recursive Length Prefix
-   * @param inc_sig if include vote signature
-   * @param inc_weight if include vote weight
-   * @return bytes of RLP stream
-   */
-  bytes rlp(bool inc_sig = true, bool inc_weight = false) const;
-
-  /**
-   * @brief Optimed Recursive Length Prefix
-   * @note Encode only vote's signature and vrf proof into the rlp
-   *
-   * @return bytes of RLP stream
-   */
-  bytes optimizedRlp() const;
+  const blk_hash_t& getBlockHash() const;
 
   /**
    * @brief Verify vote
    * @return true if passed
    */
-  bool verifyVote() const {
-    auto pk = getVoter();
-    return !pk.isZero();  // recoverd public key means that it was verified
-  }
+  bool verifyVote() const;
 
-  /**
-   * @brief Calculate vote weight
-   * @param stake voter DPOS eligible votes count
-   * @param dpos_total_votes_count total DPOS votes count
-   * @param threshold PBFT sortition threshold that is minimum of between PBFT committee size and total DPOS votes count
-   * @return vote weight
-   */
-  uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold) const {
-    assert(stake);
-    weight_ = vrf_sortition_.calculateWeight(stake, dpos_total_votes_count, threshold, getVoter());
-    return weight_.value();
-  }
-
-  /**
-   * @brief Get vote weight
-   * @return vote weight
-   */
-  std::optional<uint64_t> getWeight() const { return weight_; }
-
-  friend std::ostream& operator<<(std::ostream& strm, Vote const& vote) {
-    strm << "[Vote] " << std::endl;
-    strm << "  vote_hash: " << vote.vote_hash_ << std::endl;
-    strm << "  voter: " << vote.getVoter() << std::endl;
-    strm << "  vote_signature: " << vote.vote_signature_ << std::endl;
-    strm << "  blockhash: " << vote.blockhash_ << std::endl;
-    if (vote.weight_) strm << "  weight: " << vote.weight_.value() << std::endl;
-    strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
-    return strm;
-  }
-
-  /**
-   * @brief Get vote in JSON representation
-   * @return vote JSON
-   */
-  Json::Value toJSON() const;
-
- private:
   /**
    * @brief Secure Hash Algorithm 3
    * @param inc_sig if include vote signature
    * @return secure hash as vote hash
    */
-  vote_hash_t sha3(bool inc_sig) const { return dev::sha3(rlp(inc_sig)); }
+  virtual vote_hash_t sha3(bool inc_sig) const = 0;
 
+ protected:
   vote_hash_t vote_hash_;  // hash of this vote
-  blk_hash_t blockhash_;   // Voted PBFT block hash
+  blk_hash_t block_hash_;  // Voted block hash
   sig_t vote_signature_;
-  VrfPbftSortition vrf_sortition_;
+
   mutable public_t cached_voter_;
   mutable addr_t cached_voter_addr_;
   mutable std::optional<uint64_t> weight_;

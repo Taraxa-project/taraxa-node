@@ -24,13 +24,14 @@ class PbftBlock;
 class PeriodData {
  public:
   PeriodData() = default;
-  PeriodData(std::shared_ptr<PbftBlock> pbft_blk, const std::vector<std::shared_ptr<Vote>>& previous_block_cert_votes);
+  PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
+             const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes);
   explicit PeriodData(const dev::RLP& all_rlp);
   explicit PeriodData(bytes const& all_rlp);
 
   std::shared_ptr<PbftBlock> pbft_blk;
-  std::vector<std::shared_ptr<Vote>> previous_block_cert_votes;  // These votes are the cert votes of previous block
-                                                                 // which match reward votes in current pbft block
+  std::vector<std::shared_ptr<PbftVote>> previous_block_cert_votes;  // These votes are the cert votes of previous block
+                                                                     // which match reward votes in current pbft block
   std::vector<DagBlock> dag_blocks;
   SharedTransactions transactions;
 
