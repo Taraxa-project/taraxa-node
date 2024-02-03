@@ -40,8 +40,7 @@ Json::Value overrideConfig(Json::Value& config, std::string& data_dir, const std
                            const std::vector<std::string>& log_configurations,
                            const std::vector<std::string>& boot_nodes_append,
                            const std::vector<std::string>& log_channels_append);
-Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key,
-                           const std::string& bls_key);
+Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key);
 
 std::string getHomeDir();
 std::string getTaraxaDefaultDir();
@@ -50,7 +49,6 @@ std::string getTaraxaDefaultConfigFile();
 std::string getTaraxaDefaultWalletFile();
 std::string getTaraxaDefaultGenesisFile();
 Json::Value createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrapper::vrf_sk_t& sk,
-                             const taraxa::vrf_wrapper::vrf_pk_t& pk, const libff::alt_bn128_Fr& bls_secret,
-                             const libff::alt_bn128_G2& bls_pub_key);
+                             const taraxa::vrf_wrapper::vrf_pk_t& pk);
 
 }  // namespace taraxa::cli::tools
