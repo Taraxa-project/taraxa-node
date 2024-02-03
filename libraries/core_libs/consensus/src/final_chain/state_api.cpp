@@ -260,22 +260,6 @@ std::vector<ValidatorStake> StateAPI::dpos_validators_total_stakes(EthBlockNumbe
   return ret;
 }
 
-libff::alt_bn128_G2 StateAPI::dpos_get_bls_key(EthBlockNumber blk_num, const addr_t& addr) const {
-  dev::bytes bls_key_bytes =
-      c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_dpos_get_bls_key>(this_c_, blk_num, addr);
-
-  // TODO: will this work ???
-  std::stringstream bls_key_ss;
-  for (auto it = bls_key_bytes.begin(); it != bls_key_bytes.end(); it++) {
-    bls_key_ss << *it;
-  }
-
-  libff::alt_bn128_G2 bls_key;
-  bls_key_ss >> bls_key;
-
-  return bls_key;
-}
-
 uint64_t StateAPI::dpos_yield(EthBlockNumber blk_num) const {
   ErrorHandler err_h;
   auto ret = taraxa_evm_state_api_dpos_yield(this_c_, blk_num, err_h.cgo_part_);

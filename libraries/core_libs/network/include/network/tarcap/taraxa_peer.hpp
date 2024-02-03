@@ -56,14 +56,14 @@ class TaraxaPeer : public boost::noncopyable {
   bool isPbftBlockKnown(const blk_hash_t& hash) const;
 
   /**
-   * @brief Mark bls signature as known
+   * @brief Mark pillar block signature as known
    *
    * @param _hash
    * @return true in case bls signature was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markBlsSigAsKnown(const pillar_chain::BlsSignature::Hash& hash);
-  bool isBlsSigKnown(const pillar_chain::BlsSignature::Hash& hash) const;
+  bool markPillarBlockSigAsKnown(const pillar_chain::BlsSignature::Hash& hash);
+  bool isPillarBlockSigKnown(const pillar_chain::BlsSignature::Hash& hash) const;
 
   const dev::p2p::NodeID& getId() const;
 
@@ -138,7 +138,7 @@ class TaraxaPeer : public boost::noncopyable {
   // PBFT
   ExpirationBlockNumberCache<blk_hash_t> known_pbft_blocks_;
   ExpirationBlockNumberCache<vote_hash_t> known_votes_;
-  ExpirationBlockNumberCache<vote_hash_t> known_bls_signature_;
+  ExpirationBlockNumberCache<vote_hash_t> known_pillar_chain_signatures_;
 
   std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
   std::atomic<uint64_t> suspicious_packet_count_ = 0;

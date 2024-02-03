@@ -466,10 +466,6 @@ class FinalChainImpl final : public FinalChain {
     finalized_cv_.wait_for(lck, std::chrono::milliseconds(10));
   }
 
-  libff::alt_bn128_G2 dpos_get_bls_key(EthBlockNumber blk_n, const addr_t& addr) const override {
-    return state_api_.dpos_get_bls_key(blk_n, addr);
-  }
-
   uint64_t dpos_yield(EthBlockNumber blk_num) const override { return state_api_.dpos_yield(blk_num); }
 
   u256 dpos_total_supply(EthBlockNumber blk_num) const override { return state_api_.dpos_total_supply(blk_num); }

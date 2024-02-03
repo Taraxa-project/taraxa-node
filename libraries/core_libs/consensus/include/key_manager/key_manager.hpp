@@ -1,6 +1,5 @@
 #pragma once
 
-#include <libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 #include <memory>
 #include <unordered_map>
 
@@ -18,14 +17,10 @@ class KeyManager {
   KeyManager &operator=(KeyManager &&) = delete;
 
   std::shared_ptr<vrf_wrapper::vrf_pk_t> getVrfKey(EthBlockNumber blk_n, const addr_t &addr);
-  std::shared_ptr<libff::alt_bn128_G2> getBlsKey(EthBlockNumber blk_n, const addr_t &addr);
 
  private:
   std::shared_mutex vrf_keys_mutex_;
   std::unordered_map<addr_t, std::shared_ptr<vrf_wrapper::vrf_pk_t>> vrf_keys_;
-
-  std::shared_mutex bls_keys_mutex_;
-  std::unordered_map<addr_t, std::shared_ptr<libff::alt_bn128_G2>> bls_keys_;
 
   std::shared_ptr<FinalChain> final_chain_;
 };

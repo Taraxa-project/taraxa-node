@@ -212,10 +212,10 @@ TEST_F(FullNodeTest, db_test) {
       block_num, state_root, std::move(stakes_changes), previous_pillar_block_hash);
 
   std::vector<std::shared_ptr<pillar_chain::BlsSignature>> signatures;
-  const auto signature1 = signatures.emplace_back(std::make_shared<pillar_chain::BlsSignature>(
-      pillar_block->getHash(), pillar_block->getPeriod(), addr_t(1), libff::alt_bn128_Fr{}));
-  const auto signature2 = signatures.emplace_back(std::make_shared<pillar_chain::BlsSignature>(
-      pillar_block->getHash(), pillar_block->getPeriod(), addr_t(2), libff::alt_bn128_Fr{}));
+  const auto signature1 = signatures.emplace_back(
+      std::make_shared<pillar_chain::BlsSignature>(pillar_block->getHash(), pillar_block->getPeriod(), addr_t(1)));
+  const auto signature2 = signatures.emplace_back(
+      std::make_shared<pillar_chain::BlsSignature>(pillar_block->getHash(), pillar_block->getPeriod(), addr_t(2)));
 
   const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
       block_num - 1, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{},
@@ -238,10 +238,10 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   // Pillar chain - bls signature
-  auto signature = std::make_shared<pillar_chain::BlsSignature>(pillar_block->getHash(), pillar_block->getPeriod(),
-                                                                addr_t(1), libBLS::Bls::KeyGeneration().first);
-  db.saveOwnLatestBlsSignature(signature);
-  auto signature_db = db.getOwnLatestBlsSignature();
+  auto signature =
+      std::make_shared<pillar_chain::BlsSignature>(pillar_block->getHash(), pillar_block->getPeriod(), addr_t(1));
+  db.saveOwnPillarBlockSignature(signature);
+  auto signature_db = db.getOwnPillarBlockSignature();
   EXPECT_EQ(signature->getHash(), signature_db->getHash());
 
   // status
@@ -381,17 +381,6 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getProposalPeriodForDagLevel(107));
 }
 
-std::string blsSecretToStr(const libff::alt_bn128_Fr &el, size_t base = 10) {
-  mpz_t t;
-  mpz_init(t);
-  el.as_bigint().to_mpz(t);
-  char arr[mpz_sizeinbase(t, 10) + 2];
-  mpz_get_str(arr, base, t);
-  mpz_clear(t);
-
-  return std::string(arr);
-}
-
 template <class T>
 std::string fieldElementToString(const T &el, int base = 16) {
   std::string ret;
@@ -413,58 +402,10 @@ std::string fieldElementToString(const T &el, int base = 16) {
   return ret;
 }
 
-std::string hexStringFromBigint(libff::bigint<libff::alt_bn128_r_limbs> _x) {
-  uint8_t x[32];
-  for (unsigned i = 0; i < 4; i++)
-    for (unsigned j = 0; j < 8; j++) x[i * 8 + j] = uint8_t(uint64_t(_x.data[3 - i]) >> (8 * (7 - j)));
-
-  std::stringstream ss;
-  ss << std::setfill('0');
-  for (unsigned i = 0; i < 32; i++) {
-    ss << std::hex << std::setw(2) << (int)x[i];
-  }
-
-  std::string str = ss.str();
-  return str.erase(0, std::min(str.find_first_not_of('0'), str.size() - 1));
-};
-
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs(5, 1, 20);
-  for (const auto &cfg : node_cfgs) {
-    std::cout << "cfg.genesis.state.hardforks.ficus_hf_block_num: " << cfg.genesis.state.hardforks.ficus_hf.block_num
-              << std::endl;
-    std::cout << "cfg.bls_secret: " << blsSecretToStr(cfg.bls_secret) << std::endl;
-
-    auto pub_key = getBlsPublicKey(cfg.bls_secret);
-    std::stringstream pk_ss;
-    pk_ss << std::hex << pub_key;
-
-    std::cout << "cfg.bls_pub: " << pk_ss.str() << std::endl;
-    std::cout << "cfg.bls_pub.size: " << pk_ss.str().size() << std::endl;
-    for (auto c : pk_ss.str()) {
-      std::uint8_t wtf = static_cast<uint8_t>(c);
-      std::cout << wtf << " ";
-    }
-    std::cout << std::endl;
-
-    pub_key.to_affine_coordinates();
-
-    std::cout << "pub_key.X.c0 str: " << fieldElementToString(pub_key.X.c0) << std::endl;
-
-    std::cout << "pub_key.X.c0: " << fieldElementToString(pub_key.X.c0).size() << std::endl;
-    std::cout << "pub_key.X.c1: " << fieldElementToString(pub_key.X.c1).size() << std::endl;
-    std::cout << "pub_key.Y.c0: " << fieldElementToString(pub_key.Y.c0).size() << std::endl;
-    std::cout << "pub_key.Y.c1: " << fieldElementToString(pub_key.Y.c1).size() << std::endl;
-
-    std::cout << "2 pub_key.X.c0 str: " << hexStringFromBigint(pub_key.X.c0.as_bigint()) << std::endl;
-    std::cout << "2 pub_key.X.c0: " << hexStringFromBigint(pub_key.X.c0.as_bigint()).size() << std::endl;
-    std::cout << "2 pub_key.X.c1: " << hexStringFromBigint(pub_key.X.c1.as_bigint()).size() << std::endl;
-    std::cout << "2 pub_key.Y.c0: " << hexStringFromBigint(pub_key.Y.c0.as_bigint()).size() << std::endl;
-    std::cout << "2 pub_key.Y.c1: " << hexStringFromBigint(pub_key.Y.c1.as_bigint()).size() << std::endl;
-  }
-
   auto nodes = launch_nodes(node_cfgs);
 
   class context {

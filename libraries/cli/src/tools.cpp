@@ -1,7 +1,6 @@
 
 #include "cli/tools.hpp"
 
-#include <libBLS.h>
 #include <pwd.h>
 
 #include <boost/algorithm/string.hpp>
@@ -9,9 +8,6 @@
 
 #include "cli/config.hpp"
 #include "common/jsoncpp.hpp"
-
-// TODO: should ne #include <libBLS/tools/utils.h>
-#include <tools/utils.h>
 
 using namespace std;
 using namespace dev;
@@ -169,29 +165,13 @@ void generateWallet(const string& wallet) {
   dev::KeyPair account = dev::KeyPair::create();
   auto [pk, sk] = taraxa::vrf_wrapper::getVrfKeyPair();
 
-  // Required for libBLS::Bls::KeyGeneration()
-  libBLS::ThresholdUtils::initCurve();
-  const auto [bls_secret, bls_puk_key] = libBLS::Bls::KeyGeneration();
-
-  auto account_json = createWalletJson(account, sk, pk, bls_secret, bls_puk_key);
+  auto account_json = createWalletJson(account, sk, pk);
 
   // Create account file
   util::writeJsonToFile(wallet, account_json);
 }
 
-std::string blsSecretToStr(const libff::alt_bn128_Fr& el, size_t base = 10) {
-  mpz_t t;
-  mpz_init(t);
-  el.as_bigint().to_mpz(t);
-  char arr[mpz_sizeinbase(t, 10) + 2];
-  mpz_get_str(arr, base, t);
-  mpz_clear(t);
-
-  return std::string(arr);
-}
-
-Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key,
-                           const std::string& bls_key) {
+Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key) {
   if (!node_key.empty()) {
     auto sk = dev::Secret(node_key, dev::Secret::ConstructFromStringType::FromHex);
     dev::KeyPair account = dev::KeyPair(sk);
@@ -205,17 +185,6 @@ Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, con
     auto pk = taraxa::vrf_wrapper::getVrfPublicKey(sk);
     wallet["vrf_secret"] = sk.toString();
     wallet["vrf_public"] = pk.toString();
-  }
-
-  if (!bls_key.empty()) {
-    auto bls_secret = libff::alt_bn128_Fr(bls_key.c_str());
-    auto bls_public = getBlsPublicKey(bls_secret);
-
-    wallet["bls_secret"] = blsSecretToStr(bls_secret);
-
-    std::stringstream bls_public_ss;
-    bls_public_ss << bls_public;
-    wallet["bls_public"] = bls_public_ss.str();
   }
 
   return wallet;
@@ -252,17 +221,13 @@ void generateVrfFromKey(const string& key) {
 }
 
 Json::Value createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrapper::vrf_sk_t& sk,
-                             const taraxa::vrf_wrapper::vrf_pk_t& pk, const libff::alt_bn128_Fr& bls_secret,
-                             const libff::alt_bn128_G2& bls_pub_key) {
+                             const taraxa::vrf_wrapper::vrf_pk_t& pk) {
   Json::Value json(Json::objectValue);
   json["node_secret"] = toHex(account.secret().ref());
   json["node_public"] = account.pub().toString();
   json["node_address"] = account.address().toString();
   json["vrf_secret"] = sk.toString();
   json["vrf_public"] = pk.toString();
-
-  json["bls_secret"] = blsSecretToStr(bls_secret);
-  json["bls_public"] = blsPubKeyToStr(bls_pub_key);
 
   return json;
 }

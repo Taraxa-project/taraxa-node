@@ -304,7 +304,7 @@ void Network::gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes,
   }
 }
 
-void Network::gossipBlsSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature) {
+void Network::gossipPillarChainSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature) {
   for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::BlsSigPacketHandler>()->onNewBlsSig(signature);
   }
@@ -341,7 +341,7 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
   return max_chain_peer;
 }
 
-void Network::requestBlsSigBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash &pillar_block_hash) {
+void Network::requestPillarChainSigBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash &pillar_block_hash) {
   for (const auto &tarcap : tarcaps_) {
     // Try to get most up-to-date peer
     const auto peer =
