@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include "common/vrf_wrapper.hpp"
 #include "vote.hpp"
 #include "vrf_sortition.hpp"
@@ -20,11 +18,11 @@ class PbftVote : public Vote {
  public:
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   PbftVote() = default;
-  PbftVote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash);
+  PbftVote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& block_hash);
 
   // Ctor for optimized rlp vote objects - only signature and vrf proof are in the rlp
-  // explicit PbftVote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const&
-  // rlp);
+  explicit PbftVote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step,
+                    dev::RLP const& rlp);
 
   // Ctors for full rlp vote objects - all data are encoded in the rlp
   explicit PbftVote(dev::RLP const& rlp);
