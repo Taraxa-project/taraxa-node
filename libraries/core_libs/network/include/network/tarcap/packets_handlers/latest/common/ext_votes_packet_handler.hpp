@@ -3,7 +3,7 @@
 #include "packet_handler.hpp"
 
 namespace taraxa {
-class Vote;
+class PbftVote;
 class PbftManager;
 class PbftChain;
 class PbftBlock;

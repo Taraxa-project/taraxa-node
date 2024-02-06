@@ -6,13 +6,15 @@
 #include "common/types.hpp"
 #include "final_chain/state_api_data.hpp"
 
+namespace taraxa {
+class PillarVote;
+}
+
 namespace taraxa::pillar_chain {
 
 /** @addtogroup PILLAR_CHAIN
  * @{
  */
-
-class BlsSignature;
 
 /**
  * @brief PillarBlock contains merkle root of all finalized blocks created in the last epoch
@@ -89,7 +91,7 @@ class PillarBlock {
 
 struct PillarBlockData {
   std::shared_ptr<PillarBlock> block;
-  std::vector<std::shared_ptr<BlsSignature>> signatures;
+  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
 
   HAS_RLP_FIELDS
 };

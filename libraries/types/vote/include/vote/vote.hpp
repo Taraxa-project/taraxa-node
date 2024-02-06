@@ -67,7 +67,6 @@ class Vote {
 
   mutable public_t cached_voter_;
   mutable addr_t cached_voter_addr_;
-  mutable std::optional<uint64_t> weight_;
 };
 
 /** @}*/

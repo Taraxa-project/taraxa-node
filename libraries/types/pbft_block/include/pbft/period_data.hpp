@@ -15,7 +15,7 @@ namespace taraxa {
  * @{
  */
 
-class Vote;
+class PbftVote;
 class PbftBlock;
 
 /**

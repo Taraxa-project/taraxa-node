@@ -289,7 +289,7 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   ASSERT_EQ(dag_blk4.getDifficulty(), 17);
   ASSERT_EQ(dag_blk5.getDifficulty(), 16);
 
-  std::vector<size_t> gas_used{10, 20, 30};
+  std::vector<gas_t> gas_used{10, 20, 30};
 
   // Process rewards before aspen hf, expect dag_blocks_count to match blocks that include unique transactions which is
   // blocks 1, 2 and 5
