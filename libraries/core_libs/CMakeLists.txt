@@ -57,7 +57,6 @@ target_link_libraries(core_libs PUBLIC
   metrics
   Jsonrpccpp
   rocksdb
-  bls
 
   # GraphQL
   cppgraphqlgen::graphqlservice

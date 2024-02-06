@@ -1,22 +1,20 @@
 #include "pillar_chain/pillar_chain_manager.hpp"
 
+#include <libff/common/profiling.hpp>
+
 #include "final_chain/final_chain.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/network.hpp"
 #include "storage/storage.hpp"
+#include "vote/pillar_vote.hpp"
 #include "vote_manager/vote_manager.hpp"
-
-// TODO: should ne #include <libBLS/tools/utils.h>
-#include <tools/utils.h>
-
-#include <libff/common/profiling.hpp>
 
 namespace taraxa::pillar_chain {
 
 PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<final_chain::FinalChain> final_chain,
                                        std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
-                                       const libff::alt_bn128_Fr& bls_secret_key, addr_t node_addr)
+                                       addr_t node_addr)
     : kFicusHfConfig(ficusHfConfig),
       db_(std::move(db)),
       network_{},
@@ -24,24 +22,20 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
       vote_mgr_(std::move(vote_mgr)),
       key_manager_(std::move(key_manager)),
       node_addr_(node_addr),
-      kBlsSecretKey(bls_secret_key),
       last_finalized_pillar_block_{},
       current_pillar_block_{},
       current_pillar_block_stakes_{},
-      signatures_{},
+      pillar_votes_{},
       mutex_{} {
-  libBLS::ThresholdUtils::initCurve();
-  libff::inhibit_profiling_info = true;  // disable libff (use for bls signatures) internal logging
-
-  if (const auto signature = db_->getOwnLatestBlsSignature(); signature) {
-    addVerifiedBlsSig(signature);
+  if (const auto vote = db_->getOwnPillarBlockVote(); vote) {
+    addVerifiedPillarVote(vote);
   }
 
   if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
     last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block);
     // TODO: probably dont need this ???
-    //    for (const auto& signature : latest_pillar_block_data->signatures) {
-    //      addVerifiedBlsSig(signature);
+    //    for (const auto& vote : latest_pillar_block_data->votes) {
+    //      addVerifiedPillarVote(vote);
     //    }
 
     // TODO: get current pillar block from db
@@ -63,7 +57,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
 
   // There should always be latest_pillar_block_, except for the very first pillar block
   if (block_num > kFicusHfConfig.pillar_block_periods) [[likely]] {  // Not the first pillar block epoch
-    // TODO: do we need this mutex for latest_pillar_block_, latest_pillar_block_stakes_ and signatures_ ?
+    // TODO: do we need this mutex for latest_pillar_block_, latest_pillar_block_stakes_ and votes_ ?
     std::shared_lock<std::shared_mutex> lock(mutex_);
 
     if (!current_pillar_block_) {
@@ -72,17 +66,17 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
       return;
     }
 
-    // Get 2t+1 verified signatures
-    const auto two_t_plus_one_signatures = signatures_.getVerifiedBlsSignatures(current_pillar_block_->getPeriod(),
-                                                                                current_pillar_block_->getHash(), true);
-    if (two_t_plus_one_signatures.empty()) {
-      LOG(log_er_) << "There is < 2t+1 signatures for current pillar block " << current_pillar_block_->getHash()
+    // Get 2t+1 verified votes
+    const auto two_t_plus_one_votes =
+        pillar_votes_.getVerifiedVotes(current_pillar_block_->getPeriod(), current_pillar_block_->getHash(), true);
+    if (two_t_plus_one_votes.empty()) {
+      LOG(log_er_) << "There is < 2t+1 votes for current pillar block " << current_pillar_block_->getHash()
                    << ", period: " << current_pillar_block_->getPeriod();
       return;
     }
 
-    // Save current pillar block and 2t+1 signatures into db
-    if (!pushPillarBlock(PillarBlockData{current_pillar_block_, two_t_plus_one_signatures})) {
+    // Save current pillar block and 2t+1 votes into db
+    if (!pushPillarBlock(PillarBlockData{current_pillar_block_, two_t_plus_one_votes})) {
       // This should never happen
       LOG(log_er_) << "Unable to push pillar block: " << current_pillar_block_->getHash();
       assert(false);
@@ -124,8 +118,8 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
     // TODO: save both current_pillar_block_ & current_pillar_block_stakes_ into db ???
   }
 
-  // Create and broadcast own bls signature
-  // TODO: do not create & gossip own sig or request other signatures if the node is in syncing state ???
+  // Create and broadcast own pillar vote
+  // TODO: do not create & gossip own sig or request other votes if the node is in syncing state ???
 
   // Check if node is an eligible validator
   try {
@@ -137,28 +131,22 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
     return;
   }
 
-  if (!key_manager_->getBlsKey(block_num, node_addr_)) {
-    LOG(log_er_) << "No bls public key registered for acc " << node_addr_ << " in dpos contract !";
-    return;
-  }
-
-  // Creates bls signature
-  // TODO: this is not good - what if there won't be consensus on pillar block, butpbft goes on ? We need some sort of
-  // repetitive voting
-  auto signature = std::make_shared<BlsSignature>(pillar_block->getHash(), block_num, node_addr_, kBlsSecretKey);
-
-  // Broadcasts bls signature
-  if (validateBlsSignature(signature) && addVerifiedBlsSig(signature)) {
-    db_->saveOwnLatestBlsSignature(signature);
-
-    if (auto net = network_.lock()) {
-      net->gossipBlsSignature(signature);
-    }
-  }
+  //  // Creates pillar vote
+  //  // TODO: move this to the pbft manager
+  //  auto vote = std::make_shared<PillarVote>(pillar_block->getHash(), block_num, node_addr_);
+  //
+  //  // Broadcasts pillar vote
+  //  if (validatePillarVote(vote) && addVerifiedPillarVote(vote)) {
+  //    db_->saveOwnPillarBlockVote(vote);
+  //
+  //    if (auto net = network_.lock()) {
+  //      net->gossipPillarBlockVote(vote);
+  //    }
+  //  }
 }
 
 bool PillarChainManager::pushPillarBlock(const PillarBlockData& pillarBlockData) {
-  // Note: 2t+1 signatures should be validated before calling pushPillarBlock
+  // Note: 2t+1 votes should be validated before calling pushPillarBlock
   if (!isValidPillarBlock(pillarBlockData.block)) {
     LOG(log_er_) << "Trying to push invalid pillar block";
     return false;
@@ -170,8 +158,8 @@ bool PillarChainManager::pushPillarBlock(const PillarBlockData& pillarBlockData)
     std::scoped_lock<std::shared_mutex> lock(mutex_);
     last_finalized_pillar_block_ = pillarBlockData.block;
 
-    // Erase signatures that are no longer needed
-    signatures_.eraseSignatures(last_finalized_pillar_block_->getPeriod());
+    // Erase votes that are no longer needed
+    pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod());
   }
 
   return true;
@@ -199,122 +187,113 @@ void PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const 
     return;
   }
 
-  // Check 2t+1 signatures for the current pillar block
-  if (!signatures_.hasTwoTPlusOneSignatures(current_pillar_block_->getPeriod(), current_pillar_block_->getHash())) {
-    // There is < 2t+1 bls signatures, request it
+  // Check 2t+1 votes for the current pillar block
+  if (!pillar_votes_.hasTwoTPlusOneVotes(current_pillar_block_->getPeriod(), current_pillar_block_->getHash())) {
+    // There is < 2t+1 pillar votes, request it
     if (auto net = network_.lock()) {
-      net->requestBlsSigBundle(current_pillar_block_->getPeriod(), current_pillar_block_->getHash());
+      net->requestPillarBlockVotesBundle(current_pillar_block_->getPeriod(), current_pillar_block_->getHash());
     }
     return;
   }
 }
 
-bool PillarChainManager::isRelevantBlsSig(const std::shared_ptr<BlsSignature> signature) const {
+bool PillarChainManager::isRelevantPillarVote(const std::shared_ptr<PillarVote> vote) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
-  const auto signature_period = signature->getPeriod();
+  const auto vote_period = vote->getPeriod();
   // Empty current_pillar_block_ means there was no pillar block created yet at all
   if (!current_pillar_block_) [[unlikely]] {
-    LOG(log_nf_) << "Received signature's period " << signature_period
-                 << ", no pillar block created yet. Accepting signatures with " << kFicusHfConfig.pillar_block_periods
-                 << " period";
+    LOG(log_nf_) << "Received vote's period " << vote_period << ", no pillar block created yet. Accepting votes with "
+                 << kFicusHfConfig.pillar_block_periods << " period";
     return false;
-  } else if (signature_period == current_pillar_block_->getPeriod()) {
-    if (signature->getPillarBlockHash() != current_pillar_block_->getHash()) {
-      LOG(log_nf_) << "Received signature's block hash " << signature->getPillarBlockHash()
-                   << " != current pillar block hash " << current_pillar_block_->getHash();
+  } else if (vote_period == current_pillar_block_->getPeriod()) {
+    if (vote->getBlockHash() != current_pillar_block_->getHash()) {
+      LOG(log_nf_) << "Received vote's block hash " << vote->getBlockHash() << " != current pillar block hash "
+                   << current_pillar_block_->getHash();
       return false;
     }
-  } else if (signature_period !=
+  } else if (vote_period !=
              current_pillar_block_->getPeriod() + kFicusHfConfig.pillar_block_periods /* +1 future pillar block */) {
-    LOG(log_nf_) << "Received signature's period " << signature_period << ", current pillar block period "
+    LOG(log_nf_) << "Received vote's period " << vote_period << ", current pillar block period "
                  << current_pillar_block_->getPeriod();
     return false;
   }
 
-  return !signatures_.signatureExists(signature);
+  return !pillar_votes_.voteExists(vote);
 }
 
-bool PillarChainManager::validateBlsSignature(const std::shared_ptr<BlsSignature> signature) const {
-  const auto sig_period = signature->getPeriod();
-  const auto sig_author = signature->getSignerAddr();
+bool PillarChainManager::validatePillarVote(const std::shared_ptr<PillarVote> vote) const {
+  const auto period = vote->getPeriod();
+  const auto validator = vote->getVoterAddr();
 
-  // Check if signature is unique per period & validator (signer)
-  if (!signatures_.isUniqueBlsSig(signature)) {
-    LOG(log_er_) << "Bls Signature " << signature->getHash() << " is not unique per period & validator";
-    return false;
-  }
-
-  // Check if signer registered his bls key
-  const auto bls_pub_key = key_manager_->getBlsKey(sig_period, sig_author);
-  if (!bls_pub_key) {
-    LOG(log_er_) << "No bls public key mapped for node " << sig_author << ". Signature " << signature->getHash();
+  // Check if vote is unique per period & validator (signer)
+  if (!pillar_votes_.isUniqueVote(vote)) {
+    LOG(log_er_) << "Pillar vote " << vote->getHash() << " is not unique per period & validator";
     return false;
   }
 
   // Check if signer is eligible validator
   try {
-    if (!final_chain_->dpos_is_eligible(sig_period, sig_author)) {
-      LOG(log_er_) << "Signer is not eligible validator. Signature " << signature->getHash();
+    if (!final_chain_->dpos_is_eligible(period, validator)) {
+      LOG(log_er_) << "Validator is not eligible. Pillar vote " << vote->getHash();
       return false;
     }
   } catch (state_api::ErrFutureBlock& e) {
-    LOG(log_wr_) << "Period " << sig_period << " is too far ahead of DPOS. Signature " << signature->getHash()
+    LOG(log_wr_) << "Period " << period << " is too far ahead of DPOS. Pillar vote " << vote->getHash()
                  << ". Err: " << e.what();
     return false;
   }
 
-  if (!signature->isValid(bls_pub_key)) {
-    LOG(log_er_) << "Invalid signature " << signature->getHash();
+  if (!vote->verifyVote()) {
+    LOG(log_er_) << "Invalid pillar vote " << vote->getHash();
     return false;
   }
 
   return true;
 }
 
-bool PillarChainManager::addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& signature) {
-  uint64_t signer_vote_count = 0;
+bool PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote) {
+  uint64_t validator_vote_count = 0;
   try {
-    signer_vote_count = final_chain_->dpos_eligible_vote_count(signature->getPeriod(), signature->getSignerAddr());
+    validator_vote_count = final_chain_->dpos_eligible_vote_count(vote->getPeriod(), vote->getVoterAddr());
   } catch (state_api::ErrFutureBlock& e) {
-    LOG(log_er_) << "Signature " << signature->getHash() << " period " << signature->getPeriod()
+    LOG(log_er_) << "Pillar vote " << vote->getHash() << " period " << vote->getPeriod()
                  << " is too far ahead of DPOS. " << e.what();
     return false;
   }
 
-  if (!signer_vote_count) {
-    // Signer is not a valid validator
-    LOG(log_er_) << "Zero stake for Signature: " << signature->getHash() << ", author: " << signature->getSignerAddr()
-                 << ", period: " << signature->getPeriod();
+  if (!validator_vote_count) {
+    LOG(log_er_) << "Zero stake for pillar vote: " << vote->getHash() << ", author: " << vote->getVoterAddr()
+                 << ", period: " << vote->getPeriod();
     return false;
   }
 
-  if (!signatures_.periodDataInitialized(signature->getPeriod())) {
-    // Note: do not use signature->getPeriod() - 1 as in votes processing - signature are made after the block is
+  if (!pillar_votes_.periodDataInitialized(vote->getPeriod())) {
+    // Note: do not use vote->getPeriod() - 1 as in votes processing - vote are made after the block is
     // finalized, not before as votes
-    if (const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(signature->getPeriod(), PbftVoteTypes::cert_vote);
+    if (const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(vote->getPeriod(), PbftVoteTypes::cert_vote);
         two_t_plus_one.has_value()) {
-      signatures_.initializePeriodData(signature->getPeriod(), *two_t_plus_one);
+      pillar_votes_.initializePeriodData(vote->getPeriod(), *two_t_plus_one);
     } else {
       // getPbftTwoTPlusOne returns empty optional only when requested period is too far ahead and that should never
       // happen as this exception is caught above when calling dpos_eligible_vote_count
-      LOG(log_er_) << "Unable to get 2t+1 for period " << signature->getPeriod();
+      LOG(log_er_) << "Unable to get 2t+1 for period " << vote->getPeriod();
       assert(false);
       return false;
     }
   }
 
-  if (!signatures_.addVerifiedSig(signature, signer_vote_count)) {
-    LOG(log_er_) << " non-unique signature " << signature->getHash() << ", signer " << signature->getSignerAddr();
+  if (!pillar_votes_.addVerifiedVote(vote, validator_vote_count)) {
+    LOG(log_er_) << "Non-unique pillar vote " << vote->getHash() << ", validator " << vote->getVoterAddr();
     return false;
   }
 
   return true;
 }
 
-std::vector<std::shared_ptr<BlsSignature>> PillarChainManager::getVerifiedBlsSignatures(
+std::vector<std::shared_ptr<PillarVote>> PillarChainManager::getVerifiedPillarVotes(
     PbftPeriod period, const PillarBlock::Hash pillar_block_hash) const {
-  return signatures_.getVerifiedBlsSignatures(period, pillar_block_hash);
+  return pillar_votes_.getVerifiedVotes(period, pillar_block_hash);
 }
 
 std::optional<PbftPeriod> PillarChainManager::getLastFinalizedPillarBlockPeriod() const {

@@ -703,17 +703,17 @@ std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData
   return util::rlp_dec<pillar_chain::PillarBlockData>(dev::RLP(it->value().ToString()));
 }
 
-void DbStorage::saveOwnPillarBlockSignature(const std::shared_ptr<pillar_chain::BlsSignature>& bls_signature) {
-  insert(Columns::latest_pillar_block_own_signature, 0, util::rlp_enc(bls_signature));
+void DbStorage::saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote) {
+  insert(Columns::latest_pillar_block_own_vote, 0, util::rlp_enc(vote));
 }
 
-std::shared_ptr<pillar_chain::BlsSignature> DbStorage::getOwnPillarBlockSignature() const {
-  const auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_own_signature));
+std::shared_ptr<PillarVote> DbStorage::getOwnPillarBlockVote() const {
+  const auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_own_vote));
   if (bytes.empty()) {
     return nullptr;
   }
 
-  return std::make_shared<pillar_chain::BlsSignature>(dev::RLP(bytes));
+  return std::make_shared<PillarVote>(dev::RLP(bytes));
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {

@@ -1,27 +1,29 @@
+#include "vote/pbft_vote.hpp"
+
 #include <libdevcore/CommonJS.h>
 
 #include "common/encoding_rlp.hpp"
-#include "vote/pbft_pbft_vote.hpp"
 
 namespace taraxa {
 
-// PbftVote::PbftVote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const&
-// rlp)
-//     : blockhash_(block_hash) {
-//   vrf_wrapper::vrf_proof_t vrf_proof;
-//   sig_t vote_signature;
-//   util::rlp_tuple(util::RLPDecoderRef(rlp, true), vrf_proof, vote_signature);
-//
-//   VrfPbftSortition vrf_sortition;
-//   vrf_sortition.pbft_msg_.period_ = period;
-//   vrf_sortition.pbft_msg_.round_ = round;
-//   vrf_sortition.pbft_msg_.step_ = step;
-//   vrf_sortition.proof_ = vrf_proof;
-//
-//   vrf_sortition_ = std::move(vrf_sortition);
-//   vote_signature_ = std::move(vote_signature);
-//   vote_hash_ = sha3(true);
-// }
+PbftVote::PbftVote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step,
+                   dev::RLP const& rlp) {
+  vrf_wrapper::vrf_proof_t vrf_proof;
+  sig_t vote_signature;
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), vrf_proof, vote_signature);
+
+  block_hash_ = block_hash;
+
+  VrfPbftSortition vrf_sortition;
+  vrf_sortition.pbft_msg_.period_ = period;
+  vrf_sortition.pbft_msg_.round_ = round;
+  vrf_sortition.pbft_msg_.step_ = step;
+  vrf_sortition.proof_ = vrf_proof;
+
+  vrf_sortition_ = std::move(vrf_sortition);
+  vote_signature_ = std::move(vote_signature);
+  vote_hash_ = sha3(true);
+}
 
 PbftVote::PbftVote(const dev::RLP& rlp) {
   bytes vrf_bytes;
@@ -93,6 +95,14 @@ bool PbftVote::verifyVrfSortition(const vrf_pk_t& pk, bool strict) const { retur
 const VrfPbftSortition& PbftVote::getVrfSortition() const { return vrf_sortition_; }
 
 const vrf_wrapper::vrf_proof_t& PbftVote::getSortitionProof() const { return vrf_sortition_.proof_; }
+
+uint64_t PbftVote::calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold) const {
+  assert(stake);
+  weight_ = vrf_sortition_.calculateWeight(stake, dpos_total_votes_count, threshold, getVoter());
+  return weight_.value();
+}
+
+std::optional<uint64_t> PbftVote::getWeight() const { return weight_; }
 
 const vrf_wrapper::vrf_output_t& PbftVote::getCredential() const { return vrf_sortition_.output_; }
 
