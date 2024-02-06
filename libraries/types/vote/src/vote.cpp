@@ -1,7 +1,8 @@
+#include "vote/vote.hpp"
+
 #include <libdevcore/CommonJS.h>
 
 #include "common/encoding_rlp.hpp"
-#include "vote/vote.hpp"
 
 namespace taraxa {
 

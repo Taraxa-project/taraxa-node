@@ -3,7 +3,7 @@
 #include <libdevcore/SHA3.h>
 
 #include "common/encoding_rlp.hpp"
-#include "pillar_chain/bls_signature.hpp"
+#include "vote/pillar_vote.hpp"
 
 namespace taraxa::pillar_chain {
 
@@ -55,6 +55,6 @@ PillarBlock::Hash PillarBlock::getHash() {
 }
 
 RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, previous_pillar_block_hash_, validators_stakes_changes_)
-RLP_FIELDS_DEFINE(PillarBlockData, block, signatures)
+RLP_FIELDS_DEFINE(PillarBlockData, block, pillar_votes)
 
 }  // namespace taraxa::pillar_chain

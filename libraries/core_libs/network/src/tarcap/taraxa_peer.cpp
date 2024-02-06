@@ -38,12 +38,12 @@ bool TaraxaPeer::markPbftBlockAsKnown(const blk_hash_t& hash) {
 
 bool TaraxaPeer::isPbftBlockKnown(const blk_hash_t& hash) const { return known_pbft_blocks_.contains(hash); }
 
-bool TaraxaPeer::markPillarBlockSigAsKnown(const pillar_chain::BlsSignature::Hash& hash) {
-  return known_pillar_chain_signatures_.insert(hash, pbft_chain_size_);
+bool TaraxaPeer::markPillarBlockVoteAsKnown(const vote_hash_t& hash) {
+  return known_pillar_chain_votes_.insert(hash, pbft_chain_size_);
 }
 
-bool TaraxaPeer::isPillarBlockSigKnown(const pillar_chain::BlsSignature::Hash& hash) const {
-  return known_pillar_chain_signatures_.contains(hash);
+bool TaraxaPeer::isPillarBlockVoteKnown(const vote_hash_t& hash) const {
+  return known_pillar_chain_votes_.contains(hash);
 }
 
 const dev::p2p::NodeID& TaraxaPeer::getId() const { return id_; }

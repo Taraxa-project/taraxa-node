@@ -6,25 +6,25 @@
 
 namespace taraxa::network::tarcap {
 
-class GetBlsSigsBundlePacketHandler : public PacketHandler {
+class GetPillarVotesBundlePacketHandler : public PacketHandler {
  public:
-  GetBlsSigsBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
+  GetPillarVotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                 std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                 std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
                                 const addr_t& node_addr, const std::string& logs_prefix);
 
-  void requestBlsSigsBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash& pillar_block_hash,
+  void requestPillarVotesBundle(PbftPeriod period, const blk_hash_t& pillar_block_hash,
                             const std::shared_ptr<TaraxaPeer>& peer);
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetBlsSigsBundlePacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPillarVotesBundlePacket;
 
  private:
   virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
   virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
-  constexpr static size_t kGetBlsSigsPacketSize{1};
+  constexpr static size_t kGetPillarVotesBundlePacketSize{2};
 
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager_;
 };

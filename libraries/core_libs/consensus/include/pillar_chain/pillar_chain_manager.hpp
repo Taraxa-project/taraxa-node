@@ -6,12 +6,11 @@
 #include "final_chain/data.hpp"
 #include "logger/logger.hpp"
 #include "pillar_chain/pillar_block.hpp"
-#include "pillar_chain/signatures.hpp"
+#include "pillar_chain/pillar_votes.hpp"
 
 namespace taraxa {
 class DbStorage;
 class Network;
-class BlsSignature;
 class KeyManager;
 class VoteManager;
 }  // namespace taraxa
@@ -43,8 +42,8 @@ class PillarChainManager {
   void createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
 
   /**
-   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+signatures) and there is 2t+1
-   * signatures for latest pillar block. If not, request them
+   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is 2t+1
+   * votes for latest pillar block. If not, request them
    *
    * @param block_num - current block number
    */
@@ -57,28 +56,28 @@ class PillarChainManager {
   void setNetwork(std::weak_ptr<Network> network);
 
   /**
-   * @brief Checks if signature is related to saved latest_pillar_block_ and it is not already saved
+   * @brief Checks if vote is related to saved latest_pillar_block_ and it is not already saved
    *
-   * @param signature
+   * @param vote
    * @return true if relevant, otherwise false
    */
-  bool isRelevantBlsSig(const std::shared_ptr<BlsSignature> signature) const;
+  bool isRelevantPillarVote(const std::shared_ptr<PillarVote> vote) const;
 
   /**
-   * @brief Validates bls signature
+   * @brief Validates pillar vote
    *
-   * @param signature
+   * @param vote
    * @return true if valid, otherwise false
    */
-  bool validateBlsSignature(const std::shared_ptr<BlsSignature> signature) const;
+  bool validatePillarVote(const std::shared_ptr<PillarVote> vote) const;
 
   /**
-   * @brief Add a signature to the bls signatures map
-   * @param signature signature
+   * @brief Add a vote to the pillar votes map
+   * @param vote vote
    *
-   * @return true if signature was successfully added, otherwise false
+   * @return true if vote was successfully added, otherwise false
    */
-  bool addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& signature);
+  bool addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote);
 
   /**
    * @brief Push new finalized pillar block
@@ -89,15 +88,15 @@ class PillarChainManager {
   bool pushPillarBlock(const PillarBlockData& pillarBlockData);
 
   /**
-   * @brief Get all bls signatures for specified pillar block
+   * @brief Get all pillar votes for specified pillar block
    *
    * @param period
    * @param pillar_block_hash
    *
-   * @return all bls signatures for specified period and pillar block hash
+   * @return all pillar votes for specified period and pillar block hash
    */
-  std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(PbftPeriod period,
-                                                                      const PillarBlock::Hash pillar_block_hash) const;
+  std::vector<std::shared_ptr<PillarVote>> getVerifiedPillarVotes(PbftPeriod period,
+                                                                  const PillarBlock::Hash pillar_block_hash) const;
 
   /**
    * @return period of the latest finalized pillar block
@@ -134,18 +133,16 @@ class PillarChainManager {
 
   const addr_t node_addr_;
 
-  const libff::alt_bn128_Fr kBlsSecretKey;
-
-  // Last finalized pillar block - saved into db together with 2t+1 signatures
+  // Last finalized pillar block - saved into db together with 2t+1 votes
   std::shared_ptr<PillarBlock> last_finalized_pillar_block_;
   // Current pillar block
   std::shared_ptr<PillarBlock> current_pillar_block_;
   // Full list of validators stakes for tbe current pillar block period - no concurrent access protection needed
   std::vector<state_api::ValidatorStake> current_pillar_block_stakes_;
 
-  // Bls signatures for latest_pillar_block_.period - 1, latest_pillar_block_.period and potential +1 future pillar
+  // Pillar votes for latest_pillar_block_.period - 1, latest_pillar_block_.period and potential +1 future pillar
   // block period
-  Signatures signatures_;
+  PillarVotes pillar_votes_;
 
   // Protects latest_pillar_block_
   mutable std::shared_mutex mutex_;

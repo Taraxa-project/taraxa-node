@@ -7,7 +7,6 @@
 
 #include "common/util.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
-#include "pillar_chain/bls_signature.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -56,14 +55,14 @@ class TaraxaPeer : public boost::noncopyable {
   bool isPbftBlockKnown(const blk_hash_t& hash) const;
 
   /**
-   * @brief Mark pillar block signature as known
+   * @brief Mark pillar block vote as known
    *
    * @param _hash
-   * @return true in case bls signature was actually marked as known(was not known before), otherwise false (was already
+   * @return true in case pillar vote was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markPillarBlockSigAsKnown(const pillar_chain::BlsSignature::Hash& hash);
-  bool isPillarBlockSigKnown(const pillar_chain::BlsSignature::Hash& hash) const;
+  bool markPillarBlockVoteAsKnown(const vote_hash_t& hash);
+  bool isPillarBlockVoteKnown(const vote_hash_t& hash) const;
 
   const dev::p2p::NodeID& getId() const;
 

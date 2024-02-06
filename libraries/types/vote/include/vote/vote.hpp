@@ -58,7 +58,7 @@ class Vote {
    * @param inc_sig if include vote signature
    * @return secure hash as vote hash
    */
-  virtual vote_hash_t sha3(bool inc_sig) const = 0;
+  virtual vote_hash_t sha3(bool inc_sig) const;
 
  protected:
   vote_hash_t vote_hash_;  // hash of this vote

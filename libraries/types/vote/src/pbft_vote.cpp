@@ -1,7 +1,8 @@
+#include "vote/pbft_vote.hpp"
+
 #include <libdevcore/CommonJS.h>
 
 #include "common/encoding_rlp.hpp"
-#include "vote/pbft_pbft_vote.hpp"
 
 namespace taraxa {
 
