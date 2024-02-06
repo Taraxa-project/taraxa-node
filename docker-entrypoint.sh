@@ -16,6 +16,9 @@ else
   if [[ -z "${ADVERTISED_IP}" ]]; then
     echo "ADVERTISED_IP is not set."
   else
+    if [ "$ADVERTISED_IP" = "auto" ]; then
+      ADVERTISED_IP=$(curl icanhazip.com 2>/dev/null)
+    fi
     FLAGS="--public-ip ${ADVERTISED_IP}"
   fi
 
