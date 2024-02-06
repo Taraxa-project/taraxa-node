@@ -7,7 +7,7 @@
 
 namespace taraxa {
 
-class Vote;
+class PbftVote;
 
 /** @addtogroup Vote
  * @{

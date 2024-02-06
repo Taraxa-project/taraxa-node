@@ -14,10 +14,10 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/period_data.hpp"
-#include "pillar_chain/bls_signature.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
 #include "transaction/transaction.hpp"
+#include "vote/pillar_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
 
 namespace taraxa {
@@ -130,8 +130,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     // Pillar blocks
     COLUMN_W_COMP(pillar_block_data, getIntComparator<PbftPeriod>());
-    // Latest pillar block own bls signature
-    COLUMN(latest_pillar_block_own_signature);
+    // Latest pillar block own pillar vote
+    COLUMN(latest_pillar_block_own_vote);
 
 #undef COLUMN
 #undef COLUMN_W_COMP
@@ -220,8 +220,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
   std::optional<pillar_chain::PillarBlockData> getPillarBlockData(PbftPeriod period) const;
   std::optional<pillar_chain::PillarBlockData> getLatestPillarBlockData() const;
-  void saveOwnPillarBlockSignature(const std::shared_ptr<pillar_chain::BlsSignature>& signature);
-  std::shared_ptr<pillar_chain::BlsSignature> getOwnPillarBlockSignature() const;
+  void saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote);
+  std::shared_ptr<PillarVote> getOwnPillarBlockVote() const;
 
   /**
    * @brief Gets finalized transactions from provided hashes

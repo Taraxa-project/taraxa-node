@@ -8,11 +8,11 @@
 #include <ranges>
 
 #include "config/version.hpp"
-#include "network/tarcap/packets_handlers/latest/bls_sig_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/get_bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_pillar_chain_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_pillar_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pillar_vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
@@ -300,9 +300,9 @@ void Network::gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &vo
   }
 }
 
-void Network::gossipPillarChainSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature) {
+void Network::gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote) {
   for (const auto &tarcap : tarcaps_) {
-    tarcap.second->getSpecificHandler<network::tarcap::BlsSigPacketHandler>()->onNewBlsSig(signature);
+    tarcap.second->getSpecificHandler<network::tarcap::PillarVotePacketHandler>()->onNewPillarVote(vote);
   }
 }
 
@@ -337,7 +337,7 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
   return max_chain_peer;
 }
 
-void Network::requestPillarChainSigBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash &pillar_block_hash) {
+void Network::requestPillarBlockVotesBundle(taraxa::PbftPeriod period, const taraxa::blk_hash_t &pillar_block_hash) {
   for (const auto &tarcap : tarcaps_) {
     // Try to get most up-to-date peer
     const auto peer =
@@ -347,8 +347,8 @@ void Network::requestPillarChainSigBundle(PbftPeriod period, const pillar_chain:
       continue;
     }
 
-    // TODO: is it good enough to request it just from 1 peer without knowing if he has all of the signatures ?
-    tarcap.second->getSpecificHandler<network::tarcap::GetBlsSigsBundlePacketHandler>()->requestBlsSigsBundle(
+    // TODO: is it good enough to request it just from 1 peer without knowing if he has all of the votes ?
+    tarcap.second->getSpecificHandler<network::tarcap::GetPillarVotesBundlePacketHandler>()->requestPillarVotesBundle(
         period, pillar_block_hash, peer);
   }
 }
