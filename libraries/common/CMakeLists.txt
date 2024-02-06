@@ -30,7 +30,6 @@ target_link_libraries(common PUBLIC
     taraxa-vrf
     CONAN_PKG::openssl
     CONAN_PKG::jsoncpp
-    bls
 )
 
 install(TARGETS common

@@ -134,14 +134,13 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
     // Packets that can be processed only 1 at the time
     //  GetDagSyncPacket -> serve dag syncing data to only 1 node at the time
     //  GetPbftSyncPacket -> serve pbft syncing data to only 1 node at the time
-    //  GetBlsSigsBundlePacket -> serve bls signatures syncing data to only 1 node at the time
+    //  GetPillarVotesBundlePacket -> serve pillar votes syncing data to only 1 node at the time
     //  PbftSyncPacket -> process sync pbft blocks synchronously
     case SubprotocolPacketType::GetDagSyncPacket:
     case SubprotocolPacketType::GetPbftSyncPacket:
-    case SubprotocolPacketType::GetBlsSigsBundlePacket:
-    case SubprotocolPacketType::BlsSigsBundlePacket:
+    case SubprotocolPacketType::GetPillarVotesBundlePacket:
+    case SubprotocolPacketType::PillarVotesBundlePacket:
     case SubprotocolPacketType::PbftSyncPacket:
-    case SubprotocolPacketType::BlsSigPacket:  // Bls signature validation is not thread-safe
     case SubprotocolPacketType::GetPillarChainSyncPacket:
     case SubprotocolPacketType::PillarChainSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);

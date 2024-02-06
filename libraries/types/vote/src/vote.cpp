@@ -1,11 +1,12 @@
+#include "vote/vote.hpp"
+
 #include <libdevcore/CommonJS.h>
 
 #include "common/encoding_rlp.hpp"
-#include "vote/vote.hpp"
 
 namespace taraxa {
 
-Vote::Vote(secret_t const& node_sk, blk_hash_t const& blockhash) : block_hash_(blockhash) {
+Vote::Vote(const secret_t& node_sk, const blk_hash_t& block_hash) : block_hash_(block_hash) {
   vote_signature_ = dev::sign(node_sk, sha3(false));
   vote_hash_ = sha3(true);
   cached_voter_ = dev::toPublic(node_sk);

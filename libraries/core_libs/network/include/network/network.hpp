@@ -28,10 +28,6 @@ class TimePeriodPacketsStats;
 class NodeStats;
 }  // namespace network::tarcap
 
-namespace pillar_chain {
-class BlsSignature;
-}
-
 class PacketHandler;
 
 class Network {
@@ -69,17 +65,17 @@ class Network {
   void gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
                   bool rebroadcast = false);
   void gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes, bool rebroadcast = false);
-  void gossipPillarBlockSignature(const std::shared_ptr<pillar_chain::BlsSignature> &signature);
+  void gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote);
   void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
   std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;
 
   /**
-   * @brief Request pillar block signatures bundle packet from random peer
+   * @brief Request pillar block votes bundle packet from random peer
    *
    * @param period
    * @param pillar_block_hash
    */
-  void requestPillarBlockSigBundle(PbftPeriod period, const pillar_chain::PillarBlock::Hash &pillar_block_hash);
+  void requestPillarBlockVotesBundle(PbftPeriod period, const blk_hash_t &pillar_block_hash);
 
   /**
    * @brief Request pillar blocks

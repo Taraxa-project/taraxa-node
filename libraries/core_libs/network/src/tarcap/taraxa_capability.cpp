@@ -3,17 +3,17 @@
 #include <algorithm>
 
 #include "network/tarcap/packets_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/bls_sig_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/get_bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_pillar_chain_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_pillar_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pillar_chain_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pillar_vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pillar_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
@@ -254,12 +254,12 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
                                                                pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,
                                                                logs_prefix);
-      packets_handlers->registerHandler<BlsSigPacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
-                                                             node_addr, logs_prefix);
-      packets_handlers->registerHandler<GetBlsSigsBundlePacketHandler>(config, peers_state, packets_stats,
-                                                                       pillar_chain_mgr, node_addr, logs_prefix);
-      packets_handlers->registerHandler<BlsSigsBundlePacketHandler>(config, peers_state, packets_stats,
-                                                                    pillar_chain_mgr, node_addr, logs_prefix);
+      packets_handlers->registerHandler<PillarVotePacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
+                                                                 node_addr, logs_prefix);
+      packets_handlers->registerHandler<GetPillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
+                                                                           pillar_chain_mgr, node_addr, logs_prefix);
+      packets_handlers->registerHandler<PillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
+                                                                        pillar_chain_mgr, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<GetPillarChainSyncPacketHandler>(config, peers_state, packets_stats, db,
                                                                          pillar_chain_mgr, node_addr, logs_prefix);
