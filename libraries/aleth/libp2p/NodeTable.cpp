@@ -568,7 +568,7 @@ NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingN
       return m_ipMappings[from];
     }
   }
-  return {from.address(), from.port(), packet.source.tcpPort()};
+  return {from.address(), packet.source.udpPort(), packet.source.tcpPort()};
 }
 
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
