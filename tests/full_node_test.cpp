@@ -205,11 +205,11 @@ TEST_F(FullNodeTest, db_test) {
   blk_hash_t previous_pillar_block_hash(789);
 
   std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> stakes_changes;
-  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s256(1));
-  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
+  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s96(1));
+  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s96(2));
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      block_num, state_root, std::move(stakes_changes), previous_pillar_block_hash);
+      block_num, state_root, h256{}, previous_pillar_block_hash, std::move(stakes_changes));
 
   std::vector<std::shared_ptr<PillarVote>> pillar_votes;
   const auto vote1 = pillar_votes.emplace_back(
@@ -218,11 +218,9 @@ TEST_F(FullNodeTest, db_test) {
       std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
 
   const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      block_num - 1, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{}, blk_hash_t{});
-  db.savePillarBlockData(
-      pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
-  db.savePillarBlockData(
-      pillar_chain::PillarBlockData{previous_pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
+      block_num - 1, h256{}, h256{}, blk_hash_t{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{});
+  db.savePillarBlockData(pillar_chain::PillarBlockData{pillar_block, pillar_votes});
+  db.savePillarBlockData(pillar_chain::PillarBlockData{previous_pillar_block, {}});
 
   const auto pillar_block_data_db = db.getPillarBlockData(pillar_block->getPeriod());
   EXPECT_EQ(pillar_block->getHash(), pillar_block_data_db->block_->getHash());

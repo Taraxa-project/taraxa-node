@@ -107,6 +107,8 @@ using u512 = boost::multiprecision::number<boost::multiprecision::cpp_int_backen
     512, 512, boost::multiprecision::unsigned_magnitude, boost::multiprecision::unchecked, void>>;
 using s512 = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<
     512, 512, boost::multiprecision::signed_magnitude, boost::multiprecision::unchecked, void>>;
+using s96 = boost::multiprecision::number<boost::multiprecision::cpp_int_backend<
+    96, 96, boost::multiprecision::signed_magnitude, boost::multiprecision::unchecked, void>>;
 using u256s = std::vector<u256>;
 using u160s = std::vector<u160>;
 using u256Set = std::set<u256>;

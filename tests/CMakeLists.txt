@@ -84,6 +84,11 @@ add_executable(rpc_test rpc_test.cpp)
 target_link_libraries(rpc_test test_util)
 add_test(rpc_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rpc_test)
 
+add_executable(pillar_block_test pillar_block_test.cpp)
+target_link_libraries(pillar_block_test test_util)
+add_test(pillar_block_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pillar_block_test)
+
+
 add_custom_target(py_test)
 
 add_custom_command(

@@ -26,10 +26,10 @@ class PillarBlock {
   // Validator stake change
   struct ValidatorStakeChange {
     addr_t addr_;
-    dev::s256 stake_change_;  // can be both positive or negative
+    dev::s96 stake_change_;  // can be both positive or negative
 
     ValidatorStakeChange(const state_api::ValidatorStake& stake);
-    ValidatorStakeChange(addr_t addr, dev::s256 stake_change);
+    ValidatorStakeChange(addr_t addr, dev::s96 stake_change);
     ValidatorStakeChange(const dev::RLP& rlp);
 
     ValidatorStakeChange() = default;
@@ -46,8 +46,8 @@ class PillarBlock {
  public:
   PillarBlock() = default;
   PillarBlock(const dev::RLP& rlp);
-  PillarBlock(PbftPeriod period, h256 state_root, std::vector<ValidatorStakeChange>&& validator_stakes_changes,
-              blk_hash_t previous_pillar_block_hash);
+  PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root, blk_hash_t previous_pillar_block_hash,
+              std::vector<ValidatorStakeChange>&& validator_stakes_changes);
 
   PillarBlock(const PillarBlock& pillar_block);
 
@@ -71,6 +71,8 @@ class PillarBlock {
    */
   dev::bytes getRlp() const;
 
+  dev::bytes encode() const;
+
   HAS_RLP_FIELDS
 
  private:
@@ -80,10 +82,14 @@ class PillarBlock {
   // Pbft block(for period_) state root
   h256 state_root_{};
 
+  // Bridge root
+  h256 bridge_root_{};
+
+  // Previous pillar block block hash
+  Hash previous_pillar_block_hash_{0};
+
   // Delta change of validators stakes between current and latest pillar block
   std::vector<ValidatorStakeChange> validators_stakes_changes_{};
-
-  Hash previous_pillar_block_hash_{0};
 
   std::optional<Hash> hash_;
   std::shared_mutex hash_mutex_;
@@ -93,11 +99,12 @@ struct PillarBlockData {
   std::shared_ptr<PillarBlock> block_;
   std::vector<std::shared_ptr<PillarVote>> pillar_votes_;
 
-  PillarBlockData(std::shared_ptr<PillarBlock> block, std::vector<std::shared_ptr<PillarVote>>&& pillar_votes);
+  PillarBlockData(std::shared_ptr<PillarBlock> block, const std::vector<std::shared_ptr<PillarVote>>& pillar_votes);
   PillarBlockData(const dev::RLP& rlp);
   dev::bytes getRlp() const;
 
   const static size_t kRlpItemCount = 2;
+  HAS_RLP_FIELDS
 };
 
 /** @}*/
