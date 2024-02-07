@@ -42,6 +42,8 @@ void dec_json(const Json::Value& json, AspenHardfork& obj);
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
+  // disable it by default (set to max uint64)
+  uint64_t phalaenopsis_hf_block_num = -1;
   std::vector<Redelegation> redelegations;
   /*
    * @brief key is block number at which change is applied and value is new distribution interval.
@@ -68,6 +70,9 @@ struct HardforksConfig {
 
   // Aspen hardfork implements new yield curve
   AspenHardfork aspen_hf;
+
+  bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
+  bool isAspenHardforkPartTwo(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_two; }
 
   HAS_RLP_FIELDS
 };

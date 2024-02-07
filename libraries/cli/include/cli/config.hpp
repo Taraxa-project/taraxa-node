@@ -59,6 +59,7 @@ class Config {
   static constexpr const char* ENABLE_TEST_RPC = "enable-test-rpc";
   static constexpr const char* ENABLE_DEBUG = "debug";
   static constexpr const char* MIGRATE_ONLY = "migrate-only";
+  static constexpr const char* FIX_TRX_PERIOD = "fix-transactions-period";
 
   std::string dirNameFromFile(const std::string& file);
 };

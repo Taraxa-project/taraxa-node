@@ -255,7 +255,8 @@
   {
     "name": "eth_estimateGas",
     "params": [
-      {}
+      {},
+      ""
     ],
     "order": [],
     "returns": ""

@@ -4,10 +4,8 @@ set(include_path "${prefix}/include")
 
 ExternalProject_Add(jsonrpccpp
     PREFIX "${prefix}"
-    DOWNLOAD_NAME libjson-rpc-cpp-v1.4.1.tar.gz
-    DOWNLOAD_NO_PROGRESS TRUE
-    URL https://github.com/cinemast/libjson-rpc-cpp/archive/refs/tags/v1.4.1.tar.gz
-    URL_HASH SHA256=7a057e50d6203e4ea0a10ba5e4dbf344c48b177e5a3bf82e850eb3a783c11eb5
+    GIT_REPOSITORY https://github.com/MatusKysel/libjson-rpc-cpp.git
+    GIT_SHALLOW true
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

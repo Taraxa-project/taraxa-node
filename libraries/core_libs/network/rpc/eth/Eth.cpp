@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include "LogFilter.hpp"
+#include "common/types.hpp"
 
 using namespace std;
 using namespace dev;
@@ -159,9 +160,14 @@ class EthImpl : public Eth, EthParams {
     return toJS(ret.code_retval);
   }
 
-  string eth_estimateGas(const Json::Value& _json) override {
+  string eth_estimateGas(const Json::Value& _json, const string& blockNumber) override {
     auto t = toTransactionSkeleton(_json);
-    auto blk_n = final_chain->last_block_number();
+    EthBlockNumber blk_n;
+    if (!blockNumber.empty()) {
+      blk_n = parse_blk_num(blockNumber);
+    } else {
+      blk_n = final_chain->last_block_number();
+    }
     prepare_transaction_for_call(t, blk_n);
 
     auto is_enough_gas = [&](gas_t gas) -> bool {

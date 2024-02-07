@@ -10,8 +10,10 @@ class Manager {
     migrations_.push_back(std::make_shared<T>(db_));
   }
   void applyAll();
+  void applyTransactionPeriod();
 
  private:
+  void applyMigration(std::shared_ptr<migration::Base> m);
   std::shared_ptr<DbStorage> db_;
   std::vector<std::shared_ptr<migration::Base>> migrations_;
   LOG_OBJECTS_DEFINE

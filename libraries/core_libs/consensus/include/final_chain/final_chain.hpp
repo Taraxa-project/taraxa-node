@@ -156,7 +156,7 @@ class FinalChain {
    * @param blk_n number of block we are getting state from
    * @return the value at this storage position
    */
-  virtual u256 get_account_storage(addr_t const& addr, u256 const& key,
+  virtual h256 get_account_storage(addr_t const& addr, u256 const& key,
                                    std::optional<EthBlockNumber> blk_n = {}) const = 0;
   /**
    * @brief Returns code at a given address.

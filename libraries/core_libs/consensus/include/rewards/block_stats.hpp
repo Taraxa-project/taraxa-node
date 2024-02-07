@@ -22,9 +22,10 @@ class BlockStats {
    *
    * @param dpos_vote_count - votes count for previous block
    * @param committee_size
+   * @param aspen_dag_rewards - aspen dag rewards
    */
   BlockStats(const PeriodData& block, const std::vector<gas_t>& trxs_gas_used, uint64_t dpos_vote_count,
-             uint32_t committee_size);
+             uint32_t committee_size, const bool aspen_dag_rewards = false);
 
   HAS_RLP_FIELDS
 
@@ -33,8 +34,23 @@ class BlockStats {
    * @brief Process PeriodData and save stats in class for future serialization. returns
    *
    * @param block
+   * @param aspen_dag_rewards
    */
-  void processStats(const PeriodData& block);
+  void processStats(const PeriodData& block, const bool aspen_dag_rewards);
+
+  /**
+   * @brief Process Dag blocks and save stats in class for future serialization. returns
+   *
+   * @param block
+   */
+  void processDagBlocks(const PeriodData& block);
+
+  /**
+   * @brief Process Dag blocks and save stats in class for future serialization with aspen HF changes. returns
+   *
+   * @param block
+   */
+  void processDagBlocksAspen(const PeriodData& block);
 
   /**
    * @brief Prepare fee_by_trx_hash_ map with trx fee by trx hash

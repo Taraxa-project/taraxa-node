@@ -28,6 +28,7 @@
 #include "pbft/pbft_manager.hpp"
 #include "slashing_manager/slashing_manager.hpp"
 #include "storage/migration/migration_manager.hpp"
+#include "storage/migration/transaction_period.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -87,7 +88,11 @@ void FullNode::init() {
 
     db_->updateDbVersions();
 
-    storage::migration::Manager(db_).applyAll();
+    auto migration_manager = storage::migration::Manager(db_);
+    migration_manager.applyAll();
+    if (conf_.db_config.fix_trx_period) {
+      migration_manager.applyTransactionPeriod();
+    }
 
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());

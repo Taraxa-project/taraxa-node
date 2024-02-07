@@ -111,9 +111,10 @@ class EthFace : public ServerInterface<EthFace> {
                            &taraxa::net::EthFace::eth_sendRawTransactionI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_syncing", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_syncingI);
-    this->bindAndAddMethod(jsonrpc::Procedure("eth_estimateGas", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
-                                              "param1", jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::EthFace::eth_estimateGasI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("eth_estimateGas", jsonrpc::PARAMS_BY_POSITION_WITH_OPTIONAL, jsonrpc::JSON_STRING, "param1",
+                           jsonrpc::JSON_OBJECT, "param2", JSON_ANY, NULL),
+        &taraxa::net::EthFace::eth_estimateGasI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_chainId", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_chainIdI);
   }
@@ -223,7 +224,7 @@ class EthFace : public ServerInterface<EthFace> {
     response = this->eth_syncing();
   }
   inline virtual void eth_estimateGasI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_estimateGas(request[0u]);
+    response = this->eth_estimateGas(request[0u], request[1u].asString());
   }
   inline virtual void eth_chainIdI(const Json::Value &request, Json::Value &response) {
     (void)request;
@@ -262,7 +263,7 @@ class EthFace : public ServerInterface<EthFace> {
   virtual Json::Value eth_getLogs(const Json::Value &param1) = 0;
   virtual std::string eth_sendRawTransaction(const std::string &param1) = 0;
   virtual Json::Value eth_syncing() = 0;
-  virtual std::string eth_estimateGas(const Json::Value &param1) = 0;
+  virtual std::string eth_estimateGas(const Json::Value &param1, const std::string &param2) = 0;
   virtual Json::Value eth_chainId() = 0;
 };
 

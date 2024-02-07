@@ -6,11 +6,13 @@
 #include "storage/migration/migration_base.hpp"
 
 namespace taraxa::storage::migration {
-class PeriodData : public migration::Base {
+class TransactionPeriod : public migration::Base {
  public:
-  PeriodData(std::shared_ptr<DbStorage> db);
+  TransactionPeriod(std::shared_ptr<DbStorage> db);
   std::string id() override;
   uint32_t dbVersion() override;
+
+ protected:
   void migrate(logger::Logger& log) override;
 };
 }  // namespace taraxa::storage::migration
