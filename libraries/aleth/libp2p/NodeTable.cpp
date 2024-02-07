@@ -553,22 +553,22 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
 }
 
 NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet) {
-  if (from.address() != packet.source.address() && !isLocalHostAddress(packet.source.address())) {
-    if (isPrivateAddress(from.address()) && !isPrivateAddress(packet.source.address())) {
-      Guard l(x_ips);
-      if (m_id2IpMap.contains(packet.sourceid)) {
-        if (m_id2IpMap[packet.sourceid] != from) {
-          m_ipMappings.erase(m_id2IpMap[packet.sourceid]);
-          m_id2IpMap[packet.sourceid] = from;
-        }
-      } else {
-        m_id2IpMap[packet.sourceid] = from;
-      }
-      m_ipMappings[from] = {packet.source.address(), packet.source.udpPort(), packet.source.tcpPort()};
-      return m_ipMappings[from];
-    }
-  }
-  return {from.address(), packet.source.udpPort(), packet.source.tcpPort()};
+  // if (from.address() != packet.source.address() && !isLocalHostAddress(packet.source.address())) {
+  //   if (isPrivateAddress(from.address()) && !isPrivateAddress(packet.source.address())) {
+  //     Guard l(x_ips);
+  //     if (m_id2IpMap.contains(packet.sourceid)) {
+  //       if (m_id2IpMap[packet.sourceid] != from) {
+  //         m_ipMappings.erase(m_id2IpMap[packet.sourceid]);
+  //         m_id2IpMap[packet.sourceid] = from;
+  //       }
+  //     } else {
+  //       m_id2IpMap[packet.sourceid] = from;
+  //     }
+  //     m_ipMappings[from] = {packet.source.address(), packet.source.udpPort(), packet.source.tcpPort()};
+  //     return m_ipMappings[from];
+  //   }
+  // }
+  return {from.address(), from.port(), packet.source.tcpPort()};
 }
 
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
