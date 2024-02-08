@@ -1,11 +1,3 @@
-/*
- * @Copyright: Taraxa.io
- * @Author: Qi Gao
- * @Date: 2019-04-10
- * @Last Modified by: Qi Gao
- * @Last Modified time: 2019-08-15
- */
-
 #include "pbft/pbft_manager.hpp"
 
 #include <libdevcore/SHA3.h>
@@ -14,12 +6,14 @@
 #include <cstdint>
 #include <string>
 
+#include "config/version.hpp"
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "pbft/period_data.hpp"
+#include "pillar_chain/pillar_chain_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
@@ -28,21 +22,22 @@ using vrf_output_t = vrf_wrapper::vrf_output_t;
 constexpr std::chrono::milliseconds kPollingIntervalMs{100};
 constexpr PbftStep kMaxSteps{13};  // Need to be a odd number
 
-PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
-                         std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk)
+PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk)
     : db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
+      pillar_chain_mgr_(std::move(pillar_chain_mgr)),
       node_addr_(std::move(node_addr)),
       node_sk_(std::move(node_sk)),
-      kMinLambda(conf.lambda_ms),
-      dag_genesis_block_hash_(dag_genesis_block_hash),
+      kMinLambda(conf.pbft.lambda_ms),
+      dag_genesis_block_hash_(conf.dag_genesis_block.getHash()),
       config_(conf),
       proposed_blocks_(db_) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
@@ -1057,7 +1052,8 @@ void PbftManager::secondFinish_() {
 
 std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>>
 PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
-                               const blk_hash_t &anchor_hash, const blk_hash_t &order_hash) {
+                               const blk_hash_t &anchor_hash, const blk_hash_t &order_hash,
+                               const std::optional<blk_hash_t> pillar_block_hash) {
   // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
   // into chain
   auto reward_votes = vote_mgr_->getRewardVotes();
@@ -1085,8 +1081,16 @@ PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev
     }
   }
   try {
-    auto block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
-                                             node_addr_, node_sk_, std::move(reward_votes_hashes));
+    std::shared_ptr<PbftBlock> block;
+    // TODO: Activate in next hardfork
+    /*if (HARDFORK) {
+      block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                          node_addr_, node_sk_, std::move(reward_votes_hashes), TARAXA_MAJOR_VERSION,
+                                          TARAXA_MINOR_VERSION, TARAXA_PATCH_VERSION, "T");
+    } else */
+
+    block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                        node_addr_, node_sk_, std::move(reward_votes_hashes), pillar_block_hash);
 
     return {std::make_pair(std::move(block), std::move(reward_votes))};
   } catch (const std::exception &e) {
@@ -1153,19 +1157,44 @@ PbftManager::proposePbftBlock() {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
+  // TODO: use pillar_block_periods & delegation_delay from config
+  const auto pillar_block_periods = 100;
+  const auto delegation_delay = 5;
+  std::optional<blk_hash_t> pillar_block_hash;
+  if (current_pbft_period % (pillar_block_periods + delegation_delay) == 0) {
+    // Anchor pillar block into the pbft block
+    const auto pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+    if (!pillar_block) {
+      LOG(log_er_) << "Missing pillar block, pbft period " << current_pbft_period;
+      assert(false);
+      return {};
+    }
+
+    if (pillar_block->getPeriod() != current_pbft_period - delegation_delay) {
+      LOG(log_er_) << "Wrong pillar block period: " << pillar_block->getPeriod()
+                   << ", pbft period: " << current_pbft_period;
+      assert(false);
+      return {};
+    }
+
+    pillar_block_hash = pillar_block->getHash();
+  }
+
   auto ghost = dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash);
   LOG(log_dg_) << "GHOST size " << ghost.size();
   // Looks like ghost never empty, at least include the last period dag anchor block
   if (ghost.empty()) {
     LOG(log_dg_) << "GHOST is empty. No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash);
+    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash,
+                             pillar_block_hash);
   }
 
   blk_hash_t dag_block_hash;
-  if (ghost.size() <= config_.dag_blocks_size) {
+  if (ghost.size() <= config_.pbft.dag_blocks_size) {
     // Move back config_.ghost_path_move_back DAG blocks for DAG sycning
-    auto ghost_index =
-        (ghost.size() < config_.ghost_path_move_back + 1) ? 0 : (ghost.size() - 1 - config_.ghost_path_move_back);
+    auto ghost_index = (ghost.size() < config_.pbft.ghost_path_move_back + 1)
+                           ? 0
+                           : (ghost.size() - 1 - config_.pbft.ghost_path_move_back);
     while (ghost_index < ghost.size() - 1) {
       if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
         break;
@@ -1174,13 +1203,14 @@ PbftManager::proposePbftBlock() {
     }
     dag_block_hash = ghost[ghost_index];
   } else {
-    dag_block_hash = ghost[config_.dag_blocks_size - 1];
+    dag_block_hash = ghost[config_.pbft.dag_blocks_size - 1];
   }
 
   if (dag_block_hash == dag_genesis_block_hash_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
                  << " PBFT propose NULL BLOCK HASH anchor";
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash);
+    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash,
+                             pillar_block_hash);
   }
 
   // Compare with last dag block hash. If they are same, which means no new dag blocks generated since last round. In
@@ -1189,7 +1219,8 @@ PbftManager::proposePbftBlock() {
     LOG(log_dg_) << "Last period DAG anchor block hash " << dag_block_hash
                  << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
     LOG(log_dg_) << "Ghost: " << ghost;
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash);
+    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash,
+                             pillar_block_hash);
   }
 
   // get DAG block and transaction order
@@ -1211,7 +1242,7 @@ PbftManager::proposePbftBlock() {
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
 
-    if (total_weight + dag_block_weight > config_.gas_limit) {
+    if (total_weight + dag_block_weight > config_.pbft.gas_limit) {
       break;
     }
     total_weight += dag_block_weight;
@@ -1231,7 +1262,9 @@ PbftManager::proposePbftBlock() {
   }
 
   auto order_hash = calculateOrderHash(dag_block_order);
-  if (auto proposed_block = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash, order_hash);
+
+  if (auto proposed_block =
+          generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash, order_hash, pillar_block_hash);
       proposed_block.has_value()) {
     LOG(log_nf_) << "Created PBFT block: " << proposed_block->first->getBlockHash() << ", order hash:" << order_hash
                  << ", DAG order " << dag_block_order;
@@ -1845,7 +1878,7 @@ bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) cons
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
                       [](u256 value, const auto &dag_block) { return value + dag_block.getGasEstimation(); });
-  if (total_weight > config_.gas_limit) {
+  if (total_weight > config_.pbft.gas_limit) {
     return false;
   }
   return true;
