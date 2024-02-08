@@ -126,6 +126,11 @@ class PbftBlock {
 
   const auto& getRewardVotes() const { return reward_votes_; }
 
+  /**
+   * @return pillar bock hash
+   */
+  std::optional<blk_hash_t> getPillarBlockHash() const;
+
  private:
   /**
    * @brief Set PBFT block hash and block proposer address
