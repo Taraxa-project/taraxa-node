@@ -88,6 +88,11 @@ class PillarChainManager {
   bool pushPillarBlock(const PillarBlockData& pillarBlockData);
 
   /**
+   * @return current pillar block
+   */
+  std::shared_ptr<PillarBlock> getCurrentPillarBlock() const;
+
+  /**
    * @brief Get all pillar votes for specified pillar block
    *
    * @param period

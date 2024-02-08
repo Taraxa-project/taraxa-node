@@ -165,6 +165,11 @@ bool PillarChainManager::pushPillarBlock(const PillarBlockData& pillarBlockData)
   return true;
 }
 
+std::shared_ptr<PillarBlock> PillarChainManager::getCurrentPillarBlock() const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+  return current_pillar_block_;
+}
+
 void PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
