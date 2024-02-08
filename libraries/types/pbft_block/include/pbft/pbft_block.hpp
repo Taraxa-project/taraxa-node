@@ -28,13 +28,14 @@ class PbftBlock {
   PbftPeriod period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
   uint64_t timestamp_;
   addr_t beneficiary_;
+  std::optional<blk_hash_t> pillar_block_hash_;
   sig_t signature_;
   std::vector<vote_hash_t> reward_votes_;  // Cert votes in previous period
 
  public:
   PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot, const blk_hash_t& order_hash,
             const blk_hash_t& prev_state_root, PbftPeriod period, const addr_t& beneficiary, const secret_t& sk,
-            std::vector<vote_hash_t>&& reward_votes);
+            std::vector<vote_hash_t>&& reward_votes, const std::optional<blk_hash_t>& pillar_block_hash = {});
   explicit PbftBlock(const dev::RLP& rlp);
   explicit PbftBlock(const bytes& RLP);
 

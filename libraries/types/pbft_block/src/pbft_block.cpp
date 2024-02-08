@@ -12,21 +12,23 @@ PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
-                  prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
+                  prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_, pillar_block_hash_);
   calculateHash_();
   checkUniqueRewardVotes();
 }
 
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
                      const blk_hash_t& order_hash, const blk_hash_t& prev_state_root, PbftPeriod period,
-                     const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes)
+                     const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes,
+                     const std::optional<blk_hash_t>& pillar_block_hash)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       order_hash_(order_hash),
       prev_state_root_hash_(prev_state_root),
       period_(period),
       beneficiary_(beneficiary),
-      reward_votes_(reward_votes) {
+      reward_votes_(reward_votes),
+      pillar_block_hash_(pillar_block_hash) {
   timestamp_ = dev::utcTime();
   signature_ = dev::sign(sk, sha3(false));
   calculateHash_();
@@ -86,22 +88,21 @@ Json::Value PbftBlock::getJson() const {
   for (const auto& v : reward_votes_) {
     json["reward_votes"].append(v.toString());
   }
+  if (pillar_block_hash_.has_value()) {
+    json["pillar_block_hash_"] = pillar_block_hash_->toString();
+  }
 
   return json;
 }
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
-  strm.appendList(include_sig ? 8 : 7);
-  strm << prev_block_hash_;
-  strm << dag_block_hash_as_pivot_;
-  strm << order_hash_;
-  strm << prev_state_root_hash_;
-  strm << period_;
-  strm << timestamp_;
-  strm.appendVector(reward_votes_);
   if (include_sig) {
-    strm << signature_;
+    util::rlp_tuple(strm, prev_block_hash_, dag_block_hash_as_pivot_, order_hash_, prev_state_root_hash_, period_,
+                    timestamp_, reward_votes_, pillar_block_hash_, signature_);
+  } else {
+    util::rlp_tuple(strm, prev_block_hash_, dag_block_hash_as_pivot_, order_hash_, prev_state_root_hash_, period_,
+                    timestamp_, reward_votes_, pillar_block_hash_);
   }
 }
 
