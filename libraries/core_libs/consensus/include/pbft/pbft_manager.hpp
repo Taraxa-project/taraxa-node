@@ -55,10 +55,11 @@ class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
-              std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk);
+  PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+              std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -252,7 +253,7 @@ class PbftManager {
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
-  size_t getPbftCommitteeSize() const { return config_.committee_size; }
+  size_t getPbftCommitteeSize() const { return config_.pbft.committee_size; }
 
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
@@ -567,7 +568,7 @@ class PbftManager {
 
   const blk_hash_t dag_genesis_block_hash_;
 
-  const PbftConfig &config_;
+  const GenesisConfig &config_;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
