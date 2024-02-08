@@ -925,6 +925,12 @@ void PbftManager::certifyBlock_() {
 
   cert_voted_block_for_round_ = soft_voted_block;
   db_->saveCertVotedBlockInRound(round, soft_voted_block);
+
+  // Generate pillar vote in case pillar block hash is present in pbft block
+  if (const auto pillar_block_hash = soft_voted_block->getPillarBlockHash(); pillar_block_hash.has_value()) {
+    // Creates pillar vote
+    pillar_chain_mgr_->genAndPlacePillarVote(*pillar_block_hash, node_sk_);
+  }
 }
 
 void PbftManager::firstFinish_() {

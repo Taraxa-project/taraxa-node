@@ -117,32 +117,41 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
 
     // TODO: save both current_pillar_block_ & current_pillar_block_stakes_ into db ???
   }
+}
 
-  // Create and broadcast own pillar vote
-  // TODO: do not create & gossip own sig or request other votes if the node is in syncing state ???
-
-  // Check if node is an eligible validator
-  try {
-    if (!final_chain_->dpos_is_eligible(block_num, node_addr_)) {
-      return;
+bool PillarChainManager::genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk) {
+  std::shared_ptr<PillarVote> vote;
+  {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    if (!current_pillar_block_) {
+      // This should never happen
+      LOG(log_er_) << "Unable to gen pillar vote. No pillar block present, pillar_block_hash " << pillar_block_hash;
+      assert(false);
+      return false;
     }
-  } catch (state_api::ErrFutureBlock& e) {
-    assert(false);  // This should never happen as newFinalBlock is triggered after the new block is finalized
-    return;
+
+    if (pillar_block_hash != current_pillar_block_->getHash()) {
+      LOG(log_er_) << "Unable to gen pillar vote. Provided pillar_block_hash(" << pillar_block_hash
+                   << ") != current pillar block hash(" << current_pillar_block_->getHash() << ")";
+      return false;
+    }
+
+    vote = std::make_shared<PillarVote>(node_sk, current_pillar_block_->getPeriod(), current_pillar_block_->getHash());
   }
 
-  //  // Creates pillar vote
-  //  // TODO: move this to the pbft manager
-  //  auto vote = std::make_shared<PillarVote>(pillar_block->getHash(), block_num, node_addr_);
-  //
-  //  // Broadcasts pillar vote
-  //  if (validatePillarVote(vote) && addVerifiedPillarVote(vote)) {
-  //    db_->saveOwnPillarBlockVote(vote);
-  //
-  //    if (auto net = network_.lock()) {
-  //      net->gossipPillarBlockVote(vote);
-  //    }
-  //  }
+  // Broadcasts pillar vote
+  if (!addVerifiedPillarVote(vote)) {
+    LOG(log_er_) << "Unable to gen pillar vote. Vote was not added to the verified votes. Vote hash "
+                 << vote->getHash();
+    return false;
+  }
+
+  db_->saveOwnPillarBlockVote(vote);
+  if (auto net = network_.lock()) {
+    net->gossipPillarBlockVote(vote);
+  }
+
+  return true;
 }
 
 bool PillarChainManager::pushPillarBlock(const PillarBlockData& pillarBlockData) {
