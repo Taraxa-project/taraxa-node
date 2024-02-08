@@ -1158,6 +1158,7 @@ PbftManager::proposePbftBlock() {
   }
 
   // TODO: use pillar_block_periods & delegation_delay from config
+  // TODO: use ficus_hf if
   const auto pillar_block_periods = 100;
   const auto delegation_delay = 5;
   std::optional<blk_hash_t> pillar_block_hash;
@@ -1416,6 +1417,35 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
         anchor_dag_block_order_cache_.erase(anchor_hash);
         return false;
       }
+    }
+  }
+
+  // TODO: use pillar_block_periods & delegation_delay from config
+  // TODO: use ficus_hf if
+  const auto pillar_block_periods = 100;
+  const auto delegation_delay = 5;
+  if (pbft_block->getPeriod() % (pillar_block_periods + delegation_delay) == 0) {
+    const auto pillar_block_hash = pbft_block->getPillarBlockHash();
+    if (!pillar_block_hash.has_value()) {
+      LOG(log_er_) << "PBFT block " << pbft_block_hash << " does not contain pillar block hash, period "
+                   << pbft_block->getPeriod();
+      return false;
+    }
+
+    const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+    if (!current_pillar_block) {
+      // This should never happen
+      LOG(log_er_) << "Unable to validate PBFT block " << pbft_block_hash << ". No pillar block present, period "
+                   << pbft_block->getPeriod();
+      assert(false);
+      return false;
+    }
+
+    if (*pillar_block_hash != current_pillar_block->getHash()) {
+      LOG(log_er_) << "PBFT block " << pbft_block_hash << " contains pillar block hash " << *pillar_block_hash
+                   << ", which is different than the local current pillar block" << current_pillar_block->getHash()
+                   << ", period " << pbft_block->getPeriod();
+      return false;
     }
   }
 
