@@ -123,4 +123,6 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   return strm;
 }
 
+std::optional<blk_hash_t> PbftBlock::getPillarBlockHash() const { return pillar_block_hash_; }
+
 }  // namespace taraxa
