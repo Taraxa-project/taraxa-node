@@ -25,53 +25,45 @@ class ContractInterface {
     bytes offset_data;
     // initial offset is after last arg
     auto current_offset = kWordSize * sizeof...(args);
-    (
-        [&] {
-          auto data = pack(args);
-          const auto data_size = data.size();
-          // Dynamic encoding needs to be appended to the end of the whole structure
-          if (data_size > kWordSize) {
-            offset_data.reserve(offset_data.size() + data_size);
-            offset_data.insert(offset_data.end(), std::make_move_iterator(data.begin()),
-                               std::make_move_iterator(data.end()));
-            // Save position where data will be stored
-            data = pack(current_offset);
-            current_offset += data_size;
-          }
-          output.insert(output.end(), std::make_move_iterator(data.begin()), std::make_move_iterator(data.end()));
-        }(),
-        ...);
+
+    auto process = [&](auto elem) {
+      auto data = packElem(elem);
+      const auto data_size = data.size();
+      // Dynamic encoding needs to be appended to the end of the whole structure
+      if (data_size > kWordSize) {
+        offset_data.reserve(offset_data.size() + data_size);
+        offset_data.insert(offset_data.end(), std::make_move_iterator(data.begin()),
+                           std::make_move_iterator(data.end()));
+        // Save position where data will be stored
+        data = packElem(current_offset);
+        current_offset += data_size;
+      }
+      output.insert(output.end(), std::make_move_iterator(data.begin()), std::make_move_iterator(data.end()));
+    };
+
+    (process(args), ...);
 
     output.insert(output.end(), std::make_move_iterator(offset_data.begin()),
                   std::make_move_iterator(offset_data.end()));
     return output;
   }
 
+  template <unsigned N, std::enable_if_t<(N <= 32)>* = nullptr>
+  static bytes packElem(dev::FixedHash<N> hash) {
+    bytes data;
+    data.insert(data.end(), 32 - N, 0);
+    data.insert(data.end(), hash.begin(), hash.end());
+    return data;
+  }
+
   template <typename T, std::enable_if_t<std::numeric_limits<T>::is_integer>* = nullptr>
-  static bytes pack(T num) {
-    bytes data;
-    boost::multiprecision::uint256_t big_num{num};
-    auto tmp = dev::toBigEndian(big_num);
-    data.insert(data.end(), std::make_move_iterator(tmp.begin()), std::make_move_iterator(tmp.end()));
-    return data;
+  static bytes packElem(T num) {
+    return dev::toBigEndian(u256(num));
   }
 
-  static bytes pack(const addr_t& addr) {
-    bytes data;
-    data.insert(data.end(), 12, 0);
-    data.insert(data.end(), addr.begin(), addr.end());
-    return data;
-  }
+  static bytes packElem(bool flag) { return dev::toBigEndian(u256(flag)); }
 
-  static bytes pack(bool flag) {
-    bytes data;
-    boost::multiprecision::uint256_t big_num{flag};
-    auto tmp = dev::toBigEndian(big_num);
-    data.insert(data.end(), std::make_move_iterator(tmp.begin()), std::make_move_iterator(tmp.end()));
-    return data;
-  }
-
-  static bytes pack(const bytes& value) {
+  static bytes packElem(const bytes& value) {
     bytes data;
     // encode length of msg
     if (value.size()) {

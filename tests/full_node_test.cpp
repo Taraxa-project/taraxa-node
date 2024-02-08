@@ -205,8 +205,8 @@ TEST_F(FullNodeTest, db_test) {
   blk_hash_t previous_pillar_block_hash(789);
 
   std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> stakes_changes;
-  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s96(1));
-  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s96(2));
+  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s256(1));
+  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
       block_num, state_root, h256{}, previous_pillar_block_hash, std::move(stakes_changes));

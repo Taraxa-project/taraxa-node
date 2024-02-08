@@ -12,7 +12,7 @@ namespace taraxa::pillar_chain {
 PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const state_api::ValidatorStake& stake)
     : addr_(stake.addr), stake_change_(dev::s256(stake.stake)) {}
 
-PillarBlock::ValidatorStakeChange::ValidatorStakeChange(addr_t addr, dev::s96 stake_change)
+PillarBlock::ValidatorStakeChange::ValidatorStakeChange(addr_t addr, dev::s256 stake_change)
     : addr_(addr), stake_change_(stake_change) {}
 
 RLP_FIELDS_DEFINE(PillarBlock::ValidatorStakeChange, addr_, stake_change_)
@@ -40,9 +40,19 @@ PillarBlock::PillarBlock(const PillarBlock& pillar_block)
 dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
 
 dev::bytes PillarBlock::encode() const {
-  dev::bytes result = final_chain::ContractInterface::pack(period_);
-  // for (auto& stake_change : validators_stakes_changes_) {
-  // }
+  dev::bytes result;
+  // result.reserve((1 + 4 + 2 + 2 * validators_stakes_changes_.size()) * 32);
+  auto start = final_chain::ContractInterface::pack(32);
+  result.insert(result.end(), start.begin(), start.end());
+  auto body = final_chain::ContractInterface::pack(period_, state_root_, bridge_root_, previous_pillar_block_hash_);
+  result.insert(result.end(), body.begin(), body.end());
+  auto array_data = final_chain::ContractInterface::pack(160, validators_stakes_changes_.size());
+  result.insert(result.end(), array_data.begin(), array_data.end());
+  for (auto& stake_change : validators_stakes_changes_) {
+    auto stake_change_encoded = final_chain::ContractInterface::pack(stake_change.addr_, stake_change.stake_change_);
+    result.insert(result.end(), stake_change_encoded.begin(), stake_change_encoded.end());
+  }
+  return result;
 }
 
 PbftPeriod PillarBlock::getPeriod() const { return period_; }

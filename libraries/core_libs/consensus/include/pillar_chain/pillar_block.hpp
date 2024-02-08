@@ -26,10 +26,10 @@ class PillarBlock {
   // Validator stake change
   struct ValidatorStakeChange {
     addr_t addr_;
-    dev::s96 stake_change_;  // can be both positive or negative
+    dev::s256 stake_change_;  // can be both positive or negative
 
     ValidatorStakeChange(const state_api::ValidatorStake& stake);
-    ValidatorStakeChange(addr_t addr, dev::s96 stake_change);
+    ValidatorStakeChange(addr_t addr, dev::s256 stake_change);
     ValidatorStakeChange(const dev::RLP& rlp);
 
     ValidatorStakeChange() = default;

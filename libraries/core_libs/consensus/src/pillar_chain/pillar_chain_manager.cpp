@@ -392,7 +392,7 @@ std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedVal
     // Previous stakes contains validator address from current stakes -> substitute the stakes
     changes_map.emplace(current_stake.first,
                         PillarBlock::ValidatorStakeChange(
-                            current_stake.first, dev::s96(current_stake.second.stake - previous_stake->second.stake)));
+                            current_stake.first, dev::s256(current_stake.second.stake - previous_stake->second.stake)));
 
     // Delete item from previous_stakes - based on left stakes we know which delegators undelegated all tokens
     previous_stakes_map.erase(previous_stake);
