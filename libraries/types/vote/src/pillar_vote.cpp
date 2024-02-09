@@ -7,7 +7,9 @@
 namespace taraxa {
 
 PillarVote::PillarVote(const secret_t& node_sk, PbftPeriod period, const blk_hash_t& block_hash)
-    : period_(period), Vote(node_sk, block_hash) {}
+    : Vote(block_hash), period_(period) {
+  signVote(node_sk);
+}
 
 PillarVote::PillarVote(const dev::RLP& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), period_, block_hash_, vote_signature_);

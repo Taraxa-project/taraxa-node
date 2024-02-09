@@ -6,13 +6,11 @@
 
 namespace taraxa {
 
-PbftVote::PbftVote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step,
-                   dev::RLP const& rlp) {
+PbftVote::PbftVote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const& rlp)
+    : Vote(block_hash) {
   vrf_wrapper::vrf_proof_t vrf_proof;
   sig_t vote_signature;
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), vrf_proof, vote_signature);
-
-  block_hash_ = block_hash;
 
   VrfPbftSortition vrf_sortition;
   vrf_sortition.pbft_msg_.period_ = period;
@@ -39,9 +37,10 @@ PbftVote::PbftVote(const dev::RLP& rlp) {
 
 PbftVote::PbftVote(const bytes& b) : PbftVote(dev::RLP(b)) {}
 
-// TODO: check if sha3 inside Vote ctor calls PbftVote::sha3
 PbftVote::PbftVote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& block_hash)
-    : vrf_sortition_(std::move(vrf_sortition)), Vote(node_sk, block_hash) {}
+    : Vote(block_hash), vrf_sortition_(std::move(vrf_sortition)) {
+  signVote(node_sk);
+}
 
 bool PbftVote::operator==(const PbftVote& other) const { return rlp() == other.rlp(); }
 

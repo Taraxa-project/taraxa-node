@@ -29,10 +29,10 @@ using vrf_output_t = vrf_wrapper::vrf_output_t;
 constexpr std::chrono::milliseconds kPollingIntervalMs{100};
 constexpr PbftStep kMaxSteps{13};  // Need to be a odd number
 
-PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
-                         std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
+PbftManager::PbftManager(const GenesisConfig &genesis_config, addr_t node_addr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk)
     : db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
@@ -43,9 +43,9 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       pillar_chain_mgr_(std::move(pillar_chain_mgr)),
       node_addr_(std::move(node_addr)),
       node_sk_(std::move(node_sk)),
-      kMinLambda(conf.lambda_ms),
-      dag_genesis_block_hash_(dag_genesis_block_hash),
-      config_(conf),
+      kMinLambda(genesis_config.pbft.lambda_ms),
+      dag_genesis_block_hash_(genesis_config.dag_genesis_block.getHash()),
+      kGenesisConfig(genesis_config),
       proposed_blocks_(db_) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
@@ -1162,12 +1162,10 @@ PbftManager::proposePbftBlock() {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
-  // TODO: use pillar_block_periods & delegation_delay from config
-  // TODO: use ficus_hf if
-  const auto pillar_block_periods = 100;
-  const auto delegation_delay = 5;
   std::optional<blk_hash_t> pillar_block_hash;
-  if (current_pbft_period % (pillar_block_periods + delegation_delay) == 0) {
+  if (current_pbft_period >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      current_pbft_period % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
+          kGenesisConfig.state.dpos.delegation_delay) {
     // Anchor pillar block into the pbft block
     const auto pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
     if (!pillar_block) {
@@ -1176,7 +1174,7 @@ PbftManager::proposePbftBlock() {
       return {};
     }
 
-    if (pillar_block->getPeriod() != current_pbft_period - delegation_delay) {
+    if (pillar_block->getPeriod() != current_pbft_period - kGenesisConfig.state.dpos.delegation_delay) {
       LOG(log_er_) << "Wrong pillar block period: " << pillar_block->getPeriod()
                    << ", pbft period: " << current_pbft_period;
       assert(false);
@@ -1196,10 +1194,11 @@ PbftManager::proposePbftBlock() {
   }
 
   blk_hash_t dag_block_hash;
-  if (ghost.size() <= config_.dag_blocks_size) {
+  if (ghost.size() <= kGenesisConfig.pbft.dag_blocks_size) {
     // Move back config_.ghost_path_move_back DAG blocks for DAG sycning
-    auto ghost_index =
-        (ghost.size() < config_.ghost_path_move_back + 1) ? 0 : (ghost.size() - 1 - config_.ghost_path_move_back);
+    auto ghost_index = (ghost.size() < kGenesisConfig.pbft.ghost_path_move_back + 1)
+                           ? 0
+                           : (ghost.size() - 1 - kGenesisConfig.pbft.ghost_path_move_back);
     while (ghost_index < ghost.size() - 1) {
       if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
         break;
@@ -1208,7 +1207,7 @@ PbftManager::proposePbftBlock() {
     }
     dag_block_hash = ghost[ghost_index];
   } else {
-    dag_block_hash = ghost[config_.dag_blocks_size - 1];
+    dag_block_hash = ghost[kGenesisConfig.pbft.dag_blocks_size - 1];
   }
 
   if (dag_block_hash == dag_genesis_block_hash_) {
@@ -1247,7 +1246,7 @@ PbftManager::proposePbftBlock() {
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
 
-    if (total_weight + dag_block_weight > config_.gas_limit) {
+    if (total_weight + dag_block_weight > kGenesisConfig.pbft.gas_limit) {
       break;
     }
     total_weight += dag_block_weight;
@@ -1423,12 +1422,10 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     }
   }
 
-  // TODO: use pillar_block_periods & delegation_delay from config
-  // TODO: use ficus_hf if
-  const auto pillar_block_periods = 100;
-  const auto delegation_delay = 5;
-  if (pbft_block->getPeriod() % (pillar_block_periods + delegation_delay) == 0) {
-    const auto pillar_block_hash = pbft_block->getPillarBlockHash();
+  if (const auto pillar_block_hash = pbft_block->getPillarBlockHash();
+      pbft_block->getPeriod() >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      pbft_block->getPeriod() % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
+          kGenesisConfig.state.dpos.delegation_delay) {
     if (!pillar_block_hash.has_value()) {
       LOG(log_er_) << "PBFT block " << pbft_block_hash << " does not contain pillar block hash, period "
                    << pbft_block->getPeriod();
@@ -1448,6 +1445,12 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
       LOG(log_er_) << "PBFT block " << pbft_block_hash << " contains pillar block hash " << *pillar_block_hash
                    << ", which is different than the local current pillar block" << current_pillar_block->getHash()
                    << ", period " << pbft_block->getPeriod();
+      return false;
+    }
+  } else {
+    if (pillar_block_hash.has_value()) {
+      LOG(log_er_) << "PBFT block " << pbft_block_hash
+                   << " contains pillar block hash even though it should not, period " << pbft_block->getPeriod();
       return false;
     }
   }
@@ -1911,7 +1914,7 @@ bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) cons
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
                       [](u256 value, const auto &dag_block) { return value + dag_block.getGasEstimation(); });
-  if (total_weight > config_.gas_limit) {
+  if (total_weight > kGenesisConfig.pbft.gas_limit) {
     return false;
   }
   return true;

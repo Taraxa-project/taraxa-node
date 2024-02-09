@@ -6,13 +6,18 @@
 
 namespace taraxa {
 
-Vote::Vote(const secret_t& node_sk, const blk_hash_t& block_hash) : block_hash_(block_hash) {
+Vote::Vote(const blk_hash_t& block_hash) : block_hash_(block_hash) {}
+
+void Vote::signVote(const secret_t& node_sk) {
   vote_signature_ = dev::sign(node_sk, sha3(false));
-  vote_hash_ = sha3(true);
   cached_voter_ = dev::toPublic(node_sk);
+  cached_voter_addr_ = dev::toAddress(cached_voter_);
 }
 
-const vote_hash_t& Vote::getHash() const { return vote_hash_; }
+const vote_hash_t& Vote::getHash() const {
+  if (!vote_hash_) vote_hash_ = sha3(true);
+  return vote_hash_;
+}
 
 const public_t& Vote::getVoter() const {
   if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));

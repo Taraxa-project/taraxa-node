@@ -12,7 +12,7 @@ PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
-                  prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_, pillar_block_hash_);
+                  prev_state_root_hash_, period_, timestamp_, reward_votes_, pillar_block_hash_, signature_);
   calculateHash_();
   checkUniqueRewardVotes();
 }

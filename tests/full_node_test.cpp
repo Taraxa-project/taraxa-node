@@ -224,16 +224,16 @@ TEST_F(FullNodeTest, db_test) {
 
   const auto pillar_block_data_db = db.getPillarBlockData(pillar_block->getPeriod());
   EXPECT_EQ(pillar_block->getHash(), pillar_block_data_db->block->getHash());
-  EXPECT_EQ(votes.size(), pillar_block_data_db->pillar_votes.size());
-  for (size_t idx = 0; idx < votes.size(); idx++) {
-    EXPECT_EQ(votes[idx]->getHash(), pillar_block_data_db->pillar_votes[idx]->getHash());
+  EXPECT_EQ(pillar_votes.size(), pillar_block_data_db->pillar_votes.size());
+  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
+    EXPECT_EQ(pillar_votes[idx]->getHash(), pillar_block_data_db->pillar_votes[idx]->getHash());
   }
 
   const auto latest_pillar_block_data_db = db.getLatestPillarBlockData();
   EXPECT_EQ(pillar_block->getHash(), latest_pillar_block_data_db->block->getHash());
-  EXPECT_EQ(votes.size(), latest_pillar_block_data_db->pillar_votes.size());
-  for (size_t idx = 0; idx < votes.size(); idx++) {
-    EXPECT_EQ(votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes[idx]->getHash());
+  EXPECT_EQ(pillar_votes.size(), latest_pillar_block_data_db->pillar_votes.size());
+  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
+    EXPECT_EQ(pillar_votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes[idx]->getHash());
   }
 
   // Pillar chain - pillar vote
