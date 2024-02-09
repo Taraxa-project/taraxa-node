@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <string>
 
-#include "config/version.hpp"
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
@@ -38,7 +37,7 @@ PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::share
       node_sk_(std::move(node_sk)),
       kMinLambda(conf.pbft.lambda_ms),
       dag_genesis_block_hash_(conf.dag_genesis_block.getHash()),
-      config_(conf),
+      kGenesisConfig(conf),
       proposed_blocks_(db_) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
@@ -1163,12 +1162,10 @@ PbftManager::proposePbftBlock() {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
-  // TODO: use pillar_block_periods & delegation_delay from config
-  // TODO: use ficus_hf if
-  const auto pillar_block_periods = 100;
-  const auto delegation_delay = 5;
   std::optional<blk_hash_t> pillar_block_hash;
-  if (current_pbft_period % (pillar_block_periods + delegation_delay) == 0) {
+  if (current_pbft_period >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      current_pbft_period % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
+          kGenesisConfig.state.dpos.delegation_delay) {
     // Anchor pillar block into the pbft block
     const auto pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
     if (!pillar_block) {
@@ -1177,7 +1174,7 @@ PbftManager::proposePbftBlock() {
       return {};
     }
 
-    if (pillar_block->getPeriod() != current_pbft_period - delegation_delay) {
+    if (pillar_block->getPeriod() != current_pbft_period - kGenesisConfig.state.dpos.delegation_delay) {
       LOG(log_er_) << "Wrong pillar block period: " << pillar_block->getPeriod()
                    << ", pbft period: " << current_pbft_period;
       assert(false);
@@ -1197,11 +1194,11 @@ PbftManager::proposePbftBlock() {
   }
 
   blk_hash_t dag_block_hash;
-  if (ghost.size() <= config_.pbft.dag_blocks_size) {
+  if (ghost.size() <= kGenesisConfig.pbft.dag_blocks_size) {
     // Move back config_.ghost_path_move_back DAG blocks for DAG sycning
-    auto ghost_index = (ghost.size() < config_.pbft.ghost_path_move_back + 1)
+    auto ghost_index = (ghost.size() < kGenesisConfig.pbft.ghost_path_move_back + 1)
                            ? 0
-                           : (ghost.size() - 1 - config_.pbft.ghost_path_move_back);
+                           : (ghost.size() - 1 - kGenesisConfig.pbft.ghost_path_move_back);
     while (ghost_index < ghost.size() - 1) {
       if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
         break;
@@ -1210,7 +1207,7 @@ PbftManager::proposePbftBlock() {
     }
     dag_block_hash = ghost[ghost_index];
   } else {
-    dag_block_hash = ghost[config_.pbft.dag_blocks_size - 1];
+    dag_block_hash = ghost[kGenesisConfig.pbft.dag_blocks_size - 1];
   }
 
   if (dag_block_hash == dag_genesis_block_hash_) {
@@ -1249,7 +1246,7 @@ PbftManager::proposePbftBlock() {
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
 
-    if (total_weight + dag_block_weight > config_.pbft.gas_limit) {
+    if (total_weight + dag_block_weight > kGenesisConfig.pbft.gas_limit) {
       break;
     }
     total_weight += dag_block_weight;
@@ -1267,7 +1264,6 @@ PbftManager::proposePbftBlock() {
     dag_block_hash = *closest_anchor;
     dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, current_pbft_period);
   }
-
   auto order_hash = calculateOrderHash(dag_block_order);
 
   if (auto proposed_block =
@@ -1426,12 +1422,10 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     }
   }
 
-  // TODO: use pillar_block_periods & delegation_delay from config
-  // TODO: use ficus_hf if
-  const auto pillar_block_periods = 100;
-  const auto delegation_delay = 5;
-  if (pbft_block->getPeriod() % (pillar_block_periods + delegation_delay) == 0) {
-    const auto pillar_block_hash = pbft_block->getPillarBlockHash();
+  if (const auto pillar_block_hash = pbft_block->getPillarBlockHash();
+      pbft_block->getPeriod() >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      pbft_block->getPeriod() % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
+          kGenesisConfig.state.dpos.delegation_delay) {
     if (!pillar_block_hash.has_value()) {
       LOG(log_er_) << "PBFT block " << pbft_block_hash << " does not contain pillar block hash, period "
                    << pbft_block->getPeriod();
@@ -1451,6 +1445,12 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
       LOG(log_er_) << "PBFT block " << pbft_block_hash << " contains pillar block hash " << *pillar_block_hash
                    << ", which is different than the local current pillar block" << current_pillar_block->getHash()
                    << ", period " << pbft_block->getPeriod();
+      return false;
+    }
+  } else {
+    if (pillar_block_hash.has_value()) {
+      LOG(log_er_) << "PBFT block " << pbft_block_hash
+                   << " contains pillar block hash even though it should not, period " << pbft_block->getPeriod();
       return false;
     }
   }
@@ -1914,7 +1914,7 @@ bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) cons
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
                       [](u256 value, const auto &dag_block) { return value + dag_block.getGasEstimation(); });
-  if (total_weight > config_.pbft.gas_limit) {
+  if (total_weight > kGenesisConfig.pbft.gas_limit) {
     return false;
   }
   return true;
