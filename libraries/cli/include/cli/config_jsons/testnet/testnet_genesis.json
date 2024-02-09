@@ -136,17 +136,17 @@
     "phalaenopsis_hf_block_num": 0,
     "redelegations": [],
     "rewards_distribution_frequency": {
-      "2000": 100
+      "0": 100
     },
     "magnolia_hf": {
-      "block_num": 5000,
+      "block_num": 0,
       "jail_time": 163459
     },
     "aspen_hf": {
       "block_num_part_one": 1000,
-      "block_num_part_two": -1,
+      "block_num_part_two": 405809,
       "max_supply": "0x26C62AD77DC602DAE0000000",
-      "generated_rewards": "0x39005B1B4D8DCF0B3"
+      "generated_rewards": "0x1E1816CD2C7C0C7EA"
     }
   }
 }
