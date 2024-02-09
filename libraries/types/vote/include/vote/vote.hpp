@@ -15,7 +15,14 @@ namespace taraxa {
 class Vote {
  public:
   Vote() = default;
-  Vote(const secret_t& node_sk, const blk_hash_t& block_hash);
+  Vote(const blk_hash_t& block_hash);
+
+  /**
+   * @brief Sign the vote
+   *
+   * @param node_sk
+   */
+  void signVote(const secret_t& node_sk);
 
   /**
    * @brief Get vote hash
@@ -61,10 +68,10 @@ class Vote {
   virtual vote_hash_t sha3(bool inc_sig) const = 0;
 
  protected:
-  vote_hash_t vote_hash_;  // hash of this vote
   blk_hash_t block_hash_;  // Voted block hash
   sig_t vote_signature_;
 
+  mutable vote_hash_t vote_hash_;  // hash of this vote
   mutable public_t cached_voter_;
   mutable addr_t cached_voter_addr_;
 };

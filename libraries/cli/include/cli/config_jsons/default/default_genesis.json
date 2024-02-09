@@ -30,8 +30,7 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
         },
-        "vrf_key": "05fe580fd2d461ee5f762a33bbe669403bb04a851f2e9ed8d2579a9c9b77c3ec",
-        "bls_key": ""
+        "vrf_key": "05fe580fd2d461ee5f762a33bbe669403bb04a851f2e9ed8d2579a9c9b77c3ec"
       },
       {
         "address": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
@@ -42,8 +41,7 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
         },
-        "vrf_key": "70d34c86787e5f7bd0f266cad291cb521e23176fa37c6efc034858a1620ac69e",
-        "bls_key": ""
+        "vrf_key": "70d34c86787e5f7bd0f266cad291cb521e23176fa37c6efc034858a1620ac69e"
       },
       {
         "address": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
@@ -54,8 +52,7 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
         },
-        "vrf_key": "f8d5c00ce9fa3058341e051b36a1e6ccf69df81fb865568b2bf1507d085691e2",
-        "bls_key": ""
+        "vrf_key": "f8d5c00ce9fa3058341e051b36a1e6ccf69df81fb865568b2bf1507d085691e2"
       }
     ]
   },
@@ -118,8 +115,8 @@
     },
     "ficus_hf" : {
       "block_num" : 0,
-      "pillar_block_periods" : 100,
-      "signatures_check_periods" : 25
+      "pillar_block_periods" : 25,
+      "signatures_check_periods" : 10
     }
   }
 }

@@ -254,7 +254,7 @@ class PbftManager {
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
-  size_t getPbftCommitteeSize() const { return config_.committee_size; }
+  size_t getPbftCommitteeSize() const { return kGenesisConfig.pbft.committee_size; }
 
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
@@ -570,7 +570,7 @@ class PbftManager {
 
   const blk_hash_t dag_genesis_block_hash_;
 
-  const PbftConfig &config_;
+  const GenesisConfig &kGenesisConfig;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;

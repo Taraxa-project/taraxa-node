@@ -120,12 +120,12 @@ void FullNode::init() {
   auto genesis_hash_from_db = db_->getGenesisHash();
   if (!genesis_hash_from_db.has_value()) {
     LOG(log_er_) << "Genesis hash was not found in DB. Something is wrong";
-    std::terminate();
+    assert(false);
   }
   if (genesis_hash != genesis_hash_from_db) {
     LOG(log_er_) << "Genesis hash " << genesis_hash << " is different with "
                  << (genesis_hash_from_db.has_value() ? *genesis_hash_from_db : h256(0)) << " in DB";
-    std::terminate();
+    assert(false);
   }
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
@@ -146,7 +146,7 @@ void FullNode::init() {
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(
       conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
       getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit, conf_.genesis.state);
-                                                         final_chain_, vote_mgr_, key_manager_, node_addr);
+
   network_ =
       std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
                                 vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_);
