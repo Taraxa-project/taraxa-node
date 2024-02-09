@@ -42,6 +42,16 @@ class PillarChainManager {
   void createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
 
   /**
+   * @brief Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and
+   * valid
+   *
+   * @param pillar_block_hash
+   * @param node_sk
+   * @return true if vote placed, otherwise false
+   */
+  bool genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk);
+
+  /**
    * @brief Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is 2t+1
    * votes for latest pillar block. If not, request them
    *
@@ -86,6 +96,11 @@ class PillarChainManager {
    * @return true if successfully pushed, otherwise false
    */
   bool pushPillarBlock(const PillarBlockData& pillarBlockData);
+
+  /**
+   * @return current pillar block
+   */
+  std::shared_ptr<PillarBlock> getCurrentPillarBlock() const;
 
   /**
    * @brief Get all pillar votes for specified pillar block
