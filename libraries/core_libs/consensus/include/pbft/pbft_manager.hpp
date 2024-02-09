@@ -142,11 +142,12 @@ class PbftManager {
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
+   * @param pillar_block_hash optional anchored pillar block hash
    * @return optional<pair<PBFT block, PBFT block reward votes>>
    */
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> generatePbftBlock(
       PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-      const blk_hash_t &order_hash);
+      const blk_hash_t &order_hash, const std::optional<blk_hash_t> pillar_block_hash);
 
   /**
    * @brief Get current total DPOS votes count
@@ -253,7 +254,7 @@ class PbftManager {
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
-  size_t getPbftCommitteeSize() const { return config_.pbft.committee_size; }
+  size_t getPbftCommitteeSize() const { return kGenesisConfig.pbft.committee_size; }
 
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
@@ -526,6 +527,7 @@ class PbftManager {
   std::weak_ptr<Network> network_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
   const addr_t node_addr_;
   const secret_t node_sk_;
@@ -568,7 +570,7 @@ class PbftManager {
 
   const blk_hash_t dag_genesis_block_hash_;
 
-  const GenesisConfig &config_;
+  const GenesisConfig &kGenesisConfig;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;

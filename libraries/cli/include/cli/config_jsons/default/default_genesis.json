@@ -116,8 +116,8 @@
     },
     "ficus_hf" : {
       "block_num" : 0,
-      "pillar_block_periods" : 100,
-      "signatures_check_periods" : 25
+      "pillar_block_periods" : 25,
+      "signatures_check_periods" : 10
     }
   }
 }

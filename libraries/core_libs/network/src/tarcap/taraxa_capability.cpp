@@ -44,7 +44,8 @@ TaraxaCapability::TaraxaCapability(
       pbft_syncing_state_(std::move(syncing_state)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::move(threadpool)) {
-  const std::string logs_prefix = "V" + std::to_string(version) + "_";
+  // const std::string logs_prefix = "V" + std::to_string(version) + "_";
+  const std::string logs_prefix = "";
   const auto &node_addr = key.address();
 
   LOG_OBJECTS_CREATE(logs_prefix + "TARCAP");
