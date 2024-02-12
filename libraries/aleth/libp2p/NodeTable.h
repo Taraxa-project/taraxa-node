@@ -470,17 +470,15 @@ struct PingNode : DiscoveryDatagram {
   unsigned chain_id = 0;
   NodeIPEndpoint source;
   NodeIPEndpoint destination;
-  uint64_t seq;
   std::optional<bool> use_udp_port;
 
   void streamRLP(RLPStream& _s) const override {
-    _s.appendList(use_udp_port.has_value() ? 7 : 6);
+    _s.appendList(use_udp_port.has_value() ? 6 : 5);
     _s << dev::p2p::c_protocolVersion;
     _s << chain_id;
     source.streamRLP(_s);
     destination.streamRLP(_s);
     _s << *expiration;
-    _s << seq;
     if (use_udp_port.has_value()) _s << *use_udp_port;
   }
 
@@ -491,8 +489,7 @@ struct PingNode : DiscoveryDatagram {
     source.interpretRLP(r[2]);
     destination.interpretRLP(r[3]);
     expiration = r[4].toInt<uint32_t>();
-    seq = r[5].toInt<uint64_t>();
-    if (r.itemCount() > 6 && r[6].isInt()) use_udp_port = r[6].toInt<bool>();
+    if (r.itemCount() > 5 && r[5].isInt()) use_udp_port = r[5].toInt<bool>();
   }
 
   std::string typeName() const override { return "Ping"; }

@@ -261,7 +261,6 @@ void NodeTable::ping(Node const& _node, shared_ptr<NodeEntry> _replacementNodeEn
 
   PingNode p{m_hostNodeEndpoint, _node.get_endpoint(), chain_id_};
   p.expiration = nextRequestExpirationTime();
-  p.seq = m_hostENR.sequenceNumber();
   if (announce_upd_port_) p.use_udp_port = true;
   auto const pingHash = p.sign(m_secret);
   LOG(m_logger) << p.typeName() << " to " << _node;
