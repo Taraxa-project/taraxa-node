@@ -37,12 +37,14 @@ struct NetworkConfig {
 
   // Network Preferences with intended Public IP
   NetworkConfig(std::string const& _publicIP, std::string const& _listenAddress = std::string(),
-                unsigned short _listenPort = c_defaultListenPort, bool _upnp = true, bool _allowLocalDiscovery = false)
+                unsigned short _listenPort = c_defaultListenPort, bool _upnp = true, bool _allowLocalDiscovery = false,
+                bool publicPort = false)
       : publicIPAddress(_publicIP),
         listenIPAddress(_listenAddress),
         listenPort(_listenPort),
         traverseNAT(_upnp),
-        allowLocalDiscovery(_allowLocalDiscovery) {
+        allowLocalDiscovery(_allowLocalDiscovery),
+        announcePublicPort(publicPort) {
     if (!publicIPAddress.empty() && !isPublicAddress(publicIPAddress)) BOOST_THROW_EXCEPTION(InvalidPublicIPAddress());
   }
 
@@ -58,6 +60,7 @@ struct NetworkConfig {
   bool discovery = true;             // Discovery is activated with network.
   bool allowLocalDiscovery = false;  // Include nodes with local IP addresses in the discovery process.
   bool pin = false;                  // Only accept or connect to trusted peers.
+  bool announcePublicPort = false;   // Announce public port in PING msg
 };
 
 /**

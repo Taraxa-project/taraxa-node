@@ -86,6 +86,7 @@ dev::KeyPair getKey(std::string const& path) {
 
 int main(int argc, char** argv) {
   bool denyLocalDiscovery;
+  bool public_port;
   std::string wallet;
 
   po::options_description general_options("GENERAL OPTIONS", kLineWidth);
@@ -100,6 +101,7 @@ int main(int argc, char** argv) {
   auto addNetworkingOption = client_networking.add_options();
   addNetworkingOption("public-ip", po::value<std::string>()->value_name("<ip>"),
                       "Force advertised public IP to the given IP (default: auto)");
+  addNetworkingOption("public-port", po::bool_switch(&public_port), "Force advertised public port (default: false)");
   addNetworkingOption("listen-ip", po::value<std::string>()->value_name("<ip>"),
                       "Listen on the given IP for incoming connections (default: 0.0.0.0)");
   addNetworkingOption("listen", po::value<unsigned short>()->value_name("<port>"),
@@ -167,8 +169,9 @@ int main(int argc, char** argv) {
     }
   }
 
-  auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
-                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
+  auto net_conf = public_ip.empty()
+                      ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
+                      : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false, false, public_port);
   net_conf.allowLocalDiscovery = !denyLocalDiscovery;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;

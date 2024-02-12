@@ -19,7 +19,7 @@ else
     if [ "$ADVERTISED_IP" = "auto" ]; then
       ADVERTISED_IP=$(curl icanhazip.com 2>/dev/null)
     fi
-    FLAGS="--public-ip ${ADVERTISED_IP}"
+    FLAGS="--public-ip ${ADVERTISED_IP} --public-port"
   fi
 
   ADVERTISED_PORT_NAME="ADVERTISED_PORT_$INDEX"

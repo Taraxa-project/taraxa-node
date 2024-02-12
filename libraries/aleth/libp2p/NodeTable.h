@@ -109,7 +109,8 @@ class NodeTable : UDPSocketEvents {
   /// Constructor requiring host for I/O, credentials, and IP Address, port to
   /// listen on and host ENR.
   NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false, unsigned chain_id = 0);
+            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false,
+            bool announce_udp_port = false, unsigned chain_id = 0);
 
   ~NodeTable() {
     if (m_socket->isOpen()) {
@@ -384,6 +385,7 @@ class NodeTable : UDPSocketEvents {
 
   const bool is_boot_node_ = false;
   const uint32_t chain_id_ = 0;
+  const bool announce_upd_port_ = false;
 };
 
 /**
@@ -468,16 +470,18 @@ struct PingNode : DiscoveryDatagram {
   unsigned chain_id = 0;
   NodeIPEndpoint source;
   NodeIPEndpoint destination;
-  boost::optional<uint64_t> seq;
+  uint64_t seq;
+  std::optional<bool> use_udp_port;
 
   void streamRLP(RLPStream& _s) const override {
-    _s.appendList(seq.is_initialized() ? 5 : 4);
+    _s.appendList(use_udp_port.has_value() ? 6 : 5);
     _s << dev::p2p::c_protocolVersion;
     _s << chain_id;
     source.streamRLP(_s);
     destination.streamRLP(_s);
     _s << *expiration;
-    if (seq.is_initialized()) _s << *seq;
+    _s << seq;
+    if (use_udp_port.has_value()) _s << *use_udp_port;
   }
 
   void interpretRLP(bytesConstRef _bytes) override {
@@ -487,7 +491,8 @@ struct PingNode : DiscoveryDatagram {
     source.interpretRLP(r[2]);
     destination.interpretRLP(r[3]);
     expiration = r[4].toInt<uint32_t>();
-    if (r.itemCount() > 5 && r[5].isInt()) seq = r[5].toInt<uint64_t>();
+    seq = r[5].toInt<uint64_t>();
+    if (r.itemCount() > 6 && r[6].isInt()) use_udp_port = r[6].toInt();
   }
 
   std::string typeName() const override { return "Ping"; }
