@@ -144,9 +144,9 @@
     },
     "aspen_hf": {
       "block_num_part_one": 1000,
-      "block_num_part_two": -1,
+      "block_num_part_two": 421500,
       "max_supply": "0x26C62AD77DC602DAE0000000",
-      "generated_rewards": "0x0"
+      "generated_rewards": "0x1E1816CD2C7C0C7EA"
     }
   }
 }
