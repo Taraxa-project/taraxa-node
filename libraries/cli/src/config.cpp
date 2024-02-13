@@ -26,7 +26,7 @@ Config::Config(int argc, const char* argv[]) {
   std::vector<std::string> command;
   std::vector<std::string> boot_nodes;
   std::string public_ip;
-  bool public_port = false;
+  uint16_t public_port = 0;
   uint16_t port = 0;
   std::vector<std::string> log_channels;
   std::vector<std::string> log_configurations;
@@ -109,8 +109,8 @@ Config::Config(int argc, const char* argv[]) {
       "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
   node_command_options.add_options()(PUBLIC_IP, bpo::value<std::string>(&public_ip),
                                      "Force advertised public IP to the given IP (default: auto)");
-  node_command_options.add_options()(PUBLIC_PORT, bpo::bool_switch(&public_port),
-                                     "Force advertised public port (default: false)");
+  node_command_options.add_options()(PUBLIC_PORT, bpo::value<uint16_t>(&public_port),
+                                     "Force advertised public port (default: disabled)");
   node_command_options.add_options()(PORT, bpo::value<uint16_t>(&port),
                                      "Listen on the given port for incoming connections");
   node_command_options.add_options()(LOG_CHANNELS, bpo::value<std::vector<std::string>>(&log_channels)->multitoken(),
@@ -267,6 +267,8 @@ Config::Config(int argc, const char* argv[]) {
     }
     if (!public_ip.empty()) {
       node_config_.network.public_ip = public_ip;
+    }
+    if (public_port) {
       node_config_.network.public_port = public_port;
     }
     if (port) {

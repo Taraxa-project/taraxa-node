@@ -3,6 +3,8 @@
 // Licensed under the GNU General Public License, Version 3.
 
 #include "NodeTable.h"
+
+#include <cstdint>
 using namespace std;
 
 namespace dev {
@@ -33,8 +35,8 @@ inline bool operator==(weak_ptr<NodeEntry> const& _weak, shared_ptr<NodeEntry> c
 }
 
 NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-                     bool _enabled, bool _allowLocalDiscovery, bool is_boot_node, bool announce_udp_port,
-                     unsigned chain_id)
+                     bool _enabled, bool _allowLocalDiscovery, bool is_boot_node, uint16_t public_port,
+                     uint32_t chain_id)
     : strand_(ba::make_strand(_io)),
       m_hostNodeID{_alias.pub()},
       m_hostNodeIDHash{sha3(m_hostNodeID)},
@@ -50,7 +52,7 @@ NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint 
       m_endpointTrackingTimer{make_shared<ba::steady_timer>(_io)},
       is_boot_node_(is_boot_node),
       chain_id_(chain_id),
-      announce_upd_port_(announce_udp_port) {
+      public_port_(public_port) {
   if (is_boot_node_) {
     s_bucketSize = BOOT_NODE_BUCKET_SIZE;
   }
@@ -261,7 +263,7 @@ void NodeTable::ping(Node const& _node, shared_ptr<NodeEntry> _replacementNodeEn
 
   PingNode p{m_hostNodeEndpoint, _node.get_endpoint(), chain_id_};
   p.expiration = nextRequestExpirationTime();
-  if (announce_upd_port_) p.use_udp_port = true;
+  if (public_port_) p.public_port = public_port_;
   auto const pingHash = p.sign(m_secret);
   LOG(m_logger) << p.typeName() << " to " << _node;
   m_socket->send(p);
@@ -555,6 +557,10 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
 }
 
 NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet) {
+  auto port = from.port();
+  if (packet.public_port && *packet.public_port != 0) {
+    port = *packet.public_port;
+  }
   if (from.address() != packet.source.address() && !isLocalHostAddress(packet.source.address())) {
     if (isPrivateAddress(from.address()) && !isPrivateAddress(packet.source.address())) {
       Guard l(x_ips);
@@ -566,14 +572,11 @@ NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingN
       } else {
         m_id2IpMap[packet.sourceid] = from;
       }
-      m_ipMappings[from] = {packet.source.address(), packet.source.udpPort(), packet.source.tcpPort()};
+      m_ipMappings[from] = {packet.source.address(), port, packet.source.tcpPort()};
       return m_ipMappings[from];
     }
   }
-  if (packet.use_udp_port.has_value() && packet.use_udp_port) {
-    return {from.address(), packet.source.udpPort(), packet.source.tcpPort()};
-  }
-  return {from.address(), from.port(), packet.source.tcpPort()};
+  return {from.address(), port, packet.source.tcpPort()};
 }
 
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {

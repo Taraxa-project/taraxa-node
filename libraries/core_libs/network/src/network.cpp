@@ -55,7 +55,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   net_conf.allowLocalDiscovery = true;
   net_conf.traverseNAT = false;
   net_conf.publicIPAddress = config.network.public_ip;
-  net_conf.announcePublicPort = config.network.public_port;
+  net_conf.publicPort = config.network.public_port;
   net_conf.pin = false;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;

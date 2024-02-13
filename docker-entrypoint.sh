@@ -19,7 +19,7 @@ else
     if [ "$ADVERTISED_IP" = "auto" ]; then
       ADVERTISED_IP=$(curl icanhazip.com 2>/dev/null)
     fi
-    FLAGS="--public-ip ${ADVERTISED_IP} --public-port"
+    FLAGS="--public-ip ${ADVERTISED_IP}"
   fi
 
   ADVERTISED_PORT_NAME="ADVERTISED_PORT_$INDEX"
@@ -27,7 +27,7 @@ else
   if [[ -z "${ADVERTISED_PORT}" ]]; then
     echo "ADVERTISED_PORT is not set."
   else
-    FLAGS="$FLAGS --port ${ADVERTISED_PORT}"
+    FLAGS="$FLAGS --public-port ${ADVERTISED_PORT}"
   fi
 fi
 

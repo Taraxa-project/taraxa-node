@@ -61,7 +61,7 @@ struct NetworkConfig {
 
   std::string json_file_name;
   std::string public_ip;
-  bool public_port = false;
+  uint16_t public_port = 0;
   std::string listen_ip = "127.0.0.1";
   uint16_t listen_port = 0;
   std::vector<NodeConfig> boot_nodes;
