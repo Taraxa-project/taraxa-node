@@ -29,9 +29,9 @@ void PbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData
 
   // PeriodData rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
   // checked here manually
-  if (packet_data.rlp_[1].itemCount() != PeriodData::kRlpItemCount) {
+  if (packet_data.rlp_[1].itemCount() != PeriodData::kBaseRlpItemCount) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + ":PeriodData", packet_data.rlp_[1].itemCount(),
-                                        PeriodData::kRlpItemCount);
+                                        PeriodData::kBaseRlpItemCount);
   }
 }
 
@@ -230,7 +230,7 @@ PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_r
 
 std::vector<std::shared_ptr<PbftVote>> PbftSyncPacketHandler::decodeVotesBundle(
     const dev::RLP &votes_bundle_rlp) const {
-  return decodeVotesBundleRlp(votes_bundle_rlp);
+  return decodePbftVotesBundleRlp(votes_bundle_rlp);
 }
 
 void PbftSyncPacketHandler::pbftSyncComplete() {
