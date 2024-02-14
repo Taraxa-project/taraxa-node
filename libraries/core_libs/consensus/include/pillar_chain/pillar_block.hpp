@@ -93,7 +93,10 @@ struct PillarBlockData {
   std::shared_ptr<PillarBlock> block;
   std::vector<std::shared_ptr<PillarVote>> pillar_votes;
 
-  HAS_RLP_FIELDS
+  PillarBlockData(const dev::RLP& rlp);
+  dev::bytes getRlp() const;
+
+  const static size_t kRlpItemCount = 2;
 };
 
 /** @}*/
