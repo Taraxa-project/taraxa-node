@@ -22,6 +22,7 @@ class PillarVote : public Vote {
  public:
   PillarVote() = default;
   PillarVote(const secret_t& node_sk, PbftPeriod period, const blk_hash_t& block_hash);
+  PillarVote(PbftPeriod period, const blk_hash_t& block_hash, sig_t&& signature);
 
   explicit PillarVote(const dev::RLP& rlp);
   explicit PillarVote(const bytes& rlp);

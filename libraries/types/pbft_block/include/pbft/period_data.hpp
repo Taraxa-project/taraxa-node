@@ -17,6 +17,7 @@ namespace taraxa {
 
 class PbftVote;
 class PbftBlock;
+class PillarVote;
 
 /**
  * @brief PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks, and transactions
@@ -25,7 +26,8 @@ class PeriodData {
  public:
   PeriodData() = default;
   PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
-             const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes);
+             const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes,
+             std::optional<std::vector<std::shared_ptr<PillarVote>>>&& pillar_votes = {});
   explicit PeriodData(const dev::RLP& all_rlp);
   explicit PeriodData(bytes const& all_rlp);
 
@@ -35,7 +37,10 @@ class PeriodData {
   std::vector<DagBlock> dag_blocks;
   SharedTransactions transactions;
 
-  const static size_t kRlpItemCount = 4;
+  // Pillar votes should be present only if pbft block contains also pillar block hash
+  std::optional<std::vector<std::shared_ptr<PillarVote>>> pillar_votes_;
+
+  const static size_t kBaseRlpItemCount = 4;
 
   /**
    * @brief Recursive Length Prefix

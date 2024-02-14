@@ -13,13 +13,15 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain,
-                                                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
+                                                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<PillarChainManager> pillar_chain_mgr,
+                                                   std::shared_ptr<DbStorage> db,
                                                    const addr_t &node_addr, const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
+      pillar_chain_mgr_(std::move(pillar_chain_mgr)),
       db_(std::move(db)) {}
 
 void GetPbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
@@ -81,6 +83,16 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       return;
     }
 
+    // Add pillar votes to period data
+    if (block_period >= 2 * kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods &&
+        block_period % kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods == 0) {
+      const auto pillar_votes = db_->getPillarBlockData(block_period - kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods);
+      if (!pillar_votes.has_value()) {
+        LOG(log_er_) << "DB corrupted. Cannot find pillar votes for period " << block_period << " in db";
+        return;
+      }
+    }
+
     dev::RLPStream s;
     if (pbft_chain_synced && last_block) {
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
@@ -91,7 +103,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
         s.appendList(3);
         s << last_block;
         s.appendRaw(data);
-        s.appendRaw(encodeVotesBundleRlp(reward_votes, false));
+        s.appendRaw(encodePbftVotesBundleRlp(reward_votes));
       } else {
         s.appendList(2);
         s << last_block;

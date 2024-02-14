@@ -6,6 +6,7 @@ namespace taraxa {
 class PbftChain;
 class DbStorage;
 class VoteManager;
+class PillarChainManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -17,7 +18,7 @@ class GetPbftSyncPacketHandler : public PacketHandler {
   GetPbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                            std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-                           std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
+                           std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<PillarChainManager> pillar_chain_mgr, std::shared_ptr<DbStorage> db,
                            const addr_t& node_addr, const std::string& logs_prefix = "GET_PBFT_SYNC_PH");
 
   // Packet type that is processed by this handler
@@ -34,6 +35,7 @@ class GetPbftSyncPacketHandler : public PacketHandler {
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<PillarChainManager> pillar_chain_mgr_;
   std::shared_ptr<DbStorage> db_;
 };
 
