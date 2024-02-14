@@ -3,7 +3,7 @@
 #include <libdevcore/SHA3.h>
 
 #include "common/encoding_rlp.hpp"
-#include "final_chain/contract_interface.hpp"
+#include "common/encoding_solidity.hpp"
 #include "vote/pillar_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
@@ -37,19 +37,19 @@ PillarBlock::PillarBlock(const PillarBlock& pillar_block)
       validators_stakes_changes_(pillar_block.validators_stakes_changes_),
       previous_pillar_block_hash_(pillar_block.previous_pillar_block_hash_) {}
 
-dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
+// dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
 
 dev::bytes PillarBlock::encode() const {
   dev::bytes result;
-  // result.reserve((1 + 4 + 2 + 2 * validators_stakes_changes_.size()) * 32);
-  auto start = final_chain::ContractInterface::pack(32);
+  result.reserve((1 + 4 + 2 + 2 * validators_stakes_changes_.size()) * 32);
+  auto start = util::EncodingSolidity::pack(32);
   result.insert(result.end(), start.begin(), start.end());
-  auto body = final_chain::ContractInterface::pack(period_, state_root_, bridge_root_, previous_pillar_block_hash_);
+  auto body = util::EncodingSolidity::pack(period_, state_root_, bridge_root_, previous_pillar_block_hash_);
   result.insert(result.end(), body.begin(), body.end());
-  auto array_data = final_chain::ContractInterface::pack(160, validators_stakes_changes_.size());
+  auto array_data = util::EncodingSolidity::pack(160, validators_stakes_changes_.size());
   result.insert(result.end(), array_data.begin(), array_data.end());
   for (auto& stake_change : validators_stakes_changes_) {
-    auto stake_change_encoded = final_chain::ContractInterface::pack(stake_change.addr_, stake_change.stake_change_);
+    auto stake_change_encoded = util::EncodingSolidity::pack(stake_change.addr_, stake_change.stake_change_);
     result.insert(result.end(), stake_change_encoded.begin(), stake_change_encoded.end());
   }
   return result;
@@ -68,7 +68,7 @@ PillarBlock::Hash PillarBlock::getHash() {
   }
 
   std::scoped_lock lock(hash_mutex_);
-  hash_ = dev::sha3(getRlp());
+  hash_ = dev::sha3(encode());
   return *hash_;
 }
 

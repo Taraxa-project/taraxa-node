@@ -50,6 +50,13 @@ bool dev::SignatureStruct::isValid() const noexcept {
   return (v <= 1 && r > s_zero && s > s_zero && r < s_max && s < s_max);
 }
 
+bool dev::CompactSignatureStruct::isValid() const noexcept {
+  static const h256 s_max{"0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"};
+  static const h256 s_zero;
+
+  return (r > s_zero && vs > s_zero && r < s_max && vs < s_max);
+}
+
 Public dev::toPublic(Secret const& _secret) {
   std::array<::byte, 65> serializedPubkey;
   if (!toPublicKey(_secret, SECP256K1_EC_UNCOMPRESSED, serializedPubkey)) return {};
@@ -205,6 +212,12 @@ Signature dev::sign(Secret const& _k, h256 const& _hash) {
   }
   assert(ss.s <= c_secp256k1n / 2);
   return s;
+}
+
+h512 dev::toCompact(const Signature& _s) {
+  SignatureStruct ss(_s);
+  ss.s = (u256(ss.v) << 255) | u256(ss.s);
+  return h512(h520(ss));
 }
 
 bool dev::verify(Public const& _p, Signature const& _s, h256 const& _hash) {

@@ -1,17 +1,15 @@
-#include "pillar_chain/pillar_block.hpp"
-
 #include <gtest/gtest.h>
 
 #include <iostream>
 
-#include "final_chain/contract_interface.hpp"
+#include "pillar_chain/pillar_block.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 namespace taraxa::core_tests {
 
-struct PillarBlockTest : NodesTest {};
+struct PillarTest : NodesTest {};
 
-TEST_F(PillarBlockTest, hash) {
+TEST_F(PillarTest, block_serialization) {
   {
     std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> validator_stakes_changes;
     validator_stakes_changes.emplace_back(pillar_chain::PillarBlock::ValidatorStakeChange(addr_t(1), dev::s256(-1)));
@@ -72,6 +70,60 @@ TEST_F(PillarBlockTest, hash) {
         "4fd709f28e8600b40000000000000000000000000000000000000000000000000677207ae64d6203");
     ASSERT_EQ(bt, expected);
   }
+}
+
+TEST_F(PillarTest, compact_signature) {
+  // Private Key: 0x1234567890123456789012345678901234567890123456789012345678901234
+  // Message: "Hello World"
+  // Signature:
+  //   r:  0x68a020a209d3d56c46f38cc50a33f704f4a9a10a59377f8dd762ac66910e9b90
+  //   s:  0x7e865ad05c4035ab5792787d4a0297a43617ae897930a6fe4d822b8faea52064
+  //   v:  27
+  // Compact Signature:
+  //   r:           0x68a020a209d3d56c46f38cc50a33f704f4a9a10a59377f8dd762ac66910e9b90
+  //   yParityAndS: 0x7e865ad05c4035ab5792787d4a0297a43617ae897930a6fe4d822b8faea52064
+  {
+    auto ss = dev::SignatureStruct();
+    ss.r = dev::h256("0x68a020a209d3d56c46f38cc50a33f704f4a9a10a59377f8dd762ac66910e9b90");
+    ss.s = dev::h256("0x7e865ad05c4035ab5792787d4a0297a43617ae897930a6fe4d822b8faea52064");
+    ss.v = 0;
+    // const auto compact_sig = dev::toCompact(sig);
+    const auto compact_sig = dev::toCompact(ss);
+    ASSERT_EQ(compact_sig, dev::h512("0x68a020a209d3d56c46f38cc50a33f704f4a9a10a59377f8dd762ac66910e9b907e865ad05c4035a"
+                                     "b5792787d4a0297a43617ae897930a6fe4d822b8faea52064"));
+  }
+
+  // Private Key: 0x1234567890123456789012345678901234567890123456789012345678901234
+  // Message: "It's a small(er) world"
+  // Signature:
+  //   r:  0x9328da16089fcba9bececa81663203989f2df5fe1faa6291a45381c81bd17f76
+  //   s:  0x139c6d6b623b42da56557e5e734a43dc83345ddfadec52cbe24d0cc64f550793
+  //   v:  28
+  // Compact Signature:
+  //   r:           0x9328da16089fcba9bececa81663203989f2df5fe1faa6291a45381c81bd17f76
+  //   yParityAndS: 0x939c6d6b623b42da56557e5e734a43dc83345ddfadec52cbe24d0cc64f550793
+  {
+    auto ss = dev::SignatureStruct();
+    ss.r = dev::h256("0x9328da16089fcba9bececa81663203989f2df5fe1faa6291a45381c81bd17f76");
+    ss.s = dev::h256("0x139c6d6b623b42da56557e5e734a43dc83345ddfadec52cbe24d0cc64f550793");
+    ss.v = 1;
+    // const auto compact_sig = dev::toCompact(sig);
+    const auto compact_sig = dev::toCompact(ss);
+    ASSERT_EQ(compact_sig, dev::h512("0x9328da16089fcba9bececa81663203989f2df5fe1faa6291a45381c81bd17f76939c6d6b623b42d"
+                                     "a56557e5e734a43dc83345ddfadec52cbe24d0cc64f550793"));
+  }
+}
+
+TEST_F(PillarTest, vote_encode_decode) {
+  auto pk = dev::Secret(dev::sha3(dev::jsToBytes("0x1")));
+  auto vote = PillarVote(pk, 1, dev::sha3(blk_hash_t(2)));
+  ASSERT_EQ(vote.encode().size(), 32 * 4);
+  // std::cout << "signer: " << dev::toAddress(pk).hex() << "\n"
+  //           << "signed: " << dev::toHex(vote.encode()) << std::endl;
+  auto decoded = PillarVote::decode(vote.encode());
+  ASSERT_EQ(decoded.getPeriod(), 1);
+  ASSERT_EQ(decoded.getBlockHash(), dev::sha3(blk_hash_t(2)));
+  ASSERT_EQ(decoded.getVoteSignature(), vote.getVoteSignature());
 }
 
 }  // namespace taraxa::core_tests

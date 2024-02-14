@@ -1,5 +1,6 @@
 #include "test_util/test_util.hpp"
 
+#include "common/encoding_solidity.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -76,7 +77,7 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
 
   const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret);
 
-  const auto input = final_chain::ContractInterface::packFunctionCall(
+  const auto input = util::EncodingSolidity::packFunctionCall(
       "registerValidator(address,bytes,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(), 10,
       dev::asBytes("test"), dev::asBytes("test"));
 

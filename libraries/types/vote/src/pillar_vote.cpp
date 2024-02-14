@@ -3,6 +3,7 @@
 #include <libdevcore/SHA3.h>
 
 #include "common/encoding_rlp.hpp"
+#include "common/encoding_solidity.hpp"
 
 namespace taraxa {
 
@@ -35,9 +36,31 @@ bytes PillarVote::rlp(bool inc_sig) const {
   return s.invalidate();
 }
 
+bytes PillarVote::encode(bool inc_sig) const {
+  if (inc_sig) {
+    const auto compact = dev::CompactSignatureStruct(vote_signature_);
+    return util::EncodingSolidity::pack(period_, block_hash_, compact.r, compact.vs);
+  }
+  return util::EncodingSolidity::pack(period_, block_hash_);
+}
+
+PillarVote PillarVote::decode(const bytes& enc) {
+  PillarVote v;
+
+  if (enc.size() != 2 * util::EncodingSolidity::kWordSize) {
+    dev::CompactSignatureStruct cs;
+    util::EncodingSolidity::staticUnpack(enc, v.period_, v.block_hash_, cs.r, cs.vs);
+    v.vote_signature_ = dev::SignatureStruct(cs);
+    return v;
+  }
+
+  util::EncodingSolidity::staticUnpack(enc, v.period_, v.block_hash_);
+  return v;
+}
+
 PbftPeriod PillarVote::getPeriod() const { return period_; }
 
-vote_hash_t PillarVote::sha3(bool inc_sig) const { return dev::sha3(rlp(inc_sig)); }
+vote_hash_t PillarVote::sha3(bool inc_sig) const { return dev::sha3(encode(inc_sig)); }
 
 RLP_FIELDS_DEFINE(PillarVote, period_, block_hash_, vote_signature_)
 
