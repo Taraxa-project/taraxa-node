@@ -681,7 +681,7 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
 }
 
 void DbStorage::savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data) {
-  insert(Columns::pillar_block_data, pillar_block_data.block->getPeriod(), util::rlp_enc(pillar_block_data));
+  insert(Columns::pillar_block_data, pillar_block_data.block->getPeriod(), pillar_block_data.getRlp());
 }
 
 std::optional<pillar_chain::PillarBlockData> DbStorage::getPillarBlockData(PbftPeriod period) const {
@@ -690,7 +690,7 @@ std::optional<pillar_chain::PillarBlockData> DbStorage::getPillarBlockData(PbftP
     return {};
   }
 
-  return util::rlp_dec<pillar_chain::PillarBlockData>(dev::RLP(bytes));
+  return pillar_chain::PillarBlockData(dev::RLP(bytes));
 }
 
 std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData() const {
@@ -700,7 +700,7 @@ std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData
     return {};
   }
 
-  return util::rlp_dec<pillar_chain::PillarBlockData>(dev::RLP(it->value().ToString()));
+  return pillar_chain::PillarBlockData(dev::RLP(it->value().ToString()));
 }
 
 void DbStorage::saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote) {
@@ -874,7 +874,7 @@ std::vector<std::shared_ptr<PbftVote>> DbStorage::getPeriodCertVotes(PbftPeriod 
   if (votes_rlp.itemCount() == 0) {
     return {};
   }
-  return decodeVotesBundleRlp(votes_rlp);
+  return decodePbftVotesBundleRlp(votes_rlp);
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {

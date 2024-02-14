@@ -503,6 +503,14 @@ class PbftManager {
                                   const std::vector<std::shared_ptr<PbftVote>> &cert_votes) const;
 
   /**
+   @brief Validates PBFT block [illar] votes
+   *
+   * @param period_data
+   * @return
+   */
+  bool validatePbftBlockPillarVotes(const PeriodData &period_data) const;
+
+  /**
    * @param period
    * @return true if node can participate in consensus - is dpos eligible to vote and create blocks for specified period
    */

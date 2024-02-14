@@ -182,7 +182,7 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
   }
 
   auto sendVotes = [this, &peer](std::vector<std::shared_ptr<PbftVote>> &&votes) {
-    auto votes_bytes = encodeVotesBundleRlp(std::move(votes), false);
+    auto votes_bytes = encodePbftVotesBundleRlp(std::move(votes));
     if (votes_bytes.empty()) {
       LOG(log_er_) << "Unable to send VotesBundle rlp";
       return;
