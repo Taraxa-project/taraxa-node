@@ -27,7 +27,7 @@ else
   if [[ -z "${ADVERTISED_PORT}" ]]; then
     echo "ADVERTISED_PORT is not set."
   else
-    FLAGS="$FLAGS --public-port ${ADVERTISED_PORT}"
+    FLAGS="$FLAGS --port ${ADVERTISED_PORT}"
   fi
 fi
 

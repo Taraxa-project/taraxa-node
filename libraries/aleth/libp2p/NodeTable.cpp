@@ -464,9 +464,7 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
     }
   }
 
-  if (pong.public_port && *pong.public_port != 0) {
-    sourceNodeEntry->node.external_udp_port = *pong.public_port;
-  }
+  sourceNodeEntry->node.external_udp_port = nodeValidation.tcpPort;
 
   m_sentPings.erase(_from);
 
@@ -605,7 +603,6 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   p.expiration = nextRequestExpirationTime();
   p.echo = in.echo;
   p.seq = m_hostENR.sequenceNumber();
-  if (public_port_) p.public_port = public_port_;
   p.sign(m_secret);
   m_socket->send(p);
 

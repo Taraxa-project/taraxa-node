@@ -508,24 +508,22 @@ struct Pong : DiscoveryDatagram {
   uint8_t packetType() const override { return type; }
 
   NodeIPEndpoint destination;
-  uint64_t seq;
-  std::optional<uint16_t> public_port;
+  std::optional<uint64_t> seq;
 
   void streamRLP(RLPStream& _s) const override {
-    _s.appendList(public_port.has_value() ? 5 : 4);
+    _s.appendList(seq.has_value() ? 4 : 3);
     destination.streamRLP(_s);
     _s << echo;
     _s << *expiration;
-    _s << seq;
-    if (public_port.has_value()) _s << *public_port;
+    if (seq.has_value()) _s << *seq;
   }
+
   void interpretRLP(bytesConstRef _bytes) override {
     RLP r(_bytes, RLP::AllowNonCanon | RLP::ThrowOnFail);
     destination.interpretRLP(r[0]);
     echo = (h256)r[1];
     expiration = r[2].toInt<uint32_t>();
-    seq = r[3].toInt<uint32_t>();
-    if (r.itemCount() > 4 && r[4].isInt()) public_port = r[4].toInt<uint16_t>();
+    if (r.itemCount() > 3 && r[3].isInt()) seq = r[3].toInt<uint64_t>();
   }
 
   std::string typeName() const override { return "Pong"; }
