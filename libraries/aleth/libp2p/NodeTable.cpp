@@ -263,7 +263,7 @@ void NodeTable::ping(Node const& _node, shared_ptr<NodeEntry> _replacementNodeEn
 
   PingNode p{m_hostNodeEndpoint, _node.get_endpoint(), chain_id_};
   p.expiration = nextRequestExpirationTime();
-  if (public_port_) p.public_port = public_port_;
+  p.seq = m_hostENR.sequenceNumber();
   auto const pingHash = p.sign(m_secret);
   LOG(m_logger) << p.typeName() << " to " << _node;
   m_socket->send(p);
@@ -464,6 +464,10 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
     }
   }
 
+  if (pong.public_port && *pong.public_port != 0) {
+    sourceNodeEntry->node.external_udp_port = *pong.public_port;
+  }
+
   m_sentPings.erase(_from);
 
   // update our external endpoint address and UDP port
@@ -557,10 +561,6 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
 }
 
 NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet) {
-  auto port = from.port();
-  if (packet.public_port && *packet.public_port != 0) {
-    port = *packet.public_port;
-  }
   if (from.address() != packet.source.address() && !isLocalHostAddress(packet.source.address())) {
     if (isPrivateAddress(from.address()) && !isPrivateAddress(packet.source.address())) {
       Guard l(x_ips);
@@ -572,11 +572,11 @@ NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingN
       } else {
         m_id2IpMap[packet.sourceid] = from;
       }
-      m_ipMappings[from] = {packet.source.address(), port, packet.source.tcpPort()};
+      m_ipMappings[from] = {packet.source.address(), packet.source.udpPort(), packet.source.tcpPort()};
       return m_ipMappings[from];
     }
   }
-  return {from.address(), port, packet.source.tcpPort()};
+  return {from.address(), from.port(), packet.source.tcpPort()};
 }
 
 std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
@@ -605,6 +605,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   p.expiration = nextRequestExpirationTime();
   p.echo = in.echo;
   p.seq = m_hostENR.sequenceNumber();
+  if (public_port_) p.public_port = public_port_;
   p.sign(m_secret);
   m_socket->send(p);
 

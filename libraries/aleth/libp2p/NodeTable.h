@@ -471,16 +471,16 @@ struct PingNode : DiscoveryDatagram {
   unsigned chain_id = 0;
   NodeIPEndpoint source;
   NodeIPEndpoint destination;
-  std::optional<uint16_t> public_port;
+  std::optional<uint64_t> seq;
 
   void streamRLP(RLPStream& _s) const override {
-    _s.appendList(public_port.has_value() ? 6 : 5);
+    _s.appendList(seq.has_value() ? 6 : 5);
     _s << dev::p2p::c_protocolVersion;
     _s << chain_id;
     source.streamRLP(_s);
     destination.streamRLP(_s);
     _s << *expiration;
-    if (public_port.has_value()) _s << *public_port;
+    if (seq.has_value()) _s << *seq;
   }
 
   void interpretRLP(bytesConstRef _bytes) override {
@@ -490,7 +490,7 @@ struct PingNode : DiscoveryDatagram {
     source.interpretRLP(r[2]);
     destination.interpretRLP(r[3]);
     expiration = r[4].toInt<uint32_t>();
-    if (r.itemCount() > 5 && r[5].isInt()) public_port = r[5].toInt<uint16_t>();
+    if (r.itemCount() > 5 && r[5].isInt()) seq = r[5].toInt<uint64_t>();
   }
 
   std::string typeName() const override { return "Ping"; }
@@ -508,21 +508,24 @@ struct Pong : DiscoveryDatagram {
   uint8_t packetType() const override { return type; }
 
   NodeIPEndpoint destination;
-  boost::optional<uint64_t> seq;
+  uint64_t seq;
+  std::optional<uint16_t> public_port;
 
   void streamRLP(RLPStream& _s) const override {
-    _s.appendList(seq.is_initialized() ? 4 : 3);
+    _s.appendList(public_port.has_value() ? 5 : 4);
     destination.streamRLP(_s);
     _s << echo;
     _s << *expiration;
-    if (seq.is_initialized()) _s << *seq;
+    _s << seq;
+    if (public_port.has_value()) _s << *public_port;
   }
   void interpretRLP(bytesConstRef _bytes) override {
     RLP r(_bytes, RLP::AllowNonCanon | RLP::ThrowOnFail);
     destination.interpretRLP(r[0]);
     echo = (h256)r[1];
     expiration = r[2].toInt<uint32_t>();
-    if (r.itemCount() > 3 && r[3].isInt()) seq = r[3].toInt<uint64_t>();
+    seq = r[3].toInt<uint32_t>();
+    if (r.itemCount() > 4 && r[4].isInt()) public_port = r[4].toInt<uint16_t>();
   }
 
   std::string typeName() const override { return "Pong"; }
@@ -579,7 +582,11 @@ struct Neighbours : DiscoveryDatagram {
       : DiscoveryDatagram(_from, _fromid, _echo) {}
 
   struct Neighbour {
-    Neighbour(Node const& _node) : endpoint(_node.get_endpoint()), node(_node.id) {}
+    Neighbour(Node const& _node) : endpoint(_node.get_endpoint()), node(_node.id) {
+      if (_node.external_udp_port && *_node.external_udp_port != 0) {
+        endpoint.setUdpPort(*_node.external_udp_port);
+      }
+    }
     Neighbour(RLP const& _r) : endpoint(_r) { node = h512(_r[3].toBytes()); }
     NodeIPEndpoint endpoint;
     NodeID node;
