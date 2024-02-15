@@ -37,14 +37,12 @@ struct NetworkConfig {
 
   // Network Preferences with intended Public IP
   NetworkConfig(std::string const& _publicIP, std::string const& _listenAddress = std::string(),
-                uint16_t _listenPort = c_defaultListenPort, bool _upnp = true, bool _allowLocalDiscovery = false,
-                uint16_t publicPort = 0)
+                uint16_t _listenPort = c_defaultListenPort, bool _upnp = true, bool _allowLocalDiscovery = false)
       : publicIPAddress(_publicIP),
         listenIPAddress(_listenAddress),
         listenPort(_listenPort),
         traverseNAT(_upnp),
-        allowLocalDiscovery(_allowLocalDiscovery),
-        publicPort(publicPort) {
+        allowLocalDiscovery(_allowLocalDiscovery) {
     if (!publicIPAddress.empty() && !isPublicAddress(publicIPAddress)) BOOST_THROW_EXCEPTION(InvalidPublicIPAddress());
   }
 
@@ -53,7 +51,6 @@ struct NetworkConfig {
   std::string publicIPAddress;
   std::string listenIPAddress;
   uint16_t listenPort = c_defaultListenPort;
-  uint16_t publicPort = 0;  // Announce public port in PING msg
 
   /// Preferences
 

@@ -110,8 +110,7 @@ class NodeTable : UDPSocketEvents {
   /// Constructor requiring host for I/O, credentials, and IP Address, port to
   /// listen on and host ENR.
   NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false,
-            uint16_t public_port = 0, uint32_t chain_id = 0);
+            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false, uint32_t chain_id = 0);
 
   ~NodeTable() {
     if (m_socket->isOpen()) {
@@ -386,7 +385,6 @@ class NodeTable : UDPSocketEvents {
 
   const bool is_boot_node_ = false;
   const uint32_t chain_id_ = 0;
-  const uint16_t public_port_ = 0;
 };
 
 /**
