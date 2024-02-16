@@ -681,7 +681,7 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
 }
 
 void DbStorage::savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data) {
-  insert(Columns::pillar_block_data, pillar_block_data.block->getPeriod(), pillar_block_data.getRlp());
+  insert(Columns::pillar_block_data, pillar_block_data.block_->getPeriod(), pillar_block_data.getRlp());
 }
 
 std::optional<pillar_chain::PillarBlockData> DbStorage::getPillarBlockData(PbftPeriod period) const {

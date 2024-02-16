@@ -1928,8 +1928,60 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
 }
 
 bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) const {
-  // TODO: implement validation - similar to validatePbftBlockCertVotes
-  return false;
+  if (!period_data.pillar_votes_.has_value() || period_data.pillar_votes_->empty()) {
+    LOG(log_er_) << "No pillar votes provided, pbft block period " << period_data.pbft_blk->getPeriod()
+                 << ". The synced PBFT block comes from a malicious player";
+    return false;
+  }
+
+  const auto &pbft_block_hash = period_data.pbft_blk->getBlockHash();
+  const auto kRequiredVotesPeriod =
+      period_data.pbft_blk->getPeriod() - kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods;
+
+  size_t votes_weight = 0;
+
+  const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+
+  for (const auto &vote : *period_data.pillar_votes_) {
+    // Any info is wrong that can determine the synced PBFT block comes from a malicious player
+    if (vote->getPeriod() != kRequiredVotesPeriod) {
+      LOG(log_er_) << "Invalid pillar vote " << vote->getHash() << " period " << vote->getPeriod() << ", PBFT block "
+                   << pbft_block_hash << ", kRequiredVotesPeriod " << kRequiredVotesPeriod;
+      return false;
+    }
+
+    if (vote->getBlockHash() != current_pillar_block->getHash()) {
+      LOG(log_er_) << "Invalid pillar vote " << vote->getHash() << ", vote period " << vote->getPeriod()
+                   << ", vote block hash " << vote->getBlockHash() << ", current pillar block "
+                   << current_pillar_block->getHash() << ", block period " << current_pillar_block->getPeriod();
+      return false;
+    }
+
+    if (!pillar_chain_mgr_->validatePillarVote(vote)) {
+      LOG(log_er_) << "Invalid pillar vote " << vote->getHash();
+      return false;
+    }
+
+    if (const auto vote_weight = pillar_chain_mgr_->addVerifiedPillarVote(vote); vote_weight) {
+      votes_weight += vote_weight;
+    } else {
+      LOG(log_er_) << "Unable to add pillar vote " << vote->getHash() << " during syncing";
+      return false;
+    }
+  }
+
+  const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(kRequiredVotesPeriod - 1, PbftVoteTypes::cert_vote);
+  if (!two_t_plus_one.has_value()) {
+    return false;
+  }
+
+  if (votes_weight < *two_t_plus_one) {
+    LOG(log_wr_) << "Invalid pillar votes weight " << votes_weight << " < two_t_plus_one " << *two_t_plus_one
+                 << ", period " << kRequiredVotesPeriod - 1;
+    return false;
+  }
+
+  return true;
 }
 
 bool PbftManager::canParticipateInConsensus(PbftPeriod period) const {

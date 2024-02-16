@@ -45,7 +45,7 @@ void GetPillarChainSyncPacketHandler::process(const threadpool::PacketData &pack
     }
 
     dev::RLPStream s;
-    s.appendRaw(util::rlp_enc(*pillar_block_data));
+    //    s.appendRaw(util::rlp_enc(*pillar_block_data));
 
     LOG(log_dg_) << "Sending PillarChainSyncPacket for period " << period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PillarChainSyncPacket, std::move(s));
