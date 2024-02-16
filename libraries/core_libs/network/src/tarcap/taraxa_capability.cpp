@@ -247,8 +247,9 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
                                                               logs_prefix);
 
-      packets_handlers->registerHandler<GetPbftSyncPacketHandler>(
-          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, vote_mgr, db, node_addr, logs_prefix);
+      packets_handlers->registerHandler<GetPbftSyncPacketHandler>(config, peers_state, packets_stats,
+                                                                  pbft_syncing_state, pbft_chain, vote_mgr,
+                                                                  pillar_chain_mgr, db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
                                                                pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,

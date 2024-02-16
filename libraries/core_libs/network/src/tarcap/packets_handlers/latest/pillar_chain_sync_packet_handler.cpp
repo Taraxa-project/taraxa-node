@@ -38,23 +38,23 @@ void PillarChainSyncPacketHandler::process(const threadpool::PacketData &packet_
   //    return;
   //  }
 
-  auto pillar_block_data = util::rlp_dec<pillar_chain::PillarBlockData>(packet_data.rlp_);
-
-  if (!pillar_chain_manager_->isValidPillarBlock(pillar_block_data.block)) {
-    LOG(log_er_) << "Invalid sync pillar block received from peer " << peer->getId();
-    return;
-  }
-
-  // Validate signatures
-  // TODO: this will not work for light nodes because pbft might already be too far ahead...
-  //  for (const auto signature: pillar_block_data.signatures) {
+  //  auto pillar_block_data = util::rlp_dec<pillar_chain::PillarBlockData>(packet_data.rlp_);
   //
+  //  if (!pillar_chain_manager_->isValidPillarBlock(pillar_block_data.block_)) {
+  //    LOG(log_er_) << "Invalid sync pillar block received from peer " << peer->getId();
+  //    return;
   //  }
-
-  if (!pillar_chain_manager_->pushPillarBlock(pillar_block_data)) {
-    LOG(log_er_) << "Unable to push sync pillar block received from peer " << peer->getId();
-    return;
-  }
+  //
+  //  // Validate signatures
+  //  // TODO: this will not work for light nodes because pbft might already be too far ahead...
+  //  //  for (const auto signature: pillar_block_data.signatures) {
+  //  //
+  //  //  }
+  //
+  //  if (!pillar_chain_manager_->pushPillarBlock(pillar_block_data)) {
+  //    LOG(log_er_) << "Unable to push sync pillar block received from peer " << peer->getId();
+  //    return;
+  //  }
 }
 
 }  // namespace taraxa::network::tarcap

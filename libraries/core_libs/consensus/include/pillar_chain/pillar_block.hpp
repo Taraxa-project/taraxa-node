@@ -90,9 +90,10 @@ class PillarBlock {
 };
 
 struct PillarBlockData {
-  std::shared_ptr<PillarBlock> block;
-  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
+  std::shared_ptr<PillarBlock> block_;
+  std::vector<std::shared_ptr<PillarVote>> pillar_votes_;
 
+  PillarBlockData(std::shared_ptr<PillarBlock> block, std::vector<std::shared_ptr<PillarVote>>&& pillar_votes);
   PillarBlockData(const dev::RLP& rlp);
   dev::bytes getRlp() const;
 
