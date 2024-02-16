@@ -199,6 +199,7 @@ class NodeTable : UDPSocketEvents {
     // endpoint proof (answers with Pong), then it will be added to the bucket
     // of the node table
     uint16_t tcpPort = 0;
+    uint16_t udpPort = 0;
     // Time we sent Ping - used to handle timeouts
     TimePoint pingSentTime;
     // Hash of the sent Ping packet - used to validate received Pong
@@ -207,10 +208,11 @@ class NodeTable : UDPSocketEvents {
     // if original pinged node doesn't answer after timeout
     std::shared_ptr<NodeEntry> replacementNodeEntry;
 
-    NodeValidation(NodeID const& _nodeID, uint16_t _tcpPort, TimePoint const& _pingSentTime, h256 const& _pingHash,
-                   std::shared_ptr<NodeEntry> _replacementNodeEntry)
+    NodeValidation(NodeID const& _nodeID, uint16_t _tcpPort, uint16_t _udpPort, TimePoint const& _pingSentTime,
+                   h256 const& _pingHash, std::shared_ptr<NodeEntry> _replacementNodeEntry)
         : nodeID{_nodeID},
           tcpPort{_tcpPort},
+          udpPort{_udpPort},
           pingSentTime{_pingSentTime},
           pingHash{_pingHash},
           replacementNodeEntry{std::move(_replacementNodeEntry)} {}
@@ -579,8 +581,10 @@ struct Neighbours : DiscoveryDatagram {
 
   struct Neighbour {
     Neighbour(Node const& _node) : endpoint(_node.get_endpoint()), node(_node.id) {
-      if (_node.external_udp_port && *_node.external_udp_port != 0) {
-        endpoint.setUdpPort(*_node.external_udp_port);
+      // For external node we need to replace udp to reported one as we can communicate on upd port that's not available
+      // to everyone
+      if (_node.external_udp_port != 0) {
+        endpoint.setUdpPort(_node.external_udp_port);
       }
     }
     Neighbour(RLP const& _r) : endpoint(_r) { node = h512(_r[3].toBytes()); }

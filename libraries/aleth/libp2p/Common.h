@@ -226,7 +226,7 @@ class Node {
  public:
   // TODO: p2p implement
   std::atomic<PeerType> peerType{PeerType::Optional};
-  std::optional<uint16_t> external_udp_port;
+  std::atomic<uint16_t> external_udp_port;
 };
 
 inline boost::log::formatting_ostream& operator<<(boost::log::formatting_ostream& _strm, Node const& _node) {

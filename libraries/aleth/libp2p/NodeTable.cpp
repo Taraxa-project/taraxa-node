@@ -266,8 +266,9 @@ void NodeTable::ping(Node const& _node, shared_ptr<NodeEntry> _replacementNodeEn
   LOG(m_logger) << p.typeName() << " to " << _node;
   m_socket->send(p);
 
-  NodeValidation const validation{_node.id, _node.get_endpoint().tcpPort(), chrono::steady_clock::now(), pingHash,
-                                  _replacementNodeEntry};
+  NodeValidation const validation{
+      _node.id, _node.get_endpoint().tcpPort(), _node.get_endpoint().udpPort(), chrono::steady_clock::now(),
+      pingHash, _replacementNodeEntry};
   m_sentPings.insert({_node.get_endpoint(), validation});
 }
 
@@ -449,11 +450,14 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
   shared_ptr<NodeEntry> sourceNodeEntry;
   DEV_GUARDED(x_nodes) {
     auto it = m_allNodes.find(sourceId);
-    if (it == m_allNodes.end())
+    if (it == m_allNodes.end()) {
       sourceNodeEntry = make_shared<NodeEntry>(m_hostNodeIDHash, sourceId,
                                                NodeIPEndpoint{_from.address(), _from.port(), nodeValidation.tcpPort},
                                                RLPXDatagramFace::secondsSinceEpoch(), 0 /* lastPongSentTime */);
-    else {
+
+      // We need to setup external port, as we where able to do ping-pong exchange and node is active
+      sourceNodeEntry->node.external_udp_port = nodeValidation.udpPort;
+    } else {
       sourceNodeEntry = it->second;
       sourceNodeEntry->lastPongReceivedTime = RLPXDatagramFace::secondsSinceEpoch();
 
@@ -461,8 +465,6 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
         sourceNodeEntry->node.set_endpoint(NodeIPEndpoint{_from.address(), _from.port(), nodeValidation.tcpPort});
     }
   }
-
-  sourceNodeEntry->node.external_udp_port = nodeValidation.tcpPort;
 
   m_sentPings.erase(_from);
 
@@ -610,7 +612,11 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   // that shouldn't be a big problem, at worst it can lead to more Ping-Pongs
   // than needed.
   std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
-  if (sourceNodeEntry) sourceNodeEntry->lastPongSentTime = RLPXDatagramFace::secondsSinceEpoch();
+  if (sourceNodeEntry) {
+    sourceNodeEntry->lastPongSentTime = RLPXDatagramFace::secondsSinceEpoch();
+    // We should update entrypoint the the one that node is reporting
+    sourceNodeEntry->node.external_udp_port = in.source.udpPort();
+  }
 
   return sourceNodeEntry;
 }
