@@ -219,21 +219,23 @@ TEST_F(FullNodeTest, db_test) {
 
   const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
       block_num - 1, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{}, blk_hash_t{});
-  db.savePillarBlockData(pillar_chain::PillarBlockData{pillar_block, pillar_votes});
-  db.savePillarBlockData(pillar_chain::PillarBlockData{previous_pillar_block, {}});
+  db.savePillarBlockData(
+      pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
+  db.savePillarBlockData(
+      pillar_chain::PillarBlockData{previous_pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
 
   const auto pillar_block_data_db = db.getPillarBlockData(pillar_block->getPeriod());
-  EXPECT_EQ(pillar_block->getHash(), pillar_block_data_db->block->getHash());
-  EXPECT_EQ(pillar_votes.size(), pillar_block_data_db->pillar_votes.size());
+  EXPECT_EQ(pillar_block->getHash(), pillar_block_data_db->block_->getHash());
+  EXPECT_EQ(pillar_votes.size(), pillar_block_data_db->pillar_votes_.size());
   for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
-    EXPECT_EQ(pillar_votes[idx]->getHash(), pillar_block_data_db->pillar_votes[idx]->getHash());
+    EXPECT_EQ(pillar_votes[idx]->getHash(), pillar_block_data_db->pillar_votes_[idx]->getHash());
   }
 
   const auto latest_pillar_block_data_db = db.getLatestPillarBlockData();
-  EXPECT_EQ(pillar_block->getHash(), latest_pillar_block_data_db->block->getHash());
-  EXPECT_EQ(pillar_votes.size(), latest_pillar_block_data_db->pillar_votes.size());
+  EXPECT_EQ(pillar_block->getHash(), latest_pillar_block_data_db->block_->getHash());
+  EXPECT_EQ(pillar_votes.size(), latest_pillar_block_data_db->pillar_votes_.size());
   for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
-    EXPECT_EQ(pillar_votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes[idx]->getHash());
+    EXPECT_EQ(pillar_votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes_[idx]->getHash());
   }
 
   // Pillar chain - pillar vote

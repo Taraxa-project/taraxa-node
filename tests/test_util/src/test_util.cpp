@@ -200,6 +200,7 @@ NodesTest::NodesTest() {
     cfg.network.rpc->http_port = 7778 + i;
     cfg.network.rpc->ws_port = 8778 + i;
     cfg.node_secret = dev::KeyPair::create().secret();
+    cfg.vrf_secret = taraxa::vdf_sortition::getVrfKeyPair().second;
     cfg.network.listen_port = 10003 + i;
 
     cfg.genesis.gas_price.minimum_price = 0;

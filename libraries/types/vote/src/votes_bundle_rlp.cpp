@@ -50,8 +50,7 @@ std::vector<std::shared_ptr<PbftVote>> decodePbftVotesBundleRlp(const dev::RLP& 
   return votes;
 }
 
-dev::bytes encodePillarVotesBundleRlp(const std::vector<std::shared_ptr<PillarVote>>& votes,
-                                      bool validate_common_data) {
+dev::bytes encodePillarVotesBundleRlp(const std::vector<std::shared_ptr<PillarVote>>& votes) {
   if (votes.empty()) {
     assert(false);
     return {};

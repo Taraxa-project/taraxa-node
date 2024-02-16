@@ -2,6 +2,7 @@
 
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
+#include "pillar_chain/pillar_chain_manager.hpp"
 #include "storage/storage.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -13,9 +14,10 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain,
-                                                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<PillarChainManager> pillar_chain_mgr,
-                                                   std::shared_ptr<DbStorage> db,
-                                                   const addr_t &node_addr, const std::string &logs_prefix)
+                                                   std::shared_ptr<VoteManager> vote_mgr,
+                                                   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr,
+                                                   std::shared_ptr<DbStorage> db, const addr_t &node_addr,
+                                                   const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
@@ -83,14 +85,19 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       return;
     }
 
+    // TODO: bad solution: should not decode PeriodData, add pillar votes and then encode it...
+    PeriodData period_data{data};
     // Add pillar votes to period data
     if (block_period >= 2 * kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods &&
         block_period % kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods == 0) {
-      const auto pillar_votes = db_->getPillarBlockData(block_period - kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods);
-      if (!pillar_votes.has_value()) {
+      auto pillar_data =
+          db_->getPillarBlockData(block_period - kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods);
+      if (!pillar_data.has_value()) {
         LOG(log_er_) << "DB corrupted. Cannot find pillar votes for period " << block_period << " in db";
         return;
       }
+
+      period_data.pillar_votes_ = std::move(pillar_data->pillar_votes_);
     }
 
     dev::RLPStream s;
@@ -102,17 +109,17 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       if (reward_votes[0]->getPeriod() == block_period) {
         s.appendList(3);
         s << last_block;
-        s.appendRaw(data);
+        s.appendRaw(period_data.rlp());
         s.appendRaw(encodePbftVotesBundleRlp(reward_votes));
       } else {
         s.appendList(2);
         s << last_block;
-        s.appendRaw(data);
+        s.appendRaw(period_data.rlp());
       }
     } else {
       s.appendList(2);
       s << last_block;
-      s.appendRaw(data);
+      s.appendRaw(period_data.rlp());
     }
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
