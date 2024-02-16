@@ -32,7 +32,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
   }
 
   if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
-    last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block);
+    last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block_);
     // TODO: probably dont need this ???
     //    for (const auto& vote : latest_pillar_block_data->votes) {
     //      addVerifiedPillarVote(vote);
@@ -66,7 +66,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
     }
 
     // Get 2t+1 verified votes
-    const auto two_t_plus_one_votes =
+    auto two_t_plus_one_votes =
         pillar_votes_.getVerifiedVotes(current_pillar_block_->getPeriod(), current_pillar_block_->getHash(), true);
     if (two_t_plus_one_votes.empty()) {
       LOG(log_er_) << "There is < 2t+1 votes for current pillar block " << current_pillar_block_->getHash()
@@ -75,7 +75,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
     }
 
     // Save current pillar block and 2t+1 votes into db
-    if (!pushPillarBlock(PillarBlockData{current_pillar_block_, two_t_plus_one_votes})) {
+    if (!pushPillarBlock(PillarBlockData{current_pillar_block_, std::move(two_t_plus_one_votes)})) {
       // This should never happen
       LOG(log_er_) << "Unable to push pillar block: " << current_pillar_block_->getHash() << ", period "
                    << current_pillar_block_->getPeriod();
@@ -163,18 +163,18 @@ bool PillarChainManager::genAndPlacePillarVote(const PillarBlock::Hash& pillar_b
 
 bool PillarChainManager::pushPillarBlock(const PillarBlockData& pillarBlockData) {
   // Note: 2t+1 votes should be validated before calling pushPillarBlock
-  if (!isValidPillarBlock(pillarBlockData.block)) {
+  if (!isValidPillarBlock(pillarBlockData.block_)) {
     LOG(log_er_) << "Trying to push invalid pillar block";
     return false;
   }
 
   db_->savePillarBlockData(pillarBlockData);
-  LOG(log_nf_) << "Pillar block " << pillarBlockData.block->getHash() << " with period "
-               << pillarBlockData.block->getPeriod() << " pushed into the pillar chain";
+  LOG(log_nf_) << "Pillar block " << pillarBlockData.block_->getHash() << " with period "
+               << pillarBlockData.block_->getPeriod() << " pushed into the pillar chain";
 
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
-    last_finalized_pillar_block_ = pillarBlockData.block;
+    last_finalized_pillar_block_ = pillarBlockData.block_;
 
     // Erase votes that are no longer needed
     pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod());
@@ -279,20 +279,20 @@ bool PillarChainManager::validatePillarVote(const std::shared_ptr<PillarVote> vo
   return true;
 }
 
-bool PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote) {
+uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote) {
   uint64_t validator_vote_count = 0;
   try {
     validator_vote_count = final_chain_->dpos_eligible_vote_count(vote->getPeriod(), vote->getVoterAddr());
   } catch (state_api::ErrFutureBlock& e) {
     LOG(log_er_) << "Pillar vote " << vote->getHash() << " with period " << vote->getPeriod()
                  << " is too far ahead of DPOS. " << e.what();
-    return false;
+    return 0;
   }
 
   if (!validator_vote_count) {
     LOG(log_er_) << "Zero stake for pillar vote: " << vote->getHash() << ", author: " << vote->getVoterAddr()
                  << ", period: " << vote->getPeriod();
-    return false;
+    return 0;
   }
 
   if (!pillar_votes_.periodDataInitialized(vote->getPeriod())) {
@@ -306,18 +306,18 @@ bool PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarVote>
       // happen as this exception is caught above when calling dpos_eligible_vote_count
       LOG(log_er_) << "Unable to get 2t+1 for period " << vote->getPeriod();
       assert(false);
-      return false;
+      return 0;
     }
   }
 
   if (!pillar_votes_.addVerifiedVote(vote, validator_vote_count)) {
     LOG(log_er_) << "Non-unique pillar vote " << vote->getHash() << ", validator " << vote->getVoterAddr();
-    return false;
+    return 0;
   }
 
   LOG(log_dg_) << "Pillar vote " << vote->getHash() << " with period " << vote->getPeriod() << " for block "
                << vote->getBlockHash() << " added to the verified votes";
-  return true;
+  return validator_vote_count;
 }
 
 std::vector<std::shared_ptr<PillarVote>> PillarChainManager::getVerifiedPillarVotes(
