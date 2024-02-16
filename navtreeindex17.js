@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"group___vote.html#gga8a0770e242b649865f15f20a405507ccac0f90f4138d33e1cf7eac17f81962061":[13,4,4,0],
 "group___vote.html#gga8a0770e242b649865f15f20a405507ccac21763d55850e64ff753fdcd72ef2c45":[13,4,4,1],
 "hardfork_8cpp.html":[16,0,1,3,1,4],
 "hardfork_8cpp.html#a280d6fe653a1c7e6c87fd8f2162a2090":[16,0,1,3,1,4,7],
@@ -42,8 +43,8 @@ var NAVTREEINDEX17 =
 "include_2network_2ws__server_8hpp.html":[16,0,1,4,1,1,0,4],
 "include_2network_2ws__server_8hpp.html#a87adc53071ba8ddc553c84e894a4accc":[16,0,1,4,1,1,0,4,2],
 "include_2network_2ws__server_8hpp_source.html":[16,0,1,4,1,1,0,4],
-"index.html":[],
 "index.html":[0],
+"index.html":[],
 "index.html#autotoc_md1":[0,0],
 "index.html#autotoc_md10":[0,5],
 "index.html#autotoc_md11":[0,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "libp2p_2_common_8h.html#a668591af9c9e684f2a9cbc5919102f02":[16,0,1,0,2,3,36],
 "libp2p_2_common_8h.html#a7274a51a9b4a19f79ef51d454368ce6a":[16,0,1,0,2,3,33],
 "libp2p_2_common_8h.html#a77d2562ff65b650dd9cbdead15920ed4":[16,0,1,0,2,3,35],
-"libp2p_2_common_8h.html#a7e724ac9b0d0a40bb4d7ce3e7ff137a3":[16,0,1,0,2,3,34],
-"libp2p_2_common_8h.html#a8c95b56f8954977600cf4abf15a98ab1":[16,0,1,0,2,3,28]
+"libp2p_2_common_8h.html#a7e724ac9b0d0a40bb4d7ce3e7ff137a3":[16,0,1,0,2,3,34]
 };

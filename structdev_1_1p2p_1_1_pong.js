@@ -7,6 +7,6 @@ var structdev_1_1p2p_1_1_pong =
     [ "streamRLP", "structdev_1_1p2p_1_1_pong.html#a526ca663b8db2fe3239415ff92aff0bd", null ],
     [ "typeName", "structdev_1_1p2p_1_1_pong.html#aa17b104f5922b9da373816e83d21f352", null ],
     [ "destination", "structdev_1_1p2p_1_1_pong.html#ae5e11949b02c2c655c2f73d01ceffc0d", null ],
-    [ "seq", "structdev_1_1p2p_1_1_pong.html#aca6c49d70ff4e57950e528dd72eb469b", null ],
+    [ "seq", "structdev_1_1p2p_1_1_pong.html#afb4e20ed5cc7f3d5877ba0e96a1efabd", null ],
     [ "type", "structdev_1_1p2p_1_1_pong.html#aed0dc868297e205687ba1264d17f4d0b", null ]
 ];

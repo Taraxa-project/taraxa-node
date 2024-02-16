@@ -104,8 +104,8 @@ Collaboration diagram for dev::p2p::NodeTable::NodeValidation:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7e9fa5e02fd56f39610729ecfabe1fad"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#a7e9fa5e02fd56f39610729ecfabe1fad">NodeValidation</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">NodeID</a> const &amp;_nodeID, uint16_t _tcpPort, <a class="el" href="classdev_1_1p2p_1_1_node_table.html#addda5e37633fabc8e2a4038b9ebfa28a">TimePoint</a> const &amp;_pingSentTime, <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> const &amp;_pingHash, std::shared_ptr&lt; <a class="el" href="structdev_1_1p2p_1_1_node_entry.html">NodeEntry</a> &gt; _replacementNodeEntry)</td></tr>
-<tr class="separator:a7e9fa5e02fd56f39610729ecfabe1fad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3fc6ce9f1c3ad128e169bc0234fcea91"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#a3fc6ce9f1c3ad128e169bc0234fcea91">NodeValidation</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">NodeID</a> const &amp;_nodeID, uint16_t _tcpPort, uint16_t _udpPort, <a class="el" href="classdev_1_1p2p_1_1_node_table.html#addda5e37633fabc8e2a4038b9ebfa28a">TimePoint</a> const &amp;_pingSentTime, <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> const &amp;_pingHash, std::shared_ptr&lt; <a class="el" href="structdev_1_1p2p_1_1_node_entry.html">NodeEntry</a> &gt; _replacementNodeEntry)</td></tr>
+<tr class="separator:a3fc6ce9f1c3ad128e169bc0234fcea91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -113,6 +113,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ac1ed1c28d457a35f062dba42f7de3631"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15ae1ab442e4bc31f834c4b4857add05"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#a15ae1ab442e4bc31f834c4b4857add05">tcpPort</a> = 0</td></tr>
 <tr class="separator:a15ae1ab442e4bc31f834c4b4857add05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5833246aad5e67638042286d56d946d0"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#a5833246aad5e67638042286d56d946d0">udpPort</a> = 0</td></tr>
+<tr class="separator:a5833246aad5e67638042286d56d946d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a104bffc0b31249dbc1e7d5b946862085"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#addda5e37633fabc8e2a4038b9ebfa28a">TimePoint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#a104bffc0b31249dbc1e7d5b946862085">pingSentTime</a></td></tr>
 <tr class="separator:a104bffc0b31249dbc1e7d5b946862085"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa953f610abaeb172e59c1413b5b566ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#aa953f610abaeb172e59c1413b5b566ba">pingHash</a></td></tr>
@@ -123,8 +125,8 @@ Public Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html">NodeValidation</a> is used to record information about the nodes that we have sent Ping to. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a7e9fa5e02fd56f39610729ecfabe1fad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e9fa5e02fd56f39610729ecfabe1fad">&#9670;&nbsp;</a></span>NodeValidation()</h2>
+<a id="a3fc6ce9f1c3ad128e169bc0234fcea91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3fc6ce9f1c3ad128e169bc0234fcea91">&#9670;&nbsp;</a></span>NodeValidation()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -143,6 +145,12 @@ Public Attributes</h2></td></tr>
           <td></td>
           <td class="paramtype">uint16_t&#160;</td>
           <td class="paramname"><em>_tcpPort</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t&#160;</td>
+          <td class="paramname"><em>_udpPort</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -242,6 +250,20 @@ Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">uint16_t dev::p2p::NodeTable::NodeValidation::tcpPort = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5833246aad5e67638042286d56d946d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5833246aad5e67638042286d56d946d0">&#9670;&nbsp;</a></span>udpPort</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t dev::p2p::NodeTable::NodeValidation::udpPort = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">

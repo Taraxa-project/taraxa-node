@@ -10,6 +10,7 @@ var classdev_1_1p2p_1_1_node =
     [ "set_endpoint", "classdev_1_1p2p_1_1_node.html#a8e956fb09db6881bf41aa5d08afb2299", null ],
     [ "endpoint_", "classdev_1_1p2p_1_1_node.html#abed5fdf9e7892e8b79ff4d330864ee66", null ],
     [ "endpoint_mu_", "classdev_1_1p2p_1_1_node.html#a5f8acf42d69476f7b969b4a6216cad4b", null ],
+    [ "external_udp_port", "classdev_1_1p2p_1_1_node.html#a2bf3171c6b062aff0b2797b1b4628f3f", null ],
     [ "id", "classdev_1_1p2p_1_1_node.html#a31de10fcb6471b803af448f6316c626e", null ],
     [ "peerType", "classdev_1_1p2p_1_1_node.html#a27c241eaf6416a17a00ff17395aec3b7", null ]
 ];

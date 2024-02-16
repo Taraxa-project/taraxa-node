@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"vdf_2include_2vdf_2config_8hpp.html#a6ea909654b6cd15b58987ec4d1a9d0ab":[16,0,1,8,0,0,0,7],
+"vdf_2include_2vdf_2config_8hpp.html#a9f02a416851542c70a97829c8e4e56d9":[16,0,1,8,0,0,0,10],
 "vdf_2include_2vdf_2config_8hpp.html#ad2584bf1da77275f513d1378d392fd99":[16,0,1,8,0,0,0,4],
 "vdf_2include_2vdf_2config_8hpp_source.html":[16,0,1,8,0,0,0],
 "vdf_2src_2config_8cpp.html":[16,0,1,8,1,0],
