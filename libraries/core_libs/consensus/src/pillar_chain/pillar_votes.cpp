@@ -3,6 +3,8 @@
 namespace taraxa::pillar_chain {
 
 bool PillarVotes::voteExists(const std::shared_ptr<PillarVote> vote) const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+
   const auto found_period_votes = votes_.find(vote->getPeriod());
   if (found_period_votes == votes_.end()) {
     return false;

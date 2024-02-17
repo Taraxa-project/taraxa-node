@@ -29,9 +29,9 @@ void PbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData
 
   // PeriodData rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
   // checked here manually
-  if (packet_data.rlp_[1].itemCount() != PeriodData::kRlpItemCount) {
+  if (packet_data.rlp_[1].itemCount() != PeriodData::kBaseRlpItemCount) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + ":PeriodData", packet_data.rlp_[1].itemCount(),
-                                        PeriodData::kRlpItemCount);
+                                        PeriodData::kBaseRlpItemCount);
   }
 }
 
@@ -126,6 +126,43 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
         LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of "
                      << last_pbft_block_hash << " from peer " << packet_data.from_node_id_.abridged()
                      << " received, stop syncing.";
+        handleMaliciousSyncPeer(packet_data.from_node_id_);
+        return;
+      }
+    }
+
+    // Validate optional pillar block hash
+    const auto kFicusHfConfig = kConf.genesis.state.hardforks.ficus_hf;
+    if (pbft_block_period > kFicusHfConfig.pillar_block_periods &&
+        pbft_block_period % kFicusHfConfig.pillar_block_periods == kConf.genesis.state.dpos.delegation_delay) {
+      if (!period_data.pbft_blk->getPillarBlockHash().has_value()) {
+        LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
+                     << " does not contain pillar block hash";
+        handleMaliciousSyncPeer(packet_data.from_node_id_);
+        return;
+      }
+    } else {
+      if (period_data.pbft_blk->getPillarBlockHash().has_value()) {
+        LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << period_data.pbft_blk->getPeriod()
+                     << " contains pillar block hash";
+        handleMaliciousSyncPeer(packet_data.from_node_id_);
+        return;
+      }
+    }
+
+    // Validate optional pillar votes
+    if (pbft_block_period >= 2 * kFicusHfConfig.pillar_block_periods &&
+        pbft_block_period % kFicusHfConfig.pillar_block_periods == 0) {
+      if (!period_data.pillar_votes_.has_value()) {
+        LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
+                     << " does not contain pillar votes";
+        handleMaliciousSyncPeer(packet_data.from_node_id_);
+        return;
+      }
+    } else {
+      if (period_data.pillar_votes_.has_value()) {
+        LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << period_data.pbft_blk->getPeriod()
+                     << " contains pillar votes";
         handleMaliciousSyncPeer(packet_data.from_node_id_);
         return;
       }
@@ -230,7 +267,7 @@ PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_r
 
 std::vector<std::shared_ptr<PbftVote>> PbftSyncPacketHandler::decodeVotesBundle(
     const dev::RLP &votes_bundle_rlp) const {
-  return decodeVotesBundleRlp(votes_bundle_rlp);
+  return decodePbftVotesBundleRlp(votes_bundle_rlp);
 }
 
 void PbftSyncPacketHandler::pbftSyncComplete() {

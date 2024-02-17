@@ -20,11 +20,11 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, s
 void VotesBundlePacketHandler::validatePacketRlpFormat(
     [[maybe_unused]] const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
-  if (items != kVotesBundleRlpSize) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kVotesBundleRlpSize);
+  if (items != kPbftVotesBundleRlpSize) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kPbftVotesBundleRlpSize);
   }
 
-  auto votes_count = packet_data.rlp_[kVotesBundleRlpSize - 1].itemCount();
+  auto votes_count = packet_data.rlp_[kPbftVotesBundleRlpSize - 1].itemCount();
   if (votes_count == 0 || votes_count > kMaxVotesInBundleRlp) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInBundleRlp);
   }

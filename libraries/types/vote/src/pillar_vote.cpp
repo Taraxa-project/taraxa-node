@@ -11,6 +11,11 @@ PillarVote::PillarVote(const secret_t& node_sk, PbftPeriod period, const blk_has
   signVote(node_sk);
 }
 
+PillarVote::PillarVote(PbftPeriod period, const blk_hash_t& block_hash, sig_t&& signature)
+    : Vote(block_hash), period_(period) {
+  vote_signature_ = std::move(signature);
+}
+
 PillarVote::PillarVote(const dev::RLP& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), period_, block_hash_, vote_signature_);
   vote_hash_ = sha3(true);

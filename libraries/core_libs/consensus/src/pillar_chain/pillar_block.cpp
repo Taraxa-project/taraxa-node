@@ -4,6 +4,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "vote/pillar_vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa::pillar_chain {
 
@@ -55,6 +56,25 @@ PillarBlock::Hash PillarBlock::getHash() {
 }
 
 RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, previous_pillar_block_hash_, validators_stakes_changes_)
-RLP_FIELDS_DEFINE(PillarBlockData, block, pillar_votes)
+
+PillarBlockData::PillarBlockData(std::shared_ptr<PillarBlock> block,
+                                 std::vector<std::shared_ptr<PillarVote>>&& pillar_votes)
+    : block_(std::move(block)), pillar_votes_(std::move(pillar_votes)) {}
+PillarBlockData::PillarBlockData(const dev::RLP& rlp) {
+  if (rlp.itemCount() != kRlpItemCount) {
+    throw std::runtime_error("PillarBlockData invalid itemCount: " + std::to_string(rlp.itemCount()));
+  }
+
+  block_ = std::make_shared<PillarBlock>(rlp[0]);
+  pillar_votes_ = decodePillarVotesBundleRlp(rlp[1]);
+}
+
+dev::bytes PillarBlockData::getRlp() const {
+  dev::RLPStream s(kRlpItemCount);
+  s.appendRaw(util::rlp_enc(block_));
+  s.appendRaw(encodePillarVotesBundleRlp(pillar_votes_));
+
+  return s.invalidate();
+}
 
 }  // namespace taraxa::pillar_chain

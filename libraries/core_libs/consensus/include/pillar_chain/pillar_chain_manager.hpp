@@ -85,9 +85,9 @@ class PillarChainManager {
    * @brief Add a vote to the pillar votes map
    * @param vote vote
    *
-   * @return true if vote was successfully added, otherwise false
+   * @return vote's weight if vote was successfully added, otherwise 0
    */
-  bool addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote);
+  uint64_t addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote);
 
   /**
    * @brief Push new finalized pillar block
