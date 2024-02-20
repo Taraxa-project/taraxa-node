@@ -70,7 +70,7 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
         pillar_votes_.getVerifiedVotes(current_pillar_block_->getPeriod(), current_pillar_block_->getHash(), true);
     if (two_t_plus_one_votes.empty()) {
       LOG(log_er_) << "There is < 2t+1 votes for current pillar block " << current_pillar_block_->getHash()
-                   << ", period: " << current_pillar_block_->getPeriod();
+                   << ", period: " << current_pillar_block_->getPeriod() << ". Current period " << block_num;
       return;
     }
 
@@ -323,6 +323,10 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
 std::vector<std::shared_ptr<PillarVote>> PillarChainManager::getVerifiedPillarVotes(
     PbftPeriod period, const PillarBlock::Hash pillar_block_hash) const {
   return pillar_votes_.getVerifiedVotes(period, pillar_block_hash);
+}
+
+bool PillarChainManager::hasTwoTPlusOneVotes(PbftPeriod period, const blk_hash_t& block_hash) const {
+  return pillar_votes_.hasTwoTPlusOneVotes(period, block_hash);
 }
 
 std::optional<PbftPeriod> PillarChainManager::getLastFinalizedPillarBlockPeriod() const {
