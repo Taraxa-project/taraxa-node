@@ -1423,13 +1423,48 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     }
   }
 
+  const auto kBlockPeriod = pbft_block->getPeriod();
+
+  // Check if we have pillar votes for current pillar block
+  if (kBlockPeriod >= 2 * kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods == 0) {
+    const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+    if (!current_pillar_block) {
+      // This should never happen
+      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". No previous pillar block saved";
+      assert(false);
+      return false;
+    }
+
+    if (kBlockPeriod != current_pillar_block->getPeriod() + kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods) {
+      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". Previous pillar block period " << current_pillar_block->getPeriod();
+      assert(false);
+      return false;
+    }
+
+    // Check if there is 2t+1 pillar votes for current pillar block
+    if (!pillar_chain_mgr_->hasTwoTPlusOneVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash())) {
+      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". There is < 2t+1 pillar votes for current pillar block " << current_pillar_block->getHash();
+
+      if (auto net = network_.lock(); net) {
+        LOG(log_nf_) << "Request pillar votes for block " << current_pillar_block->getHash() << ", period " << current_pillar_block->getPeriod();
+        net->requestPillarBlockVotesBundle(current_pillar_block->getPeriod(), current_pillar_block->getHash());
+      } else {
+        LOG(log_er_) << "validatePbftBlock: Failed to obtain net !";
+      }
+
+      return false;
+    }
+  }
+
+  // Validate optional pillar block hash
   if (const auto pillar_block_hash = pbft_block->getPillarBlockHash();
-      pbft_block->getPeriod() >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
-      pbft_block->getPeriod() % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
+      kBlockPeriod >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
           kGenesisConfig.state.dpos.delegation_delay) {
     if (!pillar_block_hash.has_value()) {
       LOG(log_er_) << "PBFT block " << pbft_block_hash << " does not contain pillar block hash, period "
-                   << pbft_block->getPeriod();
+                   << kBlockPeriod;
       return false;
     }
 
