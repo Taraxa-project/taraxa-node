@@ -325,6 +325,7 @@ var annotated_dup =
       [ "DagBlock", "classtaraxa_1_1_dag_block.html", "classtaraxa_1_1_dag_block" ],
       [ "DagFrontier", "structtaraxa_1_1_dag_frontier.html", "structtaraxa_1_1_dag_frontier" ],
       [ "PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", "group___p_b_f_t_classtaraxa_1_1_pbft_block" ],
+      [ "PbftBlockExtraData", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data", "group___p_b_f_t_classtaraxa_1_1_pbft_block_extra_data" ],
       [ "PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", "group___p_b_f_t_classtaraxa_1_1_period_data" ],
       [ "Transaction", "structtaraxa_1_1_transaction.html", "structtaraxa_1_1_transaction" ],
       [ "Vote", "group___vote.html#classtaraxa_1_1_vote", "group___vote_classtaraxa_1_1_vote" ],

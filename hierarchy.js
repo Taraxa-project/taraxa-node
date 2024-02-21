@@ -272,6 +272,7 @@ var hierarchy =
     [ "taraxa::network::tarcap::PacketStats", "classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html", null ],
     [ "taraxa::network::threadpool::PacketsThreadPool", "classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html", null ],
     [ "taraxa::PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", null ],
+    [ "taraxa::PbftBlockExtraData", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data", null ],
     [ "taraxa::PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", null ],
     [ "taraxa::PbftConfig", "structtaraxa_1_1_pbft_config.html", null ],
     [ "taraxa::PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", null ],
