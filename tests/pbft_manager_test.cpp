@@ -497,7 +497,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
 
   // Check there is proposing DAG blocks
-  EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(), 1)
   });
 

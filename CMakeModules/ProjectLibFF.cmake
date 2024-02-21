@@ -3,7 +3,7 @@
 # Licensed under the GNU General Public License, Version 3.
 set(prefix "${CMAKE_BINARY_DIR}/deps")
 set(libff_library "${prefix}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ff${CMAKE_STATIC_LIBRARY_SUFFIX}")
-set(libff_inlcude_dir "${prefix}/include/libff")
+set(libff_inlcude_dir "${prefix}/include/")
 
 # file(GLOB gmp_libs "${CONAN_LIB_DIRS_GMP}/*gmp.*")
 

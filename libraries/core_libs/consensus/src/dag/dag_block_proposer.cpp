@@ -103,6 +103,10 @@ bool DagBlockProposer::proposeDagBlock() {
     }
   }
 
+  auto now = std::chrono::steady_clock::now();
+  static uint64_t count = 0;
+  static uint64_t t1 = 0;
+
   auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
@@ -110,7 +114,25 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
+  t1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+  count++;
+  if (count % 10 == 0) {
+    LOG(log_si_) << " getShardedTrxs " << t1 / 1000 << " " << count;
+    t1 = 0;
+  }
+
   dev::bytes vdf_msg = DagManager::getVdfMessage(frontier.pivot, transactions);
+
+  if (vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
+    thisThreadSleepForMilliSeconds(1000);
+  }
+  auto latest_frontier = dag_mgr_->getDagFrontier();
+  auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
+  if (latest_level > propose_level) {
+    last_propose_level_ = propose_level;
+    num_tries_ = 0;
+    return false;
+  }
 
   std::atomic_bool cancellation_token = false;
   std::promise<void> sync;
@@ -121,8 +143,8 @@ bool DagBlockProposer::proposeDagBlock() {
 
   std::future<void> result = sync.get_future();
   while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
-    auto latest_frontier = dag_mgr_->getDagFrontier();
-    const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
+    latest_frontier = dag_mgr_->getDagFrontier();
+    latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
     if (latest_level > propose_level && vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
       cancellation_token = true;
       break;
@@ -141,21 +163,21 @@ bool DagBlockProposer::proposeDagBlock() {
     // Computing VDF for a stale block is CPU extensive, there is a possibility that some dag blocks are in a queue,
     // give it a second to process these dag blocks
     thisThreadSleepForSeconds(1);
-    auto latest_frontier = dag_mgr_->getDagFrontier();
-    const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
+    latest_frontier = dag_mgr_->getDagFrontier();
+    latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
     if (latest_level > propose_level) {
       last_propose_level_ = propose_level;
       num_tries_ = 0;
       return false;
     }
   }
-  LOG(log_dg_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
+  LOG(log_si_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
 
   auto dag_block =
       createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
 
   if (dag_mgr_->addDagBlock(std::move(dag_block), std::move(transactions), true).first) {
-    LOG(log_nf_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
+    LOG(log_si_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
                  << " , txs num " << dag_block.getTrxs().size();
     proposed_blocks_count_ += 1;
   } else {

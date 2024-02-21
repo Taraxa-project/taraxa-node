@@ -34,6 +34,18 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
                                               const std::shared_ptr<TaraxaPeer> &peer) {
   std::vector<trx_hash_t> received_transactions;
 
+  // Temporary performance testing code, TO REMOVE LATER
+  auto now = std::chrono::steady_clock::now();
+  static uint64_t count_packets = 0;
+  static uint64_t count_transactions = 0;
+  static uint64_t count_known_transactions = 0;
+  static uint64_t count_known_transactions2 = 0;
+  static uint64_t count_known_transactions3 = 0;
+  static uint64_t count_inserted = 0;
+  static uint64_t t1 = 0;
+  static uint64_t t2 = 0;
+  static uint64_t t3 = 0;
+
   const auto transaction_count = packet_data.rlp_[0].itemCount();
   received_transactions.reserve(transaction_count);
 
@@ -45,23 +57,35 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     auto trx_hash = trx_hash_rlp.toHash<trx_hash_t>();
     peer->markTransactionAsKnown(trx_hash);
     trx_hashes.emplace_back(std::move(trx_hash));
+    count_transactions++;
   }
 
+  count_packets++;
+  t1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+
+  SharedTransactions transactions;
+  auto trxs_rlp = packet_data.rlp_[1];
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
     const auto &trx_hash = trx_hashes[tx_idx];
 
     // Skip any transactions that are already known to the trx mgr
     if (trx_mgr_->isTransactionKnown(trx_hash)) {
+      count_known_transactions++;
       continue;
     }
 
     std::shared_ptr<Transaction> transaction;
     // Deserialization is expensive, do it only for the transactions we are about to process
     try {
-      transaction = std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes());
+      transaction = std::make_shared<Transaction>(trxs_rlp[tx_idx].data().toBytes());
       received_transactions.emplace_back(trx_hash);
     } catch (const Transaction::InvalidTransaction &e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+    }
+    // Skip any transactions that are already known to the trx mgr
+    if (trx_mgr_->isTransactionKnown(trx_hash)) {
+      count_known_transactions2++;
+      continue;
     }
 
     TransactionStatus status;
@@ -73,28 +97,57 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
         err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
         throw MaliciousPeerException(err_msg.str());
       }
-      case TransactionStatus::InsufficentBalance:
-      case TransactionStatus::LowNonce: {
-        // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
-        if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
-          std::ostringstream err_msg;
-          err_msg << "Suspicious packets over the limit on DagBlock transaction " << transaction->getHash()
-                  << " validation: " << reason;
-          throw MaliciousPeerException(err_msg.str());
-        }
-
-        break;
-      }
       case TransactionStatus::Verified:
+        // Skip any transactions that are already known to the trx mgr
+        if (trx_mgr_->isTransactionKnown(trx_hash)) {
+          count_known_transactions3++;
+          continue;
+        }
+        transactions.emplace_back(transaction);
         break;
       default:
         assert(false);
     }
 
     received_trx_count_++;
-    if (trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status))) {
+  }
+
+  t2 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+
+  auto results = trx_mgr_->insertValidatedTransactions(std::move(transactions));
+
+  t3 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+
+  for (auto result : results) {
+    if (result.first) {
       unique_received_trx_count_++;
+      count_inserted++;
     }
+    if (result.second == TransactionStatus::InsufficentBalance || result.second == TransactionStatus::LowNonce) {
+      // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
+      if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
+        std::ostringstream err_msg;
+        err_msg << "Suspicious packets over the limit";
+        throw MaliciousPeerException(err_msg.str());
+      }
+    }
+  }
+
+  // Log performance stats every 100 transaction packets
+  if (count_packets % 100 == 0) {
+    LOG(log_si_) << "Packets: " << count_packets << " Trxs: " << count_transactions
+                 << " Inserted trx: " << count_inserted << " Known: " << count_known_transactions << " : "
+                 << count_known_transactions2 << " : " << count_known_transactions3;
+    LOG(log_si_) << "Time1: " << t1 / 1000 << " Time2: " << (t2 - t1) / 1000 << " Time3: " << (t3 - t2) / 1000;
+    t1 = 0;
+    t2 = 0;
+    t3 = 0;
+    count_packets = 0;
+    count_transactions = 0;
+    count_inserted = 0;
+    count_known_transactions = 0;
+    count_known_transactions2 = 0;
+    count_known_transactions3 = 0;
   }
 
   if (transaction_count > 0) {

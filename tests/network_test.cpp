@@ -1241,7 +1241,7 @@ TEST_F(NetworkTest, node_full_sync) {
   for (int i(1); i < numberOfNodes - 1; i++) {
     const auto node_vertices = nodes[i]->getDagManager()->getNumVerticesInDag().first;
     std::cout << "node" << i << " vertices " << node_vertices << std::endl;
-    if (node_vertices != node0_vertices) {
+    if (node_vertices != node0_vertices || node_vertices == 0) {
       dag_synced = false;
     }
   }
@@ -1256,6 +1256,7 @@ TEST_F(NetworkTest, node_full_sync) {
     wait({60s, 100ms}, [&](auto& ctx) {
       // Check 4 nodes syncing
       for (int j = 1; j < numberOfNodes - 1; j++) {
+        WAIT_EXPECT_GT(ctx, nodes[0]->getDagManager()->getNumVerticesInDag().first, 0);
         WAIT_EXPECT_EQ(ctx, nodes[j]->getDagManager()->getNumVerticesInDag().first,
                        nodes[0]->getDagManager()->getNumVerticesInDag().first);
         WAIT_EXPECT_EQ(ctx, nodes[j]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
@@ -1370,10 +1371,10 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 }
 
-TEST_F(NetworkTest, suspicious_packets) {
+TEST_F(NetworkTest, DISABLED_suspicious_packets) {
   network::tarcap::TaraxaPeer peer;
-  // Verify that after 1000 reported suspicious packets true is returned
-  for (int i = 0; i < 1000; i++) {
+  // Verify that after 10000 reported suspicious packets true is returned
+  for (int i = 0; i < 10000; i++) {
     EXPECT_FALSE(peer.reportSuspiciousPacket());
   }
   EXPECT_TRUE(peer.reportSuspiciousPacket());

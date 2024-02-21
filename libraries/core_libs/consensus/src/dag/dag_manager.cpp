@@ -161,7 +161,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
           return res;
         }
         // Saves transactions and remove them from memory pool
-        trx_mgr_->saveTransactionsFromDagBlock(trxs);
+        trx_mgr_->saveTransactionsFromDagBlock(trxs, period_);
         // Save the dag block
         db_->saveDagBlock(blk);
       }
@@ -584,7 +584,8 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   return {non_finalized_blks_.size(), blocks_counter};
 }
 
-DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
+DagManager::VerifyBlockReturnType DagManager::verifyBlock(
+    const DagBlock &blk, const std::unordered_map<blk_hash_t, std::shared_ptr<Transaction>> &trxs) {
   const auto &block_hash = blk.getHash();
 
   // Verify tips/pivot count amd uniqueness
@@ -604,7 +605,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
 
   // Verify transactions
-  auto transactions = trx_mgr_->getBlockTransactions(blk);
+  auto transactions = trx_mgr_->getBlockTransactions(blk, trxs);
   if (!transactions.has_value()) {
     LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
     // This can be a valid block so just remove it from the seen list
@@ -691,8 +692,10 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
     if ((blk.getTips().size() + 1) > kPbftGasLimit / getDagConfig().gas_limit) {
       for (const auto &t : blk.getTips()) {
         const auto tip_blk = getDagBlock(t);
-        LOG(log_er_) << "DAG Block " << block_hash << " tip " << t << " not present";
-        if (tip_blk == nullptr) return VerifyBlockReturnType::MissingTip;
+        if (tip_blk == nullptr) {
+          LOG(log_er_) << "DAG Block " << block_hash << " tip " << t << " not present";
+          return VerifyBlockReturnType::MissingTip;
+        }
         block_gas_estimation += tip_blk->getGasEstimation();
       }
       if (block_gas_estimation > kPbftGasLimit) {

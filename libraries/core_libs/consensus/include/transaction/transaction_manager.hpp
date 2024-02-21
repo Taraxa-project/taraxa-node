@@ -79,7 +79,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   /**
    * Saves transactions from dag block which was added to the DAG. Removes transactions from memory pool
    */
-  void saveTransactionsFromDagBlock(const SharedTransactions &trxs);
+  void saveTransactionsFromDagBlock(const SharedTransactions &trxs, uint64_t period);
 
   /**
    * @brief Inserts and verify new transaction to transaction pool
@@ -104,7 +104,11 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param status transaction status
    * @return true if successfully inserted unseen transactions
    */
-  bool insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, const TransactionStatus status);
+  std::pair<bool, TransactionStatus> insertValidatedTransaction(std::shared_ptr<Transaction> &&tx,
+                                                                TransactionStatus status);
+
+  std::vector<std::pair<bool, TransactionStatus>> insertValidatedTransactions(
+      std::vector<std::shared_ptr<Transaction>> &&tx);
 
   /**
    * @param trx_hash transaction hash
@@ -155,7 +159,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param blk
    * @return transactions retrieved from pool/db
    */
-  std::optional<SharedTransactions> getBlockTransactions(const DagBlock &blk);
+  std::optional<SharedTransactions> getBlockTransactions(
+      const DagBlock &blk, const std::unordered_map<blk_hash_t, std::shared_ptr<Transaction>> &trxs = {});
 
   /**
    * @brief Updates the status of transactions to finalized
@@ -220,12 +225,18 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   mutable std::shared_mutex transactions_mutex_;
   TransactionQueue transactions_pool_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
+
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
+  std::vector<std::vector<trx_hash_t>> recently_finalized_transactions_per_block_;
+  // This will keep the nonce per account for any transaction pushed to the DAG which might not be executed yet
+  std::unordered_map<addr_t, trx_nonce_t> account_nonce_;
   uint64_t trx_count_ = 0;
 
   const uint64_t kDagBlockGasLimit;
   const uint64_t kEstimateGasLimit = 200000;
   const uint64_t kRecentlyFinalizedTransactionsMax = 50000;
+  // IMPORTANT! This number needs to be larger than max execution delay which is 5
+  const uint64_t kRecentlyFinalizedTransactionsBlockNum = 10;
 
   std::shared_ptr<DbStorage> db_{nullptr};
   std::shared_ptr<FinalChain> final_chain_{nullptr};

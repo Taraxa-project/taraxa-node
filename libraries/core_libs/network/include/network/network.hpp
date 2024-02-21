@@ -59,6 +59,7 @@ class Network {
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
   void setSyncStatePeriod(PbftPeriod period);
+  void periodicSendTransactions(std::shared_ptr<TransactionManager> trx_mgr);
 
   void gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
   void gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast = false);
