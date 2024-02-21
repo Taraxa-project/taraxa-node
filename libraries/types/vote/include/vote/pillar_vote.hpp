@@ -39,6 +39,10 @@ class PillarVote : public Vote {
    */
   bytes rlp(bool inc_sig = true) const;
 
+  bytes encode(bool inc_sig = true) const;
+
+  static PillarVote decode(const bytes& enc);
+
   HAS_RLP_FIELDS
 
  private:

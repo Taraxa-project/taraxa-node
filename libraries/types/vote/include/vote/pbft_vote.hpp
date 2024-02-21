@@ -116,7 +116,7 @@ class PbftVote : public Vote {
     strm << "  vote_signature: " << vote.vote_signature_ << std::endl;
     strm << "  blockhash: " << vote.block_hash_ << std::endl;
     if (vote.weight_) strm << "  weight: " << vote.weight_.value() << std::endl;
-    strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
+    strm << "  vrf_sortition: " << vote.vrf_sortition_ << std::endl;
     return strm;
   }
 

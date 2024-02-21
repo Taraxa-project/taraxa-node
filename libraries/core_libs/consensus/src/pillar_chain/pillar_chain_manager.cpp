@@ -101,8 +101,8 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
                    [](auto& stake) { return PillarBlock::ValidatorStakeChange(stake); });
   }
 
-  const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root,
-                                                          std::move(stakes_changes), previous_pillar_block_hash);
+  const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root, h256{},
+                                                          previous_pillar_block_hash, std::move(stakes_changes));
 
   // Check if some pillar block was not skipped
   if (!isValidPillarBlock(pillar_block)) {

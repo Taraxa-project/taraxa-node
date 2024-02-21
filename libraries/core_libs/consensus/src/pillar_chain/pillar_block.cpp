@@ -3,6 +3,7 @@
 #include <libdevcore/SHA3.h>
 
 #include "common/encoding_rlp.hpp"
+#include "common/encoding_solidity.hpp"
 #include "vote/pillar_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
@@ -22,11 +23,11 @@ PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const dev::RLP& rlp) {
 
 PillarBlock::PillarBlock(const dev::RLP& rlp) : PillarBlock(util::rlp_dec<PillarBlock>(rlp)) {}
 
-PillarBlock::PillarBlock(PbftPeriod period, h256 state_root,
-                         std::vector<ValidatorStakeChange>&& validator_stakes_changes,
-                         PillarBlock::Hash previous_pillar_block_hash)
+PillarBlock::PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root, blk_hash_t previous_pillar_block_hash,
+                         std::vector<ValidatorStakeChange>&& validator_stakes_changes)
     : period_(period),
       state_root_(state_root),
+      bridge_root_(bridge_root),
       validators_stakes_changes_(std::move(validator_stakes_changes)),
       previous_pillar_block_hash_(previous_pillar_block_hash) {}
 
@@ -36,7 +37,23 @@ PillarBlock::PillarBlock(const PillarBlock& pillar_block)
       validators_stakes_changes_(pillar_block.validators_stakes_changes_),
       previous_pillar_block_hash_(pillar_block.previous_pillar_block_hash_) {}
 
-dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
+// dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
+
+dev::bytes PillarBlock::encode() const {
+  dev::bytes result;
+  result.reserve((1 + 4 + 2 + 2 * validators_stakes_changes_.size()) * 32);
+  auto start = util::EncodingSolidity::pack(32);
+  result.insert(result.end(), start.begin(), start.end());
+  auto body = util::EncodingSolidity::pack(period_, state_root_, bridge_root_, previous_pillar_block_hash_);
+  result.insert(result.end(), body.begin(), body.end());
+  auto array_data = util::EncodingSolidity::pack(160, validators_stakes_changes_.size());
+  result.insert(result.end(), array_data.begin(), array_data.end());
+  for (auto& stake_change : validators_stakes_changes_) {
+    auto stake_change_encoded = util::EncodingSolidity::pack(stake_change.addr_, stake_change.stake_change_);
+    result.insert(result.end(), stake_change_encoded.begin(), stake_change_encoded.end());
+  }
+  return result;
+}
 
 PbftPeriod PillarBlock::getPeriod() const { return period_; }
 
@@ -51,15 +68,16 @@ PillarBlock::Hash PillarBlock::getHash() {
   }
 
   std::scoped_lock lock(hash_mutex_);
-  hash_ = dev::sha3(getRlp());
+  hash_ = dev::sha3(encode());
   return *hash_;
 }
 
-RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, previous_pillar_block_hash_, validators_stakes_changes_)
+RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, bridge_root_, previous_pillar_block_hash_,
+                  validators_stakes_changes_)
 
 PillarBlockData::PillarBlockData(std::shared_ptr<PillarBlock> block,
-                                 std::vector<std::shared_ptr<PillarVote>>&& pillar_votes)
-    : block_(std::move(block)), pillar_votes_(std::move(pillar_votes)) {}
+                                 const std::vector<std::shared_ptr<PillarVote>>& pillar_votes)
+    : block_(std::move(block)), pillar_votes_(pillar_votes) {}
 PillarBlockData::PillarBlockData(const dev::RLP& rlp) {
   if (rlp.itemCount() != kRlpItemCount) {
     throw std::runtime_error("PillarBlockData invalid itemCount: " + std::to_string(rlp.itemCount()));
@@ -76,5 +94,7 @@ dev::bytes PillarBlockData::getRlp() const {
 
   return s.invalidate();
 }
+
+RLP_FIELDS_DEFINE(PillarBlockData, block_, pillar_votes_)
 
 }  // namespace taraxa::pillar_chain

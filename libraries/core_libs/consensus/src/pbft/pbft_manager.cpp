@@ -1431,23 +1431,28 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
     if (!current_pillar_block) {
       // This should never happen
-      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". No previous pillar block saved";
+      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod
+                   << ". No previous pillar block saved";
       assert(false);
       return false;
     }
 
-    if (kBlockPeriod != current_pillar_block->getPeriod() + kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods) {
-      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". Previous pillar block period " << current_pillar_block->getPeriod();
+    if (kBlockPeriod !=
+        current_pillar_block->getPeriod() + kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods) {
+      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod
+                   << ". Previous pillar block period " << current_pillar_block->getPeriod();
       assert(false);
       return false;
     }
 
     // Check if there is 2t+1 pillar votes for current pillar block
     if (!pillar_chain_mgr_->hasTwoTPlusOneVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash())) {
-      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". There is < 2t+1 pillar votes for current pillar block " << current_pillar_block->getHash();
+      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod
+                   << ". There is < 2t+1 pillar votes for current pillar block " << current_pillar_block->getHash();
 
       if (auto net = network_.lock(); net) {
-        LOG(log_nf_) << "Request pillar votes for block " << current_pillar_block->getHash() << ", period " << current_pillar_block->getPeriod();
+        LOG(log_nf_) << "Request pillar votes for block " << current_pillar_block->getHash() << ", period "
+                     << current_pillar_block->getPeriod();
         net->requestPillarBlockVotesBundle(current_pillar_block->getPeriod(), current_pillar_block->getHash());
       } else {
         LOG(log_er_) << "validatePbftBlock: Failed to obtain net !";

@@ -820,8 +820,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
 // Test PBFT next votes syncing when nodes stay at same PBFT round
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
-  const auto node_cfgs = make_node_cfgs(2, 1, 20);
-
+  const auto node_cfgs = make_node_cfgs(2, 2, 20);
   const auto node1 = std::make_shared<FullNode>(node_cfgs[0]);
   node1->start();
   const auto node1_pbft_mgr = node1->getPbftManager();
