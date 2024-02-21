@@ -197,8 +197,9 @@ class FinalChainImpl final : public FinalChain {
     auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used, batch);
     const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
 
-    auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
-                                   kBlockGasLimit, state_root, total_reward, new_blk.transactions, receipts);
+    auto blk_header =
+        append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(), kBlockGasLimit,
+                     state_root, total_reward, new_blk.transactions, receipts, new_blk.pbft_blk->getExtraDataRlp());
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + new_blk.transactions.size();
@@ -274,7 +275,7 @@ class FinalChainImpl final : public FinalChain {
   std::shared_ptr<BlockHeader> append_block(DB::Batch& batch, const addr_t& author, uint64_t timestamp,
                                             uint64_t gas_limit, const h256& state_root, u256 total_reward,
                                             const SharedTransactions& transactions = {},
-                                            const TransactionReceipts& receipts = {}) {
+                                            const TransactionReceipts& receipts = {}, const bytes& extra_data = {}) {
     auto blk_header_ptr = std::make_shared<BlockHeader>();
     auto& blk_header = *blk_header_ptr;
     auto last_block = block_header();
@@ -286,6 +287,7 @@ class FinalChainImpl final : public FinalChain {
     blk_header.gas_used = receipts.empty() ? 0 : receipts.back().cumulative_gas_used;
     blk_header.gas_limit = gas_limit;
     blk_header.total_reward = total_reward;
+    blk_header.extra_data = extra_data;
     dev::BytesMap trxs_trie, receipts_trie;
     dev::RLPStream rlp_strm;
     for (size_t i(0); i < transactions.size(); ++i) {
