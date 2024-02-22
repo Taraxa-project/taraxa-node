@@ -42,7 +42,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
     // current_pillar_block_ =
 
     // TODO: we might need to sve this in db due to light node short history ???
-    current_pillar_block_stakes_ = final_chain_->dpos_validators_total_stakes(current_pillar_block_->getPeriod());
+    // current_pillar_block_stakes_ = final_chain_->dpos_validators_total_stakes(current_pillar_block_->getPeriod());
   }
 
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
@@ -57,8 +57,6 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
 
   // There should always be latest_pillar_block_, except for the very first pillar block
   if (block_num > kFicusHfConfig.pillar_block_periods) [[likely]] {  // Not the first pillar block epoch
-    // TODO: do we need lock mutex for latest_pillar_block_, latest_pillar_block_stakes_ and votes_ ?
-
     if (!current_pillar_block_) {
       LOG(log_er_) << "Empty previous pillar block, new pillar block period " << block_num;
       assert(false);
@@ -188,8 +186,10 @@ std::shared_ptr<PillarBlock> PillarChainManager::getCurrentPillarBlock() const {
   return current_pillar_block_;
 }
 
-void PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const {
+bool PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
+
+  LOG(log_er_) << "checkPillarChainSynced called for period " << block_num;
 
   // No current pillar block registered... This should happen only before the first pillar block is created
   if (!current_pillar_block_) [[unlikely]] {
@@ -198,18 +198,7 @@ void PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const 
       assert(false);
     }
 
-    return;
-  }
-
-  // Check if node has all previous pillar blocks
-  if ((block_num - (block_num % kFicusHfConfig.pillar_block_periods)) != current_pillar_block_->getPeriod()) {
-    // Some pillar blocks are missing - request it
-    if (auto net = network_.lock()) {
-      LOG(log_dg_) << "Some pillar blocks missing, period " << block_num << ", current pillar block period "
-                   << current_pillar_block_->getPeriod() << ". Request pillar blocks";
-      net->requestPillarBlocks(current_pillar_block_->getPeriod());
-    }
-    return;
+    return false;
   }
 
   // Check 2t+1 votes for the current pillar block
@@ -219,9 +208,30 @@ void PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const 
       LOG(log_dg_) << "There is < 2t+1 pillar votes for pillar block " << current_pillar_block_->getHash()
                    << ", period " << current_pillar_block_->getPeriod() << ". Request it";
       net->requestPillarBlockVotesBundle(current_pillar_block_->getPeriod(), current_pillar_block_->getHash());
+    } else {
+      LOG(log_er_) << "checkPillarChainSynced: Unable to obtain net";
     }
-    return;
+
+    return false;
   }
+
+  PbftPeriod expected_pillar_block_period = 0;
+  if (block_num % kFicusHfConfig.pillar_block_periods == 0) {
+    expected_pillar_block_period = block_num - kFicusHfConfig.pillar_block_periods;
+  } else {
+    expected_pillar_block_period = block_num - (block_num % kFicusHfConfig.pillar_block_periods);
+  }
+
+  if (expected_pillar_block_period != current_pillar_block_->getPeriod()) {
+    // This should never happen
+    LOG(log_er_) << "Pillar chain is out of sync. Current pbft period " << block_num << ", current pillar block period "
+                 << current_pillar_block_->getPeriod() << ", expected pillar block period "
+                 << expected_pillar_block_period;
+    assert(false);
+    return false;
+  }
+
+  return true;
 }
 
 bool PillarChainManager::isRelevantPillarVote(const std::shared_ptr<PillarVote> vote) const {
@@ -323,10 +333,6 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
 std::vector<std::shared_ptr<PillarVote>> PillarChainManager::getVerifiedPillarVotes(
     PbftPeriod period, const PillarBlock::Hash pillar_block_hash) const {
   return pillar_votes_.getVerifiedVotes(period, pillar_block_hash);
-}
-
-bool PillarChainManager::hasTwoTPlusOneVotes(PbftPeriod period, const blk_hash_t& block_hash) const {
-  return pillar_votes_.hasTwoTPlusOneVotes(period, block_hash);
 }
 
 std::optional<PbftPeriod> PillarChainManager::getLastFinalizedPillarBlockPeriod() const {
