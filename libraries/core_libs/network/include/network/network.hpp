@@ -77,13 +77,6 @@ class Network {
    */
   void requestPillarBlockVotesBundle(PbftPeriod period, const blk_hash_t &pillar_block_hash);
 
-  /**
-   * @brief Request pillar blocks
-   *
-   * @param period
-   */
-  void requestPillarBlocks(PbftPeriod period);
-
   // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;

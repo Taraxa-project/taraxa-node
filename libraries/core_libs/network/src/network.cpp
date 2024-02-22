@@ -9,7 +9,6 @@
 
 #include "config/version.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/get_pillar_chain_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_pillar_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pillar_vote_packet_handler.hpp"
@@ -355,21 +354,6 @@ void Network::requestPillarBlockVotesBundle(taraxa::PbftPeriod period, const tar
     // TODO: is it good enough to request it just from 1 peer without knowing if he has all of the votes ?
     tarcap.second->getSpecificHandler<network::tarcap::GetPillarVotesBundlePacketHandler>()->requestPillarVotesBundle(
         period, pillar_block_hash, peer);
-  }
-}
-
-void Network::requestPillarBlocks(PbftPeriod period) {
-  for (const auto &tarcap : tarcaps_) {
-    // Try to get most up-to-date peer
-    const auto peer =
-        tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
-
-    if (!peer) {
-      continue;
-    }
-
-    tarcap.second->getSpecificHandler<network::tarcap::GetPillarChainSyncPacketHandler>()->requestPillarBlocks(period,
-                                                                                                               peer);
   }
 }
 
