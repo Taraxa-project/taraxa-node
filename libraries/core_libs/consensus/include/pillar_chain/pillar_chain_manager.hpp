@@ -56,8 +56,10 @@ class PillarChainManager {
    * votes for latest pillar block. If not, request them
    *
    * @param block_num - current block number
+   *
+   * @return true if synced, otherwise false
    */
-  void checkPillarChainSynced(EthBlockNumber block_num) const;
+  bool checkPillarChainSynced(EthBlockNumber block_num) const;
 
   /**
    * @brief Set network as a weak pointer
@@ -112,15 +114,6 @@ class PillarChainManager {
    */
   std::vector<std::shared_ptr<PillarVote>> getVerifiedPillarVotes(PbftPeriod period,
                                                                   const PillarBlock::Hash pillar_block_hash) const;
-
-  /**
-   * @brief Check if there is 2t+1 pillar votes for a combination of period & block_hash
-   *
-   * @param period
-   * @param block_hash
-   * @return true if there is 2t+1 pillar votes for a combination of period & block_hash
-   */
-  bool hasTwoTPlusOneVotes(PbftPeriod period, const blk_hash_t& block_hash) const;
 
   /**
    * @return period of the latest finalized pillar block

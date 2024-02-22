@@ -141,8 +141,6 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
     case SubprotocolPacketType::GetPillarVotesBundlePacket:
     case SubprotocolPacketType::PillarVotesBundlePacket:
     case SubprotocolPacketType::PbftSyncPacket:
-    case SubprotocolPacketType::GetPillarChainSyncPacket:
-    case SubprotocolPacketType::PillarChainSyncPacket:
       blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       break;
 
