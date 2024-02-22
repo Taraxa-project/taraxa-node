@@ -24,6 +24,8 @@ void PillarVotesBundlePacketHandler::process(const threadpool::PacketData &packe
                                              const std::shared_ptr<TaraxaPeer> &peer) {
   // TODO: there could be the same protection as in pbft syncing that only requested bundle packet is accepted
 
+  LOG(log_dg_) << "PillarVotesBundlePacket received from peer " << peer->getId();
+
   for (const auto vote_rlp : packet_data.rlp_) {
     const auto pillar_vote = std::make_shared<PillarVote>(vote_rlp);
     processPillarVote(pillar_vote, peer);
