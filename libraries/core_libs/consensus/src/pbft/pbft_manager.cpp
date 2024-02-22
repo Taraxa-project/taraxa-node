@@ -1379,6 +1379,52 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     return false;
   }
 
+  const auto kBlockPeriod = pbft_block->getPeriod();
+
+  // Check if pillar chain is synced
+  if (kBlockPeriod >= 2 * kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods == 0) {
+    if (!pillar_chain_mgr_->checkPillarChainSynced(kBlockPeriod)) {
+      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod
+                   << ". Pillar chain is not synced";
+      return false;
+    }
+  }
+
+  // Validate optional pillar block hash
+  if (const auto pillar_block_hash = pbft_block->getPillarBlockHash();
+      kBlockPeriod >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
+      kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
+          kGenesisConfig.state.dpos.delegation_delay) {
+    if (!pillar_block_hash.has_value()) {
+      LOG(log_er_) << "PBFT block " << pbft_block_hash << " does not contain pillar block hash, period "
+                   << kBlockPeriod;
+      return false;
+    }
+
+    const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+    if (!current_pillar_block) {
+      // This should never happen
+      LOG(log_er_) << "Unable to validate PBFT block " << pbft_block_hash << ". No pillar block present, period "
+                   << pbft_block->getPeriod();
+      assert(false);
+      return false;
+    }
+
+    if (*pillar_block_hash != current_pillar_block->getHash()) {
+      LOG(log_er_) << "PBFT block " << pbft_block_hash << " contains pillar block hash " << *pillar_block_hash
+                   << ", which is different than the local current pillar block" << current_pillar_block->getHash()
+                   << ", period " << pbft_block->getPeriod();
+      return false;
+    }
+  } else {
+    if (pillar_block_hash.has_value()) {
+      LOG(log_er_) << "PBFT block " << pbft_block_hash
+                   << " contains pillar block hash even though it should not, period " << pbft_block->getPeriod();
+      return false;
+    }
+  }
+
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   if (anchor_hash == kNullBlockHash) {
     return true;
@@ -1420,74 +1466,6 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
         anchor_dag_block_order_cache_.erase(anchor_hash);
         return false;
       }
-    }
-  }
-
-  const auto kBlockPeriod = pbft_block->getPeriod();
-
-  // Check if we have pillar votes for current pillar block
-  if (kBlockPeriod >= 2 * kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
-      kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods == 0) {
-    const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
-    if (!current_pillar_block) {
-      // This should never happen
-      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". No previous pillar block saved";
-      assert(false);
-      return false;
-    }
-
-    if (kBlockPeriod != current_pillar_block->getPeriod() + kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods) {
-      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". Previous pillar block period " << current_pillar_block->getPeriod();
-      assert(false);
-      return false;
-    }
-
-    // Check if there is 2t+1 pillar votes for current pillar block
-    if (!pillar_chain_mgr_->hasTwoTPlusOneVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash())) {
-      LOG(log_er_) << "Unable to validate pbft block " << pbft_block_hash << ", period " << kBlockPeriod << ". There is < 2t+1 pillar votes for current pillar block " << current_pillar_block->getHash();
-
-      if (auto net = network_.lock(); net) {
-        LOG(log_nf_) << "Request pillar votes for block " << current_pillar_block->getHash() << ", period " << current_pillar_block->getPeriod();
-        net->requestPillarBlockVotesBundle(current_pillar_block->getPeriod(), current_pillar_block->getHash());
-      } else {
-        LOG(log_er_) << "validatePbftBlock: Failed to obtain net !";
-      }
-
-      return false;
-    }
-  }
-
-  // Validate optional pillar block hash
-  if (const auto pillar_block_hash = pbft_block->getPillarBlockHash();
-      kBlockPeriod >= kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
-      kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
-          kGenesisConfig.state.dpos.delegation_delay) {
-    if (!pillar_block_hash.has_value()) {
-      LOG(log_er_) << "PBFT block " << pbft_block_hash << " does not contain pillar block hash, period "
-                   << kBlockPeriod;
-      return false;
-    }
-
-    const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
-    if (!current_pillar_block) {
-      // This should never happen
-      LOG(log_er_) << "Unable to validate PBFT block " << pbft_block_hash << ". No pillar block present, period "
-                   << pbft_block->getPeriod();
-      assert(false);
-      return false;
-    }
-
-    if (*pillar_block_hash != current_pillar_block->getHash()) {
-      LOG(log_er_) << "PBFT block " << pbft_block_hash << " contains pillar block hash " << *pillar_block_hash
-                   << ", which is different than the local current pillar block" << current_pillar_block->getHash()
-                   << ", period " << pbft_block->getPeriod();
-      return false;
-    }
-  } else {
-    if (pillar_block_hash.has_value()) {
-      LOG(log_er_) << "PBFT block " << pbft_block_hash
-                   << " contains pillar block hash even though it should not, period " << pbft_block->getPeriod();
-      return false;
     }
   }
 
@@ -1824,7 +1802,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     }
   }
 
-  // Validate optional pillar block hash
+  // Validate pillar block hash
   const auto kBlockPeriod = period_data.pbft_blk->getPeriod();
   if (kBlockPeriod > kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
       kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods ==
@@ -1846,7 +1824,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     }
   }
 
-  // Validate optional pillar votes
+  // Validate pillar votes
   if (kBlockPeriod >= 2 * kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods &&
       kBlockPeriod % kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods == 0) {
     if (!period_data.pillar_votes_.has_value()) {
@@ -1976,42 +1954,48 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
   size_t votes_weight = 0;
 
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+  if (current_pillar_block->getPeriod() != kRequiredVotesPeriod) {
+    LOG(log_er_) << "Sync pillar votes required period " << kRequiredVotesPeriod << " != "
+                 << " curren tpillar block period " << current_pillar_block->getPeriod();
+    return false;
+  }
 
   for (const auto &vote : *period_data.pillar_votes_) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (vote->getPeriod() != kRequiredVotesPeriod) {
-      LOG(log_er_) << "Invalid pillar vote " << vote->getHash() << " period " << vote->getPeriod() << ", PBFT block "
-                   << pbft_block_hash << ", kRequiredVotesPeriod " << kRequiredVotesPeriod;
+      LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash() << " period " << vote->getPeriod()
+                   << ", PBFT block " << pbft_block_hash << ", kRequiredVotesPeriod " << kRequiredVotesPeriod;
       return false;
     }
 
     if (vote->getBlockHash() != current_pillar_block->getHash()) {
-      LOG(log_er_) << "Invalid pillar vote " << vote->getHash() << ", vote period " << vote->getPeriod()
+      LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash() << ", vote period " << vote->getPeriod()
                    << ", vote block hash " << vote->getBlockHash() << ", current pillar block "
                    << current_pillar_block->getHash() << ", block period " << current_pillar_block->getPeriod();
       return false;
     }
 
     if (!pillar_chain_mgr_->validatePillarVote(vote)) {
-      LOG(log_er_) << "Invalid pillar vote " << vote->getHash();
+      LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash();
       return false;
     }
 
     if (const auto vote_weight = pillar_chain_mgr_->addVerifiedPillarVote(vote); vote_weight) {
       votes_weight += vote_weight;
     } else {
-      LOG(log_er_) << "Unable to add pillar vote " << vote->getHash() << " during syncing";
+      LOG(log_er_) << "Unable to add sync pillar vote " << vote->getHash();
       return false;
     }
   }
 
   const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(kRequiredVotesPeriod - 1, PbftVoteTypes::cert_vote);
   if (!two_t_plus_one.has_value()) {
+    LOG(log_er_) << "Invalid 2t+1 for period " << kRequiredVotesPeriod - 1;
     return false;
   }
 
   if (votes_weight < *two_t_plus_one) {
-    LOG(log_wr_) << "Invalid pillar votes weight " << votes_weight << " < two_t_plus_one " << *two_t_plus_one
+    LOG(log_wr_) << "Invalid sync pillar votes weight " << votes_weight << " < two_t_plus_one " << *two_t_plus_one
                  << ", period " << kRequiredVotesPeriod - 1;
     return false;
   }
