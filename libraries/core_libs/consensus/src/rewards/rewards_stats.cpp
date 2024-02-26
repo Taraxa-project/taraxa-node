@@ -53,8 +53,8 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
     return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize};
   }
 
-  const auto aspen_hf_part_two = kHardforksConfig.isAspenHardforkPartTwo(blk.pbft_blk->getPeriod());
-  return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize, aspen_hf_part_two};
+  const auto aspen_hf_part_one = kHardforksConfig.isAspenHardforkPartOne(blk.pbft_blk->getPeriod());
+  return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize, aspen_hf_part_one};
 }
 
 std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
