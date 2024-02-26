@@ -18,7 +18,6 @@ class FinalChainImpl final : public FinalChain {
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
   const bool kLightNode = false;
-  const uint64_t kLightNodeHistory = 0;
   const uint32_t kMaxLevelsPerPeriod;
   rewards::Stats rewards_;
 
@@ -28,11 +27,6 @@ class FinalChainImpl final : public FinalChain {
   std::atomic<uint64_t> num_executed_dag_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
 
-  rocksdb::WriteOptions const db_opts_w_ = [] {
-    rocksdb::WriteOptions ret;
-    ret.sync = true;
-    return ret;
-  }();
   EthBlockNumber delegation_delay_;
 
   ValueByBlockCache<std::shared_ptr<const BlockHeader>> block_headers_cache_;
@@ -44,6 +38,9 @@ class FinalChainImpl final : public FinalChain {
   ValueByBlockCache<uint64_t> total_vote_count_cache_;
   MapByBlockCache<addr_t, uint64_t> dpos_vote_count_cache_;
   MapByBlockCache<addr_t, uint64_t> dpos_is_eligible_cache_;
+
+  std::condition_variable finalized_cv_;
+  std::mutex finalized_mtx_;
 
   LOG_OBJECTS_DEFINE
 
@@ -57,7 +54,6 @@ class FinalChainImpl final : public FinalChain {
                        db->stateDbStoragePath().string(),
                    }),
         kLightNode(config.is_light_node),
-        kLightNodeHistory(config.light_node_history),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
         rewards_(config.genesis.pbft.committee_size, config.genesis.state.hardforks, db_,
                  [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); }),
@@ -89,7 +85,7 @@ class FinalChainImpl final : public FinalChain {
                                  state_db_descriptor.state_root, u256(0));
 
       block_headers_cache_.append(header->number, header);
-      db_->commitWriteBatch(batch, db_opts_w_);
+      db_->commitWriteBatch(batch);
     } else {
       // We need to recover latest changes as there was shutdown inside finalize function
       if (*last_blk_num != state_db_descriptor.blk_num) [[unlikely]] {
@@ -107,7 +103,7 @@ class FinalChainImpl final : public FinalChain {
         db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
         db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
         db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
-        db_->commitWriteBatch(batch, db_opts_w_);
+        db_->commitWriteBatch(batch);
         last_blk_num = state_db_descriptor.blk_num;
       }
 
@@ -140,6 +136,7 @@ class FinalChainImpl final : public FinalChain {
                                          finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
                                          anchor_block = std::move(anchor), p]() mutable {
       p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), std::move(anchor_block)));
+      finalized_cv_.notify_one();
     });
     return p->get_future();
   }
@@ -231,7 +228,7 @@ class FinalChainImpl final : public FinalChain {
         std::move(receipts),
     });
 
-    db_->commitWriteBatch(batch, db_opts_w_);
+    db_->commitWriteBatch(batch);
     state_api_.transition_state_commit();
 
     num_executed_dag_blk_ = num_executed_dag_blk;
@@ -390,7 +387,7 @@ class FinalChainImpl final : public FinalChain {
     state_api_.update_state_config(new_config);
   }
 
-  u256 get_account_storage(addr_t const& addr, u256 const& key,
+  h256 get_account_storage(addr_t const& addr, u256 const& key,
                            std::optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.get_account_storage(last_if_absent(blk_n), addr, key);
   }
@@ -450,6 +447,15 @@ class FinalChainImpl final : public FinalChain {
   std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const override {
     return state_api_.dpos_validators_total_stakes(blk_num);
   }
+
+  void wait_for_finalized() override {
+    std::unique_lock lck(finalized_mtx_);
+    finalized_cv_.wait_for(lck, std::chrono::milliseconds(10));
+  }
+
+  uint64_t dpos_yield(EthBlockNumber blk_num) const override { return state_api_.dpos_yield(blk_num); }
+
+  u256 dpos_total_supply(EthBlockNumber blk_num) const override { return state_api_.dpos_total_supply(blk_num); }
 
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {

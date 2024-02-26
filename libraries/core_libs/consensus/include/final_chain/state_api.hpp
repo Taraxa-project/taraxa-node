@@ -37,7 +37,7 @@ class StateAPI {
   void update_state_config(const Config& new_config);
 
   std::optional<Account> get_account(EthBlockNumber blk_num, const addr_t& addr) const;
-  u256 get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const;
+  h256 get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const;
   bytes get_code_by_address(EthBlockNumber blk_num, const addr_t& addr) const;
   ExecutionResult dry_run_transaction(EthBlockNumber blk_num, const EVMBlock& blk, const EVMTransaction& trx) const;
   bytes trace(EthBlockNumber blk_num, const EVMBlock& blk, const std::vector<EVMTransaction> trx,
@@ -59,6 +59,8 @@ class StateAPI {
   u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
   vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const;
   std::vector<ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const;
+  uint64_t dpos_yield(EthBlockNumber blk_num) const;
+  u256 dpos_total_supply(EthBlockNumber blk_num) const;
 };
 /** @} */
 

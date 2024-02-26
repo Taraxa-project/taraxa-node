@@ -1444,7 +1444,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
 
     if (pushPbftBlock_(std::move(period_data.first), std::move(period_data.second))) {
       LOG(log_dg_) << "Pushed synced PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
-      net->setSyncStatePeriod(pbft_block_period);
+      net->setSyncStatePeriod(pbftSyncingPeriod());
     } else {
       LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
       break;
@@ -1656,7 +1656,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
       break;
     }
     // If syncing and pbft manager is faster than execution a delay might be needed to allow EVM to catch up
-    thisThreadSleepForMilliSeconds(10);
+    final_chain_->wait_for_finalized();
     if (!retry_logged) {
       LOG(log_wr_) << "PBFT block " << pbft_block_hash
                    << " validation delayed, state root missing, execution is behind";
@@ -1725,6 +1725,12 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
 
 bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
                                              const std::vector<std::shared_ptr<Vote>> &cert_votes) const {
+  // To speed up syncing/rebuilding full strict vote verification is done for all votes on every
+  // full_vote_validation_interval and for a random vote for each block
+  const uint32_t full_vote_validation_interval = 100;
+  const uint32_t vote_to_validate = std::rand() % cert_votes.size();
+  const bool strict_validation = (pbft_block->getPeriod() % full_vote_validation_interval == 0);
+
   if (cert_votes.empty()) {
     LOG(log_er_) << "No cert votes provided! The synced PBFT block comes from a malicious player";
     return false;
@@ -1739,7 +1745,8 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
     return false;
   }
 
-  for (const auto &v : cert_votes) {
+  for (uint32_t vote_counter = 0; vote_counter < cert_votes.size(); vote_counter++) {
+    const auto &v = cert_votes[vote_counter];
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (v->getPeriod() != first_vote_period) {
       LOG(log_er_) << "Invalid cert vote " << v->getHash() << " period " << v->getPeriod() << ", PBFT block "
@@ -1771,7 +1778,9 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
       return false;
     }
 
-    if (const auto ret = vote_mgr_->validateVote(v); !ret.first) {
+    bool strict = strict_validation || (vote_counter == vote_to_validate);
+
+    if (const auto ret = vote_mgr_->validateVote(v, strict); !ret.first) {
       LOG(log_er_) << "Cert vote " << v->getHash() << " validation failed. Err: " << ret.second << ", pbft block "
                    << pbft_block->getBlockHash();
       return false;
@@ -1851,13 +1860,6 @@ std::shared_ptr<PbftBlock> PbftManager::getPbftProposedBlock(PbftPeriod period, 
   }
 
   return proposed_block->first;
-}
-
-void PbftManager::addRebuildDBPeriodData(PeriodData &&period_data,
-                                         std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes) {
-  periodDataQueuePush(std::move(period_data), dev::p2p::NodeID(), std::move(current_block_cert_votes));
-  pushSyncedPbftBlocksIntoChain();
-  waitForPeriodFinalization();
 }
 
 }  // namespace taraxa

@@ -244,23 +244,27 @@ void FullNode::start() {
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
-    final_chain_->block_finalized_.subscribe(
-        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_), db = as_weak(db_)](auto const &res) {
-          if (auto _eth_json_rpc = eth_json_rpc.lock()) {
-            _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
-          }
-          if (auto _ws = ws.lock()) {
-            _ws->newEthBlock(*res->final_chain_blk, hashes_from_transactions(res->trxs));
-            if (auto _db = db.lock()) {
-              auto pbft_blk = _db->getPbftBlock(res->hash);
-              if (const auto &hash = pbft_blk->getPivotDagBlockHash(); hash != kNullBlockHash) {
-                _ws->newDagBlockFinalized(hash, pbft_blk->getPeriod());
-              }
-              _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
+    if (!conf_.db_config.rebuild_db) {
+      final_chain_->block_finalized_.subscribe(
+          [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_), db = as_weak(db_)](auto const &res) {
+            if (auto _eth_json_rpc = eth_json_rpc.lock()) {
+              _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
             }
-          }
-        },
-        *rpc_thread_pool_);
+            if (auto _ws = ws.lock()) {
+              if (_ws->numberOfSessions()) {
+                _ws->newEthBlock(*res->final_chain_blk, hashes_from_transactions(res->trxs));
+                if (auto _db = db.lock()) {
+                  auto pbft_blk = _db->getPbftBlock(res->hash);
+                  if (const auto &hash = pbft_blk->getPivotDagBlockHash(); hash != kNullBlockHash) {
+                    _ws->newDagBlockFinalized(hash, pbft_blk->getPeriod());
+                  }
+                  _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
+                }
+              }
+            }
+          },
+          *rpc_thread_pool_);
+    }
 
     trx_mgr_->transaction_accepted_.subscribe(
         [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
@@ -301,22 +305,24 @@ void FullNode::start() {
     }
   }
 
-  // GasPricer updater
-  final_chain_->block_finalized_.subscribe(
-      [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
-        if (auto gp = gas_pricer.lock()) {
-          gp->update(res->trxs);
-        }
-      },
-      subscription_pool_);
+  if (!conf_.db_config.rebuild_db) {
+    // GasPricer updater
+    final_chain_->block_finalized_.subscribe(
+        [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
+          if (auto gp = gas_pricer.lock()) {
+            gp->update(res->trxs);
+          }
+        },
+        subscription_pool_);
 
-  final_chain_->block_finalized_.subscribe(
-      [trx_manager = as_weak(trx_mgr_)](auto const &res) {
-        if (auto trx_mgr = trx_manager.lock()) {
-          trx_mgr->blockFinalized(res->final_chain_blk->number);
-        }
-      },
-      subscription_pool_);
+    final_chain_->block_finalized_.subscribe(
+        [trx_manager = as_weak(trx_mgr_)](auto const &res) {
+          if (auto trx_mgr = trx_manager.lock()) {
+            trx_mgr->blockFinalized(res->final_chain_blk->number);
+          }
+        },
+        subscription_pool_);
+  }
 
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
@@ -367,6 +373,16 @@ void FullNode::rebuildDb() {
   // Read pbft blocks one by one
   PbftPeriod period = 1;
   std::shared_ptr<PeriodData> period_data, next_period_data;
+  std::atomic_bool stop_async = false;
+
+  std::future<void> fut = std::async(std::launch::async, [this, &stop_async]() {
+    while (!stop_async) {
+      // While rebuilding pushSyncedPbftBlocksIntoChain will stay in its own internal loop
+      pbft_mgr_->pushSyncedPbftBlocksIntoChain();
+      thisThreadSleepForMilliSeconds(1);
+    }
+  });
+
   while (true) {
     std::vector<std::shared_ptr<Vote>> cert_votes;
     if (next_period_data != nullptr) {
@@ -386,24 +402,38 @@ void FullNode::rebuildDb() {
       }
     } else {
       next_period_data = std::make_shared<PeriodData>(std::move(data));
+      // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that pushes
+      // blocks to chain
+      for (auto &t : next_period_data->transactions) t->getSender();
       cert_votes = next_period_data->previous_block_cert_votes;
     }
 
     LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
                  << " from old DB into syncing queue for processing, final chain size: "
                  << final_chain_->last_block_number();
-    pbft_mgr_->addRebuildDBPeriodData(std::move(*period_data), std::move(cert_votes));
+
+    pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
+    pbft_mgr_->waitForPeriodFinalization();
     period++;
+    if (period % 100 == 0) {
+      while (period - pbft_chain_->getPbftChainSize() > 100) {
+        thisThreadSleepForMilliSeconds(1);
+      }
+    }
 
     if (period - 1 == conf_.db_config.rebuild_db_period) {
       break;
     }
-    while (final_chain_->last_block_number() != period - 1) {
-      thisThreadSleepForMilliSeconds(5);
-      LOG(log_nf_) << "Waiting on PBFT blocks to be processed. PBFT chain size " << pbft_mgr_->pbftSyncingPeriod()
-                   << ", final chain size: " << final_chain_->last_block_number();
+
+    if (period % 10000 == 0) {
+      LOG(log_si_) << "Rebuilding period: " << period;
     }
   }
+  stop_async = true;
+  fut.wait();
+  // Handles the race case if some blocks are still in the queue
+  pbft_mgr_->pushSyncedPbftBlocksIntoChain();
+  LOG(log_si_) << "Rebuild completed";
 }
 
 uint64_t FullNode::getProposedBlocksCount() const { return dag_block_proposer_->getProposedBlocksCount(); }

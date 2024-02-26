@@ -23,6 +23,22 @@ struct MagnoliaHardfork {
 Json::Value enc_json(const MagnoliaHardfork& obj);
 void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 
+struct AspenHardfork {
+  // Part 1 prepares db data that are required for part 2 to be functional
+  uint64_t block_num_part_one{0};
+  // Part 2 implements new yield curve
+  uint64_t block_num_part_two{0};
+
+  taraxa::uint256_t max_supply{"0x26C62AD77DC602DAE0000000"};  // 12 Billion
+  // total generated rewards from block 1 to block_num
+  // It is partially estimated for blocks between the aspen hf release block and actual aspen hf block_num
+  taraxa::uint256_t generated_rewards{0};
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const AspenHardfork& obj);
+void dec_json(const Json::Value& json, AspenHardfork& obj);
+
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
@@ -51,6 +67,12 @@ struct HardforksConfig {
   // 3. Introducing slashing/jailing contract - in case someone double votes - he is jailed for N blocks and unable to
   //    participate in consensus
   MagnoliaHardfork magnolia_hf;
+
+  // Aspen hardfork implements new yield curve
+  AspenHardfork aspen_hf;
+
+  bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
+  bool isAspenHardforkPartTwo(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_two; }
 
   HAS_RLP_FIELDS
 };
