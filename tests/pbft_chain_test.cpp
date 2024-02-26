@@ -17,7 +17,7 @@ namespace taraxa::core_tests {
 
 struct PbftChainTest : NodesTest {};
 
-TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
+TEST_F(PbftChainTest, serialize_deserialize_pbft_block) {
   auto node_cfgs = make_node_cfgs(1);
   dev::Secret sk(node_cfgs[0].node_secret);
   // Generate PBFT block sample
