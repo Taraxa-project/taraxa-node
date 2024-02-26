@@ -703,6 +703,25 @@ TEST_F(TransactionTest, gas_price_limiting) {
   }
 }
 
+TEST_F(TransactionTest, signature_performance) {
+  auto now = std::chrono::steady_clock::now();
+  auto trxs = samples::createSignedTrxSamples(1, 1000, g_secret);
+  std::cout << "Time to create 1000 transactions: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count()
+            << "ms" << std::endl;
+  SharedTransactions trxs_from_rlp;
+  for (auto t : trxs) {
+    trxs_from_rlp.push_back(std::make_shared<Transaction>(t->rlp()));
+  }
+  now = std::chrono::steady_clock::now();
+  for (auto& t : trxs_from_rlp) {
+    t->getSender();
+  }
+  std::cout << "Time to verify 1000 transactions signature: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count()
+            << "ms" << std::endl;
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
