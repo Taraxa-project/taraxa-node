@@ -95,6 +95,12 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                  << packet_data.from_node_id_ << " already present in chain";
   } else {
     if (pbft_block_period != pbft_mgr_->pbftSyncingPeriod() + 1) {
+      // This can happen if we just got synced and block was cert voted
+      if (pbft_chain_synced && pbft_block_period == pbft_mgr_->pbftSyncingPeriod()) {
+        pbftSyncComplete();
+        return;
+      }
+
       LOG(log_er_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block_period
                    << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
       return;
@@ -207,7 +213,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
         LOG(log_tr_) << "Syncing pbft blocks too fast than processing. Has synced period " << pbft_sync_period
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
-        periodic_events_tp_.post(1000, [this] { delayedPbftSync(1); });
+        periodic_events_tp_.post(kDelayedPbftSyncDelayMs, [this] { delayedPbftSync(1); });
       } else {
         if (!syncPeerPbft(pbft_sync_period + 1)) {
           pbft_syncing_state_->setPbftSyncing(false);
@@ -230,7 +236,7 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
   if (pbft_mgr_->periodDataQueueSize()) {
     LOG(log_tr_) << "Syncing pbft blocks faster than processing. Remaining sync size "
                  << pbft_mgr_->periodDataQueueSize();
-    periodic_events_tp_.post(1000, [this] { pbftSyncComplete(); });
+    periodic_events_tp_.post(kDelayedPbftSyncDelayMs, [this] { pbftSyncComplete(); });
   } else {
     LOG(log_dg_) << "Syncing PBFT is completed";
     // We are pbft synced with the node we are connected to but
@@ -246,8 +252,9 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
 }
 
 void PbftSyncPacketHandler::delayedPbftSync(int counter) {
+  const uint32_t max_delayed_pbft_sync_count = 60000 / kDelayedPbftSyncDelayMs;
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
-  if (counter > 60) {
+  if (counter > max_delayed_pbft_sync_count) {
     LOG(log_er_) << "Pbft blocks stuck in queue, no new block processed in 60 seconds " << pbft_sync_period << " "
                  << pbft_chain_->getPbftChainSize();
     pbft_syncing_state_->setPbftSyncing(false);
@@ -259,7 +266,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
     if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
       LOG(log_tr_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                    << pbft_chain_->getPbftChainSize();
-      periodic_events_tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
+      periodic_events_tp_.post(kDelayedPbftSyncDelayMs, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
       if (!syncPeerPbft(pbft_sync_period + 1)) {
         pbft_syncing_state_->setPbftSyncing(false);

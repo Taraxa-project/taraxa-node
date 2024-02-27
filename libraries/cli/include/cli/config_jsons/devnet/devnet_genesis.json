@@ -4,7 +4,7 @@
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-    "timestamp": "0x652E75C2",
+    "timestamp": "0x652E75C3",
     "tips": [],
     "transactions": []
   },
@@ -237,13 +237,13 @@
     "dag_blocks_size": "0x32",
     "ghost_path_move_back": "0x0",
     "lambda_ms": "0x5DC",
-    "gas_limit": "0x12C684C0"
+    "gas_limit": "0x3E95BA80"
   },
   "dag": {
     "block_proposer": {
       "shard": 1
     },
-    "gas_limit": "0x1E0A6E0"
+    "gas_limit": "0x6422C40"
   },
   "sortition": {
     "changes_count_for_average": 10,
@@ -265,13 +265,19 @@
   },
   "hardforks": {
     "fix_redelegate_block_num": 0,
-    "phalaenopsis_hf_block_num": 1000,
+    "phalaenopsis_hf_block_num": 0,
     "rewards_distribution_frequency": {
       "0": 100
     },
     "magnolia_hf": {
       "block_num": 0,
       "jail_time": 1000
+    },
+    "aspen_hf" : {
+      "block_num_part_one" : 0,
+      "block_num_part_two" : 0,
+      "max_supply": "0x26C62AD77DC602DAE0000000",
+      "generated_rewards": "0"
     }
   }
 }

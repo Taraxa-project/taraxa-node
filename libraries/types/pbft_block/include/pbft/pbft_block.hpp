@@ -7,6 +7,7 @@
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
+#include "pbft_block_extra_data.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {
@@ -30,11 +31,12 @@ class PbftBlock {
   addr_t beneficiary_;
   sig_t signature_;
   std::vector<vote_hash_t> reward_votes_;  // Cert votes in previous period
+  std::optional<PbftBlockExtraData> extra_data_;
 
  public:
   PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot, const blk_hash_t& order_hash,
             const blk_hash_t& prev_state_root, PbftPeriod period, const addr_t& beneficiary, const secret_t& sk,
-            std::vector<vote_hash_t>&& reward_votes);
+            std::vector<vote_hash_t>&& reward_votes, const PbftBlockExtraData& extra_data = {});
   explicit PbftBlock(const dev::RLP& rlp);
   explicit PbftBlock(const bytes& RLP);
 
@@ -116,6 +118,18 @@ class PbftBlock {
    * @return timestamp
    */
   auto getTimestamp() const { return timestamp_; }
+
+  /**
+   * @brief Get extra data
+   * @return extra data
+   */
+  auto getExtraData() const { return extra_data_; }
+
+  /**
+   * @brief Get extra data rlp
+   * @return extra data rlp
+   */
+  auto getExtraDataRlp() const { return extra_data_.has_value() ? extra_data_->rlp() : bytes(); }
 
   /**
    * @brief Get PBFT block proposer address

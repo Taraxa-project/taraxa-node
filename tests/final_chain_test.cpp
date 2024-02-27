@@ -106,7 +106,7 @@ struct FinalChainTest : WithDataDir {
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
     EXPECT_EQ(blk_h.gas_limit, cfg.genesis.pbft.gas_limit);
-    EXPECT_EQ(blk_h.extra_data, bytes());
+    EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraData()->rlp());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mix_hash(), h256());
@@ -191,9 +191,10 @@ struct FinalChainTest : WithDataDir {
 
 TEST_F(FinalChainTest, initial_balances) {
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr_t::random()] = 1;
-  cfg.genesis.state.initial_balances[addr_t::random()] = 1000;
-  cfg.genesis.state.initial_balances[addr_t::random()] = 100000;
+  cfg.genesis.state.initial_balances[addr_t::random()] = taraxa::uint256_t("0x16345785D8A0000");    // 1
+  cfg.genesis.state.initial_balances[addr_t::random()] = taraxa::uint256_t("0x56BC75E2D63100000");  // 1k
+  cfg.genesis.state.initial_balances[addr_t::random()] =
+      taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   init();
 }
 
@@ -202,7 +203,7 @@ TEST_F(FinalChainTest, contract) {
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   init();
   auto nonce = 0;
   auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
@@ -253,7 +254,8 @@ TEST_F(FinalChainTest, coin_transfers) {
   keys.reserve(NUM_ACCS);
   for (size_t i = 0; i < NUM_ACCS; ++i) {
     const auto& k = keys.emplace_back(dev::KeyPair::create());
-    cfg.genesis.state.initial_balances[k.address()] = std::numeric_limits<u256>::max() / NUM_ACCS;
+    cfg.genesis.state.initial_balances[k.address()] =
+        taraxa::uint256_t("0x204FCE5E3E25026110000000") /* 10 Billion */ / NUM_ACCS;
   }
 
   init();

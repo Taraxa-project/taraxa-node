@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <string>
 
+#include "config/version.hpp"
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
@@ -28,11 +29,10 @@ using vrf_output_t = vrf_wrapper::vrf_output_t;
 constexpr std::chrono::milliseconds kPollingIntervalMs{100};
 constexpr PbftStep kMaxSteps{13};  // Need to be a odd number
 
-PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
-                         std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk)
+PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<FinalChain> final_chain, secret_t node_sk)
     : db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
@@ -41,8 +41,8 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       final_chain_(std::move(final_chain)),
       node_addr_(std::move(node_addr)),
       node_sk_(std::move(node_sk)),
-      kMinLambda(conf.lambda_ms),
-      dag_genesis_block_hash_(dag_genesis_block_hash),
+      kMinLambda(conf.pbft.lambda_ms),
+      dag_genesis_block_hash_(conf.dag_genesis_block.getHash()),
       config_(conf),
       proposed_blocks_(db_) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
@@ -1085,8 +1085,16 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<
     }
   }
   try {
-    auto block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
-                                             node_addr_, node_sk_, std::move(reward_votes_hashes));
+    std::shared_ptr<PbftBlock> block;
+    // TODO: Activate in next hardfork
+    /*if (HARDFORK) {
+      block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                          node_addr_, node_sk_, std::move(reward_votes_hashes), TARAXA_MAJOR_VERSION,
+                                          TARAXA_MINOR_VERSION, TARAXA_PATCH_VERSION, "T");
+    } else */
+
+    block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                        node_addr_, node_sk_, std::move(reward_votes_hashes));
 
     return {std::make_pair(std::move(block), std::move(reward_votes))};
   } catch (const std::exception &e) {
@@ -1162,10 +1170,11 @@ PbftManager::proposePbftBlock() {
   }
 
   blk_hash_t dag_block_hash;
-  if (ghost.size() <= config_.dag_blocks_size) {
+  if (ghost.size() <= config_.pbft.dag_blocks_size) {
     // Move back config_.ghost_path_move_back DAG blocks for DAG sycning
-    auto ghost_index =
-        (ghost.size() < config_.ghost_path_move_back + 1) ? 0 : (ghost.size() - 1 - config_.ghost_path_move_back);
+    auto ghost_index = (ghost.size() < config_.pbft.ghost_path_move_back + 1)
+                           ? 0
+                           : (ghost.size() - 1 - config_.pbft.ghost_path_move_back);
     while (ghost_index < ghost.size() - 1) {
       if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
         break;
@@ -1174,7 +1183,7 @@ PbftManager::proposePbftBlock() {
     }
     dag_block_hash = ghost[ghost_index];
   } else {
-    dag_block_hash = ghost[config_.dag_blocks_size - 1];
+    dag_block_hash = ghost[config_.pbft.dag_blocks_size - 1];
   }
 
   if (dag_block_hash == dag_genesis_block_hash_) {
@@ -1211,7 +1220,7 @@ PbftManager::proposePbftBlock() {
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
 
-    if (total_weight + dag_block_weight > config_.gas_limit) {
+    if (total_weight + dag_block_weight > config_.pbft.gas_limit) {
       break;
     }
     total_weight += dag_block_weight;
@@ -1444,7 +1453,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
 
     if (pushPbftBlock_(std::move(period_data.first), std::move(period_data.second))) {
       LOG(log_dg_) << "Pushed synced PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
-      net->setSyncStatePeriod(pbft_block_period);
+      net->setSyncStatePeriod(pbftSyncingPeriod());
     } else {
       LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
       break;
@@ -1656,7 +1665,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
       break;
     }
     // If syncing and pbft manager is faster than execution a delay might be needed to allow EVM to catch up
-    thisThreadSleepForMilliSeconds(10);
+    final_chain_->wait_for_finalized();
     if (!retry_logged) {
       LOG(log_wr_) << "PBFT block " << pbft_block_hash
                    << " validation delayed, state root missing, execution is behind";
@@ -1725,6 +1734,12 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
 
 bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
                                              const std::vector<std::shared_ptr<Vote>> &cert_votes) const {
+  // To speed up syncing/rebuilding full strict vote verification is done for all votes on every
+  // full_vote_validation_interval and for a random vote for each block
+  const uint32_t full_vote_validation_interval = 100;
+  const uint32_t vote_to_validate = std::rand() % cert_votes.size();
+  const bool strict_validation = (pbft_block->getPeriod() % full_vote_validation_interval == 0);
+
   if (cert_votes.empty()) {
     LOG(log_er_) << "No cert votes provided! The synced PBFT block comes from a malicious player";
     return false;
@@ -1739,7 +1754,8 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
     return false;
   }
 
-  for (const auto &v : cert_votes) {
+  for (uint32_t vote_counter = 0; vote_counter < cert_votes.size(); vote_counter++) {
+    const auto &v = cert_votes[vote_counter];
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (v->getPeriod() != first_vote_period) {
       LOG(log_er_) << "Invalid cert vote " << v->getHash() << " period " << v->getPeriod() << ", PBFT block "
@@ -1771,7 +1787,9 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
       return false;
     }
 
-    if (const auto ret = vote_mgr_->validateVote(v); !ret.first) {
+    bool strict = strict_validation || (vote_counter == vote_to_validate);
+
+    if (const auto ret = vote_mgr_->validateVote(v, strict); !ret.first) {
       LOG(log_er_) << "Cert vote " << v->getHash() << " validation failed. Err: " << ret.second << ", pbft block "
                    << pbft_block->getBlockHash();
       return false;
@@ -1836,7 +1854,7 @@ bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) cons
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
                       [](u256 value, const auto &dag_block) { return value + dag_block.getGasEstimation(); });
-  if (total_weight > config_.gas_limit) {
+  if (total_weight > config_.pbft.gas_limit) {
     return false;
   }
   return true;
@@ -1851,13 +1869,6 @@ std::shared_ptr<PbftBlock> PbftManager::getPbftProposedBlock(PbftPeriod period, 
   }
 
   return proposed_block->first;
-}
-
-void PbftManager::addRebuildDBPeriodData(PeriodData &&period_data,
-                                         std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes) {
-  periodDataQueuePush(std::move(period_data), dev::p2p::NodeID(), std::move(current_block_cert_votes));
-  pushSyncedPbftBlocksIntoChain();
-  waitForPeriodFinalization();
 }
 
 }  // namespace taraxa

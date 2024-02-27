@@ -8,6 +8,7 @@
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <condition_variable>
+#include <cstdint>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -102,11 +103,11 @@ int main(int argc, char** argv) {
                       "Force advertised public IP to the given IP (default: auto)");
   addNetworkingOption("listen-ip", po::value<std::string>()->value_name("<ip>"),
                       "Listen on the given IP for incoming connections (default: 0.0.0.0)");
-  addNetworkingOption("listen", po::value<unsigned short>()->value_name("<port>"),
+  addNetworkingOption("listen", po::value<uint16_t>()->value_name("<port>"),
                       "Listen on the given port for incoming connections (default: 10002)");
   addNetworkingOption("deny-local-discovery", po::bool_switch(&denyLocalDiscovery),
                       "Reject local addresses in the discovery process. Used for testing purposes.");
-  addNetworkingOption("chain-id", po::value<unsigned short>()->value_name("<id>"),
+  addNetworkingOption("chain-id", po::value<uint32_t>()->value_name("<id>"),
                       "Connect to default mainet/testnet/devnet bootnodes");
   addNetworkingOption("number-of-threads", po::value<uint32_t>()->value_name("<#>"),
                       "Define number of threads for this bootnode (default: 1)");
@@ -140,17 +141,17 @@ int main(int argc, char** argv) {
   }
 
   /// Networking params.
-  unsigned short chain_id = static_cast<unsigned short>(taraxa::cli::Config::DEFAULT_CHAIN_ID);
-  if (vm.count("chain-id")) chain_id = vm["chain-id"].as<unsigned short>();
+  uint32_t chain_id = static_cast<uint32_t>(taraxa::cli::Config::DEFAULT_CHAIN_ID);
+  if (vm.count("chain-id")) chain_id = vm["chain-id"].as<uint32_t>();
 
   std::string listen_ip = "0.0.0.0";
-  unsigned short listen_port = 10002;
+  uint16_t listen_port = 10002;
   std::string public_ip;
   uint32_t num_of_threads = 1;
 
   if (vm.count("public-ip")) public_ip = vm["public-ip"].as<std::string>();
   if (vm.count("listen-ip")) listen_ip = vm["listen-ip"].as<std::string>();
-  if (vm.count("listen")) listen_port = vm["listen"].as<unsigned short>();
+  if (vm.count("listen")) listen_port = vm["listen"].as<uint16_t>();
   if (vm.count("number-of-threads")) num_of_threads = vm["number-of-threads"].as<uint32_t>();
 
   setupLogging(logging_options);
@@ -168,7 +169,7 @@ int main(int argc, char** argv) {
   }
 
   auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
-                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
+                                    : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false, false);
   net_conf.allowLocalDiscovery = !denyLocalDiscovery;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;

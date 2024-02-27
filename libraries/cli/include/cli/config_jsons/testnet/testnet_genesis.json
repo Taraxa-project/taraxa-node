@@ -4,7 +4,7 @@
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-    "timestamp": "0x6527DFC0",
+    "timestamp": "0x658C3F5E",
     "tips": [],
     "transactions": []
   },
@@ -136,11 +136,17 @@
     "phalaenopsis_hf_block_num": 0,
     "redelegations": [],
     "rewards_distribution_frequency": {
-      "297000": 100
+      "0": 100
     },
     "magnolia_hf": {
-      "block_num": 297000,
+      "block_num": 0,
       "jail_time": 163459
+    },
+    "aspen_hf": {
+      "block_num_part_one": 0,
+      "block_num_part_two": 0,
+      "max_supply": "0x26C62AD77DC602DAE0000000",
+      "generated_rewards": "0x0"
     }
   }
 }

@@ -55,10 +55,10 @@ class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
-              std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk);
+  PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+              std::shared_ptr<FinalChain> final_chain, secret_t node_sk);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -195,13 +195,6 @@ class PbftManager {
   blk_hash_t lastPbftBlockHashFromQueueOrChain();
 
   /**
-   * @brief Add rebuild DB with provided data
-   * @param block period data
-   * @param current_block_cert_votes cert votes for PeriodData pbft block period
-   */
-  void addRebuildDBPeriodData(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes);
-
-  /**
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
@@ -259,18 +252,12 @@ class PbftManager {
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
-  size_t getPbftCommitteeSize() const { return config_.committee_size; }
+  size_t getPbftCommitteeSize() const { return config_.pbft.committee_size; }
 
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
    */
   void testBroadcatVotesFunctionality();
-
- private:
-  /**
-   * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
-   */
-  void broadcastVotes();
 
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
@@ -282,6 +269,12 @@ class PbftManager {
    * @brief wait for DPOS period finalization
    */
   void waitForPeriodFinalization();
+
+ private:
+  /**
+   * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
+   */
+  void broadcastVotes();
 
   /**
    * @brief Reset PBFT step to 1
@@ -574,7 +567,7 @@ class PbftManager {
 
   const blk_hash_t dag_genesis_block_hash_;
 
-  const PbftConfig &config_;
+  const GenesisConfig &config_;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;

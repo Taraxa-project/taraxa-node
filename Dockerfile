@@ -100,9 +100,13 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
 
 RUN cd $BUILD_OUTPUT_DIR && make -j$(nproc) all \
     # Copy CMake generated Testfile to be able to trigger ctest from bin directory
-    && cp tests/CTestTestfile.cmake bin/ \
+    && cp tests/CTestTestfile.cmake bin/;
+    # \
     # keep only required shared libraries and final binaries
-    && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
+    # && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
+
+# Set LD_LIBRARY_PATH so taraxad binary finds shared libs
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
@@ -115,7 +119,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages
-RUN pip3 install click eth-account eth-utils
+RUN pip3 install click eth-account eth-utils typing-extensions
 
 ARG BUILD_OUTPUT_DIR
 WORKDIR /root/.taraxa
@@ -123,7 +127,7 @@ WORKDIR /root/.taraxa
 # Copy required binaries
 COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin/taraxad /usr/local/bin/taraxad
 COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin/taraxa-bootnode /usr/local/bin/taraxa-bootnode
-COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/lib/*.so /usr/local/lib/
+COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/lib/*.so* /usr/local/lib/
 
 # Copy scripts
 COPY scripts/taraxa-sign.py /usr/local/bin/taraxa-sign

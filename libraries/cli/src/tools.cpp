@@ -86,6 +86,16 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, const vecto
   // Override boot nodes
   if (boot_nodes.size() > 0) {
     conf["network"]["boot_nodes"] = Json::Value(Json::arrayValue);
+    for (auto const& b : boot_nodes) {
+      vector<string> result;
+      boost::split(result, b, boost::is_any_of(":/"));
+      if (result.size() != 3) throw invalid_argument("Boot node in boot_nodes not specified correctly");
+      Json::Value b_node;
+      b_node["id"] = result[2];
+      b_node["ip"] = result[0];
+      b_node["port"] = stoi(result[1]);
+      conf["network"]["boot_nodes"].append(b_node);
+    }
   }
   if (boot_nodes_append.size() > 0) {
     for (auto const& b : boot_nodes_append) {

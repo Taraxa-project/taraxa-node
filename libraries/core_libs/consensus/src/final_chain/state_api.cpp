@@ -27,6 +27,8 @@ void to_bytes(taraxa_evm_Bytes b, bytes& result) { result.assign(b.Data, b.Data 
 
 void to_u256(taraxa_evm_Bytes b, u256& result) { result = fromBigEndian<u256>(map_bytes(b)); }
 
+void to_h256(taraxa_evm_Bytes b, h256& result) { result = h256(fromBigEndian<u256>(map_bytes(b))); }
+
 template <typename Result, void (*decode)(taraxa_evm_Bytes, Result&)>
 taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
   return {
@@ -147,8 +149,8 @@ std::optional<Account> StateAPI::get_account(EthBlockNumber blk_num, const addr_
   return c_method_args_rlp<std::optional<Account>, from_rlp, taraxa_evm_state_api_get_account>(this_c_, blk_num, addr);
 }
 
-u256 StateAPI::get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const {
-  return c_method_args_rlp<u256, to_u256, taraxa_evm_state_api_get_account_storage>(this_c_, blk_num, addr, key);
+h256 StateAPI::get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const {
+  return c_method_args_rlp<h256, to_h256, taraxa_evm_state_api_get_account_storage>(this_c_, blk_num, addr, key);
 }
 
 bytes StateAPI::get_code_by_address(EthBlockNumber blk_num, const addr_t& addr) const {
@@ -254,6 +256,21 @@ std::vector<ValidatorStake> StateAPI::dpos_validators_total_stakes(EthBlockNumbe
   std::vector<ValidatorStake> ret;
   taraxa_evm_state_api_validators_stakes(this_c_, blk_num, decoder_cb_c<std::vector<ValidatorStake>, from_rlp>(ret),
                                          err_h.cgo_part_);
+  err_h.check();
+  return ret;
+}
+
+uint64_t StateAPI::dpos_yield(EthBlockNumber blk_num) const {
+  ErrorHandler err_h;
+  auto ret = taraxa_evm_state_api_dpos_yield(this_c_, blk_num, err_h.cgo_part_);
+  err_h.check();
+  return ret;
+}
+
+u256 StateAPI::dpos_total_supply(EthBlockNumber blk_num) const {
+  u256 ret;
+  ErrorHandler err_h;
+  taraxa_evm_state_api_dpos_total_supply(this_c_, blk_num, decoder_cb_c<u256, to_u256>(ret), err_h.cgo_part_);
   err_h.check();
   return ret;
 }
