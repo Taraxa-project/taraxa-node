@@ -29,7 +29,7 @@ conan==1.59.0
 configparser==6.0.0
 cookiecutter==2.4.0
 crashtest==0.4.1
-cryptography==38.0.4
+cryptography==42.0.4
 cupshelpers==1.0
 cytoolz==0.12.2
 dbus-python==1.3.2
