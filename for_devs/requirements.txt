@@ -127,7 +127,7 @@ ptyprocess==0.7.0
 pycairo==1.24.0
 pycparser==2.21
 pycryptodome==3.19.0
-pycryptodomex==3.11.0
+pycryptodomex==3.19.1
 pycups==2.0.1
 Pygments==2.15.1
 PyGObject==3.46.0
