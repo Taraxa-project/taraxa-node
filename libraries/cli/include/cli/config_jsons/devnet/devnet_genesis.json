@@ -265,7 +265,7 @@
   },
   "hardforks": {
     "fix_redelegate_block_num": 0,
-    "phalaenopsis_hf_block_num": 1000,
+    "phalaenopsis_hf_block_num": 0,
     "rewards_distribution_frequency": {
       "0": 100
     },
@@ -274,10 +274,10 @@
       "jail_time": 1000
     },
     "aspen_hf" : {
-      "block_num_part_one" : 1000,
-      "block_num_part_two" : 2000,
+      "block_num_part_one" : 0,
+      "block_num_part_two" : 0,
       "max_supply": "0x26C62AD77DC602DAE0000000",
-      "generated_rewards": "0x16E59F7481A7EC1F60"
+      "generated_rewards": "0"
     }
   }
 }
