@@ -27,6 +27,10 @@ std::vector<LogBloom> LogFilter::bloomPossibilities() const {
   std::transform(addresses_.begin(), addresses_.end(), std::back_inserter(ret),
                  [](const auto& a) { return LogBloom().shiftBloom<3>(sha3(a)); });
 
+  if (addresses_.empty()) {
+    ret.push_back(LogBloom());
+  }
+
   for (const auto& topic : topics_) {
     // blooms won't change, continue
     if (topic.empty()) {
