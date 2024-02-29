@@ -96,7 +96,9 @@ Json::Value PbftBlock::getJson() const {
   for (const auto& v : reward_votes_) {
     json["reward_votes"].append(v.toString());
   }
-  json["extra_data"] = extra_data_->getJson();
+  if (extra_data_.has_value()) {
+    json["extra_data"] = extra_data_->getJson();
+  }
 
   return json;
 }
