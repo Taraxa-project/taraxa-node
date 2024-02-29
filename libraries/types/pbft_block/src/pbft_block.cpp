@@ -11,32 +11,22 @@ namespace taraxa {
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& rlp) {
-  if (rlp.itemCount() == 9) {
-    dev::bytes extra_data_bytes;
-    util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
-                    prev_state_root_hash_, period_, timestamp_, reward_votes_, extra_data_bytes, signature_);
-    extra_data_ = PbftBlockExtraData(extra_data_bytes);
-  } else {
-    util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
-                    prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
-  }
-
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
+                  prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
   calculateHash_();
   checkUniqueRewardVotes();
 }
 
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
                      const blk_hash_t& order_hash, const blk_hash_t& prev_state_root, PbftPeriod period,
-                     const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes,
-                     const PbftBlockExtraData& extra_data)
+                     const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       order_hash_(order_hash),
       prev_state_root_hash_(prev_state_root),
       period_(period),
       beneficiary_(beneficiary),
-      reward_votes_(reward_votes),
-      extra_data_(extra_data) {
+      reward_votes_(reward_votes) {
   timestamp_ = dev::utcTime();
   signature_ = dev::sign(sk, sha3(false));
   calculateHash_();
@@ -96,16 +86,13 @@ Json::Value PbftBlock::getJson() const {
   for (const auto& v : reward_votes_) {
     json["reward_votes"].append(v.toString());
   }
-  json["extra_data"] = extra_data_->getJson();
 
   return json;
 }
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
-  uint32_t rlp_count = (include_sig ? 8 : 7);
-  if (extra_data_.has_value()) rlp_count++;
-  strm.appendList(rlp_count);
+  strm.appendList(include_sig ? 8 : 7);
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
   strm << order_hash_;
@@ -113,10 +100,6 @@ void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
   strm << period_;
   strm << timestamp_;
   strm.appendVector(reward_votes_);
-
-  if (extra_data_.has_value()) {
-    strm << extra_data_->rlp();
-  }
   if (include_sig) {
     strm << signature_;
   }
