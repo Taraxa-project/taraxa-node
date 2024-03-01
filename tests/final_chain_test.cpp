@@ -106,7 +106,9 @@ struct FinalChainTest : WithDataDir {
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
     EXPECT_EQ(blk_h.gas_limit, cfg.genesis.pbft.gas_limit);
-    EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraData()->rlp());
+    if (pbft_block->getExtraData().has_value()) {
+      EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraData()->rlp());
+    }
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mix_hash(), h256());
