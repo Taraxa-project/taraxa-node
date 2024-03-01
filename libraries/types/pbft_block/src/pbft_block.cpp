@@ -15,7 +15,9 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
     dev::bytes extra_data_bytes;
     util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
                     prev_state_root_hash_, period_, timestamp_, reward_votes_, extra_data_bytes, signature_);
-    extra_data_ = PbftBlockExtraData(extra_data_bytes);
+    if (extra_data_bytes.size() > 0) {
+      extra_data_ = PbftBlockExtraData(extra_data_bytes);
+    }
   } else {
     util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
                     prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
@@ -28,7 +30,7 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
                      const blk_hash_t& order_hash, const blk_hash_t& prev_state_root, PbftPeriod period,
                      const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes,
-                     const PbftBlockExtraData& extra_data)
+                     const std::optional<PbftBlockExtraData>& extra_data)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       order_hash_(order_hash),
@@ -96,7 +98,9 @@ Json::Value PbftBlock::getJson() const {
   for (const auto& v : reward_votes_) {
     json["reward_votes"].append(v.toString());
   }
-  json["extra_data"] = extra_data_->getJson();
+  if (extra_data_.has_value()) {
+    json["extra_data"] = extra_data_->getJson();
+  }
 
   return json;
 }

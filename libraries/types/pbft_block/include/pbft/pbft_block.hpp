@@ -36,7 +36,7 @@ class PbftBlock {
  public:
   PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot, const blk_hash_t& order_hash,
             const blk_hash_t& prev_state_root, PbftPeriod period, const addr_t& beneficiary, const secret_t& sk,
-            std::vector<vote_hash_t>&& reward_votes, const PbftBlockExtraData& extra_data = {});
+            std::vector<vote_hash_t>&& reward_votes, const std::optional<PbftBlockExtraData>& extra_data = {});
   explicit PbftBlock(const dev::RLP& rlp);
   explicit PbftBlock(const bytes& RLP);
 
