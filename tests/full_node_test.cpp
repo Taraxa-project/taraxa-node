@@ -199,8 +199,8 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
 
-  // Pillar chain - pillar block
-  EthBlockNumber block_num(123);
+  // Pillar chain
+  EthBlockNumber pillar_block_num(123);
   h256 state_root(456);
   blk_hash_t previous_pillar_block_hash(789);
 
@@ -209,8 +209,17 @@ TEST_F(FullNodeTest, db_test) {
   const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      block_num, state_root, std::move(stakes_changes), previous_pillar_block_hash);
+      pillar_block_num, state_root, std::move(stakes_changes), previous_pillar_block_hash);
 
+  // Pillar block
+  batch = db.createWriteBatch();
+  db.saveCurrentPillarBlock(pillar_block, batch);
+  db.commitWriteBatch(batch);
+
+  const auto pillar_block_db = db.getCurrentPillarBlock();
+  EXPECT_EQ(pillar_block->getHash(), pillar_block_db->getHash());
+
+  // Pillar block data
   std::vector<std::shared_ptr<PillarVote>> pillar_votes;
   const auto vote1 = pillar_votes.emplace_back(
       std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
@@ -218,7 +227,7 @@ TEST_F(FullNodeTest, db_test) {
       std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
 
   const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      block_num - 1, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{}, blk_hash_t{});
+      pillar_block_num - 1, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{}, blk_hash_t{});
   db.savePillarBlockData(
       pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
   db.savePillarBlockData(
@@ -238,7 +247,23 @@ TEST_F(FullNodeTest, db_test) {
     EXPECT_EQ(pillar_votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes_[idx]->getHash());
   }
 
-  // Pillar chain - pillar vote
+  // Pillar block stakes
+  std::vector<state_api::ValidatorStake> stakes;
+  const auto stake1 = stakes_changes.emplace_back(addr_t(123), dev::s256(123));
+  const auto stake2 = stakes_changes.emplace_back(addr_t(456), dev::s256(456));
+
+  batch = db.createWriteBatch();
+  db.saveCurrentPillarBlockStakes(stakes, batch);
+  db.commitWriteBatch(batch);
+
+  const auto current_pillar_block_stakes_db = db.getCurrentPillarBlockStakes();
+  EXPECT_EQ(stakes.size(), current_pillar_block_stakes_db.size());
+  for (size_t idx = 0; idx < current_pillar_block_stakes_db.size(); idx++) {
+    EXPECT_EQ(current_pillar_block_stakes_db[idx].addr, current_pillar_block_stakes_db[idx].addr);
+    EXPECT_EQ(current_pillar_block_stakes_db[idx].stake, current_pillar_block_stakes_db[idx].stake);
+  }
+
+  // Pillar vote
   auto pillar_vote =
       std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash());
   db.saveOwnPillarBlockVote(pillar_vote);
