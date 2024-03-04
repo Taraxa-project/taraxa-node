@@ -704,16 +704,42 @@ std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData
 }
 
 void DbStorage::saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote) {
-  insert(Columns::latest_pillar_block_own_vote, 0, util::rlp_enc(vote));
+  insert(Columns::current_pillar_block_own_vote, 0, util::rlp_enc(vote));
 }
 
 std::shared_ptr<PillarVote> DbStorage::getOwnPillarBlockVote() const {
-  const auto bytes = asBytes(lookup(0, Columns::latest_pillar_block_own_vote));
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_own_vote));
   if (bytes.empty()) {
     return nullptr;
   }
 
   return std::make_shared<PillarVote>(dev::RLP(bytes));
+}
+
+void DbStorage::saveCurrentPillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& block, Batch& write_batch) {
+  insert(write_batch, Columns::current_pillar_block, 0, util::rlp_enc(block));
+}
+
+std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getCurrentPillarBlock() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block));
+  if (bytes.empty()) {
+    return nullptr;
+  }
+
+  return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(bytes));
+}
+
+void DbStorage::saveCurrentPillarBlockStakes(const std::vector<state_api::ValidatorStake>& stakes, Batch& write_batch) {
+  insert(write_batch, Columns::current_pillar_block_stakes, 0, util::rlp_enc(stakes));
+}
+
+std::vector<state_api::ValidatorStake> DbStorage::getCurrentPillarBlockStakes() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_stakes));
+  if (bytes.empty()) {
+    return {};
+  }
+
+  return util::rlp_dec<std::vector<state_api::ValidatorStake>>(dev::RLP(bytes));
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {

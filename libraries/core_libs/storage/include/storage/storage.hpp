@@ -26,7 +26,8 @@ struct SortitionParamsChange;
 
 namespace pillar_chain {
 struct PillarBlockData;
-}
+class PillarBlock;
+}  // namespace pillar_chain
 
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
@@ -130,8 +131,12 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     // Pillar blocks
     COLUMN_W_COMP(pillar_block_data, getIntComparator<PbftPeriod>());
-    // Latest pillar block own pillar vote
-    COLUMN(latest_pillar_block_own_vote);
+    // Current pillar block
+    COLUMN(current_pillar_block);
+    // Current pillar block stakes
+    COLUMN(current_pillar_block_stakes);
+    // Current pillar block own pillar vote
+    COLUMN(current_pillar_block_own_vote);
 
 #undef COLUMN
 #undef COLUMN_W_COMP
@@ -222,6 +227,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<pillar_chain::PillarBlockData> getLatestPillarBlockData() const;
   void saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote);
   std::shared_ptr<PillarVote> getOwnPillarBlockVote() const;
+  void saveCurrentPillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& block, Batch& write_batch);
+  std::shared_ptr<pillar_chain::PillarBlock> getCurrentPillarBlock() const;
+  void saveCurrentPillarBlockStakes(const std::vector<state_api::ValidatorStake>& stakes, Batch& write_batch);
+  std::vector<state_api::ValidatorStake> getCurrentPillarBlockStakes() const;
 
   /**
    * @brief Gets finalized transactions from provided hashes
