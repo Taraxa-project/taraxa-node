@@ -31,20 +31,19 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
     addVerifiedPillarVote(vote);
   }
 
-  if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
-    last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block_);
-    // TODO: probably dont need this ???
-    //    for (const auto& vote : latest_pillar_block_data->votes) {
-    //      addVerifiedPillarVote(vote);
-    //    }
-
-    // TODO: get current pillar block from db
-    // current_pillar_block_ =
-
-    // TODO: we might need to sve this in db due to light node short history ???
-    // current_pillar_block_stakes_ = final_chain_->dpos_validators_total_stakes(current_pillar_block_->getPeriod());
+  if (auto current_pillar_block = db_->getCurrentPillarBlock(); current_pillar_block) {
+    current_pillar_block_ = std::move(current_pillar_block);
   }
 
+  if (auto&& current_pillar_block_stakes = db_->getCurrentPillarBlockStakes(); !current_pillar_block_stakes.empty()) {
+    current_pillar_block_stakes_ = std::move(current_pillar_block_stakes);
+  }
+
+  if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
+    last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block_);
+  }
+
+  // TODO: implement mchanism similar to pbft votes when the pillar votes are sent in case pbft is stuck
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
 
@@ -117,7 +116,12 @@ void PillarChainManager::createPillarBlock(const std::shared_ptr<final_chain::Fi
     current_pillar_block_ = pillar_block;
     current_pillar_block_stakes_ = std::move(new_stakes);
 
-    // TODO: save both current_pillar_block_ & current_pillar_block_stakes_ into db ???
+    auto batch = db_->createWriteBatch();
+    db_->saveCurrentPillarBlock(current_pillar_block_, batch);
+    db_->saveCurrentPillarBlockStakes(current_pillar_block_stakes_, batch);
+
+    // Commit DB
+    db_->commitWriteBatch(batch);
   }
 }
 
