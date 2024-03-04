@@ -255,6 +255,8 @@ spec:
   {{- if .Values.node.indexer.enabled }}
   - metadata:
       name: indexer-data
+      labels:
+        indexer-label: "True"
       annotations:
         {{- if .Values.node.indexer.persistence.annotations}}
         {{- toYaml .Values.node.indexer.persistence.annotations | nindent 4 }}
