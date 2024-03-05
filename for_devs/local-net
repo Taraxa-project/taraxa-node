@@ -142,7 +142,7 @@ def config(binary, consensus_nodes, rpc_nodes):
 
             cmd = ''
             cmd += f'{binary} --overwrite-config --command config --chain-id {chain_id} '
-            cmd += f'--boot-nodes {consensus_nodes_flags} '
+            cmd += f'--boot-nodes-append {consensus_nodes_flags} '
 
             if type == "consensus":
                 # cmd += '--consensus-node ' // TODO: we should replace this with consensusnode binary?
