@@ -43,6 +43,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   static uint64_t count_known_transactions3 = 0;
   static uint64_t count_inserted = 0;
   static uint64_t t1 = 0;
+  static uint64_t t15 = 0;
   static uint64_t t2 = 0;
   static uint64_t t3 = 0;
 
@@ -63,6 +64,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   count_packets++;
   t1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
 
+  SharedTransactions transactions_before;
   SharedTransactions transactions;
   auto trxs_rlp = packet_data.rlp_[1];
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
@@ -82,6 +84,11 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     } catch (const Transaction::InvalidTransaction &e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
+    transactions_before.emplace_back(transaction);
+  }
+  t15 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
+  for (auto transaction : transactions_before) {
+    const auto &trx_hash = transaction->getHash();
     // Skip any transactions that are already known to the trx mgr
     if (trx_mgr_->isTransactionKnown(trx_hash)) {
       count_known_transactions2++;
@@ -138,7 +145,8 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     LOG(log_si_) << "Packets: " << count_packets << " Trxs: " << count_transactions
                  << " Inserted trx: " << count_inserted << " Known: " << count_known_transactions << " : "
                  << count_known_transactions2 << " : " << count_known_transactions3;
-    LOG(log_si_) << "Time1: " << t1 / 1000 << " Time2: " << (t2 - t1) / 1000 << " Time3: " << (t3 - t2) / 1000;
+    LOG(log_si_) << "Time1: " << t1 / 1000 << " Time1.5: " << (t15 - t1) / 1000 << " Time2: " << (t2 - t15) / 1000
+                 << " Time3: " << (t3 - t2) / 1000;
     t1 = 0;
     t2 = 0;
     t3 = 0;
