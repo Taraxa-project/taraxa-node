@@ -43,7 +43,6 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
     last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block_);
   }
 
-  // TODO: implement mchanism similar to pbft votes when the pillar votes are sent in case pbft is stuck
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
 
@@ -193,8 +192,6 @@ std::shared_ptr<PillarBlock> PillarChainManager::getCurrentPillarBlock() const {
 bool PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
-  LOG(log_er_) << "checkPillarChainSynced called for period " << block_num;
-
   // No current pillar block registered... This should happen only before the first pillar block is created
   if (!current_pillar_block_) [[unlikely]] {
     if (block_num > kFicusHfConfig.pillar_block_periods) {
@@ -220,7 +217,7 @@ bool PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const 
   }
 
   PbftPeriod expected_pillar_block_period = 0;
-  if (block_num % kFicusHfConfig.pillar_block_periods == 0) {
+  if (kFicusHfConfig.isPillarBlockPeriod(block_num, 1)) {
     expected_pillar_block_period = block_num - kFicusHfConfig.pillar_block_periods;
   } else {
     expected_pillar_block_period = block_num - (block_num % kFicusHfConfig.pillar_block_periods);
