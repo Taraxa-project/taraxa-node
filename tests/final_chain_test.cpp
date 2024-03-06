@@ -862,10 +862,7 @@ TEST_F(FinalChainTest, claim_all_rewards_regression) {
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
   cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
-  cfg.genesis.state.hardforks.aspen_hf.block_num_part_one = 10;
-  cfg.genesis.state.hardforks.aspen_hf.block_num_part_two = -1;
-  std::cout << " is aspen: " << expected_blk_num << " "
-            << cfg.genesis.state.hardforks.isAspenHardforkPartOne(expected_blk_num) << std::endl;
+  cfg.genesis.state.hardforks.fix_claim_all_block_num = 10;
   init();
 
   auto dpos_address = addr_t("0x00000000000000000000000000000000000000fe");
@@ -879,10 +876,10 @@ TEST_F(FinalChainTest, claim_all_rewards_regression) {
     ASSERT_EQ(receipt.status_code, 1);  // not failed
   }
 
-  while (!cfg.genesis.state.hardforks.isAspenHardforkPartOne(expected_blk_num)) {
+  while (cfg.genesis.state.hardforks.fix_claim_all_block_num >= expected_blk_num) {
     advance({});
   }
-  ASSERT_TRUE(cfg.genesis.state.hardforks.isAspenHardforkPartOne(expected_blk_num));
+  ASSERT_TRUE(cfg.genesis.state.hardforks.fix_claim_all_block_num < expected_blk_num);
 
   // Old format call should fail after the hardfork
   {
