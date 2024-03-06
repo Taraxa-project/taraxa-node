@@ -304,9 +304,9 @@ void Network::gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &vo
   }
 }
 
-void Network::gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote) {
+void Network::gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote, bool rebroadcast) {
   for (const auto &tarcap : tarcaps_) {
-    tarcap.second->getSpecificHandler<network::tarcap::PillarVotePacketHandler>()->onNewPillarVote(vote);
+    tarcap.second->getSpecificHandler<network::tarcap::PillarVotePacketHandler>()->onNewPillarVote(vote, rebroadcast);
   }
 }
 

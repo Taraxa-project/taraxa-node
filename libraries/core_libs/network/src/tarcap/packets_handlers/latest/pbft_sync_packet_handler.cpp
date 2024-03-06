@@ -134,8 +134,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 
     // Validate optional pillar block hash
     const auto kFicusHfConfig = kConf.genesis.state.hardforks.ficus_hf;
-    if (pbft_block_period > kFicusHfConfig.pillar_block_periods &&
-        pbft_block_period % kFicusHfConfig.pillar_block_periods == kConf.genesis.state.dpos.delegation_delay) {
+    if (kFicusHfConfig.isPillarBlockPeriodPlusN(pbft_block_period, kConf.genesis.state.dpos.delegation_delay)) {
       if (!period_data.pbft_blk->getPillarBlockHash().has_value()) {
         LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
                      << " does not contain pillar block hash";
@@ -152,8 +151,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
     }
 
     // Validate optional pillar votes
-    if (pbft_block_period >= 2 * kFicusHfConfig.pillar_block_periods &&
-        pbft_block_period % kFicusHfConfig.pillar_block_periods == 0) {
+    if (kFicusHfConfig.isPillarBlockPeriod(pbft_block_period)) {
       if (!period_data.pillar_votes_.has_value()) {
         LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
                      << " does not contain pillar votes";
