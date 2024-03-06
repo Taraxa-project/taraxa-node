@@ -886,7 +886,7 @@ TEST_F(FinalChainTest, claim_all_rewards_regression) {
     auto trx = std::make_shared<Transaction>(3, 0, 1, 100000, dev::fromHex(call_data), sk, dpos_address);
     auto result = advance({trx}, {0, 0, 1});
     auto receipt = result->trx_receipts.front();
-    ASSERT_EQ(receipt.status_code, 0);  // not failed
+    ASSERT_EQ(receipt.status_code, 0);  // failed
   }
 }
 

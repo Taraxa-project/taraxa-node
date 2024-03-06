@@ -42,10 +42,6 @@ void dec_json(const Json::Value& json, AspenHardfork& obj);
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
-  // disable it by default (set to max uint64)
-  uint64_t fix_claim_all_block_num = -1;
-  // disable it by default (set to max uint64)
-  uint64_t phalaenopsis_hf_block_num = -1;
   std::vector<Redelegation> redelegations;
   /*
    * @brief key is block number at which change is applied and value is new distribution interval.
@@ -69,6 +65,11 @@ struct HardforksConfig {
   // 3. Introducing slashing/jailing contract - in case someone double votes - he is jailed for N blocks and unable to
   //    participate in consensus
   MagnoliaHardfork magnolia_hf;
+
+  // disable it by default (set to max uint64)
+  uint64_t phalaenopsis_hf_block_num = -1;
+  // disable it by default (set to max uint64)
+  uint64_t fix_claim_all_block_num = -1;
 
   // Aspen hardfork implements new yield curve
   AspenHardfork aspen_hf;

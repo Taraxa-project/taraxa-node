@@ -97,5 +97,5 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   dec_json(json["aspen_hf"], obj.aspen_hf);
 }
 
-RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, fix_claim_all_block_num, phalaenopsis_hf_block_num,
-                  redelegations, rewards_distribution_frequency, magnolia_hf, aspen_hf)
+RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
+                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf)

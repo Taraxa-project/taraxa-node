@@ -1627,8 +1627,6 @@
   },
   "hardforks": {
     "fix_redelegate_block_num": 3091000,
-    "fix_claim_all_block_num": 7600000,
-    "phalaenopsis_hf_block_num": 6943000,
     "redelegations": [
       {
         "validator": "0x6671df8b597c0A14a9361b4B98F97AF1360e4352",
@@ -1643,6 +1641,8 @@
       "block_num": 5730000,
       "jail_time": 163459
     },
+    "phalaenopsis_hf_block_num": 6943000,
+    "fix_claim_all_block_num": 7600000,
     "aspen_hf" : {
       "block_num_part_one" : 8118000,
       "block_num_part_two" : -1,
