@@ -88,8 +88,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
     // TODO: bad solution: should not decode PeriodData, add pillar votes and then encode it...
     PeriodData period_data{data};
     // Add pillar votes to period data
-    if (block_period >= 2 * kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods &&
-        block_period % kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods == 0) {
+    if (kConf.genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(block_period)) {
       auto pillar_data =
           db_->getPillarBlockData(block_period - kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods);
       if (!pillar_data.has_value()) {
