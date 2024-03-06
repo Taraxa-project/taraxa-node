@@ -148,6 +148,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     LOG(log_si_) << "Time1: " << t1 / 1000 << " Time1.5: " << (t15 - t1) / 1000 << " Time2: " << (t2 - t15) / 1000
                  << " Time3: " << (t3 - t2) / 1000;
     t1 = 0;
+    t15 = 0;
     t2 = 0;
     t3 = 0;
     count_packets = 0;
