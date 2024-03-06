@@ -43,6 +43,8 @@ struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
   // disable it by default (set to max uint64)
+  uint64_t fix_claim_all_block_num = -1;
+  // disable it by default (set to max uint64)
   uint64_t phalaenopsis_hf_block_num = -1;
   std::vector<Redelegation> redelegations;
   /*

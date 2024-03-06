@@ -265,6 +265,7 @@
   },
   "hardforks": {
     "fix_redelegate_block_num": 0,
+    "fix_claim_all_block_num": -1,
     "phalaenopsis_hf_block_num": 0,
     "rewards_distribution_frequency": {
       "0": 100
