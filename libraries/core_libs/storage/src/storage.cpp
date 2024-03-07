@@ -52,7 +52,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
-  options.compression = rocksdb::CompressionType::kLZ4Compression;
+  // options.compression = rocksdb::CompressionType::kLZ4Compression;
   // This options is related to memory consumption
   // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
   // aleth default 256 (state_db is using another 128)
