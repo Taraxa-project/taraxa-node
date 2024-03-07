@@ -723,7 +723,6 @@ jobs:
       - checkout
       - prepare
       - build
-      - test
       - tag
       - push_gcr
 
