@@ -538,8 +538,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
+  const auto extra_data = PbftBlockExtraData{1, 0, 0, 1, "T", {}};
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
   std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
@@ -595,7 +596,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
   std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
       node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 1, 3));
@@ -689,8 +690,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
+  const auto extra_data = PbftBlockExtraData{1, 0, 0, 1, "T", {}};
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
   const auto pbft_block1_cert_vote = node1->getVoteManager()->generateVote(
       pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block1.getPeriod(), 1, 3);
   pbft_block1_cert_vote->calculateWeight(1, 1, 1);
@@ -737,7 +739,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream2 << blk2.getHash();
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
   const auto pbft_block2_cert_vote = node1->getVoteManager()->generateVote(
       pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block2.getPeriod(), 1, 3);
   pbft_block2_cert_vote->calculateWeight(1, 1, 1);

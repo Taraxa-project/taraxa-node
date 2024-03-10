@@ -21,9 +21,16 @@ void PillarVotePacketHandler::validatePacketRlpFormat(
 
 void PillarVotePacketHandler::process(const threadpool::PacketData &packet_data,
                                       const std::shared_ptr<TaraxaPeer> &peer) {
-  const auto vote = std::make_shared<PillarVote>(packet_data.rlp_);
-  processPillarVote(vote, peer);
-  onNewPillarVote(vote);
+  const auto pillar_vote = std::make_shared<PillarVote>(packet_data.rlp_);
+  if (!kConf.genesis.state.hardforks.ficus_hf.isFicusHardfork(pillar_vote->getPeriod())) {
+    std::ostringstream err_msg;
+    err_msg << "Synced pillar vote " << pillar_vote->getHash() << ", period " << pillar_vote->getPeriod()
+            << " < ficus hardfork block num";
+    throw MaliciousPeerException(err_msg.str());
+  }
+
+  processPillarVote(pillar_vote, peer);
+  onNewPillarVote(pillar_vote);
 }
 
 void PillarVotePacketHandler::onNewPillarVote(const std::shared_ptr<PillarVote> &vote, bool rebroadcast) {
