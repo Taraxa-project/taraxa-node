@@ -28,7 +28,7 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
                      const blk_hash_t& order_hash, const blk_hash_t& prev_state_root, PbftPeriod period,
                      const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes,
-                     const PbftBlockExtraData& extra_data)
+                     const std::optional<PbftBlockExtraData>& extra_data)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       order_hash_(order_hash),
@@ -96,7 +96,7 @@ Json::Value PbftBlock::getJson() const {
   for (const auto& v : reward_votes_) {
     json["reward_votes"].append(v.toString());
   }
-  json["extra_data"] = extra_data_->getJson();
+  json["extra_data"] = extra_data_.has_value() ? extra_data_->getJson() : "";
 
   return json;
 }
@@ -132,7 +132,5 @@ std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   strm << pbft_blk.getJsonStr();
   return strm;
 }
-
-std::optional<blk_hash_t> PbftBlock::getPillarBlockHash() const { return pillar_block_hash_; }
 
 }  // namespace taraxa

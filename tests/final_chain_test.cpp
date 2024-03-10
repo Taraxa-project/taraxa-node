@@ -70,7 +70,8 @@ struct FinalChainTest : WithDataDir {
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
         std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
-                                    addr_t::random(), pbft_proposer_keys.secret(), std::move(reward_votes_hashes));
+                                    addr_t::random(), pbft_proposer_keys.secret(), std::move(reward_votes_hashes),
+                                    PbftBlockExtraData(1, 0, 0, 1, "", blk_hash_t(123)));
 
     std::vector<std::shared_ptr<PbftVote>> votes;
     PeriodData period_data(pbft_block, votes);
@@ -108,7 +109,7 @@ struct FinalChainTest : WithDataDir {
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
     EXPECT_EQ(blk_h.gas_limit, cfg.genesis.pbft.gas_limit);
-    EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraData()->rlp());
+    EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraDataRlp());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mix_hash(), h256());

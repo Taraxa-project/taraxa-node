@@ -19,7 +19,8 @@ class PbftBlockExtraData {
  public:
   PbftBlockExtraData() {}
   PbftBlockExtraData(const uint16_t major_version, const uint16_t minor_version, const uint16_t patch_version,
-                     const uint16_t net_version, const std::string node_implementation);
+                     const uint16_t net_version, const std::string node_implementation,
+                     const std::optional<blk_hash_t>& pillar_block_hash);
   PbftBlockExtraData(const bytes& data);
 
   /**
@@ -34,12 +35,18 @@ class PbftBlockExtraData {
    */
   Json::Value getJson() const;
 
- protected:
+  /**
+   * @return pillar bock hash
+   */
+  std::optional<blk_hash_t> getPillarBlockHash() const;
+
+ private:
   uint16_t major_version_;
   uint16_t minor_version_;
   uint16_t patch_version_;
   uint16_t net_version_;
   std::string node_implementation_;
+  std::optional<blk_hash_t> pillar_block_hash_;
   static constexpr uint32_t kExtraDataMaxSize = 1024;
 };
 

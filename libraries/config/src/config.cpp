@@ -199,6 +199,15 @@ void FullNodeConfig::validate() const {
                           ".");
   }
 
+  if (genesis.state.hardforks.ficus_hf.block_num % genesis.state.hardforks.ficus_hf.pillar_block_periods) {
+    throw ConfigException("ficus_hf.block_num % ficus_hf.pillar_block_periods must == 0 ");
+  }
+
+  if (genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods >=
+      genesis.state.hardforks.ficus_hf.pillar_block_periods) {
+    throw ConfigException("ficus_hf.pillar_chain_sync_periods must be < ficus_hf.pillar_block_periods");
+  }
+
   // TODO: add validation of other config values
 }
 
