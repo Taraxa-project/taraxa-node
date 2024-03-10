@@ -142,12 +142,12 @@ class PbftManager {
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
-   * @param pillar_block_hash optional anchored pillar block hash
+   * @param extra_data optional extra_data
    * @return optional<pair<PBFT block, PBFT block reward votes>>
    */
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> generatePbftBlock(
       PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-      const blk_hash_t &order_hash, const std::optional<blk_hash_t> pillar_block_hash);
+      const blk_hash_t &order_hash, const std::optional<PbftBlockExtraData> &extra_data);
 
   /**
    * @brief Get current total DPOS votes count

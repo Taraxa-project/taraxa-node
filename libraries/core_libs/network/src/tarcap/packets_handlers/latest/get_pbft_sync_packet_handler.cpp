@@ -85,18 +85,19 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       return;
     }
 
-    // TODO: bad solution: should not decode PeriodData, add pillar votes and then encode it...
-    PeriodData period_data{data};
     // Add pillar votes to period data
-    if (kConf.genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(block_period)) {
-      auto pillar_data =
-          db_->getPillarBlockData(block_period - kConf.genesis.state.hardforks.ficus_hf.pillar_block_periods);
+    const auto &ficus_hf_conf = kConf.genesis.state.hardforks.ficus_hf;
+    if (ficus_hf_conf.isFicusHardfork(block_period) && ficus_hf_conf.isPillarBlockPeriod(block_period)) {
+      // TODO: not ideal solution: should not decode PeriodData, add pillar votes and then encode it again...
+      PeriodData period_data{data};
+      auto pillar_data = db_->getPillarBlockData(block_period - ficus_hf_conf.pillar_block_periods);
       if (!pillar_data.has_value()) {
         LOG(log_er_) << "DB corrupted. Cannot find pillar votes for period " << block_period << " in db";
         return;
       }
 
       period_data.pillar_votes_ = std::move(pillar_data->pillar_votes_);
+      data = period_data.rlp();
     }
 
     dev::RLPStream s;
@@ -108,18 +109,19 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       if (reward_votes[0]->getPeriod() == block_period) {
         s.appendList(3);
         s << last_block;
-        s.appendRaw(period_data.rlp());
+        s.appendRaw(data);
         s.appendRaw(encodePbftVotesBundleRlp(reward_votes));
       } else {
         s.appendList(2);
         s << last_block;
-        s.appendRaw(period_data.rlp());
+        s.appendRaw(data);
       }
     } else {
       s.appendList(2);
       s << last_block;
-      s.appendRaw(period_data.rlp());
+      s.appendRaw(data);
     }
+
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
     if (pbft_chain_synced && last_block) {

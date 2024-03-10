@@ -77,7 +77,7 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
   const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret);
 
   const auto input = final_chain::ContractInterface::packFunctionCall(
-      "registerValidator(address,bytes,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(), 10,
+      "registerValidator(address,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(), 10,
       dev::asBytes("test"), dev::asBytes("test"));
 
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
@@ -214,6 +214,8 @@ NodesTest::NodesTest() {
                            "20e14b57a259a09c41767dd50d1da27b627412a",
                            "127.0.0.1", 10003});
     cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
+    cfg.validate();
+
     node_cfgs.emplace_back(cfg);
   }
   node_cfgs.front().node_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd");

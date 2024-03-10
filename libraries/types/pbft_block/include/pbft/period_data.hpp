@@ -40,7 +40,11 @@ class PeriodData {
   // Pillar votes should be present only if pbft block contains also pillar block hash
   std::optional<std::vector<std::shared_ptr<PillarVote>>> pillar_votes_;
 
-  const static size_t kBaseRlpItemCount = 4;
+  // Period data rlp without pillar votes
+  constexpr static size_t kBaseRlpItemCount = 4;
+
+  // Period data rlp with pillar votes (optional since ficus hardfork)
+  constexpr static size_t kExtendedRlpItemCount = 5;
 
   /**
    * @brief Recursive Length Prefix
