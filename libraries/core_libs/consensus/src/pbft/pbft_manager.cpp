@@ -577,8 +577,6 @@ void PbftManager::broadcastVotes() {
 
     // Broadcast own pillar vote
     if (const auto &own_pillar_vote = db_->getOwnPillarBlockVote(); own_pillar_vote) {
-      LOG(log_er_) << "remove me: Broadcast own pillar vote " << own_pillar_vote->getHash() << " for period "
-                   << own_pillar_vote->getPeriod();
       net->gossipPillarBlockVote(own_pillar_vote, rebroadcast);
     }
   };
