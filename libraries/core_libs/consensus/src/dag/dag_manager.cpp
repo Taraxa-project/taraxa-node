@@ -480,7 +480,7 @@ void DagManager::recoverDag() {
     }
   }
 
-  for (auto &lvl : db_->getNonfinalizedDagBlocks()) {
+  /*for (auto &lvl : db_->getNonfinalizedDagBlocks()) {
     for (auto &blk : lvl.second) {
       // These are some sanity checks that difficulty is correct and block is truly non-finalized.
       // This is only done on startup
@@ -534,8 +534,8 @@ void DagManager::recoverDag() {
         db_->removeDagBlock(blk.getHash());
       }
     }
-  }
-  trx_mgr_->recoverNonfinalizedTransactions();
+  }*/
+  // trx_mgr_->recoverNonfinalizedTransactions();
 }
 
 const std::pair<PbftPeriod, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks()
