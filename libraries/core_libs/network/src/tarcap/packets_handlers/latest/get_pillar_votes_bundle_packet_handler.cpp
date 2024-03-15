@@ -31,6 +31,12 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
     throw MaliciousPeerException(err_msg.str());
   }
 
+  if (!kConf.genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(period, 1)) {
+    std::ostringstream err_msg;
+    err_msg << "Pillar votes bundle request for period " << period << ". Wrong requested period";
+    throw MaliciousPeerException(err_msg.str());
+  }
+
   const auto votes = pillar_chain_manager_->getVerifiedPillarVotes(period, pillar_block_hash);
   if (votes.empty()) {
     LOG(log_dg_) << "No pillar votes for period " << period << "and pillar block hash " << pillar_block_hash;

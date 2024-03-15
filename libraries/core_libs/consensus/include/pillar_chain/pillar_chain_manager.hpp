@@ -38,8 +38,10 @@ class PillarChainManager {
    * @Process Creates new pillar block
    *
    * @param block_data
+   * @return pillar block hash in case block was created, otherwise empty optional
    */
-  void createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
+  std::optional<PillarBlock::Hash> createPillarBlock(
+      const std::shared_ptr<final_chain::FinalizationResult>& block_data);
 
   /**
    * @brief Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and
@@ -47,9 +49,10 @@ class PillarChainManager {
    *
    * @param pillar_block_hash
    * @param node_sk
+   * @param is_pbft_syncing
    * @return true if vote placed, otherwise false
    */
-  bool genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk);
+  bool genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk, bool is_pbft_syncing);
 
   /**
    * @brief Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is 2t+1
@@ -84,6 +87,16 @@ class PillarChainManager {
   bool validatePillarVote(const std::shared_ptr<PillarVote> vote) const;
 
   /**
+   * @return true if block_hash is the latest finalized pillar block
+   */
+  bool isPillarBlockLatestFinalized(const PillarBlock::Hash& block_hash) const;
+
+  /**
+   * @return last finalized pillar block
+   */
+  std::shared_ptr<PillarBlock> getLastFinalizedPillarBlock() const;
+
+  /**
    * @brief Add a vote to the pillar votes map
    * @param vote vote
    *
@@ -114,11 +127,6 @@ class PillarChainManager {
    */
   std::vector<std::shared_ptr<PillarVote>> getVerifiedPillarVotes(PbftPeriod period,
                                                                   const PillarBlock::Hash pillar_block_hash) const;
-
-  /**
-   * @return period of the latest finalized pillar block
-   */
-  std::optional<PbftPeriod> getLastFinalizedPillarBlockPeriod() const;
 
   /**
    * @return true if pillar block is valid - previous pillar block hash == last finalized pillar block hash

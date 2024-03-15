@@ -87,9 +87,10 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
 
     // Add pillar votes to period data
     const auto &ficus_hf_conf = kConf.genesis.state.hardforks.ficus_hf;
-    if (ficus_hf_conf.isFicusHardfork(block_period) && ficus_hf_conf.isPillarBlockPeriod(block_period)) {
+    if (ficus_hf_conf.isPillarBlockPeriod(block_period)) {
       // TODO: not ideal solution: should not decode PeriodData, add pillar votes and then encode it again...
       PeriodData period_data{data};
+      // TODO: use block_period instead of block_period - ficus_hf_conf.pillar_block_periods
       auto pillar_data = db_->getPillarBlockData(block_period - ficus_hf_conf.pillar_block_periods);
       if (!pillar_data.has_value()) {
         LOG(log_er_) << "DB corrupted. Cannot find pillar votes for period " << block_period << " in db";
