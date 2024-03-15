@@ -1652,7 +1652,8 @@
     "ficus_hf" : {
       "block_num" : -1,
       "pillar_block_periods" : 100,
-      "signatures_check_periods" : 25
+      "pillar_chain_sync_periods" : 25,
+      "pbft_inclusion_delay": 5
     }
   }
 }

@@ -42,6 +42,12 @@ PbftPeriod PillarBlock::getPeriod() const { return period_; }
 
 PillarBlock::Hash PillarBlock::getPreviousBlockHash() const { return previous_pillar_block_hash_; }
 
+const std::vector<PillarBlock::ValidatorStakeChange>& PillarBlock::getValidatorsStakesChanges() const {
+  return validators_stakes_changes_;
+}
+
+const h256& PillarBlock::getStateRoot() const { return state_root_; }
+
 PillarBlock::Hash PillarBlock::getHash() {
   {
     std::shared_lock lock(hash_mutex_);

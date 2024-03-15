@@ -195,17 +195,26 @@ void FullNodeConfig::validate() const {
   genesis.validate();
   network.validate(genesis.state.dpos.delegation_delay);
   if (transactions_pool_size < kMinTransactionPoolSize) {
-    throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize) +
-                          ".");
+    throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize));
   }
 
   if (genesis.state.hardforks.ficus_hf.block_num % genesis.state.hardforks.ficus_hf.pillar_block_periods) {
-    throw ConfigException("ficus_hf.block_num % ficus_hf.pillar_block_periods must == 0 ");
+    throw ConfigException("ficus_hf.block_num % ficus_hf.pillar_block_periods must == 0");
   }
 
-  if (genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods >=
-      genesis.state.hardforks.ficus_hf.pillar_block_periods) {
-    throw ConfigException("ficus_hf.pillar_chain_sync_periods must be < ficus_hf.pillar_block_periods");
+  if (genesis.state.hardforks.ficus_hf.pillar_block_periods <=
+      genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods) {
+    throw ConfigException("ficus_hf.pillar_block_periods must be > ficus_hf.pillar_chain_sync_periods");
+  }
+
+  if (genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods <=
+      genesis.state.hardforks.ficus_hf.pbft_inclusion_delay) {
+    throw ConfigException("ficus_hf.pillar_chain_sync_periods must be > ficus_hf.pbft_inclusion_delay");
+  }
+
+  if (genesis.state.hardforks.ficus_hf.pbft_inclusion_delay < 1 ||
+      genesis.state.hardforks.ficus_hf.pbft_inclusion_delay < genesis.state.dpos.delegation_delay) {
+    throw ConfigException("ficus_hf.pbft_inclusion_delay must be >= 1 && >= dpos.delegation_delay");
   }
 
   // TODO: add validation of other config values

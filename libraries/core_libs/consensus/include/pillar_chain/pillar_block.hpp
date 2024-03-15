@@ -67,6 +67,16 @@ class PillarBlock {
   Hash getPreviousBlockHash() const;
 
   /**
+   * @return validator stakes changes
+   */
+  const std::vector<ValidatorStakeChange>& getValidatorsStakesChanges() const;
+
+  /**
+   * @return state root
+   */
+  const h256& getStateRoot() const;
+
+  /**
    * @return pillar block rlp
    */
   dev::bytes getRlp() const;

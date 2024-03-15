@@ -1,103 +1,235 @@
 #include <gtest/gtest.h>
+
 #include <iostream>
 
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 
 struct PillarChainTest : NodesTest {};
 
-TEST_F(PillarChainTest, pillar_chain) {
-  auto node_cfgs = make_node_cfgs(3, 1, 20);
-  for (auto& node_cfg : node_cfgs){
-    node_cfg.genesis.state.hardforks.ficus_hf.block_num = 10000;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_block_periods = 2;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods = 1;
+TEST_F(PillarChainTest, pillar_chain_db) {
+  auto db_ptr = std::make_shared<DbStorage>(data_dir);
+  auto &db = *db_ptr;
+
+  // Pillar chain
+  EthBlockNumber pillar_block_num(123);
+  h256 state_root(456);
+  blk_hash_t previous_pillar_block_hash(789);
+
+  std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> stakes_changes;
+  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s256(1));
+  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
+
+  const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
+      pillar_block_num, state_root, std::move(stakes_changes), previous_pillar_block_hash);
+
+  // Pillar block
+  auto batch = db.createWriteBatch();
+  db.saveCurrentPillarBlock(pillar_block, batch);
+  db.commitWriteBatch(batch);
+
+  const auto pillar_block_db = db.getCurrentPillarBlock();
+  EXPECT_EQ(pillar_block->getHash(), pillar_block_db->getHash());
+
+  // Pillar block data
+  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
+  const auto vote1 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
+  const auto vote2 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
+
+  const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
+      pillar_block_num - 1, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{}, blk_hash_t{});
+  db.savePillarBlockData(
+      pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
+  db.savePillarBlockData(
+      pillar_chain::PillarBlockData{previous_pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
+
+  const auto pillar_block_data_db = db.getPillarBlockData(pillar_block->getPeriod());
+  EXPECT_EQ(pillar_block->getHash(), pillar_block_data_db->block_->getHash());
+  EXPECT_EQ(pillar_votes.size(), pillar_block_data_db->pillar_votes_.size());
+  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
+    EXPECT_EQ(pillar_votes[idx]->getHash(), pillar_block_data_db->pillar_votes_[idx]->getHash());
   }
 
-  auto nodes = launch_nodes(node_cfgs);
+  const auto latest_pillar_block_data_db = db.getLatestPillarBlockData();
+  EXPECT_EQ(pillar_block->getHash(), latest_pillar_block_data_db->block_->getHash());
+  EXPECT_EQ(pillar_votes.size(), latest_pillar_block_data_db->pillar_votes_.size());
+  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
+    EXPECT_EQ(pillar_votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes_[idx]->getHash());
+  }
 
-  // Wait until nodes create 10 pbft blocks
-  ASSERT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
-    for (const auto& node : nodes) {
-      std::cout << "node->getPbftChain()->getPbftChainSize(): " << node->getPbftChain()->getPbftChainSize() << std::endl;
-       WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), 10)
-    }
-  });
+  // Pillar block stakes
+  std::vector<state_api::ValidatorStake> stakes;
+  const auto stake1 = stakes_changes.emplace_back(addr_t(123), dev::s256(123));
+  const auto stake2 = stakes_changes.emplace_back(addr_t(456), dev::s256(456));
+
+  batch = db.createWriteBatch();
+  db.saveCurrentPillarBlockStakes(stakes, batch);
+  db.commitWriteBatch(batch);
+
+  const auto current_pillar_block_stakes_db = db.getCurrentPillarBlockStakes();
+  EXPECT_EQ(stakes.size(), current_pillar_block_stakes_db.size());
+  for (size_t idx = 0; idx < current_pillar_block_stakes_db.size(); idx++) {
+    EXPECT_EQ(current_pillar_block_stakes_db[idx].addr, current_pillar_block_stakes_db[idx].addr);
+    EXPECT_EQ(current_pillar_block_stakes_db[idx].stake, current_pillar_block_stakes_db[idx].stake);
+  }
+
+  // Pillar vote
+  auto pillar_vote =
+      std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash());
+  db.saveOwnPillarBlockVote(pillar_vote);
+  auto pillar_vote_db = db.getOwnPillarBlockVote();
+  EXPECT_EQ(pillar_vote->getHash(), pillar_vote_db->getHash());
 }
 
-
-TEST_F(PillarChainTest, pillar_chain_syncing) {
-  std::cout << "TODO: implement";
+TEST_F(PillarChainTest, pillar_blocks_create) {
   auto node_cfgs = make_node_cfgs(2, 2, 10);
-  node_cfgs[1].is_light_node = true;
-  node_cfgs[1].light_node_history = 4;
-  node_cfgs[0].dag_expiry_limit = 15;
-  node_cfgs[0].max_levels_per_period = 3;
-  node_cfgs[1].dag_expiry_limit = 15;
-  node_cfgs[1].max_levels_per_period = 3;
+  for (auto& node_cfg : node_cfgs) {
+    node_cfg.genesis.state.dpos.delegation_delay = 1;
+    node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_block_periods = 4;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods = 3;
+    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
+  }
+
   auto nodes = launch_nodes(node_cfgs);
-  uint64_t nonce = 0;
-  size_t node1_chain_size = 0, node2_chain_size = 0;
-  while (node2_chain_size < 20) {
-    auto dummy_trx =
-        std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
-    // broadcast dummy transaction
-    if (node1_chain_size == node2_chain_size) nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
-    thisThreadSleepForMilliSeconds(500);
-    node1_chain_size = nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks();
-    node2_chain_size = nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks();
-  }
-  EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
-    // Verify full node and light node sync without any issues
-    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
-                   nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
+
+  // Wait until nodes create at least 2 pillar blocks
+  const auto pillar_blocks_count = 2;
+  const auto min_amount_of_pbft_blocks = pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods;
+  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+    }
   });
-  uint32_t non_empty_counter = 0;
-  uint64_t last_anchor_level;
-  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
-    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
-    if (pbft_block && pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
-      non_empty_counter++;
-      last_anchor_level = nodes[0]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel();
-    }
+
+  for (auto& node : nodes) {
+    node->getPbftManager()->stop();
+
+    // Check if right amount of pillar blocks were created
+    const auto latest_pillar_block_data = node->getDB()->getLatestPillarBlockData();
+    ASSERT_TRUE(latest_pillar_block_data.has_value());
+    ASSERT_EQ(latest_pillar_block_data->block_->getPeriod(), pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods);
   }
-  uint32_t first_over_limit = 0;
-  for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
-    const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
-    if (pbft_block && pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
-      auto dag_block = nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash());
-      if (dag_block && (dag_block->getLevel() + node_cfgs[0].dag_expiry_limit >= last_anchor_level)) {
-        first_over_limit = i;
-        break;
-      }
-    }
-  }
-
-  std::cout << "Non empty counter: " << non_empty_counter << std::endl;
-  std::cout << "Last anchor level: " << last_anchor_level << std::endl;
-  std::cout << "First over limit: " << first_over_limit << std::endl;
-
-  // Verify light node does not delete non expired dag blocks
-  EXPECT_TRUE(nodes[0]->getDB()->getPbftBlock(first_over_limit));
-}
-
-TEST_F(PillarChainTest, pillar_votes_syncing) {
-  std::cout << "TODO: implement";
 }
 
 TEST_F(PillarChainTest, stakes_changes) {
+  const auto validators_count = 3;
+  auto node_cfgs = make_node_cfgs(validators_count, validators_count, 10);
+
+  for (auto& node_cfg : node_cfgs) {
+    node_cfg.genesis.state.dpos.delegation_delay = 1;
+    node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_block_periods = 4;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods = 3;
+    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
+  }
+
+  std::vector<dev::s256> validators_stakes;
+  validators_stakes.reserve(node_cfgs.size());
+  for (const auto& validator : node_cfgs[0].genesis.state.dpos.initial_validators) {
+    auto& stake = validators_stakes.emplace_back(0);
+    for (const auto& delegation : validator.delegations) {
+      stake += delegation.second;
+    }
+  }
+
+  auto nodes = launch_nodes(node_cfgs);
+
+  // Wait until nodes create first pillar block
+  const auto first_pillar_block_period = node_cfgs[0].genesis.state.hardforks.ficus_hf.firstPillarBlockPeriod();
+  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
+                     first_pillar_block_period + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+    }
+  });
+
+  // Check if stakes changes in first pillar block == initial validators stakes
+  for (auto& node : nodes) {
+    // Check if right amount of pillar blocks were created
+    const auto first_pillar_block_data = node->getDB()->getPillarBlockData(first_pillar_block_period);
+    ASSERT_TRUE(first_pillar_block_data.has_value());
+
+    ASSERT_EQ(first_pillar_block_data->block_->getPeriod(), first_pillar_block_period);
+    ASSERT_EQ(first_pillar_block_data->block_->getValidatorsStakesChanges().size(), validators_count);
+    size_t idx = 0;
+    for (const auto& stake_change : first_pillar_block_data->block_->getValidatorsStakesChanges()) {
+      ASSERT_EQ(stake_change.stake_change_, validators_stakes[idx]);
+      idx++;
+    }
+  }
+
+  // Change validators delegation
+  const auto delegation_value = 2 * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
+  const auto stake_change_validators_count = validators_count - 1;
+  for (size_t i = 0; i < stake_change_validators_count; i++) {
+    const auto trx = make_delegate_tx(node_cfgs[i], delegation_value, 1, 1000);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
+  }
+
+  PbftPeriod executed_delegations_pbft_period = 1000000;
+  EXPECT_HAPPENS({20s, 1s}, [&](auto& ctx) {
+    for (auto& node : nodes) {
+      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != stake_change_validators_count)) {
+        return;
+      }
+      const auto chain_size = node->getPbftChain()->getPbftChainSize();
+      if (chain_size < executed_delegations_pbft_period) {
+        executed_delegations_pbft_period = chain_size;
+      }
+    }
+  });
+
+  // Wait until new pillar block with changed validators stakes is created
+  const auto new_pillar_block_period =
+      executed_delegations_pbft_period -
+      executed_delegations_pbft_period % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods +
+      node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods;
+  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
+                     new_pillar_block_period + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+    }
+  });
+
+  // Check if stakes changes in new pillar block changed according to new delegations
+  for (auto& node : nodes) {
+    // Check if right amount of pillar blocks were created
+    const auto new_pillar_block_data = node->getDB()->getPillarBlockData(new_pillar_block_period);
+    ASSERT_TRUE(new_pillar_block_data.has_value());
+
+    ASSERT_EQ(new_pillar_block_data->block_->getPeriod(), new_pillar_block_period);
+    for (const auto& stake_change : new_pillar_block_data->block_->getValidatorsStakesChanges()) {
+      std::cout << stake_change.stake_change_ << std::endl;
+    }
+    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsStakesChanges().size(), stake_change_validators_count);
+    size_t idx = 0;
+    for (const auto& stake_change : new_pillar_block_data->block_->getValidatorsStakesChanges()) {
+      ASSERT_EQ(stake_change.stake_change_, delegation_value);
+      idx++;
+    }
+  }
+}
+
+TEST_F(PillarChainTest, pillar_chain_syncing) {
   std::cout << "TODO: implement";
 }
+
+TEST_F(PillarChainTest, pillar_votes_syncing) { std::cout << "TODO: implement"; }
 
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   taraxa::static_init();
   auto logging = logger::createDefaultLoggingConfig();
+  // TODO: set to error level
   logging.verbosity = logger::Verbosity::Info;
 
   addr_t node_addr;

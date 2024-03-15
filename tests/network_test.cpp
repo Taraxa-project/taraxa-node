@@ -41,10 +41,6 @@ struct NetworkTest : public NodesTest {};
 // is successful. Once restored from the file it is able to reestablish
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
-  auto key2 = dev::KeyPair::create();
-  auto key3 = dev::KeyPair::create();
-  h256 genesis_hash;
-
   auto node_cfgs = make_node_cfgs(3, 0, 20);
   std::filesystem::remove_all(node_cfgs[0].net_file_path());
   std::filesystem::remove_all(node_cfgs[1].net_file_path());
