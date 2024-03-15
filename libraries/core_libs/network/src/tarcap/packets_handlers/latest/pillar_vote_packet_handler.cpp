@@ -55,7 +55,7 @@ void PillarVotePacketHandler::sendPillarVote(const std::shared_ptr<TaraxaPeer> &
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::PillarVotePacket, std::move(s))) {
     peer->markPillarBlockVoteAsKnown(vote->getHash());
-    LOG(log_dg_) << "Pillar vote " << vote->getHash() << " sent to " << peer->getId();
+    LOG(log_nf_) << "Pillar vote " << vote->getHash() << " sent to " << peer->getId();
   }
 }
 

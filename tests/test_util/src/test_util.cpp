@@ -84,6 +84,14 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
 
+SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
+                                   const u256& gas_price) {
+  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto input = final_chain::ContractInterface::packFunctionCall("delegate(address)", addr);
+  return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+}
+
 u256 own_balance(const std::shared_ptr<FullNode>& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
 }

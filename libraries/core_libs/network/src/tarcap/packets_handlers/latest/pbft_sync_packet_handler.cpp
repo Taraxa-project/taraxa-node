@@ -144,7 +144,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       // Validate optional pillar block hash
       const auto pillar_block_hash = extra_data->getPillarBlockHash();
       const auto kFicusHfConfig = kConf.genesis.state.hardforks.ficus_hf;
-      if (kFicusHfConfig.isPillarBlockPeriodPlusN(pbft_block_period, kConf.genesis.state.dpos.delegation_delay)) {
+      if (kFicusHfConfig.isPbftWithPillarBlockPeriod(pbft_block_period)) {
         if (!pillar_block_hash.has_value()) {
           LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
                        << " does not contain pillar block hash";
