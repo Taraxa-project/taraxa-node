@@ -24,7 +24,7 @@ void PillarVotePacketHandler::process(const threadpool::PacketData &packet_data,
   const auto pillar_vote = std::make_shared<PillarVote>(packet_data.rlp_);
   if (!kConf.genesis.state.hardforks.ficus_hf.isFicusHardfork(pillar_vote->getPeriod())) {
     std::ostringstream err_msg;
-    err_msg << "Synced pillar vote " << pillar_vote->getHash() << ", period " << pillar_vote->getPeriod()
+    err_msg << "Pillar vote " << pillar_vote->getHash() << ", period " << pillar_vote->getPeriod()
             << " < ficus hardfork block num";
     throw MaliciousPeerException(err_msg.str());
   }

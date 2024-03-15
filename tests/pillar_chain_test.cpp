@@ -5,6 +5,7 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "pillar_chain/pillar_chain_manager.hpp"
 #include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
@@ -13,7 +14,7 @@ struct PillarChainTest : NodesTest {};
 
 TEST_F(PillarChainTest, pillar_chain_db) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir);
-  auto &db = *db_ptr;
+  auto& db = *db_ptr;
 
   // Pillar chain
   EthBlockNumber pillar_block_num(123);
@@ -101,10 +102,12 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
 
   // Wait until nodes create at least 2 pillar blocks
   const auto pillar_blocks_count = 2;
-  const auto min_amount_of_pbft_blocks = pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods;
+  const auto min_amount_of_pbft_blocks =
+      pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
+                     min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
     }
   });
 
@@ -114,7 +117,8 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
     // Check if right amount of pillar blocks were created
     const auto latest_pillar_block_data = node->getDB()->getLatestPillarBlockData();
     ASSERT_TRUE(latest_pillar_block_data.has_value());
-    ASSERT_EQ(latest_pillar_block_data->block_->getPeriod(), pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods);
+    ASSERT_EQ(latest_pillar_block_data->block_->getPeriod(),
+              pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods);
   }
 }
 
@@ -203,11 +207,7 @@ TEST_F(PillarChainTest, stakes_changes) {
     // Check if right amount of pillar blocks were created
     const auto new_pillar_block_data = node->getDB()->getPillarBlockData(new_pillar_block_period);
     ASSERT_TRUE(new_pillar_block_data.has_value());
-
     ASSERT_EQ(new_pillar_block_data->block_->getPeriod(), new_pillar_block_period);
-    for (const auto& stake_change : new_pillar_block_data->block_->getValidatorsStakesChanges()) {
-      std::cout << stake_change.stake_change_ << std::endl;
-    }
     ASSERT_EQ(new_pillar_block_data->block_->getValidatorsStakesChanges().size(), stake_change_validators_count);
     size_t idx = 0;
     for (const auto& stake_change : new_pillar_block_data->block_->getValidatorsStakesChanges()) {
@@ -218,11 +218,51 @@ TEST_F(PillarChainTest, stakes_changes) {
 }
 
 TEST_F(PillarChainTest, pillar_chain_syncing) {
-  std::cout << "TODO: implement";
+  auto node_cfgs = make_node_cfgs(2, 1, 10);
+
+  for (auto& node_cfg : node_cfgs) {
+    node_cfg.genesis.state.dpos.delegation_delay = 1;
+    node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_block_periods = 4;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_periods = 3;
+    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
+  }
+
+  // Start first node
+  auto node1 = launch_nodes({node_cfgs[0]})[0];
+
+  // Wait until node1 creates at least 3 pillar blocks
+  const auto pillar_blocks_count = 3;
+  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+    WAIT_EXPECT_GE(ctx, node1->getPbftChain()->getPbftChainSize(),
+                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods +
+                       node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+  });
+  node1->getPbftManager()->stop();
+
+  // Start second node
+  auto node2 = launch_nodes({node_cfgs[1]})[0];
+  // Wait until node2 syncs pbft chain with node1
+  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getPbftChain()->getPbftChainSize(), node1->getPbftChain()->getPbftChainSize())
+  });
+
+  // Pbft/pillar chain syncing works in a way that pbft block with period N contains pillar votes for pillar block with
+  // period N-ficus_hf.pillar_block_periods.
+  const auto node2_latest_finalized_pillar_block_data = node2->getDB()->getLatestPillarBlockData();
+  ASSERT_TRUE(node2_latest_finalized_pillar_block_data.has_value());
+  ASSERT_EQ(node2_latest_finalized_pillar_block_data->block_->getPeriod(),
+            (pillar_blocks_count - 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods);
+
+  // Trigger pillar votes syncing
+  node2->getPillarChainManager()->checkPillarChainSynced(
+      pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods);
+  // Wait until node2 gets pillar votes and finalized pillar block #3
+  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getDB()->getLatestPillarBlockData()->block_->getPeriod(),
+                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods)
+  });
 }
-
-TEST_F(PillarChainTest, pillar_votes_syncing) { std::cout << "TODO: implement"; }
-
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
