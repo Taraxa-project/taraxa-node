@@ -140,18 +140,18 @@ void FullNode::init() {
       std::make_shared<PbftManager>(conf_.genesis.pbft, conf_.genesis.dag_genesis_block.getHash(), node_addr, db_,
                                     pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, final_chain_, kp_.secret());
 
-  pillar_chain_ = std::make_shared<pillar_chain::PillarChainManager>(conf_.genesis.state.hardforks.ficus_hf, db_,
-                                                                     final_chain_, vote_mgr_, key_manager_, node_addr);
+  pillar_chain_mgr_ = std::make_shared<pillar_chain::PillarChainManager>(
+      conf_.genesis.state.hardforks.ficus_hf, db_, final_chain_, vote_mgr_, key_manager_, node_addr);
 
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.genesis, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_,
-                                            final_chain_, pillar_chain_, kp_.secret());
+                                            final_chain_, pillar_chain_mgr_, kp_.secret());
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(
       conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
       getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit, conf_.genesis.state);
 
   network_ =
       std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
-                                vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_);
+                                vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
 }
 
 void FullNode::setupMetricsUpdaters() {
@@ -332,7 +332,7 @@ void FullNode::start() {
         subscription_pool_);
 
     final_chain_->block_finalized_.subscribe(
-        [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf, pillar_chain_weak = as_weak(pillar_chain_),
+        [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf, pillar_chain_weak = as_weak(pillar_chain_mgr_),
          network_weak = as_weak(network_), node_secret = kp_.secret()](const auto &res) {
           const auto block_num = res->final_chain_blk->number;
           if (!ficus_hf_config.isFicusHardfork(block_num)) {
@@ -371,7 +371,7 @@ void FullNode::start() {
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
-  pillar_chain_->setNetwork(network_);
+  pillar_chain_mgr_->setNetwork(network_);
 
   if (conf_.db_config.rebuild_db) {
     rebuildDb();

@@ -54,7 +54,7 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
       peer->markPillarBlockVoteAsKnown(vote->getHash());
     }
 
-    LOG(log_dg_) << "Pillar votes bundle sent to " << peer->getId();
+    LOG(log_nf_) << "Pillar votes bundle sent to " << peer->getId();
   }
 }
 
@@ -65,7 +65,7 @@ void GetPillarVotesBundlePacketHandler::requestPillarVotesBundle(PbftPeriod peri
   s << pillar_block_hash;
 
   sealAndSend(peer->getId(), SubprotocolPacketType::GetPillarVotesBundlePacket, std::move(s));
-  LOG(log_dg_) << "Requested pillar votes bundle for period " << period << " and pillar block " << pillar_block_hash
+  LOG(log_nf_) << "Requested pillar votes bundle for period " << period << " and pillar block " << pillar_block_hash
                << " from peer " << peer->getId();
 }
 
