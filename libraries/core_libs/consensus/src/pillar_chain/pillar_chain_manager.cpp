@@ -131,7 +131,8 @@ std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
   return pillar_block->getHash();
 }
 
-bool PillarChainManager::genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk, bool is_pbft_syncing) {
+bool PillarChainManager::genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk,
+                                               bool is_pbft_syncing) {
   std::shared_ptr<PillarVote> vote;
   {
     std::shared_lock<std::shared_mutex> lock(mutex_);

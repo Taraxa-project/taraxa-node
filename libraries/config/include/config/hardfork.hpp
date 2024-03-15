@@ -45,7 +45,7 @@ struct FicusHardforkConfig {
   uint64_t pillar_chain_sync_periods{25};  // [periods] how often is pillar chain checked if it is in sync (has all
                                            // previous pillar blocks and 2t+1 signatures for latest pillar block)
   uint64_t pbft_inclusion_delay{
-      5};  // [periods] how many periods after the pillar block is created it is included in pbft block
+      6};  // [periods] how many periods after the pillar block is created it is included in pbft block
 
   bool isFicusHardfork(taraxa::PbftPeriod period) const { return period >= block_num; }
 

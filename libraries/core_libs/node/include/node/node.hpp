@@ -78,6 +78,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getSecretKey() const { return kp_.secret(); }
   auto const &getVrfSecretKey() const { return conf_.vrf_secret; }
 
+  std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
+
   // For Debug
   uint64_t getProposedBlocksCount() const;
 
@@ -110,7 +112,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_;
+  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<net::HttpServer> jsonrpc_http_;
