@@ -2,7 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <iostream>
 #include <vector>
 
@@ -10,7 +9,6 @@
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {

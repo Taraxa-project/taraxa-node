@@ -329,17 +329,35 @@ void FullNode::start() {
         subscription_pool_);
 
     final_chain_->block_finalized_.subscribe(
-        [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf,
-         pillar_chain_weak = as_weak(pillar_chain_)](const auto &res) {
+        [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf, pillar_chain_weak = as_weak(pillar_chain_),
+         network_weak = as_weak(network_), node_secret = kp_.secret()](const auto &res) {
           const auto block_num = res->final_chain_blk->number;
           if (!ficus_hf_config.isFicusHardfork(block_num)) {
             return;
           }
 
-          if (auto pillar_chain = pillar_chain_weak.lock()) {
-            if (ficus_hf_config.isPillarBlockPeriod(block_num, 1)) {
-              pillar_chain->createPillarBlock(res);
-            } else if (block_num % ficus_hf_config.pillar_chain_sync_periods == 0) {
+          auto pillar_chain = pillar_chain_weak.lock();
+          if (!pillar_chain) {
+            return;
+          }
+
+          auto is_pbft_syncing = [network_weak]() -> bool {
+            auto network = network_weak.lock();
+            if (!network) {
+              return false;
+            }
+
+            return network->pbft_syncing();
+          };
+
+          if (ficus_hf_config.isPillarBlockPeriod(block_num, 1)) {
+            const auto pillar_block_hash = pillar_chain->createPillarBlock(res);
+            if (pillar_block_hash.has_value()) {
+              pillar_chain->genAndPlacePillarVote(*pillar_block_hash, node_secret, is_pbft_syncing());
+            }
+          } else if (block_num > ficus_hf_config.firstPillarBlockPeriod() &&
+                     block_num % ficus_hf_config.pillar_chain_sync_periods == 0) {
+            if (!is_pbft_syncing()) {
               pillar_chain->checkPillarChainSynced(block_num);
             }
           }

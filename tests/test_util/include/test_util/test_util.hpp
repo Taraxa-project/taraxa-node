@@ -162,6 +162,9 @@ struct TransactionClient {
 SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& value = 0, uint64_t nonce = 0,
                                 const u256& gas_price = 0);
 
+SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
+                                   const u256& gas_price);
+
 u256 own_balance(const std::shared_ptr<FullNode>& node);
 
 state_api::BalanceMap effective_initial_balances(const state_api::Config& cfg);

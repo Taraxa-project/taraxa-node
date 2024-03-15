@@ -53,6 +53,7 @@ Json::Value enc_json(const FicusHardforkConfig& obj) {
   json["block_num"] = dev::toJS(obj.block_num);
   json["pillar_block_periods"] = dev::toJS(obj.pillar_block_periods);
   json["pillar_chain_sync_periods"] = dev::toJS(obj.pillar_chain_sync_periods);
+  json["pbft_inclusion_delay"] = dev::toJS(obj.pbft_inclusion_delay);
   return json;
 }
 
@@ -60,8 +61,9 @@ void dec_json(const Json::Value& json, FicusHardforkConfig& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
   obj.pillar_block_periods = dev::getUInt(json["pillar_block_periods"]);
   obj.pillar_chain_sync_periods = dev::getUInt(json["pillar_chain_sync_periods"]);
+  obj.pbft_inclusion_delay = dev::getUInt(json["pbft_inclusion_delay"]);
 }
-RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_block_periods, pillar_chain_sync_periods)
+RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_block_periods, pillar_chain_sync_periods, pbft_inclusion_delay)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
