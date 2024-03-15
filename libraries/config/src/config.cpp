@@ -213,8 +213,8 @@ void FullNodeConfig::validate() const {
   }
 
   if (genesis.state.hardforks.ficus_hf.pbft_inclusion_delay < 1 ||
-      genesis.state.hardforks.ficus_hf.pbft_inclusion_delay < genesis.state.dpos.delegation_delay) {
-    throw ConfigException("ficus_hf.pbft_inclusion_delay must be >= 1 && >= dpos.delegation_delay");
+      genesis.state.hardforks.ficus_hf.pbft_inclusion_delay <= genesis.state.dpos.delegation_delay) {
+    throw ConfigException("ficus_hf.pbft_inclusion_delay must be >= 1 && > dpos.delegation_delay");
   }
 
   // TODO: add validation of other config values
