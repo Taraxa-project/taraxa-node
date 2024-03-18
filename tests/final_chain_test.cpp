@@ -106,7 +106,7 @@ struct FinalChainTest : WithDataDir {
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
     EXPECT_EQ(blk_h.gas_limit, cfg.genesis.pbft.gas_limit);
-    EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraData()->rlp());
+    EXPECT_EQ(blk_h.extra_data, bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mix_hash(), h256());
@@ -854,6 +854,40 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   advance({});
   const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
   EXPECT_EQ(total_votes_before - votes_per_address, total_votes);
+}
+
+TEST_F(FinalChainTest, claim_all_rewards_regression) {
+  auto sender_keys = dev::KeyPair::create();
+  const auto& addr = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
+  cfg.genesis.state.hardforks.fix_claim_all_block_num = 10;
+  init();
+
+  auto dpos_address = addr_t("0x00000000000000000000000000000000000000fe");
+  auto call_data = "0x09b72e000000000000000000000000000000000000000000000000000000000000000064";
+
+  // Old call should be working fine before the hardfork
+  {
+    auto trx = std::make_shared<Transaction>(2, 0, 1, 100000, dev::fromHex(call_data), sk, dpos_address);
+    auto result = advance({trx});
+    auto receipt = result->trx_receipts.front();
+    ASSERT_EQ(receipt.status_code, 1);  // not failed
+  }
+
+  while (cfg.genesis.state.hardforks.fix_claim_all_block_num >= expected_blk_num) {
+    advance({});
+  }
+  ASSERT_TRUE(cfg.genesis.state.hardforks.fix_claim_all_block_num < expected_blk_num);
+
+  // Old format call should fail after the hardfork
+  {
+    auto trx = std::make_shared<Transaction>(3, 0, 1, 100000, dev::fromHex(call_data), sk, dpos_address);
+    auto result = advance({trx}, {0, 0, 1});
+    auto receipt = result->trx_receipts.front();
+    ASSERT_EQ(receipt.status_code, 0);  // failed
+  }
 }
 
 // This test should be last as state_api isn't destructed correctly because of exception
