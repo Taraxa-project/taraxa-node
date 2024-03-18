@@ -124,7 +124,7 @@ bool DagBlockProposer::proposeDagBlock() {
   dev::bytes vdf_msg = DagManager::getVdfMessage(frontier.pivot, transactions);
 
   if (vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
-    thisThreadSleepForMilliSeconds(4000);
+    thisThreadSleepForMilliSeconds(1000);
   }
   auto latest_frontier = dag_mgr_->getDagFrontier();
   auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
