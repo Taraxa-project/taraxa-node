@@ -42,7 +42,7 @@ docker-compose==1.29.2
 dockerpty==0.4.1
 docopt==0.6.2
 dulwich==0.21.6
-eth-abi==4.2.1
+eth-abi==5.0.1
 eth-account==0.10.0
 eth-hash==0.5.2
 eth-keyfile==0.7.0
