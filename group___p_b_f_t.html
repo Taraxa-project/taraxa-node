@@ -104,8 +104,6 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_pbft_block"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">taraxa::PbftBlock</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_pbft_block"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block" title="The PbftBlock class is a PBFT block class that includes PBFT block hash, previous PBFT block hash,...">PbftBlock</a> class is a PBFT block class that includes PBFT block hash, previous PBFT block hash, DAG anchor hash, DAG blocks ordering hash, period number, timestamp, proposer address, and proposer signature.  <a href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_pbft_block"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:classtaraxa_1_1_pbft_block_extra_data"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data">taraxa::PbftBlockExtraData</a></td></tr>
-<tr class="separator:classtaraxa_1_1_pbft_block_extra_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_period_data"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">taraxa::PeriodData</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_period_data"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> class is for block execution, that includes PBFT block, certify votes, DAG blocks, and transactions.  <a href="group___p_b_f_t.html#classtaraxa_1_1_period_data">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_period_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -718,35 +716,14 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_pbft_manager__coll__graph.png" border="0" usemap="#ataraxa_1_1_pbft_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1_pbft_manager_coll__map" id="ataraxa_1_1_pbft_manager_coll__map">
-<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="1731,493,1885,520"/>
-<area shape="rect" title=" " alt="" coords="1436,16,1500,43"/>
-<area shape="rect" href="structtaraxa_1_1_genesis_config.html" title=" " alt="" coords="1385,467,1551,493"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="992,517,1160,544"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="599,617,773,644"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="287,592,429,619"/>
-<area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="289,643,427,669"/>
-<area shape="rect" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="1009,251,1143,277"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="567,303,805,345"/>
-<area shape="rect" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="609,238,763,279"/>
-<area shape="rect" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="283,238,433,279"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,206,181,247"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,271,181,313"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="606,101,766,128"/>
-<area shape="rect" title=" " alt="" coords="656,187,716,213"/>
-<area shape="rect" href="structtaraxa_1_1state__api_1_1_config.html" title=" " alt="" coords="1006,401,1146,442"/>
-<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config" title=" " alt="" coords="616,369,756,410"/>
-<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config" title=" " alt="" coords="616,434,756,475"/>
-<area shape="rect" href="struct_hardforks_config.html" title=" " alt="" coords="623,500,749,527"/>
-<area shape="rect" href="hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="289,457,427,484"/>
-<area shape="rect" href="hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="299,508,417,535"/>
-<area shape="rect" href="structtaraxa_1_1_gas_price_config.html" title=" " alt="" coords="991,568,1161,595"/>
-<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="1007,619,1145,645"/>
-<area shape="rect" href="structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1007,467,1145,493"/>
-<area shape="rect" href="structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="591,551,781,593"/>
-<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1386,518,1550,559"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="997,669,1155,696"/>
-<area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="1375,584,1561,611"/>
-<area shape="rect" href="classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round" alt="" coords="1381,635,1555,661"/>
+<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="613,145,768,172"/>
+<area shape="rect" title=" " alt="" coords="275,5,339,32"/>
+<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="225,57,389,98"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,64,164,91"/>
+<area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="213,123,400,149"/>
+<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="237,173,376,200"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="227,243,387,269"/>
+<area shape="rect" href="classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round" alt="" coords="219,293,394,320"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -754,8 +731,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a0aab8b19e04b0d0100d6ae93c3b170b8"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a> = std::chrono::system_clock::time_point</td></tr>
 <tr class="separator:a0aab8b19e04b0d0100d6ae93c3b170b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a7fe9ad613379732640999bedb221c56d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7fe9ad613379732640999bedb221c56d">PbftManager</a> (const <a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> &amp;conf, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt; vote_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt; final_chain, <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> node_sk)</td></tr>
-<tr class="separator:a7fe9ad613379732640999bedb221c56d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5b95a336af89fd02618f12840f226ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab5b95a336af89fd02618f12840f226ac">PbftManager</a> (const <a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a> &amp;conf, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;dag_genesis_block_hash, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt; vote_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt; final_chain, <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> node_sk)</td></tr>
+<tr class="separator:ab5b95a336af89fd02618f12840f226ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37f64cdc660f7bb1a22d03ce102c16a8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8">~PbftManager</a> ()</td></tr>
 <tr class="separator:a37f64cdc660f7bb1a22d03ce102c16a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6bf3bfdb609d5c2ace0a2130ff5d59e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e">PbftManager</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &amp;)=delete</td></tr>
@@ -1043,8 +1020,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:afbd2c241d5dec6c56ad05a47f59cf781"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a213b6246edf1fbff391d04acb13f37eb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a213b6246edf1fbff391d04acb13f37eb">dag_genesis_block_hash_</a></td></tr>
 <tr class="separator:a213b6246edf1fbff391d04acb13f37eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c5f5a2dbe636d39d750d59dcb1a7c6c"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4c5f5a2dbe636d39d750d59dcb1a7c6c">config_</a></td></tr>
-<tr class="separator:a4c5f5a2dbe636d39d750d59dcb1a7c6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af527c9f71edcd69538edcfe26608ab2d"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af527c9f71edcd69538edcfe26608ab2d">config_</a></td></tr>
+<tr class="separator:af527c9f71edcd69538edcfe26608ab2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abdfcd22c3259000afb5e4aeb1c7c387f"><td class="memItemLeft" align="right" valign="top">std::condition_variable&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#abdfcd22c3259000afb5e4aeb1c7c387f">stop_cv_</a></td></tr>
 <tr class="separator:abdfcd22c3259000afb5e4aeb1c7c387f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c039fb4f8e57d9c6ed15b81f0d6b0a4"><td class="memItemLeft" align="right" valign="top">std::mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7c039fb4f8e57d9c6ed15b81f0d6b0a4">stop_mtx_</a></td></tr>
@@ -1070,8 +1047,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a7fe9ad613379732640999bedb221c56d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7fe9ad613379732640999bedb221c56d">&#9670;&nbsp;</a></span>PbftManager() <span class="overload">[1/3]</span></h2>
+<a id="ab5b95a336af89fd02618f12840f226ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5b95a336af89fd02618f12840f226ac">&#9670;&nbsp;</a></span>PbftManager() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1079,8 +1056,14 @@ Collaboration diagram for taraxa::PbftManager:</div>
         <tr>
           <td class="memname">taraxa::PbftManager::PbftManager </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a> &amp;&#160;</td>
           <td class="paramname"><em>conf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>dag_genesis_block_hash</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -3391,8 +3374,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a4c5f5a2dbe636d39d750d59dcb1a7c6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c5f5a2dbe636d39d750d59dcb1a7c6c">&#9670;&nbsp;</a></span>config_</h2>
+<a id="af527c9f71edcd69538edcfe26608ab2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af527c9f71edcd69538edcfe26608ab2d">&#9670;&nbsp;</a></span>config_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3401,7 +3384,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a>&amp; taraxa::PbftManager::config_</td>
+          <td class="memname">const <a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a>&amp; taraxa::PbftManager::config_</td>
         </tr>
       </table>
   </td>
@@ -4597,8 +4580,8 @@ Collaboration diagram for taraxa::PbftBlock:</div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a17a04fe3de527bae550fa8c7eb3a6cdf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a17a04fe3de527bae550fa8c7eb3a6cdf">PbftBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;prev_blk_hash, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;dag_blk_hash_as_pivot, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;order_hash, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;prev_state_root, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;beneficiary, const <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> &amp;sk, std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;&amp;reward_votes, const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data">PbftBlockExtraData</a> &amp;extra_data={})</td></tr>
-<tr class="separator:a17a04fe3de527bae550fa8c7eb3a6cdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09e1cd3edaa1ac853b7f6bbbdba5794d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a09e1cd3edaa1ac853b7f6bbbdba5794d">PbftBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;prev_blk_hash, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;dag_blk_hash_as_pivot, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;order_hash, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;prev_state_root, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;beneficiary, const <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> &amp;sk, std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;&amp;reward_votes)</td></tr>
+<tr class="separator:a09e1cd3edaa1ac853b7f6bbbdba5794d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a548e429fa4831c3f0c7f30c4f625f946"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a548e429fa4831c3f0c7f30c4f625f946">PbftBlock</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="group___p_b_f_t.html#a1b7708eb909c07d3c0a98013acfcbb46">rlp</a>)</td></tr>
 <tr class="separator:a548e429fa4831c3f0c7f30c4f625f946"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a358cde250e7fd9b8bffc6be6a1259b39"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a358cde250e7fd9b8bffc6be6a1259b39">PbftBlock</a> (const <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;<a class="el" href="classdev_1_1_r_l_p.html">RLP</a>)</td></tr>
@@ -4638,12 +4621,6 @@ Collaboration diagram for taraxa::PbftBlock:</div>
 <tr class="memitem:a22eee336df7fc15a4fc28879d96a56fa"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a22eee336df7fc15a4fc28879d96a56fa">getTimestamp</a> () const</td></tr>
 <tr class="memdesc:a22eee336df7fc15a4fc28879d96a56fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get timestamp.  <a href="group___p_b_f_t.html#a22eee336df7fc15a4fc28879d96a56fa">More...</a><br /></td></tr>
 <tr class="separator:a22eee336df7fc15a4fc28879d96a56fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f8f19b2c6d25e1fb7512575513e89ed"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0f8f19b2c6d25e1fb7512575513e89ed">getExtraData</a> () const</td></tr>
-<tr class="memdesc:a0f8f19b2c6d25e1fb7512575513e89ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get extra data.  <a href="group___p_b_f_t.html#a0f8f19b2c6d25e1fb7512575513e89ed">More...</a><br /></td></tr>
-<tr class="separator:a0f8f19b2c6d25e1fb7512575513e89ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3feb650583387a505439972ca30c69f"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ae3feb650583387a505439972ca30c69f">getExtraDataRlp</a> () const</td></tr>
-<tr class="memdesc:ae3feb650583387a505439972ca30c69f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get extra data rlp.  <a href="group___p_b_f_t.html#ae3feb650583387a505439972ca30c69f">More...</a><br /></td></tr>
-<tr class="separator:ae3feb650583387a505439972ca30c69f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcf3e9620b0b3e878cb23f7f68b0df87"><td class="memItemLeft" align="right" valign="top">const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#adcf3e9620b0b3e878cb23f7f68b0df87">getBeneficiary</a> () const</td></tr>
 <tr class="memdesc:adcf3e9620b0b3e878cb23f7f68b0df87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PBFT block proposer address.  <a href="group___p_b_f_t.html#adcf3e9620b0b3e878cb23f7f68b0df87">More...</a><br /></td></tr>
 <tr class="separator:adcf3e9620b0b3e878cb23f7f68b0df87"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -4681,12 +4658,10 @@ Collaboration diagram for taraxa::PbftBlock:</div>
 <tr class="separator:aa89c0cf004ce3cafd5382b7421e5e0bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a248fb35d65b886baed84bbb5d623c7c2"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a248fb35d65b886baed84bbb5d623c7c2">reward_votes_</a></td></tr>
 <tr class="separator:a248fb35d65b886baed84bbb5d623c7c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87d10cacabe9e2f034ddaf17620b72b2"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data">PbftBlockExtraData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a87d10cacabe9e2f034ddaf17620b72b2">extra_data_</a></td></tr>
-<tr class="separator:a87d10cacabe9e2f034ddaf17620b72b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a17a04fe3de527bae550fa8c7eb3a6cdf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a17a04fe3de527bae550fa8c7eb3a6cdf">&#9670;&nbsp;</a></span>PbftBlock() <span class="overload">[1/3]</span></h2>
+<a id="a09e1cd3edaa1ac853b7f6bbbdba5794d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09e1cd3edaa1ac853b7f6bbbdba5794d">&#9670;&nbsp;</a></span>PbftBlock() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4737,13 +4712,7 @@ Collaboration diagram for taraxa::PbftBlock:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>reward_votes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data">PbftBlockExtraData</a> &amp;&#160;</td>
-          <td class="paramname"><em>extra_data</em> = <code>{}</code>&#160;</td>
+          <td class="paramname"><em>reward_votes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -4915,62 +4884,6 @@ Collaboration diagram for taraxa::PbftBlock:</div>
 
 <p>Get PBFT block hash. </p>
 <dl class="section return"><dt>Returns</dt><dd>PBFT block hash </dd></dl>
-
-</div>
-</div>
-<a id="a0f8f19b2c6d25e1fb7512575513e89ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f8f19b2c6d25e1fb7512575513e89ed">&#9670;&nbsp;</a></span>getExtraData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto taraxa::PbftBlock::getExtraData </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Get extra data. </p>
-<dl class="section return"><dt>Returns</dt><dd>extra data </dd></dl>
-
-</div>
-</div>
-<a id="ae3feb650583387a505439972ca30c69f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae3feb650583387a505439972ca30c69f">&#9670;&nbsp;</a></span>getExtraDataRlp()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto taraxa::PbftBlock::getExtraDataRlp </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Get extra data rlp. </p>
-<dl class="section return"><dt>Returns</dt><dd>extra data rlp </dd></dl>
 
 </div>
 </div>
@@ -5408,28 +5321,6 @@ Collaboration diagram for taraxa::PbftBlock:</div>
 
 </div>
 </div>
-<a id="a87d10cacabe9e2f034ddaf17620b72b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a87d10cacabe9e2f034ddaf17620b72b2">&#9670;&nbsp;</a></span>extra_data_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt;<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data">PbftBlockExtraData</a>&gt; taraxa::PbftBlock::extra_data_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a1a06c26808dcf0c8c997c896aa682c65"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1a06c26808dcf0c8c997c896aa682c65">&#9670;&nbsp;</a></span>order_hash_</h2>
 
@@ -5578,322 +5469,6 @@ Collaboration diagram for taraxa::PbftBlock:</div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-
-</div>
-</div>
-<a name="classtaraxa_1_1_pbft_block_extra_data" id="classtaraxa_1_1_pbft_block_extra_data"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1_pbft_block_extra_data">&#9670;&nbsp;</a></span>taraxa::PbftBlockExtraData</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">class taraxa::PbftBlockExtraData</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"></div><div class="dynheader">
-Collaboration diagram for taraxa::PbftBlockExtraData:</div>
-<div class="dyncontent">
-<div class="center"><img src="classtaraxa_1_1_pbft_block_extra_data__coll__graph.png" border="0" usemap="#ataraxa_1_1_pbft_block_extra_data_coll__map" alt="Collaboration graph"/></div>
-<map name="ataraxa_1_1_pbft_block_extra_data_coll__map" id="ataraxa_1_1_pbft_block_extra_data_coll__map">
-<area shape="rect" title=" " alt="" coords="5,95,204,121"/>
-<area shape="rect" title=" " alt="" coords="75,5,134,32"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<table class="memberdecls">
-<tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:aee7434e6c123e5b9925f1318af8fce64"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aee7434e6c123e5b9925f1318af8fce64">PbftBlockExtraData</a> ()</td></tr>
-<tr class="separator:aee7434e6c123e5b9925f1318af8fce64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6aaeb59332390f92e260323d1fa46467"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a6aaeb59332390f92e260323d1fa46467">PbftBlockExtraData</a> (const uint16_t major_version, const uint16_t minor_version, const uint16_t patch_version, const uint16_t net_version, const std::string node_implementation)</td></tr>
-<tr class="separator:a6aaeb59332390f92e260323d1fa46467"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea32dc25fc180ed04ba31f4755fb9218"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aea32dc25fc180ed04ba31f4755fb9218">PbftBlockExtraData</a> (const <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;data)</td></tr>
-<tr class="separator:aea32dc25fc180ed04ba31f4755fb9218"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9c9023f3daf43a8deaf4bba5942dd24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab9c9023f3daf43a8deaf4bba5942dd24">rlp</a> () const</td></tr>
-<tr class="memdesc:ab9c9023f3daf43a8deaf4bba5942dd24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get rlp.  <a href="group___p_b_f_t.html#ab9c9023f3daf43a8deaf4bba5942dd24">More...</a><br /></td></tr>
-<tr class="separator:ab9c9023f3daf43a8deaf4bba5942dd24"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4b18040fb917fd501045f909eb877d9"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab4b18040fb917fd501045f909eb877d9">getJson</a> () const</td></tr>
-<tr class="memdesc:ab4b18040fb917fd501045f909eb877d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get JSON.  <a href="group___p_b_f_t.html#ab4b18040fb917fd501045f909eb877d9">More...</a><br /></td></tr>
-<tr class="separator:ab4b18040fb917fd501045f909eb877d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Protected Attributes</h3></td></tr>
-<tr class="memitem:ae407b113e427b09804d4ff6fe9134f54"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ae407b113e427b09804d4ff6fe9134f54">major_version_</a></td></tr>
-<tr class="separator:ae407b113e427b09804d4ff6fe9134f54"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae46c661785ba52e4c5815bd4918074da"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ae46c661785ba52e4c5815bd4918074da">minor_version_</a></td></tr>
-<tr class="separator:ae46c661785ba52e4c5815bd4918074da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7dc6c66707a88662512e8829243aa7b2"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7dc6c66707a88662512e8829243aa7b2">patch_version_</a></td></tr>
-<tr class="separator:a7dc6c66707a88662512e8829243aa7b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afef3248cf23c562c8c392b6e0dcda45d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#afef3248cf23c562c8c392b6e0dcda45d">net_version_</a></td></tr>
-<tr class="separator:afef3248cf23c562c8c392b6e0dcda45d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a833dffc39f745f93de5b29844eaa4625"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a833dffc39f745f93de5b29844eaa4625">node_implementation_</a></td></tr>
-<tr class="separator:a833dffc39f745f93de5b29844eaa4625"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Static Protected Attributes</h3></td></tr>
-<tr class="memitem:a487e600e6d080a69779779933845c48c"><td class="memItemLeft" align="right" valign="top">static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a487e600e6d080a69779779933845c48c">kExtraDataMaxSize</a> = 1024</td></tr>
-<tr class="separator:a487e600e6d080a69779779933845c48c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="aee7434e6c123e5b9925f1318af8fce64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee7434e6c123e5b9925f1318af8fce64">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[1/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::PbftBlockExtraData::PbftBlockExtraData </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6aaeb59332390f92e260323d1fa46467"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6aaeb59332390f92e260323d1fa46467">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[2/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::PbftBlockExtraData::PbftBlockExtraData </td>
-          <td>(</td>
-          <td class="paramtype">const uint16_t&#160;</td>
-          <td class="paramname"><em>major_version</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const uint16_t&#160;</td>
-          <td class="paramname"><em>minor_version</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const uint16_t&#160;</td>
-          <td class="paramname"><em>patch_version</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const uint16_t&#160;</td>
-          <td class="paramname"><em>net_version</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::string&#160;</td>
-          <td class="paramname"><em>node_implementation</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aea32dc25fc180ed04ba31f4755fb9218"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea32dc25fc180ed04ba31f4755fb9218">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::PbftBlockExtraData::PbftBlockExtraData </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;&#160;</td>
-          <td class="paramname"><em>data</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Function Documentation</h4>
-<a id="ab4b18040fb917fd501045f909eb877d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4b18040fb917fd501045f909eb877d9">&#9670;&nbsp;</a></span>getJson()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Json::Value taraxa::PbftBlockExtraData::getJson </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get JSON. </p>
-<dl class="section return"><dt>Returns</dt><dd>Json </dd></dl>
-
-</div>
-</div>
-<a id="ab9c9023f3daf43a8deaf4bba5942dd24"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9c9023f3daf43a8deaf4bba5942dd24">&#9670;&nbsp;</a></span>rlp()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> taraxa::PbftBlockExtraData::rlp </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get rlp. </p>
-<dl class="section return"><dt>Returns</dt><dd>rlp </dd></dl>
-
-</div>
-</div>
-<h4 class="groupheader">Member Data Documentation</h4>
-<a id="a487e600e6d080a69779779933845c48c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a487e600e6d080a69779779933845c48c">&#9670;&nbsp;</a></span>kExtraDataMaxSize</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr uint32_t taraxa::PbftBlockExtraData::kExtraDataMaxSize = 1024</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae407b113e427b09804d4ff6fe9134f54"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae407b113e427b09804d4ff6fe9134f54">&#9670;&nbsp;</a></span>major_version_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t taraxa::PbftBlockExtraData::major_version_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae46c661785ba52e4c5815bd4918074da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae46c661785ba52e4c5815bd4918074da">&#9670;&nbsp;</a></span>minor_version_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t taraxa::PbftBlockExtraData::minor_version_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="afef3248cf23c562c8c392b6e0dcda45d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afef3248cf23c562c8c392b6e0dcda45d">&#9670;&nbsp;</a></span>net_version_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t taraxa::PbftBlockExtraData::net_version_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a833dffc39f745f93de5b29844eaa4625"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a833dffc39f745f93de5b29844eaa4625">&#9670;&nbsp;</a></span>node_implementation_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string taraxa::PbftBlockExtraData::node_implementation_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7dc6c66707a88662512e8829243aa7b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7dc6c66707a88662512e8829243aa7b2">&#9670;&nbsp;</a></span>patch_version_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t taraxa::PbftBlockExtraData::patch_version_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

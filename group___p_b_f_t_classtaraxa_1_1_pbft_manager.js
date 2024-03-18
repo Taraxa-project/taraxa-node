@@ -1,7 +1,7 @@
 var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
 [
     [ "time_point", "group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8", null ],
-    [ "PbftManager", "group___p_b_f_t.html#a7fe9ad613379732640999bedb221c56d", null ],
+    [ "PbftManager", "group___p_b_f_t.html#ab5b95a336af89fd02618f12840f226ac", null ],
     [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
     [ "PbftManager", "group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e", null ],
     [ "PbftManager", "group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948", null ],
@@ -80,7 +80,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "broadcast_reward_votes_counter_", "group___p_b_f_t.html#a5717fc6cfc9d9552d0c832b8f732f07c", null ],
     [ "broadcast_votes_counter_", "group___p_b_f_t.html#a61423068e2d1c63db49ba1b0c6af4461", null ],
     [ "cert_voted_block_for_round_", "group___p_b_f_t.html#af78617ef126150e3287eedfef1ee5289", null ],
-    [ "config_", "group___p_b_f_t.html#a4c5f5a2dbe636d39d750d59dcb1a7c6c", null ],
+    [ "config_", "group___p_b_f_t.html#af527c9f71edcd69538edcfe26608ab2d", null ],
     [ "current_period_start_datetime_", "group___p_b_f_t.html#aff67b5756e75c87bbba873522c6692c5", null ],
     [ "current_round_broadcasted_votes_", "group___p_b_f_t.html#adbeae25aa89be4877228e45bc6a12ec2", null ],
     [ "current_round_start_datetime_", "group___p_b_f_t.html#acda3e9ce5fae7e5027cd15a62624f958", null ],
