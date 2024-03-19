@@ -40,7 +40,7 @@ void PillarVotePacketHandler::onNewPillarVote(const std::shared_ptr<PillarVote> 
       continue;
     }
 
-    if (peer.second->isPillarBlockVoteKnown(vote->getHash()) && !rebroadcast) {
+    if (peer.second->isPillarVoteKnown(vote->getHash()) && !rebroadcast) {
       continue;
     }
 
@@ -54,7 +54,7 @@ void PillarVotePacketHandler::sendPillarVote(const std::shared_ptr<TaraxaPeer> &
   s.appendRaw(vote->rlp(true));
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::PillarVotePacket, std::move(s))) {
-    peer->markPillarBlockVoteAsKnown(vote->getHash());
+    peer->markPillarVoteAsKnown(vote->getHash());
     LOG(log_nf_) << "Pillar vote " << vote->getHash() << " sent to " << peer->getId();
   }
 }

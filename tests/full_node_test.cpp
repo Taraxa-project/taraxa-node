@@ -336,27 +336,6 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getProposalPeriodForDagLevel(107));
 }
 
-template <class T>
-std::string fieldElementToString(const T &el, int base = 16) {
-  std::string ret;
-  mpz_t t;
-  mpz_init(t);
-
-  try {
-    el.as_bigint().to_mpz(t);
-    char arr[mpz_sizeinbase(t, 10) + 2];
-    mpz_get_str(arr, base, t);
-    ret = std::string(arr);
-  } catch (std::exception &e) {
-    std::cout << "err: " << e.what() << std::endl;
-  } catch (...) {
-    std::cout << "unknown err: " << std::endl;
-  }
-
-  mpz_clear(t);
-  return ret;
-}
-
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 

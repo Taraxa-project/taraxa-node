@@ -1,5 +1,7 @@
 #include "config/hardfork.hpp"
 
+#include "common/config_exception.hpp"
+
 Json::Value enc_json(const Redelegation& obj) {
   Json::Value json(Json::objectValue);
   json["validator"] = dev::toJS(obj.validator);
@@ -47,6 +49,45 @@ void dec_json(const Json::Value& json, AspenHardfork& obj) {
   obj.generated_rewards = dev::jsToU256(json["generated_rewards"].asString());
 }
 RLP_FIELDS_DEFINE(AspenHardfork, block_num_part_one, block_num_part_two, max_supply, generated_rewards)
+
+bool FicusHardforkConfig::isFicusHardfork(taraxa::PbftPeriod period) const { return period >= block_num; }
+
+bool FicusHardforkConfig::isPillarBlockPeriod(taraxa::PbftPeriod period, uint64_t from_n_th_block) const {
+  return period >= firstPillarBlockPeriod() + (from_n_th_block - 1) * pillar_block_periods &&
+         period % pillar_block_periods == 0;
+}
+
+bool FicusHardforkConfig::isPbftWithPillarBlockPeriod(taraxa::PbftPeriod period) const {
+  return period >= firstPillarBlockPeriod() && period % pillar_block_periods == pbft_inclusion_delay;
+}
+
+// Returns first pillar block period
+taraxa::PbftPeriod FicusHardforkConfig::firstPillarBlockPeriod() const {
+  return block_num ? block_num : pillar_block_periods;
+}
+
+void FicusHardforkConfig::validate(uint32_t delegation_delay) const {
+  // Ficus hardfork is disabled - do not validate configuration
+  if (block_num == uint64_t(-1)) {
+    return;
+  }
+
+  if (block_num % pillar_block_periods) {
+    throw taraxa::ConfigException("ficus_hf.block_num % ficus_hf.pillar_block_periods must == 0");
+  }
+
+  if (pillar_block_periods <= pillar_chain_sync_periods) {
+    throw taraxa::ConfigException("ficus_hf.pillar_block_periods must be > ficus_hf.pillar_chain_sync_periods");
+  }
+
+  if (pillar_chain_sync_periods <= pbft_inclusion_delay) {
+    throw taraxa::ConfigException("ficus_hf.pillar_chain_sync_periods must be > ficus_hf.pbft_inclusion_delay");
+  }
+
+  if (pbft_inclusion_delay < 1 || pbft_inclusion_delay <= delegation_delay) {
+    throw taraxa::ConfigException("ficus_hf.pbft_inclusion_delay must be >= 1 && > dpos.delegation_delay");
+  }
+}
 
 Json::Value enc_json(const FicusHardforkConfig& obj) {
   Json::Value json(Json::objectValue);

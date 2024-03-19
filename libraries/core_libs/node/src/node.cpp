@@ -120,12 +120,12 @@ void FullNode::init() {
   auto genesis_hash_from_db = db_->getGenesisHash();
   if (!genesis_hash_from_db.has_value()) {
     LOG(log_er_) << "Genesis hash was not found in DB. Something is wrong";
-    assert(false);
+    std::terminate();
   }
   if (genesis_hash != genesis_hash_from_db) {
     LOG(log_er_) << "Genesis hash " << genesis_hash << " is different with "
                  << (genesis_hash_from_db.has_value() ? *genesis_hash_from_db : h256(0)) << " in DB";
-    assert(false);
+    std::terminate();
   }
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);

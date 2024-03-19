@@ -51,7 +51,7 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::PillarVotesBundlePacket, std::move(s))) {
     for (const auto &vote : votes) {
-      peer->markPillarBlockVoteAsKnown(vote->getHash());
+      peer->markPillarVoteAsKnown(vote->getHash());
     }
 
     LOG(log_nf_) << "Pillar votes bundle sent to " << peer->getId();
