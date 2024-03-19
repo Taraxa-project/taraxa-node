@@ -667,7 +667,7 @@ void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch
   // Remove transactions from non finalized column in db and add dag_block_period in DB
   uint32_t trx_pos = 0;
   for (auto const& trx : period_data.transactions) {
-    // removeTransactionToBatch(trx->getHash(), write_batch);
+    removeTransactionToBatch(trx->getHash(), write_batch);
     addTransactionPeriodToBatch(write_batch, trx->getHash(), period_data.pbft_blk->getPeriod(), trx_pos);
     trx_pos++;
   }

@@ -310,7 +310,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
         nonfinalized_transactions_in_dag_.emplace(trx_hash, trx);
         trx_count_++;
         accepted_transactions.emplace_back(trx_hash);
-        // db_->addTransactionToBatch(*trx, write_batch);
+        db_->addTransactionToBatch(*trx, write_batch);
       }
     }
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
@@ -337,7 +337,7 @@ void TransactionManager::recoverNonfinalizedTransactions() {
       // TODO: This section where transactions are deleted is only to recover from a bug where non-finalized
       // transactions were not properly deleted from the DB, once there are no nodes with such corrupted data, this
       // line can be removed or replaced with an assert
-      // db_->removeTransactionToBatch(trx_hash, write_batch);
+      db_->removeTransactionToBatch(trx_hash, write_batch);
     } else {
       // Cache sender now by caling getSender since getting sender later on proposing blocks can affect performance
       trxs[i]->getSender();
@@ -469,7 +469,7 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
   for (auto const &trx_hash : transactions) {
     auto trx = nonfinalized_transactions_in_dag_.find(trx_hash);
     if (trx != nonfinalized_transactions_in_dag_.end()) {
-      // db_->removeTransactionToBatch(trx_hash, write_batch);
+      db_->removeTransactionToBatch(trx_hash, write_batch);
       transactions_pool_.insert(std::move(trx->second), TransactionStatus::Verified);
       nonfinalized_transactions_in_dag_.erase(trx);
     }

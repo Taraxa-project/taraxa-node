@@ -240,7 +240,7 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
           }
 
           // Db can be nullptr in some unit tests
-          auto trx = trx_mgr_->getTransaction(trx_hash);
+          auto trx = db_->getTransaction(trx_hash);
           assert(trx != nullptr);
           transactions_to_send.push_back(trx);
           peer_and_transactions_to_log += trx_hash.abridged();

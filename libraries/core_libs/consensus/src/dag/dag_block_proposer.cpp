@@ -116,10 +116,10 @@ bool DagBlockProposer::proposeDagBlock() {
 
   t1 += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now).count();
   count++;
-  if (count % 10 == 0) {
-    LOG(log_si_) << " getShardedTrxs " << t1 / 1000 << " " << count;
-    t1 = 0;
-  }
+  // if (count % 10 == 0) {
+  LOG(log_si_) << " getShardedTrxs " << t1 / 1000 << " " << count << " trxpool " << trx_mgr_->getTransactionPoolSize();
+  t1 = 0;
+  //}
 
   dev::bytes vdf_msg = DagManager::getVdfMessage(frontier.pivot, transactions);
 
