@@ -61,8 +61,8 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case pillar vote was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markPillarBlockVoteAsKnown(const vote_hash_t& hash);
-  bool isPillarBlockVoteKnown(const vote_hash_t& hash) const;
+  bool markPillarVoteAsKnown(const vote_hash_t& hash);
+  bool isPillarVoteKnown(const vote_hash_t& hash) const;
 
   const dev::p2p::NodeID& getId() const;
 

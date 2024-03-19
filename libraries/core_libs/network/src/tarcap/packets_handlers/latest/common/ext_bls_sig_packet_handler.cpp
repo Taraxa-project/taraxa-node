@@ -29,7 +29,7 @@ void ExtPillarVotePacketHandler::processPillarVote(const std::shared_ptr<PillarV
   pillar_chain_manager_->addVerifiedPillarVote(vote);
 
   // Mark pillar vote as known for peer
-  peer->markPillarBlockVoteAsKnown(vote->getHash());
+  peer->markPillarVoteAsKnown(vote->getHash());
 }
 
 }  // namespace taraxa::network::tarcap
