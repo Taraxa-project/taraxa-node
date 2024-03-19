@@ -73,10 +73,6 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
     assert(!host.expired());
-
-    const size_t kV1NetworkVersion = 1;
-    assert(kV1NetworkVersion < TARAXA_NET_VERSION);
-
     dev::p2p::Host::CapabilityList capabilities;
 
     // Register latest version of taraxa capability
