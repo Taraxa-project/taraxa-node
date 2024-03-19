@@ -269,8 +269,7 @@ using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
   auto logging = logger::createDefaultLoggingConfig();
-  // TODO: set to error level
-  logging.verbosity = logger::Verbosity::Info;
+  logging.verbosity = logger::Verbosity::Debug;
 
   addr_t node_addr;
   logger::InitLogging(logging, node_addr);
