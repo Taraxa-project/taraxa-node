@@ -68,6 +68,8 @@ RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_block_periods, pillar_c
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
+  json["fix_claim_all_block_num"] = dev::toJS(obj.fix_claim_all_block_num);
+  json["phalaenopsis_hf_block_num"] = dev::toJS(obj.phalaenopsis_hf_block_num);
   json["initial_validators"] = Json::Value(Json::arrayValue);
   for (const auto& v : obj.redelegations) {
     json["redelegations"].append(enc_json(v));
@@ -89,7 +91,10 @@ Json::Value enc_json(const HardforksConfig& obj) {
 void dec_json(const Json::Value& json, HardforksConfig& obj) {
   obj.fix_redelegate_block_num =
       json["fix_redelegate_block_num"].isUInt64() ? dev::getUInt(json["fix_redelegate_block_num"]) : uint64_t(-1);
-  obj.phalaenopsis_hf_block_num = dev::getUInt(json["phalaenopsis_hf_block_num"]);
+  obj.fix_claim_all_block_num =
+      json["fix_claim_all_block_num"].isUInt64() ? dev::getUInt(json["fix_claim_all_block_num"]) : uint64_t(-1);
+  obj.phalaenopsis_hf_block_num =
+      json["phalaenopsis_hf_block_num"].isUInt64() ? dev::getUInt(json["phalaenopsis_hf_block_num"]) : uint64_t(-1);
 
   const auto& redelegations_json = json["redelegations"];
   obj.redelegations = std::vector<Redelegation>(redelegations_json.size());
@@ -111,5 +116,5 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   dec_json(json["ficus_hf"], obj.ficus_hf);
 }
 
-RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, phalaenopsis_hf_block_num, redelegations,
-                  rewards_distribution_frequency, magnolia_hf, aspen_hf)
+RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
+                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf)
