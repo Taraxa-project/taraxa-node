@@ -21,8 +21,6 @@ void Stats::recoverFromDb(std::optional<EthBlockNumber> last_blk_num) {
     PbftPeriod period;
     memcpy(&period, i->key().data(), sizeof(PbftPeriod));
     if (last_blk_num && *last_blk_num >= period) {
-      std::cout << "Skipping block rewards stats recovery for period " << period << " as it is already processed"
-                << std::endl;
       continue;
     }
     blocks_stats_[period] = util::rlp_dec<BlockStats>(dev::RLP(i->value().ToString()));
@@ -46,7 +44,7 @@ uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
 
 void Stats::clear(uint64_t current_period) {
   const auto frequency = getCurrentDistributionFrequency(current_period);
-  if (current_period % frequency == 0) {
+  if (frequency > 1 && current_period % frequency == 0) {
     // clear need to be called on vector because it was moved before
     blocks_stats_.clear();
     db_->deleteColumnData(DB::Columns::block_rewards_stats);
