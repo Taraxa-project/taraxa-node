@@ -25,7 +25,7 @@ class Stats {
    * @brief called on start of new rewards interval. clears blocks_stats_ collection
    * and removes all data saved in db column
    */
-  void clear();
+  void clear(uint64_t current_period);
 
  protected:
   /**

@@ -233,7 +233,7 @@ class FinalChainImpl final : public FinalChain {
     // Please do not change order of these three lines :)
     db_->commitWriteBatch(batch);
     state_api_.transition_state_commit();
-    rewards_.clear();
+    rewards_.clear(new_blk.pbft_blk->getPeriod());
 
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;

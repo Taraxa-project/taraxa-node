@@ -1,5 +1,7 @@
 #include "rewards/rewards_stats.hpp"
 
+#include <cstdint>
+
 #include "storage/storage.hpp"
 
 namespace taraxa::rewards {
@@ -42,10 +44,13 @@ uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
   return (--itr)->second;
 }
 
-void Stats::clear() {
-  // clear need to be called on vector because it was moved before
-  blocks_stats_.clear();
-  db_->deleteColumnData(DB::Columns::block_rewards_stats);
+void Stats::clear(uint64_t current_period) {
+  const auto frequency = getCurrentDistributionFrequency(current_period);
+  if (current_period % frequency == 0) {
+    // clear need to be called on vector because it was moved before
+    blocks_stats_.clear();
+    db_->deleteColumnData(DB::Columns::block_rewards_stats);
+  }
 }
 
 BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>& trxs_fees) {
