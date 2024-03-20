@@ -109,6 +109,7 @@ TEST_F(RewardsStatsTest, statsCleaning) {
     PeriodData block(make_simple_pbft_block(blk_hash_t(5), 5), empty_votes);
     rewards_stats.processStats(block, {}, batch);
     db->commitWriteBatch(batch);
+    rewards_stats.clear();
   }
 
   // Load from db
@@ -141,6 +142,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
 
   PeriodData block(make_simple_pbft_block(blk_hash_t(10), 10, kp.secret()), empty_votes);
   auto stats = rewards_stats.processStats(block, {}, batch);
+  rewards_stats.clear();
   ASSERT_EQ(stats.size(), block_authors.size());
 
   for (auto& block_author : block_authors) {
