@@ -11,8 +11,7 @@ namespace taraxa::rewards {
 class Stats {
  public:
   Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::shared_ptr<DB> db,
-        std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count,
-        std::optional<EthBlockNumber> last_blk_num = std::nullopt);
+        std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count, EthBlockNumber last_blk_num = 0);
 
   /**
    * @brief processing passed block and returns stats that should be processed at this block
@@ -31,7 +30,7 @@ class Stats {
   /**
    * @brief recover current interval stats from database
    */
-  void recoverFromDb(std::optional<EthBlockNumber> last_blk_num);
+  void recoverFromDb(EthBlockNumber last_blk_num);
   /**
    * @brief returns rewards distribution frequency for specified period
    */
