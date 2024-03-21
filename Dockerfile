@@ -8,6 +8,9 @@ FROM ubuntu:22.04 as builder
 # deps versions
 ARG LLVM_VERSION=14
 
+# Avoid prompts from apt
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install standard packages
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
     apt-get install -y --no-install-recommends \
@@ -26,12 +29,14 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
     && rm -rf /var/lib/apt/lists/*
 
 # install solc for py_test if arch is not arm64 because it is not availiable
+
+# Install solc 0.8.24 as we do not support 0.8.25 yet
 RUN \
 if [ `arch` != "aarch64" ]; \
 then  \
-    add-apt-repository ppa:ethereum/ethereum \
-    && apt-get update \
-    && apt install solc; \
+curl -L -o solc-0.8.24 https://github.com/ethereum/solidity/releases/download/v0.8.24/solc-static-linux \
+    && chmod +x solc-0.8.24 \
+    && mv solc-0.8.24 /usr/bin/solc; \
 fi
 
 # install standart tools
