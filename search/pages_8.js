@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['standard_20release_20cycle_7617',['Standard release cycle',['../md_doc_release_cycle.html',1,'']]]
+  ['readme_7621',['readme',['../md_doc_uml_readme.html',1,'']]],
+  ['rewards_20distribution_20algorithm_7622',['Rewards distribution algorithm',['../md_doc_rewards_distribution.html',1,'']]]
 ];

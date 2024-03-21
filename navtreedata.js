@@ -120,187 +120,192 @@ var NAVTREE =
         [ "Graphs", "md_doc_doxygen.html#autotoc_md212", null ]
       ] ]
     ] ],
+    [ "EVM incompatibilities", "md_doc_evm_incompatibilities.html", [
+      [ "Unsupported EIPs", "md_doc_evm_incompatibilities.html#autotoc_md214", null ],
+      [ "Latest supported solc version", "md_doc_evm_incompatibilities.html#autotoc_md215", null ],
+      [ "go-ethereum library", "md_doc_evm_incompatibilities.html#autotoc_md216", null ]
+    ] ],
     [ "Git-flow Guide", "md_doc_git_practices.html", [
-      [ "Branch naming conventions", "md_doc_git_practices.html#autotoc_md213", null ],
-      [ "Main branches", "md_doc_git_practices.html#autotoc_md214", null ],
-      [ "Supporting branches", "md_doc_git_practices.html#autotoc_md215", [
-        [ "Standard Feature branches", "md_doc_git_practices.html#autotoc_md216", null ],
-        [ "Long-term Feature branches", "md_doc_git_practices.html#autotoc_md217", null ],
-        [ "Hotfix branches", "md_doc_git_practices.html#autotoc_md218", null ],
-        [ "Release branches", "md_doc_git_practices.html#autotoc_md219", null ]
+      [ "Branch naming conventions", "md_doc_git_practices.html#autotoc_md217", null ],
+      [ "Main branches", "md_doc_git_practices.html#autotoc_md218", null ],
+      [ "Supporting branches", "md_doc_git_practices.html#autotoc_md219", [
+        [ "Standard Feature branches", "md_doc_git_practices.html#autotoc_md220", null ],
+        [ "Long-term Feature branches", "md_doc_git_practices.html#autotoc_md221", null ],
+        [ "Hotfix branches", "md_doc_git_practices.html#autotoc_md222", null ],
+        [ "Release branches", "md_doc_git_practices.html#autotoc_md223", null ]
       ] ],
-      [ "Branches Cleaning", "md_doc_git_practices.html#autotoc_md220", null ],
-      [ "PR merging & Code reviews", "md_doc_git_practices.html#autotoc_md221", null ],
-      [ "Commit message conventions", "md_doc_git_practices.html#autotoc_md222", null ],
-      [ "Automatic github issues linking", "md_doc_git_practices.html#autotoc_md226", null ],
-      [ "Example", "md_doc_git_practices.html#autotoc_md227", null ]
+      [ "Branches Cleaning", "md_doc_git_practices.html#autotoc_md224", null ],
+      [ "PR merging & Code reviews", "md_doc_git_practices.html#autotoc_md225", null ],
+      [ "Commit message conventions", "md_doc_git_practices.html#autotoc_md226", null ],
+      [ "Automatic github issues linking", "md_doc_git_practices.html#autotoc_md230", null ],
+      [ "Example", "md_doc_git_practices.html#autotoc_md231", null ]
     ] ],
     [ "Quickstart Guide", "md_doc_quickstart_guide.html", [
-      [ "Taraxa docker image", "md_doc_quickstart_guide.html#autotoc_md236", [
-        [ "Pre-requisites", "md_doc_quickstart_guide.html#autotoc_md229", [
-          [ "\"type\" must be one of the following mentioned below!", "md_doc_git_practices.html#autotoc_md223", null ],
-          [ "\"scope\" is optional", "md_doc_git_practices.html#autotoc_md224", null ],
-          [ "\"subject\"", "md_doc_git_practices.html#autotoc_md225", null ],
-          [ "Used git flow:", "md_doc_git_practices.html#autotoc_md228", null ],
-          [ "MANDATORY PORT", "md_doc_quickstart_guide.html#autotoc_md230", null ],
-          [ "OPTIONAL PORTS", "md_doc_quickstart_guide.html#autotoc_md231", null ]
+      [ "Taraxa docker image", "md_doc_quickstart_guide.html#autotoc_md240", [
+        [ "Pre-requisites", "md_doc_quickstart_guide.html#autotoc_md233", [
+          [ "\"type\" must be one of the following mentioned below!", "md_doc_git_practices.html#autotoc_md227", null ],
+          [ "\"scope\" is optional", "md_doc_git_practices.html#autotoc_md228", null ],
+          [ "\"subject\"", "md_doc_git_practices.html#autotoc_md229", null ],
+          [ "Used git flow:", "md_doc_git_practices.html#autotoc_md232", null ],
+          [ "MANDATORY PORT", "md_doc_quickstart_guide.html#autotoc_md234", null ],
+          [ "OPTIONAL PORTS", "md_doc_quickstart_guide.html#autotoc_md235", null ]
         ] ],
-        [ "Config", "md_doc_quickstart_guide.html#autotoc_md232", [
-          [ "Param1", "md_doc_quickstart_guide.html#autotoc_md233", null ],
-          [ "Param2", "md_doc_quickstart_guide.html#autotoc_md234", null ],
-          [ "...", "md_doc_quickstart_guide.html#autotoc_md235", null ],
-          [ "taraxa-builder:latest", "md_doc_quickstart_guide.html#autotoc_md237", null ],
-          [ "taraxa-node:latest", "md_doc_quickstart_guide.html#autotoc_md238", null ]
+        [ "Config", "md_doc_quickstart_guide.html#autotoc_md236", [
+          [ "Param1", "md_doc_quickstart_guide.html#autotoc_md237", null ],
+          [ "Param2", "md_doc_quickstart_guide.html#autotoc_md238", null ],
+          [ "...", "md_doc_quickstart_guide.html#autotoc_md239", null ],
+          [ "taraxa-builder:latest", "md_doc_quickstart_guide.html#autotoc_md241", null ],
+          [ "taraxa-node:latest", "md_doc_quickstart_guide.html#autotoc_md242", null ]
         ] ]
       ] ]
     ] ],
     [ "Standard release cycle", "md_doc_release_cycle.html", [
-      [ "Release cycle phases", "md_doc_release_cycle.html#autotoc_md240", [
-        [ "Phase 1 - active development of new features", "md_doc_release_cycle.html#autotoc_md241", null ],
-        [ "Phase 2 - alpha testing (internal)", "md_doc_release_cycle.html#autotoc_md242", null ],
-        [ "Phase 3 - beta testing (public)", "md_doc_release_cycle.html#autotoc_md243", null ],
-        [ "Phase 4 - Mainnet release", "md_doc_release_cycle.html#autotoc_md244", null ]
+      [ "Release cycle phases", "md_doc_release_cycle.html#autotoc_md244", [
+        [ "Phase 1 - active development of new features", "md_doc_release_cycle.html#autotoc_md245", null ],
+        [ "Phase 2 - alpha testing (internal)", "md_doc_release_cycle.html#autotoc_md246", null ],
+        [ "Phase 3 - beta testing (public)", "md_doc_release_cycle.html#autotoc_md247", null ],
+        [ "Phase 4 - Mainnet release", "md_doc_release_cycle.html#autotoc_md248", null ]
       ] ],
-      [ "Ad-hoc releases with bug fixes", "md_doc_release_cycle.html#autotoc_md245", null ]
+      [ "Ad-hoc releases with bug fixes", "md_doc_release_cycle.html#autotoc_md249", null ]
     ] ],
     [ "Rewards distribution algorithm", "md_doc_rewards_distribution.html", [
-      [ "Glossary", "md_doc_rewards_distribution.html#autotoc_md247", null ],
-      [ "Rewards sources", "md_doc_rewards_distribution.html#autotoc_md248", null ],
-      [ "Rewards distribution", "md_doc_rewards_distribution.html#autotoc_md249", [
-        [ "Beneficial work in network", "md_doc_rewards_distribution.html#autotoc_md250", null ],
-        [ "Newly created tokens:", "md_doc_rewards_distribution.html#autotoc_md251", null ],
-        [ "Included transactions fees:", "md_doc_rewards_distribution.html#autotoc_md252", null ]
+      [ "Glossary", "md_doc_rewards_distribution.html#autotoc_md251", null ],
+      [ "Rewards sources", "md_doc_rewards_distribution.html#autotoc_md252", null ],
+      [ "Rewards distribution", "md_doc_rewards_distribution.html#autotoc_md253", [
+        [ "Beneficial work in network", "md_doc_rewards_distribution.html#autotoc_md254", null ],
+        [ "Newly created tokens:", "md_doc_rewards_distribution.html#autotoc_md255", null ],
+        [ "Included transactions fees:", "md_doc_rewards_distribution.html#autotoc_md256", null ]
       ] ],
-      [ "Validators statistics", "md_doc_rewards_distribution.html#autotoc_md253", null ],
-      [ "Example:", "md_doc_rewards_distribution.html#autotoc_md254", [
-        [ "DAG structure:", "md_doc_rewards_distribution.html#autotoc_md255", null ],
-        [ "PBFT block", "md_doc_rewards_distribution.html#autotoc_md256", null ],
-        [ "Statistics", "md_doc_rewards_distribution.html#autotoc_md257", null ],
-        [ "Rewards", "md_doc_rewards_distribution.html#autotoc_md258", [
-          [ "DAG blocks rewards", "md_doc_rewards_distribution.html#autotoc_md259", null ],
-          [ "PBFT proposer reward", "md_doc_rewards_distribution.html#autotoc_md260", null ],
-          [ "PBFT voters reward", "md_doc_rewards_distribution.html#autotoc_md261", null ]
+      [ "Validators statistics", "md_doc_rewards_distribution.html#autotoc_md257", null ],
+      [ "Example:", "md_doc_rewards_distribution.html#autotoc_md258", [
+        [ "DAG structure:", "md_doc_rewards_distribution.html#autotoc_md259", null ],
+        [ "PBFT block", "md_doc_rewards_distribution.html#autotoc_md260", null ],
+        [ "Statistics", "md_doc_rewards_distribution.html#autotoc_md261", null ],
+        [ "Rewards", "md_doc_rewards_distribution.html#autotoc_md262", [
+          [ "DAG blocks rewards", "md_doc_rewards_distribution.html#autotoc_md263", null ],
+          [ "PBFT proposer reward", "md_doc_rewards_distribution.html#autotoc_md264", null ],
+          [ "PBFT voters reward", "md_doc_rewards_distribution.html#autotoc_md265", null ]
         ] ]
       ] ]
     ] ],
     [ "Taraxa RPC", "md_doc__r_p_c.html", [
-      [ "Ethereum compatibility", "md_doc__r_p_c.html#autotoc_md263", [
-        [ "Quirks", "md_doc__r_p_c.html#autotoc_md264", null ],
-        [ "Not implemented", "md_doc__r_p_c.html#autotoc_md265", null ]
+      [ "Ethereum compatibility", "md_doc__r_p_c.html#autotoc_md267", [
+        [ "Quirks", "md_doc__r_p_c.html#autotoc_md268", null ],
+        [ "Not implemented", "md_doc__r_p_c.html#autotoc_md269", null ]
       ] ],
-      [ "Taraxa specific methods", "md_doc__r_p_c.html#autotoc_md266", [
-        [ "taraxa_protocolVersion", "md_doc__r_p_c.html#autotoc_md267", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md268", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md269", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md270", null ]
-        ] ],
-        [ "taraxa_getVersion", "md_doc__r_p_c.html#autotoc_md271", [
+      [ "Taraxa specific methods", "md_doc__r_p_c.html#autotoc_md270", [
+        [ "taraxa_protocolVersion", "md_doc__r_p_c.html#autotoc_md271", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md272", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md273", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md274", null ]
         ] ],
-        [ "taraxa_getDagBlockByHash", "md_doc__r_p_c.html#autotoc_md275", [
+        [ "taraxa_getVersion", "md_doc__r_p_c.html#autotoc_md275", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md276", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md277", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md278", null ]
         ] ],
-        [ "taraxa_getDagBlockByLevel", "md_doc__r_p_c.html#autotoc_md279", [
+        [ "taraxa_getDagBlockByHash", "md_doc__r_p_c.html#autotoc_md279", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md280", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md281", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md282", null ]
         ] ],
-        [ "taraxa_dagBlockLevel", "md_doc__r_p_c.html#autotoc_md283", [
+        [ "taraxa_getDagBlockByLevel", "md_doc__r_p_c.html#autotoc_md283", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md284", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md285", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md286", null ]
         ] ],
-        [ "taraxa_dagBlockPeriod", "md_doc__r_p_c.html#autotoc_md287", [
+        [ "taraxa_dagBlockLevel", "md_doc__r_p_c.html#autotoc_md287", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md288", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md289", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md290", null ]
         ] ],
-        [ "taraxa_getScheduleBlockByPeriod", "md_doc__r_p_c.html#autotoc_md291", [
+        [ "taraxa_dagBlockPeriod", "md_doc__r_p_c.html#autotoc_md291", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md292", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md293", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md294", null ]
         ] ],
-        [ "taraxa_pbftBlockHashByPeriod", "md_doc__r_p_c.html#autotoc_md295", [
+        [ "taraxa_getScheduleBlockByPeriod", "md_doc__r_p_c.html#autotoc_md295", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md296", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md297", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md298", null ]
         ] ],
-        [ "taraxa_getConfig", "md_doc__r_p_c.html#autotoc_md299", [
+        [ "taraxa_pbftBlockHashByPeriod", "md_doc__r_p_c.html#autotoc_md299", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md300", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md301", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md302", null ]
         ] ],
-        [ "taraxa_getChainStats", "md_doc__r_p_c.html#autotoc_md303", [
+        [ "taraxa_getConfig", "md_doc__r_p_c.html#autotoc_md303", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md304", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md305", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md306", null ]
         ] ],
-        [ "taraxa_yield", "md_doc__r_p_c.html#autotoc_md307", [
+        [ "taraxa_getChainStats", "md_doc__r_p_c.html#autotoc_md307", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md308", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md309", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md310", null ]
         ] ],
-        [ "taraxa_totalSupply", "md_doc__r_p_c.html#autotoc_md311", [
+        [ "taraxa_yield", "md_doc__r_p_c.html#autotoc_md311", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md312", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md313", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md314", null ]
+        ] ],
+        [ "taraxa_totalSupply", "md_doc__r_p_c.html#autotoc_md315", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md316", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md317", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md318", null ]
         ] ]
       ] ],
-      [ "Test API", "md_doc__r_p_c.html#autotoc_md315", [
-        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md316", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md317", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md318", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md319", null ]
-        ] ],
-        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md320", [
+      [ "Test API", "md_doc__r_p_c.html#autotoc_md319", [
+        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md320", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md321", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md322", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md323", null ]
         ] ],
-        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md324", [
+        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md324", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md325", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md326", null ]
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md326", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md327", null ]
         ] ],
-        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md327", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md328", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md329", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md330", null ]
+        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md328", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md329", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md330", null ]
         ] ],
-        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md331", [
+        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md331", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md332", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md333", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md334", null ]
         ] ],
-        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md335", [
+        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md335", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md336", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md337", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md338", null ]
         ] ],
-        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md339", [
+        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md339", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md340", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md341", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md342", null ]
+        ] ],
+        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md343", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md344", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md345", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md346", null ]
         ] ]
       ] ],
-      [ "Debug API", "md_doc__r_p_c.html#autotoc_md343", [
-        [ "debug_getPeriodTransactionsWithReceipts", "md_doc__r_p_c.html#autotoc_md344", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md345", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md346", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md347", null ]
-        ] ],
-        [ "debug_getPeriodDagBlocks", "md_doc__r_p_c.html#autotoc_md348", [
+      [ "Debug API", "md_doc__r_p_c.html#autotoc_md347", [
+        [ "debug_getPeriodTransactionsWithReceipts", "md_doc__r_p_c.html#autotoc_md348", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md349", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md350", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md351", null ]
         ] ],
-        [ "debug_getPreviousBlockCertVotes", "md_doc__r_p_c.html#autotoc_md352", [
+        [ "debug_getPeriodDagBlocks", "md_doc__r_p_c.html#autotoc_md352", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md353", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md354", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md355", null ]
+        ] ],
+        [ "debug_getPreviousBlockCertVotes", "md_doc__r_p_c.html#autotoc_md356", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md357", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md358", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md359", null ]
         ] ]
       ] ]
     ] ],
@@ -365,12 +370,12 @@ var NAVTREEINDEX =
 "group___vote.html#gga8a0770e242b649865f15f20a405507ccac0f90f4138d33e1cf7eac17f81962061",
 "libp2p_2_common_8h.html#a8c95b56f8954977600cf4abf15a98ab1",
 "md_doc_coding_practices.html#autotoc_md160",
-"namespacetaraxa.html#a750ea236fc9a952abc71508807c75ce8",
-"state__config_8cpp.html#ad768d97fcf1d34681a2ef3bee3b0fad0",
-"structdev_1_1p2p_1_1_host.html#aca6d02fb39902063f0ca8d0ac53eeaa7",
-"structdev_1_1p2p_1_1_session.html#ad41c2b4a7d704bd67a858df455576a28",
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a57c2c00225640e6cdfffeb2975dea9c5",
-"vdf_2include_2vdf_2config_8hpp.html#a307376581a485cafa078a7f978c336af"
+"namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2",
+"state__config_8cpp.html#a71678cb3f5feb67a738df3d7d2f45270",
+"structdev_1_1p2p_1_1_host.html#ac1da64c1d556c6f4e5089969ea4afa58",
+"structdev_1_1p2p_1_1_session.html#ac50d879ffd0bfb8b3e9f8fc92e1940cc",
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a37c3a70b29f7b44a4d8fe666414eb742",
+"vdf_2include_2vdf_2config_8hpp.html#a1011e62c651406e635b897eb61b57cff"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
