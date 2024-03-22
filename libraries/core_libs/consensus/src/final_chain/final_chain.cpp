@@ -42,6 +42,8 @@ class FinalChainImpl final : public FinalChain {
   std::condition_variable finalized_cv_;
   std::mutex finalized_mtx_;
 
+  std::atomic<EthBlockNumber> last_block_number_;
+
   LOG_OBJECTS_DEFINE
 
  public:
@@ -87,6 +89,7 @@ class FinalChainImpl final : public FinalChain {
                                  state_db_descriptor.state_root, u256(0));
 
       block_headers_cache_.append(header->number, header);
+      last_block_number_ = header->number;
       db_->commitWriteBatch(batch);
     } else {
       // We need to recover latest changes as there was shutdown inside finalize function
@@ -108,6 +111,7 @@ class FinalChainImpl final : public FinalChain {
         db_->commitWriteBatch(batch);
         last_blk_num = state_db_descriptor.blk_num;
       }
+      last_block_number_ = *last_blk_num;
 
       int64_t start = 0;
       if (*last_blk_num > 5) {
@@ -238,6 +242,7 @@ class FinalChainImpl final : public FinalChain {
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
     block_headers_cache_.append(blk_header->number, blk_header);
+    last_block_number_ = blk_header->number;
     block_finalized_emitter_.emit(result);
     LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
 
@@ -323,7 +328,7 @@ class FinalChainImpl final : public FinalChain {
     return blk_header_ptr;
   }
 
-  EthBlockNumber last_block_number() const override { return block_headers_cache_.last()->number; }
+  EthBlockNumber last_block_number() const override { return last_block_number_; }
 
   std::optional<EthBlockNumber> block_number(h256 const& h) const override {
     return db_->lookup_int<EthBlockNumber>(h, DB::Columns::final_chain_blk_number_by_hash);
