@@ -5,7 +5,7 @@
 #include "dag/dag_block.hpp"
 #include "pbft/pbft_block.hpp"
 #include "transaction/transaction.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
@@ -13,54 +13,44 @@ namespace taraxa {
 using namespace std;
 
 PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
-                       const std::vector<std::shared_ptr<Vote>>& previous_block_cert_votes)
-    : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes) {}
+                       const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes,
+                       std::optional<std::vector<std::shared_ptr<PillarVote>>>&& pillar_votes)
+    : pbft_blk(std::move(pbft_blk)),
+      previous_block_cert_votes(previous_block_cert_votes),
+      pillar_votes_(std::move(pillar_votes)) {}
 
 PeriodData::PeriodData(const dev::RLP& rlp) {
-  // TODO[2587] Old Data
-  if (rlp.itemCount() == 4) {
-    try {
-      pbft_blk = std::make_shared<PbftBlock>(rlp[0]);
-      for (auto const vote_rlp : rlp[1]) {
-        previous_block_cert_votes.emplace_back(std::make_shared<Vote>(vote_rlp));
-      }
-
-      for (auto const dag_block_rlp : rlp[2]) {
-        dag_blocks.emplace_back(dag_block_rlp);
-      }
-
-      for (auto const trx_rlp : rlp[3]) {
-        transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
-      }
-      return;
-    } catch (...) {
-    }
-  }
   auto it = rlp.begin();
   pbft_blk = std::make_shared<PbftBlock>(*it++);
 
   const auto votes_bundle_rlp = *it++;
   if (pbft_blk->getPeriod() > 1) [[likely]] {
-    previous_block_cert_votes = decodeVotesBundleRlp(votes_bundle_rlp);
+    previous_block_cert_votes = decodePbftVotesBundleRlp(votes_bundle_rlp);
   }
 
   for (auto const dag_block_rlp : *it++) {
     dag_blocks.emplace_back(dag_block_rlp);
   }
 
-  for (auto const trx_rlp : *it) {
+  for (auto const trx_rlp : *it++) {
     transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
+  }
+
+  // Pillar votes are optional data of period data since ficus hardfork
+  if (rlp.itemCount() == 5) {
+    pillar_votes_ = decodePillarVotesBundleRlp(*it);
   }
 }
 
 PeriodData::PeriodData(bytes const& all_rlp) : PeriodData(dev::RLP(all_rlp)) {}
 
 bytes PeriodData::rlp() const {
-  dev::RLPStream s(kRlpItemCount);
+  const auto kRlpSize = pillar_votes_.has_value() ? kBaseRlpItemCount + 1 : kBaseRlpItemCount;
+  dev::RLPStream s(kRlpSize);
   s.appendRaw(pbft_blk->rlp(true));
 
   if (pbft_blk->getPeriod() > 1) [[likely]] {
-    s.appendRaw(encodeVotesBundleRlp(previous_block_cert_votes, false));
+    s.appendRaw(encodePbftVotesBundleRlp(previous_block_cert_votes));
   } else {
     s.append("");
   }
@@ -75,6 +65,11 @@ bytes PeriodData::rlp() const {
     s.appendRaw(t->rlp());
   }
 
+  // Pillar votes are optional data of period data since ficus hardfork
+  if (pillar_votes_.has_value()) {
+    s.appendRaw(encodePillarVotesBundleRlp(*pillar_votes_));
+  }
+
   return s.invalidate();
 }
 
@@ -83,6 +78,7 @@ void PeriodData::clear() {
   dag_blocks.clear();
   transactions.clear();
   previous_block_cert_votes.clear();
+  pillar_votes_.reset();
 }
 
 std::ostream& operator<<(std::ostream& strm, PeriodData const& b) {

@@ -163,7 +163,6 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, const vecto
 void generateWallet(const string& wallet) {
   // Wallet
   dev::KeyPair account = dev::KeyPair::create();
-
   auto [pk, sk] = taraxa::vrf_wrapper::getVrfKeyPair();
 
   auto account_json = createWalletJson(account, sk, pk);
@@ -172,7 +171,7 @@ void generateWallet(const string& wallet) {
   util::writeJsonToFile(wallet, account_json);
 }
 
-Json::Value overrideWallet(Json::Value& wallet, const string& node_key, const string& vrf_key) {
+Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key) {
   if (!node_key.empty()) {
     auto sk = dev::Secret(node_key, dev::Secret::ConstructFromStringType::FromHex);
     dev::KeyPair account = dev::KeyPair(sk);
@@ -229,6 +228,7 @@ Json::Value createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrap
   json["node_address"] = account.address().toString();
   json["vrf_secret"] = sk.toString();
   json["vrf_public"] = pk.toString();
+
   return json;
 }
 

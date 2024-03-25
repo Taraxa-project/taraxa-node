@@ -9,9 +9,10 @@
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
 #include "final_chain/final_chain.hpp"
+#include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
@@ -679,6 +680,68 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
+void DbStorage::savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data) {
+  insert(Columns::pillar_block_data, pillar_block_data.block_->getPeriod(), pillar_block_data.getRlp());
+}
+
+std::optional<pillar_chain::PillarBlockData> DbStorage::getPillarBlockData(PbftPeriod period) const {
+  const auto bytes = asBytes(lookup(period, Columns::pillar_block_data));
+  if (bytes.empty()) {
+    return {};
+  }
+
+  return pillar_chain::PillarBlockData(dev::RLP(bytes));
+}
+
+std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData() const {
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pillar_block_data)));
+  it->SeekToLast();
+  if (!it->Valid()) {
+    return {};
+  }
+
+  return pillar_chain::PillarBlockData(dev::RLP(it->value().ToString()));
+}
+
+void DbStorage::saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote) {
+  insert(Columns::current_pillar_block_own_vote, 0, util::rlp_enc(vote));
+}
+
+std::shared_ptr<PillarVote> DbStorage::getOwnPillarBlockVote() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_own_vote));
+  if (bytes.empty()) {
+    return nullptr;
+  }
+
+  return std::make_shared<PillarVote>(dev::RLP(bytes));
+}
+
+void DbStorage::saveCurrentPillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& block, Batch& write_batch) {
+  insert(write_batch, Columns::current_pillar_block, 0, util::rlp_enc(block));
+}
+
+std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getCurrentPillarBlock() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block));
+  if (bytes.empty()) {
+    return nullptr;
+  }
+
+  return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(bytes));
+}
+
+void DbStorage::saveCurrentPillarBlockStakes(const std::vector<state_api::ValidatorStake>& stakes, Batch& write_batch) {
+  insert(write_batch, Columns::current_pillar_block_stakes, 0, util::rlp_enc(stakes));
+}
+
+std::vector<state_api::ValidatorStake> DbStorage::getCurrentPillarBlockStakes() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_stakes));
+  if (bytes.empty()) {
+    return {};
+  }
+
+  return util::rlp_dec<std::vector<state_api::ValidatorStake>>(dev::RLP(bytes));
+}
+
 void DbStorage::saveTransaction(Transaction const& trx) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }
@@ -826,7 +889,7 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
   return {transactions, {}};
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
   auto period_data = getPeriodDataRaw(period);
   if (period_data.empty()) {
     return {};
@@ -837,7 +900,7 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod peri
   if (votes_rlp.itemCount() == 0) {
     return {};
   }
-  return decodeVotesBundleRlp(votes_rlp);
+  return decodePbftVotesBundleRlp(votes_rlp);
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {
@@ -992,30 +1055,30 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
   insert(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
 }
 
-void DbStorage::saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote) {
+void DbStorage::saveOwnVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
   insert(Columns::latest_round_own_votes, vote->getHash().asBytes(), vote->rlp(true, true));
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getOwnVerifiedVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getOwnVerifiedVotes() {
+  std::vector<std::shared_ptr<PbftVote>> votes;
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_round_own_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
+    votes.emplace_back(std::make_shared<PbftVote>(asBytes(it->value().ToString())));
   }
 
   return votes;
 }
 
 void DbStorage::clearOwnVerifiedVotes(Batch& write_batch,
-                                      const std::vector<std::shared_ptr<Vote>>& own_verified_votes) {
+                                      const std::vector<std::shared_ptr<PbftVote>>& own_verified_votes) {
   for (const auto& own_vote : own_verified_votes) {
     remove(write_batch, Columns::latest_round_own_votes, own_vote->getHash().asBytes());
   }
 }
 
 void DbStorage::replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type,
-                                        const std::vector<std::shared_ptr<Vote>>& votes) {
+                                        const std::vector<std::shared_ptr<PbftVote>>& votes) {
   remove(Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type));
 
   dev::RLPStream s(votes.size());
@@ -1026,7 +1089,8 @@ void DbStorage::replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type,
 }
 
 void DbStorage::replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
-                                               const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
+                                               const std::vector<std::shared_ptr<PbftVote>>& votes,
+                                               Batch& write_batch) {
   remove(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type));
 
   dev::RLPStream s(votes.size());
@@ -1036,15 +1100,15 @@ void DbStorage::replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
   insert(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type), s.out());
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getAllTwoTPlusOneVotes() {
+  std::vector<std::shared_ptr<PbftVote>> votes;
   auto load_db_votes = [this, &votes](TwoTPlusOneVotedBlockType type) {
     auto votes_raw = asBytes(lookup(static_cast<uint8_t>(type), Columns::latest_round_two_t_plus_one_votes));
     auto votes_rlp = dev::RLP(votes_raw);
     votes.reserve(votes.size() + votes_rlp.size());
 
     for (const auto vote : votes_rlp) {
-      votes.emplace_back(std::make_shared<Vote>(vote));
+      votes.emplace_back(std::make_shared<PbftVote>(vote));
     }
   };
 
@@ -1062,16 +1126,16 @@ void DbStorage::removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Ba
   }
 }
 
-void DbStorage::saveExtraRewardVote(const std::shared_ptr<Vote>& vote) {
+void DbStorage::saveExtraRewardVote(const std::shared_ptr<PbftVote>& vote) {
   insert(Columns::extra_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getRewardVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getRewardVotes() {
+  std::vector<std::shared_ptr<PbftVote>> votes;
 
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::extra_reward_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
+    votes.emplace_back(std::make_shared<PbftVote>(asBytes(it->value().ToString())));
   }
 
   return votes;

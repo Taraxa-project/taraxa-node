@@ -7,30 +7,48 @@
 
 namespace taraxa {
 
-class Vote;
+class PbftVote;
+class PillarVote;
 
 /** @addtogroup Vote
  * @{
  */
 
-constexpr static size_t kVotesBundleRlpSize{5};
+constexpr static size_t kPbftVotesBundleRlpSize{5};
 
 /**
- * @brief Encodes votes into optimized votes bundle rlp
+ * @brief Encodes pbft votes into optimized votes bundle rlp
  *
  * @param votes
- * @param validate_common_data validate if all votes have the same block_hash, period, round and step
  * @return votes bundle rlp bytes
  */
-dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes, bool validate_common_data);
+dev::bytes encodePbftVotesBundleRlp(const std::vector<std::shared_ptr<PbftVote>>& votes);
 
 /**
- * @brief Decodes votes from optimized votes bundle rlp
+ * @brief Decodes pbft votes from optimized votes bundle rlp
  *
  * @param votes_bundle_rlp
  * @return votes
  */
-std::vector<std::shared_ptr<Vote>> decodeVotesBundleRlp(const dev::RLP& votes_bundle_rlp);
+std::vector<std::shared_ptr<PbftVote>> decodePbftVotesBundleRlp(const dev::RLP& votes_bundle_rlp);
+
+constexpr static size_t kPillarVotesBundleRlpSize{3};
+
+/**
+ * @brief Encodes pillar votes into optimized votes bundle rlp
+ *
+ * @param votes
+ * @return votes bundle rlp bytes
+ */
+dev::bytes encodePillarVotesBundleRlp(const std::vector<std::shared_ptr<PillarVote>>& votes);
+
+/**
+ * @brief Decodes pillar votes from optimized votes bundle rlp
+ *
+ * @param votes_bundle_rlp
+ * @return votes
+ */
+std::vector<std::shared_ptr<PillarVote>> decodePillarVotesBundleRlp(const dev::RLP& votes_bundle_rlp);
 
 /** @}*/
 

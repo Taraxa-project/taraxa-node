@@ -94,9 +94,9 @@ TEST_F(VoteTest, reconstruct_votes) {
   PbftStep step(1);
   VrfPbftMsg msg(type, period, round, step);
   VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
-  Vote vote1(g_sk, vrf_sortition, propose_blk_hash);
+  PbftVote vote1(g_sk, vrf_sortition, propose_blk_hash);
   auto rlp = vote1.rlp();
-  Vote vote2(rlp);
+  PbftVote vote2(rlp);
   EXPECT_EQ(vote1, vote2);
 }
 

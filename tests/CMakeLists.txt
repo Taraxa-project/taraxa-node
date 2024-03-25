@@ -3,7 +3,6 @@ add_subdirectory(test_util)
 # Enable testing for current directory and below.
 enable_testing(true)
 
-
 add_executable(abi_test abi_test.cpp)
 target_link_libraries(abi_test test_util)
 add_test(abi_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/abi_test)
@@ -30,11 +29,15 @@ target_link_libraries(dag_test test_util)
 add_test(dag_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dag_test)
 
 add_executable(final_chain_test final_chain_test.cpp)
-target_link_libraries(final_chain_test test_util)
+target_link_libraries(final_chain_test test_util vote)
 add_test(final_chain_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/final_chain_test)
 
+add_executable(pillar_chain_test pillar_chain_test.cpp)
+target_link_libraries(pillar_chain_test test_util)
+add_test(pillar_chain_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pillar_chain_test)
+
 add_executable(full_node_test full_node_test.cpp)
-target_link_libraries(full_node_test test_util)
+target_link_libraries(full_node_test test_util vote)
 add_test(full_node_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/full_node_test)
 
 add_executable(network_test network_test.cpp)

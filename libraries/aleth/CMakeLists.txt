@@ -1,6 +1,5 @@
 ### Aleth part
 include(ProjectSecp256k1)
-include(ProjectLibFF)
 
 add_subdirectory(libdevcore)
 add_subdirectory(libdevcrypto)

@@ -39,6 +39,26 @@ struct AspenHardfork {
 Json::Value enc_json(const AspenHardfork& obj);
 void dec_json(const Json::Value& json, AspenHardfork& obj);
 
+struct FicusHardforkConfig {
+  uint64_t block_num{0};
+  uint64_t pillar_block_periods{100};      // [periods] how often is the new pillar block created
+  uint64_t pillar_chain_sync_periods{25};  // [periods] how often is pillar chain checked if it is in sync (has all
+                                           // previous pillar blocks and 2t+1 signatures for latest pillar block)
+  uint64_t pbft_inclusion_delay{
+      6};  // [periods] how many periods after the pillar block is created it is included in pbft block
+
+  bool isFicusHardfork(taraxa::PbftPeriod period) const;
+  bool isPillarBlockPeriod(taraxa::PbftPeriod period, uint64_t from_n_th_block = 2) const;
+  bool isPbftWithPillarBlockPeriod(taraxa::PbftPeriod period) const;
+  // Returns first pillar block period
+  taraxa::PbftPeriod firstPillarBlockPeriod() const;
+  void validate(uint32_t delegation_delay) const;
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const FicusHardforkConfig& obj);
+void dec_json(const Json::Value& json, FicusHardforkConfig& obj);
+
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
@@ -76,6 +96,9 @@ struct HardforksConfig {
 
   bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
   bool isAspenHardforkPartTwo(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_two; }
+
+  // Ficus hardfork: implementation of pillar chain
+  FicusHardforkConfig ficus_hf;
 
   HAS_RLP_FIELDS
 };
