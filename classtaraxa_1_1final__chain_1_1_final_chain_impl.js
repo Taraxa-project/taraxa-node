@@ -53,6 +53,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "kBlockGasLimit", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#abc398fa9c008b4001bcc78bbfb1040c1", null ],
     [ "kLightNode", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0bd20b9995125122e8857c7fbb92aade", null ],
     [ "kMaxLevelsPerPeriod", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aafff15677f0f1cff83ace3c00e89acf8", null ],
+    [ "last_block_number_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a170a06052bdfd60ceeb9531177373e9a", null ],
     [ "num_executed_dag_blk_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7e4b48d1c452fb9384e2c69a5f595560", null ],
     [ "num_executed_trx_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae93239105e5ce019b97a88ef69e80527", null ],
     [ "rewards_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6fca86942967327ef164f05805f13d51", null ],

@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"group___vote.html#gga8a0770e242b649865f15f20a405507cca95aebab4b899f9fad597abfc4d9be96b":[14,4,4,4],
 "group___vote.html#gga8a0770e242b649865f15f20a405507ccac0f90f4138d33e1cf7eac17f81962061":[14,4,4,0],
 "group___vote.html#gga8a0770e242b649865f15f20a405507ccac21763d55850e64ff753fdcd72ef2c45":[14,4,4,1],
 "hardfork_8cpp.html":[17,0,1,3,1,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "libp2p_2_common_8h.html#a6604731ce0c5ace0e4ee202b55acb40c":[17,0,1,0,2,3,30],
 "libp2p_2_common_8h.html#a668591af9c9e684f2a9cbc5919102f02":[17,0,1,0,2,3,36],
 "libp2p_2_common_8h.html#a7274a51a9b4a19f79ef51d454368ce6a":[17,0,1,0,2,3,33],
-"libp2p_2_common_8h.html#a77d2562ff65b650dd9cbdead15920ed4":[17,0,1,0,2,3,35],
-"libp2p_2_common_8h.html#a7e724ac9b0d0a40bb4d7ce3e7ff137a3":[17,0,1,0,2,3,34]
+"libp2p_2_common_8h.html#a77d2562ff65b650dd9cbdead15920ed4":[17,0,1,0,2,3,35]
 };

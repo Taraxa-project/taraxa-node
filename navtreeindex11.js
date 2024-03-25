@@ -1,5 +1,6 @@
 var NAVTREEINDEX11 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a157e186cd830ef0190f6b0c0c28f5527":[16,0,3,5,0,11,4],
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1592657752e99a1a4136d559cb7fb1e0":[16,0,3,5,0,11,1],
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a3e0874d6cfd20eeed43d18249262ff18":[16,0,3,5,0,11,2],
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a76e477c62ee058b54a26bff8c18870c6":[16,0,3,5,0,11,8],
@@ -248,6 +249,5 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a3f99c840cd49f922381032079310a17f":[16,0,3,10,0,13],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a4ec3d80ed191647f2d864f0bd1405fce":[16,0,3,10,0,1],
 "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a53a3478b21908b5fdde922f9b9066dee":[16,0,3,10,0,17],
-"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a5a4fba6316b7e9623682c438dadd9cb5":[16,0,3,10,0,11],
-"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a605556f3dbea87c10e3f0eae4e203890":[16,0,3,10,0,16]
+"classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a5a4fba6316b7e9623682c438dadd9cb5":[16,0,3,10,0,11]
 };

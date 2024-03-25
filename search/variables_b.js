@@ -4,7 +4,7 @@ var searchData=
   ['lambda_5fbound_6472',['lambda_bound',['../namespacetaraxa.html#a9a427e4addb6ff6e9d70279791a9637b',1,'taraxa::VdfParams']]],
   ['lambda_5fms_6473',['lambda_ms',['../structtaraxa_1_1_pbft_config.html#a4fa7286ab8ab868f9fdde602d037d5ca',1,'taraxa::PbftConfig']]],
   ['last_5fblock_5fcert_5fvotes_5f_6474',['last_block_cert_votes_',['../group___p_b_f_t.html#ae5baf0a72dacd943539c6c41c990ba70',1,'taraxa::PeriodDataQueue']]],
-  ['last_5fblock_5fnumber_5f_6475',['last_block_number_',['../class_expiration_block_number_cache.html#ad71b5bfee63646ba95e3eca47567cc49',1,'ExpirationBlockNumberCache']]],
+  ['last_5fblock_5fnumber_5f_6475',['last_block_number_',['../class_expiration_block_number_cache.html#ad71b5bfee63646ba95e3eca47567cc49',1,'ExpirationBlockNumberCache::last_block_number_()'],['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a170a06052bdfd60ceeb9531177373e9a',1,'taraxa::final_chain::FinalChainImpl::last_block_number_()']]],
   ['last_5fjson_5fupdate_5ftime_6476',['last_json_update_time',['../structtaraxa_1_1_full_node_config.html#ac560fb999600baff868525631e81eca0',1,'taraxa::FullNodeConfig']]],
   ['last_5fnon_5fnull_5fpbft_5fdag_5fanchor_5fhash_5f_6477',['last_non_null_pbft_dag_anchor_hash_',['../group___p_b_f_t.html#a8b78847ba76f5d5060265adf8798a91c',1,'taraxa::PbftChain']]],
   ['last_5fpbft_5fblock_5fhash_5f_6478',['last_pbft_block_hash_',['../group___p_b_f_t.html#a05fc8279766fa92c2acef6397068635b',1,'taraxa::PbftChain']]],
