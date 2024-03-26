@@ -48,7 +48,7 @@ const std::vector<PillarBlock::ValidatorStakeChange>& PillarBlock::getValidators
 
 const h256& PillarBlock::getStateRoot() const { return state_root_; }
 
-PillarBlock::Hash PillarBlock::getHash() {
+PillarBlock::Hash PillarBlock::getHash() const {
   {
     std::shared_lock lock(hash_mutex_);
     if (hash_.has_value()) {
@@ -59,6 +59,24 @@ PillarBlock::Hash PillarBlock::getHash() {
   std::scoped_lock lock(hash_mutex_);
   hash_ = dev::sha3(getRlp());
   return *hash_;
+}
+
+Json::Value PillarBlock::getJson() const {
+  Json::Value res;
+  res["period"] = dev::toJS(period_);
+  res["state_root"] = dev::toJS(state_root_);
+  res["previous_pillar_block_hash"] = dev::toJS(previous_pillar_block_hash_);
+  res["validators_stakes_changes"] = Json::Value(Json::arrayValue);
+  for (auto const& stake_change : validators_stakes_changes_) {
+    Json::Value stake_change_json;
+    stake_change_json["address"] = dev::toJS(stake_change.addr_);
+    stake_change_json["value"] = dev::toJS(stake_change.stake_change_);
+
+    res["validators_stakes_changes"].append(std::move(stake_change_json));
+  }
+  res["hash"] = dev::toJS(getHash());
+
+  return res;
 }
 
 RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, previous_pillar_block_hash_, validators_stakes_changes_)

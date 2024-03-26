@@ -46,7 +46,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
 
-std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
+std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     const std::shared_ptr<final_chain::FinalizationResult>& block_data) {
   const auto block_num = block_data->final_chain_blk->number;
 
@@ -65,7 +65,7 @@ std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
     if (!current_pillar_block_) {
       LOG(log_er_) << "Empty previous pillar block, new pillar block period " << block_num;
       assert(false);
-      return {};
+      return nullptr;
     }
 
     // Push pillar block into the pillar chain in case it was not finalized yet
@@ -76,7 +76,7 @@ std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
       if (two_t_plus_one_votes.empty()) {
         LOG(log_er_) << "There is < 2t+1 votes for current pillar block " << current_pillar_block_->getHash()
                      << ", period: " << current_pillar_block_->getPeriod() << ". Current period " << block_num;
-        return {};
+        return nullptr;
       }
 
       // Save current pillar block and 2t+1 votes into db
@@ -85,7 +85,7 @@ std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
         LOG(log_er_) << "Unable to push pillar block: " << current_pillar_block_->getHash() << ", period "
                      << current_pillar_block_->getPeriod();
         assert(false);
-        return {};
+        return nullptr;
       }
     }
 
@@ -93,7 +93,7 @@ std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
     if (current_pillar_block_stakes_.empty()) {
       LOG(log_er_) << "Empty current pillar block stakes, new pillar block period " << block_num;
       assert(false);
-      return {};
+      return nullptr;
     }
 
     previous_pillar_block_hash = current_pillar_block_->getHash();
@@ -109,7 +109,7 @@ std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
   if (!isValidPillarBlock(pillar_block)) {
     LOG(log_er_) << "Newly created pillar block " << pillar_block->getHash() << "with period "
                  << pillar_block->getPeriod() << " is invalid";
-    return {};
+    return nullptr;
   }
 
   LOG(log_nf_) << "New pillar block " << pillar_block->getHash() << " with period " << pillar_block->getPeriod()
@@ -128,7 +128,7 @@ std::optional<PillarBlock::Hash> PillarChainManager::createPillarBlock(
     db_->commitWriteBatch(batch);
   }
 
-  return pillar_block->getHash();
+  return pillar_block;
 }
 
 bool PillarChainManager::genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk,
