@@ -327,9 +327,11 @@ void FullNode::start() {
         },
         subscription_pool_);
 
+    // Pillar blocks creation
     final_chain_->block_finalized_.subscribe(
         [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf, pillar_chain_weak = as_weak(pillar_chain_mgr_),
-         network_weak = as_weak(network_), node_secret = kp_.secret()](const auto &res) {
+         network_weak = as_weak(network_), ws_weak = as_weak(jsonrpc_ws_),
+         node_secret = kp_.secret()](const auto &res) {
           const auto block_num = res->final_chain_blk->number;
           if (!ficus_hf_config.isFicusHardfork(block_num)) {
             return;
@@ -350,9 +352,12 @@ void FullNode::start() {
           };
 
           if (ficus_hf_config.isPillarBlockPeriod(block_num, 1)) {
-            const auto pillar_block_hash = pillar_chain->createPillarBlock(res);
-            if (pillar_block_hash.has_value()) {
-              pillar_chain->genAndPlacePillarVote(*pillar_block_hash, node_secret, is_pbft_syncing());
+            const auto pillar_block = pillar_chain->createPillarBlock(res);
+            if (pillar_block) {
+              pillar_chain->genAndPlacePillarVote(pillar_block->getHash(), node_secret, is_pbft_syncing());
+              if (auto ws = ws_weak.lock()) {
+                ws->newPillarBlockExecuted(*pillar_block);
+              }
             }
           } else if (block_num > ficus_hf_config.firstPillarBlockPeriod() &&
                      block_num % ficus_hf_config.pillar_chain_sync_periods == 0) {

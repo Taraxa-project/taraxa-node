@@ -38,10 +38,9 @@ class PillarChainManager {
    * @Process Creates new pillar block
    *
    * @param block_data
-   * @return pillar block hash in case block was created, otherwise empty optional
+   * @return pillar block in case block was created, otherwise nullptr
    */
-  std::optional<PillarBlock::Hash> createPillarBlock(
-      const std::shared_ptr<final_chain::FinalizationResult>& block_data);
+  std::shared_ptr<PillarBlock> createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
 
   /**
    * @brief Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and
