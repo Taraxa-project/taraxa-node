@@ -76,7 +76,7 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
 
   const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret);
 
-  const auto input = final_chain::ContractInterface::packFunctionCall(
+  const auto input = util::EncodingSolidity::packFunctionCall(
       "registerValidator(address,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(), 10,
       dev::asBytes("test"), dev::asBytes("test"));
 
@@ -87,7 +87,7 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
 SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
                                    const u256& gas_price) {
   const auto addr = dev::toAddress(sender_node_cfg.node_secret);
-  const auto input = final_chain::ContractInterface::packFunctionCall("delegate(address)", addr);
+  const auto input = util::EncodingSolidity::packFunctionCall("delegate(address)", addr);
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
