@@ -54,7 +54,7 @@ class PillarBlock {
   /**
    * @return pillar block hash
    */
-  Hash getHash();
+  Hash getHash() const;
 
   /**
    * @return pillar block pbft period
@@ -81,6 +81,11 @@ class PillarBlock {
    */
   dev::bytes getRlp() const;
 
+  /**
+   * @return json representation of Pillar block
+   */
+  Json::Value getJson() const;
+
   HAS_RLP_FIELDS
 
  private:
@@ -95,8 +100,8 @@ class PillarBlock {
 
   Hash previous_pillar_block_hash_{0};
 
-  std::optional<Hash> hash_;
-  std::shared_mutex hash_mutex_;
+  mutable std::optional<Hash> hash_;
+  mutable std::shared_mutex hash_mutex_;
 };
 
 struct PillarBlockData {
