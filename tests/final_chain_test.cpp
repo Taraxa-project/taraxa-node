@@ -810,8 +810,8 @@ std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<PbftV
   const auto hash_bytes = hash_rlp.invalidate();
   // const auto hash = dev::sha3(hash_bytes);
 
-  auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
-                                                                vote_b->rlp());
+  auto input =
+      util::EncodingSolidity::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(), vote_b->rlp());
   return std::make_shared<Transaction>(nonce, 0, 1, 100000, std::move(input), keys.secret(), kSlashingContractAddress);
 }
 

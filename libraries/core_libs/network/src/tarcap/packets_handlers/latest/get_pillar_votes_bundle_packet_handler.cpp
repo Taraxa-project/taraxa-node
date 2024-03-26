@@ -46,7 +46,7 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
   // TODO: split packet to multiple with N votes containing each
   dev::RLPStream s(votes.size());
   for (const auto &sig : votes) {
-    s.appendRaw(sig->rlp(true));
+    s.appendRaw(sig->rlp());
   }
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::PillarVotesBundlePacket, std::move(s))) {
