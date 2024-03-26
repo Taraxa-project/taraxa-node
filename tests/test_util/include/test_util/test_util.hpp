@@ -15,9 +15,9 @@
 #include <vector>
 
 #include "../../gtest.hpp"
+#include "common/encoding_solidity.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "final_chain/contract_interface.hpp"
 #include "network/network.hpp"
 #include "node/node.hpp"
 #include "transaction/transaction_manager.hpp"
