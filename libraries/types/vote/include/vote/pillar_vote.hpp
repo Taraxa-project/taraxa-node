@@ -34,10 +34,24 @@ class PillarVote : public Vote {
 
   /**
    * @brief Recursive Length Prefix
-   * @param inc_sig if include vote signature
    * @return bytes of RLP stream
    */
-  bytes rlp(bool inc_sig = true) const;
+  bytes rlp() const;
+
+  /**
+   * @note Solidity encoding is used for data that are sent to smart contracts
+   *
+   * @return solidity encoded representation of pillar vote
+   */
+  bytes encodeSolidity(bool inc_sig = true) const;
+
+  /**
+   * @brief Decodes solidity encoded representation of pillar vote
+   *
+   * @param enc
+   * @return
+   */
+  static PillarVote decodeSolidity(const bytes& enc);
 
   HAS_RLP_FIELDS
 

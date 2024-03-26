@@ -102,7 +102,8 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     stakes_changes = getOrderedValidatorsStakesChanges(new_stakes, current_pillar_block_stakes_);
   }
 
-  const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root,
+  // TODO: provide bridge root ???
+  const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root, h256{},
                                                           std::move(stakes_changes), previous_pillar_block_hash);
 
   // Check if some pillar block was not skipped
