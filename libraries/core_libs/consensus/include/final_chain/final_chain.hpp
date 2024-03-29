@@ -230,6 +230,8 @@ class FinalChain {
 
   virtual std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const = 0;
 
+  virtual uint256_t dpos_total_amount_delegated(EthBlockNumber blk_num) const = 0;
+
   /**
    * @param blk_num
    * @return yield
