@@ -111,7 +111,7 @@ class PillarBlock {
 
  private:
   // Pillar block pbft period
-  PbftPeriod period_{0};
+  PbftPeriod pbft_period_{0};
 
   // Pbft block(for period_) state root
   h256 state_root_{};
