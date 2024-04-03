@@ -87,14 +87,17 @@ Json::Value PillarBlock::getJson() const {
 
 dev::bytes PillarBlock::encodeSolidity() const {
   dev::bytes result;
+  // TODO[2733]: describe these hardcoded constants
   result.reserve((1 + 4 + 2 + 2 * validators_stakes_changes_.size()) * util::EncodingSolidity::kWordSize);
 
+  // TODO[2733]: describe these hardcoded constants
   auto start = util::EncodingSolidity::pack(32);
   result.insert(result.end(), start.begin(), start.end());
 
   auto body = util::EncodingSolidity::pack(period_, state_root_, bridge_root_, previous_pillar_block_hash_);
   result.insert(result.end(), body.begin(), body.end());
 
+  // TODO[2733]: describe these hardcoded constants
   auto array_data = util::EncodingSolidity::pack(160, validators_stakes_changes_.size());
   result.insert(result.end(), array_data.begin(), array_data.end());
 
@@ -104,13 +107,6 @@ dev::bytes PillarBlock::encodeSolidity() const {
   }
 
   return result;
-}
-
-PillarBlock PillarBlock::decodeSolidity(const bytes& enc) {
-  PillarBlock pillar_block;
-  // TODO: implement solidity decoding
-
-  return pillar_block;
 }
 
 RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, bridge_root_, previous_pillar_block_hash_,
