@@ -104,7 +104,8 @@ class PillarBlock {
    * @param enc
    * @return
    */
-  static PillarBlock decodeSolidity(const bytes& enc);
+  // TODO[2733]: implement
+  // static PillarBlock decodeSolidity(const bytes& enc);
 
   HAS_RLP_FIELDS
 
