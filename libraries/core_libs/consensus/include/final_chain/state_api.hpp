@@ -61,6 +61,7 @@ class StateAPI {
   std::vector<ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const;
   uint64_t dpos_yield(EthBlockNumber blk_num) const;
   u256 dpos_total_supply(EthBlockNumber blk_num) const;
+  u256 dpos_total_amount_delegated(EthBlockNumber blk_num) const;
 };
 /** @} */
 
