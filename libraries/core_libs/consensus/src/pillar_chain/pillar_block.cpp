@@ -26,14 +26,14 @@ PillarBlock::PillarBlock(const dev::RLP& rlp) : PillarBlock(util::rlp_dec<Pillar
 PillarBlock::PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root,
                          std::vector<ValidatorStakeChange>&& validator_stakes_changes,
                          PillarBlock::Hash previous_pillar_block_hash)
-    : period_(period),
+    : pbft_period_(period),
       state_root_(state_root),
       bridge_root_(bridge_root),
       validators_stakes_changes_(std::move(validator_stakes_changes)),
       previous_pillar_block_hash_(previous_pillar_block_hash) {}
 
 PillarBlock::PillarBlock(const PillarBlock& pillar_block)
-    : period_(pillar_block.period_),
+    : pbft_period_(pillar_block.pbft_period_),
       state_root_(pillar_block.state_root_),
       bridge_root_(pillar_block.bridge_root_),
       validators_stakes_changes_(pillar_block.validators_stakes_changes_),
@@ -41,7 +41,7 @@ PillarBlock::PillarBlock(const PillarBlock& pillar_block)
 
 dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
 
-PbftPeriod PillarBlock::getPeriod() const { return period_; }
+PbftPeriod PillarBlock::getPeriod() const { return pbft_period_; }
 
 PillarBlock::Hash PillarBlock::getPreviousBlockHash() const { return previous_pillar_block_hash_; }
 
@@ -68,7 +68,7 @@ PillarBlock::Hash PillarBlock::getHash() const {
 
 Json::Value PillarBlock::getJson() const {
   Json::Value res;
-  res["pbft_period"] = dev::toJS(period_);
+  res["pbft_period"] = dev::toJS(pbft_period_);
   res["state_root"] = dev::toJS(state_root_);
   res["bridge_root"] = dev::toJS(bridge_root_);
   res["previous_pillar_block_hash"] = dev::toJS(previous_pillar_block_hash_);
@@ -94,7 +94,7 @@ dev::bytes PillarBlock::encodeSolidity() const {
   auto start = util::EncodingSolidity::pack(32);
   result.insert(result.end(), start.begin(), start.end());
 
-  auto body = util::EncodingSolidity::pack(period_, state_root_, bridge_root_, previous_pillar_block_hash_);
+  auto body = util::EncodingSolidity::pack(pbft_period_, state_root_, bridge_root_, previous_pillar_block_hash_);
   result.insert(result.end(), body.begin(), body.end());
 
   // TODO[2733]: describe these hardcoded constants
@@ -109,7 +109,7 @@ dev::bytes PillarBlock::encodeSolidity() const {
   return result;
 }
 
-RLP_FIELDS_DEFINE(PillarBlock, period_, state_root_, bridge_root_, previous_pillar_block_hash_,
+RLP_FIELDS_DEFINE(PillarBlock, pbft_period_, state_root_, bridge_root_, previous_pillar_block_hash_,
                   validators_stakes_changes_)
 
 PillarBlockData::PillarBlockData(std::shared_ptr<PillarBlock> block,
