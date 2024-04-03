@@ -275,4 +275,12 @@ u256 StateAPI::dpos_total_supply(EthBlockNumber blk_num) const {
   return ret;
 }
 
+u256 StateAPI::dpos_total_amount_delegated(EthBlockNumber blk_num) const {
+  u256 ret;
+  ErrorHandler err_h;
+  taraxa_evm_state_api_dpos_total_amount_delegated(this_c_, blk_num, decoder_cb_c<u256, to_u256>(ret), err_h.cgo_part_);
+  err_h.check();
+  return ret;
+}
+
 }  // namespace taraxa::state_api
