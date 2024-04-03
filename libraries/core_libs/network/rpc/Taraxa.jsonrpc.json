@@ -76,6 +76,12 @@
     "params": [""],
     "order": [],
     "returns": ""
+  },
+  {
+    "name": "taraxa_getPillarBlock",
+    "params": [""],
+    "order": [],
+    "returns": ""
   }
 ]
 

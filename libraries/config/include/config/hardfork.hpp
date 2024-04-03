@@ -48,7 +48,7 @@ struct FicusHardforkConfig {
       6};  // [periods] how many periods after the pillar block is created it is included in pbft block
 
   bool isFicusHardfork(taraxa::PbftPeriod period) const;
-  bool isPillarBlockPeriod(taraxa::PbftPeriod period, uint64_t from_n_th_block = 2) const;
+  bool isPillarBlockPeriod(taraxa::PbftPeriod period, uint64_t from_n_th_block = 1) const;
   bool isPbftWithPillarBlockPeriod(taraxa::PbftPeriod period) const;
   // Returns first pillar block period
   taraxa::PbftPeriod firstPillarBlockPeriod() const;

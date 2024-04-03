@@ -159,7 +159,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       }
 
       // Validate optional pillar votes
-      if (kFicusHfConfig.isPillarBlockPeriod(pbft_block_period)) {
+      if (kFicusHfConfig.isPillarBlockPeriod(pbft_block_period, 2)) {
         if (!period_data.pillar_votes_.has_value()) {
           LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
                        << " does not contain pillar votes";

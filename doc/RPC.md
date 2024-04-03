@@ -566,6 +566,60 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_totalSupply","params":["0
 }
 ```
 
+### taraxa_getPillarBlock
+
+Returns pillar block for specified period
+
+#### Parameters
+
+`QUANTITY` - pillar block number
+
+#### Returns
+
+`OBJECT` - pillar block object
+* `pbft_period`: `QUANTITY` - pillar block PBFT period
+* `state_root`: `DATA`, 32 Bytes - state root hash
+* `bridge_root`: `DATA`, 32 Bytes - bridge root hash
+* `hash`: `DATA`, 32 Bytes - pillar block hash
+* `previous_pillar_block_hash`: `DATA`, 32 Bytes - previous pillar block hash
+* `validators_stakes_changes`: `Array` - Array of stakes changes(between this and previous pillar block) objects
+  * `address`: `DATA`, 20 Bytes - Address of the validator
+  * `value`: `QUANTITY` - stake change
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPillarBlock","params":[1],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "bridge_root": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "hash": "0xfbe323b551ecfa5a7aa55448329639789342b701239a066dc8ac111c2785f8fc",
+    "pbft_period": "0x64",
+    "previous_pillar_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "state_root": "0xc0a1cc0d6f3f29ad42bd513d76e8ffd49c5511d0194af34f75102af5121eda73",
+    "validators_stakes_changes": [
+      {
+        "address": "0x81ca6ec6531d4d37a2e89907f63acfe93669843d",
+        "value": "0x84595161401484a000000"
+      },
+      {
+        "address": "0x8e1398c5c7dd7e64491b3efaf60a4777db47aade",
+        "value": "0x84595161401484a000000"
+      },
+      {
+        "address": "0x2385b6d95e46bc648f272881de74b4251c3479dd",
+        "value": "0x84595161401484a000000"
+      }
+    ]
+  }
+}
+```
+
 ## Test API
 
 ### get_sortition_change

@@ -31,7 +31,7 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
     throw MaliciousPeerException(err_msg.str());
   }
 
-  if (!kConf.genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(period, 1)) {
+  if (!kConf.genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(period)) {
     std::ostringstream err_msg;
     err_msg << "Pillar votes bundle request for period " << period << ". Wrong requested period";
     throw MaliciousPeerException(err_msg.str());

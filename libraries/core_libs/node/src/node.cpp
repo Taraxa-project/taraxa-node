@@ -351,7 +351,7 @@ void FullNode::start() {
             return network->pbft_syncing();
           };
 
-          if (ficus_hf_config.isPillarBlockPeriod(block_num, 1)) {
+          if (ficus_hf_config.isPillarBlockPeriod(block_num)) {
             const auto pillar_block = pillar_chain->createPillarBlock(res);
             if (pillar_block) {
               pillar_chain->genAndPlacePillarVote(pillar_block->getHash(), node_secret, is_pbft_syncing());

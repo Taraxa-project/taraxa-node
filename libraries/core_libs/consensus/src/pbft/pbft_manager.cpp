@@ -1389,7 +1389,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
       return false;
     }
 
-    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(kBlockPeriod)) {
+    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(kBlockPeriod, 2)) {
       const auto last_finalized_pillar_block = pillar_chain_mgr_->getLastFinalizedPillarBlock();
       if (!last_finalized_pillar_block) {
         // This should never happen
@@ -1854,7 +1854,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     }
 
     // Validate pillar votes
-    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(kBlockPeriod)) {
+    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(kBlockPeriod, 2)) {
       if (!period_data.pillar_votes_.has_value()) {
         LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << ", period " << kBlockPeriod
                      << " does not contain pillar votes";
