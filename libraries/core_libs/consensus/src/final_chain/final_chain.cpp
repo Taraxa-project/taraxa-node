@@ -55,8 +55,10 @@ class FinalChainImpl final : public FinalChain {
                    }),
         kLightNode(config.is_light_node),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
-        rewards_(config.genesis.pbft.committee_size, config.genesis.state.hardforks, db_,
-                 [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); }),
+        rewards_(
+            config.genesis.pbft.committee_size, config.genesis.state.hardforks, db_,
+            [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); },
+            state_api_.get_last_committed_state_descriptor().blk_num),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -228,8 +230,10 @@ class FinalChainImpl final : public FinalChain {
         std::move(receipts),
     });
 
+    // Please do not change order of these three lines :)
     db_->commitWriteBatch(batch);
     state_api_.transition_state_commit();
+    rewards_.clear(new_blk.pbft_blk->getPeriod());
 
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
