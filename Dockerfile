@@ -34,9 +34,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
 RUN \
 if [ `arch` != "aarch64" ]; \
 then  \
-curl -L -o solc-0.8.24 https://github.com/ethereum/solidity/releases/download/v0.8.24/solc-static-linux \
-    && chmod +x solc-0.8.24 \
-    && mv solc-0.8.24 /usr/bin/solc; \
+curl -L -o solc-0.8.25 https://github.com/ethereum/solidity/releases/download/v0.8.25/solc-static-linux \
+    && chmod +x solc-0.8.25 \
+    && mv solc-0.8.25 /usr/bin/solc; \
 fi
 
 # install standart tools
