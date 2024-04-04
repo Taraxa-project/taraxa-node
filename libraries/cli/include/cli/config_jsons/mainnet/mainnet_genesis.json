@@ -1648,6 +1648,23 @@
       "block_num_part_two" : 8572000,
       "max_supply": "0x26C62AD77DC602DAE0000000",
       "generated_rewards": "0x105674788D280AE305A6EC0"
+    },
+    "bamboo_hf" : {
+      "block_num" : 99999999999,
+      "redelegations": [
+        {
+          "validator": "0x831FfEEC7937626cd6d6946baAAaB8E4B87D319F",
+          "amount": "0x19C89F7187DF2A80000"
+        },
+        {
+          "validator": "0xbEceA7d7bBf91f3ad59Ec5e6516731CEe9d129C3",
+          "amount": "0x3635C9ADC5DEA00000"
+        },
+        {
+          "validator": "0x41122d2C177E77B5f382828e70de18600fb202C9",
+          "amount": "0x5DC84B9C2C524600000"
+        }
+      ]
     }
   }
 }
