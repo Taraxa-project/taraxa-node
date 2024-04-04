@@ -46,15 +46,15 @@ class PillarBlock {
  public:
   PillarBlock() = default;
   PillarBlock(const dev::RLP& rlp);
-  PillarBlock(PbftPeriod period, h256 state_root, std::vector<ValidatorStakeChange>&& validator_stakes_changes,
-              blk_hash_t previous_pillar_block_hash);
+  PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root,
+              std::vector<ValidatorStakeChange>&& validator_stakes_changes, blk_hash_t previous_pillar_block_hash);
 
   PillarBlock(const PillarBlock& pillar_block);
 
   /**
    * @return pillar block hash
    */
-  Hash getHash();
+  Hash getHash() const;
 
   /**
    * @return pillar block pbft period
@@ -77,26 +77,55 @@ class PillarBlock {
   const h256& getStateRoot() const;
 
   /**
+   * @return bridge root
+   */
+  const h256& getBridgeRoot() const;
+
+  /**
    * @return pillar block rlp
    */
   dev::bytes getRlp() const;
+
+  /**
+   * @return json representation of Pillar block
+   */
+  Json::Value getJson() const;
+
+  /**
+   * @note Solidity encoding is used for data that are sent to smart contracts
+   *
+   * @return solidity encoded representation of pillar block
+   */
+  dev::bytes encodeSolidity() const;
+
+  /**
+   * @brief Decodes solidity encoded representation of pillar block
+   *
+   * @param enc
+   * @return
+   */
+  // TODO[2733]: implement
+  // static PillarBlock decodeSolidity(const bytes& enc);
 
   HAS_RLP_FIELDS
 
  private:
   // Pillar block pbft period
-  PbftPeriod period_{0};
+  PbftPeriod pbft_period_{0};
 
   // Pbft block(for period_) state root
   h256 state_root_{};
+
+  // Bridge root
+  h256 bridge_root_{};
 
   // Delta change of validators stakes between current and latest pillar block
   std::vector<ValidatorStakeChange> validators_stakes_changes_{};
 
   Hash previous_pillar_block_hash_{0};
 
-  std::optional<Hash> hash_;
-  std::shared_mutex hash_mutex_;
+  mutable std::optional<Hash> hash_;
+  mutable std::shared_mutex hash_mutex_;
 };
 
 struct PillarBlockData {

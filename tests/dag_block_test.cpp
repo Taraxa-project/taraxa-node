@@ -381,7 +381,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   // Verify selection is up to kDagBlockMaxTips and unique proposer has priority
   propose_level = 1;
   period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
-  vdf = vdf_sortition::VdfSortition(vdf_config, node_cfgs[1].vrf_secret,
+  vdf = vdf_sortition::VdfSortition(vdf_config, node_cfgs[0].vrf_secret,
                                     VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
 
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
