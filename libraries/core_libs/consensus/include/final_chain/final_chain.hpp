@@ -234,6 +234,12 @@ class FinalChain {
 
   /**
    * @param blk_num
+   * @return vector of validators vote counts for provided blk_num
+   */
+  virtual std::vector<state_api::ValidatorVoteCount> dpos_validators_vote_counts(EthBlockNumber blk_num) const = 0;
+
+  /**
+   * @param blk_num
    * @return yield
    */
   virtual uint64_t dpos_yield(EthBlockNumber blk_num) const = 0;

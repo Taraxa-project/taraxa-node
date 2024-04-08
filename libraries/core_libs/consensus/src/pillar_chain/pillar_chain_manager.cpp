@@ -24,7 +24,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
       node_addr_(node_addr),
       last_finalized_pillar_block_{},
       current_pillar_block_{},
-      current_pillar_block_stakes_{},
+      current_pillar_block_vote_counts_{},
       pillar_votes_{},
       mutex_{} {
   if (const auto vote = db_->getOwnPillarBlockVote(); vote) {
@@ -35,8 +35,9 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig,
     current_pillar_block_ = std::move(current_pillar_block);
   }
 
-  if (auto&& current_pillar_block_stakes = db_->getCurrentPillarBlockStakes(); !current_pillar_block_stakes.empty()) {
-    current_pillar_block_stakes_ = std::move(current_pillar_block_stakes);
+  if (auto&& current_pillar_block_vote_counts = db_->getCurrentPillarBlockVoteCounts();
+      !current_pillar_block_vote_counts.empty()) {
+    current_pillar_block_vote_counts_ = std::move(current_pillar_block_vote_counts);
   }
 
   if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
@@ -51,15 +52,18 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
   const auto block_num = block_data->final_chain_blk->number;
 
   PillarBlock::Hash previous_pillar_block_hash{};  // null block hash
-  auto new_stakes = final_chain_->dpos_validators_total_stakes(block_num);
-  std::vector<PillarBlock::ValidatorStakeChange> stakes_changes;
+  auto new_vote_counts = final_chain_->dpos_validators_vote_counts(block_num);
+  std::vector<PillarBlock::ValidatorVoteCountChange> votes_count_changes;
 
   // First ever pillar block
   if (block_num == kFicusHfConfig.firstPillarBlockPeriod()) {
-    // First pillar block - use all current stakes as changes
-    stakes_changes.reserve(new_stakes.size());
-    std::transform(new_stakes.begin(), new_stakes.end(), std::back_inserter(stakes_changes),
-                   [](auto& stake) { return PillarBlock::ValidatorStakeChange(stake); });
+    // First pillar block - use all current votes counts as changes
+    votes_count_changes.reserve(new_vote_counts.size());
+    std::transform(new_vote_counts.begin(), new_vote_counts.end(), std::back_inserter(votes_count_changes),
+                   [](const auto& vote_count) {
+                     return PillarBlock::ValidatorVoteCountChange(vote_count.addr,
+                                                                  static_cast<int64_t>(vote_count.vote_count));
+                   });
   } else {
     // Second or further pillar blocks
     if (!current_pillar_block_) {
@@ -90,21 +94,21 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     }
 
     // This should never happen
-    if (current_pillar_block_stakes_.empty()) {
-      LOG(log_er_) << "Empty current pillar block stakes, new pillar block period " << block_num;
+    if (current_pillar_block_vote_counts_.empty()) {
+      LOG(log_er_) << "Empty current pillar block vote counts, new pillar block period " << block_num;
       assert(false);
       return nullptr;
     }
 
     previous_pillar_block_hash = current_pillar_block_->getHash();
 
-    // Get validators stakes changes between the current and previous pillar block
-    stakes_changes = getOrderedValidatorsStakesChanges(new_stakes, current_pillar_block_stakes_);
+    // Get validators vote counts changes between the current and previous pillar block
+    votes_count_changes = getOrderedValidatorsVoteCountsChanges(new_vote_counts, current_pillar_block_vote_counts_);
   }
 
   // TODO: provide bridge root ???
   const auto pillar_block = std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root, h256{},
-                                                          std::move(stakes_changes), previous_pillar_block_hash);
+                                                          std::move(votes_count_changes), previous_pillar_block_hash);
 
   // Check if some pillar block was not skipped
   if (!isValidPillarBlock(pillar_block)) {
@@ -119,11 +123,11 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
     current_pillar_block_ = pillar_block;
-    current_pillar_block_stakes_ = std::move(new_stakes);
+    current_pillar_block_vote_counts_ = std::move(new_vote_counts);
 
     auto batch = db_->createWriteBatch();
     db_->saveCurrentPillarBlock(current_pillar_block_, batch);
-    db_->saveCurrentPillarBlockStakes(current_pillar_block_stakes_, batch);
+    db_->saveCurrentPillarBlockVoteCounts(current_pillar_block_vote_counts_, batch);
 
     // Commit DB
     db_->commitWriteBatch(batch);
@@ -333,7 +337,7 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
   }
 
   if (!validator_vote_count) {
-    LOG(log_er_) << "Zero stake for pillar vote: " << vote->getHash() << ", author: " << vote->getVoterAddr()
+    LOG(log_er_) << "Zero vote count for pillar vote: " << vote->getHash() << ", author: " << vote->getVoterAddr()
                  << ", period: " << vote->getPeriod();
     return 0;
   }
@@ -416,56 +420,66 @@ bool PillarChainManager::isValidPillarBlock(const std::shared_ptr<PillarBlock>& 
   return false;
 }
 
-std::vector<PillarBlock::ValidatorStakeChange> PillarChainManager::getOrderedValidatorsStakesChanges(
-    const std::vector<state_api::ValidatorStake>& current_stakes,
-    const std::vector<state_api::ValidatorStake>& previous_pillar_block_stakes) {
-  auto transformToMap = [](const std::vector<state_api::ValidatorStake>& stakes) {
-    std::map<addr_t, state_api::ValidatorStake> stakes_map;
-    for (auto&& stake : stakes) {
-      stakes_map.emplace(stake.addr, stake);
+std::vector<PillarBlock::ValidatorVoteCountChange> PillarChainManager::getOrderedValidatorsVoteCountsChanges(
+    const std::vector<state_api::ValidatorVoteCount>& current_vote_counts,
+    const std::vector<state_api::ValidatorVoteCount>& previous_pillar_block_vote_counts) {
+  auto transformToMap = [](const std::vector<state_api::ValidatorVoteCount>& vote_counts) {
+    std::map<addr_t, state_api::ValidatorVoteCount> vote_counts_map;
+    for (auto&& vote_count : vote_counts) {
+      vote_counts_map.emplace(vote_count.addr, vote_count);
     }
 
-    return stakes_map;
+    return vote_counts_map;
   };
 
-  assert(!previous_pillar_block_stakes.empty());
+  assert(!previous_pillar_block_vote_counts.empty());
 
-  auto current_stakes_map = transformToMap(current_stakes);
-  auto previous_stakes_map = transformToMap(previous_pillar_block_stakes);
+  auto current_vote_counts_map = transformToMap(current_vote_counts);
+  auto previous_vote_counts_map = transformToMap(previous_pillar_block_vote_counts);
 
   // First create ordered map so the changes are ordered by validator addresses
-  std::map<addr_t, PillarBlock::ValidatorStakeChange> changes_map;
-  for (auto& current_stake : current_stakes_map) {
-    auto previous_stake = previous_stakes_map.find(current_stake.first);
+  std::map<addr_t, PillarBlock::ValidatorVoteCountChange> changes_map;
+  for (auto& current_vote_count : current_vote_counts_map) {
+    auto previous_vote_count = previous_vote_counts_map.find(current_vote_count.first);
 
-    // Previous stakes does not contain validator address from current stakes -> new stake(delegator)
-    if (previous_stake == previous_stakes_map.end()) {
-      changes_map.emplace(std::move(current_stake));
+    // Previous vote counts does not contain validator address from current vote counts -> new vote count(delegator)
+    if (previous_vote_count == previous_vote_counts_map.end()) {
+      changes_map.emplace(
+          current_vote_count.second.addr,
+          PillarBlock::ValidatorVoteCountChange(current_vote_count.second.addr,
+                                                static_cast<int64_t>(current_vote_count.second.vote_count)));
       continue;
     }
 
-    // Previous stakes contains validator address from current stakes -> substitute the stakes
-    if (const auto stake_change = dev::s256(current_stake.second.stake - previous_stake->second.stake);
-        stake_change != 0) {
-      changes_map.emplace(current_stake.first, PillarBlock::ValidatorStakeChange(current_stake.first, stake_change));
+    // Previous vote counts contains validator address from current vote counts -> substitute the vote counts
+    if (const auto vote_count_change =
+            static_cast<int64_t>(current_vote_count.second.vote_count - previous_vote_count->second.vote_count);
+        vote_count_change != 0) {
+      changes_map.emplace(current_vote_count.first,
+                          PillarBlock::ValidatorVoteCountChange(current_vote_count.first, vote_count_change));
     }
 
-    // Delete item from previous_stakes - based on left stakes we know which delegators undelegated all tokens
-    previous_stakes_map.erase(previous_stake);
+    // Delete item from previous_vote_counts - based on left vote counts we know which delegators undelegated all tokens
+    previous_vote_counts_map.erase(previous_vote_count);
   }
 
-  // All previous stakes that were not deleted are delegators who undelegated all of their tokens between current and
-  // previous pillar block. Add these stakes as negative numbers into changes
-  for (auto& previous_stake_left : previous_stakes_map) {
-    auto stake_change = changes_map.emplace(std::move(previous_stake_left)).first;
-    stake_change->second.stake_change_ *= -1;
+  // All previous vote counts that were not deleted are delegators who undelegated all of their tokens between current
+  // and previous pillar block. Add these vote counts as negative numbers into changes
+  for (auto& previous_vote_count_left : previous_vote_counts_map) {
+    auto vote_count_change = changes_map
+                                 .emplace(previous_vote_count_left.second.addr,
+                                          PillarBlock::ValidatorVoteCountChange(
+                                              previous_vote_count_left.second.addr,
+                                              static_cast<int64_t>(previous_vote_count_left.second.vote_count)))
+                                 .first;
+    vote_count_change->second.vote_count_change_ *= -1;
   }
 
   // Transform ordered map of changes to vector
-  std::vector<PillarBlock::ValidatorStakeChange> changes;
+  std::vector<PillarBlock::ValidatorVoteCountChange> changes;
   changes.reserve(changes_map.size());
   std::transform(changes_map.begin(), changes_map.end(), std::back_inserter(changes),
-                 [](auto& stake_change) { return std::move(stake_change.second); });
+                 [](auto& vote_count_change) { return std::move(vote_count_change.second); });
 
   return changes;
 }

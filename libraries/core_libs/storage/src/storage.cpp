@@ -729,17 +729,18 @@ std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getCurrentPillarBlock() co
   return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(bytes));
 }
 
-void DbStorage::saveCurrentPillarBlockStakes(const std::vector<state_api::ValidatorStake>& stakes, Batch& write_batch) {
-  insert(write_batch, Columns::current_pillar_block_stakes, 0, util::rlp_enc(stakes));
+void DbStorage::saveCurrentPillarBlockVoteCounts(const std::vector<state_api::ValidatorVoteCount>& stakes,
+                                                 Batch& write_batch) {
+  insert(write_batch, Columns::current_pillar_block_vote_counts, 0, util::rlp_enc(stakes));
 }
 
-std::vector<state_api::ValidatorStake> DbStorage::getCurrentPillarBlockStakes() const {
-  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_stakes));
+std::vector<state_api::ValidatorVoteCount> DbStorage::getCurrentPillarBlockVoteCounts() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_vote_counts));
   if (bytes.empty()) {
     return {};
   }
 
-  return util::rlp_dec<std::vector<state_api::ValidatorStake>>(dev::RLP(bytes));
+  return util::rlp_dec<std::vector<state_api::ValidatorVoteCount>>(dev::RLP(bytes));
 }
 
 void DbStorage::saveTransaction(Transaction const& trx) {

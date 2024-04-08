@@ -81,6 +81,9 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
       new_pbft_block_executed_subscription_ = subscription_id;
     } else if (params[0].asString() == "newPillarBlocks") {
       new_pillar_block_subscription_ = subscription_id;
+      if (params.size() == 2 && params[1].asString() == "withBinaryData") {
+        pillar_blocks_with_binary_data = true;
+      }
     }
   }
 
