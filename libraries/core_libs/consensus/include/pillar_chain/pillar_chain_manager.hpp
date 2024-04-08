@@ -134,16 +134,16 @@ class PillarChainManager {
 
  private:
   /**
-   * @brief Return a vector of validators stakes changes between the current and previous pillar block
+   * @brief Return a vector of validators vote counts changes between the current and previous pillar block
    *        Changes are ordered based on validators addresses
    *
-   * @param current_stakes
-   * @param previous_pillar_block_stakes
-   * @return ordered vector of validators stakes changes
+   * @param current_vote_counts
+   * @param previous_pillar_block_vote_counts
+   * @return ordered vector of validators vote counts changes
    */
-  std::vector<PillarBlock::ValidatorStakeChange> getOrderedValidatorsStakesChanges(
-      const std::vector<state_api::ValidatorStake>& current_stakes,
-      const std::vector<state_api::ValidatorStake>& previous_pillar_block_stakes);
+  std::vector<PillarBlock::ValidatorVoteCountChange> getOrderedValidatorsVoteCountsChanges(
+      const std::vector<state_api::ValidatorVoteCount>& current_vote_counts,
+      const std::vector<state_api::ValidatorVoteCount>& previous_pillar_block_vote_counts);
 
  private:
   // Node config
@@ -161,8 +161,8 @@ class PillarChainManager {
   std::shared_ptr<PillarBlock> last_finalized_pillar_block_;
   // Current pillar block
   std::shared_ptr<PillarBlock> current_pillar_block_;
-  // Full list of validators stakes for tbe current pillar block period - no concurrent access protection needed
-  std::vector<state_api::ValidatorStake> current_pillar_block_stakes_;
+  // Full list of validators vote counts for tbe current pillar block period - no concurrent access protection needed
+  std::vector<state_api::ValidatorVoteCount> current_pillar_block_vote_counts_;
 
   // Pillar votes for latest_pillar_block_.period - 1, latest_pillar_block_.period and potential +1 future pillar
   // block period

@@ -21,12 +21,12 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   h256 state_root(456);
   blk_hash_t previous_pillar_block_hash(789);
 
-  std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> stakes_changes;
-  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s256(1));
-  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
+  std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> votes_count_changes;
+  const auto vote_count_change1 = votes_count_changes.emplace_back(addr_t(1), 1);
+  const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      pillar_block_num, state_root, h256{}, std::move(stakes_changes), previous_pillar_block_hash);
+      pillar_block_num, state_root, h256{}, std::move(votes_count_changes), previous_pillar_block_hash);
 
   // Pillar block
   auto batch = db.createWriteBatch();
@@ -44,7 +44,7 @@ TEST_F(PillarChainTest, pillar_chain_db) {
       std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
 
   const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      pillar_block_num - 1, h256{}, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorStakeChange>{},
+      pillar_block_num - 1, h256{}, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange>{},
       blk_hash_t{});
   db.savePillarBlockData(
       pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
@@ -66,19 +66,19 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   }
 
   // Pillar block stakes
-  std::vector<state_api::ValidatorStake> stakes;
-  const auto stake1 = stakes_changes.emplace_back(addr_t(123), dev::s256(123));
-  const auto stake2 = stakes_changes.emplace_back(addr_t(456), dev::s256(456));
+  std::vector<state_api::ValidatorVoteCount> vote_counts;
+  const auto stake1 = votes_count_changes.emplace_back(addr_t(123), 123);
+  const auto stake2 = votes_count_changes.emplace_back(addr_t(456), 456);
 
   batch = db.createWriteBatch();
-  db.saveCurrentPillarBlockStakes(stakes, batch);
+  db.saveCurrentPillarBlockVoteCounts(vote_counts, batch);
   db.commitWriteBatch(batch);
 
-  const auto current_pillar_block_stakes_db = db.getCurrentPillarBlockStakes();
-  EXPECT_EQ(stakes.size(), current_pillar_block_stakes_db.size());
-  for (size_t idx = 0; idx < current_pillar_block_stakes_db.size(); idx++) {
-    EXPECT_EQ(current_pillar_block_stakes_db[idx].addr, current_pillar_block_stakes_db[idx].addr);
-    EXPECT_EQ(current_pillar_block_stakes_db[idx].stake, current_pillar_block_stakes_db[idx].stake);
+  const auto current_pillar_block_vote_counts_db = db.getCurrentPillarBlockVoteCounts();
+  EXPECT_EQ(vote_counts.size(), current_pillar_block_vote_counts_db.size());
+  for (size_t idx = 0; idx < current_pillar_block_vote_counts_db.size(); idx++) {
+    EXPECT_EQ(current_pillar_block_vote_counts_db[idx].addr, current_pillar_block_vote_counts_db[idx].addr);
+    EXPECT_EQ(current_pillar_block_vote_counts_db[idx].vote_count, current_pillar_block_vote_counts_db[idx].vote_count);
   }
 
   // Pillar vote
@@ -123,7 +123,7 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
   }
 }
 
-TEST_F(PillarChainTest, stakes_changes) {
+TEST_F(PillarChainTest, votes_count_changes) {
   const auto validators_count = 3;
   auto node_cfgs = make_node_cfgs(validators_count, validators_count, 10);
 
@@ -135,12 +135,12 @@ TEST_F(PillarChainTest, stakes_changes) {
     node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
   }
 
-  std::vector<dev::s256> validators_stakes;
-  validators_stakes.reserve(node_cfgs.size());
+  std::vector<dev::s256> validators_vote_counts;
+  validators_vote_counts.reserve(node_cfgs.size());
   for (const auto& validator : node_cfgs[0].genesis.state.dpos.initial_validators) {
-    auto& stake = validators_stakes.emplace_back(0);
+    auto& vote_count = validators_vote_counts.emplace_back(0);
     for (const auto& delegation : validator.delegations) {
-      stake += delegation.second;
+      vote_count += delegation.second / node_cfgs[0].genesis.state.dpos.vote_eligibility_balance_step;
     }
   }
 
@@ -155,25 +155,25 @@ TEST_F(PillarChainTest, stakes_changes) {
     }
   });
 
-  // Check if stakes changes in first pillar block == initial validators stakes
+  // Check if vote_counts changes in first pillar block == initial validators vote_counts
   for (auto& node : nodes) {
     // Check if right amount of pillar blocks were created
     const auto first_pillar_block_data = node->getDB()->getPillarBlockData(first_pillar_block_period);
     ASSERT_TRUE(first_pillar_block_data.has_value());
 
     ASSERT_EQ(first_pillar_block_data->block_->getPeriod(), first_pillar_block_period);
-    ASSERT_EQ(first_pillar_block_data->block_->getValidatorsStakesChanges().size(), validators_count);
+    ASSERT_EQ(first_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(), validators_count);
     size_t idx = 0;
-    for (const auto& stake_change : first_pillar_block_data->block_->getValidatorsStakesChanges()) {
-      ASSERT_EQ(stake_change.stake_change_, validators_stakes[idx]);
+    for (const auto& vote_count_change : first_pillar_block_data->block_->getValidatorsVoteCountsChanges()) {
+      ASSERT_EQ(vote_count_change.vote_count_change_, validators_vote_counts[idx]);
       idx++;
     }
   }
 
   // Change validators delegation
   const auto delegation_value = 2 * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
-  const auto stake_change_validators_count = validators_count - 1;
-  for (size_t i = 0; i < stake_change_validators_count; i++) {
+  const auto vote_count_change_validators_count = validators_count - 1;
+  for (size_t i = 0; i < vote_count_change_validators_count; i++) {
     const auto trx = make_delegate_tx(node_cfgs[i], delegation_value, 1, 1000);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
@@ -181,7 +181,7 @@ TEST_F(PillarChainTest, stakes_changes) {
   PbftPeriod executed_delegations_pbft_period = 1000000;
   EXPECT_HAPPENS({20s, 1s}, [&](auto& ctx) {
     for (auto& node : nodes) {
-      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != stake_change_validators_count)) {
+      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != vote_count_change_validators_count)) {
         return;
       }
       const auto chain_size = node->getPbftChain()->getPbftChainSize();
@@ -191,7 +191,7 @@ TEST_F(PillarChainTest, stakes_changes) {
     }
   });
 
-  // Wait until new pillar block with changed validators stakes is created
+  // Wait until new pillar block with changed validators vote_counts is created
   const auto new_pillar_block_period =
       executed_delegations_pbft_period -
       executed_delegations_pbft_period % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_block_periods +
@@ -203,16 +203,18 @@ TEST_F(PillarChainTest, stakes_changes) {
     }
   });
 
-  // Check if stakes changes in new pillar block changed according to new delegations
+  // Check if vote_counts changes in new pillar block changed according to new delegations
   for (auto& node : nodes) {
     // Check if right amount of pillar blocks were created
     const auto new_pillar_block_data = node->getDB()->getPillarBlockData(new_pillar_block_period);
     ASSERT_TRUE(new_pillar_block_data.has_value());
     ASSERT_EQ(new_pillar_block_data->block_->getPeriod(), new_pillar_block_period);
-    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsStakesChanges().size(), stake_change_validators_count);
+    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(),
+              vote_count_change_validators_count);
     size_t idx = 0;
-    for (const auto& stake_change : new_pillar_block_data->block_->getValidatorsStakesChanges()) {
-      ASSERT_EQ(stake_change.stake_change_, delegation_value);
+    for (const auto& vote_count_change : new_pillar_block_data->block_->getValidatorsVoteCountsChanges()) {
+      ASSERT_EQ(vote_count_change.vote_count_change_,
+                delegation_value / node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold);
       idx++;
     }
   }
@@ -267,13 +269,14 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
 
 TEST_F(PillarChainTest, block_serialization) {
   {
-    std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> validator_stakes_changes;
-    validator_stakes_changes.emplace_back(pillar_chain::PillarBlock::ValidatorStakeChange(addr_t(1), dev::s256(-1)));
-    validator_stakes_changes.emplace_back(pillar_chain::PillarBlock::ValidatorStakeChange(addr_t(2), dev::s256(2)));
-    validator_stakes_changes.emplace_back(pillar_chain::PillarBlock::ValidatorStakeChange(addr_t(3), dev::s256(-3)));
-    validator_stakes_changes.emplace_back(pillar_chain::PillarBlock::ValidatorStakeChange(addr_t(4), dev::s256(4)));
-    validator_stakes_changes.emplace_back(pillar_chain::PillarBlock::ValidatorStakeChange(addr_t(5), dev::s256(-5)));
-    auto pb = pillar_chain::PillarBlock(11, h256(22), h256(33), std::move(validator_stakes_changes), blk_hash_t(44));
+    std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> validator_votes_count_changes;
+    validator_votes_count_changes.emplace_back(pillar_chain::PillarBlock::ValidatorVoteCountChange(addr_t(1), -1));
+    validator_votes_count_changes.emplace_back(pillar_chain::PillarBlock::ValidatorVoteCountChange(addr_t(2), 2));
+    validator_votes_count_changes.emplace_back(pillar_chain::PillarBlock::ValidatorVoteCountChange(addr_t(3), -3));
+    validator_votes_count_changes.emplace_back(pillar_chain::PillarBlock::ValidatorVoteCountChange(addr_t(4), 4));
+    validator_votes_count_changes.emplace_back(pillar_chain::PillarBlock::ValidatorVoteCountChange(addr_t(5), -5));
+    auto pb =
+        pillar_chain::PillarBlock(11, h256(22), h256(33), std::move(validator_votes_count_changes), blk_hash_t(44));
     const auto bt = pb.encodeSolidity();
     // TODO[2733]: how was this generated ???
     const auto expected = dev::jsToBytes(
@@ -290,23 +293,23 @@ TEST_F(PillarChainTest, block_serialization) {
     ASSERT_EQ(bt, expected);
   }
   {
-    std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> validator_stakes_changes;
-    validator_stakes_changes.emplace_back(addr_t(1), dev::s256(-1));
-    validator_stakes_changes.emplace_back(addr_t(2), dev::s256(2));
-    validator_stakes_changes.emplace_back(addr_t(3), dev::s256(-3));
-    validator_stakes_changes.emplace_back(addr_t(4), dev::s256(4));
-    validator_stakes_changes.emplace_back(addr_t(5), dev::s256(-5));
+    std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> validator_votes_count_changes;
+    validator_votes_count_changes.emplace_back(addr_t(1), -1);
+    validator_votes_count_changes.emplace_back(addr_t(2), 2);
+    validator_votes_count_changes.emplace_back(addr_t(3), -3);
+    validator_votes_count_changes.emplace_back(addr_t(4), 4);
+    validator_votes_count_changes.emplace_back(addr_t(5), -5);
+    validator_votes_count_changes.emplace_back(addr_t("0x290DEcD9548b62A8D60345A988386Fc84Ba6BC95"), 12151343246432);
+    validator_votes_count_changes.emplace_back(addr_t("0xB10e2D527612073B26EeCDFD717e6a320cF44B4A"), -112321);
+    // TODO[2733]: 13534685468457923145 is too big, it needs to be within int32 max range
+    validator_votes_count_changes.emplace_back(addr_t("0x405787FA12A823e0F2b7631cc41B3bA8828b3321"),
+                                               -13534685468457923145);
+    validator_votes_count_changes.emplace_back(addr_t("0xc2575a0E9E593c00f959F8C92f12dB2869C3395a"), 9976987696);
+    validator_votes_count_changes.emplace_back(addr_t("0x8a35AcfbC15Ff81A39Ae7d344fD709f28e8600B4"),
+                                               465876798678065667);
 
-    validator_stakes_changes.emplace_back(addr_t("0x290DEcD9548b62A8D60345A988386Fc84Ba6BC95"),
-                                          dev::s256(12151343246432));
-    validator_stakes_changes.emplace_back(addr_t("0xB10e2D527612073B26EeCDFD717e6a320cF44B4A"), dev::s256(-112321));
-    validator_stakes_changes.emplace_back(addr_t("0x405787FA12A823e0F2b7631cc41B3bA8828b3321"),
-                                          dev::s256("-13534685468457923145"));
-    validator_stakes_changes.emplace_back(addr_t("0xc2575a0E9E593c00f959F8C92f12dB2869C3395a"), dev::s256(9976987696));
-    validator_stakes_changes.emplace_back(addr_t("0x8a35AcfbC15Ff81A39Ae7d344fD709f28e8600B4"),
-                                          dev::s256(465876798678065667));
-
-    auto pb = pillar_chain::PillarBlock(11, h256(22), h256(33), std::move(validator_stakes_changes), blk_hash_t(44));
+    auto pb =
+        pillar_chain::PillarBlock(11, h256(22), h256(33), std::move(validator_votes_count_changes), blk_hash_t(44));
     const auto bt = pb.encodeSolidity();
     // TODO[2733]: how was this generated ???
     const auto expected = dev::jsToBytes(
@@ -380,23 +383,23 @@ TEST_F(PillarChainTest, DISABLED_pillar_block_solidity_rlp_encoding) {
   h256 bridge_root(789);
   blk_hash_t previous_pillar_block_hash(789);
 
-  std::vector<pillar_chain::PillarBlock::ValidatorStakeChange> stakes_changes;
-  const auto stake_change1 = stakes_changes.emplace_back(addr_t(1), dev::s256(1));
-  const auto stake_change2 = stakes_changes.emplace_back(addr_t(2), dev::s256(2));
+  std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> votes_count_changes;
+  const auto vote_count_change1 = votes_count_changes.emplace_back(addr_t(1), 1);
+  const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
-  const auto pillar_block = pillar_chain::PillarBlock(pillar_block_num, state_root, h256{}, std::move(stakes_changes),
-                                                      previous_pillar_block_hash);
+  const auto pillar_block = pillar_chain::PillarBlock(pillar_block_num, state_root, h256{},
+                                                      std::move(votes_count_changes), previous_pillar_block_hash);
 
   auto validateDecodedPillarBlock = [&](const pillar_chain::PillarBlock& pillar_block) {
     ASSERT_EQ(pillar_block.getPeriod(), pillar_block_num);
     ASSERT_EQ(pillar_block.getStateRoot(), state_root);
     ASSERT_EQ(pillar_block.getBridgeRoot(), bridge_root);
     ASSERT_EQ(pillar_block.getPreviousBlockHash(), previous_pillar_block_hash);
-    const auto decoded_stakes_changes = pillar_block.getValidatorsStakesChanges();
-    EXPECT_EQ(decoded_stakes_changes.size(), stakes_changes.size());
-    for (size_t idx = 0; idx < decoded_stakes_changes.size(); idx++) {
-      EXPECT_EQ(decoded_stakes_changes[idx].addr_, stakes_changes[idx].addr_);
-      EXPECT_EQ(decoded_stakes_changes[idx].stake_change_, stakes_changes[idx].stake_change_);
+    const auto decoded_votes_count_changes = pillar_block.getValidatorsVoteCountsChanges();
+    EXPECT_EQ(decoded_votes_count_changes.size(), votes_count_changes.size());
+    for (size_t idx = 0; idx < decoded_votes_count_changes.size(); idx++) {
+      EXPECT_EQ(decoded_votes_count_changes[idx].addr_, votes_count_changes[idx].addr_);
+      EXPECT_EQ(decoded_votes_count_changes[idx].vote_count_change_, votes_count_changes[idx].vote_count_change_);
     }
   };
 

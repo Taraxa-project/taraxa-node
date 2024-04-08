@@ -455,6 +455,10 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.dpos_validators_total_stakes(blk_num);
   }
 
+  std::vector<state_api::ValidatorVoteCount> dpos_validators_vote_counts(EthBlockNumber blk_num) const override {
+    return state_api_.dpos_validators_vote_counts(blk_num);
+  }
+
   void wait_for_finalized() override {
     std::unique_lock lck(finalized_mtx_);
     finalized_cv_.wait_for(lck, std::chrono::milliseconds(10));

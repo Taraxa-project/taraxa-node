@@ -161,13 +161,16 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
 }
 
 void WsSession::newPillarBlockExecuted(const pillar_chain::PillarBlock &pillar_block) {
+  std::cout << "newPillarBlockExecuted " << new_pillar_block_subscription_ << std::endl;
   if (new_pillar_block_subscription_) {
-    Json::Value res, params, result;
+    Json::Value res, params;
+    params["result"] = pillar_block.getJson();
+    if (pillar_blocks_with_binary_data) {
+      params["result"]["binary_data"] = dev::toJS(pillar_block.encodeSolidity());
+    }
+    params["subscription"] = dev::toJS(new_pillar_block_subscription_);
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    result["pillar_block"] = pillar_block.getJson();
-    params["result"] = result;
-    params["subscription"] = dev::toJS(new_pillar_block_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
     writeAsync(std::move(response));
