@@ -74,6 +74,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   int new_dag_block_finalized_subscription_ = 0;
   int new_pbft_block_executed_subscription_ = 0;
   int new_pillar_block_subscription_ = 0;
+  bool pillar_blocks_with_binary_data = false;
   std::atomic<bool> closed_ = false;
   std::weak_ptr<WsServer> ws_server_;
 };

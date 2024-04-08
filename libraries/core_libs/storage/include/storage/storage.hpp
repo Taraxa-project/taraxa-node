@@ -133,8 +133,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN_W_COMP(pillar_block_data, getIntComparator<PbftPeriod>());
     // Current pillar block
     COLUMN(current_pillar_block);
-    // Current pillar block stakes
-    COLUMN(current_pillar_block_stakes);
+    // Current pillar block vote counts
+    COLUMN(current_pillar_block_vote_counts);
     // Current pillar block own pillar vote
     COLUMN(current_pillar_block_own_vote);
 
@@ -229,8 +229,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::shared_ptr<PillarVote> getOwnPillarBlockVote() const;
   void saveCurrentPillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& block, Batch& write_batch);
   std::shared_ptr<pillar_chain::PillarBlock> getCurrentPillarBlock() const;
-  void saveCurrentPillarBlockStakes(const std::vector<state_api::ValidatorStake>& stakes, Batch& write_batch);
-  std::vector<state_api::ValidatorStake> getCurrentPillarBlockStakes() const;
+  void saveCurrentPillarBlockVoteCounts(const std::vector<state_api::ValidatorVoteCount>& stakes, Batch& write_batch);
+  std::vector<state_api::ValidatorVoteCount> getCurrentPillarBlockVoteCounts() const;
 
   /**
    * @brief Gets finalized transactions from provided hashes

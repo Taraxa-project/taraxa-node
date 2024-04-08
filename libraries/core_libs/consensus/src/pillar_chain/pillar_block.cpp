@@ -9,34 +9,31 @@
 
 namespace taraxa::pillar_chain {
 
-PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const state_api::ValidatorStake& stake)
-    : addr_(stake.addr), stake_change_(dev::s256(stake.stake)) {}
+PillarBlock::ValidatorVoteCountChange::ValidatorVoteCountChange(addr_t addr, int64_t vote_count_change)
+    : addr_(addr), vote_count_change_(vote_count_change) {}
 
-PillarBlock::ValidatorStakeChange::ValidatorStakeChange(addr_t addr, dev::s256 stake_change)
-    : addr_(addr), stake_change_(stake_change) {}
+RLP_FIELDS_DEFINE(PillarBlock::ValidatorVoteCountChange, addr_, vote_count_change_)
 
-RLP_FIELDS_DEFINE(PillarBlock::ValidatorStakeChange, addr_, stake_change_)
-
-PillarBlock::ValidatorStakeChange::ValidatorStakeChange(const dev::RLP& rlp) {
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), addr_, stake_change_);
+PillarBlock::ValidatorVoteCountChange::ValidatorVoteCountChange(const dev::RLP& rlp) {
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), addr_, vote_count_change_);
 }
 
 PillarBlock::PillarBlock(const dev::RLP& rlp) : PillarBlock(util::rlp_dec<PillarBlock>(rlp)) {}
 
 PillarBlock::PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root,
-                         std::vector<ValidatorStakeChange>&& validator_stakes_changes,
+                         std::vector<ValidatorVoteCountChange>&& validator_votes_count_changes,
                          PillarBlock::Hash previous_pillar_block_hash)
     : pbft_period_(period),
       state_root_(state_root),
       bridge_root_(bridge_root),
-      validators_stakes_changes_(std::move(validator_stakes_changes)),
+      validators_votes_count_changes_(std::move(validator_votes_count_changes)),
       previous_pillar_block_hash_(previous_pillar_block_hash) {}
 
 PillarBlock::PillarBlock(const PillarBlock& pillar_block)
     : pbft_period_(pillar_block.pbft_period_),
       state_root_(pillar_block.state_root_),
       bridge_root_(pillar_block.bridge_root_),
-      validators_stakes_changes_(pillar_block.validators_stakes_changes_),
+      validators_votes_count_changes_(pillar_block.validators_votes_count_changes_),
       previous_pillar_block_hash_(pillar_block.previous_pillar_block_hash_) {}
 
 dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
@@ -45,8 +42,8 @@ PbftPeriod PillarBlock::getPeriod() const { return pbft_period_; }
 
 PillarBlock::Hash PillarBlock::getPreviousBlockHash() const { return previous_pillar_block_hash_; }
 
-const std::vector<PillarBlock::ValidatorStakeChange>& PillarBlock::getValidatorsStakesChanges() const {
-  return validators_stakes_changes_;
+const std::vector<PillarBlock::ValidatorVoteCountChange>& PillarBlock::getValidatorsVoteCountsChanges() const {
+  return validators_votes_count_changes_;
 }
 
 const h256& PillarBlock::getStateRoot() const { return state_root_; }
@@ -68,17 +65,17 @@ PillarBlock::Hash PillarBlock::getHash() const {
 
 Json::Value PillarBlock::getJson() const {
   Json::Value res;
-  res["pbft_period"] = dev::toJS(pbft_period_);
+  res["pbft_period"] = static_cast<Json::Value::UInt64>(pbft_period_);
   res["state_root"] = dev::toJS(state_root_);
   res["bridge_root"] = dev::toJS(bridge_root_);
   res["previous_pillar_block_hash"] = dev::toJS(previous_pillar_block_hash_);
-  res["validators_stakes_changes"] = Json::Value(Json::arrayValue);
-  for (auto const& stake_change : validators_stakes_changes_) {
-    Json::Value stake_change_json;
-    stake_change_json["address"] = dev::toJS(stake_change.addr_);
-    stake_change_json["value"] = dev::toJS(stake_change.stake_change_);
+  res["validators_votes_count_changes"] = Json::Value(Json::arrayValue);
+  for (auto const& vote_count_change : validators_votes_count_changes_) {
+    Json::Value vote_count_change_json;
+    vote_count_change_json["address"] = dev::toJS(vote_count_change.addr_);
+    vote_count_change_json["value"] = static_cast<Json::Value::Int64>(vote_count_change.vote_count_change_);
 
-    res["validators_stakes_changes"].append(std::move(stake_change_json));
+    res["validators_votes_count_changes"].append(std::move(vote_count_change_json));
   }
   res["hash"] = dev::toJS(getHash());
 
@@ -88,7 +85,7 @@ Json::Value PillarBlock::getJson() const {
 dev::bytes PillarBlock::encodeSolidity() const {
   dev::bytes result;
   // TODO[2733]: describe these hardcoded constants
-  result.reserve((1 + 4 + 2 + 2 * validators_stakes_changes_.size()) * util::EncodingSolidity::kWordSize);
+  result.reserve((1 + 4 + 2 + 2 * validators_votes_count_changes_.size()) * util::EncodingSolidity::kWordSize);
 
   // TODO[2733]: describe these hardcoded constants
   auto start = util::EncodingSolidity::pack(32);
@@ -98,19 +95,20 @@ dev::bytes PillarBlock::encodeSolidity() const {
   result.insert(result.end(), body.begin(), body.end());
 
   // TODO[2733]: describe these hardcoded constants
-  auto array_data = util::EncodingSolidity::pack(160, validators_stakes_changes_.size());
+  auto array_data = util::EncodingSolidity::pack(160, validators_votes_count_changes_.size());
   result.insert(result.end(), array_data.begin(), array_data.end());
 
-  for (auto& stake_change : validators_stakes_changes_) {
-    auto stake_change_encoded = util::EncodingSolidity::pack(stake_change.addr_, stake_change.stake_change_);
-    result.insert(result.end(), stake_change_encoded.begin(), stake_change_encoded.end());
+  for (auto& vote_count_change : validators_votes_count_changes_) {
+    auto vote_count_change_encoded =
+        util::EncodingSolidity::pack(vote_count_change.addr_, vote_count_change.vote_count_change_);
+    result.insert(result.end(), vote_count_change_encoded.begin(), vote_count_change_encoded.end());
   }
 
   return result;
 }
 
 RLP_FIELDS_DEFINE(PillarBlock, pbft_period_, state_root_, bridge_root_, previous_pillar_block_hash_,
-                  validators_stakes_changes_)
+                  validators_votes_count_changes_)
 
 PillarBlockData::PillarBlockData(std::shared_ptr<PillarBlock> block,
                                  std::vector<std::shared_ptr<PillarVote>>&& pillar_votes)
