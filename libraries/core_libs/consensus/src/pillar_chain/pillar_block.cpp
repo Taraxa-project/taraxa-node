@@ -84,18 +84,23 @@ Json::Value PillarBlock::getJson() const {
 
 dev::bytes PillarBlock::encodeSolidity() const {
   dev::bytes result;
-  // TODO[2733]: describe these hardcoded constants
-  result.reserve((1 + 4 + 2 + 2 * validators_votes_count_changes_.size()) * util::EncodingSolidity::kWordSize);
+  const uint8_t start_prefix = 32;
+  const uint8_t start_prefix_size = 1;
+  const uint8_t fields_size = 4;
+  const uint8_t array_size_and_pos = 2;
+  const uint8_t fields_in_vote_count_struct = 2;
+  result.reserve((start_prefix_size + fields_size + array_size_and_pos +
+                  (fields_in_vote_count_struct * validators_votes_count_changes_.size())) *
+                 util::EncodingSolidity::kWordSize);
 
-  // TODO[2733]: describe these hardcoded constants
-  auto start = util::EncodingSolidity::pack(32);
+  auto start = util::EncodingSolidity::pack(start_prefix);
   result.insert(result.end(), start.begin(), start.end());
 
   auto body = util::EncodingSolidity::pack(pbft_period_, state_root_, bridge_root_, previous_pillar_block_hash_);
   result.insert(result.end(), body.begin(), body.end());
 
-  // TODO[2733]: describe these hardcoded constants
-  auto array_data = util::EncodingSolidity::pack(160, validators_votes_count_changes_.size());
+  const uint8_t array_position = (start_prefix_size + fields_size) * util::EncodingSolidity::kWordSize;
+  auto array_data = util::EncodingSolidity::pack(array_position, validators_votes_count_changes_.size());
   result.insert(result.end(), array_data.begin(), array_data.end());
 
   for (auto& vote_count_change : validators_votes_count_changes_) {
