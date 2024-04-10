@@ -87,9 +87,9 @@ dev::bytes PillarBlock::encodeSolidity() const {
   const uint8_t start_prefix = 32;
   const uint8_t start_prefix_size = 1;
   const uint8_t fields_size = 4;
-  const uint8_t array_size_and_pos = 2;
+  const uint8_t array_pos_and_size = 2;
   const uint8_t fields_in_vote_count_struct = 2;
-  result.reserve((start_prefix_size + fields_size + array_size_and_pos +
+  result.reserve((start_prefix_size + fields_size + array_pos_and_size +
                   (fields_in_vote_count_struct * validators_votes_count_changes_.size())) *
                  util::EncodingSolidity::kWordSize);
 
@@ -110,6 +110,31 @@ dev::bytes PillarBlock::encodeSolidity() const {
   }
 
   return result;
+}
+
+PillarBlock PillarBlock::decodeSolidity(const bytes& enc) {
+  PillarBlock b;
+
+  uint64_t start_prefix = 0;
+  util::EncodingSolidity::staticUnpack(enc, start_prefix, b.pbft_period_, b.state_root_, b.bridge_root_,
+                                       b.previous_pillar_block_hash_);
+
+  uint64_t array_pos = (1 + 4) * util::EncodingSolidity::kWordSize;
+  uint64_t array_size = 0;
+  bytes array_data(enc.begin() + array_pos, enc.end());
+  util::EncodingSolidity::staticUnpack(array_data, array_pos, array_size);
+  array_data = bytes(array_data.begin() + 2 * util::EncodingSolidity::kWordSize, array_data.end());
+
+  for (size_t i = 0; i < array_size; i++) {
+    addr_t addr;
+    int64_t vote_count_change;
+    util::EncodingSolidity::staticUnpack(array_data, addr, vote_count_change);
+
+    b.validators_votes_count_changes_.emplace_back(addr, vote_count_change);
+    array_data = bytes(array_data.begin() + 2 * util::EncodingSolidity::kWordSize, array_data.end());
+  }
+
+  return b;
 }
 
 RLP_FIELDS_DEFINE(PillarBlock, pbft_period_, state_root_, bridge_root_, previous_pillar_block_hash_,

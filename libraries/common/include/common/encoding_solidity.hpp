@@ -93,11 +93,15 @@ class EncodingSolidity {
 
   static void unpackElement(const bytes& input, u256& out) { out = u256(input); }
 
-  static void unpackElement(const bytes& input, uint64_t& out) { out = u256(input).convert_to<uint64_t>(); }
+  template <typename T, std::enable_if_t<std::numeric_limits<T>::is_integer>* = nullptr>
+  static void unpackElement(const bytes& input, T& out) {
+    out = dev::fromBigEndian<T>(input);
+  }
 
   template <unsigned N, std::enable_if_t<(N <= 32)>* = nullptr>
   static void unpackElement(const bytes& input, dev::FixedHash<N>& hash) {
-    hash = dev::FixedHash<N>(input);
+    bytes stripped(input.begin() + 32 - N, input.end());
+    hash = dev::FixedHash<N>(stripped);
   }
 
   /// UNPACKING ///

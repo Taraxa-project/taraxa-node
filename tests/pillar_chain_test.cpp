@@ -299,12 +299,11 @@ TEST_F(PillarChainTest, block_serialization) {
     validator_votes_count_changes.emplace_back(addr_t(3), -3);
     validator_votes_count_changes.emplace_back(addr_t(4), 4);
     validator_votes_count_changes.emplace_back(addr_t(5), -5);
-    validator_votes_count_changes.emplace_back(addr_t("0x290DEcD9548b62A8D60345A988386Fc84Ba6BC95"), 12151343246432);
+    validator_votes_count_changes.emplace_back(addr_t("0x290DEcD9548b62A8D60345A988386Fc84Ba6BC95"), 1215134324);
     validator_votes_count_changes.emplace_back(addr_t("0xB10e2D527612073B26EeCDFD717e6a320cF44B4A"), -112321);
-    validator_votes_count_changes.emplace_back(addr_t("0x405787FA12A823e0F2b7631cc41B3bA8828b3321"), -1353468546845791);
-    validator_votes_count_changes.emplace_back(addr_t("0xc2575a0E9E593c00f959F8C92f12dB2869C3395a"), 9976987696);
-    validator_votes_count_changes.emplace_back(addr_t("0x8a35AcfbC15Ff81A39Ae7d344fD709f28e8600B4"),
-                                               465876798678065667);
+    validator_votes_count_changes.emplace_back(addr_t("0x405787FA12A823e0F2b7631cc41B3bA8828b3321"), -1353468546);
+    validator_votes_count_changes.emplace_back(addr_t("0xc2575a0E9E593c00f959F8C92f12dB2869C3395a"), 997698769);
+    validator_votes_count_changes.emplace_back(addr_t("0x8a35AcfbC15Ff81A39Ae7d344fD709f28e8600B4"), 465876798);
 
     auto pb =
         pillar_chain::PillarBlock(11, h256(22), h256(33), std::move(validator_votes_count_changes), blk_hash_t(44));
@@ -321,12 +320,12 @@ TEST_F(PillarChainTest, block_serialization) {
         "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd0000000000000000000000000000000000000000000000"
         "00000000000000000400000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000"
         "000000000000000000000000000000000005fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb0000000000"
-        "00000000000000290decd9548b62a8d60345a988386fc84ba6bc9500000000000000000000000000000000000000000000000000000b0d"
-        "347f6c60000000000000000000000000b10e2d527612073b26eecdfd717e6a320cf44b4affffffffffffffffffffffffffffffffffffff"
+        "00000000000000290decd9548b62a8d60345a988386fc84ba6bc9500000000000000000000000000000000000000000000000000000000"
+        "486d7a74000000000000000000000000b10e2d527612073b26eecdfd717e6a320cf44b4affffffffffffffffffffffffffffffffffffff"
         "fffffffffffffffffffffe493f000000000000000000000000405787fa12a823e0f2b7631cc41b3ba8828b3321ffffffffffffffffffff"
-        "fffffffffffffffffffffffffffffffb31070c0cf3a1000000000000000000000000c2575a0e9e593c00f959f8c92f12db2869c3395a00"
-        "00000000000000000000000000000000000000000000000000000252acc0300000000000000000000000008a35acfbc15ff81a39ae7d34"
-        "4fd709f28e8600b40000000000000000000000000000000000000000000000000677207ae64d6203");
+        "ffffffffffffffffffffffffffffffffffffaf53b57e000000000000000000000000c2575a0e9e593c00f959f8c92f12db2869c3395a00"
+        "0000000000000000000000000000000000000000000000000000003b77acd10000000000000000000000008a35acfbc15ff81a39ae7d34"
+        "4fd709f28e8600b4000000000000000000000000000000000000000000000000000000001bc4b73e");
     ASSERT_EQ(bt, expected);
   }
 }
@@ -375,7 +374,7 @@ TEST_F(PillarChainTest, compact_signature) {
   }
 }
 
-TEST_F(PillarChainTest, DISABLED_pillar_block_solidity_rlp_encoding) {
+TEST_F(PillarChainTest, pillar_block_solidity_rlp_encoding) {
   EthBlockNumber pillar_block_num(123);
   h256 state_root(456);
   h256 bridge_root(789);
@@ -385,8 +384,9 @@ TEST_F(PillarChainTest, DISABLED_pillar_block_solidity_rlp_encoding) {
   const auto vote_count_change1 = votes_count_changes.emplace_back(addr_t(1), 1);
   const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
-  const auto pillar_block = pillar_chain::PillarBlock(pillar_block_num, state_root, h256{},
-                                                      std::move(votes_count_changes), previous_pillar_block_hash);
+  auto vcc = votes_count_changes;
+  const auto pillar_block =
+      pillar_chain::PillarBlock(pillar_block_num, state_root, bridge_root, std::move(vcc), previous_pillar_block_hash);
 
   auto validateDecodedPillarBlock = [&](const pillar_chain::PillarBlock& pillar_block) {
     ASSERT_EQ(pillar_block.getPeriod(), pillar_block_num);
@@ -405,7 +405,8 @@ TEST_F(PillarChainTest, DISABLED_pillar_block_solidity_rlp_encoding) {
   // TODO[2733]: what hardcoded value to use ???
   // ASSERT_EQ(pillar_block_solidity_encoded.size(), util::EncodingSolidity::kWordSize * 4);
   // TODO[2733]: implement decodeSolidity
-  // validateDecodedPillarBlock(pillar_chain::PillarBlock::decodeSolidity(pillar_block_solidity_encoded));
+  auto decodedBlock = pillar_chain::PillarBlock::decodeSolidity(pillar_block_solidity_encoded);
+  validateDecodedPillarBlock(decodedBlock);
 
   auto pillar_block_rlp_encoded = pillar_block.getRlp();
   validateDecodedPillarBlock(pillar_chain::PillarBlock(dev::RLP(pillar_block_rlp_encoded)));
