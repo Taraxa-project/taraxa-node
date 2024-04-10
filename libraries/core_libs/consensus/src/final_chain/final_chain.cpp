@@ -92,6 +92,7 @@ class FinalChainImpl final : public FinalChain {
       last_block_number_ = header->number;
       db_->commitWriteBatch(batch);
     } else {
+      rewards_.populateDagBlockAuthorLevels(*last_blk_num);
       // We need to recover latest changes as there was shutdown inside finalize function
       if (*last_blk_num != state_db_descriptor.blk_num) [[unlikely]] {
         auto batch = db_->createWriteBatch();
