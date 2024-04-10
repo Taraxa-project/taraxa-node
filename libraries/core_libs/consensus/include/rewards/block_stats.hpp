@@ -22,10 +22,13 @@ class BlockStats {
    *
    * @param dpos_vote_count - votes count for previous block
    * @param committee_size
+   * @param dag_blocks_author_level
    * @param aspen_dag_rewards - aspen dag rewards
+   * @param bamboo_dag_rewards - bamboo dag rewards
    */
   BlockStats(const PeriodData& block, const std::vector<gas_t>& trxs_gas_used, uint64_t dpos_vote_count,
-             uint32_t committee_size, const bool aspen_dag_rewards = false);
+             uint32_t committee_size, std::unordered_map<addr_t, uint64_t>& dag_blocks_author_level,
+             bool aspen_dag_rewards = false, bool bamboo_dag_rewards = false);
 
   HAS_RLP_FIELDS
 
@@ -35,8 +38,11 @@ class BlockStats {
    *
    * @param block
    * @param aspen_dag_rewards
+   * @param bamboo_dag_rewards
+   * @param dag_blocks_author_level
    */
-  void processStats(const PeriodData& block, const bool aspen_dag_rewards);
+  void processStats(const PeriodData& block, bool aspen_dag_rewards, bool bamboo_dag_rewards,
+                    std::unordered_map<addr_t, uint64_t>& dag_blocks_author_level);
 
   /**
    * @brief Process Dag blocks and save stats in class for future serialization. returns
@@ -49,8 +55,11 @@ class BlockStats {
    * @brief Process Dag blocks and save stats in class for future serialization with aspen HF changes. returns
    *
    * @param block
+   * @param dag_blocks_author_level
+   * @param bamboo_dag_rewards
    */
-  void processDagBlocksAspen(const PeriodData& block);
+  void processDagBlocksAspen(const PeriodData& block, std::unordered_map<addr_t, uint64_t>& dag_blocks_author_level,
+                             bool bamboo_dag_rewards);
 
   /**
    * @brief Prepare fee_by_trx_hash_ map with trx fee by trx hash

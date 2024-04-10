@@ -59,11 +59,13 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
     dpos_vote_count = dpos_eligible_total_vote_count_(blk.previous_block_cert_votes[0]->getPeriod() - 1);
   }
   if (blk.pbft_blk->getPeriod() < kHardforksConfig.magnolia_hf.block_num) {
-    return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize};
+    return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize, dag_blocks_author_level_};
   }
 
   const auto aspen_hf_part_one = kHardforksConfig.isAspenHardforkPartOne(blk.pbft_blk->getPeriod());
-  return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize, aspen_hf_part_one};
+  const auto bamboo_hf = kHardforksConfig.isBambooHardfork(blk.pbft_blk->getPeriod());
+  return BlockStats{blk,      trxs_fees, dpos_vote_count, kCommitteeSize, dag_blocks_author_level_, aspen_hf_part_one,
+                    bamboo_hf};
 }
 
 std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
@@ -110,6 +112,22 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const
     res = transformStatsToVector(std::move(ordered_blocks_stats));
   }
   return res;
+}
+
+void Stats::populateDagBlockAuthorLevels(uint64_t last_block_num) {
+  uint64_t start_period = 1;
+  // Get data from kDagExpiryLevelLimit periods behind. Any dag blocks level older than that would have expire
+  if (last_block_num > kDagExpiryLevelLimit) {
+    start_period = last_block_num - kDagExpiryLevelLimit;
+  }
+  for (uint64_t period = start_period; period <= last_block_num; period++) {
+    auto data = db_->getPeriodDataRaw(period);
+    if (data.size() == 0) throw std::runtime_error("populateDagBlockAuthorLevels missing period data in db");
+    PeriodData period_data(data);
+    for (auto dag_block : period_data.dag_blocks) {
+      dag_blocks_author_level_[dag_block.getSender()] = dag_block.getLevel();
+    }
+  }
 }
 
 }  // namespace taraxa::rewards
