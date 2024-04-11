@@ -1,5 +1,12 @@
 var NAVTREEINDEX20 =
 {
+"namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[17,0,1,8,0,0,0,1,0],
+"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[17,0,1,4,0,0,7,0,0,0,0],
+"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[17,0,1,4,0,0,7,0,1,0],
+"namespacetaraxa.html#a13ec6be411c3c352858744678e0690da":[17,0,1,3,0,0,5,2,2],
+"namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[17,0,1,3,0,0,0,0,0],
+"namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[17,0,1,3,0,0,0,0,2],
+"namespacetaraxa.html#a274099357513e9346beed7aefafb5a71":[17,0,1,3,0,0,0,0,5],
 "namespacetaraxa.html#a3747de5ec38a001ef934c2764b539ef3":[17,0,1,4,0,0,7,0,0,2],
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[17,0,1,4,0,0,7,0,0,0,1],
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[17,0,1,4,0,0,7,0,1,1],
@@ -24,8 +31,8 @@ var NAVTREEINDEX20 =
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[17,0,1,3,0,0,5,0],
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[17,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[17,0,1,4,0,0,7,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,7,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,7,0,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,7,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[17,0,1,4,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[17,0,1,4,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[17,0,1,4,1,2,0,6,0,0],
@@ -242,12 +249,5 @@ var NAVTREEINDEX20 =
 "state__api_8cpp.html#aeb348eb3e25e2c87abf2fe9bc2a0539e":[17,0,1,4,0,1,1,2,7],
 "state__api_8hpp.html":[17,0,1,4,0,0,1,4],
 "state__api_8hpp_source.html":[17,0,1,4,0,0,1,4],
-"state__api__data_8cpp.html":[17,0,1,4,0,1,1,3],
-"state__api__data_8hpp.html":[17,0,1,4,0,0,1,5],
-"state__api__data_8hpp.html#ga5c809a2ce1cbc35fa9a7d77abf02b1f7":[17,0,1,4,0,0,1,5,0],
-"state__api__data_8hpp_source.html":[17,0,1,4,0,0,1,5],
-"state__config_8cpp.html":[17,0,1,3,1,7],
-"state__config_8cpp.html#a0cdba49b2802bab1d0da7a671714e77b":[17,0,1,3,1,7,1],
-"state__config_8cpp.html#a142767c95d8323471aee83d86833ee8c":[17,0,1,3,1,7,4],
-"state__config_8cpp.html#a15046280f6cced1ba188ecded81bb15f":[17,0,1,3,1,7,9]
+"state__api__data_8cpp.html":[17,0,1,4,0,1,1,3]
 };

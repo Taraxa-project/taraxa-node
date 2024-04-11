@@ -1,6 +1,7 @@
 var classtaraxa_1_1net_1_1_debug_client =
 [
     [ "DebugClient", "classtaraxa_1_1net_1_1_debug_client.html#a0176a459e0cda8993a9150875c416174", null ],
+    [ "debug_dposTotalAmountDelegated", "classtaraxa_1_1net_1_1_debug_client.html#ade2ccff99ac7d649dfffb560f41eecf7", null ],
     [ "debug_dposValidatorTotalStakes", "classtaraxa_1_1net_1_1_debug_client.html#a01589f9ca5706bb9779ac16ab06189bd", null ],
     [ "debug_getPeriodDagBlocks", "classtaraxa_1_1net_1_1_debug_client.html#a8a49ef866539508c238271fab43870ae", null ],
     [ "debug_getPeriodTransactionsWithReceipts", "classtaraxa_1_1net_1_1_debug_client.html#a7220c05786d04075274a94ba00c2c863", null ],

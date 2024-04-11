@@ -109,17 +109,20 @@ Collaboration diagram for taraxa::rewards::Stats:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a150bce39d0a2ff217e96641d35e59997"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a150bce39d0a2ff217e96641d35e59997">Stats</a> (uint32_t committee_size, const <a class="el" href="struct_hardforks_config.html">HardforksConfig</a> &amp;hardforks, std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; db, std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; &amp;&amp;dpos_eligible_total_vote_count)</td></tr>
-<tr class="separator:a150bce39d0a2ff217e96641d35e59997"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af516a0f0db6f7f3776af3e48d4872073"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#af516a0f0db6f7f3776af3e48d4872073">Stats</a> (uint32_t committee_size, const <a class="el" href="struct_hardforks_config.html">HardforksConfig</a> &amp;hardforks, std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; db, std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; &amp;&amp;dpos_eligible_total_vote_count, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> last_blk_num=0)</td></tr>
+<tr class="separator:af516a0f0db6f7f3776af3e48d4872073"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac93f9d829288b1a36079aa6152e715b5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ac93f9d829288b1a36079aa6152e715b5">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_gas_used, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;write_batch)</td></tr>
 <tr class="memdesc:ac93f9d829288b1a36079aa6152e715b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">processing passed block and returns stats that should be processed at this block  <a href="classtaraxa_1_1rewards_1_1_stats.html#ac93f9d829288b1a36079aa6152e715b5">More...</a><br /></td></tr>
 <tr class="separator:ac93f9d829288b1a36079aa6152e715b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6de3013fe4a9dbbff071bab4d8ce491"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ad6de3013fe4a9dbbff071bab4d8ce491">clear</a> (uint64_t current_period)</td></tr>
+<tr class="memdesc:ad6de3013fe4a9dbbff071bab4d8ce491"><td class="mdescLeft">&#160;</td><td class="mdescRight">called on start of new rewards interval. clears blocks_stats_ collection and removes all data saved in db column  <a href="classtaraxa_1_1rewards_1_1_stats.html#ad6de3013fe4a9dbbff071bab4d8ce491">More...</a><br /></td></tr>
+<tr class="separator:ad6de3013fe4a9dbbff071bab4d8ce491"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a5de3533e81125615f2c8b8fa78cc96b3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a5de3533e81125615f2c8b8fa78cc96b3">loadFromDb</a> ()</td></tr>
-<tr class="memdesc:a5de3533e81125615f2c8b8fa78cc96b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">load current interval stats from database  <a href="classtaraxa_1_1rewards_1_1_stats.html#a5de3533e81125615f2c8b8fa78cc96b3">More...</a><br /></td></tr>
-<tr class="separator:a5de3533e81125615f2c8b8fa78cc96b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58be7a856ae063712e3168b7110ef02c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a58be7a856ae063712e3168b7110ef02c">recoverFromDb</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> last_blk_num)</td></tr>
+<tr class="memdesc:a58be7a856ae063712e3168b7110ef02c"><td class="mdescLeft">&#160;</td><td class="mdescRight">recover current interval stats from database  <a href="classtaraxa_1_1rewards_1_1_stats.html#a58be7a856ae063712e3168b7110ef02c">More...</a><br /></td></tr>
+<tr class="separator:a58be7a856ae063712e3168b7110ef02c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47268a8f89eeb03af9a978ddf1cc2c94"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a47268a8f89eeb03af9a978ddf1cc2c94">getCurrentDistributionFrequency</a> (uint64_t current_period) const</td></tr>
 <tr class="memdesc:a47268a8f89eeb03af9a978ddf1cc2c94"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns rewards distribution frequency for specified period  <a href="classtaraxa_1_1rewards_1_1_stats.html#a47268a8f89eeb03af9a978ddf1cc2c94">More...</a><br /></td></tr>
 <tr class="separator:a47268a8f89eeb03af9a978ddf1cc2c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -128,9 +131,6 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:aa5ee14c99f535c17db18f6620ab606c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#aa5ee14c99f535c17db18f6620ab606c3">saveBlockStats</a> (uint64_t number, const <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &amp;stats, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;write_batch)</td></tr>
 <tr class="memdesc:aa5ee14c99f535c17db18f6620ab606c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">saves stats to database to not lose this data in case of node restart  <a href="classtaraxa_1_1rewards_1_1_stats.html#aa5ee14c99f535c17db18f6620ab606c3">More...</a><br /></td></tr>
 <tr class="separator:aa5ee14c99f535c17db18f6620ab606c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a34abce543a1fed9cbf6107383241e291"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a34abce543a1fed9cbf6107383241e291">clear</a> ()</td></tr>
-<tr class="memdesc:a34abce543a1fed9cbf6107383241e291"><td class="mdescLeft">&#160;</td><td class="mdescRight">called on start of new rewards interval. clears blocks_stats_ collection and removes all data saved in db column  <a href="classtaraxa_1_1rewards_1_1_stats.html#a34abce543a1fed9cbf6107383241e291">More...</a><br /></td></tr>
-<tr class="separator:a34abce543a1fed9cbf6107383241e291"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -148,8 +148,8 @@ Protected Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class that is managing rewards stats processing and hardforks(intervals changes) So intermediate blocks stats are stored in the vector in data(to restore on the node restart) and full list of interval stats is returned in the end of interval </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a150bce39d0a2ff217e96641d35e59997"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a150bce39d0a2ff217e96641d35e59997">&#9670;&nbsp;</a></span>Stats()</h2>
+<a id="af516a0f0db6f7f3776af3e48d4872073"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af516a0f0db6f7f3776af3e48d4872073">&#9670;&nbsp;</a></span>Stats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -176,7 +176,13 @@ Protected Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>dpos_eligible_total_vote_count</em>&#160;</td>
+          <td class="paramname"><em>dpos_eligible_total_vote_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>last_blk_num</em> = <code>0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -189,27 +195,20 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a34abce543a1fed9cbf6107383241e291"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a34abce543a1fed9cbf6107383241e291">&#9670;&nbsp;</a></span>clear()</h2>
+<a id="ad6de3013fe4a9dbbff071bab4d8ce491"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6de3013fe4a9dbbff071bab4d8ce491">&#9670;&nbsp;</a></span>clear()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void taraxa::rewards::Stats::clear </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>current_period</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>called on start of new rewards interval. clears blocks_stats_ collection and removes all data saved in db column </p>
@@ -280,33 +279,6 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a5de3533e81125615f2c8b8fa78cc96b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5de3533e81125615f2c8b8fa78cc96b3">&#9670;&nbsp;</a></span>loadFromDb()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::rewards::Stats::loadFromDb </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>load current interval stats from database </p>
-
-</div>
-</div>
 <a id="ac93f9d829288b1a36079aa6152e715b5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac93f9d829288b1a36079aa6152e715b5">&#9670;&nbsp;</a></span>processStats()</h2>
 
@@ -347,6 +319,34 @@ Protected Attributes</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>vector&lt;BlockStats&gt; that should be processed at current block </dd></dl>
+
+</div>
+</div>
+<a id="a58be7a856ae063712e3168b7110ef02c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58be7a856ae063712e3168b7110ef02c">&#9670;&nbsp;</a></span>recoverFromDb()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::rewards::Stats::recoverFromDb </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>last_blk_num</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>recover current interval stats from database </p>
 
 </div>
 </div>

@@ -1,5 +1,12 @@
 var NAVTREEINDEX16 =
 {
+"group___p_b_f_t.html#aebf71150397fd977ca00618d1162de92":[14,2,0,4],
+"group___p_b_f_t.html#aec2ed2868e744617018f25b94cbef671":[14,2,1,47],
+"group___p_b_f_t.html#aecaca14186b3a9e8d6ccb9fe341d5d5b":[14,2,1,50],
+"group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948":[14,2,1,4],
+"group___p_b_f_t.html#af03389b53718e15a31c0da5a22411b22":[14,2,3,25],
+"group___p_b_f_t.html#af14ed5b43a9c91c797d8847d7def4d01":[14,2,1,116],
+"group___p_b_f_t.html#af3ec0d4c489b9f9ebcc8bed828c59ed9":[14,2,4,5],
 "group___p_b_f_t.html#af52113f6af425d31ad748fb285a295fd":[14,2,3,12],
 "group___p_b_f_t.html#af527c9f71edcd69538edcfe26608ab2d":[14,2,1,80],
 "group___p_b_f_t.html#af5a9bba08171e719cef0161abb9eefd1":[14,2,0,6],
@@ -242,12 +249,5 @@ var NAVTREEINDEX16 =
 "group___vote.html#classtaraxa_1_1_vote":[14,4,1],
 "group___vote.html#classtaraxa_1_1_vote_manager":[14,4,0],
 "group___vote.html#classtaraxa_1_1_vrf_pbft_msg":[14,4,2],
-"group___vote.html#classtaraxa_1_1_vrf_pbft_sortition":[14,4,3],
-"group___vote.html#ga2a876cfe520b70b99aaae2227382fd01":[14,4,8],
-"group___vote.html#ga8a0770e242b649865f15f20a405507cc":[14,4,4],
-"group___vote.html#ga8f30f98921b3c06085b1aa85e0d49f66":[14,4,6],
-"group___vote.html#gac8701dc4b2326bc90d8d2df733e0bae0":[14,4,7],
-"group___vote.html#gaf3a4dffe8f7ad86c1d9e4e8df6b60189":[14,4,5],
-"group___vote.html#gga8a0770e242b649865f15f20a405507cca15e81b6e3979738b87e59b040d2c9b53":[14,4,4,3],
-"group___vote.html#gga8a0770e242b649865f15f20a405507cca2b4d6980ef2c92a18002aa6d7a57a33e":[14,4,4,2]
+"group___vote.html#classtaraxa_1_1_vrf_pbft_sortition":[14,4,3]
 };
