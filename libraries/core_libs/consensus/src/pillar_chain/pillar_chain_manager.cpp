@@ -62,7 +62,7 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     std::transform(new_vote_counts.begin(), new_vote_counts.end(), std::back_inserter(votes_count_changes),
                    [](const auto& vote_count) {
                      return PillarBlock::ValidatorVoteCountChange(vote_count.addr,
-                                                                  static_cast<int64_t>(vote_count.vote_count));
+                                                                  static_cast<int32_t>(vote_count.vote_count));
                    });
   } else {
     // Second or further pillar blocks
@@ -447,7 +447,7 @@ std::vector<PillarBlock::ValidatorVoteCountChange> PillarChainManager::getOrdere
       changes_map.emplace(
           current_vote_count.second.addr,
           PillarBlock::ValidatorVoteCountChange(current_vote_count.second.addr,
-                                                static_cast<int64_t>(current_vote_count.second.vote_count)));
+                                                static_cast<int32_t>(current_vote_count.second.vote_count)));
       continue;
     }
 
@@ -470,7 +470,7 @@ std::vector<PillarBlock::ValidatorVoteCountChange> PillarChainManager::getOrdere
                                  .emplace(previous_vote_count_left.second.addr,
                                           PillarBlock::ValidatorVoteCountChange(
                                               previous_vote_count_left.second.addr,
-                                              static_cast<int64_t>(previous_vote_count_left.second.vote_count)))
+                                              static_cast<int32_t>(previous_vote_count_left.second.vote_count)))
                                  .first;
     vote_count_change->second.vote_count_change_ *= -1;
   }
