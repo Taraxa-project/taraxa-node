@@ -605,15 +605,15 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPillarBlock","params":
     "validators_votes_count_changes": [
       {
         "address": "0x81ca6ec6531d4d37a2e89907f63acfe93669843d",
-        "value": 1000000000000000000000
+        "value": 1
       },
       {
         "address": "0x8e1398c5c7dd7e64491b3efaf60a4777db47aade",
-        "value": 1000000000000000000000
+        "value": 1
       },
       {
         "address": "0x2385b6d95e46bc648f272881de74b4251c3479dd",
-        "value": 1000000000000000000000
+        "value": 2
       }
     ]
   }

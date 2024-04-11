@@ -161,7 +161,6 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
 }
 
 void WsSession::newPillarBlockExecuted(const pillar_chain::PillarBlock &pillar_block) {
-  std::cout << "newPillarBlockExecuted " << new_pillar_block_subscription_ << std::endl;
   if (new_pillar_block_subscription_) {
     Json::Value res, params;
     params["result"] = pillar_block.getJson();
