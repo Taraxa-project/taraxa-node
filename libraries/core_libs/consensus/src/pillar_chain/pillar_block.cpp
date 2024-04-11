@@ -9,7 +9,7 @@
 
 namespace taraxa::pillar_chain {
 
-PillarBlock::ValidatorVoteCountChange::ValidatorVoteCountChange(addr_t addr, int64_t vote_count_change)
+PillarBlock::ValidatorVoteCountChange::ValidatorVoteCountChange(addr_t addr, int32_t vote_count_change)
     : addr_(addr), vote_count_change_(vote_count_change) {}
 
 RLP_FIELDS_DEFINE(PillarBlock::ValidatorVoteCountChange, addr_, vote_count_change_)

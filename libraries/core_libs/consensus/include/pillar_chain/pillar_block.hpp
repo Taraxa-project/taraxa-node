@@ -26,9 +26,9 @@ class PillarBlock {
   // Validator votes count change
   struct ValidatorVoteCountChange {
     addr_t addr_;
-    int64_t vote_count_change_;  // can be both positive or negative
+    int32_t vote_count_change_;  // can be both positive or negative
 
-    ValidatorVoteCountChange(addr_t addr, int64_t vote_count_change);
+    ValidatorVoteCountChange(addr_t addr, int32_t vote_count_change);
     ValidatorVoteCountChange(const dev::RLP& rlp);
 
     ValidatorVoteCountChange() = default;
