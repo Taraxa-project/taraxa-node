@@ -43,6 +43,7 @@ participate you are more than welcome. You can start by reading [contributing tu
 # Useful doc
 - [Git practices](doc/git_practices.md)
 - [Coding practices](doc/coding_practices.md)
+- [EVM incompatibilities](doc/evm_incompatibilities.md)
 
 
 # System Requirements
@@ -54,4 +55,3 @@ Any CPU with decent single core performance should be sufficient.
 Taraxa is constantly growing, so you may find you need more disk space to run a full node.
 We are also constantly working on optimizing Taraxa's use of disk space.
 ```
-
