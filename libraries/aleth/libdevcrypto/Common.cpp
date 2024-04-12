@@ -286,7 +286,7 @@ bytes ecies::kdf(Secret const& _z, bytes const& _s1, unsigned kdByteLen) {
   // the 4 bytes is okay. NIST specifies 4 bytes.
   std::array<::byte, 4> ctr{{0, 0, 0, 1}};
   bytes k;
-  secp256k1_sha256_t ctx;
+  secp256k1_sha256 ctx;
   for (unsigned i = 0; i <= reps; i++) {
     secp256k1_sha256_initialize(&ctx);
     secp256k1_sha256_write(&ctx, ctr.data(), ctr.size());
