@@ -23,22 +23,21 @@ class PillarBlock {
  public:
   using Hash = uint256_hash_t;
 
-  // Validator stake change
-  struct ValidatorStakeChange {
+  // Validator votes count change
+  struct ValidatorVoteCountChange {
     addr_t addr_;
-    dev::s256 stake_change_;  // can be both positive or negative
+    int32_t vote_count_change_;  // can be both positive or negative
 
-    ValidatorStakeChange(const state_api::ValidatorStake& stake);
-    ValidatorStakeChange(addr_t addr, dev::s256 stake_change);
-    ValidatorStakeChange(const dev::RLP& rlp);
+    ValidatorVoteCountChange(addr_t addr, int32_t vote_count_change);
+    ValidatorVoteCountChange(const dev::RLP& rlp);
 
-    ValidatorStakeChange() = default;
-    ValidatorStakeChange(const ValidatorStakeChange&) = default;
-    ValidatorStakeChange& operator=(const ValidatorStakeChange&) = default;
-    ValidatorStakeChange(ValidatorStakeChange&&) = default;
-    ValidatorStakeChange& operator=(ValidatorStakeChange&&) = default;
+    ValidatorVoteCountChange() = default;
+    ValidatorVoteCountChange(const ValidatorVoteCountChange&) = default;
+    ValidatorVoteCountChange& operator=(const ValidatorVoteCountChange&) = default;
+    ValidatorVoteCountChange(ValidatorVoteCountChange&&) = default;
+    ValidatorVoteCountChange& operator=(ValidatorVoteCountChange&&) = default;
 
-    ~ValidatorStakeChange() = default;
+    ~ValidatorVoteCountChange() = default;
 
     HAS_RLP_FIELDS
   };
@@ -47,7 +46,8 @@ class PillarBlock {
   PillarBlock() = default;
   PillarBlock(const dev::RLP& rlp);
   PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root,
-              std::vector<ValidatorStakeChange>&& validator_stakes_changes, blk_hash_t previous_pillar_block_hash);
+              std::vector<ValidatorVoteCountChange>&& validator_votes_count_changes,
+              blk_hash_t previous_pillar_block_hash);
 
   PillarBlock(const PillarBlock& pillar_block);
 
@@ -67,9 +67,9 @@ class PillarBlock {
   Hash getPreviousBlockHash() const;
 
   /**
-   * @return validator stakes changes
+   * @return validator vote counts changes
    */
-  const std::vector<ValidatorStakeChange>& getValidatorsStakesChanges() const;
+  const std::vector<ValidatorVoteCountChange>& getValidatorsVoteCountsChanges() const;
 
   /**
    * @return state root
@@ -104,8 +104,7 @@ class PillarBlock {
    * @param enc
    * @return
    */
-  // TODO[2733]: implement
-  // static PillarBlock decodeSolidity(const bytes& enc);
+  static PillarBlock decodeSolidity(const bytes& enc);
 
   HAS_RLP_FIELDS
 
@@ -119,8 +118,8 @@ class PillarBlock {
   // Bridge root
   h256 bridge_root_{};
 
-  // Delta change of validators stakes between current and latest pillar block
-  std::vector<ValidatorStakeChange> validators_stakes_changes_{};
+  // Delta change of validators votes count between current and latest pillar block
+  std::vector<ValidatorVoteCountChange> validators_votes_count_changes_{};
 
   Hash previous_pillar_block_hash_{0};
 
