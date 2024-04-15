@@ -33,6 +33,7 @@ var group___transaction =
       [ "getTransaction", "group___transaction.html#a2d3caf313f51c016ec84786eb9e16f45", null ],
       [ "getTransactionCount", "group___transaction.html#ad2bfb8b4d02451a503a0250ff8a85be1", null ],
       [ "getTransactionPoolSize", "group___transaction.html#a642117752a03190dcf801b18b8c4639d", null ],
+      [ "getTransactions", "group___transaction.html#ac759568a2cb81587ea5bf376a8581b21", null ],
       [ "getTransactionsMutex", "group___transaction.html#ab957aa8d2336b9ec20909110910bf5f3", null ],
       [ "insertTransaction", "group___transaction.html#aa6c21279f3fc5b78d7eb29ab6de28a1d", null ],
       [ "insertValidatedTransaction", "group___transaction.html#a6fe144ea7c16a7bc8f0c77b7e08f459b", null ],

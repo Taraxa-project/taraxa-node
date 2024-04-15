@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"group___vote.html#classtaraxa_1_1_vrf_pbft_sortition":[14,4,3],
 "group___vote.html#ga2a876cfe520b70b99aaae2227382fd01":[14,4,8],
 "group___vote.html#ga8a0770e242b649865f15f20a405507cc":[14,4,4],
 "group___vote.html#ga8f30f98921b3c06085b1aa85e0d49f66":[14,4,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "libp2p_2_common_8h.html#a1a6ed6078a9c0a52b98d376eb09397beac85a251cc457840f1e032f1b733e9398":[17,0,1,0,2,3,18,2],
 "libp2p_2_common_8h.html#a1a6ed6078a9c0a52b98d376eb09397beaca3da8f495e4e628912a7798655da6c2":[17,0,1,0,2,3,18,6],
 "libp2p_2_common_8h.html#a29200277f2ab6428668c0a2b3315b50a":[17,0,1,0,2,3,32],
-"libp2p_2_common_8h.html#a3a508f9c461662e1c84de288426c2e8f":[17,0,1,0,2,3,11],
-"libp2p_2_common_8h.html#a3e91739f2f67f56a118ab753083470b9":[17,0,1,0,2,3,13]
+"libp2p_2_common_8h.html#a3a508f9c461662e1c84de288426c2e8f":[17,0,1,0,2,3,11]
 };

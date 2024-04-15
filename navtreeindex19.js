@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_coding_practices.html#autotoc_md151":[3,0,18],
 "md_doc_coding_practices.html#autotoc_md152":[76],
 "md_doc_coding_practices.html#autotoc_md153":[77],
 "md_doc_coding_practices.html#autotoc_md154":[78],
@@ -198,8 +199,8 @@ var NAVTREEINDEX19 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[17,0,1,0,2,24,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[17,0,1,0,2,3,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[17,0,1,0,2,24,0],
-"namespacemembers.html":[15,0,0],
 "namespacemembers.html":[15,0],
+"namespacemembers.html":[15,0,0],
 "namespacemembers_a.html":[15,0,1],
 "namespacemembers_b.html":[15,0,2],
 "namespacemembers_c.html":[15,0,3],
@@ -208,8 +209,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_enum.html":[15,4],
 "namespacemembers_eval.html":[15,5],
 "namespacemembers_f.html":[15,0,6],
-"namespacemembers_func.html":[15,1],
 "namespacemembers_func.html":[15,1,0],
+"namespacemembers_func.html":[15,1],
 "namespacemembers_func_a.html":[15,1,1],
 "namespacemembers_func_b.html":[15,1,2],
 "namespacemembers_func_c.html":[15,1,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "namespacemembers_u.html":[15,0,20],
 "namespacemembers_v.html":[15,0,21],
 "namespacemembers_vars.html":[15,2],
-"namespacemembers_w.html":[15,0,22],
-"namespacemembers_z.html":[15,0,23]
+"namespacemembers_w.html":[15,0,22]
 };
