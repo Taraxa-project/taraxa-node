@@ -344,19 +344,27 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
 }
 
 // Verify all block transactions are present
-std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBlock const &blk) {
-  vec_trx_t finalized_trx_hashes;
+std::optional<SharedTransactions> TransactionManager::getBlockTransactions(const DagBlock &blk) {
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     LOG(log_er_) << "Ignore block " << blk.getHash() << " since it has no transactions";
     return std::nullopt;
   }
+  auto transactions = getTransactions(all_block_trx_hashes);
+  if (!transactions.has_value()) {
+    LOG(log_nf_) << "Block " << blk.getHash() << " has missing transaction";
+  }
+  return transactions;
+}
 
+std::optional<SharedTransactions> TransactionManager::getTransactions(const vec_trx_t &trxs_hashes) {
+  vec_trx_t finalized_trx_hashes;
   SharedTransactions transactions;
-  transactions.reserve(all_block_trx_hashes.size());
+  transactions.reserve(trxs_hashes.size());
+
   {
     std::shared_lock transactions_lock(transactions_mutex_);
-    for (auto const &tx_hash : all_block_trx_hashes) {
+    for (auto const &tx_hash : trxs_hashes) {
       auto trx = transactions_pool_.get(tx_hash);
       if (trx != nullptr) {
         transactions.emplace_back(std::move(trx));
@@ -381,7 +389,7 @@ std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBl
       transactions.emplace_back(std::move(trx));
     }
   } else {
-    LOG(log_nf_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
+    LOG(log_nf_) << "getTransactions has missing transaction " << finalizedTransactions.second;
     return std::nullopt;
   }
 
