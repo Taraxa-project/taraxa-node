@@ -182,29 +182,23 @@ std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
   }
 }
 
-Json::Value Taraxa::taraxa_getPillarBlock(const std::string& pillar_block_num) {
+Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_period, bool include_binary_data) {
   try {
     auto node = full_node_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
 
-    const auto block_num = dev::jsToInt(pillar_block_num);
-    const auto pbft_period = block_num * node->getConfig().genesis.state.hardforks.ficus_hf.pillar_block_periods;
+    const auto pbft_period = dev::jsToInt(pillar_block_period);
     if (!node->getConfig().genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(pbft_period)) {
       return {};
     }
 
     if (const auto pillar_block_data = node->getDB()->getPillarBlockData(pbft_period); pillar_block_data) {
-      return pillar_block_data->block_->getJson();
-    } else {
-      const auto current_pillar_block = node->getPillarChainManager()->getCurrentPillarBlock();
-      if (current_pillar_block && current_pillar_block->getPeriod() == pbft_period) {
-        return current_pillar_block->getJson();
-      }
-
-      return {};
+      return pillar_block_data->getJson(include_binary_data);
     }
+
+    return {};
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }

@@ -178,24 +178,26 @@ bool PillarChainManager::genAndPlacePillarVote(const blk_hash_t& pillar_block_ha
   return true;
 }
 
-bool PillarChainManager::finalizePillarBlockData(const PillarBlockData& pillarBlockData) {
+bool PillarChainManager::finalizePillarBlockData(const PillarBlockData& pillar_block_data) {
   // Note: 2t+1 votes should be validated before calling pushPillarBlock
-  if (!isValidPillarBlock(pillarBlockData.block_)) {
+  if (!isValidPillarBlock(pillar_block_data.block_)) {
     LOG(log_er_) << "Trying to push invalid pillar block";
     return false;
   }
 
-  db_->savePillarBlockData(pillarBlockData);
-  LOG(log_nf_) << "Pillar block " << pillarBlockData.block_->getHash() << " with period "
-               << pillarBlockData.block_->getPeriod() << " pushed into the pillar chain";
+  db_->savePillarBlockData(pillar_block_data);
+  LOG(log_nf_) << "Pillar block " << pillar_block_data.block_->getHash() << " with period "
+               << pillar_block_data.block_->getPeriod() << " pushed into the pillar chain";
 
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
-    last_finalized_pillar_block_ = pillarBlockData.block_;
+    last_finalized_pillar_block_ = pillar_block_data.block_;
 
     // Erase votes that are no longer needed
     pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod());
   }
+
+  pillar_block_finalized_emitter_.emit(pillar_block_data);
 
   return true;
 }

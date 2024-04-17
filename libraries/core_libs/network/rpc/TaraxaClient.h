@@ -127,10 +127,11 @@ class TaraxaClient : public jsonrpc::Client {
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
 
-  Json::Value taraxa_getPillarBlock(const std::string& param1) throw(jsonrpc::JsonRpcException) {
+  Json::Value taraxa_getPillarBlockData(const std::string& param1, bool param2) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
-    Json::Value result = this->CallMethod("taraxa_getPillarBlock", p);
+    p.append(param2);
+    Json::Value result = this->CallMethod("taraxa_getPillarBlockData", p);
     if (result.isObject())
       return result;
     else

@@ -566,17 +566,23 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_totalSupply","params":["0
 }
 ```
 
-### taraxa_getPillarBlock
+### taraxa_getPillarBlockData
 
-Returns pillar block for specified period
+Returns finalized pillar block + pillar votes for specified bock number
 
 #### Parameters
 
-`QUANTITY` - pillar block number
+1. `QUANTITY` - pillar block period
+2. `Boolean` - If true it returns also solidity encoded binary data for both pillar block and its votes
 
 #### Returns
 
-`OBJECT` - pillar block object
+`OBJECT` - pillar block data
+* `pillar_block`: `OBJECT` - pillar block object
+* `pillar_block_binary_data`: `STRING` - hex string of solidity encoded pillar block binary data
+* `votes_binary_data`: `STRING` - hex string of solidity encoded pillar block votes binary data
+
+`OBJECT` - pillar_block
 * `pbft_period`: `QUANTITY` - pillar block PBFT period
 * `state_root`: `DATA`, 32 Bytes - state root hash
 * `bridge_root`: `DATA`, 32 Bytes - bridge root hash
@@ -590,31 +596,39 @@ Returns pillar block for specified period
 
 ```json
 // Request
-curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPillarBlock","params":[1],"id":1}'
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPillarBlockData","params":[100, true],"id":1}'
 
 // Result
 {
   "id": 1,
   "jsonrpc": "2.0",
   "result": {
-    "bridge_root": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "hash": "0xfbe323b551ecfa5a7aa55448329639789342b701239a066dc8ac111c2785f8fc",
-    "pbft_period": 100,
-    "previous_pillar_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "state_root": "0xc0a1cc0d6f3f29ad42bd513d76e8ffd49c5511d0194af34f75102af5121eda73",
-    "validators_votes_count_changes": [
-      {
-        "address": "0x81ca6ec6531d4d37a2e89907f63acfe93669843d",
-        "value": 1
-      },
-      {
-        "address": "0x8e1398c5c7dd7e64491b3efaf60a4777db47aade",
-        "value": 1
-      },
-      {
-        "address": "0x2385b6d95e46bc648f272881de74b4251c3479dd",
-        "value": 2
-      }
+    "pillar_block": {
+      "bridge_root": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "0xa3f55d0095967cf00179a05d5e162ed3b9d6ceaee367f75c3fd6ec1f3bb3c42d",
+      "pbft_period": 100,
+      "previous_pillar_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "state_root": "0xe9a2b242efc2f4c59b91f564737d8ac86a4daae6fef78c5d8c245e7adc1123c4",
+      "validators_votes_count_changes": [
+        {
+          "address": "0xa63059ab41333d72b6008258dbedaaa159eacda1",
+          "value": 100
+        },
+        {
+          "address": "0x07badc44aa26cb163114881adb916b6f094d6ab8",
+          "value": 100
+        },
+        {
+          "address": "0x7433ac110692c2f4f9a57bc9fb72c41570246bd7",
+          "value": 100
+        }
+      ]
+    },
+    "pillar_block_binary_data": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000064e9a2b242efc2f4c59b91f564737d8ac86a4daae6fef78c5d8c245e7adc1123c40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000003000000000000000000000000a63059ab41333d72b6008258dbedaaa159eacda1000000000000000000000000000000000000000000000000000000000000006400000000000000000000000007badc44aa26cb163114881adb916b6f094d6ab800000000000000000000000000000000000000000000000000000000000000640000000000000000000000007433ac110692c2f4f9a57bc9fb72c41570246bd70000000000000000000000000000000000000000000000000000000000000064",
+    "signatures_binary_data": [
+      "0x0000000000000000000000000000000000000000000000000000000000000064a3f55d0095967cf00179a05d5e162ed3b9d6ceaee367f75c3fd6ec1f3bb3c42d893070c5de1807d1b45e734d388c4b2cfe5c0ea1d1d8d9f30fb410a2e91edc402be042a89f3b0f46cba3160c395435b62f218321a1f2c548fb5a6a30dde0743a",
+      "0x0000000000000000000000000000000000000000000000000000000000000064a3f55d0095967cf00179a05d5e162ed3b9d6ceaee367f75c3fd6ec1f3bb3c42dc08deeed1fddef5d893f2eb6a5ac3f31d2286d08b2d00457f64964c2de2eb8dbe668ee1320dee463e463f624ce1bfcda6869ba3f42729752a3b9e7e17b852730",
+      "0x0000000000000000000000000000000000000000000000000000000000000064a3f55d0095967cf00179a05d5e162ed3b9d6ceaee367f75c3fd6ec1f3bb3c42d1c0d7337fd01e6df3f5b0a5aa45f926051b6a181b4eea24a4880b038ffb97fe6df5a4e8605da9c7907ee37069561a691f79fa35aef898f1cbbd15c61ebaa960e"
     ]
   }
 }
