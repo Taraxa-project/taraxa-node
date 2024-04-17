@@ -78,7 +78,7 @@
     "returns": ""
   },
   {
-    "name": "taraxa_getPillarBlock",
+    "name": "taraxa_getPillarBlockData",
     "params": [""],
     "order": [],
     "returns": ""

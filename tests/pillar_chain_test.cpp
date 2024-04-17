@@ -17,7 +17,7 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   auto& db = *db_ptr;
 
   // Pillar chain
-  EthBlockNumber pillar_block_num(123);
+  EthBlockNumber pillar_block_period(123);
   h256 state_root(456);
   blk_hash_t previous_pillar_block_hash(789);
 
@@ -26,7 +26,7 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      pillar_block_num, state_root, h256{}, std::move(votes_count_changes), previous_pillar_block_hash);
+      pillar_block_period, state_root, h256{}, std::move(votes_count_changes), previous_pillar_block_hash);
 
   // Pillar block vote counts
   std::vector<state_api::ValidatorVoteCount> vote_counts;
@@ -54,7 +54,7 @@ TEST_F(PillarChainTest, pillar_chain_db) {
       std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
 
   const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      pillar_block_num - 1, h256{}, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange>{},
+      pillar_block_period - 1, h256{}, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange>{},
       blk_hash_t{});
   db.savePillarBlockData(
       pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
@@ -369,7 +369,7 @@ TEST_F(PillarChainTest, compact_signature) {
 }
 
 TEST_F(PillarChainTest, pillar_block_solidity_rlp_encoding) {
-  EthBlockNumber pillar_block_num(123);
+  EthBlockNumber pillar_block_period(123);
   h256 state_root(456);
   h256 bridge_root(789);
   blk_hash_t previous_pillar_block_hash(789);
@@ -379,11 +379,11 @@ TEST_F(PillarChainTest, pillar_block_solidity_rlp_encoding) {
   const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
   auto vcc = votes_count_changes;
-  const auto pillar_block =
-      pillar_chain::PillarBlock(pillar_block_num, state_root, bridge_root, std::move(vcc), previous_pillar_block_hash);
+  const auto pillar_block = pillar_chain::PillarBlock(pillar_block_period, state_root, bridge_root, std::move(vcc),
+                                                      previous_pillar_block_hash);
 
   auto validateDecodedPillarBlock = [&](const pillar_chain::PillarBlock& pillar_block) {
-    ASSERT_EQ(pillar_block.getPeriod(), pillar_block_num);
+    ASSERT_EQ(pillar_block.getPeriod(), pillar_block_period);
     ASSERT_EQ(pillar_block.getStateRoot(), state_root);
     ASSERT_EQ(pillar_block.getBridgeRoot(), bridge_root);
     ASSERT_EQ(pillar_block.getPreviousBlockHash(), previous_pillar_block_hash);

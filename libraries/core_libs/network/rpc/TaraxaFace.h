@@ -52,9 +52,10 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_totalSupply", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
                                               "param1", JSON_ANY, NULL),
                            &taraxa::net::TaraxaFace::taraxa_totalSupplyI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getPillarBlock", jsonrpc::PARAMS_BY_POSITION,
-                                              jsonrpc::JSON_OBJECT, "param1", JSON_ANY, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_getPillarBlockI);
+    this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getPillarBlockData", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
+                           JSON_ANY, "param2", jsonrpc::JSON_BOOLEAN, NULL),
+        &taraxa::net::TaraxaFace::taraxa_getPillarBlockDataI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response) {
@@ -101,9 +102,9 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     (void)request;
     response = this->taraxa_totalSupply(request[0u].asString());
   }
-  inline virtual void taraxa_getPillarBlockI(const Json::Value &request, Json::Value &response) {
+  inline virtual void taraxa_getPillarBlockDataI(const Json::Value &request, Json::Value &response) {
     (void)request;
-    response = this->taraxa_getPillarBlock(request[0u].asString());
+    response = this->taraxa_getPillarBlockData(request[0u].asString(), request[1u].asBool());
   }
 
   virtual std::string taraxa_protocolVersion() = 0;
@@ -118,7 +119,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   virtual std::string taraxa_pbftBlockHashByPeriod(const std::string &param1) = 0;
   virtual std::string taraxa_yield(const std::string &param1) = 0;
   virtual std::string taraxa_totalSupply(const std::string &param1) = 0;
-  virtual Json::Value taraxa_getPillarBlock(const std::string &param1) = 0;
+  virtual Json::Value taraxa_getPillarBlockData(const std::string &param1, bool param2) = 0;
 };
 
 }  // namespace net

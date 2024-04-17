@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "common/event.hpp"
 #include "config/config.hpp"
 #include "final_chain/data.hpp"
 #include "logger/logger.hpp"
@@ -29,6 +30,13 @@ namespace taraxa::pillar_chain {
  * @brief PillarChainMgr class contains functionality related to pillar chain
  */
 class PillarChainManager {
+ private:
+  const util::EventEmitter<const PillarBlockData&> pillar_block_finalized_emitter_{};
+
+ public:
+  const decltype(pillar_block_finalized_emitter_)::Subscriber& pillar_block_finalized_ =
+      pillar_block_finalized_emitter_;
+
  public:
   PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
                      std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<VoteManager> vote_mgr,
@@ -106,10 +114,10 @@ class PillarChainManager {
   /**
    * @brief Push new finalized pillar block
    *
-   * @param pillarBlockData
+   * @param pillar_block_data
    * @return true if successfully pushed, otherwise false
    */
-  bool finalizePillarBlockData(const PillarBlockData& pillarBlockData);
+  bool finalizePillarBlockData(const PillarBlockData& pillar_block_data);
 
   /**
    * @return current pillar block
