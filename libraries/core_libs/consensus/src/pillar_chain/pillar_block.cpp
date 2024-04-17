@@ -160,6 +160,21 @@ dev::bytes PillarBlockData::getRlp() const {
   return s.invalidate();
 }
 
+Json::Value PillarBlockData::getJson(bool include_binary_data) const {
+  Json::Value res;
+  res["pillar_block"] = block_->getJson();
+
+  if (include_binary_data) {
+    res["pillar_block_binary_data"] = dev::toJS(block_->encodeSolidity());
+    res["signatures_binary_data"] = Json::Value(Json::arrayValue);
+    for (const auto& vote : pillar_votes_) {
+      res["signatures_binary_data"].append(dev::toJS(vote->compactSignatureEncodeSolidity()));
+    }
+  }
+
+  return res;
+}
+
 RLP_FIELDS_DEFINE(CurrentPillarBlockDataDb, pillar_block, vote_counts)
 
 }  // namespace taraxa::pillar_chain

@@ -46,12 +46,27 @@ class PillarVote : public Vote {
   bytes encodeSolidity(bool inc_sig = true) const;
 
   /**
+   * @note Solidity encoding is used for data that are sent to smart contracts
+   *
+   * @return solidity encoded representation of compact signature of pillar vote
+   */
+  bytes compactSignatureEncodeSolidity() const;
+
+  /**
    * @brief Decodes solidity encoded representation of pillar vote
+   *
+   * @param enc
+   * @return PillarVote
+   */
+  static PillarVote decodeSolidity(const bytes& enc);
+
+  /**
+   * @brief Decodes solidity encoded representation of compact signature of pillar vote
    *
    * @param enc
    * @return
    */
-  static PillarVote decodeSolidity(const bytes& enc);
+  dev::CompactSignatureStruct compactSignatureDecodeSolidity(const bytes& enc);
 
   HAS_RLP_FIELDS
 
