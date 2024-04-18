@@ -28,13 +28,23 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
       pillar_block_num, state_root, h256{}, std::move(votes_count_changes), previous_pillar_block_hash);
 
-  // Pillar block
-  auto batch = db.createWriteBatch();
-  db.saveCurrentPillarBlock(pillar_block, batch);
-  db.commitWriteBatch(batch);
+  // Pillar block vote counts
+  std::vector<state_api::ValidatorVoteCount> vote_counts;
+  const auto stake1 = votes_count_changes.emplace_back(addr_t(123), 123);
+  const auto stake2 = votes_count_changes.emplace_back(addr_t(456), 456);
 
-  const auto pillar_block_db = db.getCurrentPillarBlock();
-  EXPECT_EQ(pillar_block->getHash(), pillar_block_db->getHash());
+  // Current pillar block data - block + vote counts
+  pillar_chain::CurrentPillarBlockDataDb current_pillar_block_data{pillar_block, vote_counts};
+  db.saveCurrentPillarBlockData(current_pillar_block_data);
+
+  const auto current_pillar_block_data_db = db.getCurrentPillarBlockData();
+  EXPECT_EQ(pillar_block->getHash(), current_pillar_block_data_db->pillar_block->getHash());
+  EXPECT_EQ(vote_counts.size(), current_pillar_block_data_db->vote_counts.size());
+  for (size_t idx = 0; idx < current_pillar_block_data_db->vote_counts.size(); idx++) {
+    EXPECT_EQ(current_pillar_block_data_db->vote_counts[idx].addr, current_pillar_block_data_db->vote_counts[idx].addr);
+    EXPECT_EQ(current_pillar_block_data_db->vote_counts[idx].vote_count,
+              current_pillar_block_data_db->vote_counts[idx].vote_count);
+  }
 
   // Pillar block data
   std::vector<std::shared_ptr<PillarVote>> pillar_votes;
@@ -63,22 +73,6 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   EXPECT_EQ(pillar_votes.size(), latest_pillar_block_data_db->pillar_votes_.size());
   for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
     EXPECT_EQ(pillar_votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes_[idx]->getHash());
-  }
-
-  // Pillar block stakes
-  std::vector<state_api::ValidatorVoteCount> vote_counts;
-  const auto stake1 = votes_count_changes.emplace_back(addr_t(123), 123);
-  const auto stake2 = votes_count_changes.emplace_back(addr_t(456), 456);
-
-  batch = db.createWriteBatch();
-  db.saveCurrentPillarBlockVoteCounts(vote_counts, batch);
-  db.commitWriteBatch(batch);
-
-  const auto current_pillar_block_vote_counts_db = db.getCurrentPillarBlockVoteCounts();
-  EXPECT_EQ(vote_counts.size(), current_pillar_block_vote_counts_db.size());
-  for (size_t idx = 0; idx < current_pillar_block_vote_counts_db.size(); idx++) {
-    EXPECT_EQ(current_pillar_block_vote_counts_db[idx].addr, current_pillar_block_vote_counts_db[idx].addr);
-    EXPECT_EQ(current_pillar_block_vote_counts_db[idx].vote_count, current_pillar_block_vote_counts_db[idx].vote_count);
   }
 
   // Pillar vote

@@ -11,8 +11,7 @@ PillarVotePacketHandler::PillarVotePacketHandler(const FullNodeConfig &conf, std
     : ExtPillarVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats),
                                  std::move(pillar_chain_manager), node_addr, logs_prefix + "PILLAR_VOTE_PH") {}
 
-void PillarVotePacketHandler::validatePacketRlpFormat(
-    [[maybe_unused]] const threadpool::PacketData &packet_data) const {
+void PillarVotePacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   if (items != PillarVote::kStandardRlpSize) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, PillarVote::kStandardRlpSize);

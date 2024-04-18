@@ -21,8 +21,6 @@ namespace taraxa::pillar_chain {
  */
 class PillarBlock {
  public:
-  using Hash = uint256_hash_t;
-
   // Validator votes count change
   struct ValidatorVoteCountChange {
     addr_t addr_;
@@ -54,7 +52,7 @@ class PillarBlock {
   /**
    * @return pillar block hash
    */
-  Hash getHash() const;
+  blk_hash_t getHash() const;
 
   /**
    * @return pillar block pbft period
@@ -64,7 +62,7 @@ class PillarBlock {
   /**
    * @return pillar block previous block hash
    */
-  Hash getPreviousBlockHash() const;
+  blk_hash_t getPreviousBlockHash() const;
 
   /**
    * @return validator vote counts changes
@@ -121,9 +119,9 @@ class PillarBlock {
   // Delta change of validators votes count between current and latest pillar block
   std::vector<ValidatorVoteCountChange> validators_votes_count_changes_{};
 
-  Hash previous_pillar_block_hash_{0};
+  blk_hash_t previous_pillar_block_hash_{0};
 
-  mutable std::optional<Hash> hash_;
+  mutable std::optional<blk_hash_t> hash_;
   mutable std::shared_mutex hash_mutex_;
 };
 
@@ -136,6 +134,13 @@ struct PillarBlockData {
   dev::bytes getRlp() const;
 
   const static size_t kRlpItemCount = 2;
+};
+
+struct CurrentPillarBlockDataDb {
+  std::shared_ptr<pillar_chain::PillarBlock> pillar_block;
+  std::vector<state_api::ValidatorVoteCount> vote_counts;
+
+  HAS_RLP_FIELDS
 };
 
 /** @}*/

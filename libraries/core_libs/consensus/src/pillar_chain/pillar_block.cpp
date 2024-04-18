@@ -22,7 +22,7 @@ PillarBlock::PillarBlock(const dev::RLP& rlp) : PillarBlock(util::rlp_dec<Pillar
 
 PillarBlock::PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root,
                          std::vector<ValidatorVoteCountChange>&& validator_votes_count_changes,
-                         PillarBlock::Hash previous_pillar_block_hash)
+                         blk_hash_t previous_pillar_block_hash)
     : pbft_period_(period),
       state_root_(state_root),
       bridge_root_(bridge_root),
@@ -40,7 +40,7 @@ dev::bytes PillarBlock::getRlp() const { return util::rlp_enc(*this); }
 
 PbftPeriod PillarBlock::getPeriod() const { return pbft_period_; }
 
-PillarBlock::Hash PillarBlock::getPreviousBlockHash() const { return previous_pillar_block_hash_; }
+blk_hash_t PillarBlock::getPreviousBlockHash() const { return previous_pillar_block_hash_; }
 
 const std::vector<PillarBlock::ValidatorVoteCountChange>& PillarBlock::getValidatorsVoteCountsChanges() const {
   return validators_votes_count_changes_;
@@ -50,7 +50,7 @@ const h256& PillarBlock::getStateRoot() const { return state_root_; }
 
 const h256& PillarBlock::getBridgeRoot() const { return bridge_root_; }
 
-PillarBlock::Hash PillarBlock::getHash() const {
+blk_hash_t PillarBlock::getHash() const {
   {
     std::shared_lock lock(hash_mutex_);
     if (hash_.has_value()) {
@@ -159,5 +159,7 @@ dev::bytes PillarBlockData::getRlp() const {
 
   return s.invalidate();
 }
+
+RLP_FIELDS_DEFINE(CurrentPillarBlockDataDb, pillar_block, vote_counts)
 
 }  // namespace taraxa::pillar_chain

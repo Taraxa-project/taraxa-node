@@ -9,10 +9,9 @@ GetPillarVotesBundlePacketHandler::GetPillarVotesBundlePacketHandler(
     const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "GET_PILLAR_VOTES_BUNDLE_PH"),
-      pillar_chain_manager_(std::move(std::move(pillar_chain_manager))) {}
+      pillar_chain_manager_(std::move(pillar_chain_manager)) {}
 
-void GetPillarVotesBundlePacketHandler::validatePacketRlpFormat(
-    [[maybe_unused]] const threadpool::PacketData &packet_data) const {
+void GetPillarVotesBundlePacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   if (items != kGetPillarVotesBundlePacketSize) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, kGetPillarVotesBundlePacketSize);
@@ -43,7 +42,6 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
     return;
   }
 
-  // TODO: split packet to multiple with N votes containing each
   dev::RLPStream s(votes.size());
   for (const auto &sig : votes) {
     s.appendRaw(sig->rlp());
