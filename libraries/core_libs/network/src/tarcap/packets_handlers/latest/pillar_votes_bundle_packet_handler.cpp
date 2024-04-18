@@ -12,8 +12,7 @@ PillarVotesBundlePacketHandler::PillarVotesBundlePacketHandler(
     : ExtPillarVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats),
                                  std::move(pillar_chain_manager), node_addr, logs_prefix + "PILLAR_VOTES_BUNDLE_PH") {}
 
-void PillarVotesBundlePacketHandler::validatePacketRlpFormat(
-    [[maybe_unused]] const threadpool::PacketData &packet_data) const {
+void PillarVotesBundlePacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   if (items == 0 || items > kMaxPillarVotesInBundleRlp) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxPillarVotesInBundleRlp);
@@ -22,7 +21,7 @@ void PillarVotesBundlePacketHandler::validatePacketRlpFormat(
 
 void PillarVotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                              const std::shared_ptr<TaraxaPeer> &peer) {
-  // TODO: there could be the same protection as in pbft syncing that only requested bundle packet is accepted
+  // TODO[2744]: there could be the same protection as in pbft syncing that only requested bundle packet is accepted
   LOG(log_dg_) << "PillarVotesBundlePacket received from peer " << peer->getId();
 
   for (const auto vote_rlp : packet_data.rlp_) {
