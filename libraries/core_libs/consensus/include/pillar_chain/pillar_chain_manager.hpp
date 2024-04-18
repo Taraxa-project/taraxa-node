@@ -51,7 +51,7 @@ class PillarChainManager {
    * @param is_pbft_syncing
    * @return true if vote placed, otherwise false
    */
-  bool genAndPlacePillarVote(const PillarBlock::Hash& pillar_block_hash, const secret_t& node_sk, bool is_pbft_syncing);
+  bool genAndPlacePillarVote(const blk_hash_t& pillar_block_hash, const secret_t& node_sk, bool is_pbft_syncing);
 
   /**
    * @brief Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is 2t+1
@@ -88,7 +88,7 @@ class PillarChainManager {
   /**
    * @return true if block_hash is the latest finalized pillar block
    */
-  bool isPillarBlockLatestFinalized(const PillarBlock::Hash& block_hash) const;
+  bool isPillarBlockLatestFinalized(const blk_hash_t& block_hash) const;
 
   /**
    * @return last finalized pillar block
@@ -109,7 +109,7 @@ class PillarChainManager {
    * @param pillarBlockData
    * @return true if successfully pushed, otherwise false
    */
-  bool pushPillarBlock(const PillarBlockData& pillarBlockData);
+  bool finalizePillarBlockData(const PillarBlockData& pillarBlockData);
 
   /**
    * @return current pillar block
@@ -125,7 +125,7 @@ class PillarChainManager {
    * @return all pillar votes for specified period and pillar block hash
    */
   std::vector<std::shared_ptr<PillarVote>> getVerifiedPillarVotes(PbftPeriod period,
-                                                                  const PillarBlock::Hash pillar_block_hash) const;
+                                                                  const blk_hash_t pillar_block_hash) const;
 
   /**
    * @return true if pillar block is valid - previous pillar block hash == last finalized pillar block hash
@@ -144,6 +144,15 @@ class PillarChainManager {
   std::vector<PillarBlock::ValidatorVoteCountChange> getOrderedValidatorsVoteCountsChanges(
       const std::vector<state_api::ValidatorVoteCount>& current_vote_counts,
       const std::vector<state_api::ValidatorVoteCount>& previous_pillar_block_vote_counts);
+
+  /**
+   * @brief Save new pillar block into db & class data members
+   *
+   * @param pillar_block
+   * @param new_vote_counts
+   */
+  void saveNewPillarBlock(std::shared_ptr<PillarBlock> pillar_block,
+                          std::vector<state_api::ValidatorVoteCount>&& new_vote_counts);
 
  private:
   // Node config
@@ -168,7 +177,7 @@ class PillarChainManager {
   // block period
   PillarVotes pillar_votes_;
 
-  // Protects latest_pillar_block_
+  // Protects last_finalized_pillar_block_ & current_pillar_block_
   mutable std::shared_mutex mutex_;
 
   LOG_OBJECTS_DEFINE
