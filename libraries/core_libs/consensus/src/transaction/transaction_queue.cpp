@@ -7,7 +7,8 @@ namespace taraxa {
 TransactionQueue::TransactionQueue(size_t max_size)
     : known_txs_(max_size * 2, max_size / 5),
       kNonProposableTransactionsMaxSize(max_size * kNonProposableTransactionsLimitPercentage / 100),
-      kMaxSize(max_size) {
+      kMaxSize(max_size),
+      kMaxSingleAccountTransactionsSize(max_size * kSingleAccountTransactionsLimitPercentage / 100) {
   queue_transactions_.reserve(max_size);
 }
 
@@ -69,10 +70,17 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
   return ret;
 }
 
-SharedTransactions TransactionQueue::getAllTransactions() const {
-  SharedTransactions ret;
-  ret.reserve(queue_transactions_.size());
-  for (const auto &t : queue_transactions_) ret.push_back(t.second);
+std::vector<SharedTransactions> TransactionQueue::getAllTransactions() const {
+  std::vector<SharedTransactions> ret;
+  ret.reserve(account_nonce_transactions_.size());
+  for (const auto &account_it : account_nonce_transactions_) {
+    SharedTransactions trxs_per_account;
+    trxs_per_account.reserve(account_it.second.size());
+    for (const auto &t : account_it.second) {
+      trxs_per_account.emplace_back(t.second);
+    }
+    ret.emplace_back(std::move(trxs_per_account));
+  }
   return ret;
 }
 
@@ -114,6 +122,10 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
         account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
         queue_transactions_[tx_hash] = transaction;
       } else {
+        if (account_it->second.size() == kMaxSingleAccountTransactionsSize) {
+          transaction_overflow_time_ = std::chrono::system_clock::now();
+          return false;
+        }
         const auto &nonce_it = account_it->second.find(transaction->getNonce());
         if (nonce_it == account_it->second.end()) {
           account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;

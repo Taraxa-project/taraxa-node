@@ -21,6 +21,7 @@ constexpr uint32_t kDagExpiryLevelLimit = 1000;
 constexpr uint32_t kDagBlockMaxTips = 16;
 
 const uint32_t kMaxTransactionsInPacket{500};
+const uint32_t kMaxHashesInPacket{5000};
 
 const uint32_t kPeriodicEventsThreadCount{2};
 
@@ -28,6 +29,8 @@ const uint64_t kMinTxGas{21000};
 
 constexpr uint32_t kMinTransactionPoolSize{30000};
 constexpr uint32_t kDefaultTransactionPoolSize{200000};
+
+const size_t kV2NetworkVersion = 2;
 
 // The various denominations; here for ease of use where needed within code.
 static const u256 kOneTara = dev::exp10<18>();
