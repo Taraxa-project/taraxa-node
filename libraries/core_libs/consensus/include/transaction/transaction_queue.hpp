@@ -66,11 +66,11 @@ class TransactionQueue {
   std::vector<std::shared_ptr<Transaction>> getOrderedTransactions(uint64_t count) const;
 
   /**
-   * @brief returns all transactions
+   * @brief returns all transactions grouped by transactions author
    *
-   * @return std::vector<std::shared_ptr<Transaction>>
+   * @return std::vector<SharedTransactions>
    */
-  std::vector<std::shared_ptr<Transaction>> getAllTransactions() const;
+  std::vector<SharedTransactions> getAllTransactions() const;
 
   /**
    * @brief returns true/false if the transaction is in the queue
@@ -152,11 +152,17 @@ class TransactionQueue {
   // Maximum number of non proposable transactions in percentage of kMaxSize
   const size_t kNonProposableTransactionsLimitPercentage = 20;
 
+  // Maximum number of single account transactions in percentage of kMaxSize
+  const size_t kSingleAccountTransactionsLimitPercentage = 5;
+
   // Maximum number of non proposable transactions
   const size_t kNonProposableTransactionsMaxSize;
 
   // Maximum size of transactions pool
   const size_t kMaxSize;
+
+  // Maximum size of single account transactions
+  const size_t kMaxSingleAccountTransactionsSize;
 };
 
 /** @}*/

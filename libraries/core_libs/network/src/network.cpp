@@ -70,7 +70,17 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
     assert(!host.expired());
+
+    const size_t kV2NetworkVersion = 2;
+    assert(kV2NetworkVersion < TARAXA_NET_VERSION);
+
     dev::p2p::Host::CapabilityList capabilities;
+
+    // Register old version (V2) of taraxa capability
+    auto v2_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+        kV2NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager);
+    capabilities.emplace_back(v2_tarcap);
 
     // Register latest version of taraxa capability
     auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(

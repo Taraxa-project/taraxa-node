@@ -48,7 +48,7 @@ TaraxaCapability::TaraxaCapability(TarcapVersion version, const FullNodeConfig &
   peers_state_ = std::make_shared<PeersState>(host, kConf);
   packets_handlers_ =
       init_packets_handlers(logs_prefix, conf, genesis_hash, peers_state_, pbft_syncing_state_, all_packets_stats_, db,
-                            pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, node_addr);
+                            pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, version, node_addr);
 
   // Must be called after init_packets_handlers
   thread_pool_->setPacketsHandlers(version, packets_handlers_);
@@ -213,7 +213,7 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
        const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
-       const addr_t &node_addr) {
+       TarcapVersion version, const addr_t &node_addr) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
@@ -228,8 +228,11 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
                                                                pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
                                                                logs_prefix);
 
+      // Support for transaition from V2 to V3, once all nodes update to V3 post next hardfork, V2 support can be
+      // removed
+      const size_t kV2NetworkVersion = 2;
       packets_handlers->registerHandler<TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                  node_addr, logs_prefix);
+                                                                  node_addr, version > kV2NetworkVersion, logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<StatusPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,

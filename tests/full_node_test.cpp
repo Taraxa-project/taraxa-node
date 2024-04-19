@@ -1505,8 +1505,7 @@ TEST_F(FullNodeTest, clear_period_data) {
 }
 
 TEST_F(FullNodeTest, transaction_pool_overflow) {
-  // make 2 node verifiers to avoid out of sync state
-  auto node_cfgs = make_node_cfgs(2, 2, 5);
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
   for (auto &cfg : node_cfgs) {
     cfg.transactions_pool_size = kMinTransactionPoolSize;
   }
@@ -1522,7 +1521,15 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   do {
     auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                              node0->getSecretKey(), addr_t::random());
-    EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
+    if (nonce < 4 * kMinTransactionPoolSize / 100) {
+      EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
+    } else {
+      // Reached the limit of single account in transaction pool
+      trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                          dev::KeyPair::create().secret(), addr_t::random());
+      EXPECT_TRUE(
+          node0->getTransactionManager()->insertValidatedTransaction(std::move(trx), TransactionStatus::Verified));
+    }
   } while (!node0->getTransactionManager()->isTransactionPoolFull());
 
   EXPECT_FALSE(node0->getTransactionManager()->transactionsDropped());
@@ -1531,39 +1538,45 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                            node0->getSecretKey(), addr_t::random());
 
-  // Check if they synced
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto &ctx) {
-    // Check if transactions was propagated to node0
-    WAIT_EXPECT_EQ(ctx, nodes[1]->getTransactionManager()->isTransactionPoolFull(), true)
-  });
+  // Should fail as trx pool should be full
+  EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
+  EXPECT_TRUE(node0->getTransactionManager()->transactionsDropped());
+}
+
+TEST_F(FullNodeTest, transaction_pool_overflow_single_account) {
+  // make 2 node verifiers to avoid out of sync state
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
+  for (auto &cfg : node_cfgs) {
+    cfg.transactions_pool_size = kMinTransactionPoolSize;
+  }
+  auto nodes = launch_nodes(node_cfgs);
+  uint32_t nonce = 1;
+  const uint32_t gasprice = 5;
+  const uint32_t gas = 100000;
+  for (auto &node : nodes) {
+    node->getDagBlockProposer()->stop();
+  }
+
+  auto node0 = nodes.front();
+  do {
+    auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                             node0->getSecretKey(), addr_t::random());
+    if (nonce - 2 < 5 * kMinTransactionPoolSize / 100) {
+      EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
+    } else {
+      // Reached the limit of single account in transaction pool
+      EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
+      break;
+    }
+  } while (!node0->getTransactionManager()->isTransactionPoolFull());
+
+  // Crate transaction with lower gasprice
+  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                           node0->getSecretKey(), addr_t::random());
 
   // Should fail as trx pool should be full
   EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
-
   EXPECT_TRUE(node0->getTransactionManager()->transactionsDropped());
-
-  // Add one valid block
-  const auto proposal_level = 1;
-  const auto proposal_period = *node0->getDB()->getProposalPeriodForDagLevel(proposal_level);
-  const auto period_block_hash = node0->getDB()->getPeriodBlockHash(proposal_period);
-  const auto sortition_params =
-      nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
-  vdf_sortition::VdfSortition vdf(sortition_params, node0->getVrfSecretKey(),
-                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 2);
-  const auto dag_genesis = node0->getConfig().genesis.dag_genesis_block.getHash();
-  const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
-  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
-
-  vdf.computeVdfSolution(sortition_params, vdf_msg, false);
-
-  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, estimation, vdf, node0->getSecretKey());
-  const auto blk_hash = blk.getHash();
-  EXPECT_TRUE(nodes[1]->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
-
-  EXPECT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
-    // Check if transactions and block was propagated to node0
-    WAIT_EXPECT_NE(ctx, node0->getDagManager()->getDagBlock(blk_hash), nullptr);
-  });
 }
 
 TEST_F(FullNodeTest, graphql_test) {

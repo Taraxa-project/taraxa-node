@@ -46,7 +46,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
       const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
       const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
       const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
-      const addr_t &node_addr)>;
+      TarcapVersion version, const addr_t &node_addr)>;
 
   /**
    * @brief Default InitPacketsHandlers function definition with the latest version of packets handlers

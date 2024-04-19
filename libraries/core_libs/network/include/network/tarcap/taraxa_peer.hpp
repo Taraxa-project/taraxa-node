@@ -95,6 +95,11 @@ class TaraxaPeer : public boost::noncopyable {
    */
   void resetPacketsStats();
 
+  /**
+   * @brief Resets known caches - used for testing
+   */
+  void resetKnownCaches();
+
  public:
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
@@ -125,7 +130,7 @@ class TaraxaPeer : public boost::noncopyable {
 
   std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
   std::atomic<uint64_t> suspicious_packet_count_ = 0;
-  const uint64_t kMaxSuspiciousPacketPerMinute = 1000;
+  const uint64_t kMaxSuspiciousPacketPerMinute = 50000;
 
   // Performance extensive dag syncing is only allowed to be requested once each kDagSyncingLimit seconds
   const uint64_t kDagSyncingLimit = 60;
