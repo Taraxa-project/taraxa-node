@@ -297,7 +297,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   return {trxs, estimations};
 }
 
-SharedTransactions TransactionManager::getAllPoolTrxs() {
+std::vector<SharedTransactions> TransactionManager::getAllPoolTrxs() {
   std::shared_lock transactions_lock(transactions_mutex_);
   return transactions_pool_.getAllTransactions();
 }

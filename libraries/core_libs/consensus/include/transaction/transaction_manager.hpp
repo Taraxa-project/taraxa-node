@@ -71,10 +71,10 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<SharedTransactions, std::vector<uint64_t>> packTrxs(PbftPeriod proposal_period, uint64_t weight_limit);
 
   /**
-   * @brief Gets all transactions from pool
+   * @brief Gets all transactions from pool grouped per account
    * @return transactions
    */
-  SharedTransactions getAllPoolTrxs();
+  std::vector<SharedTransactions> getAllPoolTrxs();
 
   /**
    * Saves transactions from dag block which was added to the DAG. Removes transactions from memory pool

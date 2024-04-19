@@ -372,8 +372,8 @@ TEST_F(NetworkTest, transfer_transaction) {
   EXPECT_NE(peer2, nullptr);
   EXPECT_NE(peer1, nullptr);
 
-  SharedTransactions transactions;
-  transactions.push_back(g_signed_trx_samples[0]);
+  std::pair<SharedTransactions, std::vector<trx_hash_t>> transactions;
+  transactions.first.push_back(g_signed_trx_samples[0]);
 
   nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
                                                                                          std::move(transactions));
@@ -1200,6 +1200,401 @@ TEST_F(NetworkTest, node_transaction_sync) {
   }
 }
 
+TEST_F(NetworkTest, transaction_gossip_selection) {
+  class TestTransactionPacketHandler : public network::tarcap::TransactionPacketHandler {
+   public:
+    TestTransactionPacketHandler(std::shared_ptr<network::tarcap::PeersState> peers_state)
+        : TransactionPacketHandler({}, peers_state, {}, {}, {}, true) {}
+    std::vector<
+        std::pair<std::shared_ptr<network::tarcap::TaraxaPeer>, std::pair<SharedTransactions, std::vector<trx_hash_t>>>>
+    public_transactionsToSendToPeers(std::vector<SharedTransactions> transactions) {
+      auto res = transactionsToSendToPeers(std::move(transactions));
+      for (auto account : res) {
+        for (auto t : account.second.first) {
+          account.first->markTransactionAsKnown(t->getHash());
+        }
+      }
+      return res;
+    }
+  };
+
+  FullNodeConfig conf;
+  dev::KeyPair node_key1 = dev::KeyPair::create();
+  dev::KeyPair node_key2 = dev::KeyPair::create();
+  dev::KeyPair node_key3 = dev::KeyPair::create();
+  dev::p2p::NodeID node_id1(node_key1.pub());
+  dev::p2p::NodeID node_id2(node_key2.pub());
+  dev::p2p::NodeID node_id3(node_key3.pub());
+  addr_t node_addr1(node_key1.address());
+  addr_t node_addr2(node_key2.address());
+  addr_t node_addr3(node_key3.address());
+
+  auto peers_state = std::make_shared<network::tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), FullNodeConfig());
+  peers_state->addPendingPeer(node_id1, {});
+  auto peer1 = peers_state->getPendingPeer(node_id1);
+
+  peers_state->setPeerAsReadyToSendMessages(node_id1, peer1);
+
+  TestTransactionPacketHandler tph(peers_state);
+  auto trxs_node1_under = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket - 1, node_key1.secret(), {});
+  auto trxs_node1_at = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket, node_key1.secret(), {});
+  auto trxs_node1_over = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + 1, node_key1.secret(), {});
+  auto trxs_node1_at_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket, node_key1.secret(), {});
+  auto trxs_node1_over_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket + 1, node_key1.secret(), {});
+
+  auto trxs_node2_under = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket - 1, node_key2.secret(), {});
+  auto trxs_node2_at = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket, node_key2.secret(), {});
+  auto trxs_node2_over = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + 1, node_key2.secret(), {});
+  auto trxs_node2_at_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket, node_key2.secret(), {});
+  auto trxs_node2_over_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket + 1, node_key2.secret(), {});
+
+  std::vector<SharedTransactions> trxs;
+
+  // Test 1 node under the max transactions limit
+  // Expect all transactions included in first call, second should have none
+  {
+    trxs.push_back(trxs_node1_under);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket - 1);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Test 1 node at the max transactions limit
+  // Expect all transactions included in first call, second should have none
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Test 1 node over the max transactions limit
+  // Expect kMaxTransactionsInPacket transactions included in first call, second should have 1
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 1);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+  }
+
+  // Test 1 node at the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at_hash_limit);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket);
+  }
+
+  // Test 1 node over the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over_hash_limit);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket + 1);
+  }
+
+  // Same test as above with two peers
+  peers_state->addPendingPeer(node_id2, {});
+  auto peer2 = peers_state->getPendingPeer(node_id2);
+  peers_state->setPeerAsReadyToSendMessages(node_id2, peer2);
+  TestTransactionPacketHandler tph2(peers_state);
+
+  // Expect all transactions included in first call, second should have none
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_under);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket - 1);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket - 1);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Expect all transactions included in first call, second should have none
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Expect kMaxTransactionsInPacket transactions included in first call, second should have 1
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 1);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 1);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), 1);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), 1);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+  }
+
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at_hash_limit);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket);
+  }
+
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over_hash_limit);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket + 1);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket + 1);
+  }
+
+  // Test with three peers and multiple accounts transactions
+  peers_state->addPendingPeer(node_id3, {});
+  auto peer3 = peers_state->getPendingPeer(node_id3);
+  peers_state->setPeerAsReadyToSendMessages(node_id3, peer3);
+  TestTransactionPacketHandler tph3(peers_state);
+
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_under);
+    trxs.push_back(trxs_node2_under);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxTransactionsInPacket - 2);
+
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[2].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr2);
+  }
+
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at);
+    trxs.push_back(trxs_node2_at);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr2);
+  }
+
+  // Test 1 node over the max transactions limit
+  // Expect kMaxTransactionsInPacket transactions included in first call, second should have 1
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over);
+    trxs.push_back(trxs_node2_over);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxTransactionsInPacket + 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxTransactionsInPacket + 2);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxTransactionsInPacket + 2);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 2);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr2);
+  }
+
+  // Test 1 node at the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at_hash_limit);
+    trxs.push_back(trxs_node2_at_hash_limit);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+  }
+
+  // Test 1 node over the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over_hash_limit);
+    trxs.push_back(trxs_node2_over_hash_limit);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+  }
+}
+
 // Test creates multiple nodes and creates new transactions in random time
 // intervals on randomly selected nodes It verifies that the blocks created from
 // these transactions which get created on random nodes are synced and the
@@ -1372,8 +1767,8 @@ TEST_F(NetworkTest, node_full_sync) {
 
 TEST_F(NetworkTest, suspicious_packets) {
   network::tarcap::TaraxaPeer peer;
-  // Verify that after 1000 reported suspicious packets true is returned
-  for (int i = 0; i < 1000; i++) {
+  // Verify that after 50000 reported suspicious packets true is returned
+  for (int i = 0; i < 50000; i++) {
     EXPECT_FALSE(peer.reportSuspiciousPacket());
   }
   EXPECT_TRUE(peer.reportSuspiciousPacket());
