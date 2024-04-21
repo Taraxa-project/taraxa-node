@@ -69,13 +69,13 @@ Json::Value PillarBlock::getJson() const {
   res["state_root"] = dev::toJS(state_root_);
   res["bridge_root"] = dev::toJS(bridge_root_);
   res["previous_pillar_block_hash"] = dev::toJS(previous_pillar_block_hash_);
-  res["validators_votes_count_changes"] = Json::Value(Json::arrayValue);
+  res["validators_vote_counts_changes"] = Json::Value(Json::arrayValue);
   for (auto const& vote_count_change : validators_votes_count_changes_) {
     Json::Value vote_count_change_json;
     vote_count_change_json["address"] = dev::toJS(vote_count_change.addr_);
     vote_count_change_json["value"] = static_cast<Json::Value::Int64>(vote_count_change.vote_count_change_);
 
-    res["validators_votes_count_changes"].append(std::move(vote_count_change_json));
+    res["validators_vote_counts_changes"].append(std::move(vote_count_change_json));
   }
   res["hash"] = dev::toJS(getHash());
 
@@ -166,9 +166,15 @@ Json::Value PillarBlockData::getJson(bool include_binary_data) const {
 
   if (include_binary_data) {
     res["pillar_block_binary_data"] = dev::toJS(block_->encodeSolidity());
-    res["signatures_binary_data"] = Json::Value(Json::arrayValue);
+    res["signatures"] = Json::Value(Json::arrayValue);
     for (const auto& vote : pillar_votes_) {
-      res["signatures_binary_data"].append(dev::toJS(vote->compactSignatureEncodeSolidity()));
+      const auto compact = dev::CompactSignatureStruct(vote->getVoteSignature());
+
+      Json::Value signature;
+      signature["r"] = dev::toJS(compact.r);
+      signature["vs"] = dev::toJS(compact.vs);
+
+      res["signatures"].append(signature);
     }
   }
 
