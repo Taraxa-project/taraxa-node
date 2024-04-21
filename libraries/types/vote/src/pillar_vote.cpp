@@ -34,11 +34,6 @@ bytes PillarVote::encodeSolidity(bool inc_sig) const {
   return util::EncodingSolidity::pack(period_, block_hash_);
 }
 
-bytes PillarVote::compactSignatureEncodeSolidity() const {
-  const auto compact = dev::CompactSignatureStruct(vote_signature_);
-  return util::EncodingSolidity::pack(compact.r, compact.vs);
-}
-
 PillarVote PillarVote::decodeSolidity(const bytes& enc) {
   PillarVote v;
 
@@ -51,13 +46,6 @@ PillarVote PillarVote::decodeSolidity(const bytes& enc) {
   util::EncodingSolidity::staticUnpack(enc, v.period_, v.block_hash_, cs.r, cs.vs);
   v.vote_signature_ = dev::SignatureStruct(cs);
   return v;
-}
-
-dev::CompactSignatureStruct PillarVote::compactSignatureDecodeSolidity(const bytes& enc) {
-  dev::CompactSignatureStruct cs;
-  util::EncodingSolidity::staticUnpack(enc, cs.r, cs.vs);
-
-  return cs;
 }
 
 PbftPeriod PillarVote::getPeriod() const { return period_; }
