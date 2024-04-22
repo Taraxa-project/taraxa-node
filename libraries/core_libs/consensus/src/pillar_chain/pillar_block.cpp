@@ -160,12 +160,11 @@ dev::bytes PillarBlockData::getRlp() const {
   return s.invalidate();
 }
 
-Json::Value PillarBlockData::getJson(bool include_binary_data) const {
+Json::Value PillarBlockData::getJson(bool include_signatures) const {
   Json::Value res;
   res["pillar_block"] = block_->getJson();
 
-  if (include_binary_data) {
-    res["pillar_block_binary_data"] = dev::toJS(block_->encodeSolidity());
+  if (include_signatures) {
     res["signatures"] = Json::Value(Json::arrayValue);
     for (const auto& vote : pillar_votes_) {
       const auto compact = dev::CompactSignatureStruct(vote->getVoteSignature());
