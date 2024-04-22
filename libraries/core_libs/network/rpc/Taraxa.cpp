@@ -182,7 +182,7 @@ std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
   }
 }
 
-Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_period, bool include_binary_data) {
+Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_period, bool include_signatures) {
   try {
     auto node = full_node_.lock();
     if (!node) {
@@ -195,7 +195,7 @@ Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_pe
     }
 
     if (const auto pillar_block_data = node->getDB()->getPillarBlockData(pbft_period); pillar_block_data) {
-      return pillar_block_data->getJson(include_binary_data);
+      return pillar_block_data->getJson(include_signatures);
     }
 
     return {};

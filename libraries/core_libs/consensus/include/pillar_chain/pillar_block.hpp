@@ -132,7 +132,7 @@ struct PillarBlockData {
   PillarBlockData(std::shared_ptr<PillarBlock> block, std::vector<std::shared_ptr<PillarVote>>&& pillar_votes);
   PillarBlockData(const dev::RLP& rlp);
   dev::bytes getRlp() const;
-  Json::Value getJson(bool include_binary_data) const;
+  Json::Value getJson(bool include_signatures) const;
 
   const static size_t kRlpItemCount = 2;
 };
