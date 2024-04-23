@@ -250,6 +250,12 @@ class FinalChain {
    */
   virtual u256 dpos_total_supply(EthBlockNumber blk_num) const = 0;
 
+  /**
+   * @param blk_num
+   * @return bridge root
+   */
+  virtual h256 get_bridge_root(EthBlockNumber blk_num) const = 0;
+
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

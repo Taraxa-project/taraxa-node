@@ -46,6 +46,7 @@ struct FicusHardforkConfig {
                                             // previous pillar blocks and 2t+1 signatures for latest pillar block)
   uint64_t pbft_inclusion_delay{
       6};  // [periods] how many periods after the pillar block is created it is included in pbft block
+  taraxa::addr_t bridge_contract_address;  // [address] of the bridge contract
 
   bool isFicusHardfork(taraxa::PbftPeriod period) const;
 

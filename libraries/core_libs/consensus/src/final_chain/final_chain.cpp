@@ -44,6 +44,7 @@ class FinalChainImpl final : public FinalChain {
 
   std::atomic<EthBlockNumber> last_block_number_;
 
+  const HardforksConfig& hardforks_config_;
   LOG_OBJECTS_DEFINE
 
  public:
@@ -74,9 +75,10 @@ class FinalChainImpl final : public FinalChain {
         dpos_vote_count_cache_(
             config.final_chain_cache_in_blocks,
             [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_eligible_vote_count(blk, addr); }),
-        dpos_is_eligible_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk, const addr_t& addr) {
-          return state_api_.dpos_is_eligible(blk, addr);
-        }) {
+        dpos_is_eligible_cache_(
+            config.final_chain_cache_in_blocks,
+            [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
+        hardforks_config_(config.genesis.state.hardforks) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -475,6 +477,10 @@ class FinalChainImpl final : public FinalChain {
   uint64_t dpos_yield(EthBlockNumber blk_num) const override { return state_api_.dpos_yield(blk_num); }
 
   u256 dpos_total_supply(EthBlockNumber blk_num) const override { return state_api_.dpos_total_supply(blk_num); }
+
+  h256 get_bridge_root(EthBlockNumber blk_num) const override {
+    return state_api_.get_bridge_root(hardforks_config_.ficus_hf.bridge_contract_address, blk_num);
+  }
 
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
