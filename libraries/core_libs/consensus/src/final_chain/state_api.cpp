@@ -292,4 +292,12 @@ u256 StateAPI::dpos_total_amount_delegated(EthBlockNumber blk_num) const {
   return ret;
 }
 
+h256 StateAPI::get_bridge_root(const addr_t& bridge_contract_address, EthBlockNumber blk_num) const {
+  h256 ret;
+  ErrorHandler err_h;
+  const auto bridge_root_position = h256("0x0000000000000000000000000000000000000000000000000000000000000006");
+  return c_method_args_rlp<h256, to_h256, taraxa_evm_state_api_get_account_storage>(
+      this_c_, blk_num, bridge_contract_address, bridge_root_position);
+}
+
 }  // namespace taraxa::state_api

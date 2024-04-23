@@ -63,6 +63,7 @@ class StateAPI {
   uint64_t dpos_yield(EthBlockNumber blk_num) const;
   u256 dpos_total_supply(EthBlockNumber blk_num) const;
   u256 dpos_total_amount_delegated(EthBlockNumber blk_num) const;
+  h256 get_bridge_root(const addr_t& bridge_contract_address, EthBlockNumber blk_num) const;
 };
 /** @} */
 

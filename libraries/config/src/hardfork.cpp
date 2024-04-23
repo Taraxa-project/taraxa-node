@@ -95,6 +95,7 @@ Json::Value enc_json(const FicusHardforkConfig& obj) {
   json["pillar_blocks_interval"] = dev::toJS(obj.pillar_blocks_interval);
   json["pillar_chain_sync_interval"] = dev::toJS(obj.pillar_chain_sync_interval);
   json["pbft_inclusion_delay"] = dev::toJS(obj.pbft_inclusion_delay);
+  json["bridge_contract_address"] = dev::toJS(obj.bridge_contract_address);
   return json;
 }
 
@@ -103,9 +104,10 @@ void dec_json(const Json::Value& json, FicusHardforkConfig& obj) {
   obj.pillar_blocks_interval = dev::getUInt(json["pillar_blocks_interval"]);
   obj.pillar_chain_sync_interval = dev::getUInt(json["pillar_chain_sync_interval"]);
   obj.pbft_inclusion_delay = dev::getUInt(json["pbft_inclusion_delay"]);
+  obj.bridge_contract_address = taraxa::addr_t(json["bridge_contract_address"].asString());
 }
 RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_blocks_interval, pillar_chain_sync_interval,
-                  pbft_inclusion_delay)
+                  pbft_inclusion_delay, bridge_contract_address)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
