@@ -11,11 +11,11 @@
 
 namespace taraxa::pillar_chain {
 
-PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
+PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_config, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<final_chain::FinalChain> final_chain,
                                        std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
                                        addr_t node_addr)
-    : kFicusHfConfig(ficusHfConfig),
+    : kFicusHfConfig(ficus_hf_config),
       db_(std::move(db)),
       network_{},
       final_chain_{std::move(final_chain)},
@@ -248,10 +248,10 @@ bool PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const 
   }
 
   PbftPeriod expected_pillar_block_period = 0;
-  if (block_num % kFicusHfConfig.pillar_block_periods == 0) {
-    expected_pillar_block_period = block_num - kFicusHfConfig.pillar_block_periods;
+  if (block_num % kFicusHfConfig.pillar_blocks_interval == 0) {
+    expected_pillar_block_period = block_num - kFicusHfConfig.pillar_blocks_interval;
   } else {
-    expected_pillar_block_period = block_num - (block_num % kFicusHfConfig.pillar_block_periods);
+    expected_pillar_block_period = block_num - (block_num % kFicusHfConfig.pillar_blocks_interval);
   }
 
   if (expected_pillar_block_period != current_pillar_block->getPeriod()) {
@@ -285,7 +285,7 @@ bool PillarChainManager::isRelevantPillarVote(const std::shared_ptr<PillarVote> 
       return false;
     }
   } else if (vote_period !=
-             current_pillar_block->getPeriod() + kFicusHfConfig.pillar_block_periods /* +1 future pillar block */) {
+             current_pillar_block->getPeriod() + kFicusHfConfig.pillar_blocks_interval /* +1 future pillar block */) {
     LOG(log_nf_) << "Received vote's period " << vote_period << ", current pillar block period "
                  << current_pillar_block->getPeriod();
     return false;
@@ -407,7 +407,7 @@ bool PillarChainManager::isValidPillarBlock(const std::shared_ptr<PillarBlock>& 
   assert(last_finalized_pillar_block);
 
   // Check if some block was not skipped
-  if (pillar_block->getPeriod() - kFicusHfConfig.pillar_block_periods == last_finalized_pillar_block->getPeriod() &&
+  if (pillar_block->getPeriod() - kFicusHfConfig.pillar_blocks_interval == last_finalized_pillar_block->getPeriod() &&
       pillar_block->getPreviousBlockHash() == last_finalized_pillar_block->getHash()) {
     return true;
   }

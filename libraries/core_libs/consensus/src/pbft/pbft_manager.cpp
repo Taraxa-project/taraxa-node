@@ -1399,11 +1399,11 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
       }
 
       if (last_finalized_pillar_block->getPeriod() !=
-          kBlockPeriod - kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods) {
+          kBlockPeriod - kGenesisConfig.state.hardforks.ficus_hf.pillar_blocks_interval) {
         LOG(log_er_) << "Unable to validate PBFT block " << pbft_block_hash << ", period " << kBlockPeriod
                      << ". Pillar chain missing finalized block. Last finalized block period "
                      << last_finalized_pillar_block->getPeriod() << ", expected period "
-                     << kBlockPeriod - kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods;
+                     << kBlockPeriod - kGenesisConfig.state.hardforks.ficus_hf.pillar_blocks_interval;
         // Trigger pillar chain votes syncing
         pillar_chain_mgr_->checkPillarChainSynced(kBlockPeriod);
         return false;
@@ -1986,7 +1986,7 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
   const auto &pbft_block_hash = period_data.pbft_blk->getBlockHash();
   const auto required_votes_period =
-      period_data.pbft_blk->getPeriod() - kGenesisConfig.state.hardforks.ficus_hf.pillar_block_periods;
+      period_data.pbft_blk->getPeriod() - kGenesisConfig.state.hardforks.ficus_hf.pillar_blocks_interval;
 
   size_t votes_weight = 0;
 

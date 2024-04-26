@@ -53,17 +53,17 @@ RLP_FIELDS_DEFINE(AspenHardfork, block_num_part_one, block_num_part_two, max_sup
 bool FicusHardforkConfig::isFicusHardfork(taraxa::PbftPeriod period) const { return period >= block_num; }
 
 bool FicusHardforkConfig::isPillarBlockPeriod(taraxa::PbftPeriod period, uint64_t from_n_th_block) const {
-  return period >= firstPillarBlockPeriod() + (from_n_th_block - 1) * pillar_block_periods &&
-         period % pillar_block_periods == 0;
+  return period >= firstPillarBlockPeriod() + (from_n_th_block - 1) * pillar_blocks_interval &&
+         period % pillar_blocks_interval == 0;
 }
 
 bool FicusHardforkConfig::isPbftWithPillarBlockPeriod(taraxa::PbftPeriod period) const {
-  return period >= firstPillarBlockPeriod() && period % pillar_block_periods == pbft_inclusion_delay;
+  return period >= firstPillarBlockPeriod() && period % pillar_blocks_interval == pbft_inclusion_delay;
 }
 
 // Returns first pillar block period
 taraxa::PbftPeriod FicusHardforkConfig::firstPillarBlockPeriod() const {
-  return block_num ? block_num : pillar_block_periods;
+  return block_num ? block_num : pillar_blocks_interval;
 }
 
 void FicusHardforkConfig::validate(uint32_t delegation_delay) const {
@@ -72,16 +72,16 @@ void FicusHardforkConfig::validate(uint32_t delegation_delay) const {
     return;
   }
 
-  if (block_num % pillar_block_periods) {
-    throw taraxa::ConfigException("ficus_hf.block_num % ficus_hf.pillar_block_periods must == 0");
+  if (block_num % pillar_blocks_interval) {
+    throw taraxa::ConfigException("ficus_hf.block_num % ficus_hf.pillar_blocks_interval must == 0");
   }
 
-  if (pillar_block_periods <= pillar_chain_sync_periods) {
-    throw taraxa::ConfigException("ficus_hf.pillar_block_periods must be > ficus_hf.pillar_chain_sync_periods");
+  if (pillar_blocks_interval <= pillar_chain_sync_interval) {
+    throw taraxa::ConfigException("ficus_hf.pillar_blocks_interval must be > ficus_hf.pillar_chain_sync_interval");
   }
 
-  if (pillar_chain_sync_periods <= pbft_inclusion_delay) {
-    throw taraxa::ConfigException("ficus_hf.pillar_chain_sync_periods must be > ficus_hf.pbft_inclusion_delay");
+  if (pillar_chain_sync_interval <= pbft_inclusion_delay) {
+    throw taraxa::ConfigException("ficus_hf.pillar_chain_sync_interval must be > ficus_hf.pbft_inclusion_delay");
   }
 
   if (pbft_inclusion_delay < 1 || pbft_inclusion_delay <= delegation_delay) {
@@ -92,19 +92,20 @@ void FicusHardforkConfig::validate(uint32_t delegation_delay) const {
 Json::Value enc_json(const FicusHardforkConfig& obj) {
   Json::Value json(Json::objectValue);
   json["block_num"] = dev::toJS(obj.block_num);
-  json["pillar_block_periods"] = dev::toJS(obj.pillar_block_periods);
-  json["pillar_chain_sync_periods"] = dev::toJS(obj.pillar_chain_sync_periods);
+  json["pillar_blocks_interval"] = dev::toJS(obj.pillar_blocks_interval);
+  json["pillar_chain_sync_interval"] = dev::toJS(obj.pillar_chain_sync_interval);
   json["pbft_inclusion_delay"] = dev::toJS(obj.pbft_inclusion_delay);
   return json;
 }
 
 void dec_json(const Json::Value& json, FicusHardforkConfig& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
-  obj.pillar_block_periods = dev::getUInt(json["pillar_block_periods"]);
-  obj.pillar_chain_sync_periods = dev::getUInt(json["pillar_chain_sync_periods"]);
+  obj.pillar_blocks_interval = dev::getUInt(json["pillar_blocks_interval"]);
+  obj.pillar_chain_sync_interval = dev::getUInt(json["pillar_chain_sync_interval"]);
   obj.pbft_inclusion_delay = dev::getUInt(json["pbft_inclusion_delay"]);
 }
-RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_block_periods, pillar_chain_sync_periods, pbft_inclusion_delay)
+RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_blocks_interval, pillar_chain_sync_interval,
+                  pbft_inclusion_delay)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);

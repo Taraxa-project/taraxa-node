@@ -163,7 +163,7 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
 void WsSession::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_block_data) {
   if (new_pillar_block_subscription_) {
     Json::Value res, params;
-    params["result"] = pillar_block_data.getJson(include_pillar_block_binary_data);
+    params["result"] = pillar_block_data.getJson(include_pillar_block_signatures);
     params["subscription"] = dev::toJS(new_pillar_block_subscription_);
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";

@@ -356,7 +356,7 @@ void FullNode::start() {
               pillar_chain->genAndPlacePillarVote(pillar_block->getHash(), node_secret, is_pbft_syncing());
             }
           } else if (block_num > ficus_hf_config.firstPillarBlockPeriod() &&
-                     block_num % ficus_hf_config.pillar_chain_sync_periods == 0) {
+                     block_num % ficus_hf_config.pillar_chain_sync_interval == 0) {
             if (!is_pbft_syncing()) {
               pillar_chain->checkPillarChainSynced(block_num);
             }
