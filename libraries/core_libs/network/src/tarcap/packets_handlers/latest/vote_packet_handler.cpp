@@ -80,7 +80,7 @@ void VotePacketHandler::process(const threadpool::PacketData &packet_data, const
   }
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
-  peer->markVoteAsKnown(vote_hash);
+  peer->markPbftVoteAsKnown(vote_hash);
   onNewPbftVote(vote, pbft_block);
 }
 
@@ -92,7 +92,7 @@ void VotePacketHandler::onNewPbftVote(const std::shared_ptr<PbftVote> &vote, con
       continue;
     }
 
-    if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
+    if (!rebroadcast && peer.second->isPbftVoteKnown(vote->getHash())) {
       continue;
     }
 
@@ -126,7 +126,7 @@ void VotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, co
   }
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::VotePacket, std::move(s))) {
-    peer->markVoteAsKnown(vote->getHash());
+    peer->markPbftVoteAsKnown(vote->getHash());
     if (block) {
       peer->markPbftBlockAsKnown(block->getBlockHash());
       LOG(log_dg_) << " PBFT vote " << vote->getHash() << " together with block " << block->getBlockHash()

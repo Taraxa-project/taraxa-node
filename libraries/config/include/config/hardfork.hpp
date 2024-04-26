@@ -48,10 +48,25 @@ struct FicusHardforkConfig {
       6};  // [periods] how many periods after the pillar block is created it is included in pbft block
 
   bool isFicusHardfork(taraxa::PbftPeriod period) const;
-  bool isPillarBlockPeriod(taraxa::PbftPeriod period, uint64_t from_n_th_block = 1) const;
+
+  /**
+   * @param period
+   * @param skip_first_pillar_block if true, isPillarBlockPeriod returns false if period == first pillar block period
+   * @return true if period is the pbft period, during which new pillar block is created
+   */
+  bool isPillarBlockPeriod(taraxa::PbftPeriod period, bool skip_first_pillar_block = false) const;
+
+  /**
+   * @param period
+   * @return true if period is the period, during which pillar block hash is included in pbft block
+   */
   bool isPbftWithPillarBlockPeriod(taraxa::PbftPeriod period) const;
-  // Returns first pillar block period
+
+  /**
+   * @return first pillar block period
+   */
   taraxa::PbftPeriod firstPillarBlockPeriod() const;
+
   void validate(uint32_t delegation_delay) const;
 
   HAS_RLP_FIELDS

@@ -416,6 +416,14 @@ class PbftManager {
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> proposePbftBlock();
 
   /**
+   * @brief Creates pbft block extra data
+   *
+   * @param pbft_period
+   * @return std::optional<PbftBlockExtraData>
+   */
+  std::optional<PbftBlockExtraData> createPbftBlockExtraData(PbftPeriod pbft_period) const;
+
+  /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
    * @param round current pbft round

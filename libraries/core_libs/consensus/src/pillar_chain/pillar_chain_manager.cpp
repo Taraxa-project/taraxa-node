@@ -144,7 +144,9 @@ bool PillarChainManager::genAndPlacePillarVote(const blk_hash_t& pillar_block_ha
     return false;
   }
 
-  if (!final_chain_->dpos_is_eligible(current_pillar_block->getPeriod(), toAddress(node_sk))) {
+  // No need to catch ErrFutureBlock because pillar block as well as pillar vote are created only after the pbft block
+  // with current_pillar_block->getPeriod() was finalized
+  if (!final_chain_->dpos_is_eligible(current_pillar_block->getPeriod() - 1, node_addr_)) {
     return false;
   }
 

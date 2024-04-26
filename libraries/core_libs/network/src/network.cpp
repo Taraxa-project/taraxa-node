@@ -342,7 +342,7 @@ void Network::requestPillarBlockVotesBundle(taraxa::PbftPeriod period, const tar
       continue;
     }
 
-    // TODO: is it good enough to request it just from 1 peer without knowing if he has all of the votes ?
+    // TODO[2748]: is it good enough to request it just from 1 peer without knowing if he has all of the votes ?
     tarcap.second->getSpecificHandler<network::tarcap::GetPillarVotesBundlePacketHandler>()->requestPillarVotesBundle(
         period, pillar_block_hash, peer);
   }

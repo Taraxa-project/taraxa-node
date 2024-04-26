@@ -1,5 +1,3 @@
-#include "final_chain/final_chain.hpp"
-#include "key_manager/key_manager.hpp"
 #include "network/tarcap/packets_handlers/latest/common/ext_pillar_vote_packet_handler.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 
