@@ -194,7 +194,7 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
     if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(votes_rlp_stream))) {
       LOG(log_dg_) << " Votes bundle with " << votes.size() << " votes sent to " << peer->getId();
       for (const auto &vote : votes) {
-        peer->markVoteAsKnown(vote->getHash());
+        peer->markPbftVoteAsKnown(vote->getHash());
       }
     }
   };

@@ -73,7 +73,7 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   for (const auto vote_rlp : packet_data.rlp_[4]) {
     auto vote = std::make_shared<PbftVote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
                                            votes_bundle_votes_step, vote_rlp);
-    peer->markVoteAsKnown(vote->getHash());
+    peer->markPbftVoteAsKnown(vote->getHash());
 
     // Do not process vote that has already been validated
     if (vote_mgr_->voteAlreadyValidated(vote->getHash())) {
@@ -111,7 +111,7 @@ void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::share
 
     std::vector<std::shared_ptr<PbftVote>> peer_votes;
     for (const auto &vote : votes) {
-      if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
+      if (!rebroadcast && peer.second->isPbftVoteKnown(vote->getHash())) {
         continue;
       }
 

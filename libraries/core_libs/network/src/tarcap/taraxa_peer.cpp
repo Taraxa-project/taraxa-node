@@ -6,8 +6,7 @@ TaraxaPeer::TaraxaPeer()
     : known_dag_blocks_(10000, 1000, 10),
       known_transactions_(100000, 10000, 10),
       known_pbft_blocks_(10000, 1000, 10),
-      known_pbft_votes_(10000, 1000, 10),
-      known_pillar_votes_(10000, 1000, 10) {}
+      known_votes_(10000, 1000, 10) {}
 
 TaraxaPeer::TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size, std::string address)
     : address_(address),
@@ -15,8 +14,7 @@ TaraxaPeer::TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size,
       known_dag_blocks_(10000, 1000, 10),
       known_transactions_(transaction_pool_size * 1.2, transaction_pool_size / 10, 10),
       known_pbft_blocks_(10000, 1000, 10),
-      known_pbft_votes_(10000, 1000, 10),
-      known_pillar_votes_(10000, 1000, 10) {}
+      known_votes_(10000, 1000, 10) {}
 
 bool TaraxaPeer::markDagBlockAsKnown(const blk_hash_t& hash) {
   return known_dag_blocks_.insert(hash, pbft_chain_size_);
@@ -30,9 +28,9 @@ bool TaraxaPeer::markTransactionAsKnown(const trx_hash_t& hash) {
 
 bool TaraxaPeer::isTransactionKnown(const trx_hash_t& hash) const { return known_transactions_.contains(hash); }
 
-bool TaraxaPeer::markVoteAsKnown(const vote_hash_t& hash) { return known_pbft_votes_.insert(hash, pbft_chain_size_); }
+bool TaraxaPeer::markPbftVoteAsKnown(const vote_hash_t& hash) { return known_votes_.insert(hash, pbft_chain_size_); }
 
-bool TaraxaPeer::isVoteKnown(const vote_hash_t& hash) const { return known_pbft_votes_.contains(hash); }
+bool TaraxaPeer::isPbftVoteKnown(const vote_hash_t& hash) const { return known_votes_.contains(hash); }
 
 bool TaraxaPeer::markPbftBlockAsKnown(const blk_hash_t& hash) {
   return known_pbft_blocks_.insert(hash, pbft_chain_size_);
@@ -40,11 +38,9 @@ bool TaraxaPeer::markPbftBlockAsKnown(const blk_hash_t& hash) {
 
 bool TaraxaPeer::isPbftBlockKnown(const blk_hash_t& hash) const { return known_pbft_blocks_.contains(hash); }
 
-bool TaraxaPeer::markPillarVoteAsKnown(const vote_hash_t& hash) {
-  return known_pillar_votes_.insert(hash, pbft_chain_size_);
-}
+bool TaraxaPeer::markPillarVoteAsKnown(const vote_hash_t& hash) { return known_votes_.insert(hash, pbft_chain_size_); }
 
-bool TaraxaPeer::isPillarVoteKnown(const vote_hash_t& hash) const { return known_pillar_votes_.contains(hash); }
+bool TaraxaPeer::isPillarVoteKnown(const vote_hash_t& hash) const { return known_votes_.contains(hash); }
 
 const dev::p2p::NodeID& TaraxaPeer::getId() const { return id_; }
 

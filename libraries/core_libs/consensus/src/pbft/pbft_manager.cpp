@@ -1162,32 +1162,8 @@ PbftManager::proposePbftBlock() {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
-  std::optional<PbftBlockExtraData> extra_data;
-  if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(current_pbft_period)) {
-    std::optional<blk_hash_t> pillar_block_hash;
-    if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(current_pbft_period)) {
-      // Anchor pillar block hash into the pbft block
-      const auto pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
-      if (!pillar_block) {
-        LOG(log_er_) << "Missing pillar block, pbft period " << current_pbft_period;
-        assert(false);
-        return {};
-      }
-
-      if (pillar_block->getPeriod() !=
-          current_pbft_period - kGenesisConfig.state.hardforks.ficus_hf.pbft_inclusion_delay) {
-        LOG(log_er_) << "Wrong pillar block period: " << pillar_block->getPeriod()
-                     << ", pbft period: " << current_pbft_period;
-        assert(false);
-        return {};
-      }
-
-      pillar_block_hash = pillar_block->getHash();
-    }
-
-    extra_data = PbftBlockExtraData{
-        TARAXA_MAJOR_VERSION, TARAXA_MINOR_VERSION, TARAXA_PATCH_VERSION, TARAXA_NET_VERSION, "T", pillar_block_hash};
-  }
+  // Creates pillar block's extra data
+  const auto extra_data = createPbftBlockExtraData(current_pbft_period);
 
   auto ghost = dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash);
   LOG(log_dg_) << "GHOST size " << ghost.size();
@@ -1277,6 +1253,34 @@ PbftManager::proposePbftBlock() {
   }
 
   return {};
+}
+
+std::optional<PbftBlockExtraData> PbftManager::createPbftBlockExtraData(PbftPeriod pbft_period) const {
+  if (!kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(pbft_period)) {
+    return {};
+  }
+
+  std::optional<blk_hash_t> pillar_block_hash;
+  if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(pbft_period)) {
+    // Anchor pillar block hash into the pbft block
+    const auto pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+    if (!pillar_block) {
+      LOG(log_er_) << "Missing pillar block, pbft period " << pbft_period;
+      assert(false);
+      return {};
+    }
+
+    if (pillar_block->getPeriod() != pbft_period - kGenesisConfig.state.hardforks.ficus_hf.pbft_inclusion_delay) {
+      LOG(log_er_) << "Wrong pillar block period: " << pillar_block->getPeriod() << ", pbft period: " << pbft_period;
+      assert(false);
+      return {};
+    }
+
+    pillar_block_hash = pillar_block->getHash();
+  }
+
+  return PbftBlockExtraData{TARAXA_MAJOR_VERSION, TARAXA_MINOR_VERSION, TARAXA_PATCH_VERSION, TARAXA_NET_VERSION, "T",
+                            pillar_block_hash};
 }
 
 h256 PbftManager::getProposal(const std::shared_ptr<PbftVote> &vote) const {
@@ -1389,7 +1393,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
       return false;
     }
 
-    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(kBlockPeriod, 2)) {
+    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(kBlockPeriod, true /* skip first pillar block */)) {
       const auto last_finalized_pillar_block = pillar_chain_mgr_->getLastFinalizedPillarBlock();
       if (!last_finalized_pillar_block) {
         // This should never happen
@@ -1854,7 +1858,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     }
 
     // Validate pillar votes
-    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(block_period, 2)) {
+    if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(block_period, true /* skip first pillar block */)) {
       if (!period_data.pillar_votes_.has_value()) {
         LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << ", period " << block_period
                      << " does not contain pillar votes";
