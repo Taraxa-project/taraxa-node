@@ -584,7 +584,11 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   return {non_finalized_blks_.size(), blocks_counter};
 }
 
-DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
+DagManager::VerifyBlockReturnType DagManager::verifyBlock(
+    const DagBlock &blk, const std::unordered_map<blk_hash_t, std::shared_ptr<Transaction>> &trxs) {
+  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
+  vec_trx_t trx_hashes_to_query;
+  SharedTransactions all_block_trxs;
   const auto &block_hash = blk.getHash();
 
   // Verify tips/pivot count and uniqueness
@@ -603,9 +607,29 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
     }
   }
 
+  if (trxs.size() != 0) {
+    for (auto const &tx_hash : all_block_trx_hashes) {
+      auto trx_it = trxs.find(tx_hash);
+      if (trx_it != trxs.end()) {
+        all_block_trxs.emplace_back(trx_it->second);
+      } else {
+        trx_hashes_to_query.emplace_back(tx_hash);
+      }
+    }
+  } else {
+    trx_hashes_to_query = all_block_trx_hashes;
+  }
+
+  // Only query for transactions that were not received
+  auto local_transactions = trx_mgr_->getTransactions(trx_hashes_to_query);
+  if (local_transactions.has_value()) {
+    for (auto &trx : *local_transactions) {
+      all_block_trxs.emplace_back(trx);
+    }
+  }
+
   // Verify transactions
-  auto transactions = trx_mgr_->getBlockTransactions(blk);
-  if (!transactions.has_value()) {
+  if (!local_transactions.has_value()) {
     LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
     // This can be a valid block so just remove it from the seen list
     seen_blocks_.erase(block_hash);
@@ -670,7 +694,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   {
     u256 total_block_weight = 0;
     auto block_gas_estimation = blk.getGasEstimation();
-    for (const auto &trx : *transactions) {
+    for (const auto &trx : all_block_trxs) {
       total_block_weight += trx_mgr_->estimateTransactionGas(trx, propose_period);
     }
 
