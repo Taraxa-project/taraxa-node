@@ -38,7 +38,7 @@ class PillarChainManager {
       pillar_block_finalized_emitter_;
 
  public:
-  PillarChainManager(const FicusHardforkConfig& ficusHfConfig, std::shared_ptr<DbStorage> db,
+  PillarChainManager(const FicusHardforkConfig& ficus_hf_config, std::shared_ptr<DbStorage> db,
                      std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<VoteManager> vote_mgr,
                      std::shared_ptr<KeyManager> key_manager, addr_t node_addr);
 
