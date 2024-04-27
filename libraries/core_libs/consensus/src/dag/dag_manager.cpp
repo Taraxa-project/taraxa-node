@@ -303,6 +303,7 @@ void DagManager::clearLightNodeHistory() {
     if (dag_expiry_level_ > max_levels_per_period_) {
       dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
     }
+
     db_->clearPeriodDataHistory(end, dag_level_to_keep);
   }
 }
