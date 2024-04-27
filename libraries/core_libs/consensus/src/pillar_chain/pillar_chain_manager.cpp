@@ -31,7 +31,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
     addVerifiedPillarVote(vote);
   }
 
-  if (auto current_pillar_block_data = db_->getCurrentPillarBlockData(); current_pillar_block_data.has_value()) {
+  if (auto&& current_pillar_block_data = db_->getCurrentPillarBlockData(); current_pillar_block_data.has_value()) {
     current_pillar_block_ = std::move(current_pillar_block_data->pillar_block);
     current_pillar_block_vote_counts_ = std::move(current_pillar_block_data->vote_counts);
   }

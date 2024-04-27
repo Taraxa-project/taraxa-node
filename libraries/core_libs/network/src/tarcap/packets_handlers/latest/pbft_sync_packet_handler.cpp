@@ -132,49 +132,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       }
     }
 
-    const auto extra_data = period_data.pbft_blk->getExtraData();
-    if (kConf.genesis.state.hardforks.ficus_hf.isFicusHardfork(pbft_block_period)) {
-      if (!extra_data.has_value()) {
-        LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
-                     << " does not contain extra data";
-        handleMaliciousSyncPeer(packet_data.from_node_id_);
-        return;
-      }
-
-      // Validate optional pillar block hash
-      const auto pillar_block_hash = extra_data->getPillarBlockHash();
-      const auto kFicusHfConfig = kConf.genesis.state.hardforks.ficus_hf;
-      if (kFicusHfConfig.isPbftWithPillarBlockPeriod(pbft_block_period)) {
-        if (!pillar_block_hash.has_value()) {
-          LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
-                       << " does not contain pillar block hash";
-          handleMaliciousSyncPeer(packet_data.from_node_id_);
-          return;
-        }
-      } else if (pillar_block_hash.has_value()) {
-        LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << period_data.pbft_blk->getPeriod()
-                     << " contains pillar block hash even though it should not";
-        handleMaliciousSyncPeer(packet_data.from_node_id_);
-        return;
-      }
-
-      // Validate optional pillar votes
-      if (kFicusHfConfig.isPillarBlockPeriod(pbft_block_period, true /* skip first pillar block */)) {
-        if (!period_data.pillar_votes_.has_value()) {
-          LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << pbft_block_period
-                       << " does not contain pillar votes";
-          handleMaliciousSyncPeer(packet_data.from_node_id_);
-          return;
-        }
-      } else if (period_data.pillar_votes_.has_value()) {
-        LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << period_data.pbft_blk->getPeriod()
-                     << " contains pillar votes even though it should not";
-        handleMaliciousSyncPeer(packet_data.from_node_id_);
-        return;
-      }
-    } else if (extra_data.has_value()) {
-      LOG(log_er_) << "Synced PBFT block " << pbft_blk_hash << ", period " << period_data.pbft_blk->getPeriod()
-                   << " contains extra data even though it should not";
+    if (!pbft_mgr_->validatePillarDataInPeriodData(period_data)) {
       handleMaliciousSyncPeer(packet_data.from_node_id_);
       return;
     }
