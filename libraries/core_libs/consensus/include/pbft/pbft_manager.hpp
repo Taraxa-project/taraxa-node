@@ -241,7 +241,6 @@ class PbftManager {
   void processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
                             const std::shared_ptr<PbftVote> &propose_vote);
 
-  // **** Notice: functions used only in tests ****
   /**
    * @brief Get a proposed PBFT block based on specified period and block hash
    * @param period
@@ -271,6 +270,16 @@ class PbftManager {
    * @brief wait for DPOS period finalization
    */
   void waitForPeriodFinalization();
+
+  /**
+   * @brief Validates pbft block extra data presence + pillar votes presence based on pbft block number and ficus hf
+   * block number
+   *
+   * @note See validatePbftBlockExtraData description, it is called inside
+   * @param period_data
+   * @return true if valid, otherwise false
+   */
+  bool validatePillarDataInPeriodData(const PeriodData &period_data) const;
 
  private:
   /**
@@ -457,6 +466,16 @@ class PbftManager {
    * @return validation result
    */
   PbftStateRootValidation validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
+
+  /**
+   * @brief Validates pbft block extra data presence:
+   *        - checks if extra data is present or not based on pbft block number and ficus hf block number
+   *        - checks if pillar block hash is present on not during specific pbft periods
+   *
+   * @param pbft_block
+   * @return true if valid, otherwise false
+   */
+  bool validatePbftBlockExtraData(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
