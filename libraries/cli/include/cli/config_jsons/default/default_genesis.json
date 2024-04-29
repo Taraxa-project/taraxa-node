@@ -116,8 +116,8 @@
     },
     "ficus_hf" : {
       "block_num" : 0,
-      "pillar_block_periods" : 100,
-      "pillar_chain_sync_periods" : 25,
+      "pillar_blocks_interval" : 100,
+      "pillar_chain_sync_interval" : 25,
       "pbft_inclusion_delay": 6
     }
   }
