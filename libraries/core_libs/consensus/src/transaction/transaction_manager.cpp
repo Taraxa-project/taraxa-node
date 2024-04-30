@@ -171,18 +171,33 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
 
   {
+    SharedTransactions trxs_to_save;
+    // Exclude transactions which are already saved before locking transactions mutex
+    for (auto &t : trxs) {
+      auto const &trx_hash = t->getHash();
+      bool saved_trx;
+      {
+        std::shared_lock transactions_lock(transactions_mutex_);
+        saved_trx =
+            nonfinalized_transactions_in_dag_.contains(trx_hash) || recently_finalized_transactions_.contains(trx_hash);
+      }
+
+      if (!saved_trx && !db_->transactionFinalized(trx_hash)) {
+        trxs_to_save.emplace_back(std::move(t));
+      }
+    }
+
     // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
     // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
     std::unique_lock transactions_lock(transactions_mutex_);
 
-    for (uint64_t i = 0; i < trxs.size(); i++) {
-      auto const &trx_hash = trx_hashes[i];
+    for (auto &trx : trxs_to_save) {
+      auto const &trx_hash = trx->getHash();
       // We only save transaction if it has not already been saved
-      if (!nonfinalized_transactions_in_dag_.contains(trx_hash) &&
-          !recently_finalized_transactions_.contains(trx_hash) && !db_->transactionFinalized(trx_hash)) {
-        db_->addTransactionToBatch(*trxs[i], write_batch);
-        nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
-      }
+
+      db_->addTransactionToBatch(*trx, write_batch);
+      nonfinalized_transactions_in_dag_.emplace(trx_hash, trx);
+
       if (transactions_pool_.erase(trx_hash)) {
         LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
         // Transactions are counted when included in DAG
@@ -190,6 +205,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
         accepted_transactions.emplace_back(trx_hash);
       }
     }
+
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
     db_->commitWriteBatch(write_batch);
   }
