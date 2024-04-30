@@ -28,7 +28,7 @@
     },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
-    "transaction_interval_ms": 150,
+    "transaction_interval_ms": 300,
     "ideal_peer_count": 15,
     "max_peer_count": 30,
     "sync_level_size": 25,
