@@ -5,6 +5,7 @@
 #include <string>
 
 #include "common/constants.hpp"
+#include "common/encoding_solidity.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/cache.hpp"
 #include "final_chain/trie_common.hpp"
@@ -125,11 +126,11 @@ class FinalChainImpl final : public FinalChain {
     }
 
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;
-    const auto kPruneblocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
+    const auto kPruneBlocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
     if ((config.db_config.prune_state_db || kLightNode) && last_blk_num.has_value() &&
-        *last_blk_num > kPruneblocksToKeep) {
+        *last_blk_num > kPruneBlocksToKeep) {
       LOG(log_si_) << "Pruning state db, this might take several minutes";
-      prune(*last_blk_num - kPruneblocksToKeep);
+      prune(*last_blk_num - kPruneBlocksToKeep);
       LOG(log_si_) << "Pruning state db complete";
     }
   }
@@ -150,6 +151,16 @@ class FinalChainImpl final : public FinalChain {
   }
 
   EthBlockNumber delegation_delay() const override { return delegation_delay_; }
+
+  state_api::EVMTransaction make_bridge_finalization_transaction() {
+    // TODO: make proper constants?
+    const static auto finalize_method = util::EncodingSolidity::packFunctionCall("finalizeEpoch()");
+
+    auto account = get_account(kTaraxaSystemAccount).value_or(state_api::ZeroAccount);
+    return state_api::EVMTransaction{kTaraxaSystemAccount, 0, hardforks_config_.ficus_hf.bridge_contract_address,
+                                     account.nonce,        0, kBlockGasLimit,
+                                     finalize_method};
+  }
 
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
@@ -175,11 +186,16 @@ class FinalChainImpl final : public FinalChain {
       }
     } */
 
+    const auto blk_num = new_blk.pbft_blk->getPeriod();
+    auto evm_trxs = to_state_api_transactions(new_blk.transactions);
+    if (hardforks_config_.ficus_hf.isPillarBlockPeriod(blk_num)) {
+      evm_trxs.push_back(make_bridge_finalization_transaction());
+    }
+
     auto const& [exec_results] =
         state_api_.execute_transactions({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
                                          new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-                                        to_state_api_transactions(new_blk.transactions));
-
+                                        evm_trxs);
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     std::vector<gas_t> transactions_gas_used;
@@ -479,7 +495,11 @@ class FinalChainImpl final : public FinalChain {
   u256 dpos_total_supply(EthBlockNumber blk_num) const override { return state_api_.dpos_total_supply(blk_num); }
 
   h256 get_bridge_root(EthBlockNumber blk_num) const override {
-    return state_api_.get_bridge_root(hardforks_config_.ficus_hf.bridge_contract_address, blk_num);
+    const auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("getBridgeRoot()");
+    return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, hardforks_config_.ficus_hf.bridge_contract_address,
+                                               state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
+                     blk_num)
+                    .code_retval);
   }
 
  private:
@@ -523,13 +543,15 @@ class FinalChainImpl final : public FinalChain {
     return client_blk_n ? *client_blk_n : last_block_number();
   }
 
-  static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(SharedTransactions const& trxs) {
-    return util::make_range_view(trxs).map([](auto const& trx) {
+  static std::vector<state_api::EVMTransaction> to_state_api_transactions(SharedTransactions const& trxs) {
+    std::vector<state_api::EVMTransaction> res;
+    std::transform(trxs.cbegin(), trxs.cend(), std::back_inserter(res), [](auto const& trx) {
       return state_api::EVMTransaction{
           trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
           trx->getValue(),  trx->getGas(),      trx->getData(),
       };
     });
+    return res;
   }
 
   BlocksBlooms block_blooms(h256 const& chunk_id) const {

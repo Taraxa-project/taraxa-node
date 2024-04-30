@@ -4,7 +4,6 @@
 
 #include <functional>
 
-#include "common/range_view.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "rewards/block_stats.hpp"
 #include "storage/storage.hpp"
@@ -45,7 +44,7 @@ class StateAPI {
   StateDescriptor get_last_committed_state_descriptor() const;
 
   const TransactionsExecutionResult& execute_transactions(const EVMBlock& block,
-                                                          const util::RangeView<EVMTransaction>& transactions);
+                                                          const std::vector<EVMTransaction>& transactions);
   const RewardsDistributionResult& distribute_rewards(const std::vector<rewards::BlockStats>& rewards_stats);
   void transition_state_commit();
 
@@ -63,7 +62,6 @@ class StateAPI {
   uint64_t dpos_yield(EthBlockNumber blk_num) const;
   u256 dpos_total_supply(EthBlockNumber blk_num) const;
   u256 dpos_total_amount_delegated(EthBlockNumber blk_num) const;
-  h256 get_bridge_root(const addr_t& bridge_contract_address, EthBlockNumber blk_num) const;
 };
 /** @} */
 

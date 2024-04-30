@@ -179,7 +179,7 @@ StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
 }
 
 const TransactionsExecutionResult& StateAPI::execute_transactions(const EVMBlock& block,
-                                                                  const util::RangeView<EVMTransaction>& transactions) {
+                                                                  const std::vector<EVMTransaction>& transactions) {
   result_buf_execution_result_.execution_results.clear();
   rlp_enc_execution_result_.clear();
   c_method_args_rlp<TransactionsExecutionResult, from_rlp, taraxa_evm_state_api_execute_transactions>(
@@ -290,14 +290,6 @@ u256 StateAPI::dpos_total_amount_delegated(EthBlockNumber blk_num) const {
   taraxa_evm_state_api_dpos_total_amount_delegated(this_c_, blk_num, decoder_cb_c<u256, to_u256>(ret), err_h.cgo_part_);
   err_h.check();
   return ret;
-}
-
-h256 StateAPI::get_bridge_root(const addr_t& bridge_contract_address, EthBlockNumber blk_num) const {
-  h256 ret;
-  ErrorHandler err_h;
-  const auto bridge_root_position = h256("0x0000000000000000000000000000000000000000000000000000000000000006");
-  return c_method_args_rlp<h256, to_h256, taraxa_evm_state_api_get_account_storage>(
-      this_c_, blk_num, bridge_contract_address, bridge_root_position);
 }
 
 }  // namespace taraxa::state_api

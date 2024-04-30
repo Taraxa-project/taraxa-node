@@ -3,7 +3,6 @@
 #include <future>
 
 #include "common/event.hpp"
-#include "common/range_view.hpp"
 #include "common/types.hpp"
 #include "config/config.hpp"
 #include "final_chain/data.hpp"
