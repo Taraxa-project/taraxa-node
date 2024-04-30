@@ -175,11 +175,11 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
     std::unique_lock transactions_lock(transactions_mutex_);
 
-    auto trx_in_db = db_->transactionsInDb(trx_hashes);
     for (uint64_t i = 0; i < trxs.size(); i++) {
       auto const &trx_hash = trx_hashes[i];
       // We only save transaction if it has not already been saved
-      if (!trx_in_db[i]) {
+      if (!nonfinalized_transactions_in_dag_.contains(trx_hash) &&
+          !recently_finalized_transactions_.contains(trx_hash) && !db_->transactionFinalized(trx_hash)) {
         db_->addTransactionToBatch(*trxs[i], write_batch);
         nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
       }
