@@ -226,7 +226,7 @@ def generate_faucet_wallet(binary):
     global faucet_public_address
 
     wallet_path = f'./{data_dir}/faucet-wallet.json'
-    
+
     if os.path.isfile(wallet_path):
         wallet = json.loads('{}')
         with open(wallet_path) as json_file:
