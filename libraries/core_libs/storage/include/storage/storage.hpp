@@ -210,10 +210,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
    *
    * @param trx_hashes
    *
-   * @return Returns transactions found if all transactions are present. If there is a transaction missing, no
-   * transaction is returned and missing trx hash is returned
+   * @return Returns transactions found with the period it was finalized or nullptr for non finalized transaction
    */
-  std::pair<std::optional<SharedTransactions>, trx_hash_t> getFinalizedTransactions(
+  std::vector<std::pair<SharedTransaction, PbftPeriod>> getFinalizedTransactions(
       std::vector<trx_hash_t> const& trx_hashes) const;
 
   // DAG

@@ -797,18 +797,16 @@ uint64_t DbStorage::getTransactionCount(PbftPeriod period) const {
   return 0;
 }
 
-std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalizedTransactions(
+std::vector<std::pair<SharedTransaction, PbftPeriod>> DbStorage::getFinalizedTransactions(
     std::vector<trx_hash_t> const& trx_hashes) const {
+  std::vector<std::pair<SharedTransaction, PbftPeriod>> res;
   // Map of period to position of transactions within a period
   std::map<PbftPeriod, std::set<uint32_t>> period_map;
-  SharedTransactions transactions;
-  transactions.reserve(trx_hashes.size());
+  res.reserve(trx_hashes.size());
   for (auto const& tx_hash : trx_hashes) {
     auto trx_period = getTransactionPeriod(tx_hash);
     if (trx_period.has_value()) {
       period_map[trx_period->first].insert(trx_period->second);
-    } else {
-      return {std::nullopt, tx_hash};
     }
   }
   for (auto it : period_map) {
@@ -819,11 +817,11 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
 
     auto const transactions_rlp = dev::RLP(period_data)[TRANSACTIONS_POS_IN_PERIOD_DATA];
     for (auto pos : it.second) {
-      transactions.emplace_back(std::make_shared<Transaction>(transactions_rlp[pos]));
+      res.emplace_back(std::make_shared<Transaction>(transactions_rlp[pos]), it.first);
     }
   }
 
-  return {transactions, {}};
+  return res;
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {

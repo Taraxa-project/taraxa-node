@@ -71,6 +71,20 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 
+  PbftPeriod start_period = 1;
+  if (pbft_chain_->getPbftChainSize() > 2 * final_chain_->delegation_delay()) {
+    start_period = pbft_chain_->getPbftChainSize() - 2 * final_chain_->delegation_delay();
+  }
+  for (PbftPeriod period = start_period; period <= pbft_chain_->getPbftChainSize(); period++) {
+    auto period_raw = db_->getPeriodDataRaw(period);
+    if (period_raw.size() == 0) {
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
+      assert(false);
+    }
+    PeriodData period_data(period_raw);
+    trx_mgr_->initializeRecentlyFinalizedTransactions(period_data);
+  }
+
   // Initialize PBFT status
   initialState();
 }

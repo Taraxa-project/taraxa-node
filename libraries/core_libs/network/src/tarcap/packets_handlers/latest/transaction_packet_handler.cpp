@@ -71,36 +71,25 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
 
-    TransactionStatus status;
-    std::string reason;
-    std::tie(status, reason) = trx_mgr_->verifyTransaction(transaction);
-    switch (status) {
-      case TransactionStatus::Invalid: {
-        std::ostringstream err_msg;
-        err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
-        throw MaliciousPeerException(err_msg.str());
-      }
-      case TransactionStatus::InsufficentBalance:
-      case TransactionStatus::LowNonce: {
-        // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
-        if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
-          std::ostringstream err_msg;
-          err_msg << "Suspicious packets over the limit on DagBlock transaction " << transaction->getHash()
-                  << " validation: " << reason;
-          throw MaliciousPeerException(err_msg.str());
-        }
-
-        break;
-      }
-      case TransactionStatus::Verified:
-        break;
-      default:
-        assert(false);
+    const auto [verified, reason] = trx_mgr_->verifyTransaction(transaction);
+    if (!verified) {
+      std::ostringstream err_msg;
+      err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
+      throw MaliciousPeerException(err_msg.str());
     }
 
     received_trx_count_++;
-    if (trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status))) {
+    const auto tx_hash = transaction->getHash();
+    const auto status = trx_mgr_->insertValidatedTransaction(std::move(transaction));
+    if (status == TransactionStatus::Inserted) {
       unique_received_trx_count_++;
+    }
+    if (status == TransactionStatus::Overflow) {
+      // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
+      if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
+        std::ostringstream err_msg;
+        err_msg << "Suspicious packets over the limit on DagBlock transaction " << tx_hash << " validation: " << reason;
+      }
     }
   }
 

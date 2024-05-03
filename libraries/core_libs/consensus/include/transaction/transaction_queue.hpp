@@ -11,6 +11,9 @@ namespace taraxa {
  */
 
 enum class TransactionStatus;
+namespace final_chain {
+class FinalChain;
+}
 /**
  * @brief TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG block or
  * which might be required by an incoming DAG block
@@ -33,11 +36,9 @@ class TransactionQueue {
    *
    * @param transaction
    * @param last_block_number
-   * @return true
-   * @return false
+   * @return TransactionStatus
    */
-  bool insert(std::shared_ptr<Transaction>&& transaction, const TransactionStatus status,
-              uint64_t last_block_number = 0);
+  TransactionStatus insert(std::shared_ptr<Transaction>&& transaction, bool proposable, uint64_t last_block_number = 0);
 
   /**
    * @brief remove transaction from queue
@@ -94,6 +95,13 @@ class TransactionQueue {
    * @param block_number block number finalized
    */
   void blockFinalized(uint64_t block_number);
+
+  /**
+   * @brief Removes any transactions that are no longer proposable
+   *
+   * @param final_chain
+   */
+  void purge(std::shared_ptr<final_chain::FinalChain> final_chain);
 
   /**
    * @brief Marks transaction as known (was successfully pushed into the tx pool)

@@ -1527,8 +1527,8 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
       // Reached the limit of single account in transaction pool
       trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                           dev::KeyPair::create().secret(), addr_t::random());
-      EXPECT_TRUE(
-          node0->getTransactionManager()->insertValidatedTransaction(std::move(trx), TransactionStatus::Verified));
+      EXPECT_EQ(node0->getTransactionManager()->insertValidatedTransaction(std::move(trx)),
+                TransactionStatus::Inserted);
     }
   } while (!node0->getTransactionManager()->isTransactionPoolFull());
 
