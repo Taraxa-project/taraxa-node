@@ -32,6 +32,7 @@ class PacketsBlockingMask {
   bool isPacketPeerOrderBlocked(const PacketData& packet_data) const;
   bool isDagBlockPacketBlockedByLevel(const PacketData& packet_data) const;
   bool isDagBlockPacketBlockedBySameDagBlock(const PacketData& packet_data) const;
+  dev::RLP dagBlockFromDagPacket(const PacketData& packet_data) const;
 
   std::optional<taraxa::level_t> getSmallestDagLevelBeingProcessed() const;
 
@@ -67,6 +68,10 @@ class PacketsBlockingMask {
   // concurrently, to reduce perofrmance impact only one packet/block will be processsed and others will be waiting.
   //  This map contains dag blocks that are currently processed with the associated packet id
   std::map<taraxa::sig_t, PacketData::PacketId> processing_dag_blocks_;
+
+  static constexpr size_t kRequiredDagPacketSizeV3 = 2;
+  static constexpr size_t kDagBlockPosV3 = 1;
+  static constexpr size_t kRequiredDagPacketSizeV2 = 8;
 };
 
 }  // namespace taraxa::network::threadpool
