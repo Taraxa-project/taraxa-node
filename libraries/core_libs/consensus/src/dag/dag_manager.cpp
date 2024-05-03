@@ -417,7 +417,7 @@ void DagManager::handleExpiredDagBlocksTransactions(
     }
   }
   if (transactions_from_expired_dag_blocks_to_remove.size() > 0) {
-    trx_mgr_->moveNonFinalizedTransactionsToTransactionsPool(std::move(transactions_from_expired_dag_blocks_to_remove));
+    trx_mgr_->removeNonFinalizedTransactions(std::move(transactions_from_expired_dag_blocks_to_remove));
   }
 }
 
@@ -584,8 +584,12 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   return {non_finalized_blks_.size(), blocks_counter};
 }
 
-DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
+std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::verifyBlock(
+    const DagBlock &blk, const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs) {
   const auto &block_hash = blk.getHash();
+  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
+  vec_trx_t trx_hashes_to_query;
+  SharedTransactions all_block_trxs;
 
   // Verify tips/pivot count and uniqueness
   std::unordered_set<blk_hash_t> unique_tips_pivot;
@@ -593,38 +597,57 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   unique_tips_pivot.insert(blk.getPivot());
   if (blk.getTips().size() > kDagBlockMaxTips) {
     LOG(log_er_) << "DAG Block " << block_hash << " tips count " << blk.getTips().size() << " over the limit";
-    return VerifyBlockReturnType::FailedTipsVerification;
+    return {VerifyBlockReturnType::FailedTipsVerification, {}};
   }
 
   for (auto const &tip : blk.getTips()) {
     if (!unique_tips_pivot.insert(tip).second) {
       LOG(log_er_) << "DAG Block " << block_hash << " tip " << tip << " duplicate";
-      return VerifyBlockReturnType::FailedTipsVerification;
+      return {VerifyBlockReturnType::FailedTipsVerification, {}};
     }
   }
 
-  // Verify transactions
-  auto transactions = trx_mgr_->getBlockTransactions(blk);
-  if (!transactions.has_value()) {
-    LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
-    // This can be a valid block so just remove it from the seen list
-    seen_blocks_.erase(block_hash);
-    return VerifyBlockReturnType::MissingTransaction;
-  }
-
   auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
+
   // Verify DPOS
   if (!propose_period.has_value()) {
     // Cannot find the proposal period in DB yet. The slow node gets an ahead block, remove from seen_blocks
     LOG(log_nf_) << "Cannot find proposal period in DB for DAG block " << blk.getHash();
     seen_blocks_.erase(block_hash);
-    return VerifyBlockReturnType::AheadBlock;
+    return {VerifyBlockReturnType::AheadBlock, {}};
+  }
+
+  if (trxs.size() != 0) {
+    for (auto const &tx_hash : all_block_trx_hashes) {
+      auto trx_it = trxs.find(tx_hash);
+      if (trx_it != trxs.end()) {
+        all_block_trxs.emplace_back(trx_it->second);
+      } else {
+        trx_hashes_to_query.emplace_back(tx_hash);
+      }
+    }
+  } else {
+    trx_hashes_to_query = all_block_trx_hashes;
+  }
+
+  // Verify transactions
+  auto transactions = trx_mgr_->getTransactions(trx_hashes_to_query, *propose_period);
+
+  if (transactions.size() < trx_hashes_to_query.size()) {
+    LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
+    // This can be a valid block so just remove it from the seen list
+    seen_blocks_.erase(block_hash);
+    return {VerifyBlockReturnType::MissingTransaction, {}};
+  }
+
+  for (auto t : transactions) {
+    all_block_trxs.emplace_back(std::move(t));
   }
 
   if (blk.getLevel() < dag_expiry_level_) {
     LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Expiry level: " << dag_expiry_level_
                  << ". Block level: " << blk.getLevel();
-    return VerifyBlockReturnType::ExpiredBlock;
+    return {VerifyBlockReturnType::ExpiredBlock, {}};
   }
 
   // Verify VDF solution
@@ -632,7 +655,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   if (!pk) {
     LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                  << " level is missing VRF key for sender " << blk.getSender();
-    return VerifyBlockReturnType::FailedVdfVerification;
+    return {VerifyBlockReturnType::FailedVdfVerification, {}};
   }
 
   try {
@@ -650,7 +673,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
     LOG(log_er_) << "period from map: " << *propose_period << " current: " << pbft_chain_->getPbftChainSize();
-    return VerifyBlockReturnType::FailedVdfVerification;
+    return {VerifyBlockReturnType::FailedVdfVerification, {}};
   }
 
   auto dag_block_sender = blk.getSender();
@@ -659,18 +682,18 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
     dpos_qualified = final_chain_->dpos_is_eligible(*propose_period, dag_block_sender);
   } catch (state_api::ErrFutureBlock &c) {
     LOG(log_er_) << "Verify proposal period " << *propose_period << " is too far ahead of DPOS. " << c.what();
-    return VerifyBlockReturnType::FutureBlock;
+    return {VerifyBlockReturnType::FutureBlock, {}};
   }
   if (!dpos_qualified) {
     LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk << " is not eligible for DPOS at period "
                  << *propose_period << " for sender " << dag_block_sender.toString() << " current period "
                  << final_chain_->last_block_number();
-    return VerifyBlockReturnType::NotEligible;
+    return {VerifyBlockReturnType::NotEligible, {}};
   }
   {
     u256 total_block_weight = 0;
     auto block_gas_estimation = blk.getGasEstimation();
-    for (const auto &trx : *transactions) {
+    for (const auto &trx : all_block_trxs) {
       total_block_weight += trx_mgr_->estimateTransactionGas(trx, propose_period);
     }
 
@@ -678,14 +701,14 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
       LOG(log_er_) << "Invalid block_gas_estimation. DAG block " << blk.getHash()
                    << " block_gas_estimation: " << block_gas_estimation << " total_block_weight " << total_block_weight
                    << " current period " << final_chain_->last_block_number();
-      return VerifyBlockReturnType::IncorrectTransactionsEstimation;
+      return {VerifyBlockReturnType::IncorrectTransactionsEstimation, {}};
     }
 
     if (total_block_weight > getDagConfig().gas_limit) {
       LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " gas_limit: " << getDagConfig().gas_limit
                    << " total_block_weight " << total_block_weight << " current period "
                    << final_chain_->last_block_number();
-      return VerifyBlockReturnType::BlockTooBig;
+      return {VerifyBlockReturnType::BlockTooBig, {}};
     }
 
     if ((blk.getTips().size() + 1) > kPbftGasLimit / getDagConfig().gas_limit) {
@@ -693,7 +716,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
         const auto tip_blk = getDagBlock(t);
         if (tip_blk == nullptr) {
           LOG(log_er_) << "DAG Block " << block_hash << " tip " << t << " not present";
-          return VerifyBlockReturnType::MissingTip;
+          return {VerifyBlockReturnType::MissingTip, {}};
         }
         block_gas_estimation += tip_blk->getGasEstimation();
       }
@@ -701,14 +724,14 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
         LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " with tips has limit: " << kPbftGasLimit
                      << " block_gas_estimation " << block_gas_estimation << " current period "
                      << final_chain_->last_block_number();
-        return VerifyBlockReturnType::BlockTooBig;
+        return {VerifyBlockReturnType::BlockTooBig, {}};
       }
     }
   }
 
   LOG(log_dg_) << "Verified DAG block " << blk.getHash();
 
-  return VerifyBlockReturnType::Verified;
+  return {VerifyBlockReturnType::Verified, std::move(all_block_trxs)};
 }
 
 bool DagManager::isDagBlockKnown(const blk_hash_t &hash) const {

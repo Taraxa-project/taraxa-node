@@ -231,14 +231,14 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   // transactions.size and estimations size is not equal
   {
     DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {}, vdf1, node->getSecretKey());
-    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)),
+    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)).first,
               DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
 
   // wrong estimated tx
   {
     DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100, vdf1, node->getSecretKey());
-    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)),
+    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)).first,
               DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
 }
@@ -267,7 +267,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
 
     DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
     dag_blocks_hashes.push_back(blk.getHash());
-    EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
+    EXPECT_EQ(node->getDagManager()->verifyBlock(blk).first, DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
 
@@ -277,20 +277,20 @@ TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
   // Verify block over the kDagBlockMaxTips is rejected
   DagBlock blk_over_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
                           node->getSecretKey());
-  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_over_limit),
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_over_limit).first,
             DagManager::VerifyBlockReturnType::FailedTipsVerification);
 
   // Verify block at kDagBlockMaxTips is accepted
   dag_blocks_hashes.resize(kDagBlockMaxTips);
   DagBlock blk_at_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
                         node->getSecretKey());
-  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_at_limit), DagManager::VerifyBlockReturnType::Verified);
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_at_limit).first, DagManager::VerifyBlockReturnType::Verified);
 
   // Verify block below kDagBlockMaxTips is accepted
   dag_blocks_hashes.resize(kDagBlockMaxTips - 1);
   DagBlock blk_under_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
                            node->getSecretKey());
-  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_under_limit), DagManager::VerifyBlockReturnType::Verified);
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_under_limit).first, DagManager::VerifyBlockReturnType::Verified);
 
   auto dag_blocks_hashes_with_duplicate_pivot = dag_blocks_hashes;
   dag_blocks_hashes_with_duplicate_pivot.push_back(dag_genesis);
@@ -301,13 +301,13 @@ TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
   // Verify block with duplicate pivot is rejected
   DagBlock blk_with_duplicate_pivot(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_pivot,
                                     {trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
-  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_pivot),
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_pivot).first,
             DagManager::VerifyBlockReturnType::FailedTipsVerification);
 
   // Verify block with duplicate tip is rejected
   DagBlock blk_with_duplicate_tip(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_tip,
                                   {trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
-  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_tip),
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_tip).first,
             DagManager::VerifyBlockReturnType::FailedTipsVerification);
 }
 
@@ -336,7 +336,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
 
     DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, dag_block_gas, vdf, node->getSecretKey());
     dag_blocks_hashes.push_back(blk.getHash());
-    EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
+    EXPECT_EQ(node->getDagManager()->verifyBlock(blk).first, DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
 
@@ -368,7 +368,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
 
     DagBlock blk(dag_blocks_hashes[0], propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
     dag_blocks_hashes.push_back(blk.getHash());
-    EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
+    EXPECT_EQ(node->getDagManager()->verifyBlock(blk).first, DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
 
@@ -435,7 +435,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
 
   {
     DagBlock blk(dag_genesis, propose_level, {}, hashes, estimations, vdf1, node->getSecretKey());
-    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)), DagManager::VerifyBlockReturnType::BlockTooBig);
+    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)).first, DagManager::VerifyBlockReturnType::BlockTooBig);
   }
 }
 

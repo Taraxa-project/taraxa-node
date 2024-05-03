@@ -1518,23 +1518,14 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   }
 
   auto node0 = nodes.front();
-  do {
+  while (true) {
     auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                              node0->getSecretKey(), addr_t::random());
-    if (nonce < 4 * kMinTransactionPoolSize / 100) {
-      EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
-    } else {
-      // Reached the limit of single account in transaction pool
-      trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
-                                          dev::KeyPair::create().secret(), addr_t::random());
-      EXPECT_TRUE(
-          node0->getTransactionManager()->insertValidatedTransaction(std::move(trx), TransactionStatus::Verified));
-    }
-  } while (!node0->getTransactionManager()->isTransactionPoolFull());
+    if (node0->getTransactionManager()->insertValidatedTransaction(std::move(trx), true) == TransactionStatus::Overflow)
+      break;
+  }
 
-  EXPECT_FALSE(node0->getTransactionManager()->transactionsDropped());
-
-  // Crate transaction with lower gasprice
+  // Create transaction with lower gasprice
   auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                            node0->getSecretKey(), addr_t::random());
 

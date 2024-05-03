@@ -93,8 +93,8 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
 void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto block_hash = block.getHash();
-  const auto verified = dag_mgr_->verifyBlock(block);
-  switch (verified) {
+  auto verified = dag_mgr_->verifyBlock(block);
+  switch (verified.first) {
     case DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation:
     case DagManager::VerifyBlockReturnType::BlockTooBig:
     case DagManager::VerifyBlockReturnType::FailedVdfVerification:
@@ -102,7 +102,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
     case DagManager::VerifyBlockReturnType::FailedTipsVerification: {
       std::ostringstream err_msg;
       err_msg << "DagBlock " << block_hash << " failed verification with error code "
-              << static_cast<uint32_t>(verified);
+              << static_cast<uint32_t>(verified.first);
       throw MaliciousPeerException(err_msg.str());
     }
     case DagManager::VerifyBlockReturnType::MissingTransaction:
@@ -155,8 +155,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
       }
       break;
     case DagManager::VerifyBlockReturnType::Verified: {
-      auto transactions = trx_mgr_->getPoolTransactions(block.getTrxs()).first;
-      auto status = dag_mgr_->addDagBlock(std::move(block), std::move(transactions));
+      auto status = dag_mgr_->addDagBlock(std::move(block), std::move(verified.second));
       if (!status.first) {
         LOG(log_dg_) << "Received DagBlockPacket " << block_hash << "from: " << peer->getId();
         // Ignore new block packets when pbft syncing
@@ -201,18 +200,6 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
     }
   }
 
-  // trxs contains only transaction that were not already in some previous DAG block,
-  // block_trxs will contain hashes of transactions which were already in DAG
-  std::unordered_set<trx_hash_t> block_trxs;
-  block_trxs.reserve(block.getTrxs().size());
-  for (const auto &trx_hash : block.getTrxs()) {
-    block_trxs.insert(trx_hash);
-  }
-  // Exclude transactions from trxs
-  for (const auto &trx : trxs) {
-    block_trxs.erase(trx->getHash());
-  }
-
   std::string peer_and_transactions_to_log;
   // Sending it in same order favours some peers over others, always start with a different position
   const auto peers_to_send_count = peers_to_send.size();
@@ -235,8 +222,6 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
           peer_and_transactions_to_log += trx_hash.abridged();
         }
 
-        std::vector<trx_hash_t> block_trxs_vec(block_trxs.begin(), block_trxs.end());
-        const auto trxs_to_gossip = trx_mgr_->getTransactions(block_trxs_vec);
         for (const auto &trx : trxs) {
           assert(trx != nullptr);
           const auto trx_hash = trx->getHash();
