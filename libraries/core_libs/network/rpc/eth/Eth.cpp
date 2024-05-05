@@ -60,6 +60,7 @@ Json::Value toJson(const BlockHeader& obj) {
   res["logsBloom"] = toJS(obj.log_bloom);
   res["timestamp"] = toJS(obj.timestamp);
   res["author"] = toJS(obj.author);
+  res["miner"] = toJS(obj.author);
   res["mixHash"] = toJS(BlockHeader::mix_hash());
   res["nonce"] = toJS(BlockHeader::nonce());
   res["uncles"] = Json::Value(Json::arrayValue);
