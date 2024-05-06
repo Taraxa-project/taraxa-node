@@ -234,14 +234,16 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
           transactions_to_send.push_back(trx);
           peer_and_transactions_to_log += trx_hash.abridged();
         }
-        for (const auto &trx_hash : block_trxs) {
+
+        std::vector<trx_hash_t> block_trxs_vec(block_trxs.begin(), block_trxs.end());
+        const auto trxs_to_gossip = trx_mgr_->getTransactions(block_trxs_vec);
+        for (const auto &trx : trxs) {
+          assert(trx != nullptr);
+          const auto trx_hash = trx->getHash();
           if (peer->isTransactionKnown(trx_hash)) {
             continue;
           }
 
-          // Db can be nullptr in some unit tests
-          auto trx = db_->getTransaction(trx_hash);
-          assert(trx != nullptr);
           transactions_to_send.push_back(trx);
           peer_and_transactions_to_log += trx_hash.abridged();
         }
