@@ -116,6 +116,7 @@ class FinalChainImpl final : public FinalChain {
       for (uint64_t num = start; num <= *last_blk_num; ++num) {
         block_headers_cache_.get(num);
       }
+      rewards_.populateDagBlockAuthorLevels(*last_blk_num);
     }
 
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;

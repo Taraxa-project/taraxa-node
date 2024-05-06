@@ -96,6 +96,8 @@ struct HardforksConfig {
 
   bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
 
+  bool isBambooHardfork(uint64_t block_number) const { return block_number >= bamboo_hf.block_num; }
+
   HAS_RLP_FIELDS
 };
 

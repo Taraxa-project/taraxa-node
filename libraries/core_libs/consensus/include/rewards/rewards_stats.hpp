@@ -26,6 +26,12 @@ class Stats {
    */
   void clear(uint64_t current_period);
 
+  /**
+   * @brief populate dag block author levels from db
+   * @param last_block_num last block number
+   */
+  void populateDagBlockAuthorLevels(uint64_t last_block_num);
+
  protected:
   /**
    * @brief recover current interval stats from database
@@ -51,5 +57,6 @@ class Stats {
   std::shared_ptr<DB> db_;
   const std::function<uint64_t(EthBlockNumber)> dpos_eligible_total_vote_count_;
   std::unordered_map<PbftPeriod, BlockStats> blocks_stats_;
+  std::unordered_map<addr_t, uint64_t> dag_blocks_author_level_;
 };
 }  // namespace taraxa::rewards

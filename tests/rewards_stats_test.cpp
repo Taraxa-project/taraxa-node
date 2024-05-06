@@ -204,7 +204,7 @@ TEST_F(RewardsStatsTest, feeRewards) {
   auto trx = std::make_shared<Transaction>(nonce++, 0, 1, trx_gas_fee, dev::fromHex(samples::greeter_contract_code),
                                            pbft_proposer.secret());
 
-  DagBlock dag_blk({}, {}, {}, {trx->getHash()}, {}, {}, dag_proposer.secret());
+  DagBlock dag_blk({}, 1, {}, {trx->getHash()}, {}, {}, dag_proposer.secret());
   db->saveDagBlock(dag_blk);
   std::vector<vote_hash_t> reward_votes_hashes;
   auto pbft_block =
@@ -242,7 +242,11 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
                                         HardforksConfig{0, {}, {}, MagnoliaHardfork{0, 0}, 0, 0, AspenHardfork{6, 999}},
                                         db, [](auto) { return 100; });
   rewards::Stats post_aspen_reward_stats(
-      100, HardforksConfig{0, {}, {}, MagnoliaHardfork{0, 0}, 0, 0, AspenHardfork{4, 999}}, db,
+      100, HardforksConfig{0, {}, {}, MagnoliaHardfork{0, 0}, 0, 0, AspenHardfork{4, 999}, BambooHardfork{100, {}}}, db,
+      [](auto) { return 100; });
+
+  rewards::Stats post_bamboo_reward_stats(
+      100, HardforksConfig{0, {}, {}, MagnoliaHardfork{0, 0}, 0, 0, AspenHardfork{4, 999}, BambooHardfork{4, {}}}, db,
       [](auto) { return 100; });
 
   // Create pbft block with 5 dag blocks
@@ -251,38 +255,57 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   auto dag_key3 = dev::KeyPair::create();
   auto dag_key4 = dev::KeyPair::create();
   auto dag_key5 = dev::KeyPair::create();
+  auto dag_key6 = dev::KeyPair::create();
   vrf_wrapper::vrf_sk_t vrfs(
       "854821a22e1841f79f0a62409197e930eb347c05ede6456b82b07ec36acbd2fce86c6f2cd1e076ddf8eaf48cee078bd68b74063c3e229b1a"
       "5e993c791bdb56d6");
-  auto trxs = samples::createSignedTrxSamples(1, 3, g_secret);
+  auto trxs = samples::createSignedTrxSamples(1, 4, g_secret);
 
   PeriodData block(make_simple_pbft_block(blk_hash_t(1), 5), empty_votes);
   SortitionParams sortition_params(0xfff, 16, 21, 23, 0x64);
 
   vdf_sortition::VdfSortition vdf1(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(1)), 1, 1);
-  DagBlock dag_blk1({}, {}, {}, {trxs[0]->getHash()}, 0, vdf1, dag_key1.secret());
+  DagBlock dag_blk1({}, 1, {}, {trxs[0]->getHash()}, 0, vdf1, dag_key1.secret());
   block.dag_blocks.push_back(dag_blk1);
 
   vdf_sortition::VdfSortition vdf2(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(2)), 1, 1);
-  DagBlock dag_blk2({}, {}, {}, {trxs[1]->getHash()}, 0, vdf2, dag_key2.secret());
+  DagBlock dag_blk2({}, 1, {}, {trxs[1]->getHash()}, 0, vdf2, dag_key2.secret());
   block.dag_blocks.push_back(dag_blk2);
 
   vdf_sortition::VdfSortition vdf3(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(3)), 1, 1);
-  DagBlock dag_blk3({}, {}, {}, {trxs[0]->getHash()}, 0, vdf3, dag_key3.secret());
+  DagBlock dag_blk3({}, 1, {}, {trxs[0]->getHash()}, 0, vdf3, dag_key3.secret());
   block.dag_blocks.push_back(dag_blk3);
 
   vdf_sortition::VdfSortition vdf4(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(4)), 1, 1);
-  DagBlock dag_blk4({}, {}, {}, {trxs[1]->getHash()}, 0, vdf4, dag_key4.secret());
+  DagBlock dag_blk4({}, 1, {}, {trxs[1]->getHash()}, 0, vdf4, dag_key4.secret());
   block.dag_blocks.push_back(dag_blk4);
 
   vdf_sortition::VdfSortition vdf5(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(5)), 1, 1);
-  DagBlock dag_blk5({}, {}, {}, {trxs[2]->getHash()}, 0, vdf5, dag_key5.secret());
+  DagBlock dag_blk5({}, 1, {}, {trxs[2]->getHash()}, 0, vdf5, dag_key5.secret());
   block.dag_blocks.push_back(dag_blk5);
+
+  vdf_sortition::VdfSortition vdf6(sortition_params, vrfs,
+                                   vrf_wrapper::VrfSortitionBase::makeVrfInput(6, blk_hash_t(6)), 1, 1);
+  DagBlock dag_blk6({}, 6, {}, {trxs[0]->getHash()}, 0, vdf6, dag_key6.secret());
+  block.dag_blocks.push_back(dag_blk6);
+  vdf_sortition::VdfSortition vdf7(sortition_params, vrfs,
+                                   vrf_wrapper::VrfSortitionBase::makeVrfInput(7, blk_hash_t(7)), 1, 1);
+  DagBlock dag_blk7({}, 7, {}, {trxs[1]->getHash()}, 0, vdf7, dag_key6.secret());
+  block.dag_blocks.push_back(dag_blk7);
+  vdf_sortition::VdfSortition vdf8(sortition_params, vrfs,
+                                   vrf_wrapper::VrfSortitionBase::makeVrfInput(7, blk_hash_t(8)), 1, 1);
+  DagBlock dag_blk8({}, 7, {}, {trxs[2]->getHash()}, 0, vdf8, dag_key6.secret());
+  block.dag_blocks.push_back(dag_blk8);
+  vdf_sortition::VdfSortition vdf9(sortition_params, vrfs,
+                                   vrf_wrapper::VrfSortitionBase::makeVrfInput(5, blk_hash_t(9)), 1, 1);
+  DagBlock dag_blk9({}, 5, {}, {trxs[3]->getHash()}, 0, vdf9, dag_key6.secret());
+  block.dag_blocks.push_back(dag_blk9);
+
   block.transactions = trxs;
 
   ASSERT_EQ(dag_blk1.getDifficulty(), 17);
@@ -290,6 +313,10 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   ASSERT_EQ(dag_blk3.getDifficulty(), 16);
   ASSERT_EQ(dag_blk4.getDifficulty(), 17);
   ASSERT_EQ(dag_blk5.getDifficulty(), 16);
+  ASSERT_EQ(dag_blk6.getDifficulty(), 17);
+  ASSERT_EQ(dag_blk7.getDifficulty(), 16);
+  ASSERT_EQ(dag_blk8.getDifficulty(), 16);
+  ASSERT_EQ(dag_blk9.getDifficulty(), 16);
 
   std::vector<uint64_t> gas_used{10, 20, 30};
 
@@ -298,28 +325,32 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   auto stats = pre_aspen_reward_stats.processStats(block, gas_used, batch);
   ASSERT_EQ(stats.size(), 1);
   auto stats_with_get = reinterpret_cast<TestableBlockStats*>(&stats[0]);
-  ASSERT_EQ(stats_with_get->getValidatorStats().size(), 3);
+  ASSERT_EQ(stats_with_get->getValidatorStats().size(), 4);
   ASSERT_TRUE(stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key1.pub())));
   ASSERT_TRUE(stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key2.pub())));
   ASSERT_TRUE(stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key5.pub())));
+  ASSERT_TRUE(stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key6.pub())));
   ASSERT_EQ(stats_with_get->getValidatorStats().find(dev::toAddress(dag_key1.pub()))->second.dag_blocks_count_, 1);
   ASSERT_EQ(stats_with_get->getValidatorStats().find(dev::toAddress(dag_key2.pub()))->second.dag_blocks_count_, 1);
   ASSERT_EQ(stats_with_get->getValidatorStats().find(dev::toAddress(dag_key5.pub()))->second.dag_blocks_count_, 1);
+  ASSERT_EQ(stats_with_get->getValidatorStats().find(dev::toAddress(dag_key6.pub()))->second.dag_blocks_count_, 1);
 
   // Process rewards after aspen hf, expect dag_blocks_count to match blocks with smallest difficulty which is blocks 3
   // and 5 Verify fees rewards to be the same before and after the HF
   auto post_stats = post_aspen_reward_stats.processStats(block, gas_used, batch);
   ASSERT_EQ(post_stats.size(), 1);
   auto post_stats_with_get = reinterpret_cast<TestableBlockStats*>(&post_stats[0]);
-  ASSERT_EQ(post_stats_with_get->getValidatorStats().size(), 4);
+  ASSERT_EQ(post_stats_with_get->getValidatorStats().size(), 5);
   ASSERT_TRUE(post_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key1.pub())));
   ASSERT_TRUE(post_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key2.pub())));
   ASSERT_TRUE(post_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key3.pub())));
   ASSERT_TRUE(post_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key5.pub())));
+  ASSERT_TRUE(post_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key6.pub())));
   ASSERT_EQ(post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key1.pub()))->second.dag_blocks_count_, 0);
   ASSERT_EQ(post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key2.pub()))->second.dag_blocks_count_, 0);
   ASSERT_EQ(post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key3.pub()))->second.dag_blocks_count_, 1);
   ASSERT_EQ(post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key5.pub()))->second.dag_blocks_count_, 1);
+  ASSERT_EQ(post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key6.pub()))->second.dag_blocks_count_, 3);
 
   ASSERT_EQ(stats_with_get->getValidatorStats().find(dev::toAddress(dag_key1.pub()))->second.fees_rewards_,
             post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key1.pub()))->second.fees_rewards_);
@@ -328,6 +359,27 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   ASSERT_EQ(stats_with_get->getValidatorStats().find(dev::toAddress(dag_key5.pub()))->second.fees_rewards_,
             post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key5.pub()))->second.fees_rewards_);
   ASSERT_EQ(post_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key3.pub()))->second.fees_rewards_, 0);
+
+  // Process rewards after bamboo hf, expect duplicate and low level dag blocks not to be counted
+  auto post_bamboo_stats = post_bamboo_reward_stats.processStats(block, gas_used, batch);
+  ASSERT_EQ(post_bamboo_stats.size(), 1);
+  auto bamboo_stats_with_get = reinterpret_cast<TestableBlockStats*>(&post_bamboo_stats[0]);
+  ASSERT_EQ(bamboo_stats_with_get->getValidatorStats().size(), 5);
+  ASSERT_TRUE(bamboo_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key1.pub())));
+  ASSERT_TRUE(bamboo_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key2.pub())));
+  ASSERT_TRUE(bamboo_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key3.pub())));
+  ASSERT_TRUE(bamboo_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key5.pub())));
+  ASSERT_TRUE(bamboo_stats_with_get->getValidatorStats().contains(dev::toAddress(dag_key6.pub())));
+  ASSERT_EQ(bamboo_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key1.pub()))->second.dag_blocks_count_,
+            0);
+  ASSERT_EQ(bamboo_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key2.pub()))->second.dag_blocks_count_,
+            0);
+  ASSERT_EQ(bamboo_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key3.pub()))->second.dag_blocks_count_,
+            1);
+  ASSERT_EQ(bamboo_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key5.pub()))->second.dag_blocks_count_,
+            1);
+  ASSERT_EQ(bamboo_stats_with_get->getValidatorStats().find(dev::toAddress(dag_key6.pub()))->second.dag_blocks_count_,
+            1);
 }
 
 }  // namespace taraxa::core_tests
