@@ -587,7 +587,7 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
 DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   const auto &block_hash = blk.getHash();
 
-  // Verify tips/pivot count amd uniqueness
+  // Verify tips/pivot count and uniqueness
   std::unordered_set<blk_hash_t> unique_tips_pivot;
 
   unique_tips_pivot.insert(blk.getPivot());
