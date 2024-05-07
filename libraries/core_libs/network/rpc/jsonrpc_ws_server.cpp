@@ -66,23 +66,23 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
   json_response["id"] = req.get("id", 0);
   ;
   json_response["jsonrpc"] = "2.0";
-  subscription_id_++;
+  const auto subscription_id = subscription_id_.fetch_add(1) + 1;
 
   if (params.size() > 0) {
     if (params[0].asString() == "newHeads") {
-      new_heads_subscription_ = subscription_id_;
+      new_heads_subscription_ = subscription_id;
     } else if (params[0].asString() == "newPendingTransactions") {
-      new_transactions_subscription_ = subscription_id_;
+      new_transactions_subscription_ = subscription_id;
     } else if (params[0].asString() == "newDagBlocks") {
-      new_dag_blocks_subscription_ = subscription_id_;
+      new_dag_blocks_subscription_ = subscription_id;
     } else if (params[0].asString() == "newDagBlocksFinalized") {
-      new_dag_block_finalized_subscription_ = subscription_id_;
+      new_dag_block_finalized_subscription_ = subscription_id;
     } else if (params[0].asString() == "newPbftBlocks") {
-      new_pbft_block_executed_subscription_ = subscription_id_;
+      new_pbft_block_executed_subscription_ = subscription_id;
     }
   }
 
-  json_response["result"] = dev::toJS(subscription_id_);
+  json_response["result"] = dev::toJS(subscription_id);
 
   return util::to_string(json_response);
 }
