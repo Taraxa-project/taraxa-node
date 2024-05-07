@@ -65,7 +65,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   websocket::stream<beast::tcp_stream> ws_;
   boost::asio::strand<boost::asio::any_io_executor> write_strand_;
   beast::flat_buffer read_buffer_;
-  int subscription_id_ = 0;
+  std::atomic<int> subscription_id_ = 0;
   int new_heads_subscription_ = 0;
   int new_dag_blocks_subscription_ = 0;
   int new_transactions_subscription_ = 0;
