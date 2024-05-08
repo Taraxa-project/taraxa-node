@@ -45,7 +45,7 @@ class FinalChainImpl final : public FinalChain {
 
   std::atomic<EthBlockNumber> last_block_number_;
 
-  const HardforksConfig& hardforks_config_;
+  const HardforksConfig& kHardforksConfig;
   LOG_OBJECTS_DEFINE
 
  public:
@@ -79,7 +79,7 @@ class FinalChainImpl final : public FinalChain {
         dpos_is_eligible_cache_(
             config.final_chain_cache_in_blocks,
             [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
-        hardforks_config_(config.genesis.state.hardforks) {
+        kHardforksConfig(config.genesis.state.hardforks) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -153,11 +153,10 @@ class FinalChainImpl final : public FinalChain {
   EthBlockNumber delegation_delay() const override { return delegation_delay_; }
 
   state_api::EVMTransaction make_bridge_finalization_transaction() {
-    // TODO: make proper constants?
     const static auto finalize_method = util::EncodingSolidity::packFunctionCall("finalizeEpoch()");
 
     auto account = get_account(kTaraxaSystemAccount).value_or(state_api::ZeroAccount);
-    return state_api::EVMTransaction{kTaraxaSystemAccount, 0, hardforks_config_.ficus_hf.bridge_contract_address,
+    return state_api::EVMTransaction{kTaraxaSystemAccount, 0, kHardforksConfig.ficus_hf.bridge_contract_address,
                                      account.nonce,        0, kBlockGasLimit,
                                      finalize_method};
   }
@@ -188,7 +187,7 @@ class FinalChainImpl final : public FinalChain {
 
     const auto blk_num = new_blk.pbft_blk->getPeriod();
     auto evm_trxs = to_state_api_transactions(new_blk.transactions);
-    if (hardforks_config_.ficus_hf.isPillarBlockPeriod(blk_num)) {
+    if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num)) {
       evm_trxs.push_back(make_bridge_finalization_transaction());
     }
 
@@ -495,8 +494,8 @@ class FinalChainImpl final : public FinalChain {
   u256 dpos_total_supply(EthBlockNumber blk_num) const override { return state_api_.dpos_total_supply(blk_num); }
 
   h256 get_bridge_root(EthBlockNumber blk_num) const override {
-    const auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("getBridgeRoot()");
-    return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, hardforks_config_.ficus_hf.bridge_contract_address,
+    const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("getBridgeRoot()");
+    return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
                                                state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
                      blk_num)
                     .code_retval);
