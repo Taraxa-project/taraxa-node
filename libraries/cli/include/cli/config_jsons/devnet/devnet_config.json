@@ -28,11 +28,11 @@
     },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
-    "transaction_interval_ms": 100,
+    "transaction_interval_ms": 200,
     "ideal_peer_count": 15,
     "max_peer_count": 30,
     "sync_level_size": 25,
-    "packets_processing_threads": 14,
+    "packets_processing_threads": 4,
     "peer_blacklist_timeout": 600,
     "deep_syncing_threshold": 50,
     "boot_nodes": [
