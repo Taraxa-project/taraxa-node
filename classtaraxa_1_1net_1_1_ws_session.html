@@ -152,8 +152,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:abaaba7e484a516b329e9c21845c56b53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a44fe72e3ce54504a70760f549606b8"><td class="memItemLeft" align="right" valign="top">beast::flat_buffer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a2a44fe72e3ce54504a70760f549606b8">read_buffer_</a></td></tr>
 <tr class="separator:a2a44fe72e3ce54504a70760f549606b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a44e0956afc16e83659bf2911e1d60cc2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a44e0956afc16e83659bf2911e1d60cc2">subscription_id_</a> = 0</td></tr>
-<tr class="separator:a44e0956afc16e83659bf2911e1d60cc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a338533fe28369c28c6ee7384d0c92770"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a338533fe28369c28c6ee7384d0c92770">subscription_id_</a> = 0</td></tr>
+<tr class="separator:a338533fe28369c28c6ee7384d0c92770"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad49c48881ae9e0916b597243cb904877"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ad49c48881ae9e0916b597243cb904877">new_heads_subscription_</a> = 0</td></tr>
 <tr class="separator:ad49c48881ae9e0916b597243cb904877"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c17a514c0d88446fcec0cb376e48908"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a2c17a514c0d88446fcec0cb376e48908">new_dag_blocks_subscription_</a> = 0</td></tr>
@@ -752,8 +752,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a44e0956afc16e83659bf2911e1d60cc2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44e0956afc16e83659bf2911e1d60cc2">&#9670;&nbsp;</a></span>subscription_id_</h2>
+<a id="a338533fe28369c28c6ee7384d0c92770"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a338533fe28369c28c6ee7384d0c92770">&#9670;&nbsp;</a></span>subscription_id_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -762,7 +762,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int taraxa::net::WsSession::subscription_id_ = 0</td>
+          <td class="memname">std::atomic&lt;int&gt; taraxa::net::WsSession::subscription_id_ = 0</td>
         </tr>
       </table>
   </td>
