@@ -4,7 +4,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "blockFinalized", "group___transaction.html#a5518e05109ea6a098343f4e2a0f58711", null ],
     [ "estimateTransactionGas", "group___transaction.html#aa9a4b84564847186483c6e54c80e16c5", null ],
     [ "excludeFinalizedTransactions", "group___transaction.html#a385cd5d97c6b15e819db9328db01fede", null ],
-    [ "getAllPoolTrxs", "group___transaction.html#a95f1a661d89b6da9a05cd13213bd8fc5", null ],
+    [ "getAllPoolTrxs", "group___transaction.html#a2abcbb9c80d1dc8776bd61b4017f9a80", null ],
     [ "getBlockTransactions", "group___transaction.html#af7ae52adaae86f8864b735f82e5358ef", null ],
     [ "getFullNodeAddress", "group___transaction.html#ac0ec8a96421d83cc3b8bfad7943c10bc", null ],
     [ "getNonFinalizedTransaction", "group___transaction.html#a3bb14b400de3fe08557ad736bb8d4939", null ],

@@ -153,6 +153,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a12ad09bcae81855dfe143c889554a95a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a12ad09bcae81855dfe143c889554a95a">resetPacketsStats</a> ()</td></tr>
 <tr class="memdesc:a12ad09bcae81855dfe143c889554a95a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets sent packets stats.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a12ad09bcae81855dfe143c889554a95a">More...</a><br /></td></tr>
 <tr class="separator:a12ad09bcae81855dfe143c889554a95a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99cfddd4934c97b5882cef5651771f99"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a99cfddd4934c97b5882cef5651771f99">resetKnownCaches</a> ()</td></tr>
+<tr class="memdesc:a99cfddd4934c97b5882cef5651771f99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets known caches - used for testing.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a99cfddd4934c97b5882cef5651771f99">More...</a><br /></td></tr>
+<tr class="separator:a99cfddd4934c97b5882cef5651771f99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -203,7 +206,7 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ad372951c7af1d56b57d278f2e232d0ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ed69c0f95a95ce97ea3d7d672add234"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2ed69c0f95a95ce97ea3d7d672add234">suspicious_packet_count_</a> = 0</td></tr>
 <tr class="separator:a2ed69c0f95a95ce97ea3d7d672add234"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3bbe4adc4861112464995c4a54eff8c"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab3bbe4adc4861112464995c4a54eff8c">kMaxSuspiciousPacketPerMinute</a> = 1000</td></tr>
+<tr class="memitem:ab3bbe4adc4861112464995c4a54eff8c"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab3bbe4adc4861112464995c4a54eff8c">kMaxSuspiciousPacketPerMinute</a> = 50000</td></tr>
 <tr class="separator:ab3bbe4adc4861112464995c4a54eff8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a301deafbd1816dac80780aee08811c85"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a301deafbd1816dac80780aee08811c85">kDagSyncingLimit</a> = 60</td></tr>
 <tr class="separator:a301deafbd1816dac80780aee08811c85"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -575,6 +578,25 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a99cfddd4934c97b5882cef5651771f99"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99cfddd4934c97b5882cef5651771f99">&#9670;&nbsp;</a></span>resetKnownCaches()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::network::tarcap::TaraxaPeer::resetKnownCaches </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Resets known caches - used for testing. </p>
+
+</div>
+</div>
 <a id="a12ad09bcae81855dfe143c889554a95a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a12ad09bcae81855dfe143c889554a95a">&#9670;&nbsp;</a></span>resetPacketsStats()</h2>
 
@@ -677,7 +699,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const uint64_t taraxa::network::tarcap::TaraxaPeer::kMaxSuspiciousPacketPerMinute = 1000</td>
+          <td class="memname">const uint64_t taraxa::network::tarcap::TaraxaPeer::kMaxSuspiciousPacketPerMinute = 50000</td>
         </tr>
       </table>
   </td>

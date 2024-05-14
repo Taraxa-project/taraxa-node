@@ -16,6 +16,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer =
     [ "markVoteAsKnown", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a14a9f8b7680551bb5cad1a13ffe313de", null ],
     [ "reportSuspiciousPacket", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab011392ed8dd7d78307fc747e9917b76", null ],
     [ "requestDagSyncingAllowed", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a056101dcc9778dd470abcb835e0f8044", null ],
+    [ "resetKnownCaches", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a99cfddd4934c97b5882cef5651771f99", null ],
     [ "resetPacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a12ad09bcae81855dfe143c889554a95a", null ],
     [ "address_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a158780b09d00bd6f528ee3b0e584529b", null ],
     [ "dag_level_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a9b031e2882f6e9bf7972741d0acca2d0", null ],

@@ -562,6 +562,8 @@ Variables</h2></td></tr>
 <tr class="separator:a9138e5e238c0d922c209de846ceb4cc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8b2a4b2aa68f4fcb448a76b73dcc6c8"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ae8b2a4b2aa68f4fcb448a76b73dcc6c8">kMaxTransactionsInPacket</a> {500}</td></tr>
 <tr class="separator:ae8b2a4b2aa68f4fcb448a76b73dcc6c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade9fa0fc45e6f13cba99bbb3da1bb6d4"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ade9fa0fc45e6f13cba99bbb3da1bb6d4">kMaxHashesInPacket</a> {5000}</td></tr>
+<tr class="separator:ade9fa0fc45e6f13cba99bbb3da1bb6d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ecb57c956c8d0467fb9514f5e85c005"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a7ecb57c956c8d0467fb9514f5e85c005">kPeriodicEventsThreadCount</a> {2}</td></tr>
 <tr class="separator:a7ecb57c956c8d0467fb9514f5e85c005"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80d7e0bedeecd255ab611e8054073fc5"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a80d7e0bedeecd255ab611e8054073fc5">kMinTxGas</a> {21000}</td></tr>
@@ -570,6 +572,8 @@ Variables</h2></td></tr>
 <tr class="separator:a5c4386d0ef4241fe4d08d14e43fbd1f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14fc5210f7f52dbf8a90d2a6b6de8f8d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d">kDefaultTransactionPoolSize</a> {200000}</td></tr>
 <tr class="separator:a14fc5210f7f52dbf8a90d2a6b6de8f8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b1964de45bc5010bdb33fb60fa57744"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a8b1964de45bc5010bdb33fb60fa57744">kV2NetworkVersion</a> = 2</td></tr>
+<tr class="separator:a8b1964de45bc5010bdb33fb60fa57744"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af37c840bbc7870c8fb9f5c878ac55582"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#af37c840bbc7870c8fb9f5c878ac55582">kOneTara</a> = <a class="el" href="namespacedev.html#aaa0b3b33e41c3a8aad65a07acd88a897">dev::exp10</a>&lt;18&gt;()</td></tr>
 <tr class="separator:af37c840bbc7870c8fb9f5c878ac55582"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10105b152578aaf566cb89722b17385b"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a10105b152578aaf566cb89722b17385b">kEmptyVrfKey</a></td></tr>
@@ -3178,6 +3182,20 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="ade9fa0fc45e6f13cba99bbb3da1bb6d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ade9fa0fc45e6f13cba99bbb3da1bb6d4">&#9670;&nbsp;</a></span>kMaxHashesInPacket</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint32_t taraxa::kMaxHashesInPacket {5000}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab2f5ec0c8b9d91b604a61ca8062d0505"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab2f5ec0c8b9d91b604a61ca8062d0505">&#9670;&nbsp;</a></span>kMaxLevelsPerPeriod</h2>
 
@@ -3370,6 +3388,20 @@ template&lt;typename T &gt; </div>
 <span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8b1964de45bc5010bdb33fb60fa57744"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b1964de45bc5010bdb33fb60fa57744">&#9670;&nbsp;</a></span>kV2NetworkVersion</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const size_t taraxa::kV2NetworkVersion = 2</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
