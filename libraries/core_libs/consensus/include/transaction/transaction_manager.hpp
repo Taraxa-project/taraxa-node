@@ -158,6 +158,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::optional<SharedTransactions> getBlockTransactions(const DagBlock &blk);
 
   /**
+   * @brief Get the  transactions
+   *
+   * @param blk
+   * @return transactions retrieved from pool/db
+   */
+  std::optional<SharedTransactions> getTransactions(const vec_trx_t &trxs_hashes);
+
+  /**
    * @brief Updates the status of transactions to finalized
    * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but
    * the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic
