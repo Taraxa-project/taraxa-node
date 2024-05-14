@@ -77,4 +77,11 @@ std::pair<std::chrono::system_clock::time_point, PacketStats> TaraxaPeer::getAll
 
 void TaraxaPeer::resetPacketsStats() { sent_packets_stats_.resetStats(); }
 
+void TaraxaPeer::resetKnownCaches() {
+  known_transactions_.clear();
+  known_dag_blocks_.clear();
+  known_votes_.clear();
+  known_pbft_blocks_.clear();
+}
+
 }  // namespace taraxa::network::tarcap

@@ -155,9 +155,8 @@ TEST_F(TransactionTest, transaction_limit) {
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  SharedTransactions verified_trxs;
-  verified_trxs = trx_mgr.getAllPoolTrxs();
-  EXPECT_EQ(verified_trxs.size(), g_signed_trx_samples->size());
+  auto verified_trxs = trx_mgr.getAllPoolTrxs();
+  EXPECT_EQ(verified_trxs[0].size(), g_signed_trx_samples->size());
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
@@ -173,15 +172,17 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   thisThreadSleepForMilliSeconds(500);
 
   insertTrx.join();
-  SharedTransactions total_packed_trxs, packed_trxs;
+  SharedTransactions total_packed_trxs;
+  std::vector<SharedTransactions> packed_trxs;
   std::cout << "Start block proposing ..." << std::endl;
   std::thread wakeup([]() { thisThreadSleepForSeconds(2); });
   auto batch = db->createWriteBatch();
 
   do {
     packed_trxs = trx_mgr.getAllPoolTrxs();
-    total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(), packed_trxs.end());
-    trx_mgr.saveTransactionsFromDagBlock(packed_trxs);
+    if (packed_trxs.empty()) break;
+    total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs[0].begin(), packed_trxs[0].end());
+    trx_mgr.saveTransactionsFromDagBlock(packed_trxs[0]);
     thisThreadSleepForMicroSeconds(100);
   } while (!packed_trxs.empty());
   wakeup.join();
@@ -288,8 +289,10 @@ TEST_F(TransactionTest, transaction_concurrency) {
 
   // Verify all transactions are in correct state in pool, db and finalized
   std::set<trx_hash_t> pool_trx_hashes;
-  for (auto const& t : trx_mgr.getAllPoolTrxs()) {
-    pool_trx_hashes.insert(t->getHash());
+  for (auto const& account_t : trx_mgr.getAllPoolTrxs()) {
+    for (auto const& t : account_t) {
+      pool_trx_hashes.insert(t->getHash());
+    }
   }
 
   EXPECT_EQ(pool_trx_hashes.size(), g_signed_trx_samples->size() - g_signed_trx_samples->size() * 2 / 3);
@@ -392,8 +395,12 @@ TEST_F(TransactionTest, priority_queue_max_size) {
     TransactionQueue priority_queue(max_queue_size);
     uint32_t nonce = 0;
     for (uint32_t i = 0; i < max_queue_size + 1; i++) {
-      auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
-                                               addr_t::random());
+      auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"),
+                                               dev::KeyPair::create().secret(), addr_t::random());
+      if (i > 96) {
+        trx = std::make_shared<Transaction>(nonce++, 1, 1, 99, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                            addr_t::random());
+      }
       if (i < max_queue_size) {
         EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
       } else {
@@ -416,9 +423,13 @@ TEST_F(TransactionTest, priority_queue_max_size) {
                                                  addr_t::random());
         hash_to_remove = trx->getHash();
         EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
-      } else {
+      } else if (i == 4) {
         auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                                  addr_t::random());
+        EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
+      } else {
+        auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"),
+                                                 dev::KeyPair::create().secret(), addr_t::random());
         EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
       }
     }
@@ -447,9 +458,13 @@ TEST_F(TransactionTest, priority_queue_max_size) {
                                                  addr_t::random());
         hash_to_remove = trx->getHash();
         EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Forced, 1));
-      } else {
+      } else if (i == 4) {
         auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                                  addr_t::random());
+        EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
+      } else {
+        auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"),
+                                                 dev::KeyPair::create().secret(), addr_t::random());
         EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
       }
       EXPECT_FALSE(priority_queue.nonProposableTransactionsOverTheLimit());
