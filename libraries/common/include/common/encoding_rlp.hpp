@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "common/range_view.hpp"
 #include "common/util.hpp"
 
 namespace taraxa::util {
@@ -60,12 +59,6 @@ void rlp(RLPEncoderRef encoding, std::shared_ptr<Param> const& target) {
   } else {
     encoding.append(unsigned(0));
   }
-}
-
-template <typename Param>
-void rlp(RLPEncoderRef encoding, RangeView<Param> const& target) {
-  encoding.appendList(target.size);
-  target.for_each([&](auto const& el) { rlp(encoding, el); });
 }
 
 template <typename T1, typename T2>

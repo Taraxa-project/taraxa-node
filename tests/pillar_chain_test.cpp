@@ -425,6 +425,105 @@ TEST_F(PillarChainTest, pillar_vote_solidity_rlp_encoding) {
   validateDecodedPillarVote(PillarVote(pillar_vote.rlp()));
 }
 
+// contract BridgeMock {
+//     address public lightClient;
+
+//     address[] public tokenAddresses;
+//     mapping(address => address) public connectors;
+//     mapping(address => address) public localAddress;
+//     uint256 finalizedEpoch;
+//     uint256 appliedEpoch;
+//     bytes32 bridgeRoot;
+//     event Finalized(uint256 epoch, bytes32 bridgeRoot);
+//     function finalizeEpoch() public { bridgeRoot = bytes32(appliedEpoch++); emit Finalized(appliedEpoch-1,
+//     bridgeRoot);}
+
+//     function getBridgeRoot() public view returns (bytes32) {
+//         return bridgeRoot;
+//     }
+// }
+auto bridge_mock_bytecode =
+    "6080604052348015600e575f80fd5b506104bd8061001c5f395ff3fe608060405234801561000f575f80fd5b5060043610610060575f3560e0"
+    "1c80630e53aae914610064578063695a253f1461009457806376081bd5146100b257806382ae9ef7146100e2578063b5700e68146100ec5780"
+    "63e5df8b841461010a575b5f80fd5b61007e600480360381019061007991906102c8565b61013a565b60405161008b9190610302565b604051"
+    "80910390f35b61009c61016a565b6040516100a99190610333565b60405180910390f35b6100cc60048036038101906100c791906102c8565b"
+    "610173565b6040516100d99190610302565b60405180910390f35b6100ea6101a3565b005b6100f461020c565b604051610101919061030256"
+    "5b60405180910390f35b610124600480360381019061011f919061037f565b61022f565b6040516101319190610302565b60405180910390f3"
+    "5b6002602052805f5260405f205f915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b5f60065490509056"
+    "5b6003602052805f5260405f205f915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60055f8154809291"
+    "906101b5906103d7565b919050555f1b6006819055507fa05a0e9561eff1f01a29e7a680d5957bb7312e5766a8da1f494b6d6ac18031f46001"
+    "6005546101f1919061041e565b600654604051610202929190610460565b60405180910390a1565b5f8054906101000a900473ffffffffffff"
+    "ffffffffffffffffffffffffffff1681565b6001818154811061023e575f80fd5b905f5260205f20015f915054906101000a900473ffffffff"
+    "ffffffffffffffffffffffffffffffff1681565b5f80fd5b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f61"
+    "02978261026e565b9050919050565b6102a78161028d565b81146102b1575f80fd5b50565b5f813590506102c28161029e565b92915050565b"
+    "5f602082840312156102dd576102dc61026a565b5b5f6102ea848285016102b4565b91505092915050565b6102fc8161028d565b8252505056"
+    "5b5f6020820190506103155f8301846102f3565b92915050565b5f819050919050565b61032d8161031b565b82525050565b5f602082019050"
+    "6103465f830184610324565b92915050565b5f819050919050565b61035e8161034c565b8114610368575f80fd5b50565b5f81359050610379"
+    "81610355565b92915050565b5f602082840312156103945761039361026a565b5b5f6103a18482850161036b565b91505092915050565b7f4e"
+    "487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f6103e18261034c565b91507fff"
+    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8203610413576104126103aa565b5b600182019050919050565b"
+    "5f6104288261034c565b91506104338361034c565b925082820390508181111561044b5761044a6103aa565b5b92915050565b61045a816103"
+    "4c565b82525050565b5f6040820190506104735f830185610451565b6104806020830184610324565b939250505056fea26469706673582212"
+    "20733fb729feb3b0d4d1cecf12f9f57a37205e95e709a478b835534f1b7a03c8a164736f6c63430008190033";
+
+TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
+  auto node_cfgs = make_node_cfgs(2, 2, 10);
+  for (auto& node_cfg : node_cfgs) {
+    node_cfg.genesis.state.dpos.delegation_delay = 1;
+    node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
+    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
+    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
+    node_cfg.genesis.state.hardforks.ficus_hf.bridge_contract_address =
+        dev::Address("0xc5b7d26bec6acdc3a0d33fe4c70be346a47a3a33");
+  }
+
+  auto nodes = launch_nodes(node_cfgs);
+  auto node = nodes[0];
+
+  uint64_t nonce = 0, trxs_count = node->getDB()->getNumTransactionExecuted();
+  auto deploy_bridge_mock = std::make_shared<Transaction>(
+      nonce++, 0, 1, TEST_TX_GAS_LIMIT, dev::fromHex(bridge_mock_bytecode), node->getConfig().node_secret);
+  node->getTransactionManager()->insertTransaction(deploy_bridge_mock);
+  trxs_count++;
+
+  // wait for trx execution
+  EXPECT_HAPPENS({20s, 1s}, [&](auto& ctx) {
+    if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trxs_count)) {
+      return;
+    }
+  });
+
+  // Wait until nodes create at least 4 pillar blocks
+  const auto pillar_blocks_count = 4;
+  const auto min_amount_of_pbft_blocks =
+      pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
+  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
+                     min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+    }
+  });
+
+  for (auto& node : nodes) {
+    // Check if right amount of pillar blocks were created
+    const auto latest_pillar_block_data = node->getDB()->getLatestPillarBlockData();
+    ASSERT_TRUE(latest_pillar_block_data.has_value());
+    ASSERT_EQ(latest_pillar_block_data->block_->getPeriod(),
+              pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
+  }
+
+  for (auto& node : nodes) {
+    for (auto epoch = 0; epoch < 4; epoch++) {
+      auto period = (epoch + 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
+      const auto pillar_block_data = node->getDB()->getPillarBlockData(period);
+      ASSERT_TRUE(pillar_block_data.has_value());
+      ASSERT_EQ(pillar_block_data->block_->getPeriod(), period);
+      ASSERT_EQ(u256(pillar_block_data->block_->getBridgeRoot()), u256(epoch));
+    }
+  }
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;

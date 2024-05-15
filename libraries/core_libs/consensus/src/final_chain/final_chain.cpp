@@ -5,6 +5,7 @@
 #include <string>
 
 #include "common/constants.hpp"
+#include "common/encoding_solidity.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/cache.hpp"
 #include "final_chain/trie_common.hpp"
@@ -44,6 +45,7 @@ class FinalChainImpl final : public FinalChain {
 
   std::atomic<EthBlockNumber> last_block_number_;
 
+  const HardforksConfig& kHardforksConfig;
   LOG_OBJECTS_DEFINE
 
  public:
@@ -74,9 +76,10 @@ class FinalChainImpl final : public FinalChain {
         dpos_vote_count_cache_(
             config.final_chain_cache_in_blocks,
             [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_eligible_vote_count(blk, addr); }),
-        dpos_is_eligible_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk, const addr_t& addr) {
-          return state_api_.dpos_is_eligible(blk, addr);
-        }) {
+        dpos_is_eligible_cache_(
+            config.final_chain_cache_in_blocks,
+            [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
+        kHardforksConfig(config.genesis.state.hardforks) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -123,11 +126,11 @@ class FinalChainImpl final : public FinalChain {
     }
 
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;
-    const auto kPruneblocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
+    const auto kPruneBlocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
     if ((config.db_config.prune_state_db || kLightNode) && last_blk_num.has_value() &&
-        *last_blk_num > kPruneblocksToKeep) {
+        *last_blk_num > kPruneBlocksToKeep) {
       LOG(log_si_) << "Pruning state db, this might take several minutes";
-      prune(*last_blk_num - kPruneblocksToKeep);
+      prune(*last_blk_num - kPruneBlocksToKeep);
       LOG(log_si_) << "Pruning state db complete";
     }
   }
@@ -148,6 +151,15 @@ class FinalChainImpl final : public FinalChain {
   }
 
   EthBlockNumber delegation_delay() const override { return delegation_delay_; }
+
+  state_api::EVMTransaction make_bridge_finalization_transaction() {
+    const static auto finalize_method = util::EncodingSolidity::packFunctionCall("finalizeEpoch()");
+
+    auto account = get_account(kTaraxaSystemAccount).value_or(state_api::ZeroAccount);
+    return state_api::EVMTransaction{kTaraxaSystemAccount, 0, kHardforksConfig.ficus_hf.bridge_contract_address,
+                                     account.nonce,        0, kBlockGasLimit,
+                                     finalize_method};
+  }
 
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
@@ -173,11 +185,16 @@ class FinalChainImpl final : public FinalChain {
       }
     } */
 
+    const auto blk_num = new_blk.pbft_blk->getPeriod();
+    auto evm_trxs = to_state_api_transactions(new_blk.transactions);
+    if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num)) {
+      evm_trxs.push_back(make_bridge_finalization_transaction());
+    }
+
     auto const& [exec_results] =
         state_api_.execute_transactions({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
                                          new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-                                        to_state_api_transactions(new_blk.transactions));
-
+                                        evm_trxs);
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     std::vector<gas_t> transactions_gas_used;
@@ -476,6 +493,14 @@ class FinalChainImpl final : public FinalChain {
 
   u256 dpos_total_supply(EthBlockNumber blk_num) const override { return state_api_.dpos_total_supply(blk_num); }
 
+  h256 get_bridge_root(EthBlockNumber blk_num) const override {
+    const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("getBridgeRoot()");
+    return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
+                                               state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
+                     blk_num)
+                    .code_retval);
+  }
+
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
     const auto& trxs = db_->getPeriodTransactions(last_if_absent(n));
@@ -517,13 +542,15 @@ class FinalChainImpl final : public FinalChain {
     return client_blk_n ? *client_blk_n : last_block_number();
   }
 
-  static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(SharedTransactions const& trxs) {
-    return util::make_range_view(trxs).map([](auto const& trx) {
+  static std::vector<state_api::EVMTransaction> to_state_api_transactions(SharedTransactions const& trxs) {
+    std::vector<state_api::EVMTransaction> res;
+    std::transform(trxs.cbegin(), trxs.cend(), std::back_inserter(res), [](auto const& trx) {
       return state_api::EVMTransaction{
           trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
           trx->getValue(),  trx->getGas(),      trx->getData(),
       };
     });
+    return res;
   }
 
   BlocksBlooms block_blooms(h256 const& chunk_id) const {

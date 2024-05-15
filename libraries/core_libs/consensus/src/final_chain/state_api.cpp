@@ -179,7 +179,7 @@ StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
 }
 
 const TransactionsExecutionResult& StateAPI::execute_transactions(const EVMBlock& block,
-                                                                  const util::RangeView<EVMTransaction>& transactions) {
+                                                                  const std::vector<EVMTransaction>& transactions) {
   result_buf_execution_result_.execution_results.clear();
   rlp_enc_execution_result_.clear();
   c_method_args_rlp<TransactionsExecutionResult, from_rlp, taraxa_evm_state_api_execute_transactions>(

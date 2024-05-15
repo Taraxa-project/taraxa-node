@@ -11,7 +11,6 @@ set(HEADERS
     include/common/functional.hpp
     include/common/jsoncpp.hpp
     include/common/lazy.hpp
-    include/common/range_view.hpp
     include/common/thread_pool.hpp
     include/common/util.hpp
 )
