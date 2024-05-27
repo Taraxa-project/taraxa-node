@@ -112,12 +112,12 @@ class PillarChainManager {
   uint64_t addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote);
 
   /**
-   * @brief Push new finalized pillar block
+   * @brief Finalize pillar block
    *
-   * @param pillar_block_data
-   * @return true if successfully pushed, otherwise false
+   * @param pillar_block
+   * @return true if successfully finalized, otherwise false
    */
-  bool finalizePillarBlockData(const PillarBlockData& pillar_block_data);
+  bool finalizePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block);
 
   /**
    * @return current pillar block

@@ -63,32 +63,17 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
                    });
   } else {
     const auto current_pillar_block = getCurrentPillarBlock();
-    // Second or further pillar blocks
     if (!current_pillar_block) {
       LOG(log_er_) << "Empty previous pillar block, new pillar block period " << block_num;
       assert(false);
       return nullptr;
     }
 
-    // Push pillar block into the pillar chain in case it was not finalized yet
-    if (!isPillarBlockLatestFinalized(current_pillar_block->getHash())) {
-      // Get 2t+1 verified votes
-      auto two_t_plus_one_votes =
-          pillar_votes_.getVerifiedVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash(), true);
-      if (two_t_plus_one_votes.empty()) {
-        LOG(log_er_) << "There is < 2t+1 votes for current pillar block " << current_pillar_block->getHash()
-                     << ", period: " << current_pillar_block->getPeriod() << ". Current period " << block_num;
-        return nullptr;
-      }
-
-      // Save current pillar block and 2t+1 votes into db
-      if (!finalizePillarBlockData(PillarBlockData{current_pillar_block, std::move(two_t_plus_one_votes)})) {
-        // This should never happen
-        LOG(log_er_) << "Unable to push pillar block: " << current_pillar_block->getHash() << ", period "
-                     << current_pillar_block->getPeriod();
-        assert(false);
-        return nullptr;
-      }
+    // Try to finalize current pillar block in case it is not yet finalized
+    if (!finalizePillarBlock(current_pillar_block)) {
+      LOG(log_er_) << "Unable to create new pillar block, the current pillar block " << current_pillar_block->getHash()
+                   << " needs to be finalized first";
+      return nullptr;
     }
 
     // !!!Note: No need to protect current_pillar_block_vote_counts_ as it is read & written only in this function,
@@ -117,10 +102,12 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     return nullptr;
   }
 
+  saveNewPillarBlock(pillar_block, std::move(new_vote_counts));
   LOG(log_nf_) << "New pillar block " << pillar_block->getHash() << " with period " << pillar_block->getPeriod()
                << " created";
 
-  saveNewPillarBlock(pillar_block, std::move(new_vote_counts));
+  // Try to finalize current_pillar_block - there might 2t+1 votes for it already
+  finalizePillarBlock(pillar_block);
 
   return pillar_block;
 }
@@ -181,20 +168,33 @@ bool PillarChainManager::genAndPlacePillarVote(const blk_hash_t& pillar_block_ha
   return true;
 }
 
-bool PillarChainManager::finalizePillarBlockData(const PillarBlockData& pillar_block_data) {
-  // Note: 2t+1 votes should be validated before calling pushPillarBlock
-  if (!isValidPillarBlock(pillar_block_data.block_)) {
-    LOG(log_er_) << "Trying to push invalid pillar block";
+bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) {
+  if (isPillarBlockLatestFinalized(pillar_block->getHash())) {
+    LOG(log_nf_) << "Pillar block " << pillar_block->getHash() << " already finalized";
+    return true;
+  }
+
+  if (!isValidPillarBlock(pillar_block)) {
+    LOG(log_er_) << "Unable to finalize pillar block " << pillar_block->getHash() << ". Block is invalid";
     return false;
   }
 
+  auto two_t_plus_one_votes = pillar_votes_.getVerifiedVotes(pillar_block->getPeriod(), pillar_block->getHash(), true);
+  if (two_t_plus_one_votes.empty()) {
+    LOG(log_er_) << "Unable to finalize pillar block " << pillar_block->getHash()
+                 << ", period: " << pillar_block->getPeriod() << ". Not enough votes";
+    return false;
+  }
+
+  const PillarBlockData pillar_block_data{pillar_block, std::move(two_t_plus_one_votes)};
+
   db_->savePillarBlockData(pillar_block_data);
-  LOG(log_nf_) << "Pillar block " << pillar_block_data.block_->getHash() << " with period "
-               << pillar_block_data.block_->getPeriod() << " pushed into the pillar chain";
+  LOG(log_nf_) << "Pillar block " << pillar_block->getHash() << " with period " << pillar_block->getPeriod()
+               << " pushed into the pillar chain";
 
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
-    last_finalized_pillar_block_ = pillar_block_data.block_;
+    last_finalized_pillar_block_ = pillar_block;
 
     // Erase votes that are no longer needed
     pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod());
@@ -365,21 +365,10 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
 
   LOG(log_nf_) << "Added pillar vote " << vote->getHash();
 
-  // If there is 2t+1 votes for current_pillar_block_, push it to the pillar chain
-  const auto current_pillar_block = getCurrentPillarBlock();
-  if (current_pillar_block && vote->getBlockHash() == current_pillar_block->getHash() &&
-      !isPillarBlockLatestFinalized(current_pillar_block->getHash())) {
-    // Get 2t+1 verified votes
-    auto two_t_plus_one_votes =
-        pillar_votes_.getVerifiedVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash(), true);
-    if (!two_t_plus_one_votes.empty()) {
-      // Save current pillar block and 2t+1 votes into db
-      if (!finalizePillarBlockData(PillarBlockData{current_pillar_block, std::move(two_t_plus_one_votes)})) {
-        // This should never happen
-        LOG(log_er_) << "Unable to push pillar block: " << current_pillar_block->getHash() << ", period "
-                     << current_pillar_block->getPeriod();
-      }
-    }
+  if (const auto current_pillar_block = getCurrentPillarBlock();
+      current_pillar_block && vote->getBlockHash() == current_pillar_block->getHash()) {
+    // Try to finalize current_pillar_block - there might 2t+1 votes for it already
+    finalizePillarBlock(current_pillar_block);
   }
 
   return validator_vote_count;
