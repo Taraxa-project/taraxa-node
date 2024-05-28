@@ -24,8 +24,7 @@ PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
   packets_queues_[PacketData::PacketPriority::Mid].setMaxWorkersCount(mid_priority_queue_workers);
   packets_queues_[PacketData::PacketPriority::Low].setMaxWorkersCount(low_priority_queue_workers);
 
-  LOG(log_nf_) << "Priority queues initialized accordingly: "
-               << "total num of workers = " << MAX_TOTAL_WORKERS_COUNT
+  LOG(log_nf_) << "Priority queues initialized accordingly: " << "total num of workers = " << MAX_TOTAL_WORKERS_COUNT
                << ", High priority packets max num of workers = " << high_priority_queue_workers
                << ", Mid priority packets max num of workers = " << mid_priority_queue_workers
                << ", Low priority packets max num of workers = " << low_priority_queue_workers;
