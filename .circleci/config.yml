@@ -717,7 +717,7 @@ jobs:
       - IMAGE: taraxa-node
       - CONAN_REVISIONS_ENABLED: 1
     machine:
-      image: ubuntu-2204:2022.04.2
+      image: ubuntu-2204:2024.04.4
       docker_layer_caching: true
     resource_class: large
     steps:
@@ -733,7 +733,7 @@ jobs:
       - IMAGE: taraxa-builder
       - CONAN_REVISIONS_ENABLED: 1
     machine:
-      image: ubuntu-2204:2022.04.2
+      image: ubuntu-2204:2024.04.4
       docker_layer_caching: true
     resource_class: large
     steps:
@@ -761,7 +761,7 @@ jobs:
         - IMAGE: taraxa-node
         - CONAN_REVISIONS_ENABLED: 1
       machine:
-        image: ubuntu-2204:2022.04.2
+        image: ubuntu-2204:2024.04.4
         docker_layer_caching: true
       resource_class: large
       steps:
