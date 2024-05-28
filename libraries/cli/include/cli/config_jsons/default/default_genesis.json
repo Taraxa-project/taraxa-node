@@ -120,7 +120,7 @@
       "pillar_blocks_interval": 100,
       "pillar_chain_sync_interval": 25,
       "pbft_inclusion_delay": 6,
-      "bridge_contract_address": "0xFA7c27D54B6e1C631D1426f3dDaC818Cb4033d84"
+      "bridge_contract_address": "0xcAF2b453FE8382a4B8110356DF0508f6d71F22BF"
     }
   }
 }
