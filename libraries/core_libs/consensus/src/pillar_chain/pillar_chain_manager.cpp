@@ -170,7 +170,7 @@ bool PillarChainManager::genAndPlacePillarVote(const blk_hash_t& pillar_block_ha
 
 bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) {
   if (isPillarBlockLatestFinalized(pillar_block->getHash())) {
-    LOG(log_nf_) << "Pillar block " << pillar_block->getHash() << " already finalized";
+    LOG(log_dg_) << "Pillar block " << pillar_block->getHash() << " already finalized";
     return true;
   }
 
@@ -181,7 +181,7 @@ bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>&
 
   auto two_t_plus_one_votes = pillar_votes_.getVerifiedVotes(pillar_block->getPeriod(), pillar_block->getHash(), true);
   if (two_t_plus_one_votes.empty()) {
-    LOG(log_er_) << "Unable to finalize pillar block " << pillar_block->getHash()
+    LOG(log_dg_) << "Unable to finalize pillar block " << pillar_block->getHash()
                  << ", period: " << pillar_block->getPeriod() << ". Not enough votes";
     return false;
   }
