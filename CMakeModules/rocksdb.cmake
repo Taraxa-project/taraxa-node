@@ -8,7 +8,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 FetchContent_Declare(
   rocksdb
   GIT_REPOSITORY https://github.com/facebook/rocksdb
-  GIT_TAG v8.11.4
+  GIT_TAG v8.5.3
   GIT_SHALLOW TRUE
 )
 
