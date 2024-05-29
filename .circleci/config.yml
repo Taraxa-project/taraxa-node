@@ -273,6 +273,20 @@ commands:
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set node.indexer.enabled=true \
                 --set node.indexer.image.tag=v1.6.0
+
+              helm upgrade -i explorer-<< parameters.pr-name >> taraxacharts/explorer-frontend --namespace blockchain-prnet --version 1.0.0-sha.4f38de4 \
+                --set image.repository=gcr.io/jovial-meridian-249123/taraxa/explorer-frontend-develop \
+                --set image.tag=develop-d3ffe33-1717006630 \
+                --set app.overrideRpcProvider="https://rpc-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
+                --set app.overrideGraphQl="https://graphql-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
+                --set ingress.enabled=true \
+                --set ingress.className=nginx-public \
+                --set ingress.hosts\[0\].host=explorer-pr-<< parameters.pr-name >>.prnet.taraxa.io \
+                --set ingress.hosts\[0\].paths\[0\].path=/ \
+                --set ingress.hosts\[0\].paths\[0\].pathType=ImplementationSpecific \
+                --set ingress.tls\[0\].hosts\[0\]=explorer-pr-<< parameters.pr-name >>.prnet.taraxa.io \
+                --set ingress.tls\[0\].secretName=wild-prnet-taraxa-io-tls \
+                --set nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet
             fi
 
   cleanup_prnet_chart:
@@ -295,6 +309,7 @@ commands:
           command: |
             if [[ $(helm list --namespace blockchain-prnet -f "pr-<< parameters.pr-name >>" -o json) != '[]' ]] ; then
               helm delete pr-<< parameters.pr-name >> --namespace blockchain-prnet
+              helm delete explorer-<< parameters.pr-name >> --namespace blockchain-prnet
               kubectl -n blockchain-prnet delete pvc -l app.kubernetes.io/instance=pr-<< parameters.pr-name >>
 
               for i in {1..50}
