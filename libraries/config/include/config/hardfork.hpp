@@ -128,9 +128,6 @@ struct HardforksConfig {
   // Aspen hardfork implements new yield curve
   AspenHardfork aspen_hf;
 
-  // Bamboo hardfork fixes undelegation count issue
-  // BambooHardfork bamboo_hf;
-
   bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
 
   // Ficus hardfork: implementation of pillar chain

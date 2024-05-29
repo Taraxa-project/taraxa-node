@@ -106,6 +106,7 @@ void dec_json(const Json::Value& json, FicusHardforkConfig& obj) {
   obj.pbft_inclusion_delay = dev::getUInt(json["pbft_inclusion_delay"]);
   obj.bridge_contract_address = taraxa::addr_t(json["bridge_contract_address"].asString());
 }
+
 RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_blocks_interval, pillar_chain_sync_interval,
                   pbft_inclusion_delay, bridge_contract_address)
 
@@ -197,4 +198,4 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
-                  aspen_hf, ficus_hf)
+                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf)
