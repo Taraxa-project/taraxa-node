@@ -26,6 +26,7 @@
 #include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "pillar_chain/pillar_chain_manager.hpp"
 #include "slashing_manager/slashing_manager.hpp"
 #include "storage/migration/migration_manager.hpp"
 #include "storage/migration/transaction_period.hpp"
@@ -135,15 +136,18 @@ void FullNode::init() {
   auto slashing_manager = std::make_shared<SlashingManager>(final_chain_, trx_mgr_, gas_pricer_, conf_, kp_.secret());
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, conf_.genesis.pbft, kp_.secret(), conf_.vrf_secret, db_,
                                             pbft_chain_, final_chain_, key_manager_, slashing_manager);
-  pbft_mgr_ =
-      std::make_shared<PbftManager>(conf_.genesis.pbft, conf_.genesis.dag_genesis_block.getHash(), node_addr, db_,
-                                    pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, final_chain_, kp_.secret());
+  pillar_chain_mgr_ = std::make_shared<pillar_chain::PillarChainManager>(
+      conf_.genesis.state.hardforks.ficus_hf, db_, final_chain_, vote_mgr_, key_manager_, node_addr);
+
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.genesis, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_,
+                                            final_chain_, pillar_chain_mgr_, kp_.secret());
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(
       conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
       getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit, conf_.genesis.state);
 
-  network_ = std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_,
-                                       pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager));
+  network_ =
+      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
+                                vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
 }
 
 void FullNode::setupMetricsUpdaters() {
@@ -322,11 +326,57 @@ void FullNode::start() {
           }
         },
         subscription_pool_);
+
+    // Pillar blocks creation
+    final_chain_->block_finalized_.subscribe(
+        [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf, pillar_chain_weak = as_weak(pillar_chain_mgr_),
+         network_weak = as_weak(network_), node_secret = kp_.secret()](const auto &res) {
+          const auto block_num = res->final_chain_blk->number;
+          if (!ficus_hf_config.isFicusHardfork(block_num)) {
+            return;
+          }
+
+          auto pillar_chain = pillar_chain_weak.lock();
+          if (!pillar_chain) {
+            return;
+          }
+
+          auto is_pbft_syncing = [network_weak]() -> bool {
+            auto network = network_weak.lock();
+            if (!network) {
+              return false;
+            }
+
+            return network->pbft_syncing();
+          };
+
+          if (ficus_hf_config.isPillarBlockPeriod(block_num)) {
+            const auto pillar_block = pillar_chain->createPillarBlock(res);
+            if (pillar_block) {
+              pillar_chain->genAndPlacePillarVote(pillar_block->getHash(), node_secret, is_pbft_syncing());
+            }
+          } else if (block_num > ficus_hf_config.firstPillarBlockPeriod() &&
+                     block_num % ficus_hf_config.pillar_chain_sync_interval == 0) {
+            if (!is_pbft_syncing()) {
+              pillar_chain->checkPillarChainSynced(block_num);
+            }
+          }
+        },
+        subscription_pool_);
+
+    pillar_chain_mgr_->pillar_block_finalized_.subscribe(
+        [ws_weak = as_weak(jsonrpc_ws_)](const auto &pillar_block_data) {
+          if (auto ws = ws_weak.lock()) {
+            ws->newPillarBlockData(pillar_block_data);
+          }
+        },
+        subscription_pool_);
   }
 
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
+  pillar_chain_mgr_->setNetwork(network_);
 
   if (conf_.db_config.rebuild_db) {
     rebuildDb();
@@ -384,7 +434,7 @@ void FullNode::rebuildDb() {
   });
 
   while (true) {
-    std::vector<std::shared_ptr<Vote>> cert_votes;
+    std::vector<std::shared_ptr<PbftVote>> cert_votes;
     if (next_period_data != nullptr) {
       period_data = next_period_data;
     } else {

@@ -303,6 +303,7 @@ void DagManager::clearLightNodeHistory() {
     if (dag_expiry_level_ > max_levels_per_period_) {
       dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
     }
+
     db_->clearPeriodDataHistory(end, dag_level_to_keep);
   }
 }
@@ -496,7 +497,7 @@ void DagManager::recoverDag() {
           break;
         }
 
-        const auto pk = key_manager_->get(*propose_period, blk.getSender());
+        const auto pk = key_manager_->getVrfKey(*propose_period, blk.getSender());
         if (!pk) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level is missing VRF key for sender " << blk.getSender();
@@ -628,7 +629,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
 
   // Verify VDF solution
-  const auto pk = key_manager_->get(*propose_period, blk.getSender());
+  const auto pk = key_manager_->getVrfKey(*propose_period, blk.getSender());
   if (!pk) {
     LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                  << " level is missing VRF key for sender " << blk.getSender();

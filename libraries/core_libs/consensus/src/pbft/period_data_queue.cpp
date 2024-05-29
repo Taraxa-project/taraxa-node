@@ -34,7 +34,7 @@ void PeriodDataQueue::clear() {
 }
 
 bool PeriodDataQueue::push(PeriodData &&period_data, const dev::p2p::NodeID &node_id, uint64_t max_pbft_size,
-                           std::vector<std::shared_ptr<Vote>> &&cert_votes) {
+                           std::vector<std::shared_ptr<PbftVote>> &&cert_votes) {
   const auto period = period_data.pbft_blk->getPeriod();
   std::unique_lock lock(queue_access_);
 
@@ -50,7 +50,7 @@ bool PeriodDataQueue::push(PeriodData &&period_data, const dev::p2p::NodeID &nod
   return true;
 }
 
-std::tuple<PeriodData, std::vector<std::shared_ptr<Vote>>, dev::p2p::NodeID> PeriodDataQueue::pop() {
+std::tuple<PeriodData, std::vector<std::shared_ptr<PbftVote>>, dev::p2p::NodeID> PeriodDataQueue::pop() {
   std::unique_lock lock(queue_access_);
   auto block = std::move(queue_.front());
   queue_.pop_front();

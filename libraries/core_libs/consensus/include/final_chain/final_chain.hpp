@@ -3,7 +3,6 @@
 #include <future>
 
 #include "common/event.hpp"
-#include "common/range_view.hpp"
 #include "common/types.hpp"
 #include "config/config.hpp"
 #include "final_chain/data.hpp"
@@ -234,6 +233,12 @@ class FinalChain {
 
   /**
    * @param blk_num
+   * @return vector of validators vote counts for provided blk_num
+   */
+  virtual std::vector<state_api::ValidatorVoteCount> dpos_validators_vote_counts(EthBlockNumber blk_num) const = 0;
+
+  /**
+   * @param blk_num
    * @return yield
    */
   virtual uint64_t dpos_yield(EthBlockNumber blk_num) const = 0;
@@ -243,6 +248,12 @@ class FinalChain {
    * @return total supply
    */
   virtual u256 dpos_total_supply(EthBlockNumber blk_num) const = 0;
+
+  /**
+   * @param blk_num
+   * @return bridge root
+   */
+  virtual h256 get_bridge_root(EthBlockNumber blk_num) const = 0;
 
   // TODO move out of here:
 

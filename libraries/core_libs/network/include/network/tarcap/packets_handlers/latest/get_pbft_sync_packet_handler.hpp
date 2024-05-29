@@ -8,6 +8,10 @@ class DbStorage;
 class VoteManager;
 }  // namespace taraxa
 
+namespace taraxa::pillar_chain {
+class PillarChainManager;
+}
+
 namespace taraxa::network::tarcap {
 
 class PbftSyncingState;
@@ -17,8 +21,10 @@ class GetPbftSyncPacketHandler : public PacketHandler {
   GetPbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                            std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-                           std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
-                           const addr_t& node_addr, const std::string& logs_prefix = "GET_PBFT_SYNC_PH");
+                           std::shared_ptr<VoteManager> vote_mgr,
+                           std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr,
+                           std::shared_ptr<DbStorage> db, const addr_t& node_addr,
+                           const std::string& logs_prefix = "GET_PBFT_SYNC_PH");
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
@@ -34,6 +40,7 @@ class GetPbftSyncPacketHandler : public PacketHandler {
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
+  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
   std::shared_ptr<DbStorage> db_;
 };
 

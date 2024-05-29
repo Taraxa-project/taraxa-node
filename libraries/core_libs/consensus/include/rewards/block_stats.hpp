@@ -5,7 +5,7 @@
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 #include "pbft/period_data.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa::rewards {
 
@@ -77,7 +77,7 @@ class BlockStats {
    * @param vote
    * @return true in case vote was unique and processed, otherwise false
    */
-  bool addVote(const std::shared_ptr<Vote>& vote);
+  bool addVote(const std::shared_ptr<PbftVote>& vote);
 
  protected:
   struct ValidatorStats {

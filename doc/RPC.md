@@ -566,6 +566,83 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_totalSupply","params":["0
 }
 ```
 
+### taraxa_getPillarBlockData
+
+Returns finalized pillar block + pillar votes for specified bock number
+
+#### Parameters
+
+1. `QUANTITY` - pillar block period
+2. `Boolean` - If true it returns also pillar block signatures
+
+#### Returns
+
+`OBJECT` - pillar block data
+* `pillar_block`: `OBJECT` - pillar block object
+* `signatures`: `ARRAY` - array of pillar block signatures
+  * `r`: `DATA`, 32 Bytes
+  * `vs`: `DATA`, 32 Bytes
+
+`OBJECT` - pillar_block
+* `pbft_period`: `QUANTITY` - pillar block PBFT period
+* `state_root`: `DATA`, 32 Bytes - state root hash
+* `bridge_root`: `DATA`, 32 Bytes - bridge root hash
+* `hash`: `DATA`, 32 Bytes - pillar block hash
+* `previous_pillar_block_hash`: `DATA`, 32 Bytes - previous pillar block hash
+* `validators_votes_count_changes`: `Array` - Array of vote counts changes(between this and previous pillar block) objects
+  * `address`: `DATA`, 20 Bytes - Address of the validator
+  * `value`: `QUANTITY` - vote count change
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPillarBlockData","params":[100, true],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "pillar_block": {
+      "bridge_root": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "hash": "0x95186add2d669c4510e671f41382e64badda65c8ee4a829a763a19b2238b0c00",
+      "pbft_period": 100,
+      "previous_pillar_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "state_root": "0xf42c616561b668e450c8edcbae3b962df6e49c5f0c7550910c06af78f647caae",
+      "validators_vote_counts_changes": [
+        {
+          "address": "0xa63059ab41333d72b6008258dbedaaa159eacda1",
+          "value": 100
+        },
+        {
+          "address": "0x07badc44aa26cb163114881adb916b6f094d6ab8",
+          "value": 100
+        },
+        {
+          "address": "0x7433ac110692c2f4f9a57bc9fb72c41570246bd7",
+          "value": 100
+        }
+      ]
+    },
+    "signatures": [
+      {
+        "r": "0x2ea1808f79f494bac434ba8142a4e3ed6628ec7904c052e83216fc908bf84f12",
+        "vs": "0x81bf6aceafae5a1174c0438fa594eac7f336d45a39c6f2e91df7abbe783975aa"
+      },
+      {
+        "r": "0xbff7ba259a5d902adcbb6395fe042d40b129b657e828ce13f5d46072d202be9d",
+        "vs": "0xd1ee5eb2d11e128f9590977e63834908ba5eeb276999bddaadff369aae2c91b5"
+      },
+      {
+        "r": "0x15738b82c00ca4f7590b809517e476fcb6e8c7d26ed6d0eb59c6e691a4b0429c",
+        "vs": "0xb1859cb960646a6a735f7d75aa383e3faf48c267240f72681791d28122f3b477"
+      }
+    ]
+  }
+}
+```
+
 ## Test API
 
 ### get_sortition_change
