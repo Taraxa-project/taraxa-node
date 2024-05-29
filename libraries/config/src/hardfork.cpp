@@ -109,6 +109,40 @@ void dec_json(const Json::Value& json, FicusHardforkConfig& obj) {
 RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_blocks_interval, pillar_chain_sync_interval,
                   pbft_inclusion_delay, bridge_contract_address)
 
+// Json::Value enc_json(const BambooRedelegation& obj) {
+//   Json::Value json(Json::objectValue);
+//   json["validator"] = dev::toJS(obj.validator);
+//   json["amount"] = dev::toJS(obj.amount);
+//   return json;
+// }
+
+// void dec_json(const Json::Value& json, BambooRedelegation& obj) {
+//   obj.validator = taraxa::addr_t(json["validator"].asString());
+//   obj.amount = dev::jsToU256(json["amount"].asString());
+// }
+
+// RLP_FIELDS_DEFINE(BambooRedelegation, validator, amount)
+
+// Json::Value enc_json(const BambooHardfork& obj) {
+//   Json::Value json(Json::objectValue);
+//   json["block_num"] = dev::toJS(obj.block_num);
+//   for (const auto& v : obj.redelegations) {
+//     json["redelegations"].append(enc_json(v));
+//   }
+//   return json;
+// }
+
+// void dec_json(const Json::Value& json, BambooHardfork& obj) {
+//   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
+
+//   const auto& redelegations_json = json["redelegations"];
+//   obj.redelegations = std::vector<BambooRedelegation>(redelegations_json.size());
+//   for (uint32_t i = 0; i < redelegations_json.size(); ++i) {
+//     dec_json(redelegations_json[i], obj.redelegations[i]);
+//   }
+// }
+// RLP_FIELDS_DEFINE(BambooHardfork, block_num, redelegations)
+
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
@@ -128,6 +162,7 @@ Json::Value enc_json(const HardforksConfig& obj) {
   json["magnolia_hf"] = enc_json(obj.magnolia_hf);
   json["aspen_hf"] = enc_json(obj.aspen_hf);
   json["ficus_hf"] = enc_json(obj.ficus_hf);
+  // json["bamboo_hf"] = enc_json(obj.bamboo_hf);
 
   return json;
 }
@@ -158,7 +193,8 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   dec_json(json["magnolia_hf"], obj.magnolia_hf);
   dec_json(json["aspen_hf"], obj.aspen_hf);
   dec_json(json["ficus_hf"], obj.ficus_hf);
+  // dec_json(json["bamboo_hf"], obj.bamboo_hf);
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
-                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf)
+                  aspen_hf, ficus_hf)
