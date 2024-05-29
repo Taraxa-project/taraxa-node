@@ -16,9 +16,9 @@ using namespace taraxa::state_api;
 
 namespace taraxa::net::rpc::eth {
 void add(Json::Value& obj, const optional<TransactionLocationWithBlockHash>& info) {
-  obj["blockNumber"] = info ? toJS(info->blk_n) : Json::Value();
+  obj["blockNumber"] = info ? toJS(info->period) : Json::Value();
   obj["blockHash"] = info ? toJS(info->blk_h) : Json::Value();
-  obj["transactionIndex"] = info ? toJS(info->index) : Json::Value();
+  obj["transactionIndex"] = info ? toJS(info->position) : Json::Value();
 }
 
 void add(Json::Value& obj, const ExtendedTransactionLocation& info) {
@@ -303,10 +303,10 @@ class EthImpl : public Eth, EthParams {
                            const TransactionReceipts& receipts) override {
     watches_.new_blocks_.process_update(blk_header.hash);
     ExtendedTransactionLocation trx_loc{{{blk_header.number}, blk_header.hash}};
-    for (; trx_loc.index < trxs.size(); ++trx_loc.index) {
-      trx_loc.trx_hash = trxs[trx_loc.index]->getHash();
+    for (; trx_loc.position < trxs.size(); ++trx_loc.position) {
+      trx_loc.trx_hash = trxs[trx_loc.position]->getHash();
       using LogsInput = typename decltype(watches_.logs_)::InputType;
-      watches_.logs_.process_update(LogsInput(trx_loc, receipts[trx_loc.index]));
+      watches_.logs_.process_update(LogsInput(trx_loc, receipts[trx_loc.position]));
     }
   }
 
@@ -321,11 +321,11 @@ class EthImpl : public Eth, EthParams {
     auto& trxs_json = ret["transactions"] = Json::Value(Json::arrayValue);
     if (include_transactions) {
       ExtendedTransactionLocation loc;
-      loc.blk_n = blk_header->number;
+      loc.period = blk_header->number;
       loc.blk_h = blk_header->hash;
       for (const auto& t : final_chain->transactions(blk_n)) {
         trxs_json.append(toJson(*t, loc));
-        ++loc.index;
+        ++loc.position;
       }
     } else {
       auto hashes = final_chain->transaction_hashes(blk_n);
@@ -344,12 +344,12 @@ class EthImpl : public Eth, EthParams {
         trx,
         TransactionLocationWithBlockHash{
             *loc,
-            *final_chain->block_hash(loc->blk_n),
+            *final_chain->block_hash(loc->period),
         },
     };
   }
 
-  optional<LocalisedTransaction> get_transaction(uint64_t trx_pos, EthBlockNumber blk_n) const {
+  optional<LocalisedTransaction> get_transaction(uint32_t trx_pos, EthBlockNumber blk_n) const {
     const auto& trxs = final_chain->transactions(blk_n);
     if (trxs.size() <= trx_pos) {
       return {};

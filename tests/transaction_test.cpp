@@ -277,7 +277,9 @@ TEST_F(TransactionTest, transaction_concurrency) {
 
   // 1/3 transactions finalized
   for (size_t i = 0; i < g_signed_trx_samples->size() / 3; i++) {
-    db->saveTransactionPeriod(g_signed_trx_samples[i]->getHash(), 1, i);
+    auto batch = db->createWriteBatch();
+    db->addTransactionLocationToBatch(batch, g_signed_trx_samples[i]->getHash(), 1, i);
+    db->commitWriteBatch(batch);
     PeriodData period_data;
     period_data.transactions = {g_signed_trx_samples[i]};
     trx_mgr.updateFinalizedTransactionsStatus(period_data);

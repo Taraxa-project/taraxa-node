@@ -29,6 +29,10 @@ struct PillarBlockData;
 class PillarBlock;
 }  // namespace pillar_chain
 
+namespace final_chain {
+struct TransactionLocation;
+}  // namespace final_chain
+
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
   ExecutedTrxCount,
@@ -105,7 +109,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(dag_blocks);
     COLUMN_W_COMP(dag_blocks_level, getIntComparator<uint64_t>());
     COLUMN(transactions);
-    COLUMN(trx_period);
+    COLUMN(trx_location);
     COLUMN(status);
     COLUMN(pbft_mgr_round_step);
     COLUMN(pbft_mgr_status);
@@ -266,9 +270,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
-  void saveTransactionPeriod(trx_hash_t const& trx, PbftPeriod period, uint32_t position);
-  void addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position);
-  std::optional<std::pair<PbftPeriod, uint32_t>> getTransactionPeriod(trx_hash_t const& hash) const;
+  void addTransactionLocationToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position,
+                                     bool is_system = false);
+  std::optional<final_chain::TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
 

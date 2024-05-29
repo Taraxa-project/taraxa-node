@@ -29,7 +29,7 @@ Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   }
   if (auto node = full_node_.lock()) {
     return util::readJsonFromString(
-        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n)));
+        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->period)));
   }
   return res;
 }
@@ -65,7 +65,7 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
   }
   if (auto node = full_node_.lock()) {
     return util::readJsonFromString(
-        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n), std::move(params)));
+        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->period), std::move(params)));
   }
   return res;
 }

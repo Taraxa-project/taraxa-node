@@ -365,11 +365,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   std::optional<TransactionLocation> transaction_location(const h256& trx_hash) const override {
-    const auto period = db_->getTransactionPeriod(trx_hash);
-    if (!period) {
-      return {};
-    }
-    return TransactionLocation{period->first, period->second};
+    return db_->getTransactionLocation(trx_hash);
   }
 
   std::optional<TransactionReceipt> transaction_receipt(h256 const& trx_h) const override {
