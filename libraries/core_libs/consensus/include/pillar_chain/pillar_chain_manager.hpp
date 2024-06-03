@@ -62,7 +62,7 @@ class PillarChainManager {
   bool genAndPlacePillarVote(const blk_hash_t& pillar_block_hash, const secret_t& node_sk, bool is_pbft_syncing);
 
   /**
-   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is 2t+1
+   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is > threshold
    * votes for latest pillar block. If not, request them
    *
    * @param block_num - current block number
@@ -161,6 +161,12 @@ class PillarChainManager {
    */
   void saveNewPillarBlock(std::shared_ptr<PillarBlock> pillar_block,
                           std::vector<state_api::ValidatorVoteCount>&& new_vote_counts);
+
+  /**
+   * @param period
+   * @return pillar consensus threshold (total votes count / 2 + 1) for provided period
+   */
+  std::optional<uint64_t> getPillarConsensusThreshold(PbftPeriod period) const;
 
  private:
   // Node config

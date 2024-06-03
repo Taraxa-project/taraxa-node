@@ -1997,16 +1997,14 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
   const auto required_votes_period =
       period_data.pbft_blk->getPeriod() - kGenesisConfig.state.hardforks.ficus_hf.pillar_blocks_interval;
 
-  size_t votes_weight = 0;
-
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
   if (current_pillar_block->getPeriod() != required_votes_period) {
-    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period
-                 << " != " << " current pillar block period " << current_pillar_block->getPeriod();
+    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period << " != "
+                 << " current pillar block period " << current_pillar_block->getPeriod();
     return false;
   }
 
-  for (const auto &vote : *period_data.pillar_votes_) {
+  for (auto &vote : *period_data.pillar_votes_) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (vote->getPeriod() != required_votes_period) {
       LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash() << " period " << vote->getPeriod()
@@ -2026,23 +2024,15 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
       return false;
     }
 
-    if (const auto vote_weight = pillar_chain_mgr_->addVerifiedPillarVote(vote); vote_weight) {
-      votes_weight += vote_weight;
-    } else {
+    if (!pillar_chain_mgr_->addVerifiedPillarVote(vote)) {
       LOG(log_er_) << "Unable to add sync pillar vote " << vote->getHash();
       return false;
     }
   }
 
-  const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(required_votes_period - 1, PbftVoteTypes::cert_vote);
-  if (!two_t_plus_one.has_value()) {
-    LOG(log_er_) << "Invalid 2t+1 for period " << required_votes_period - 1;
-    return false;
-  }
-
-  if (votes_weight < *two_t_plus_one) {
-    LOG(log_wr_) << "Invalid sync pillar votes weight " << votes_weight << " < two_t_plus_one " << *two_t_plus_one
-                 << ", period " << required_votes_period - 1;
+  // Check if we have > threshold votes for correct pillar block
+  if (!pillar_chain_mgr_->checkPillarChainSynced(required_votes_period)) {
+    LOG(log_wr_) << "Not enough synced pillar votes";
     return false;
   }
 

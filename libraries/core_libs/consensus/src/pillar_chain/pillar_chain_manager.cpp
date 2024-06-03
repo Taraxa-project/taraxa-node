@@ -240,12 +240,12 @@ bool PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const 
     return false;
   }
 
-  // Check 2t+1 votes for the current pillar block
-  if (!pillar_votes_.hasTwoTPlusOneVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash())) {
-    // There is < 2t+1 pillar votes, request it
+  // Check > threshold votes for the current pillar block
+  if (!pillar_votes_.hasAboveThresholdVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash())) {
+    // There is < threshold pillar votes, request it
     if (auto net = network_.lock()) {
-      LOG(log_dg_) << "There is < 2t+1 pillar votes for pillar block " << current_pillar_block->getHash() << ", period "
-                   << current_pillar_block->getPeriod() << ". Request it";
+      LOG(log_dg_) << "There is < threshold pillar votes for pillar block " << current_pillar_block->getHash()
+                   << ", period " << current_pillar_block->getPeriod() << ". Request it";
       net->requestPillarBlockVotesBundle(current_pillar_block->getPeriod(), current_pillar_block->getHash());
     } else {
       LOG(log_er_) << "checkPillarChainSynced: Unable to obtain net";
@@ -353,18 +353,12 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
   }
 
   if (!pillar_votes_.periodDataInitialized(vote->getPeriod())) {
-    // Note: do not use vote->getPeriod() - 1 as in votes processing - vote are made after the block is
-    // finalized, not before as votes
-    if (const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(vote->getPeriod() - 1, PbftVoteTypes::cert_vote);
-        two_t_plus_one.has_value()) {
-      pillar_votes_.initializePeriodData(vote->getPeriod(), *two_t_plus_one);
-    } else {
-      // getPbftTwoTPlusOne returns empty optional only when requested period is too far ahead and that should never
-      // happen as this exception is caught above when calling dpos_eligible_vote_count
-      LOG(log_er_) << "Unable to get 2t+1 for period " << vote->getPeriod();
-      assert(false);
+    const auto threshold = getPillarConsensusThreshold(vote->getPeriod() - 1);
+    if (!threshold) {
+      LOG(log_er_) << "Unable to get pillar consensus threshold for period " << vote->getPeriod() - 1;
       return 0;
     }
+    pillar_votes_.initializePeriodData(vote->getPeriod(), *threshold);
   }
 
   if (!pillar_votes_.addVerifiedVote(vote, validator_vote_count)) {
@@ -417,6 +411,20 @@ bool PillarChainManager::isValidPillarBlock(const std::shared_ptr<PillarBlock>& 
                << "(" << last_finalized_pillar_block->getPeriod() << "), new pillar block: " << pillar_block->getHash()
                << "(" << pillar_block->getPeriod() << "), parent block hash: " << pillar_block->getPreviousBlockHash();
   return false;
+}
+
+std::optional<uint64_t> PillarChainManager::getPillarConsensusThreshold(PbftPeriod period) const {
+  std::optional<uint64_t> threshold;
+
+  try {
+    // Pillar chain consensus threshold = total votes count / 2 + 1
+    threshold = final_chain_->dpos_eligible_total_vote_count(period) / 2 + 1;
+  } catch (state_api::ErrFutureBlock& e) {
+    LOG(log_er_) << "Unable to get dpos total votes count for period " << period
+                 << " to calculate pillar consensus threshold: " << e.what();
+  }
+
+  return threshold;
 }
 
 std::vector<PillarBlock::ValidatorVoteCountChange> PillarChainManager::getOrderedValidatorsVoteCountsChanges(
