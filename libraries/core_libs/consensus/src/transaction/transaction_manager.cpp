@@ -110,8 +110,8 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
     return {true, ""};
   } else {
     const auto location = db_->getTransactionLocation(trx_hash);
-    if (location != std::nullopt) {
-      return {false, "Transaction already finalized in location" + std::to_string(location->period)};
+    if (location) {
+      return {false, "Transaction already finalized in period" + std::to_string(location->period)};
     } else {
       return {false, "Transaction could not be inserted"};
     }

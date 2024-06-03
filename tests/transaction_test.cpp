@@ -12,6 +12,7 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
+#include "transaction/system_transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "transaction/transaction_queue.hpp"
 

@@ -16,6 +16,7 @@
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
+#include "transaction/system_transaction.hpp"
 #include "transaction/transaction.hpp"
 #include "vote/pillar_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -139,6 +140,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(current_pillar_block_data);
     // Current pillar block own pillar vote
     COLUMN(current_pillar_block_own_vote);
+    // system transactions that is not a part of the block
+    COLUMN(system_transaction);
+    // system transactions hashes by period
+    COLUMN(period_system_transactions);
 
 #undef COLUMN
 #undef COLUMN_W_COMP
@@ -232,17 +237,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void saveCurrentPillarBlockData(const pillar_chain::CurrentPillarBlockDataDb& current_pillar_block_data);
   std::optional<pillar_chain::CurrentPillarBlockDataDb> getCurrentPillarBlockData() const;
 
-  /**
-   * @brief Gets finalized transactions from provided hashes
-   *
-   * @param trx_hashes
-   *
-   * @return Returns transactions found if all transactions are present. If there is a transaction missing, no
-   * transaction is returned and missing trx hash is returned
-   */
-  std::pair<std::optional<SharedTransactions>, trx_hash_t> getFinalizedTransactions(
-      std::vector<trx_hash_t> const& trx_hashes) const;
-
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
@@ -260,7 +254,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(PbftPeriod period);
 
   // Transaction
-  void saveTransaction(Transaction const& trx);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
@@ -275,6 +268,22 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<final_chain::TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
+  /**
+   * @brief Gets finalized transactions from provided hashes
+   *
+   * @param trx_hashes
+   *
+   * @return Returns transactions found if all transactions are present. If there is a transaction missing, no
+   * transaction is returned and missing trx hash is returned
+   */
+  std::pair<std::optional<SharedTransactions>, trx_hash_t> getFinalizedTransactions(
+      std::vector<trx_hash_t> const& trx_hashes) const;
+  // System transaction
+  void addSystemTransactionToBatch(Batch& write_batch, SharedTransaction trx);
+  std::shared_ptr<Transaction> getSystemTransaction(const trx_hash_t& hash) const;
+  void addPeriodSystemTransactions(Batch& write_batch, SharedTransactions trxs, PbftPeriod period);
+  std::vector<trx_hash_t> getPeriodSystemTransactionsHashes(PbftPeriod period) const;
+  SharedTransactions getPeriodSystemTransactions(PbftPeriod period) const;
 
   // PBFT manager
   uint32_t getPbftMgrField(PbftMgrField field);
