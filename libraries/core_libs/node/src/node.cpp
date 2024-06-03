@@ -136,8 +136,8 @@ void FullNode::init() {
   auto slashing_manager = std::make_shared<SlashingManager>(final_chain_, trx_mgr_, gas_pricer_, conf_, kp_.secret());
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, conf_.genesis.pbft, kp_.secret(), conf_.vrf_secret, db_,
                                             pbft_chain_, final_chain_, key_manager_, slashing_manager);
-  pillar_chain_mgr_ = std::make_shared<pillar_chain::PillarChainManager>(
-      conf_.genesis.state.hardforks.ficus_hf, db_, final_chain_, vote_mgr_, key_manager_, node_addr);
+  pillar_chain_mgr_ = std::make_shared<pillar_chain::PillarChainManager>(conf_.genesis.state.hardforks.ficus_hf, db_,
+                                                                         final_chain_, key_manager_, node_addr);
 
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.genesis, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_,
                                             final_chain_, pillar_chain_mgr_, kp_.secret());
