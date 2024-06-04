@@ -180,6 +180,8 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
   switch (packet.type_) {
     case SubprotocolPacketType::GetDagSyncPacket:
     case SubprotocolPacketType::GetPbftSyncPacket:
+    case SubprotocolPacketType::GetPillarVotesBundlePacket:
+    case SubprotocolPacketType::PillarVotesBundlePacket:  // TODO[2744]: remove
     case SubprotocolPacketType::PbftSyncPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
