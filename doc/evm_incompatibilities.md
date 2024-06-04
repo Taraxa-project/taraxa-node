@@ -8,7 +8,7 @@ Following EIPs are not supported by our EVM:
 
 
 ## Latest supported solc version
-We currently support latest
+We currently support `0.8.26`.
 
 ## go-ethereum library
 If you are having issue with go-ethereum library, please use our slightly modified version https://github.com/Taraxa-project/go-ethereum
