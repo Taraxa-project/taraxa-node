@@ -8,19 +8,12 @@ struct SystemTransaction : public Transaction {
   SystemTransaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
                     const std::optional<addr_t> &receiver = std::nullopt, uint64_t chain_id = 0);
 
-  explicit SystemTransaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {})
-      : Transaction(_rlp, verify_strict, hash) {
-    sender_ = kTaraxaSystemAccount;
-    vrs_.v = byte{chain_id_ - (u256{chain_id_} * 2 + 35)};
-  };
-
-  explicit SystemTransaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {})
-      : Transaction(_rlp, verify_strict, hash) {
-    sender_ = kTaraxaSystemAccount;
-    vrs_.v = byte{chain_id_ - (u256{chain_id_} * 2 + 35)};
-  };
+  explicit SystemTransaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {});
+  explicit SystemTransaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {});
 
   virtual const addr_t &getSender() const override;
+  virtual void streamRLP(dev::RLPStream &s, bool for_signature) const override;
+  virtual void fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash) override;
 };
 
 }  // namespace taraxa

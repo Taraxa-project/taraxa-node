@@ -122,8 +122,7 @@ const addr_t &Transaction::getSender() const {
                          "\nOriginal RLP: " + (cached_rlp_set_ ? dev::toJS(cached_rlp_) : "wasn't created from rlp"));
 }
 
-template <bool for_signature>
-void Transaction::streamRLP(dev::RLPStream &s) const {
+void Transaction::streamRLP(dev::RLPStream &s, bool for_signature) const {
   s.appendList(!for_signature || chain_id_ ? 9 : 6);
   s << nonce_ << gas_price_ << gas_;
   if (receiver_) {
@@ -133,7 +132,7 @@ void Transaction::streamRLP(dev::RLPStream &s) const {
   }
   s << value_ << data_;
   if (!for_signature) {
-    s << byte(vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27)) << (u256 const &)vrs_.r << (u256 const &)vrs_.s;
+    s << vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27) << (u256 const &)vrs_.r << (u256 const &)vrs_.s;
   } else if (chain_id_) {
     s << chain_id_ << 0 << 0;
   }
@@ -144,7 +143,7 @@ const bytes &Transaction::rlp() const {
     std::unique_lock l(cached_rlp_mu_);
     if (!cached_rlp_set_.load()) {
       dev::RLPStream s;
-      streamRLP<false>(s);
+      streamRLP(s, false);
       cached_rlp_ = s.invalidate();
       cached_rlp_set_ = true;
     }
@@ -154,7 +153,7 @@ const bytes &Transaction::rlp() const {
 
 trx_hash_t Transaction::hash_for_signature() const {
   dev::RLPStream s;
-  streamRLP<true>(s);
+  streamRLP(s, true);
   return dev::sha3(s.out());
 }
 

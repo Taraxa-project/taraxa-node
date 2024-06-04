@@ -43,11 +43,10 @@ struct Transaction {
   mutable bytes cached_rlp_;
   mutable std::mutex cached_rlp_mu_;
 
-  template <bool for_signature>
-  void streamRLP(dev::RLPStream &s) const;
   trx_hash_t hash_for_signature() const;
   addr_t const &get_sender_() const;
-  void fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash);
+  virtual void streamRLP(dev::RLPStream &s, bool for_signature) const;
+  virtual void fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash);
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
