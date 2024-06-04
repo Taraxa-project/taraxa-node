@@ -520,27 +520,35 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
       ASSERT_TRUE(pillar_block_data.has_value());
       ASSERT_EQ(pillar_block_data->block_->getPeriod(), period);
       ASSERT_EQ(u256(pillar_block_data->block_->getBridgeRoot()), u256(epoch));
+      // check system transactions
       {
-        const auto& trxs = node->getDB()->getPeriodTransactions(period);
-        ASSERT_EQ(trxs->size(), 1);
-        const auto& trx = trxs->at(0);
+        // check that we are getting this transaction from the final chain
+        auto trxs = node->getFinalChain()->transactions(period);
+        ASSERT_EQ(trxs.size(), 1);
+        // check that this 1 transaction is system transaction
+        const auto& trx = trxs.at(0);
         ASSERT_EQ(trx->getSender(), kTaraxaSystemAccount);
         ASSERT_EQ(trx->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
-        std::cout << "checking trx with hash: " << trx->getHash() << " " << trx->getNonce() << std::endl;
+        // check that correct hash is returned
+        auto hashes = node->getFinalChain()->transaction_hashes(period);
+        ASSERT_EQ(hashes->size(), 1);
+        ASSERT_EQ(hashes->at(0), trx->getHash());
+        // check that location by hash exists and is_system set to true
         const auto& trx_loc = node->getDB()->getTransactionLocation(trx->getHash());
-        ASSERT_TRUE(trx_loc.has_value());
+        EXPECT_TRUE(trx_loc.has_value());
         ASSERT_EQ(trx_loc->period, period);
-        ASSERT_EQ(trx_loc->position, 0);
+        ASSERT_EQ(trx_loc->position, 1);
         ASSERT_EQ(trx_loc->is_system, true);
+        // check that we can get this transaction by hash
         const auto& trx_by_hash = node->getDB()->getTransaction(trx->getHash());
         ASSERT_TRUE(trx_by_hash != nullptr);
         ASSERT_EQ(trx_by_hash->getSender(), kTaraxaSystemAccount);
         ASSERT_EQ(trx_by_hash->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         ASSERT_EQ(trx_by_hash->getSender(), kTaraxaSystemAccount);
+        // check that receipt exists
         const auto& trx_receipt = node->getFinalChain()->transaction_receipt(trx->getHash());
         ASSERT_TRUE(trx_receipt.has_value());
-        // nothing to finalized, so should be 0
-        ASSERT_EQ(trx_receipt->status_code, 0);
+        ASSERT_EQ(trx_receipt->status_code, 1);
       }
     }
   }

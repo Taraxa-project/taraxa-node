@@ -11,10 +11,13 @@ struct SystemTransaction : public Transaction {
   explicit SystemTransaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {})
       : Transaction(_rlp, verify_strict, hash) {
     sender_ = kTaraxaSystemAccount;
+    vrs_.v = byte{chain_id_ - (u256{chain_id_} * 2 + 35)};
   };
+
   explicit SystemTransaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {})
       : Transaction(_rlp, verify_strict, hash) {
     sender_ = kTaraxaSystemAccount;
+    vrs_.v = byte{chain_id_ - (u256{chain_id_} * 2 + 35)};
   };
 
   virtual const addr_t &getSender() const override;

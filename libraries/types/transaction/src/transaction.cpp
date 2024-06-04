@@ -133,7 +133,7 @@ void Transaction::streamRLP(dev::RLPStream &s) const {
   }
   s << value_ << data_;
   if (!for_signature) {
-    s << vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27) << (u256 const &)vrs_.r << (u256 const &)vrs_.s;
+    s << byte(vrs_.v + uint64_t(chain_id_ ? (chain_id_ * 2 + 35) : 27)) << (u256 const &)vrs_.r << (u256 const &)vrs_.s;
   } else if (chain_id_) {
     s << chain_id_ << 0 << 0;
   }
