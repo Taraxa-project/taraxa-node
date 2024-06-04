@@ -110,7 +110,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(dag_blocks);
     COLUMN_W_COMP(dag_blocks_level, getIntComparator<uint64_t>());
     COLUMN(transactions);
-    COLUMN(trx_location);
+    COLUMN(trx_period);
     COLUMN(status);
     COLUMN(pbft_mgr_round_step);
     COLUMN(pbft_mgr_status);
