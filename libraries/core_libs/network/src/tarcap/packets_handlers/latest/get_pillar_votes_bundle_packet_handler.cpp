@@ -20,6 +20,7 @@ void GetPillarVotesBundlePacketHandler::validatePacketRlpFormat(const threadpool
 
 void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                                 const std::shared_ptr<TaraxaPeer> &peer) {
+  LOG(log_dg_) << "GetPillarVotesBundlePacketHandler received from peer " << peer->getId();
   const PbftPeriod period = packet_data.rlp_[0].toInt();
   const blk_hash_t pillar_block_hash = packet_data.rlp_[1].toHash<blk_hash_t>();
 
@@ -58,13 +59,17 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
 
 void GetPillarVotesBundlePacketHandler::requestPillarVotesBundle(PbftPeriod period, const blk_hash_t &pillar_block_hash,
                                                                  const std::shared_ptr<TaraxaPeer> &peer) {
-  dev::RLPStream s(2);
+  dev::RLPStream s(kGetPillarVotesBundlePacketSize);
   s << period;
   s << pillar_block_hash;
 
-  sealAndSend(peer->getId(), SubprotocolPacketType::GetPillarVotesBundlePacket, std::move(s));
-  LOG(log_nf_) << "Requested pillar votes bundle for period " << period << " and pillar block " << pillar_block_hash
-               << " from peer " << peer->getId();
+  if (sealAndSend(peer->getId(), SubprotocolPacketType::GetPillarVotesBundlePacket, std::move(s))) {
+    LOG(log_nf_) << "Requested pillar votes bundle for period " << period << " and pillar block " << pillar_block_hash
+                 << " from peer " << peer->getId();
+  } else {
+    LOG(log_er_) << "Unable to send pillar votes bundle request for period " << period << " and pillar block "
+                 << pillar_block_hash << " to peer " << peer->getId();
+  }
 }
 
 }  // namespace taraxa::network::tarcap

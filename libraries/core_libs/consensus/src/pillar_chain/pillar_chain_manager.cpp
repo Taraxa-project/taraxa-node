@@ -38,6 +38,9 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
 
   if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
     last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block_);
+    for (const auto& vote : latest_pillar_block_data->pillar_votes_) {
+      addVerifiedPillarVote(vote);
+    }
   }
 
   LOG_OBJECTS_CREATE("PILLAR_CHAIN");
@@ -294,7 +297,12 @@ bool PillarChainManager::isRelevantPillarVote(const std::shared_ptr<PillarVote> 
     return false;
   }
 
-  return !pillar_votes_.voteExists(vote);
+  if (pillar_votes_.voteExists(vote)) {
+    LOG(log_dg_) << "Received vote " << vote->getHash() << " already saved";
+    return false;
+  }
+
+  return true;
 }
 
 bool PillarChainManager::validatePillarVote(const std::shared_ptr<PillarVote> vote) const {
