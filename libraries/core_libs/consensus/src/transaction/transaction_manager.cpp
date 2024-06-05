@@ -109,9 +109,9 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
   if (insertValidatedTransaction(std::move(trx_copy), status)) {
     return {true, ""};
   } else {
-    const auto period = db_->getTransactionPeriod(trx_hash);
-    if (period != std::nullopt) {
-      return {false, "Transaction already finalized in period" + std::to_string(period->first)};
+    const auto location = db_->getTransactionLocation(trx_hash);
+    if (location) {
+      return {false, "Transaction already finalized in period" + std::to_string(location->period)};
     } else {
       return {false, "Transaction could not be inserted"};
     }

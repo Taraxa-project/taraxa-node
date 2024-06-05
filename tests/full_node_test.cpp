@@ -73,9 +73,9 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getBlocksByLevel(2), s2);
 
   // Transaction
-  db.saveTransaction(*g_trx_signed_samples[0]);
-  db.saveTransaction(*g_trx_signed_samples[1]);
   auto batch = db.createWriteBatch();
+  db.addTransactionToBatch(*g_trx_signed_samples[0], batch);
+  db.addTransactionToBatch(*g_trx_signed_samples[1], batch);
   db.addTransactionToBatch(*g_trx_signed_samples[2], batch);
   db.addTransactionToBatch(*g_trx_signed_samples[3], batch);
   db.commitWriteBatch(batch);
@@ -761,7 +761,9 @@ TEST_F(FullNodeTest, destroy_db) {
   {
     auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
-    db->saveTransaction(*g_trx_signed_samples[0]);
+    auto batch = db->createWriteBatch();
+    db->addTransactionToBatch(*g_trx_signed_samples[0], batch);
+    db->commitWriteBatch(batch);
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0]->getHash()));
   }

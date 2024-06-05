@@ -102,7 +102,7 @@ bool LogFilter::blk_number_matches(EthBlockNumber blk_n) const {
 
 void LogFilter::match_one(const ExtendedTransactionLocation& trx_loc, const TransactionReceipt& r,
                           const std::function<void(const LocalisedLogEntry&)>& cb) const {
-  if (!blk_number_matches(trx_loc.blk_n)) {
+  if (!blk_number_matches(trx_loc.period)) {
     return;
   }
   auto action = [&](size_t log_i) { cb({r.logs[log_i], trx_loc, log_i}); };
@@ -119,11 +119,11 @@ std::vector<LocalisedLogEntry> LogFilter::match_all(const FinalChain& final_chai
   std::vector<LocalisedLogEntry> ret;
   auto action = [&, this](EthBlockNumber blk_n) {
     ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.block_hash(blk_n)}};
-    auto hashes = final_chain.transaction_hashes(trx_loc.blk_n);
+    auto hashes = final_chain.transaction_hashes(trx_loc.period);
     for (const auto& hash : *hashes) {
       trx_loc.trx_hash = hash;
       match_one(trx_loc, *final_chain.transaction_receipt(hash), [&](const auto& lle) { ret.push_back(lle); });
-      ++trx_loc.index;
+      ++trx_loc.position;
     }
   };
   auto to_blk_n = to_block_ ? *to_block_ : final_chain.last_block_number();

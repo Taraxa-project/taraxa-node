@@ -675,7 +675,7 @@ void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch
   uint32_t trx_pos = 0;
   for (auto const& trx : period_data.transactions) {
     removeTransactionToBatch(trx->getHash(), write_batch);
-    addTransactionPeriodToBatch(write_batch, trx->getHash(), period_data.pbft_blk->getPeriod(), trx_pos);
+    addTransactionLocationToBatch(write_batch, trx->getHash(), period_data.pbft_blk->getPeriod(), trx_pos);
     trx_pos++;
   }
 
@@ -735,35 +735,29 @@ std::optional<pillar_chain::CurrentPillarBlockDataDb> DbStorage::getCurrentPilla
   return util::rlp_dec<pillar_chain::CurrentPillarBlockDataDb>(dev::RLP(bytes));
 }
 
-void DbStorage::saveTransaction(Transaction const& trx) {
-  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
-}
-
-void DbStorage::saveTransactionPeriod(trx_hash_t const& trx_hash, PbftPeriod period, uint32_t position) {
+void DbStorage::addTransactionLocationToBatch(Batch& write_batch, trx_hash_t const& trx_hash, PbftPeriod period,
+                                              uint32_t position, bool is_system) {
   dev::RLPStream s;
-  s.appendList(2);
+  s.appendList(2 + is_system);
   s << period;
   s << position;
-  insert(Columns::trx_period, toSlice(trx_hash.asBytes()), toSlice(s.out()));
+  if (is_system) {
+    s << is_system;
+  }
+  insert(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()), toSlice(s.invalidate()));
 }
 
-void DbStorage::addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period,
-                                            uint32_t position) {
-  dev::RLPStream s;
-  s.appendList(2);
-  s << period;
-  s << position;
-  insert(write_batch, Columns::trx_period, toSlice(trx.asBytes()), toSlice(s.out()));
-}
-
-std::optional<std::pair<PbftPeriod, uint32_t>> DbStorage::getTransactionPeriod(trx_hash_t const& hash) const {
+std::optional<final_chain::TransactionLocation> DbStorage::getTransactionLocation(trx_hash_t const& hash) const {
   auto data = lookup(toSlice(hash.asBytes()), Columns::trx_period);
   if (!data.empty()) {
-    std::pair<PbftPeriod, uint32_t> res;
+    final_chain::TransactionLocation res;
     dev::RLP const rlp(data);
     auto it = rlp.begin();
-    res.first = (*it++).toInt<PbftPeriod>();
-    res.second = (*it++).toInt<uint32_t>();
+    res.period = (*it++).toInt<PbftPeriod>();
+    res.position = (*it++).toInt<uint32_t>();
+    if (rlp.itemCount() == 3) {
+      res.is_system = (*it++).toInt<bool>();
+    }
     return res;
   }
   return std::nullopt;
@@ -832,14 +826,17 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   if (data.size() > 0) {
     return std::make_shared<Transaction>(data);
   }
-  auto res = getTransactionPeriod(hash);
-  if (res) {
-    auto period_data = getPeriodDataRaw(res->first);
+  auto location = getTransactionLocation(hash);
+  if (location && !location->is_system) {
+    auto period_data = getPeriodDataRaw(location->period);
     if (period_data.size() > 0) {
       auto period_data_rlp = dev::RLP(period_data);
       auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
-      return std::make_shared<Transaction>(transaction_data[res->second]);
+      return std::make_shared<Transaction>(transaction_data[location->position]);
     }
+  } else {
+    // get system trx from a different column
+    return getSystemTransaction(hash);
   }
   return nullptr;
 }
@@ -860,9 +857,9 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
   SharedTransactions transactions;
   transactions.reserve(trx_hashes.size());
   for (auto const& tx_hash : trx_hashes) {
-    auto trx_period = getTransactionPeriod(tx_hash);
+    auto trx_period = getTransactionLocation(tx_hash);
     if (trx_period.has_value()) {
-      period_map[trx_period->first].insert(trx_period->second);
+      period_map[trx_period->period].insert(trx_period->position);
     } else {
       return {std::nullopt, tx_hash};
     }
@@ -880,6 +877,48 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
   }
 
   return {transactions, {}};
+}
+
+void DbStorage::addSystemTransactionToBatch(Batch& write_batch, SharedTransaction trx) {
+  insert(write_batch, Columns::system_transaction, toSlice(trx->getHash().asBytes()), toSlice(trx->rlp()));
+}
+
+std::shared_ptr<Transaction> DbStorage::getSystemTransaction(const trx_hash_t& hash) const {
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::system_transaction));
+  if (data.size() > 0) {
+    // construct as system transaction to have proper sender
+    return std::make_shared<SystemTransaction>(data);
+  }
+  return nullptr;
+}
+
+void DbStorage::addPeriodSystemTransactions(Batch& write_batch, SharedTransactions trxs, PbftPeriod period) {
+  std::vector<trx_hash_t> trx_hashes;
+  trx_hashes.reserve(trxs.size());
+  std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
+                 [](const auto& trx) { return trx->getHash(); });
+  auto hashes_rlp = util::rlp_enc(trx_hashes);
+  insert(write_batch, Columns::period_system_transactions, toSlice(period), toSlice(hashes_rlp));
+}
+
+std::vector<trx_hash_t> DbStorage::getPeriodSystemTransactionsHashes(PbftPeriod period) const {
+  auto data = asBytes(lookup(toSlice(period), Columns::period_system_transactions));
+  if (data.size() == 0) {
+    return {};
+  }
+  return util::rlp_dec<std::vector<trx_hash_t>>(dev::RLP(data));
+}
+
+SharedTransactions DbStorage::getPeriodSystemTransactions(PbftPeriod period) const {
+  auto trx_hashes = getPeriodSystemTransactionsHashes(period);
+  if (trx_hashes.empty()) {
+    return {};
+  }
+
+  SharedTransactions trxs;
+  std::transform(trx_hashes.begin(), trx_hashes.end(), std::back_inserter(trxs),
+                 [this](const auto& trx_hash) { return getSystemTransaction(trx_hash); });
+  return trxs;
 }
 
 std::vector<std::shared_ptr<PbftVote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
@@ -908,6 +947,8 @@ std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod pe
   for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
     ret.emplace_back(std::make_shared<Transaction>(transaction_data));
   }
+  auto period_system_transactions = getPeriodSystemTransactions(period);
+  ret.insert(ret.end(), period_system_transactions.begin(), period_system_transactions.end());
   return {ret};
 }
 
