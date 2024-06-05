@@ -250,9 +250,7 @@ class FinalChainImpl final : public FinalChain {
     if (!system_transactions.empty()) {
       db_->addPeriodSystemTransactions(batch, system_transactions, new_blk.pbft_blk->getPeriod());
       auto position = new_blk.transactions.size() + 1;
-      std::cout << "system trx size: " << system_transactions.size() << std::endl;
       for (const auto& trx : system_transactions) {
-        std::cout << "saving " << trx->getHash() << std::endl;
         db_->addSystemTransactionToBatch(batch, trx);
         db_->addTransactionLocationToBatch(batch, trx->getHash(), new_blk.pbft_blk->getPeriod(), position,
                                            true /*system_trx*/);
@@ -338,29 +336,29 @@ class FinalChainImpl final : public FinalChain {
     blk_header.extra_data = extra_data;
     dev::BytesMap trxs_trie, receipts_trie;
     dev::RLPStream rlp_strm;
-    auto receipt_idx = 0;
-    for (; receipt_idx < transactions.size(); ++receipt_idx) {
-      const auto& trx = transactions[receipt_idx];
-      auto i_rlp = util::rlp_enc(rlp_strm, receipt_idx);
+    auto trx_idx = 0;
+    for (; trx_idx < transactions.size(); ++trx_idx) {
+      const auto& trx = transactions[trx_idx];
+      auto i_rlp = util::rlp_enc(rlp_strm, trx_idx);
       trxs_trie[i_rlp] = trx->rlp();
 
-      const auto& receipt = receipts[receipt_idx];
+      const auto& receipt = receipts[trx_idx];
       receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
       db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp_strm.out());
 
       blk_header.log_bloom |= receipt.bloom();
     }
-    if (system_transactions.size() && receipts.size() == (transactions.size() + system_transactions.size())) {
+    if (system_transactions.size()) {
       for (const auto& sys_trx : system_transactions) {
-        auto i_rlp = util::rlp_enc(rlp_strm, receipt_idx);
+        auto i_rlp = util::rlp_enc(rlp_strm, trx_idx);
         trxs_trie[i_rlp] = sys_trx->rlp();
 
-        const auto& receipt = receipts[receipt_idx];
+        const auto& receipt = receipts[trx_idx];
         receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
         db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, sys_trx->getHash(), rlp_strm.out());
 
         blk_header.log_bloom |= receipt.bloom();
-        receipt_idx++;
+        trx_idx++;
       }
     }
     blk_header.transactions_root = hash256(trxs_trie);
