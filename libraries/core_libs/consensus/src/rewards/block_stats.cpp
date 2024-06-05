@@ -108,7 +108,7 @@ void BlockStats::processDagBlocks(const PeriodData& block) {
 }
 
 void BlockStats::processDagBlocksAspen(const PeriodData& block) {
-  uint32_t min_difficulty = UINT32_MAX;
+  uint16_t min_difficulty = UINT16_MAX;
   for (const auto& dag_block : block.dag_blocks) {
     if (dag_block.getDifficulty() < min_difficulty) {
       min_difficulty = dag_block.getDifficulty();

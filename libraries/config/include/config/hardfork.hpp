@@ -75,6 +75,24 @@ struct FicusHardforkConfig {
 Json::Value enc_json(const FicusHardforkConfig& obj);
 void dec_json(const Json::Value& json, FicusHardforkConfig& obj);
 
+// Keeping it for next HF
+// struct BambooRedelegation {
+//   taraxa::addr_t validator;
+//   taraxa::uint256_t amount;
+//   HAS_RLP_FIELDS
+// };
+// Json::Value enc_json(const BambooRedelegation& obj);
+// void dec_json(const Json::Value& json, BambooRedelegation& obj);
+
+// struct BambooHardfork {
+//   uint64_t block_num{0};
+//   std::vector<BambooRedelegation> redelegations;
+
+//   HAS_RLP_FIELDS
+// };
+// Json::Value enc_json(const BambooHardfork& obj);
+// void dec_json(const Json::Value& json, BambooHardfork& obj);
+
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
@@ -111,7 +129,6 @@ struct HardforksConfig {
   AspenHardfork aspen_hf;
 
   bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
-  bool isAspenHardforkPartTwo(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_two; }
 
   // Ficus hardfork: implementation of pillar chain
   FicusHardforkConfig ficus_hf;

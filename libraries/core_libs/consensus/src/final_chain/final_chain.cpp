@@ -204,9 +204,8 @@ class FinalChainImpl final : public FinalChain {
     for (auto const& r : exec_results) {
       LogEntries logs;
       logs.reserve(r.logs.size());
-      std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs), [](const auto& l) {
-        return LogEntry{l.address, l.topics, l.data};
-      });
+      std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs),
+                     [](const auto& l) { return LogEntry{l.address, l.topics, l.data}; });
       transactions_gas_used.push_back(r.gas_used);
       receipts.emplace_back(TransactionReceipt{
           r.code_err.empty() && r.consensus_err.empty(),

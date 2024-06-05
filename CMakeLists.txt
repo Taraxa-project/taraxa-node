@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
-set(TARAXA_MINOR_VERSION 8)
-set(TARAXA_PATCH_VERSION 2)
+set(TARAXA_MINOR_VERSION 9)
+set(TARAXA_PATCH_VERSION 0)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
@@ -191,7 +191,7 @@ endif()
 # We are using clang from llvm toolchain as default compiler as well as clang-format and clang-tidy
 # It is possible to build taraxa-node also with other C++ compilers but to contribute to the official repo,
 # changes must pass clang-format/clang-tidy checks for which we internally use llvm version=LLVM_VERSION
-set(LLVM_VERSION "14")
+set(LLVM_VERSION "18")
 
 # clang-tidy
 include(CMakeModules/clang_tidy.cmake)
