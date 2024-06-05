@@ -415,9 +415,8 @@ std::pair<bool, std::shared_ptr<Vote>> VoteManager::isUniqueVote(const std::shar
   }
 
   std::stringstream err;
-  err << "Non unique vote: "
-      << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash().abridged()
-      << ")"
+  err << "Non unique vote: " << ", new vote hash (voted value): " << vote->getHash().abridged() << " ("
+      << vote->getBlockHash().abridged() << ")"
       << ", orig. vote hash (voted value): " << found_voter_it->second.first->getHash().abridged() << " ("
       << found_voter_it->second.first->getBlockHash().abridged() << ")";
   if (found_voter_it->second.second != nullptr) {
@@ -482,8 +481,8 @@ std::pair<bool, std::shared_ptr<Vote>> VoteManager::insertUniqueVote(const std::
     }
 
     std::stringstream err;
-    err << "Unable to insert new unique vote(race condition): "
-        << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash() << ")"
+    err << "Unable to insert new unique vote(race condition): " << ", new vote hash (voted value): "
+        << vote->getHash().abridged() << " (" << vote->getBlockHash() << ")"
         << ", orig. vote hash (voted value): " << inserted_vote.first->second.first->getHash().abridged() << " ("
         << inserted_vote.first->second.first->getBlockHash() << ")";
     if (inserted_vote.first->second.second != nullptr) {

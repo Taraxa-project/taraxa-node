@@ -103,10 +103,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   registerPeriodicEvents(pbft_mgr, trx_mgr);
 
   for (uint i = 0; i < tp_.capacity(); ++i) {
-    tp_.post_loop({100 + i * 20}, [this] {
-      while (0 < host_->do_work())
-        ;
-    });
+    tp_.post_loop({100 + i * 20}, [this] { while (0 < host_->do_work()); });
   }
 
   LOG(log_nf_) << "Configured host. Listening on address: " << config.network.listen_ip << ":"

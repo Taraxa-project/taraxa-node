@@ -3,10 +3,10 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 #############################################
 # builder image - contains all dependencies #
 #############################################
-FROM ubuntu:22.04 as builder
+FROM ubuntu:24.04 as builder
 
 # deps versions
-ARG LLVM_VERSION=14
+ARG LLVM_VERSION=18
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -68,9 +68,9 @@ RUN ln -s /usr/bin/clang-${LLVM_VERSION} /usr/bin/clang
 RUN ln -s /usr/bin/clang++-${LLVM_VERSION} /usr/bin/clang++
 
 # Install conan
-RUN pip3 install conan==1.60.0
-
-ENV CONAN_REVISIONS_ENABLED=1
+RUN apt-get remove -y python3-distro
+RUN pip3 install conan==1.64.1 --break-system-packages
+COPY CMakeModules/settings.yml /root/.conan/settings.yml
 
 # Install conan deps
 WORKDIR /opt/taraxa/
@@ -116,15 +116,15 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
 ###############################################################################
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Install curl and jq
 RUN apt-get update \
-    && apt-get install -y curl jq python3 python3-pip \
+    && apt-get install -y curl jq python3 python3-pip python3-virtualenv \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages
-RUN pip3 install click eth-account eth-utils typing-extensions
+RUN pip3 install click eth-account eth-utils typing-extensions --break-system-packages
 
 ARG BUILD_OUTPUT_DIR
 WORKDIR /root/.taraxa
