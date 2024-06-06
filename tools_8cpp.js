@@ -18,5 +18,5 @@ var tools_8cpp =
     [ "getTaraxaDefaultGenesisFile", "tools_8cpp.html#ae8caf849c6aa5a12eccc23b1de267b0f", null ],
     [ "getTaraxaDefaultWalletFile", "tools_8cpp.html#a793f65ff5116126682096812693b0b7d", null ],
     [ "overrideConfig", "tools_8cpp.html#a93df239d5062502e931b9fd665e69750", null ],
-    [ "overrideWallet", "tools_8cpp.html#a6faa605dc03f24fc87bfd798e42bacc8", null ]
+    [ "overrideWallet", "tools_8cpp.html#ad371a9212bbd71daca16a2683eca248d", null ]
 ];

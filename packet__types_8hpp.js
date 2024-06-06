@@ -14,6 +14,9 @@ var packet__types_8hpp =
       [ "GetPbftSyncPacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a0c0a5a93d8c3c1e62f32bfc7a8516cf3", null ],
       [ "PbftSyncPacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a3d7bb39a1c27c343a520d18e6f7448ae", null ],
       [ "GetDagSyncPacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a1d528d488040816edd53bb6536ce51dc", null ],
+      [ "PillarVotePacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9afbbb7688de8b606864f3a24e439b5264", null ],
+      [ "GetPillarVotesBundlePacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a9ee919c39aee5b1152b91b364b567233", null ],
+      [ "PillarVotesBundlePacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a8d3514c6de2efa235464cb8201178b97", null ],
       [ "PacketCount", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a623a69d64cc4626c03e41bc4941b051f", null ]
     ] ],
     [ "convertPacketTypeToString", "packet__types_8hpp.html#a413de40884a1e55e67d57ceb83a25313", null ]

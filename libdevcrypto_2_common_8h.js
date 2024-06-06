@@ -1,8 +1,10 @@
 var libdevcrypto_2_common_8h =
 [
     [ "SignatureStruct", "structdev_1_1_signature_struct.html", "structdev_1_1_signature_struct" ],
+    [ "CompactSignatureStruct", "structdev_1_1_compact_signature_struct.html", "structdev_1_1_compact_signature_struct" ],
     [ "KeyPair", "classdev_1_1_key_pair.html", "classdev_1_1_key_pair" ],
     [ "Nonce", "classdev_1_1crypto_1_1_nonce.html", "classdev_1_1crypto_1_1_nonce" ],
+    [ "CompactSignature", "libdevcrypto_2_common_8h.html#a13c054d5e460c4e6e36e4e156d63f7ad", null ],
     [ "Public", "libdevcrypto_2_common_8h.html#a33b08ec2e2db2674c10581cc2677054d", null ],
     [ "PublicCompressed", "libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3", null ],
     [ "Secret", "libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04", null ],
@@ -29,6 +31,7 @@ var libdevcrypto_2_common_8h =
     [ "sign", "libdevcrypto_2_common_8h.html#a867e8506ba915e27fd9cae90ded4dea7", null ],
     [ "toAddress", "libdevcrypto_2_common_8h.html#a1ff2b83bbbbac92f3685f19b06a265b8", null ],
     [ "toAddress", "libdevcrypto_2_common_8h.html#a0842f17403d63f4a260d5283ae5fb3a7", null ],
+    [ "toCompact", "libdevcrypto_2_common_8h.html#a26e7ca394337e2a9c576f698c8d9e638", null ],
     [ "toPublic", "libdevcrypto_2_common_8h.html#a74930f3576b278df0a1602f6529793fa", null ],
     [ "toPublic", "libdevcrypto_2_common_8h.html#a7556242b570406ec30178110e9b8b9db", null ],
     [ "toPublicCompressed", "libdevcrypto_2_common_8h.html#abb8ce1d1c1afa4384f4c43fdd119eaab", null ],

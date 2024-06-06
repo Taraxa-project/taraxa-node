@@ -16,8 +16,17 @@ var dir_ccabdf8b906f75828787d70245a1a0a3 =
     [ "get_pbft_sync_packet_handler.hpp", "get__pbft__sync__packet__handler_8hpp.html", [
       [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler" ]
     ] ],
+    [ "get_pillar_votes_bundle_packet_handler.hpp", "get__pillar__votes__bundle__packet__handler_8hpp.html", [
+      [ "GetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler" ]
+    ] ],
     [ "pbft_sync_packet_handler.hpp", "pbft__sync__packet__handler_8hpp.html", [
       [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ]
+    ] ],
+    [ "pillar_vote_packet_handler.hpp", "pillar__vote__packet__handler_8hpp.html", [
+      [ "PillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler" ]
+    ] ],
+    [ "pillar_votes_bundle_packet_handler.hpp", "pillar__votes__bundle__packet__handler_8hpp.html", [
+      [ "PillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler" ]
     ] ],
     [ "status_packet_handler.hpp", "status__packet__handler_8hpp.html", [
       [ "StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler" ]

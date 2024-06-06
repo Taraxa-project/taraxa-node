@@ -91,6 +91,7 @@ var annotated_dup =
       [ "RLPStream", "classdev_1_1_r_l_p_stream.html", "classdev_1_1_r_l_p_stream" ],
       [ "vector_ref", "classdev_1_1vector__ref.html", "classdev_1_1vector__ref" ],
       [ "SignatureStruct", "structdev_1_1_signature_struct.html", "structdev_1_1_signature_struct" ],
+      [ "CompactSignatureStruct", "structdev_1_1_compact_signature_struct.html", "structdev_1_1_compact_signature_struct" ],
       [ "KeyPair", "classdev_1_1_key_pair.html", "classdev_1_1_key_pair" ]
     ] ],
     [ "graphql", "namespacegraphql.html", [
@@ -122,7 +123,6 @@ var annotated_dup =
         [ "ConfigUpdater", "classtaraxa_1_1cli_1_1_config_updater.html", "classtaraxa_1_1cli_1_1_config_updater" ]
       ] ],
       [ "final_chain", "namespacetaraxa_1_1final__chain.html", [
-        [ "ContractInterface", "classtaraxa_1_1final__chain_1_1_contract_interface.html", "classtaraxa_1_1final__chain_1_1_contract_interface" ],
         [ "BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", "group___final_chain_structtaraxa_1_1final__chain_1_1_block_header" ],
         [ "LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", "group___final_chain_structtaraxa_1_1final__chain_1_1_log_entry" ],
         [ "TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", "group___final_chain_structtaraxa_1_1final__chain_1_1_transaction_receipt" ],
@@ -193,6 +193,7 @@ var annotated_dup =
       [ "network", "namespacetaraxa_1_1network.html", [
         [ "tarcap", "namespacetaraxa_1_1network_1_1tarcap.html", [
           [ "PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler" ],
+          [ "ExtPillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler" ],
           [ "ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler" ],
           [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler" ],
           [ "PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler" ],
@@ -201,7 +202,10 @@ var annotated_dup =
           [ "GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler" ],
           [ "GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler" ],
           [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler" ],
+          [ "GetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler" ],
           [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ],
+          [ "PillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler" ],
+          [ "PillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler" ],
           [ "StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler" ],
           [ "TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler" ],
           [ "VotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler" ],
@@ -223,6 +227,13 @@ var annotated_dup =
           [ "PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue" ],
           [ "PacketsThreadPool", "classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html", "classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool" ]
         ] ]
+      ] ],
+      [ "pillar_chain", "namespacetaraxa_1_1pillar__chain.html", [
+        [ "PillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block", "group___p_i_l_l_a_r___c_h_a_i_n_classtaraxa_1_1pillar__chain_1_1_pillar_block" ],
+        [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data", "group___p_i_l_l_a_r___c_h_a_i_n_structtaraxa_1_1pillar__chain_1_1_pillar_block_data" ],
+        [ "CurrentPillarBlockDataDb", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db", "group___p_i_l_l_a_r___c_h_a_i_n_structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db" ],
+        [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager", "group___p_i_l_l_a_r___c_h_a_i_n_classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager" ],
+        [ "PillarVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html", "classtaraxa_1_1pillar__chain_1_1_pillar_votes" ]
       ] ],
       [ "rewards", "namespacetaraxa_1_1rewards.html", [
         [ "BlockStats", "classtaraxa_1_1rewards_1_1_block_stats.html", "classtaraxa_1_1rewards_1_1_block_stats" ],
@@ -249,6 +260,7 @@ var annotated_dup =
         [ "StateDescriptor", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor", "group___final_chain_structtaraxa_1_1state__api_1_1_state_descriptor" ],
         [ "Tracing", "group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing", "group___final_chain_structtaraxa_1_1state__api_1_1_tracing" ],
         [ "ValidatorStake", "group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake", "group___final_chain_structtaraxa_1_1state__api_1_1_validator_stake" ],
+        [ "ValidatorVoteCount", "group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_vote_count", "group___final_chain_structtaraxa_1_1state__api_1_1_validator_vote_count" ],
         [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ]
       ] ],
       [ "storage", "namespacetaraxa_1_1storage.html", [
@@ -270,7 +282,7 @@ var annotated_dup =
         [ "DefaultConstructCopyableMovable", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", "structtaraxa_1_1util_1_1_default_construct_copyable_movable" ],
         [ "RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref" ],
         [ "InvalidEncodingSize", "structtaraxa_1_1util_1_1_invalid_encoding_size.html", "structtaraxa_1_1util_1_1_invalid_encoding_size" ],
-        [ "RangeView", "structtaraxa_1_1util_1_1_range_view.html", "structtaraxa_1_1util_1_1_range_view" ],
+        [ "EncodingSolidity", "classtaraxa_1_1util_1_1_encoding_solidity.html", "classtaraxa_1_1util_1_1_encoding_solidity" ],
         [ "ThreadPool", "classtaraxa_1_1util_1_1_thread_pool.html", "classtaraxa_1_1util_1_1_thread_pool" ]
       ] ],
       [ "vdf_sortition", "namespacetaraxa_1_1vdf__sortition.html", [
@@ -325,8 +337,12 @@ var annotated_dup =
       [ "DagBlock", "classtaraxa_1_1_dag_block.html", "classtaraxa_1_1_dag_block" ],
       [ "DagFrontier", "structtaraxa_1_1_dag_frontier.html", "structtaraxa_1_1_dag_frontier" ],
       [ "PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", "group___p_b_f_t_classtaraxa_1_1_pbft_block" ],
+      [ "PbftBlockExtraData", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data", "group___p_b_f_t_classtaraxa_1_1_pbft_block_extra_data" ],
       [ "PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", "group___p_b_f_t_classtaraxa_1_1_period_data" ],
+      [ "SystemTransaction", "structtaraxa_1_1_system_transaction.html", "structtaraxa_1_1_system_transaction" ],
       [ "Transaction", "structtaraxa_1_1_transaction.html", "structtaraxa_1_1_transaction" ],
+      [ "PbftVote", "group___vote.html#classtaraxa_1_1_pbft_vote", "group___vote_classtaraxa_1_1_pbft_vote" ],
+      [ "PillarVote", "group___vote.html#classtaraxa_1_1_pillar_vote", "group___vote_classtaraxa_1_1_pillar_vote" ],
       [ "Vote", "group___vote.html#classtaraxa_1_1_vote", "group___vote_classtaraxa_1_1_vote" ],
       [ "VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", "group___vote_classtaraxa_1_1_vrf_pbft_msg" ],
       [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", "group___vote_classtaraxa_1_1_vrf_pbft_sortition" ],
@@ -339,6 +355,7 @@ var annotated_dup =
     [ "ExpirationBlockNumberCache", "class_expiration_block_number_cache.html", "class_expiration_block_number_cache" ],
     [ "ExpirationCache", "class_expiration_cache.html", "class_expiration_cache" ],
     [ "ExpirationCacheMap", "class_expiration_cache_map.html", "class_expiration_cache_map" ],
+    [ "FicusHardforkConfig", "struct_ficus_hardfork_config.html", "struct_ficus_hardfork_config" ],
     [ "HardforksConfig", "struct_hardforks_config.html", "struct_hardforks_config" ],
     [ "MagnoliaHardfork", "hardfork_8hpp.html#struct_magnolia_hardfork", "hardfork_8hpp_struct_magnolia_hardfork" ],
     [ "ModularServer", "class_modular_server.html", "class_modular_server" ],

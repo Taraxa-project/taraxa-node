@@ -1,0 +1,6 @@
+<map id="taraxa::PillarVote" name="taraxa::PillarVote">
+<area shape="rect" id="node1" title="PillarVote class." alt="" coords="70,272,205,299"/>
+<area shape="rect" id="node2" href="$group___vote.html#classtaraxa_1_1_vote" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="35,168,136,195"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
+<area shape="rect" id="node4" title=" " alt="" coords="161,168,221,195"/>
+</map>

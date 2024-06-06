@@ -8,7 +8,7 @@ var classtaraxa_1_1rewards_1_1_block_stats =
     [ "BlockStats", "classtaraxa_1_1rewards_1_1_block_stats.html#ab67a44f047c05e976f1c03cc2c7c9658", null ],
     [ "BlockStats", "classtaraxa_1_1rewards_1_1_block_stats.html#a5f8c44a08bbe43f250c92d7b842fb27c", null ],
     [ "addTransaction", "classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f", null ],
-    [ "addVote", "classtaraxa_1_1rewards_1_1_block_stats.html#a816d316dbdb7fa7490beb95bccdbdcd1", null ],
+    [ "addVote", "classtaraxa_1_1rewards_1_1_block_stats.html#a226bce418ba0cdb7f88a58937583f4c4", null ],
     [ "initFeeByTrxHash", "classtaraxa_1_1rewards_1_1_block_stats.html#a50a816f000bbf528d77207fba7e2bc8a", null ],
     [ "processDagBlocks", "classtaraxa_1_1rewards_1_1_block_stats.html#a8f1a98e990bc1ad0181aed72cc1542ed", null ],
     [ "processDagBlocksAspen", "classtaraxa_1_1rewards_1_1_block_stats.html#ac8bffadafc8ea73e622b8294b62b3966", null ],

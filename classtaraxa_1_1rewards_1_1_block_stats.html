@@ -148,9 +148,9 @@ Private Member Functions</h2></td></tr>
 <tr class="memitem:a476195f457b66bc7b64ad1cb5bc5055f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f">addTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;trx_hash, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;validator)</td></tr>
 <tr class="memdesc:a476195f457b66bc7b64ad1cb5bc5055f"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique trx_hash is provided, it is mapped to it's validator's address + validator's unique trxs count is incremented. If provided trx_hash was already processed, nothing happens.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f">More...</a><br /></td></tr>
 <tr class="separator:a476195f457b66bc7b64ad1cb5bc5055f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a816d316dbdb7fa7490beb95bccdbdcd1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a816d316dbdb7fa7490beb95bccdbdcd1">addVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
-<tr class="memdesc:a816d316dbdb7fa7490beb95bccdbdcd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique vote is provided, author's votes weight is updated. If provided vote was already processed, nothing happens.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a816d316dbdb7fa7490beb95bccdbdcd1">More...</a><br /></td></tr>
-<tr class="separator:a816d316dbdb7fa7490beb95bccdbdcd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a226bce418ba0cdb7f88a58937583f4c4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a226bce418ba0cdb7f88a58937583f4c4">addVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;vote)</td></tr>
+<tr class="memdesc:a226bce418ba0cdb7f88a58937583f4c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique vote is provided, author's votes weight is updated. If provided vote was already processed, nothing happens.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a226bce418ba0cdb7f88a58937583f4c4">More...</a><br /></td></tr>
+<tr class="separator:a226bce418ba0cdb7f88a58937583f4c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/><h2 class="groupheader">Class Documentation</h2>
 <a name="structtaraxa_1_1rewards_1_1_block_stats_1_1_validator_stats" id="structtaraxa_1_1rewards_1_1_block_stats_1_1_validator_stats"></a>
@@ -317,8 +317,8 @@ vote_weight_</td>
 
 </div>
 </div>
-<a id="a816d316dbdb7fa7490beb95bccdbdcd1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a816d316dbdb7fa7490beb95bccdbdcd1">&#9670;&nbsp;</a></span>addVote()</h2>
+<a id="a226bce418ba0cdb7f88a58937583f4c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a226bce418ba0cdb7f88a58937583f4c4">&#9670;&nbsp;</a></span>addVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -329,7 +329,7 @@ vote_weight_</td>
         <tr>
           <td class="memname">bool taraxa::rewards::BlockStats::addVote </td>
           <td>(</td>
-          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>vote</em></td><td>)</td>
           <td></td>
         </tr>

@@ -1,12 +1,14 @@
 var group___p_b_f_t_classtaraxa_1_1_pbft_block =
 [
-    [ "PbftBlock", "group___p_b_f_t.html#a09e1cd3edaa1ac853b7f6bbbdba5794d", null ],
+    [ "PbftBlock", "group___p_b_f_t.html#a87fe052065d99f1d72797e6e6f811320", null ],
     [ "PbftBlock", "group___p_b_f_t.html#a548e429fa4831c3f0c7f30c4f625f946", null ],
     [ "PbftBlock", "group___p_b_f_t.html#a358cde250e7fd9b8bffc6be6a1259b39", null ],
     [ "calculateHash_", "group___p_b_f_t.html#a2faa8e8207dbf6a67be09f98ceefd9f4", null ],
     [ "checkUniqueRewardVotes", "group___p_b_f_t.html#a32af495911eba54a204465a01e9d1281", null ],
     [ "getBeneficiary", "group___p_b_f_t.html#adcf3e9620b0b3e878cb23f7f68b0df87", null ],
     [ "getBlockHash", "group___p_b_f_t.html#a4d871102f18ec6a79c6ff4184b203b36", null ],
+    [ "getExtraData", "group___p_b_f_t.html#a0f8f19b2c6d25e1fb7512575513e89ed", null ],
+    [ "getExtraDataRlp", "group___p_b_f_t.html#ae3feb650583387a505439972ca30c69f", null ],
     [ "getJson", "group___p_b_f_t.html#a8aef5ed309007cb074784b667c0ed548", null ],
     [ "getJsonStr", "group___p_b_f_t.html#ac534b99d6508a4559f83e6decbfc4447", null ],
     [ "getOrderHash", "group___p_b_f_t.html#a5a2f8d9e47fc25902c365cd8b7c87aa2", null ],
@@ -23,6 +25,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_block =
     [ "beneficiary_", "group___p_b_f_t.html#a9775b5a39efa42c37bfa8a9639e22634", null ],
     [ "block_hash_", "group___p_b_f_t.html#aadb9f72a5f6d7fc39f882143d1dd5f0d", null ],
     [ "dag_block_hash_as_pivot_", "group___p_b_f_t.html#a3f62783c3acffc0c3c51f48b703675b3", null ],
+    [ "extra_data_", "group___p_b_f_t.html#a87d10cacabe9e2f034ddaf17620b72b2", null ],
     [ "order_hash_", "group___p_b_f_t.html#a1a06c26808dcf0c8c997c896aa682c65", null ],
     [ "period_", "group___p_b_f_t.html#a88ab9f3501538d572e1a582a031ca4cf", null ],
     [ "prev_block_hash_", "group___p_b_f_t.html#af03389b53718e15a31c0da5a22411b22", null ],

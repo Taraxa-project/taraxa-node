@@ -179,11 +179,18 @@ $(document).ready(function(){initNavTree('functions.html',''); initResizable(); 
 <li>addPendingPeer()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a8e830ea3a4b10053c05a56bd50f99817">taraxa::network::tarcap::PeersState</a>
 </li>
+<li>addPeriodSystemTransactions()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a39eddb83eb7b21bfe95d28d9ad3a0ca4">taraxa::DbStorage</a>
+</li>
 <li>addProposalPeriodDagLevelsMapToBatch()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a1888e12ce4a4e49c0bd6eb1af0ffe743">taraxa::DbStorage</a>
 </li>
 <li>addr
 : <a class="el" href="group___final_chain.html#a6ebcf3fdfa57aa033a49aa2cc2f6642d">taraxa::state_api::ValidatorStake</a>
+, <a class="el" href="group___final_chain.html#a3e53778828ffe70802096ade66eb924b">taraxa::state_api::ValidatorVoteCount</a>
+</li>
+<li>addr_
+: <a class="el" href="structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a1c9e41cde1fd84d39367f597f86aa461">taraxa::pillar_chain::PillarBlock::ValidatorVoteCountChange</a>
 </li>
 <li>addReceivedPacket()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#a8e04ffc1e3a6c0388810ba488bbbff97">taraxa::network::tarcap::TimePeriodPacketsStats</a>
@@ -219,14 +226,17 @@ $(document).ready(function(){initNavTree('functions.html',''); initResizable(); 
 <li>addStatusFieldToBatch()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a0093c29ef1e270e9200a112453790b1c">taraxa::DbStorage</a>
 </li>
+<li>addSystemTransactionToBatch()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a858e545948f39f504ba18a23ed8999fc">taraxa::DbStorage</a>
+</li>
 <li>addToDag()
 : <a class="el" href="group___d_a_g.html#ae531eee634d1d0d5bad60586dc5bbc89">taraxa::DagManager</a>
 </li>
 <li>addTransaction()
 : <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f">taraxa::rewards::BlockStats</a>
 </li>
-<li>addTransactionPeriodToBatch()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a362415461a739b199a254084d64c71a0">taraxa::DbStorage</a>
+<li>addTransactionLocationToBatch()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a24ad3a7be3b243419932bda90da6ecea">taraxa::DbStorage</a>
 </li>
 <li>addTransactionToBatch()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a91cb10fa3a8499a93c36a435efe09dae">taraxa::DbStorage</a>
@@ -234,11 +244,15 @@ $(document).ready(function(){initNavTree('functions.html',''); initResizable(); 
 <li>addVEEs()
 : <a class="el" href="group___d_a_g.html#a50d307a99d2ce78294d970a67b07038b">taraxa::Dag</a>
 </li>
+<li>addVerifiedPillarVote()
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#af9cbb2ec28b6528a6f70311e3f7af5a9">taraxa::pillar_chain::PillarChainManager</a>
+</li>
 <li>addVerifiedVote()
-: <a class="el" href="group___vote.html#a060234b4c78ce4470b82c71f53f34ebb">taraxa::VoteManager</a>
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5e6a59af4e2d87a06c27bc029ca84e78">taraxa::pillar_chain::PillarVotes</a>
+, <a class="el" href="group___vote.html#a05596452fd0fbb074834769406b04498">taraxa::VoteManager</a>
 </li>
 <li>addVote()
-: <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a816d316dbdb7fa7490beb95bccdbdcd1">taraxa::rewards::BlockStats</a>
+: <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a226bce418ba0cdb7f88a58937583f4c4">taraxa::rewards::BlockStats</a>
 </li>
 <li>adj_list_t
 : <a class="el" href="group___d_a_g.html#aebe0629679ef96c6a242faeded09311e">taraxa::Dag</a>
@@ -297,7 +311,10 @@ $(document).ready(function(){initNavTree('functions.html',''); initResizable(); 
 , <a class="el" href="classtaraxa_1_1_value_by_block_cache.html#a8dcfba3ad5111e23ec0ae2dc6a266b61">taraxa::ValueByBlockCache&lt; Value &gt;</a>
 </li>
 <li>append_block()
-: <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0b0a09d690fd13f9142ad8bae894a372">taraxa::final_chain::FinalChainImpl</a>
+: <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aa1337554ab14c294eb069deb68f6a39b">taraxa::final_chain::FinalChainImpl</a>
+</li>
+<li>append_evm_transactions()
+: <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aefabfdd1432d6597dec29678b5cc2523">taraxa::final_chain::FinalChainImpl</a>
 </li>
 <li>append_int_()
 : <a class="el" href="classdev_1_1_r_l_p_stream.html#afea62759f902a0025090668ece3379dc">dev::RLPStream</a>

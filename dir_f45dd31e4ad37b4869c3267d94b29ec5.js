@@ -5,6 +5,9 @@ var dir_f45dd31e4ad37b4869c3267d94b29ec5 =
       [ "InvalidRlpItemsCountException", "classtaraxa_1_1_invalid_rlp_items_count_exception.html", "classtaraxa_1_1_invalid_rlp_items_count_exception" ],
       [ "MaliciousPeerException", "classtaraxa_1_1_malicious_peer_exception.html", "classtaraxa_1_1_malicious_peer_exception" ]
     ] ],
+    [ "ext_pillar_vote_packet_handler.hpp", "ext__pillar__vote__packet__handler_8hpp.html", [
+      [ "ExtPillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler" ]
+    ] ],
     [ "ext_syncing_packet_handler.hpp", "ext__syncing__packet__handler_8hpp.html", [
       [ "ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler" ]
     ] ],

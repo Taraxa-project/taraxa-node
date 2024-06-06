@@ -3,6 +3,7 @@ var structdev_1_1_signature_struct =
     [ "SignatureStruct", "structdev_1_1_signature_struct.html#a62542e50b4e4ffa5ad5c3c209b919f9f", null ],
     [ "SignatureStruct", "structdev_1_1_signature_struct.html#a3d2b09e8a2f96b77c05097819fcf920e", null ],
     [ "SignatureStruct", "structdev_1_1_signature_struct.html#ae5c28dace19db38907d04c6f6ab0afd0", null ],
+    [ "SignatureStruct", "structdev_1_1_signature_struct.html#a45f355af140af1fa0170c8763861cf61", null ],
     [ "isValid", "structdev_1_1_signature_struct.html#a467d9f53ccba2b2b29b65f0d8ff41e3b", null ],
     [ "operator Signature", "structdev_1_1_signature_struct.html#aa6054676922c7572dd16cc077b724f20", null ],
     [ "r", "structdev_1_1_signature_struct.html#a04864472accd410aea3c80690781af63", null ],

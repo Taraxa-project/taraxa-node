@@ -1,12 +1,13 @@
 <map id="taraxa::DagBlockProposer" name="taraxa::DagBlockProposer">
-<area shape="rect" id="node1" title="DagBlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="652,137,843,163"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="341,15,516,42"/>
+<area shape="rect" id="node1" title="DagBlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="652,167,843,194"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="341,29,516,55"/>
 <area shape="rect" id="node3" title=" " alt="" coords="5,5,200,47"/>
-<area shape="rect" id="node4" href="$struct_hardforks_config.html" title=" " alt="" coords="365,91,492,118"/>
+<area shape="rect" id="node4" href="$struct_hardforks_config.html" title=" " alt="" coords="365,122,492,149"/>
 <area shape="rect" id="node5" href="$hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="33,71,172,98"/>
-<area shape="rect" id="node6" href="$hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="43,122,162,149"/>
-<area shape="rect" id="node7" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="347,144,511,185"/>
-<area shape="rect" id="node8" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="23,173,182,199"/>
-<area shape="rect" id="node9" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="349,211,509,238"/>
-<area shape="rect" id="node10" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="333,263,524,304"/>
+<area shape="rect" id="node6" href="$struct_ficus_hardfork_config.html" title=" " alt="" coords="26,122,179,149"/>
+<area shape="rect" id="node7" href="$hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="43,173,162,199"/>
+<area shape="rect" id="node8" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="347,175,511,216"/>
+<area shape="rect" id="node9" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="23,223,182,250"/>
+<area shape="rect" id="node10" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="349,242,509,269"/>
+<area shape="rect" id="node11" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="333,293,524,335"/>
 </map>

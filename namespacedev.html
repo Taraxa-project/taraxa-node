@@ -192,6 +192,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1_signature_struct.html">SignatureStruct</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1_compact_signature_struct.html">CompactSignatureStruct</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1_key_pair.html">KeyPair</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -349,6 +351,8 @@ Typedefs</h2></td></tr>
 <tr class="separator:a0266517d70437660a08b9f6166572eb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fd0d1e56fde466db30621e9e08c0cf2"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedev.html#a1fd0d1e56fde466db30621e9e08c0cf2">Signature</a> = <a class="el" href="namespacedev.html#a695c8748c07eeaf0993a7e0beba32c44">h520</a></td></tr>
 <tr class="separator:a1fd0d1e56fde466db30621e9e08c0cf2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13c054d5e460c4e6e36e4e156d63f7ad"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedev.html#a13c054d5e460c4e6e36e4e156d63f7ad">CompactSignature</a> = <a class="el" href="namespacedev.html#af6e5260335ea3808e33b8058a5e6fc9f">h512</a></td></tr>
+<tr class="separator:a13c054d5e460c4e6e36e4e156d63f7ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad04f95204d842420975955cd1437720b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedev.html#ad04f95204d842420975955cd1437720b">Secrets</a> = std::vector&lt; <a class="el" href="namespacedev.html#a04a16f8a4c264a7868151d49e2223f04">Secret</a> &gt;</td></tr>
 <tr class="memdesc:ad04f95204d842420975955cd1437720b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A vector of secrets.  <a href="namespacedev.html#ad04f95204d842420975955cd1437720b">More...</a><br /></td></tr>
 <tr class="separator:ad04f95204d842420975955cd1437720b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -768,6 +772,8 @@ Functions</h2></td></tr>
 <tr class="separator:a91fc3f96243829957562db59f4e958ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb4f1d2f3eb5ba0e9c5e28ca8ffd5aeb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedev.html#afb4f1d2f3eb5ba0e9c5e28ca8ffd5aeb">aesDecrypt</a> (<a class="el" href="namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4">bytesConstRef</a> _cipher, std::string const &amp;_password, unsigned _rounds=2000, <a class="el" href="namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4">bytesConstRef</a> _salt=<a class="el" href="namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4">bytesConstRef</a>())</td></tr>
 <tr class="separator:afb4f1d2f3eb5ba0e9c5e28ca8ffd5aeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26e7ca394337e2a9c576f698c8d9e638"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#af6e5260335ea3808e33b8058a5e6fc9f">h512</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedev.html#a26e7ca394337e2a9c576f698c8d9e638">toCompact</a> (const <a class="el" href="namespacedev.html#a1fd0d1e56fde466db30621e9e08c0cf2">Signature</a> &amp;_s)</td></tr>
+<tr class="separator:a26e7ca394337e2a9c576f698c8d9e638"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7556242b570406ec30178110e9b8b9db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a33b08ec2e2db2674c10581cc2677054d">Public</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedev.html#a7556242b570406ec30178110e9b8b9db">toPublic</a> (<a class="el" href="namespacedev.html#a04a16f8a4c264a7868151d49e2223f04">Secret</a> const &amp;_secret)</td></tr>
 <tr class="memdesc:a7556242b570406ec30178110e9b8b9db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a secret key into the public key equivalent.  <a href="namespacedev.html#a7556242b570406ec30178110e9b8b9db">More...</a><br /></td></tr>
 <tr class="separator:a7556242b570406ec30178110e9b8b9db"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -999,6 +1005,21 @@ Variables</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a13c054d5e460c4e6e36e4e156d63f7ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13c054d5e460c4e6e36e4e156d63f7ad">&#9670;&nbsp;</a></span>CompactSignature</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacedev.html#a13c054d5e460c4e6e36e4e156d63f7ad">dev::CompactSignature</a> = typedef <a class="el" href="namespacedev.html#af6e5260335ea3808e33b8058a5e6fc9f">h512</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A compact signature: 65 bytes: r: [0, 32), vs: [32, 64). @NOTE This is not endian-specific; it's just a bunch of bytes. <a href="https://eips.ethereum.org/EIPS/eip-2098">https://eips.ethereum.org/EIPS/eip-2098</a> </p>
 
 </div>
 </div>
@@ -6169,6 +6190,25 @@ template&lt;class T , class Out &gt; </div>
 </div><div class="memdoc">
 
 <p>Convenience functions for toBigEndian. </p>
+
+</div>
+</div>
+<a id="a26e7ca394337e2a9c576f698c8d9e638"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26e7ca394337e2a9c576f698c8d9e638">&#9670;&nbsp;</a></span>toCompact()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#af6e5260335ea3808e33b8058a5e6fc9f">h512</a> dev::toCompact </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacedev.html#a1fd0d1e56fde466db30621e9e08c0cf2">Signature</a> &amp;&#160;</td>
+          <td class="paramname"><em>_s</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert signature to compact form. <a href="https://eips.ethereum.org/EIPS/eip-2098">https://eips.ethereum.org/EIPS/eip-2098</a> </p>
 
 </div>
 </div>

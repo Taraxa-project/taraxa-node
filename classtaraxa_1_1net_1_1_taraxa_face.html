@@ -129,6 +129,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a416b81f6dbba2f43c671df70fce3cf0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fe28953fe6bd63eaff39b2521385186"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a1fe28953fe6bd63eaff39b2521385186">taraxa_totalSupplyI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a1fe28953fe6bd63eaff39b2521385186"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67d65566d9f03723993f99c14a279b57"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a67d65566d9f03723993f99c14a279b57">taraxa_getPillarBlockDataI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:a67d65566d9f03723993f99c14a279b57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4998140d6d826fc772298b0b1ff9ab48"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a4998140d6d826fc772298b0b1ff9ab48">taraxa_protocolVersion</a> ()=0</td></tr>
 <tr class="separator:a4998140d6d826fc772298b0b1ff9ab48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae99bf55a2f903e805aaba7ba141cbb15"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#ae99bf55a2f903e805aaba7ba141cbb15">taraxa_getVersion</a> ()=0</td></tr>
@@ -153,6 +155,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a57daf15be3c242029cd51fa7a33d6f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a187b36de335759d109c6b93ca4fc9fae"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a187b36de335759d109c6b93ca4fc9fae">taraxa_totalSupply</a> (const std::string &amp;param1)=0</td></tr>
 <tr class="separator:a187b36de335759d109c6b93ca4fc9fae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2cf6e24f01642119b291b70ec7f5040"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#aa2cf6e24f01642119b291b70ec7f5040">taraxa_getPillarBlockData</a> (const std::string &amp;param1, bool param2)=0</td></tr>
+<tr class="separator:aa2cf6e24f01642119b291b70ec7f5040"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_server_interface"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_server_interface')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_server_interface.html">ServerInterface&lt; TaraxaFace &gt;</a></td></tr>
 <tr class="memitem:aab469c17069122d975dafa410856434d inherit pub_methods_class_server_interface"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_server_interface.html#aab469c17069122d975dafa410856434d">~ServerInterface</a> ()</td></tr>
 <tr class="separator:aab469c17069122d975dafa410856434d inherit pub_methods_class_server_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -593,6 +597,80 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">virtual void taraxa::net::TaraxaFace::taraxa_getDagBlockByLevelI </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa2cf6e24f01642119b291b70ec7f5040"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2cf6e24f01642119b291b70ec7f5040">&#9670;&nbsp;</a></span>taraxa_getPillarBlockData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Json::Value taraxa::net::TaraxaFace::taraxa_getPillarBlockData </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>param1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>param2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1_taraxa.html#acf532d81425d987e793b5060418d2f6c">taraxa::net::Taraxa</a>.</p>
+
+</div>
+</div>
+<a id="a67d65566d9f03723993f99c14a279b57"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67d65566d9f03723993f99c14a279b57">&#9670;&nbsp;</a></span>taraxa_getPillarBlockDataI()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::net::TaraxaFace::taraxa_getPillarBlockDataI </td>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>

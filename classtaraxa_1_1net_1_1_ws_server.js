@@ -11,6 +11,7 @@ var classtaraxa_1_1net_1_1_ws_server =
     [ "newEthBlock", "classtaraxa_1_1net_1_1_ws_server.html#a322346eb144b9474d339a11289d714f3", null ],
     [ "newPbftBlockExecuted", "classtaraxa_1_1net_1_1_ws_server.html#a8e904b54c82e17f52b79548e48728e06", null ],
     [ "newPendingTransaction", "classtaraxa_1_1net_1_1_ws_server.html#ab277fe8bf79d7a6e0906ad3fcfbdb480", null ],
+    [ "newPillarBlockData", "classtaraxa_1_1net_1_1_ws_server.html#a873f68ea99e53010675f8f71413a2657", null ],
     [ "numberOfSessions", "classtaraxa_1_1net_1_1_ws_server.html#a660322a9964654ef6f6feb613305edba", null ],
     [ "on_accept", "classtaraxa_1_1net_1_1_ws_server.html#a04c841545c5df25f425cad23de2c075b", null ],
     [ "operator=", "classtaraxa_1_1net_1_1_ws_server.html#a329e616926aaff1bc826f8c43b652973", null ],

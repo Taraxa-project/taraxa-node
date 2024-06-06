@@ -2,7 +2,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler =
 [
     [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a7e2bd9a0468cde71e43fa5a313c8a169", null ],
     [ "decodePeriodData", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#ad1ca071b6524c90757e1c70635a4e1a1", null ],
-    [ "decodeVotesBundle", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a4a9df30835f987e6bd2ca7099c8b8c74", null ],
+    [ "decodeVotesBundle", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a421a2d55bd12dae380cfef81dda8d444", null ],
     [ "delayedPbftSync", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aa9247f9272968cb79832ac4e5e2cf533", null ],
     [ "handleMaliciousSyncPeer", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a3db3cd7ded8f6f0a2ae5fba487bb892d", null ],
     [ "pbftSyncComplete", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aeda98ed2ba99f1ef374cda1f81192334", null ],

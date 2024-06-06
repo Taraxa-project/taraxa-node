@@ -41,7 +41,7 @@ var classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl =
     [ "get_block_number_from_json", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aa4da8c49abd76c042799e3f3bb384a53", null ],
     [ "get_transaction", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#abeca66afb8945e53e16a00211769bc81", null ],
     [ "get_transaction", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a2403ec0a0547a540b7b1cf686b64e255", null ],
-    [ "get_transaction", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#acd54a26e80c2f3a0a96cf74df411143f", null ],
+    [ "get_transaction", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a087c78b353ae186a0b13769c9ae18c61", null ],
     [ "get_transaction_receipt", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#af36a3e4131ca8b3e8903e1ecf3202e5d", null ],
     [ "implementedModules", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a657fdf717a0c4909b489287021b8d4ca", null ],
     [ "note_block_executed", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aac82157b44a519997f8ffe8dd72747db", null ],

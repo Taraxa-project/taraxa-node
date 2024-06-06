@@ -160,6 +160,10 @@ $(document).ready(function(){initNavTree('functions_e.html',''); initResizable()
 <li>enableSnapshots()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#ab38881e05d52dd3406f49ac3ebe0a030">taraxa::DbStorage</a>
 </li>
+<li>encodeSolidity()
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a55bd9a665a1c66ce06477f81beae8edd">taraxa::pillar_chain::PillarBlock</a>
+, <a class="el" href="group___vote.html#a8137d50563830f6ef5147b151ff32cfa">taraxa::PillarVote</a>
+</li>
 <li>encrypt()
 : <a class="el" href="classdev_1_1crypto_1_1_secp256k1_p_p.html#a01378bc71eb4a48af1da7a342765aebe">dev::crypto::Secp256k1PP</a>
 </li>
@@ -209,12 +213,15 @@ $(document).ready(function(){initNavTree('functions_e.html',''); initResizable()
 <li>ep_
 : <a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a3828a62d43e15f89403f53ce75240bd7">taraxa::net::HttpServer</a>
 </li>
+<li>epoch_
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a87596442790716c49b054e2329edcfee">taraxa::pillar_chain::PillarBlock</a>
+</li>
 <li>erase()
 : <a class="el" href="class_expiration_cache.html#ab54091d7a34e5e1ab098390c400d1557">ExpirationCache&lt; Key &gt;</a>
 , <a class="el" href="class_expiration_cache_map.html#a70965bfc7cfdce27f2f876c3570a26c3">ExpirationCacheMap&lt; Key, Value &gt;</a>
 , <a class="el" href="classtaraxa_1_1_status_table.html#a60c5a4f1d1b3a10dc474fc7509ef7c01">taraxa::StatusTable&lt; K, V &gt;</a>
 , <a class="el" href="group___transaction.html#af14c7d11cc715eb2f9ff782d48f04c97">taraxa::TransactionQueue</a>
-, <a class="el" href="class_thread_safe_map.html#a83d7bf0186ef15818c2c6022ce676931">ThreadSafeMap&lt; Key, Value &gt;</a>
+, <a class="el" href="class_thread_safe_map.html#afc06b86d145acc35df4b9f90585bcf5c">ThreadSafeMap&lt; Key, Value &gt;</a>
 , <a class="el" href="class_thread_safe_set.html#ad5551325ff2c47eaef37dabb4421da53">ThreadSafeSet&lt; Key &gt;</a>
 </li>
 <li>eraseOldest()
@@ -223,11 +230,14 @@ $(document).ready(function(){initNavTree('functions_e.html',''); initResizable()
 <li>erasePeer()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a0133cde253f39258728a57ccd59d7524">taraxa::network::tarcap::PeersState</a>
 </li>
-<li>Error
-: <a class="el" href="structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a708429ef7a5ed14e8ceee7ac8dfa3fcda238627d66d02ff95c9e51718d623f533">dev::p2p::RLPXHandshake</a>
+<li>eraseVotes()
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ab0e60e3bb6761c5c7b692566c8140b0e">taraxa::pillar_chain::PillarVotes</a>
 </li>
 <li>error()
 : <a class="el" href="structdev_1_1p2p_1_1_r_l_p_x_handshake.html#adcbc9beafa0baca8cb2854ccb8311516">dev::p2p::RLPXHandshake</a>
+</li>
+<li>Error
+: <a class="el" href="structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a708429ef7a5ed14e8ceee7ac8dfa3fcda238627d66d02ff95c9e51718d623f533">dev::p2p::RLPXHandshake</a>
 </li>
 <li>ErrorHandler()
 : <a class="el" href="classtaraxa_1_1state__api_1_1_error_handler.html#a967eb06bb633d87f5962c7d1d23b4926">taraxa::state_api::ErrorHandler</a>
@@ -539,7 +549,7 @@ $(document).ready(function(){initNavTree('functions_e.html',''); initResizable()
 : <a class="el" href="group___transaction.html#a385cd5d97c6b15e819db9328db01fede">taraxa::TransactionManager</a>
 </li>
 <li>execute_transactions()
-: <a class="el" href="group___final_chain.html#a3766cda343bb6662885edf6c610dde43">taraxa::state_api::StateAPI</a>
+: <a class="el" href="group___final_chain.html#a424e396e80fbdb4ff1d047bb14f9e335">taraxa::state_api::StateAPI</a>
 </li>
 <li>executed_pbft_block_
 : <a class="el" href="group___p_b_f_t.html#a248c0e6239aabf0a0f030965dbb6db41">taraxa::PbftManager</a>
@@ -590,8 +600,14 @@ $(document).ready(function(){initNavTree('functions_e.html',''); initResizable()
 <li>externalIP()
 : <a class="el" href="classdev_1_1p2p_1_1_u_pn_p.html#a5c2966cbe0a3759fffb22fc2a7336167">dev::p2p::UPnP</a>
 </li>
+<li>ExtPillarVotePacketHandler()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html#a39ff0f8afdbcd07186b975ed6b0f4cc9">taraxa::network::tarcap::ExtPillarVotePacketHandler</a>
+</li>
 <li>extra_data
 : <a class="el" href="group___final_chain.html#a7a31c3f1a5eb98a23e37b51b783e2466">taraxa::final_chain::BlockHeader</a>
+</li>
+<li>extra_data_
+: <a class="el" href="group___p_b_f_t.html#a87d10cacabe9e2f034ddaf17620b72b2">taraxa::PbftBlock</a>
 </li>
 <li>extra_reward_votes_
 : <a class="el" href="group___vote.html#a2032545e950f6e1751e1e54f493e576c">taraxa::VoteManager</a>

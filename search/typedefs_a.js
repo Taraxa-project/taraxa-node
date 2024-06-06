@@ -1,10 +1,10 @@
 var searchData=
 [
-  ['lazyval_7240',['LazyVal',['../namespacetaraxa_1_1util_1_1lazy.html#accbb2a1c395a6aa4043db51c276b2fc1',1,'taraxa::util::lazy']]],
-  ['level_5ft_7241',['level_t',['../namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526',1,'taraxa']]],
-  ['log_5fsink_7242',['log_sink',['../classtaraxa_1_1logger_1_1_config.html#a010b8605c14e0bf29793b00ec6c5b2c7',1,'taraxa::logger::Config']]],
-  ['logbloom_7243',['LogBloom',['../group___final_chain.html#ga7c637c1037e99cfc76922e6cbb3f88a4',1,'taraxa::final_chain']]],
-  ['logblooms_7244',['LogBlooms',['../group___final_chain.html#gab778dd415cc20f3ce082af8d41fba3ef',1,'taraxa::final_chain']]],
-  ['logentries_7245',['LogEntries',['../group___final_chain.html#ga12616fa78b8d1e267634739c1d717d0e',1,'taraxa::final_chain']]],
-  ['logger_7246',['Logger',['../namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948',1,'dev::Logger()'],['../namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989',1,'taraxa::logger::Logger()']]]
+  ['methodbinding_7590',['MethodBinding',['../class_server_interface.html#ad1f1c90ef2b79f7cd5160f0357299c57',1,'ServerInterface']]],
+  ['methodpointer_7591',['MethodPointer',['../class_server_interface.html#acba0af27519bb87ca38729b04796454e',1,'ServerInterface::MethodPointer()'],['../class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html#a9bf83fa92c381b0db0d9f3466d01b093',1,'ModularServer&lt; I, Is... &gt;::MethodPointer()']]],
+  ['methods_7592',['Methods',['../class_server_interface.html#a4fccc81d5973e15a1ac5da2badb15d08',1,'ServerInterface']]],
+  ['metricgetter_7593',['MetricGetter',['../classtaraxa_1_1metrics_1_1_metrics_group.html#a87ddd11b764347913195acd8da2d11ec',1,'taraxa::metrics::MetricsGroup']]],
+  ['metricupdater_7594',['MetricUpdater',['../classtaraxa_1_1metrics_1_1_metrics_group.html#afb6633bb2e4b08417681a42586216142',1,'taraxa::metrics::MetricsGroup']]],
+  ['mutable_5fvalue_5ftype_7595',['mutable_value_type',['../classdev_1_1vector__ref.html#a765a0ac88cf9a7becf3dcb94b38bed12',1,'dev::vector_ref']]],
+  ['mutex_7596',['Mutex',['../namespacedev.html#a28059f0e0521741cce21cf5fd419bdf4',1,'dev']]]
 ];

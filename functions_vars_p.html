@@ -123,6 +123,9 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 <li>parent_hash
 : <a class="el" href="group___final_chain.html#a0bac080ed60c991a08d7b1e3b7fe3c9b">taraxa::final_chain::BlockHeader</a>
 </li>
+<li>patch_version_
+: <a class="el" href="group___p_b_f_t.html#a7dc6c66707a88662512e8829243aa7b2">taraxa::PbftBlockExtraData</a>
+</li>
 <li>path_
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a52ace18f00268bf8a3d4816172fcca01">taraxa::DbStorage</a>
 </li>
@@ -148,6 +151,9 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 <li>pbft_chain_size_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a23bba740d247ee7ed82eca0f5e14d0fc">taraxa::network::tarcap::TaraxaPeer</a>
 </li>
+<li>pbft_inclusion_delay
+: <a class="el" href="struct_ficus_hardfork_config.html#a5c5d657745b865d819f67d80d9610571">FicusHardforkConfig</a>
+</li>
 <li>pbft_manager_
 : <a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a4ca8c98fa0895a2d468b3dbc22f835f7">graphql::taraxa::DagBlock</a>
 , <a class="el" href="classgraphql_1_1taraxa_1_1_query.html#ab7ee892f742f609d03b39bdc2a4f7ad2">graphql::taraxa::Query</a>
@@ -163,6 +169,7 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 </li>
 <li>pbft_period_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ae77a97c689745edf40b1d3fd1ae1aa5e">taraxa::network::tarcap::TaraxaPeer</a>
+, <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a883617063c5428d88dd2775ec79c1700">taraxa::pillar_chain::PillarBlock</a>
 </li>
 <li>pbft_round_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ac05bf004b378f3bde0117e9483a2b088">taraxa::network::tarcap::TaraxaPeer</a>
@@ -258,13 +265,15 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 : <a class="el" href="structtaraxa_1_1_gas_price_config.html#ac0b372753bf58c137a38c93c02abf8c7">taraxa::GasPriceConfig</a>
 </li>
 <li>period
-: <a class="el" href="group___d_a_g.html#ac66f690ce0d6fedf07bde818821d7dda">taraxa::SortitionParamsChange</a>
+: <a class="el" href="group___final_chain.html#a6d827caa1b2efb11c0704faf0c53a59b">taraxa::final_chain::TransactionLocation</a>
+, <a class="el" href="group___d_a_g.html#ac66f690ce0d6fedf07bde818821d7dda">taraxa::SortitionParamsChange</a>
 </li>
 <li>period_
 : <a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110">graphql::taraxa::DagBlock</a>
 , <a class="el" href="group___d_a_g.html#aad8c75d1639c45ed23ddb17da5401e03">taraxa::DagManager</a>
 , <a class="el" href="group___p_b_f_t.html#a88ab9f3501538d572e1a582a031ca4cf">taraxa::PbftBlock</a>
 , <a class="el" href="group___p_b_f_t.html#a640d29636712763de0c3e2710b3578b3">taraxa::PeriodDataQueue</a>
+, <a class="el" href="group___vote.html#a270cca8c747a9592bf1e99659e1724a2">taraxa::PillarVote</a>
 , <a class="el" href="group___vote.html#a14c8bdba61ceb8ef5ecfb5964de64fca">taraxa::VrfPbftMsg</a>
 </li>
 <li>period_ms
@@ -276,6 +285,41 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 </li>
 <li>phalaenopsis_hf_block_num
 : <a class="el" href="struct_hardforks_config.html#a96cc85f6ef2a8464b06fd5058d33669b">HardforksConfig</a>
+</li>
+<li>pillar_block
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a37c60035bfd96e099cc034285f828d9d">taraxa::pillar_chain::CurrentPillarBlockDataDb</a>
+</li>
+<li>pillar_block_finalized_
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a8375ea4330c9ae4e1bbb50e3ea7e52d2">taraxa::pillar_chain::PillarChainManager</a>
+</li>
+<li>pillar_block_finalized_emitter_
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a492825a8a85d688587d2df474a9d55cf">taraxa::pillar_chain::PillarChainManager</a>
+</li>
+<li>pillar_block_hash_
+: <a class="el" href="group___p_b_f_t.html#ab0a38ab87920e7c3c13a47a33920b60f">taraxa::PbftBlockExtraData</a>
+</li>
+<li>pillar_block_votes
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5f5c2479e84381dcc978f9b19bb13b27">taraxa::pillar_chain::PillarVotes::PeriodVotes</a>
+</li>
+<li>pillar_blocks_interval
+: <a class="el" href="struct_ficus_hardfork_config.html#a9e2a1b2623b4a2d8cee3c42826b84573">FicusHardforkConfig</a>
+</li>
+<li>pillar_chain_manager_
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html#af23cfc0e23cba4fb000cf3a432cf896c">taraxa::network::tarcap::ExtPillarVotePacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html#ac1cfda5ea8ffefa44d224e762290267a">taraxa::network::tarcap::GetPillarVotesBundlePacketHandler</a>
+</li>
+<li>pillar_chain_mgr_
+: <a class="el" href="classtaraxa_1_1_full_node.html#af4b848994f193557449f9ea14d6f1e74">taraxa::FullNode</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a45820a3b7abab14ff6898f3a596b7bdf">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
+, <a class="el" href="group___p_b_f_t.html#a0ef3f6a84faf859507b0a574f8c73822">taraxa::PbftManager</a>
+</li>
+<li>pillar_chain_sync_interval
+: <a class="el" href="struct_ficus_hardfork_config.html#aabe58cfa8c7222f3b7b12b3b8d56e916">FicusHardforkConfig</a>
+</li>
+<li>pillar_votes_
+: <a class="el" href="group___p_b_f_t.html#acbfdf26deb3b9286f4f23924073dde56">taraxa::PeriodData</a>
+, <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#af119c545bad35423b8f37c952d338813">taraxa::pillar_chain::PillarBlockData</a>
+, <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#acbdfa0994b21b41ba126b99ac331a153">taraxa::pillar_chain::PillarChainManager</a>
 </li>
 <li>pin
 : <a class="el" href="structdev_1_1p2p_1_1_network_config.html#a095a706068fb34fdfb47b09dd30c1c1b">dev::p2p::NetworkConfig</a>
@@ -310,6 +354,9 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 <li>port
 : <a class="el" href="namespacetaraxa.html#a13ec6be411c3c352858744678e0690da">taraxa::NodeConfig</a>
 </li>
+<li>position
+: <a class="el" href="group___final_chain.html#a1915ed15a2a8c5f08104baec7946e4a5">taraxa::final_chain::TransactionLocation</a>
+</li>
 <li>position_in_receipt
 : <a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a66d8e31c32390658c5c3478254b96875">taraxa::net::rpc::eth::LocalisedLogEntry</a>
 </li>
@@ -320,7 +367,10 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 : <a class="el" href="group___p_b_f_t.html#a26117ec75a08080a9208dc6d68e561dd">taraxa::PbftBlock</a>
 </li>
 <li>previous_block_cert_votes
-: <a class="el" href="group___p_b_f_t.html#ae4cda577538fab03cda161a89aa2a228">taraxa::PeriodData</a>
+: <a class="el" href="group___p_b_f_t.html#a3741cb2fbfb0a82915c59fe4dff4d89f">taraxa::PeriodData</a>
+</li>
+<li>previous_pillar_block_hash_
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a6e79d722830647bafac6bbdbe657cb8c">taraxa::pillar_chain::PillarBlock</a>
 </li>
 <li>price_list_
 : <a class="el" href="group___transaction.html#a5fda2f7af43fa418f5735fe70284a677">taraxa::GasPricer</a>

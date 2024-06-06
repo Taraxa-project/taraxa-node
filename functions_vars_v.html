@@ -102,6 +102,9 @@ $(document).ready(function(){initNavTree('functions_vars_v.html',''); initResiza
 <li>validators_stats_
 : <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a9c0222ab71a509f3997751698ba39f42">taraxa::rewards::BlockStats</a>
 </li>
+<li>validators_votes_count_changes_
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a89da25ba0007c7cadde38e7347deed2c">taraxa::pillar_chain::PillarBlock</a>
+</li>
 <li>value
 : <a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a80c9a5c494c83a27ba8c7108b2de60ba">taraxa::net::rpc::eth::TransactionSkeleton</a>
 , <a class="el" href="group___final_chain.html#aecdfbb5abbabaa31d5d28b05acd17d62">taraxa::state_api::EVMTransaction</a>
@@ -158,6 +161,15 @@ $(document).ready(function(){initNavTree('functions_vars_v.html',''); initResiza
 <li>vote_accepting_steps
 : <a class="el" href="structtaraxa_1_1_ddos_protection_config.html#ac7ebf3adcb6de5385c8cce64be5a59b1">taraxa::DdosProtectionConfig</a>
 </li>
+<li>vote_count
+: <a class="el" href="group___final_chain.html#ad8fb78511df94733a852a7488926b561">taraxa::state_api::ValidatorVoteCount</a>
+</li>
+<li>vote_count_change_
+: <a class="el" href="structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#aded05538bffdc27611857ce639af20a8">taraxa::pillar_chain::PillarBlock::ValidatorVoteCountChange</a>
+</li>
+<li>vote_counts
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a00eb8723c86fa420e4e30b18155e0037">taraxa::pillar_chain::CurrentPillarBlockDataDb</a>
+</li>
 <li>vote_eligibility_balance_step
 : <a class="el" href="namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754">taraxa::state_api::DPOSConfig</a>
 </li>
@@ -171,6 +183,7 @@ $(document).ready(function(){initNavTree('functions_vars_v.html',''); initResiza
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a69566e770b06e4bb8d09263870c9686c">taraxa::network::tarcap::NodeStats</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#ab553878e91258a31d14ccf2cfe21e7d0">taraxa::network::tarcap::PbftSyncPacketHandler</a>
 , <a class="el" href="group___p_b_f_t.html#af14ed5b43a9c91c797d8847d7def4d01">taraxa::PbftManager</a>
+, <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a3eaa590f9df93f5e19bf48f94bd3cf64">taraxa::pillar_chain::PillarChainManager</a>
 </li>
 <li>vote_signature_
 : <a class="el" href="group___vote.html#aeaa1d4836ba3a2ce8243b4dc939e3028">taraxa::Vote</a>
@@ -179,7 +192,11 @@ $(document).ready(function(){initNavTree('functions_vars_v.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#ab271d9e42fb445fa2e8fbefe85400869">taraxa::rewards::BlockStats::ValidatorStats</a>
 </li>
 <li>votes
-: <a class="el" href="namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2">taraxa::VerifiedVotes::StepVotes</a>
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a018b3eae8c1923ff735d64468772f2f2">taraxa::pillar_chain::PillarVotes::WeightVotes</a>
+, <a class="el" href="namespacetaraxa.html#add2731f05401c618d926c2ddc218ba82">taraxa::VerifiedVotes::StepVotes</a>
+</li>
+<li>votes_
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a4f1a96cb137b11a5dc68a1caa81a782f">taraxa::pillar_chain::PillarVotes</a>
 </li>
 <li>vrf
 : <a class="el" href="structtaraxa_1_1_sortition_params.html#a96459571aa0b611b6a80691f3ca76f84">taraxa::SortitionParams</a>
@@ -189,6 +206,12 @@ $(document).ready(function(){initNavTree('functions_vars_v.html',''); initResiza
 </li>
 <li>vrf_key
 : <a class="el" href="namespacetaraxa_1_1state__api.html#a66c3ef108fefa0436f3abdf1eeee3384">taraxa::state_api::ValidatorInfo</a>
+</li>
+<li>vrf_keys_
+: <a class="el" href="classtaraxa_1_1_key_manager.html#a37f9c699a611e1a414ba7c51deb88059">taraxa::KeyManager</a>
+</li>
+<li>vrf_keys_mutex_
+: <a class="el" href="classtaraxa_1_1_key_manager.html#a9fa676846ac1b5fe0be587a1316cc86f">taraxa::KeyManager</a>
 </li>
 <li>vrf_params
 : <a class="el" href="group___d_a_g.html#a3f2a1470b5f24f2fc6bdf52b0dac9497">taraxa::SortitionParamsChange</a>
@@ -206,10 +229,13 @@ $(document).ready(function(){initNavTree('functions_vars_v.html',''); initResiza
 : <a class="el" href="group___d_a_g.html#a70a63ad742c1a60452a0ecb7084712ba">taraxa::DagBlockProposer</a>
 </li>
 <li>vrf_sortition_
-: <a class="el" href="group___vote.html#a6dee428599ec5049386c46ef14fc404e">taraxa::Vote</a>
+: <a class="el" href="group___vote.html#a2c0f754951467bbff1f946701422597e">taraxa::PbftVote</a>
 </li>
 <li>vrs_
 : <a class="el" href="structtaraxa_1_1_transaction.html#af8a7c8df007e8ef709eaf6a55f557593">taraxa::Transaction</a>
+</li>
+<li>vs
+: <a class="el" href="structdev_1_1_compact_signature_struct.html#ab33275fd651ce388f27c95326641339f">dev::CompactSignatureStruct</a>
 </li>
 </ul>
 </div><!-- contents -->

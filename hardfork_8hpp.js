@@ -15,12 +15,15 @@ var hardfork_8hpp =
       [ "generated_rewards", "hardfork_8hpp.html#af5cc679b10ee8950384d348f784ea72b", null ],
       [ "max_supply", "hardfork_8hpp.html#a1882d3b74432e41a3b9acb01eed78d83", null ]
     ] ],
+    [ "FicusHardforkConfig", "struct_ficus_hardfork_config.html", "struct_ficus_hardfork_config" ],
     [ "HardforksConfig", "struct_hardforks_config.html", "struct_hardforks_config" ],
     [ "dec_json", "hardfork_8hpp.html#a7f5bc0b7b5eec75c54920eefa9816f71", null ],
+    [ "dec_json", "hardfork_8hpp.html#aa0a41c5ffaae749875f71651deb8f088", null ],
     [ "dec_json", "hardfork_8hpp.html#aee3750fcf3856743f5e71f64f88ad959", null ],
     [ "dec_json", "hardfork_8hpp.html#ae6551b937467c5972009ffa1ac192aec", null ],
     [ "dec_json", "hardfork_8hpp.html#a3d203167ce341d6ad0ebba86baf013fc", null ],
     [ "enc_json", "hardfork_8hpp.html#ae26fc5741c9165c093419908b665d18a", null ],
+    [ "enc_json", "hardfork_8hpp.html#a760ac54ed1c9b5d0551ce32e307f2978", null ],
     [ "enc_json", "hardfork_8hpp.html#ab6a85b139db5ad20b93828cf63d51c7c", null ],
     [ "enc_json", "hardfork_8hpp.html#abd62dbe54ecc518f4c7dc601eb4b7f7f", null ],
     [ "enc_json", "hardfork_8hpp.html#a280d6fe653a1c7e6c87fd8f2162a2090", null ]

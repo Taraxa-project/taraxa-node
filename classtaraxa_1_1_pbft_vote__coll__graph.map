@@ -1,0 +1,10 @@
+<map id="taraxa::PbftVote" name="taraxa::PbftVote">
+<area shape="rect" id="node1" title="PbftVote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="111,376,238,403"/>
+<area shape="rect" id="node2" href="$group___vote.html#classtaraxa_1_1_vote" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="45,287,147,313"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,117,165,143"/>
+<area shape="rect" id="node4" href="$group___vote.html#classtaraxa_1_1_vrf_pbft_sortition" title="VrfPbftSortition class used for doing VRF sortition to place a vote or to propose a new PBFT block." alt="" coords="180,287,351,313"/>
+<area shape="rect" id="node5" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="190,109,341,151"/>
+<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="77,5,253,47"/>
+<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="277,5,453,47"/>
+<area shape="rect" id="node8" href="$group___vote.html#classtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg class uses PBFT period, round and step to generate a message for doing VRF sortition." alt="" coords="365,117,507,143"/>
+</map>

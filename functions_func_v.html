@@ -85,7 +85,8 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 
 <h3><a id="index_v"></a>- v -</h3><ul>
 <li>validate()
-: <a class="el" href="structtaraxa_1_1_connection_config.html#a75d34d84f83d25636560c44ab81e01af">taraxa::ConnectionConfig</a>
+: <a class="el" href="struct_ficus_hardfork_config.html#a870521343072362ac772748746fffa66">FicusHardforkConfig</a>
+, <a class="el" href="structtaraxa_1_1_connection_config.html#a75d34d84f83d25636560c44ab81e01af">taraxa::ConnectionConfig</a>
 , <a class="el" href="structtaraxa_1_1_ddos_protection_config.html#afebf1c6865de0152e78970a87bc068fd">taraxa::DdosProtectionConfig</a>
 , <a class="el" href="structtaraxa_1_1_full_node_config.html#aad4a40f97ab5a5dafcbc5909bd869c4d">taraxa::FullNodeConfig</a>
 , <a class="el" href="structtaraxa_1_1_gas_price_config.html#acf08e6075a6619e4da8df0ce90e05b59">taraxa::GasPriceConfig</a>
@@ -101,8 +102,11 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a56b0145ac259687066b3eca0cfeab2a5">taraxa::network::tarcap::GetDagSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html#a4b2f3f3529212014d6ac5d455a2fbcbf">taraxa::network::tarcap::GetNextVotesBundlePacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a27b9716b418b3d545b05252269ee1c3c">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html#adf9ae9012a0102932e9be886a2a04075">taraxa::network::tarcap::GetPillarVotesBundlePacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a8b79b9dcf21dae474f34f198b07ffb4a">taraxa::network::tarcap::PacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#afc51445649de8728518ebc123a8edcd8">taraxa::network::tarcap::PbftSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html#ab22e6d18821f46468c14925e7820ba42">taraxa::network::tarcap::PillarVotePacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler.html#a08c0c756462c5497282080cc3c21cb4e">taraxa::network::tarcap::PillarVotesBundlePacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#afa9be12470201c4e6d5f7edd58c2856f">taraxa::network::tarcap::StatusPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a157e186cd830ef0190f6b0c0c28f5527">taraxa::network::tarcap::TransactionPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a0107970031d3ef197c56a77c933e65c7">taraxa::network::tarcap::VotePacketHandler</a>
@@ -112,19 +116,34 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 : <a class="el" href="group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948">taraxa::PbftManager</a>
 </li>
 <li>validatePbftBlockCertVotes()
-: <a class="el" href="group___p_b_f_t.html#ab98c1841139d0440c38fac78d97ee438">taraxa::PbftManager</a>
+: <a class="el" href="group___p_b_f_t.html#aae5e8f78af09ae45656324efdecf0fbe">taraxa::PbftManager</a>
+</li>
+<li>validatePbftBlockExtraData()
+: <a class="el" href="group___p_b_f_t.html#a5dcaa5518ae750220e43c736d9c65d59">taraxa::PbftManager</a>
+</li>
+<li>validatePbftBlockPillarVotes()
+: <a class="el" href="group___p_b_f_t.html#acfb20bc75783a32ecc9d758b3fe7d875">taraxa::PbftManager</a>
 </li>
 <li>validatePbftBlockStateRoot()
 : <a class="el" href="group___p_b_f_t.html#a3f200f171e0946a3b273f8971cab72ae">taraxa::PbftManager</a>
 </li>
+<li>validatePillarDataInPeriodData()
+: <a class="el" href="group___p_b_f_t.html#ace361f5c9599c1d00af8dc78b8f60856">taraxa::PbftManager</a>
+</li>
+<li>validatePillarVote()
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a2ad5ee748b8968f08f5022ab609db34f">taraxa::pillar_chain::PillarChainManager</a>
+</li>
 <li>validateVote()
-: <a class="el" href="group___vote.html#aa5f8f92269a197cb43fb7992033d555d">taraxa::VoteManager</a>
+: <a class="el" href="group___vote.html#addee0ac66d5bdf1299881e6c5d10b89c">taraxa::VoteManager</a>
 </li>
 <li>validateVoteAndBlock()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ae00924c5e98fd3682d3604f34b41e920">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a13d3a4201b85d1adc0efe13b6a4c1848">taraxa::network::tarcap::ExtVotesPacketHandler</a>
 </li>
 <li>validateVotePeriodRoundStep()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#acc3ebcac8f0d502e645dd8bc901bb726">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a0e3f15c9e4395a421f9a7269ed0bfe41">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+</li>
+<li>ValidatorVoteCountChange()
+: <a class="el" href="structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a932e4909348db133e03b13f0fa52d8e7">taraxa::pillar_chain::PillarBlock::ValidatorVoteCountChange</a>
 </li>
 <li>validMaxStatsTimePeriod()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#af2591056969726636782f6ad771f4058">taraxa::network::tarcap::TimePeriodPacketsStats</a>
@@ -136,7 +155,7 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a4ec3d80ed191647f2d864f0bd1405fce">taraxa::vdf_sortition::VdfSortition</a>
 </li>
 <li>vector_ref()
-: <a class="el" href="classdev_1_1vector__ref.html#abfd07b24a01841de8d53800cf64e5f83">dev::vector_ref&lt; _T &gt;</a>
+: <a class="el" href="classdev_1_1vector__ref.html#a4ebb2ff76877aeda6267e1334f7df2d0">dev::vector_ref&lt; _T &gt;</a>
 </li>
 <li>verify()
 : <a class="el" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ae6c6f54f0fe48669ec83150763093d5c">taraxa::vrf_wrapper::VrfSortitionBase</a>
@@ -162,7 +181,7 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a605556f3dbea87c10e3f0eae4e203890">taraxa::vdf_sortition::VdfSortition</a>
 </li>
 <li>verifyVrfSortition()
-: <a class="el" href="group___vote.html#aa7e93b6f327c65d17fd348b6f08b0d45">taraxa::Vote</a>
+: <a class="el" href="group___vote.html#a31853775f489173a499af7cf08503710">taraxa::PbftVote</a>
 </li>
 <li>version()
 : <a class="el" href="classdev_1_1p2p_1_1_capability_face.html#a6d9620b71cc3009546b327ea114b1443">dev::p2p::CapabilityFace</a>
@@ -183,11 +202,14 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 <li>voteAlreadyValidated()
 : <a class="el" href="group___vote.html#a193d24f9eef71f33996cfdd0589a248a">taraxa::VoteManager</a>
 </li>
+<li>voteExists()
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a27e9af17a2794ff1c75c0ba72d20dcd0">taraxa::pillar_chain::PillarVotes</a>
+</li>
 <li>voteInVerifiedMap()
-: <a class="el" href="group___vote.html#aa0c587e8e6442373845d257b13fa7813">taraxa::VoteManager</a>
+: <a class="el" href="group___vote.html#a4a08ae5866a7152278d28df6efafb595">taraxa::VoteManager</a>
 </li>
 <li>VoteManager()
-: <a class="el" href="group___vote.html#adbe36f53be8ddc081c215a7741d4963f">taraxa::VoteManager</a>
+: <a class="el" href="group___vote.html#a958687409ea47afffc8e2bc179528683">taraxa::VoteManager</a>
 </li>
 <li>VotePacketHandler()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a2915f57c7f1fb9cd7c01e03a02546d50">taraxa::network::tarcap::VotePacketHandler</a>

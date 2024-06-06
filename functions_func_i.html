@@ -123,6 +123,9 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 <li>initFeeByTrxHash()
 : <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a50a816f000bbf528d77207fba7e2bc8a">taraxa::rewards::BlockStats</a>
 </li>
+<li>initializePeriodData()
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad44367d7832791d2d2611b0daccdfa92">taraxa::pillar_chain::PillarVotes</a>
+</li>
 <li>initializeRecentlyFinalizedTransactions()
 : <a class="el" href="group___transaction.html#abb445dedf2e80035c467eac207d673ae">taraxa::TransactionManager</a>
 </li>
@@ -137,7 +140,7 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 : <a class="el" href="class_expiration_block_number_cache.html#ac70712f5c343aa966af2c9170a74256c">ExpirationBlockNumberCache&lt; Key &gt;</a>
 , <a class="el" href="class_expiration_cache.html#a32582336ae6a2469de07ee409e797848">ExpirationCache&lt; Key &gt;</a>
 , <a class="el" href="class_expiration_cache_map.html#a01c6fb973b3596482d5db82ddeb90c19">ExpirationCacheMap&lt; Key, Value &gt;</a>
-, <a class="el" href="classtaraxa_1_1_db_storage.html#a3db124c57eac1ab701ef8c172204a30d">taraxa::DbStorage</a>
+, <a class="el" href="classtaraxa_1_1_db_storage.html#ab25e512d7547f3b9d80ad862af1af0f0">taraxa::DbStorage</a>
 , <a class="el" href="classtaraxa_1_1_status_table.html#a9688fdac2c9ec35d8fa7f9a8cd082656">taraxa::StatusTable&lt; K, V &gt;</a>
 , <a class="el" href="group___transaction.html#a1cb51e6226a47c56ce40195973761414">taraxa::TransactionQueue</a>
 </li>
@@ -145,7 +148,7 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 : <a class="el" href="group___transaction.html#aa6c21279f3fc5b78d7eb29ab6de28a1d">taraxa::TransactionManager</a>
 </li>
 <li>insertUniqueVote()
-: <a class="el" href="group___vote.html#a51bb33917dd6a38013540afb4524ceff">taraxa::VoteManager</a>
+: <a class="el" href="group___vote.html#a9905cef52d50bf1351a172ab3dbf2271">taraxa::VoteManager</a>
 </li>
 <li>insertValidatedTransaction()
 : <a class="el" href="group___transaction.html#a595a7ab81c1b70c768eb14a9df5afecb">taraxa::TransactionManager</a>
@@ -229,9 +232,6 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 <li>isAspenHardforkPartOne()
 : <a class="el" href="struct_hardforks_config.html#ab6b3bf5a2c2ea8a9211eaeb026201602">HardforksConfig</a>
 </li>
-<li>isAspenHardforkPartTwo()
-: <a class="el" href="struct_hardforks_config.html#a965a0f5be490811f2069f091038bb3ca">HardforksConfig</a>
-</li>
 <li>isConnected()
 : <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_socket.html#af8ae236efc1dd380a07040ce1e8015a5">dev::p2p::RLPXSocket</a>
 , <a class="el" href="structdev_1_1p2p_1_1_session.html#a264513bce999ab84bd41c0d51879e302">dev::p2p::Session</a>
@@ -260,6 +260,9 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 </li>
 <li>isExpired()
 : <a class="el" href="structdev_1_1p2p_1_1_discovery_datagram.html#ada2869008c609dfa862979fcbfb3092a">dev::p2p::DiscoveryDatagram</a>
+</li>
+<li>isFicusHardfork()
+: <a class="el" href="struct_ficus_hardfork_config.html#a9173d9cb74dde90f32cb729f04deff26">FicusHardforkConfig</a>
 </li>
 <li>isHandshaking()
 : <a class="el" href="structdev_1_1p2p_1_1_host.html#a635530337ad0e62f0d65da4379f609a4">dev::p2p::Host</a>
@@ -295,10 +298,28 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a677d2f7a7de2997dcbceb6e5ed4d3b29">taraxa::network::tarcap::TaraxaPeer</a>
 </li>
 <li>isPbftRelevantVote()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a57e6c981b50c2ed7cd0127a9765377fc">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a693cbf252ce9dae6bea7611b308aad83">taraxa::network::tarcap::ExtVotesPacketHandler</a>
 </li>
 <li>isPbftSyncing()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a13878e8297cd51306acab4b36ca8b2ae">taraxa::network::tarcap::PbftSyncingState</a>
+</li>
+<li>isPbftVoteKnown()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#af17da56496448d16525ab7f7fc929ea4">taraxa::network::tarcap::TaraxaPeer</a>
+</li>
+<li>isPbftWithPillarBlockPeriod()
+: <a class="el" href="struct_ficus_hardfork_config.html#a45e53c9c4d1ca6106a06546daa23be5a">FicusHardforkConfig</a>
+</li>
+<li>isPillarBlockLatestFinalized()
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#ad4f4ec7d51e9ec24b19ea056ec6bd59e">taraxa::pillar_chain::PillarChainManager</a>
+</li>
+<li>isPillarBlockPeriod()
+: <a class="el" href="struct_ficus_hardfork_config.html#a08d0b03dd3af0cd8427dbf76c70138c1">FicusHardforkConfig</a>
+</li>
+<li>isPillarVoteKnown()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a34c320701836923ad09eb8fa203ba11f">taraxa::network::tarcap::TaraxaPeer</a>
+</li>
+<li>isRelevantPillarVote()
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a05b005d4c13c5a8047e13b05f099e2c6">taraxa::pillar_chain::PillarChainManager</a>
 </li>
 <li>isRunning()
 : <a class="el" href="structdev_1_1p2p_1_1_host.html#af172022af7fd54783396778c6c64d208">dev::p2p::Host</a>
@@ -322,13 +343,15 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 : <a class="el" href="group___transaction.html#a9b610f1286b3267c6bb36fcac2c76819">taraxa::TransactionManager</a>
 </li>
 <li>isUniqueVote()
-: <a class="el" href="group___vote.html#a940e643f80ad2236c9e434aa8d026ba1">taraxa::VoteManager</a>
+: <a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a7b326560879e1181d237324e0bdff22c">taraxa::pillar_chain::PillarVotes</a>
+, <a class="el" href="group___vote.html#a27d9ac060898710e4ebeed9257a66b72">taraxa::VoteManager</a>
 </li>
 <li>isUseless()
 : <a class="el" href="classdev_1_1p2p_1_1_peer.html#a431b7340bd5e41a9dedab4861e20a003">dev::p2p::Peer</a>
 </li>
 <li>isValid()
-: <a class="el" href="structdev_1_1p2p_1_1_node_spec.html#a22874a64234f53e871ca68046dad7875">dev::p2p::NodeSpec</a>
+: <a class="el" href="structdev_1_1_compact_signature_struct.html#a32b589df68d1b55d32681b6603851835">dev::CompactSignatureStruct</a>
+, <a class="el" href="structdev_1_1p2p_1_1_node_spec.html#a22874a64234f53e871ca68046dad7875">dev::p2p::NodeSpec</a>
 , <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_packet.html#a412bc9e3d6f055f98366000b41361bba">dev::p2p::RLPXPacket</a>
 , <a class="el" href="classdev_1_1p2p_1_1_u_pn_p.html#afb483097780dbeee76f4e6360630dbd1">dev::p2p::UPnP</a>
 , <a class="el" href="structdev_1_1_signature_struct.html#a467d9f53ccba2b2b29b65f0d8ff41e3b">dev::SignatureStruct</a>
@@ -339,11 +362,11 @@ $(document).ready(function(){initNavTree('functions_func_i.html',''); initResiza
 <li>isValidNode()
 : <a class="el" href="classdev_1_1p2p_1_1_node_table.html#afc6dc5ffedf8e3229715efb22bf7b1f7">dev::p2p::NodeTable</a>
 </li>
-<li>isValidRewardVote()
-: <a class="el" href="group___vote.html#ad9887aa224a11b723e647f13c04e335f">taraxa::VoteManager</a>
+<li>isValidPillarBlock()
+: <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a3dc5b74e0fa9cae9867403bd3f1d76d9">taraxa::pillar_chain::PillarChainManager</a>
 </li>
-<li>isVoteKnown()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aaa65ff837ae19fbf6f473b1ff51cddfe">taraxa::network::tarcap::TaraxaPeer</a>
+<li>isValidRewardVote()
+: <a class="el" href="group___vote.html#ae973c977717f006fae10b7878a4c2fbc">taraxa::VoteManager</a>
 </li>
 <li>isZero()
 : <a class="el" href="classdev_1_1_fixed_hash.html#a586aba43a409e517d5f97a9195332760">dev::FixedHash&lt; N &gt;</a>

@@ -1,0 +1,5 @@
+<map id="taraxa::pillar_chain::PillarBlock" name="taraxa::pillar_chain::PillarBlock">
+<area shape="rect" id="node1" title="PillarBlock contains merkle root of all finalized blocks created in the last epoch." alt="" coords="109,109,255,151"/>
+<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,32"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="197,5,357,32"/>
+</map>

@@ -128,6 +128,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab686f1cee9e3f3ee453a8a9e76b01860"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0ee50ce6d41db1da6e0d6ce2c681421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ae0ee50ce6d41db1da6e0d6ce2c681421">newPendingTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;trx_hash)</td></tr>
 <tr class="separator:ae0ee50ce6d41db1da6e0d6ce2c681421"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a997a650dc917ac1fcdcf540ee63f2ea7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a997a650dc917ac1fcdcf540ee63f2ea7">newPillarBlockData</a> (const <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &amp;pillar_block_data)</td></tr>
+<tr class="separator:a997a650dc917ac1fcdcf540ee63f2ea7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5621bdc44b6ed090bc4c8e19c7042837"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a5621bdc44b6ed090bc4c8e19c7042837">is_closed</a> () const</td></tr>
 <tr class="separator:a5621bdc44b6ed090bc4c8e19c7042837"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ac5a482061fe062756b2fc12f710a4e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a0ac5a482061fe062756b2fc12f710a4e">is_normal</a> (const beast::error_code &amp;ec) const</td></tr>
@@ -164,6 +166,10 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a4e58d27758cf71060ffa029846382391"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf9279d9c2df9ee81e582c917ccc4170"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#adf9279d9c2df9ee81e582c917ccc4170">new_pbft_block_executed_subscription_</a> = 0</td></tr>
 <tr class="separator:adf9279d9c2df9ee81e582c917ccc4170"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a557987273bac034ffc6efcf30c3f300f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a557987273bac034ffc6efcf30c3f300f">new_pillar_block_subscription_</a> = 0</td></tr>
+<tr class="separator:a557987273bac034ffc6efcf30c3f300f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6149519fc762b87c87e9685496481189"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a6149519fc762b87c87e9685496481189">include_pillar_block_signatures</a> = false</td></tr>
+<tr class="separator:a6149519fc762b87c87e9685496481189"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a610cdf6736bacbe9a0997d1496d70685"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a610cdf6736bacbe9a0997d1496d70685">closed_</a> = false</td></tr>
 <tr class="separator:a610cdf6736bacbe9a0997d1496d70685"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adab966a3da09dca80949abb17b9cc9cc"><td class="memItemLeft" align="right" valign="top">std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_ws_server.html">WsServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#adab966a3da09dca80949abb17b9cc9cc">ws_server_</a></td></tr>
@@ -401,6 +407,24 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a997a650dc917ac1fcdcf540ee63f2ea7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a997a650dc917ac1fcdcf540ee63f2ea7">&#9670;&nbsp;</a></span>newPillarBlockData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::net::WsSession::newPillarBlockData </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &amp;&#160;</td>
+          <td class="paramname"><em>pillar_block_data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae4b9cf496dddd2135d1c8f4584170421"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae4b9cf496dddd2135d1c8f4584170421">&#9670;&nbsp;</a></span>on_accept()</h2>
 
@@ -620,6 +644,28 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a6149519fc762b87c87e9685496481189"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6149519fc762b87c87e9685496481189">&#9670;&nbsp;</a></span>include_pillar_block_signatures</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::net::WsSession::include_pillar_block_signatures = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a4e58d27758cf71060ffa029846382391"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4e58d27758cf71060ffa029846382391">&#9670;&nbsp;</a></span>new_dag_block_finalized_subscription_</h2>
 
@@ -697,6 +743,28 @@ Protected Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">int taraxa::net::WsSession::new_pbft_block_executed_subscription_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a557987273bac034ffc6efcf30c3f300f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a557987273bac034ffc6efcf30c3f300f">&#9670;&nbsp;</a></span>new_pillar_block_subscription_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int taraxa::net::WsSession::new_pillar_block_subscription_ = 0</td>
         </tr>
       </table>
   </td>
