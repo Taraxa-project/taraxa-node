@@ -225,8 +225,8 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
 
       // Standard packets with mid processing priority
       packets_handlers->registerHandler<DagBlockPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
-                                                               logs_prefix);
+                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db,
+                                                               version > kV2NetworkVersion, node_addr, logs_prefix);
 
       // Support for transaition from V2 to V3, once all nodes update to V3 post next hardfork, V2 support can be
       // removed

@@ -77,9 +77,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   /**
    * @brief Verifies new DAG block
    * @param blk Block to verify
-   * @return verification result
+   * @param transactions Optional block transactions
+   * @return verification result and all the transactions which are part of the block
    */
-  VerifyBlockReturnType verifyBlock(const DagBlock &blk);
+  std::pair<VerifyBlockReturnType, SharedTransactions> verifyBlock(
+      const DagBlock &blk, const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs = {});
 
   /**
    * @brief Checks if block pivot and tips are in DAG
@@ -90,8 +92,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   /**
    * @brief adds verified DAG block in the DAG
-   * @param trxs Block transactions which are part of the pool, transactions that are already present in a previous DAG
-   * block are excluded
+   * @param trxs Block transactions
    * @param proposed if this node proposed the block
    * @param save if true save block and transactions to database
    * @return true if block added successfully, false with the hash of missing tips/pivot
