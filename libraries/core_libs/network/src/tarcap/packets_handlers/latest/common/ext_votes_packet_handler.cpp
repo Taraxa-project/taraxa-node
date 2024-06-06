@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/latest/common/ext_votes_packet_handler.hpp"
 
 #include "pbft/pbft_manager.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -22,7 +22,8 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(const FullNodeConfig &conf, std::sh
       vote_mgr_(std::move(vote_mgr)),
       slashing_manager_(std::move(slashing_manager)) {}
 
-bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &pbft_block,
+bool ExtVotesPacketHandler::processVote(const std::shared_ptr<PbftVote> &vote,
+                                        const std::shared_ptr<PbftBlock> &pbft_block,
                                         const std::shared_ptr<TaraxaPeer> &peer, bool validate_max_round_step) {
   if (pbft_block && !validateVoteAndBlock(vote, pbft_block)) {
     throw MaliciousPeerException("Received vote's voted value != received pbft block");
@@ -65,13 +66,13 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const
   return true;
 }
 
-std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(const std::shared_ptr<Vote> &vote,
+std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(const std::shared_ptr<PbftVote> &vote,
                                                                                 const std::shared_ptr<TaraxaPeer> &peer,
                                                                                 bool validate_max_round_step) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   auto genErrMsg = [period = current_pbft_period, round = current_pbft_round,
-                    step = pbft_mgr_->getPbftStep()](const std::shared_ptr<Vote> &vote) -> std::string {
+                    step = pbft_mgr_->getPbftStep()](const std::shared_ptr<PbftVote> &vote) -> std::string {
     std::stringstream err;
     err << "Vote " << vote->getHash() << " (period, round, step) = (" << vote->getPeriod() << ", " << vote->getRound()
         << ", " << vote->getStep() << "). Current PBFT (period, round, step) = (" << period << ", " << round << ", "
@@ -146,7 +147,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
   return {true, ""};
 }
 
-bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vote,
+bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<PbftVote> &vote,
                                                  const std::shared_ptr<PbftBlock> &pbft_block) const {
   if (pbft_block->getBlockHash() != vote->getBlockHash()) {
     LOG(log_er_) << "Vote " << vote->getHash() << " voted block " << vote->getBlockHash() << " != actual block "
@@ -156,7 +157,7 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
   return true;
 }
 
-bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<Vote> &vote) const {
+bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<PbftVote> &vote) const {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   if (vote->getPeriod() >= current_pbft_period && vote->getRound() >= current_pbft_round) {
@@ -175,13 +176,13 @@ bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<Vote> &vote
 }
 
 void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer> &peer,
-                                                std::vector<std::shared_ptr<Vote>> &&votes) {
+                                                std::vector<std::shared_ptr<PbftVote>> &&votes) {
   if (votes.empty()) {
     return;
   }
 
-  auto sendVotes = [this, &peer](std::vector<std::shared_ptr<Vote>> &&votes) {
-    auto votes_bytes = encodeVotesBundleRlp(std::move(votes), false);
+  auto sendVotes = [this, &peer](std::vector<std::shared_ptr<PbftVote>> &&votes) {
+    auto votes_bytes = encodePbftVotesBundleRlp(std::move(votes));
     if (votes_bytes.empty()) {
       LOG(log_er_) << "Unable to send VotesBundle rlp";
       return;
@@ -193,7 +194,7 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
     if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(votes_rlp_stream))) {
       LOG(log_dg_) << " Votes bundle with " << votes.size() << " votes sent to " << peer->getId();
       for (const auto &vote : votes) {
-        peer->markVoteAsKnown(vote->getHash());
+        peer->markPbftVoteAsKnown(vote->getHash());
       }
     }
   };
@@ -210,7 +211,7 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
       const auto begin_it = std::next(votes.begin(), index);
       const auto end_it = std::next(begin_it, votes_count);
 
-      std::vector<std::shared_ptr<Vote>> votes_sub_vector;
+      std::vector<std::shared_ptr<PbftVote>> votes_sub_vector;
       std::move(begin_it, end_it, std::back_inserter(votes_sub_vector));
 
       sendVotes(std::move(votes_sub_vector));

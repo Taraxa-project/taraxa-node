@@ -55,10 +55,11 @@ class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
-              std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk);
+  PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+              std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -141,11 +142,12 @@ class PbftManager {
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
+   * @param extra_data optional extra_data
    * @return optional<pair<PBFT block, PBFT block reward votes>>
    */
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> generatePbftBlock(
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> generatePbftBlock(
       PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-      const blk_hash_t &order_hash);
+      const blk_hash_t &order_hash, const std::optional<PbftBlockExtraData> &extra_data);
 
   /**
    * @brief Get current total DPOS votes count
@@ -186,7 +188,7 @@ class PbftManager {
    * @param node_id peer node ID
    */
   void periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
-                           std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes);
+                           std::vector<std::shared_ptr<PbftVote>> &&current_block_cert_votes);
 
   /**
    * @brief Get last pbft block hash from queue or if queue empty, from chain
@@ -237,9 +239,8 @@ class PbftManager {
    * @param propose_vote
    */
   void processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
-                            const std::shared_ptr<Vote> &propose_vote);
+                            const std::shared_ptr<PbftVote> &propose_vote);
 
-  // **** Notice: functions used only in tests ****
   /**
    * @brief Get a proposed PBFT block based on specified period and block hash
    * @param period
@@ -252,7 +253,7 @@ class PbftManager {
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
-  size_t getPbftCommitteeSize() const { return config_.committee_size; }
+  size_t getPbftCommitteeSize() const { return kGenesisConfig.pbft.committee_size; }
 
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
@@ -269,6 +270,16 @@ class PbftManager {
    * @brief wait for DPOS period finalization
    */
   void waitForPeriodFinalization();
+
+  /**
+   * @brief Validates pbft block extra data presence + pillar votes presence based on pbft block number and ficus hf
+   * block number
+   *
+   * @note See validatePbftBlockExtraData description, it is called inside
+   * @param period_data
+   * @return true if valid, otherwise false
+   */
+  bool validatePillarDataInPeriodData(const PeriodData &period_data) const;
 
  private:
   /**
@@ -384,7 +395,7 @@ class PbftManager {
    * @param voted_block voted block object - should be == vote->voted_block. In case we dont have block object, nullptr
    *                    is provided
    */
-  bool placeVote(const std::shared_ptr<Vote> &vote, std::string_view log_vote_id,
+  bool placeVote(const std::shared_ptr<PbftVote> &vote, std::string_view log_vote_id,
                  const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
@@ -395,7 +406,7 @@ class PbftManager {
    * @return true if successful, otherwise false
    */
   bool genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block,
-                              std::vector<std::shared_ptr<Vote>> &&reward_votes);
+                              std::vector<std::shared_ptr<PbftVote>> &&reward_votes);
 
   /**
    * @brief Gossips newly generated vote to the other peers
@@ -404,14 +415,22 @@ class PbftManager {
    * @param voted_block
    * @return true if successful, otherwise false
    */
-  void gossipNewVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+  void gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
    * @brief Propose a new PBFT block
    * @return optional<pair<PBFT block, PBFT block reward votes>> in case new block was proposed, otherwise empty
    * optional
    */
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> proposePbftBlock();
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> proposePbftBlock();
+
+  /**
+   * @brief Creates pbft block extra data
+   *
+   * @param pbft_period
+   * @return std::optional<PbftBlockExtraData>
+   */
+  std::optional<PbftBlockExtraData> createPbftBlockExtraData(PbftPeriod pbft_period) const;
 
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
@@ -428,7 +447,7 @@ class PbftManager {
    * @param vote vote
    * @return lowest hash of a vote
    */
-  h256 getProposal(const std::shared_ptr<Vote> &vote) const;
+  h256 getProposal(const std::shared_ptr<PbftVote> &vote) const;
 
   /**
    * @brief Validates pbft block. It checks if:
@@ -449,13 +468,23 @@ class PbftManager {
   PbftStateRootValidation validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
+   * @brief Validates pbft block extra data presence:
+   *        - checks if extra data is present or not based on pbft block number and ficus hf block number
+   *        - checks if pillar block hash is present on not during specific pbft periods
+   *
+   * @param pbft_block
+   * @return true if valid, otherwise false
+   */
+  bool validatePbftBlockExtraData(const std::shared_ptr<PbftBlock> &pbft_block) const;
+
+  /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
    * @param pbft_block PBFT block
    * @param current_round_cert_votes certify votes
    * @return true if push a new PBFT block in chain
    */
   bool pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlock> &pbft_block,
-                                        std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes);
+                                        std::vector<std::shared_ptr<PbftVote>> &&current_round_cert_votes);
 
   /**
    * @brief Final chain executes a finalized PBFT block
@@ -472,7 +501,7 @@ class PbftManager {
    * @param cert_votes cert votes for pbft block period
    * @return true if push a new PBFT block into the PBFT chain
    */
-  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes);
+  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<PbftVote>> &&cert_votes);
 
   /**
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
@@ -488,7 +517,7 @@ class PbftManager {
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
    * @return period data with cert votes for the current period
    */
-  std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> processPeriodData();
+  std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> processPeriodData();
 
   /**
    * @brief Validates PBFT block cert votes
@@ -498,7 +527,15 @@ class PbftManager {
    * @return true if there is enough(2t+1) votes and all of them are valid, otherwise false
    */
   bool validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
-                                  const std::vector<std::shared_ptr<Vote>> &cert_votes) const;
+                                  const std::vector<std::shared_ptr<PbftVote>> &cert_votes) const;
+
+  /**
+   @brief Validates PBFT block [illar] votes
+   *
+   * @param period_data
+   * @return
+   */
+  bool validatePbftBlockPillarVotes(const PeriodData &period_data) const;
 
   /**
    * @param period
@@ -525,6 +562,7 @@ class PbftManager {
   std::weak_ptr<Network> network_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
   const addr_t node_addr_;
   const secret_t node_sk_;
@@ -567,7 +605,7 @@ class PbftManager {
 
   const blk_hash_t dag_genesis_block_hash_;
 
-  const PbftConfig &config_;
+  const GenesisConfig &kGenesisConfig;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;

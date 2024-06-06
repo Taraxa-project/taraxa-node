@@ -11,6 +11,7 @@
 #include "json/reader.h"
 #include "network/rpc/eth/data.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "pillar_chain/pillar_chain_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 
 using namespace std;
@@ -176,6 +177,28 @@ std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
 
     auto period = dev::jsToInt(_period);
     return toJS(node->getFinalChain()->dpos_total_supply(period));
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_period, bool include_signatures) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+
+    const auto pbft_period = dev::jsToInt(pillar_block_period);
+    if (!node->getConfig().genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(pbft_period)) {
+      return {};
+    }
+
+    if (const auto pillar_block_data = node->getDB()->getPillarBlockData(pbft_period); pillar_block_data) {
+      return pillar_block_data->getJson(include_signatures);
+    }
+
+    return {};
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }

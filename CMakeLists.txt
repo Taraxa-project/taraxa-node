@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
-set(TARAXA_MINOR_VERSION 8)
-set(TARAXA_PATCH_VERSION 2)
+set(TARAXA_MINOR_VERSION 9)
+set(TARAXA_PATCH_VERSION 0)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
@@ -202,16 +202,17 @@ include(CMakeModules/clang_format.cmake)
 # cppcheck
 include(CMakeModules/cppcheck.cmake)
 
-add_custom_target(check-static DEPENDS cpp-check clang-format clang-format-check)
+add_custom_target(check-static DEPENDS cpp-check)
 
 # execute command to get git info
 include(CMakeModules/git_info.cmake)
 
-# find and include system libraries used in submodues and libraries
+include(ExternalProject)
+
+# find and include system libraries used in submodules and libraries
 find_package(GMP)
 find_package(MPFR)
 
-include(ExternalProject)
 # use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)

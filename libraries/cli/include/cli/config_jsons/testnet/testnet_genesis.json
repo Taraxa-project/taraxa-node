@@ -148,6 +148,13 @@
       "block_num_part_two": 0,
       "max_supply": "0x26C62AD77DC602DAE0000000",
       "generated_rewards": "0x0"
+    },
+    "ficus_hf": {
+      "block_num": -1,
+      "pillar_blocks_interval": 100,
+      "pillar_chain_sync_interval": 25,
+      "pbft_inclusion_delay": 6,
+      "bridge_contract_address": "0x0000000000000000000000000000000000000000"
     }
   }
 }

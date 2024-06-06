@@ -9,7 +9,9 @@
 
 #include "config/version.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_pillar_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pillar_vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
@@ -26,7 +28,8 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
                  dev::KeyPair const &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                 std::shared_ptr<SlashingManager> slashing_manager)
+                 std::shared_ptr<SlashingManager> slashing_manager,
+                 std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr)
     : kConf(config),
       pub_key_(key.pub()),
       all_packets_stats_(nullptr),
@@ -78,13 +81,13 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
     // Register old version (V2) of taraxa capability
     auto v2_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
         kV2NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager);
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr);
     capabilities.emplace_back(v2_tarcap);
 
     // Register latest version of taraxa capability
     auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
         TARAXA_NET_VERSION, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager);
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr);
     capabilities.emplace_back(latest_tarcap);
 
     return capabilities;
@@ -284,16 +287,23 @@ void Network::gossipDagBlock(const DagBlock &block, bool proposed, const SharedT
   }
 }
 
-void Network::gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast) {
+void Network::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
+                         bool rebroadcast) {
   for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, block, rebroadcast);
   }
 }
 
-void Network::gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast) {
+void Network::gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes, bool rebroadcast) {
   for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(votes,
                                                                                                          rebroadcast);
+  }
+}
+
+void Network::gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote, bool rebroadcast) {
+  for (const auto &tarcap : tarcaps_) {
+    tarcap.second->getSpecificHandler<network::tarcap::PillarVotePacketHandler>()->onNewPillarVote(vote, rebroadcast);
   }
 }
 
@@ -326,6 +336,22 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
   }
 
   return max_chain_peer;
+}
+
+void Network::requestPillarBlockVotesBundle(taraxa::PbftPeriod period, const taraxa::blk_hash_t &pillar_block_hash) {
+  for (const auto &tarcap : tarcaps_) {
+    // Try to get most up-to-date peer
+    const auto peer =
+        tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
+
+    if (!peer) {
+      continue;
+    }
+
+    // TODO[2748]: is it good enough to request it just from 1 peer without knowing if he has all of the votes ?
+    tarcap.second->getSpecificHandler<network::tarcap::GetPillarVotesBundlePacketHandler>()->requestPillarVotesBundle(
+        period, pillar_block_hash, peer);
+  }
 }
 
 // METHODS USED IN TESTS ONLY
