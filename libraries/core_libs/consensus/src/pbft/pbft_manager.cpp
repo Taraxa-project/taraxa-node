@@ -66,6 +66,22 @@ PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::share
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 
+  PbftPeriod start_period = 1;
+  const auto recently_finalized_transactions_periods =
+      kRecentlyFinalizedTransactionsFactor * final_chain_->delegation_delay();
+  if (pbft_chain_->getPbftChainSize() > recently_finalized_transactions_periods) {
+    start_period = pbft_chain_->getPbftChainSize() - recently_finalized_transactions_periods;
+  }
+  for (PbftPeriod period = start_period; period <= pbft_chain_->getPbftChainSize(); period++) {
+    auto period_raw = db_->getPeriodDataRaw(period);
+    if (period_raw.size() == 0) {
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
+      assert(false);
+    }
+    PeriodData period_data(period_raw);
+    trx_mgr_->initializeRecentlyFinalizedTransactions(period_data);
+  }
+
   // Initialize PBFT status
   initialState();
 }

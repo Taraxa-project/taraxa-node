@@ -850,18 +850,15 @@ uint64_t DbStorage::getTransactionCount(PbftPeriod period) const {
   return 0;
 }
 
-std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalizedTransactions(
-    std::vector<trx_hash_t> const& trx_hashes) const {
+SharedTransactions DbStorage::getFinalizedTransactions(std::vector<trx_hash_t> const& trx_hashes) const {
+  SharedTransactions trxs;
   // Map of period to position of transactions within a period
   std::map<PbftPeriod, std::set<uint32_t>> period_map;
-  SharedTransactions transactions;
-  transactions.reserve(trx_hashes.size());
+  trxs.reserve(trx_hashes.size());
   for (auto const& tx_hash : trx_hashes) {
     auto trx_period = getTransactionLocation(tx_hash);
     if (trx_period.has_value()) {
       period_map[trx_period->period].insert(trx_period->position);
-    } else {
-      return {std::nullopt, tx_hash};
     }
   }
   for (auto it : period_map) {
@@ -872,11 +869,11 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
 
     auto const transactions_rlp = dev::RLP(period_data)[TRANSACTIONS_POS_IN_PERIOD_DATA];
     for (auto pos : it.second) {
-      transactions.emplace_back(std::make_shared<Transaction>(transactions_rlp[pos]));
+      trxs.emplace_back(std::make_shared<Transaction>(transactions_rlp[pos]));
     }
   }
 
-  return {transactions, {}};
+  return trxs;
 }
 
 void DbStorage::addSystemTransactionToBatch(Batch& write_batch, SharedTransaction trx) {

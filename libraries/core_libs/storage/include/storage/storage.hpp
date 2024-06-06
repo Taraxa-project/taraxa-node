@@ -273,11 +273,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
    *
    * @param trx_hashes
    *
-   * @return Returns transactions found if all transactions are present. If there is a transaction missing, no
-   * transaction is returned and missing trx hash is returned
+   * @return Returns transactions
    */
-  std::pair<std::optional<SharedTransactions>, trx_hash_t> getFinalizedTransactions(
-      std::vector<trx_hash_t> const& trx_hashes) const;
+  SharedTransactions getFinalizedTransactions(std::vector<trx_hash_t> const& trx_hashes) const;
+
   // System transaction
   void addSystemTransactionToBatch(Batch& write_batch, SharedTransaction trx);
   std::shared_ptr<Transaction> getSystemTransaction(const trx_hash_t& hash) const;
