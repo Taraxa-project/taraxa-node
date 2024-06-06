@@ -202,7 +202,7 @@ include(CMakeModules/clang_format.cmake)
 # cppcheck
 include(CMakeModules/cppcheck.cmake)
 
-add_custom_target(check-static DEPENDS cpp-check clang-format clang-format-check)
+add_custom_target(check-static DEPENDS cpp-check)
 
 # execute command to get git info
 include(CMakeModules/git_info.cmake)

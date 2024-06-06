@@ -43,9 +43,8 @@ class PillarBlock {
  public:
   PillarBlock() = default;
   PillarBlock(const dev::RLP& rlp);
-  PillarBlock(PbftPeriod period, h256 state_root, h256 bridge_root,
-              std::vector<ValidatorVoteCountChange>&& validator_votes_count_changes,
-              blk_hash_t previous_pillar_block_hash);
+  PillarBlock(PbftPeriod period, h256 state_root, blk_hash_t previous_pillar_block_hash, h256 bridge_root, u256 epoch,
+              std::vector<ValidatorVoteCountChange>&& validator_votes_count_changes);
 
   PillarBlock(const PillarBlock& pillar_block);
 
@@ -80,6 +79,11 @@ class PillarBlock {
   const h256& getBridgeRoot() const;
 
   /**
+   * @return epoch
+   */
+  const u256& getEpoch() const;
+
+  /**
    * @return pillar block rlp
    */
   dev::bytes getRlp() const;
@@ -89,6 +93,10 @@ class PillarBlock {
    */
   Json::Value getJson() const;
 
+  // this is needed for solidity encoding. So should be changed if fields are changed
+  static constexpr uint8_t kFieldsSize = 5;
+  static constexpr uint8_t kArrayPosAndSize = 2;
+  static constexpr uint8_t kFieldsInVoteCount = 2;
   /**
    * @note Solidity encoding is used for data that are sent to smart contracts
    *
@@ -113,13 +121,17 @@ class PillarBlock {
   // Pbft block(for period_) state root
   h256 state_root_{};
 
+  // Hash of the previous pillar block as pillar blocks forms a chain
+  blk_hash_t previous_pillar_block_hash_{0};
+
   // Bridge root
   h256 bridge_root_{};
 
+  // Bridge epoch
+  u256 epoch_{};
+
   // Delta change of validators votes count between current and latest pillar block
   std::vector<ValidatorVoteCountChange> validators_votes_count_changes_{};
-
-  blk_hash_t previous_pillar_block_hash_{0};
 
   mutable std::optional<blk_hash_t> hash_;
   mutable std::shared_mutex hash_mutex_;

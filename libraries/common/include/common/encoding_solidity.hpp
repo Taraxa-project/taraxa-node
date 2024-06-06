@@ -10,6 +10,8 @@
 namespace taraxa::util {
 class EncodingSolidity {
  public:
+  static constexpr uint8_t kStartPrefix = 32;
+  static constexpr uint8_t kStartPrefixSize = 1;
   /// PACKING ///
   template <typename... Params>
   static bytes packFunctionCall(const std::string& function, const Params&... args) {

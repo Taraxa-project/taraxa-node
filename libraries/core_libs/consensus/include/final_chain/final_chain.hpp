@@ -255,6 +255,11 @@ class FinalChain {
    */
   virtual h256 get_bridge_root(EthBlockNumber blk_num) const = 0;
 
+  /**
+   * @param blk_num
+   * @return bridge epoch
+   */
+  virtual h256 get_bridge_epoch(EthBlockNumber blk_num) const = 0;
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {
