@@ -26,7 +26,7 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      pillar_block_period, state_root, h256{}, std::move(votes_count_changes), previous_pillar_block_hash);
+      pillar_block_period, state_root, previous_pillar_block_hash, h256{}, 0, std::move(votes_count_changes));
 
   // Pillar block vote counts
   std::vector<state_api::ValidatorVoteCount> vote_counts;
@@ -53,9 +53,9 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   const auto vote2 = pillar_votes.emplace_back(
       std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
 
-  const auto previous_pillar_block = std::make_shared<pillar_chain::PillarBlock>(
-      pillar_block_period - 1, h256{}, h256{}, std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange>{},
-      blk_hash_t{});
+  const auto previous_pillar_block =
+      std::make_shared<pillar_chain::PillarBlock>(pillar_block_period - 1, h256{}, blk_hash_t{}, h256{}, 0,
+                                                  std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange>{});
   db.savePillarBlockData(
       pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
   db.savePillarBlockData(
@@ -270,20 +270,21 @@ TEST_F(PillarChainTest, block_serialization) {
     validator_votes_count_changes.emplace_back(pillar_chain::PillarBlock::ValidatorVoteCountChange(addr_t(4), 4));
     validator_votes_count_changes.emplace_back(pillar_chain::PillarBlock::ValidatorVoteCountChange(addr_t(5), -5));
     auto pb =
-        pillar_chain::PillarBlock(11, h256(22), h256(33), std::move(validator_votes_count_changes), blk_hash_t(44));
+        pillar_chain::PillarBlock(11, h256(22), h256(33), blk_hash_t(44), 55, std::move(validator_votes_count_changes));
     const auto bt = pb.encodeSolidity();
     // This hardcoded hex string is from bridge solidity test(TaraClient.t.sol/test_blockEncodeDecode)
     const auto expected = dev::jsToBytes(
         "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000"
         "00000000000000000b00000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000"
         "000000000000000000000000000000000021000000000000000000000000000000000000000000000000000000000000002c0000000000"
-        "0000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000"
-        "000000050000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffff"
-        "ffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000200000000000000000000"
-        "000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003ff"
-        "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd000000000000000000000000000000000000000000000000"
-        "00000000000000040000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000"
-        "0000000000000000000000000000000005fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb");
+        "00000000000000000000000000000000000000000000000000003700000000000000000000000000000000000000000000000000000000"
+        "000000c0000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000"
+        "00000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000"
+        "00000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000200"
+        "00000000000000000000000000000000000000000000000000000000000003ffffffffffffffffffffffffffffffffffffffffffffffff"
+        "fffffffffffffffd0000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000"
+        "00000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005ffffffffffff"
+        "fffffffffffffffffffffffffffffffffffffffffffffffffffb");
     ASSERT_EQ(bt, expected);
   }
   {
@@ -300,26 +301,27 @@ TEST_F(PillarChainTest, block_serialization) {
     validator_votes_count_changes.emplace_back(addr_t("0x8a35AcfbC15Ff81A39Ae7d344fD709f28e8600B4"), 465876798);
 
     auto pb =
-        pillar_chain::PillarBlock(11, h256(22), h256(33), std::move(validator_votes_count_changes), blk_hash_t(44));
+        pillar_chain::PillarBlock(11, h256(22), h256(33), blk_hash_t(44), 55, std::move(validator_votes_count_changes));
     const auto bt = pb.encodeSolidity();
     // This hardcoded hex string is from bridge solidity test(TaraClient.t.sol/test_blockEncodeDecode)
     const auto expected = dev::jsToBytes(
-        "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000"
-        "0000000000000000000b000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000"
-        "00000000000000000000000000000000000021000000000000000000000000000000000000000000000000000000000000002c00000000"
-        "000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000"
-        "000000000a0000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffff"
-        "ffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000002000000000000000000"
-        "00000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000003"
-        "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd0000000000000000000000000000000000000000000000"
-        "00000000000000000400000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000"
-        "000000000000000000000000000000000005fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb0000000000"
-        "00000000000000290decd9548b62a8d60345a988386fc84ba6bc9500000000000000000000000000000000000000000000000000000000"
-        "486d7a74000000000000000000000000b10e2d527612073b26eecdfd717e6a320cf44b4affffffffffffffffffffffffffffffffffffff"
-        "fffffffffffffffffffffe493f000000000000000000000000405787fa12a823e0f2b7631cc41b3ba8828b3321ffffffffffffffffffff"
-        "ffffffffffffffffffffffffffffffffffffaf53b57e000000000000000000000000c2575a0e9e593c00f959f8c92f12db2869c3395a00"
-        "0000000000000000000000000000000000000000000000000000003b77acd10000000000000000000000008a35acfbc15ff81a39ae7d34"
-        "4fd709f28e8600b4000000000000000000000000000000000000000000000000000000001bc4b73e");
+        "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000"
+        "00000000000000000b00000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000"
+        "000000000000000000000000000000000021000000000000000000000000000000000000000000000000000000000000002c0000000000"
+        "00000000000000000000000000000000000000000000000000003700000000000000000000000000000000000000000000000000000000"
+        "000000c0000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000"
+        "00000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000"
+        "00000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000200"
+        "00000000000000000000000000000000000000000000000000000000000003ffffffffffffffffffffffffffffffffffffffffffffffff"
+        "fffffffffffffffd0000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000"
+        "00000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005ffffffffffff"
+        "fffffffffffffffffffffffffffffffffffffffffffffffffffb000000000000000000000000290decd9548b62a8d60345a988386fc84b"
+        "a6bc9500000000000000000000000000000000000000000000000000000000486d7a74000000000000000000000000b10e2d527612073b"
+        "26eecdfd717e6a320cf44b4afffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe493f0000000000000000000000"
+        "00405787fa12a823e0f2b7631cc41b3ba8828b3321ffffffffffffffffffffffffffffffffffffffffffffffffffffffffaf53b57e0000"
+        "00000000000000000000c2575a0e9e593c00f959f8c92f12db2869c3395a00000000000000000000000000000000000000000000000000"
+        "0000003b77acd10000000000000000000000008a35acfbc15ff81a39ae7d344fd709f28e8600b400000000000000000000000000000000"
+        "0000000000000000000000001bc4b73e");
     ASSERT_EQ(bt, expected);
   }
 }
@@ -372,6 +374,7 @@ TEST_F(PillarChainTest, pillar_block_solidity_rlp_encoding) {
   EthBlockNumber pillar_block_period(123);
   h256 state_root(456);
   h256 bridge_root(789);
+  u256 epoch = 0;
   blk_hash_t previous_pillar_block_hash(789);
 
   std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> votes_count_changes;
@@ -379,8 +382,8 @@ TEST_F(PillarChainTest, pillar_block_solidity_rlp_encoding) {
   const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
   auto vcc = votes_count_changes;
-  const auto pillar_block = pillar_chain::PillarBlock(pillar_block_period, state_root, bridge_root, std::move(vcc),
-                                                      previous_pillar_block_hash);
+  const auto pillar_block = pillar_chain::PillarBlock(pillar_block_period, state_root, previous_pillar_block_hash,
+                                                      bridge_root, epoch, std::move(vcc));
 
   auto validateDecodedPillarBlock = [&](const pillar_chain::PillarBlock& pillar_block) {
     ASSERT_EQ(pillar_block.getPeriod(), pillar_block_period);

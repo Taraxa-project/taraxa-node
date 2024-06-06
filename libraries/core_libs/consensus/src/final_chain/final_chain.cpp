@@ -531,6 +531,14 @@ class FinalChainImpl final : public FinalChain {
                     .code_retval);
   }
 
+  h256 get_bridge_epoch(EthBlockNumber blk_num) const override {
+    const static auto get_bridge_epoch_method = util::EncodingSolidity::packFunctionCall("finalizedEpoch()");
+    return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
+                                               state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_epoch_method},
+                     blk_num)
+                    .code_retval);
+  }
+
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
     const auto& trxs = db_->getPeriodTransactions(last_if_absent(n));
