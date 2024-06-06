@@ -1,5 +1,15 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_coding_practices.html#autotoc_md128":[53],
+"md_doc_coding_practices.html#autotoc_md129":[54],
+"md_doc_coding_practices.html#autotoc_md130":[55],
+"md_doc_coding_practices.html#autotoc_md131":[56],
+"md_doc_coding_practices.html#autotoc_md132":[57],
+"md_doc_coding_practices.html#autotoc_md133":[3,0,14],
+"md_doc_coding_practices.html#autotoc_md134":[58],
+"md_doc_coding_practices.html#autotoc_md135":[59],
+"md_doc_coding_practices.html#autotoc_md136":[60],
+"md_doc_coding_practices.html#autotoc_md137":[61],
 "md_doc_coding_practices.html#autotoc_md138":[62],
 "md_doc_coding_practices.html#autotoc_md139":[63],
 "md_doc_coding_practices.html#autotoc_md140":[3,0,15],
@@ -222,8 +232,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_enum.html":[15,4],
 "namespacemembers_eval.html":[15,5],
 "namespacemembers_f.html":[15,0,6],
-"namespacemembers_func.html":[15,1],
 "namespacemembers_func.html":[15,1,0],
+"namespacemembers_func.html":[15,1],
 "namespacemembers_func_a.html":[15,1,1],
 "namespacemembers_func_b.html":[15,1,2],
 "namespacemembers_func_c.html":[15,1,3],
@@ -239,15 +249,5 @@ var NAVTREEINDEX19 =
 "namespacemembers_func_n.html":[15,1,13],
 "namespacemembers_func_o.html":[15,1,14],
 "namespacemembers_func_p.html":[15,1,15],
-"namespacemembers_func_r.html":[15,1,16],
-"namespacemembers_func_s.html":[15,1,17],
-"namespacemembers_func_t.html":[15,1,18],
-"namespacemembers_func_u.html":[15,1,19],
-"namespacemembers_func_v.html":[15,1,20],
-"namespacemembers_func_w.html":[15,1,21],
-"namespacemembers_g.html":[15,0,7],
-"namespacemembers_h.html":[15,0,8],
-"namespacemembers_i.html":[15,0,9],
-"namespacemembers_j.html":[15,0,10],
-"namespacemembers_k.html":[15,0,11]
+"namespacemembers_func_r.html":[15,1,16]
 };

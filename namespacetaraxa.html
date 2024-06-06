@@ -346,16 +346,12 @@ Enumerations</h2></td></tr>
 , <a class="el" href="group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba4bbb8f967da6d1a610596d7257179c2b">Invalid</a>
  }</td></tr>
 <tr class="separator:ga39898c94848b6a52779d398d677f0a9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae7551c287ae57b46d56d27de67df61e7"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> { <br />
-&#160;&#160;<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f">Verified</a> = 0
-, <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a4bbb8f967da6d1a610596d7257179c2b">Invalid</a>
-, <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03">LowNonce</a>
-, <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf">InsufficentBalance</a>
-, <br />
-&#160;&#160;<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7adc2eb84d1f952ad0e6b58014aabd616a">Forced</a>
-<br />
+<tr class="memitem:gae7551c287ae57b46d56d27de67df61e7"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> { <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a157d034f9c98a305eb73776582550027">Inserted</a> = 0
+, <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7abc0b8ac122f1b32c7e897f89b77a37e7">InsertedNonProposable</a>
+, <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a2f5650e484fa195949ac6c8d11dca4fd">Known</a>
+, <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a129e8109f319870e328cc7a1d5b5cae3">Overflow</a>
  }</td></tr>
-<tr class="memdesc:gae7551c287ae57b46d56d27de67df61e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">TransactionStatus enum class defines current transaction status. All states except Forced are result of verification. Forced status is used when trx is part of synced dag block which is about to be added to DAG.  <a href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">More...</a><br /></td></tr>
+<tr class="memdesc:gae7551c287ae57b46d56d27de67df61e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">TransactionStatus enum class defines current transaction status.  <a href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">More...</a><br /></td></tr>
 <tr class="separator:gae7551c287ae57b46d56d27de67df61e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc780cd89307f2097bb4281488e325bf"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> { <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfab4f6c1353c76c2aecdfcd3fcc3e8241d">SoftVotedBlock</a>
 , <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfa5c7ca0f667f2a592cd73c6fc8a0c874e">CertVotedBlock</a>
@@ -574,6 +570,8 @@ Variables</h2></td></tr>
 <tr class="separator:a14fc5210f7f52dbf8a90d2a6b6de8f8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b1964de45bc5010bdb33fb60fa57744"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a8b1964de45bc5010bdb33fb60fa57744">kV2NetworkVersion</a> = 2</td></tr>
 <tr class="separator:a8b1964de45bc5010bdb33fb60fa57744"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a017ff573490da91468122ecd635edb96"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a017ff573490da91468122ecd635edb96">kRecentlyFinalizedTransactionsFactor</a> = 2</td></tr>
+<tr class="separator:a017ff573490da91468122ecd635edb96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af37c840bbc7870c8fb9f5c878ac55582"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#af37c840bbc7870c8fb9f5c878ac55582">kOneTara</a> = <a class="el" href="namespacedev.html#aaa0b3b33e41c3a8aad65a07acd88a897">dev::exp10</a>&lt;18&gt;()</td></tr>
 <tr class="separator:af37c840bbc7870c8fb9f5c878ac55582"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10105b152578aaf566cb89722b17385b"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a10105b152578aaf566cb89722b17385b">kEmptyVrfKey</a></td></tr>
@@ -3388,6 +3386,20 @@ template&lt;typename T &gt; </div>
 <span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a017ff573490da91468122ecd635edb96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a017ff573490da91468122ecd635edb96">&#9670;&nbsp;</a></span>kRecentlyFinalizedTransactionsFactor</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint32_t taraxa::kRecentlyFinalizedTransactionsFactor = 2</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>

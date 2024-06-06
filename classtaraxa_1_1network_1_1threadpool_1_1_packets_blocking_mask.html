@@ -85,6 +85,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1network_1_1threadpool_1
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
+<a href="#pri-static-attribs">Static Private Attributes</a> &#124;
 <a href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">taraxa::network::threadpool::PacketsBlockingMask Class Reference</div>  </div>
@@ -92,6 +93,15 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1network_1_1threadpool_1
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="packets__blocking__mask_8hpp_source.html">packets_blocking_mask.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for taraxa::network::threadpool::PacketsBlockingMask:</div>
+<div class="dyncontent">
+<div class="center"><img src="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask__coll__graph.png" border="0" usemap="#ataraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask_coll__map" alt="Collaboration graph"/></div>
+<map name="ataraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask_coll__map" id="ataraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask_coll__map">
+<area shape="rect" title=" " alt="" coords="5,139,208,180"/>
+<area shape="rect" title=" " alt="" coords="77,5,137,32"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -124,6 +134,8 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a0cdc673e4bc4665f2b86e4238ad8bc59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af19a6e8c835c398ce257d78bf995c463"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#af19a6e8c835c398ce257d78bf995c463">isDagBlockPacketBlockedBySameDagBlock</a> (const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">PacketData</a> &amp;packet_data) const</td></tr>
 <tr class="separator:af19a6e8c835c398ce257d78bf995c463"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c094657b6f79256d9fd229fc9e5939d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a0c094657b6f79256d9fd229fc9e5939d">dagBlockFromDagPacket</a> (const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">PacketData</a> &amp;packet_data) const</td></tr>
+<tr class="separator:a0c094657b6f79256d9fd229fc9e5939d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa192096727831d75bf41c1943bf2598e"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">taraxa::level_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#aa192096727831d75bf41c1943bf2598e">getSmallestDagLevelBeingProcessed</a> () const</td></tr>
 <tr class="separator:aa192096727831d75bf41c1943bf2598e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -137,8 +149,43 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a674c4c20954d61267be5fdf40ef8a8db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48457cb162e80f1f8c580a798630c9af"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="namespacetaraxa.html#ac413a96709236ee8b2a47c019f83ce37">taraxa::sig_t</a>, <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a29a4a1e724858edc4846987d740de4cc">PacketData::PacketId</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a48457cb162e80f1f8c580a798630c9af">processing_dag_blocks_</a></td></tr>
 <tr class="separator:a48457cb162e80f1f8c580a798630c9af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-static-attribs"></a>
+Static Private Attributes</h2></td></tr>
+<tr class="memitem:a360a98a64984b8f60880ca0641bdb79a"><td class="memItemLeft" align="right" valign="top">static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a360a98a64984b8f60880ca0641bdb79a">kRequiredDagPacketSizeV3</a> = 2</td></tr>
+<tr class="separator:a360a98a64984b8f60880ca0641bdb79a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a7484041a21d5a8ea9fb0522ec6e8f7"><td class="memItemLeft" align="right" valign="top">static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a9a7484041a21d5a8ea9fb0522ec6e8f7">kDagBlockPosV3</a> = 1</td></tr>
+<tr class="separator:a9a7484041a21d5a8ea9fb0522ec6e8f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a066446f3b64055df09e562f2455b16"><td class="memItemLeft" align="right" valign="top">static constexpr size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a6a066446f3b64055df09e562f2455b16">kRequiredDagPacketSizeV2</a> = 8</td></tr>
+<tr class="separator:a6a066446f3b64055df09e562f2455b16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a0c094657b6f79256d9fd229fc9e5939d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c094657b6f79256d9fd229fc9e5939d">&#9670;&nbsp;</a></span>dagBlockFromDagPacket()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> taraxa::network::threadpool::PacketsBlockingMask::dagBlockFromDagPacket </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">PacketData</a> &amp;&#160;</td>
+          <td class="paramname"><em>packet_data</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa192096727831d75bf41c1943bf2598e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa192096727831d75bf41c1943bf2598e">&#9670;&nbsp;</a></span>getSmallestDagLevelBeingProcessed()</h2>
 
@@ -487,6 +534,72 @@ Private Attributes</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a7484041a21d5a8ea9fb0522ec6e8f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a7484041a21d5a8ea9fb0522ec6e8f7">&#9670;&nbsp;</a></span>kDagBlockPosV3</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr size_t taraxa::network::threadpool::PacketsBlockingMask::kDagBlockPosV3 = 1</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6a066446f3b64055df09e562f2455b16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a066446f3b64055df09e562f2455b16">&#9670;&nbsp;</a></span>kRequiredDagPacketSizeV2</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr size_t taraxa::network::threadpool::PacketsBlockingMask::kRequiredDagPacketSizeV2 = 8</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a360a98a64984b8f60880ca0641bdb79a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a360a98a64984b8f60880ca0641bdb79a">&#9670;&nbsp;</a></span>kRequiredDagPacketSizeV3</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr size_t taraxa::network::threadpool::PacketsBlockingMask::kRequiredDagPacketSizeV3 = 2</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

@@ -50,7 +50,7 @@ var classtaraxa_1_1_db_storage =
     [ "getDagEdgeCount", "classtaraxa_1_1_db_storage.html#ad339fefe350a6b5faec62f21a2d8cd66", null ],
     [ "getFinalizedDagBlockByPeriod", "classtaraxa_1_1_db_storage.html#a9c2a8b3742a98a95db170e4d1cf49001", null ],
     [ "getFinalizedDagBlockHashesByPeriod", "classtaraxa_1_1_db_storage.html#a40229bddbced5243a1cdf57bbccc4bc7", null ],
-    [ "getFinalizedTransactions", "classtaraxa_1_1_db_storage.html#ad797fc9c28e52d355aae1ca7bd5b79d8", null ],
+    [ "getFinalizedTransactions", "classtaraxa_1_1_db_storage.html#a44b3af26c8e44701d0a48f358f245576", null ],
     [ "getGenesisHash", "classtaraxa_1_1_db_storage.html#a3b5913c661bb192e45c7a6b659886aed", null ],
     [ "getLastBlocksLevel", "classtaraxa_1_1_db_storage.html#a8f3d4cd42cb6e55a1a5afc7cc7839233", null ],
     [ "getLastPbftblockHashAndFinalizedDagBlockByPeriod", "classtaraxa_1_1_db_storage.html#aefef0b130c28177416ff54cead2b65e2", null ],

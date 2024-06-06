@@ -278,7 +278,7 @@ var group___d_a_g =
       [ "sortitionParamsManager", "group___d_a_g.html#a72081dbb8a3e1375f42994c59343a014", null ],
       [ "updateFrontier", "group___d_a_g.html#a48dff2f0634ce367582074273414ce44", null ],
       [ "validateBlockNotExpired", "group___d_a_g.html#a62e092771ea64e24a726828460fdefd2", null ],
-      [ "verifyBlock", "group___d_a_g.html#a2743a075e35d45823238cf5d540e69d1", null ],
+      [ "verifyBlock", "group___d_a_g.html#a2762e392fd4d8533e72f1049e0e0124b", null ],
       [ "anchor_", "group___d_a_g.html#a56e52dad59ae0107beb964b6d7fe857a", null ],
       [ "block_verified_", "group___d_a_g.html#a757e9bf84df5cd479f8ddcf9ab12cc47", null ],
       [ "cache_delete_step_", "group___d_a_g.html#a8a5501aae6db9f6a2e22ab2d12a7e962", null ],

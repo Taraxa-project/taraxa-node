@@ -1,5 +1,6 @@
 var classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask =
 [
+    [ "dagBlockFromDagPacket", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a0c094657b6f79256d9fd229fc9e5939d", null ],
     [ "getSmallestDagLevelBeingProcessed", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#aa192096727831d75bf41c1943bf2598e", null ],
     [ "isDagBlockPacketBlockedByLevel", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a0cdc673e4bc4665f2b86e4238ad8bc59", null ],
     [ "isDagBlockPacketBlockedBySameDagBlock", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#af19a6e8c835c398ce257d78bf995c463", null ],
@@ -15,6 +16,9 @@ var classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask =
     [ "unsetDagBlockBeingProcessed", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a565d83131661eca12c7689ecf4f8c56b", null ],
     [ "unsetDagBlockLevelBeingProcessed", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a890adf64da9eb79632c29066f7bd433c", null ],
     [ "hard_blocked_packet_types_", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a5d1dd385aeebfe3c15fdaaea7aad7d0c", null ],
+    [ "kDagBlockPosV3", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a9a7484041a21d5a8ea9fb0522ec6e8f7", null ],
+    [ "kRequiredDagPacketSizeV2", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a6a066446f3b64055df09e562f2455b16", null ],
+    [ "kRequiredDagPacketSizeV3", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a360a98a64984b8f60880ca0641bdb79a", null ],
     [ "peer_order_blocked_packet_types_", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a4300710a38a574fd1f4ef44cf1d2b820", null ],
     [ "processing_dag_blocks_", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a48457cb162e80f1f8c580a798630c9af", null ],
     [ "processing_dag_levels_", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html#a674c4c20954d61267be5fdf40ef8a8db", null ]

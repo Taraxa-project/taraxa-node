@@ -17,5 +17,6 @@ var constants_8hpp =
     [ "kOnePercent", "constants_8hpp.html#aabc5f78e10c03c40461ce8d35591cc10", null ],
     [ "kOneTara", "constants_8hpp.html#af37c840bbc7870c8fb9f5c878ac55582", null ],
     [ "kPeriodicEventsThreadCount", "constants_8hpp.html#a7ecb57c956c8d0467fb9514f5e85c005", null ],
+    [ "kRecentlyFinalizedTransactionsFactor", "constants_8hpp.html#a017ff573490da91468122ecd635edb96", null ],
     [ "kV2NetworkVersion", "constants_8hpp.html#a8b1964de45bc5010bdb33fb60fa57744", null ]
 ];

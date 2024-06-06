@@ -2766,9 +2766,9 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="memitem:abce853c7b3f9c2ad1d7f8f645573254a"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#abce853c7b3f9c2ad1d7f8f645573254a">getDagBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash) const</td></tr>
 <tr class="memdesc:abce853c7b3f9c2ad1d7f8f645573254a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets dag block from either local memory cache or db.  <a href="group___d_a_g.html#abce853c7b3f9c2ad1d7f8f645573254a">More...</a><br /></td></tr>
 <tr class="separator:abce853c7b3f9c2ad1d7f8f645573254a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2743a075e35d45823238cf5d540e69d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">VerifyBlockReturnType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2743a075e35d45823238cf5d540e69d1">verifyBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk)</td></tr>
-<tr class="memdesc:a2743a075e35d45823238cf5d540e69d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies new DAG block.  <a href="group___d_a_g.html#a2743a075e35d45823238cf5d540e69d1">More...</a><br /></td></tr>
-<tr class="separator:a2743a075e35d45823238cf5d540e69d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2762e392fd4d8533e72f1049e0e0124b"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">VerifyBlockReturnType</a>, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2762e392fd4d8533e72f1049e0e0124b">verifyBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk, const std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&gt; &amp;trxs={})</td></tr>
+<tr class="memdesc:a2762e392fd4d8533e72f1049e0e0124b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies new DAG block.  <a href="group___d_a_g.html#a2762e392fd4d8533e72f1049e0e0124b">More...</a><br /></td></tr>
+<tr class="separator:a2762e392fd4d8533e72f1049e0e0124b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd43873f7de88687241db2e74a431966"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#afd43873f7de88687241db2e74a431966">pivotAndTipsAvailable</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
 <tr class="memdesc:afd43873f7de88687241db2e74a431966"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if block pivot and tips are in DAG.  <a href="group___d_a_g.html#afd43873f7de88687241db2e74a431966">More...</a><br /></td></tr>
 <tr class="separator:afd43873f7de88687241db2e74a431966"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3168,7 +3168,7 @@ Collaboration diagram for taraxa::DagManager:</div>
 <p>adds verified DAG block in the DAG </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">trxs</td><td>Block transactions which are part of the pool, transactions that are already present in a previous DAG block are excluded </td></tr>
+    <tr><td class="paramname">trxs</td><td>Block transactions </td></tr>
     <tr><td class="paramname">proposed</td><td>if this node proposed the block </td></tr>
     <tr><td class="paramname">save</td><td>if true save block and transactions to database </td></tr>
   </table>
@@ -4219,18 +4219,28 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a2743a075e35d45823238cf5d540e69d1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2743a075e35d45823238cf5d540e69d1">&#9670;&nbsp;</a></span>verifyBlock()</h2>
+<a id="a2762e392fd4d8533e72f1049e0e0124b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2762e392fd4d8533e72f1049e0e0124b">&#9670;&nbsp;</a></span>verifyBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">DagManager::VerifyBlockReturnType</a> taraxa::DagManager::verifyBlock </td>
+          <td class="memname">std::pair&lt; <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">DagManager::VerifyBlockReturnType</a>, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &gt; taraxa::DagManager::verifyBlock </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
-          <td class="paramname"><em>blk</em></td><td>)</td>
+          <td class="paramname"><em>blk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>trxs</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4239,10 +4249,11 @@ Collaboration diagram for taraxa::DagManager:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">blk</td><td>Block to verify </td></tr>
+    <tr><td class="paramname">transactions</td><td>Optional block transactions </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>verification result </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>verification result and all the transactions which are part of the block </dd></dl>
 
 </div>
 </div>
