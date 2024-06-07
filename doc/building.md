@@ -20,8 +20,8 @@ will build out of the box without further effort:
         autoconf \
         ccache \
         cmake \
-        clang-format-18 \
-        clang-tidy-18 \
+        clang-format-17 \
+        clang-tidy-17 \
         golang-go \
         python3-full \
         # this libs are required for arm build by go part. you can skip it for amd64 build
@@ -41,8 +41,8 @@ will build out of the box without further effort:
     sudo python3 -m pip install conan==1.64.1
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export CC="clang-18"
-    export CXX="clang++-18"
+    export CC="clang-17"
+    export CXX="clang++-17"
 
 ### Clone the Repository
 
@@ -56,9 +56,6 @@ will build out of the box without further effort:
     # Create clang profile
     # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect
-
-    # Copy custom settings
-    cp ./CMakeModules/settings.yml ~/.conan/settings.yml
 
     # Compile project using cmake
     mkdir cmake-build
