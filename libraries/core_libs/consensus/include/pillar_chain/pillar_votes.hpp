@@ -77,12 +77,12 @@ class PillarVotes {
    *
    * @param period
    * @param pillar_block_hash
-   * @param two_t_plus_one if true, return only if there is >= 2t+1 verified votes
+   * @param above_threshold if true, return only if there is > threshold verified votes
    *
    * @return all pillar block votes for specified period and pillar block hash
    */
   std::vector<std::shared_ptr<PillarVote>> getVerifiedVotes(PbftPeriod period, const blk_hash_t& pillar_block_hash,
-                                                            bool two_t_plus_one = false) const;
+                                                            bool above_threshold = false) const;
 
   /**
    * @brief Erases votes wit period < min_period

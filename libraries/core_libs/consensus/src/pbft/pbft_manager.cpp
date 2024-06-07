@@ -2004,6 +2004,7 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
     return false;
   }
 
+  uint64_t votes_weight = 0;
   for (auto &vote : *period_data.pillar_votes_) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (vote->getPeriod() != required_votes_period) {
@@ -2024,15 +2025,23 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
       return false;
     }
 
-    if (!pillar_chain_mgr_->addVerifiedPillarVote(vote)) {
+    if (const auto vote_weight = pillar_chain_mgr_->addVerifiedPillarVote(vote); vote_weight) {
+      votes_weight += vote_weight;
+    } else {
       LOG(log_er_) << "Unable to add sync pillar vote " << vote->getHash();
       return false;
     }
   }
 
-  // Check if we have > threshold votes for correct pillar block
-  if (!pillar_chain_mgr_->checkPillarChainSynced(required_votes_period)) {
-    LOG(log_wr_) << "Not enough synced pillar votes";
+  const auto pillar_consensus_threshold = pillar_chain_mgr_->getPillarConsensusThreshold(required_votes_period - 1);
+  if (!pillar_consensus_threshold.has_value()) {
+    LOG(log_er_) << "Unable to obtain pillar consensus threshold for period " << required_votes_period - 1;
+    return false;
+  }
+
+  if (votes_weight < *pillar_consensus_threshold) {
+    LOG(log_wr_) << "Invalid sync pillar votes weight " << votes_weight << " < threshold "
+                 << *pillar_consensus_threshold << ", period " << required_votes_period - 1;
     return false;
   }
 

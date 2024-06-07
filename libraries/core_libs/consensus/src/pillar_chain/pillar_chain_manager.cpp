@@ -7,19 +7,16 @@
 #include "network/network.hpp"
 #include "storage/storage.hpp"
 #include "vote/pillar_vote.hpp"
-#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::pillar_chain {
 
 PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_config, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<final_chain::FinalChain> final_chain,
-                                       std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
-                                       addr_t node_addr)
+                                       std::shared_ptr<KeyManager> key_manager, addr_t node_addr)
     : kFicusHfConfig(ficus_hf_config),
       db_(std::move(db)),
       network_{},
       final_chain_{std::move(final_chain)},
-      vote_mgr_(std::move(vote_mgr)),
       key_manager_(std::move(key_manager)),
       node_addr_(node_addr),
       last_finalized_pillar_block_{},
@@ -110,7 +107,7 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
   LOG(log_nf_) << "New pillar block " << pillar_block->getHash() << " with period " << pillar_block->getPeriod()
                << " created";
 
-  // Try to finalize current_pillar_block - there might 2t+1 votes for it already
+  // Try to finalize current_pillar_block - there might > threshold votes for it already
   finalizePillarBlock(pillar_block);
 
   return pillar_block;
@@ -183,14 +180,14 @@ bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>&
     return false;
   }
 
-  auto two_t_plus_one_votes = pillar_votes_.getVerifiedVotes(pillar_block->getPeriod(), pillar_block->getHash(), true);
-  if (two_t_plus_one_votes.empty()) {
+  auto above_threshold_votes = pillar_votes_.getVerifiedVotes(pillar_block->getPeriod(), pillar_block->getHash(), true);
+  if (above_threshold_votes.empty()) {
     LOG(log_dg_) << "Unable to finalize pillar block " << pillar_block->getHash()
                  << ", period: " << pillar_block->getPeriod() << ". Not enough votes";
     return false;
   }
 
-  const PillarBlockData pillar_block_data{pillar_block, std::move(two_t_plus_one_votes)};
+  const PillarBlockData pillar_block_data{pillar_block, std::move(above_threshold_votes)};
 
   db_->savePillarBlockData(pillar_block_data);
   LOG(log_nf_) << "Pillar block " << pillar_block->getHash() << " with period " << pillar_block->getPeriod()
@@ -370,7 +367,7 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
 
   if (const auto current_pillar_block = getCurrentPillarBlock();
       current_pillar_block && vote->getBlockHash() == current_pillar_block->getHash()) {
-    // Try to finalize current_pillar_block - there might 2t+1 votes for it already
+    // Try to finalize current_pillar_block - there might > threshold votes for it already
     finalizePillarBlock(current_pillar_block);
   }
 

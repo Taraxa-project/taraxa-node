@@ -13,7 +13,6 @@ namespace taraxa {
 class DbStorage;
 class Network;
 class KeyManager;
-class VoteManager;
 }  // namespace taraxa
 
 namespace taraxa::final_chain {
@@ -39,8 +38,8 @@ class PillarChainManager {
 
  public:
   PillarChainManager(const FicusHardforkConfig& ficus_hf_config, std::shared_ptr<DbStorage> db,
-                     std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<VoteManager> vote_mgr,
-                     std::shared_ptr<KeyManager> key_manager, addr_t node_addr);
+                     std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
+                     addr_t node_addr);
 
   /**
    * @Process Creates new pillar block
@@ -140,6 +139,12 @@ class PillarChainManager {
    */
   bool isValidPillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) const;
 
+  /**
+   * @param period
+   * @return pillar consensus threshold (total votes count / 2 + 1) for provided period
+   */
+  std::optional<uint64_t> getPillarConsensusThreshold(PbftPeriod period) const;
+
  private:
   /**
    * @brief Return a vector of validators vote counts changes between the current and previous pillar block
@@ -162,12 +167,6 @@ class PillarChainManager {
   void saveNewPillarBlock(std::shared_ptr<PillarBlock> pillar_block,
                           std::vector<state_api::ValidatorVoteCount>&& new_vote_counts);
 
-  /**
-   * @param period
-   * @return pillar consensus threshold (total votes count / 2 + 1) for provided period
-   */
-  std::optional<uint64_t> getPillarConsensusThreshold(PbftPeriod period) const;
-
  private:
   // Node config
   const FicusHardforkConfig kFicusHfConfig;
@@ -175,12 +174,11 @@ class PillarChainManager {
   std::shared_ptr<DbStorage> db_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
-  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<KeyManager> key_manager_;
 
   const addr_t node_addr_;
 
-  // Last finalized pillar block - saved into db together with 2t+1 votes
+  // Last finalized pillar block - saved into db together with > threshold votes
   std::shared_ptr<PillarBlock> last_finalized_pillar_block_;
   // Current pillar block
   std::shared_ptr<PillarBlock> current_pillar_block_;
