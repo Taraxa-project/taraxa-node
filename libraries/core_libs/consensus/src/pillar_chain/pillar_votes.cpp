@@ -38,10 +38,9 @@ bool PillarVotes::isUniqueVote(const std::shared_ptr<PillarVote> vote) const {
   return false;
 }
 
-bool PillarVotes::hasTwoTPlusOneVotes(PbftPeriod period, const blk_hash_t& block_hash) const {
+bool PillarVotes::hasAboveThresholdVotes(PbftPeriod period, const blk_hash_t& block_hash) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
-  // Check 2t+1 votes
   const auto found_period_votes = votes_.find(period);
   if (found_period_votes == votes_.end()) [[unlikely]] {
     return false;
@@ -52,17 +51,17 @@ bool PillarVotes::hasTwoTPlusOneVotes(PbftPeriod period, const blk_hash_t& block
     return false;
   }
 
-  if (found_pillar_block_votes->second.weight < found_period_votes->second.two_t_plus_one) {
+  if (found_pillar_block_votes->second.weight < found_period_votes->second.threshold) {
     return false;
   }
 
-  // There is >= 2t+1 votes
+  // There is > threshold votes
   return true;
 }
 
 std::vector<std::shared_ptr<PillarVote>> PillarVotes::getVerifiedVotes(PbftPeriod period,
                                                                        const blk_hash_t& pillar_block_hash,
-                                                                       bool two_t_plus_one) const {
+                                                                       bool above_threshold) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
   const auto found_period_votes = votes_.find(period);
   if (found_period_votes == votes_.end()) {
@@ -74,7 +73,7 @@ std::vector<std::shared_ptr<PillarVote>> PillarVotes::getVerifiedVotes(PbftPerio
     return {};
   }
 
-  if (two_t_plus_one && found_pillar_block_votes->second.weight < found_period_votes->second.two_t_plus_one) {
+  if (above_threshold && found_pillar_block_votes->second.weight < found_period_votes->second.threshold) {
     return {};
   }
 
@@ -97,7 +96,7 @@ bool PillarVotes::addVerifiedVote(const std::shared_ptr<PillarVote>& vote, u_int
 
   auto found_period_votes = votes_.find(vote->getPeriod());
   if (found_period_votes == votes_.end()) {
-    // Period must be initialized explicitly providing also 2t+1 weight before adding any vote
+    // Period must be initialized explicitly providing also threshold weight before adding any vote
     assert(false);
     return false;
   }
@@ -121,9 +120,9 @@ bool PillarVotes::addVerifiedVote(const std::shared_ptr<PillarVote>& vote, u_int
   return true;
 }
 
-void PillarVotes::initializePeriodData(PbftPeriod period, uint64_t period_two_t_plus_one) {
+void PillarVotes::initializePeriodData(PbftPeriod period, uint64_t threshold) {
   std::scoped_lock<std::shared_mutex> lock(mutex_);
-  votes_.insert({period, PeriodVotes{.two_t_plus_one = period_two_t_plus_one}});
+  votes_.insert({period, PeriodVotes{.threshold = threshold}});
 }
 
 void PillarVotes::eraseVotes(PbftPeriod min_period) {
