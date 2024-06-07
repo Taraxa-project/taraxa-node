@@ -203,9 +203,9 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
           if (transactions_pool_.erase(tx_hash)) {
             LOG(log_dg_) << "Transaction " << tx_hash << " removed from trx pool ";
             // Transactions are counted when included in DAG
-            trx_count_++;
             accepted_transactions.emplace_back(tx_hash);
           }
+          trx_count_++;
         }
       }
     }
