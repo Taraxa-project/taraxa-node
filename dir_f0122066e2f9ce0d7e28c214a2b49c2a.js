@@ -12,7 +12,7 @@ var dir_f0122066e2f9ce0d7e28c214a2b49c2a =
       ] ],
       [ "PeriodVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_period_votes", [
         [ "pillar_block_votes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5f5c2479e84381dcc978f9b19bb13b27", null ],
-        [ "two_t_plus_one", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ae75e29046acb83f3bf956d010bd4b75c", null ],
+        [ "threshold", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a2b43c6a6a1ccdc2566fe07adf14e9d41", null ],
         [ "unique_voters", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ac6a4beccc3be3ad957e2a39e9026a2c7", null ]
       ] ]
     ] ]

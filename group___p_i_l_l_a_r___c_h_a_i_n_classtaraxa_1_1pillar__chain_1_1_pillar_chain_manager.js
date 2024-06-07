@@ -1,6 +1,6 @@
 var group___p_i_l_l_a_r___c_h_a_i_n_classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager =
 [
-    [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#a2ce45d74bd52ca30ccb6c34de0f1d60a", null ],
+    [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#ae30271f18d7f9387fbae227552b5ed7a", null ],
     [ "addVerifiedPillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#af9cbb2ec28b6528a6f70311e3f7af5a9", null ],
     [ "checkPillarChainSynced", "group___p_i_l_l_a_r___c_h_a_i_n.html#a79e982cd5d3cf0666e60c9e4e7b798cf", null ],
     [ "createPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a4669a02cfb2b86b9333fe04d58925e52", null ],
@@ -9,6 +9,7 @@ var group___p_i_l_l_a_r___c_h_a_i_n_classtaraxa_1_1pillar__chain_1_1_pillar_chai
     [ "getCurrentPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#ac5d1094a7eee92490e8314fe3373fcef", null ],
     [ "getLastFinalizedPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#aef3e777a5ec27565d7afdee2632e8506", null ],
     [ "getOrderedValidatorsVoteCountsChanges", "group___p_i_l_l_a_r___c_h_a_i_n.html#a5b6f1f5045b43b096b7dbb35f896520d", null ],
+    [ "getPillarConsensusThreshold", "group___p_i_l_l_a_r___c_h_a_i_n.html#a8149691b8a604d84344366fccbdbb955", null ],
     [ "getVerifiedPillarVotes", "group___p_i_l_l_a_r___c_h_a_i_n.html#a6f9d607854695bc11834e26efd959b35", null ],
     [ "isPillarBlockLatestFinalized", "group___p_i_l_l_a_r___c_h_a_i_n.html#ad4f4ec7d51e9ec24b19ea056ec6bd59e", null ],
     [ "isRelevantPillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#a05b005d4c13c5a8047e13b05f099e2c6", null ],
@@ -28,6 +29,5 @@ var group___p_i_l_l_a_r___c_h_a_i_n_classtaraxa_1_1pillar__chain_1_1_pillar_chai
     [ "node_addr_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a255221736cfc3a82dea6f44fc829eb69", null ],
     [ "pillar_block_finalized_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a8375ea4330c9ae4e1bbb50e3ea7e52d2", null ],
     [ "pillar_block_finalized_emitter_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a492825a8a85d688587d2df474a9d55cf", null ],
-    [ "pillar_votes_", "group___p_i_l_l_a_r___c_h_a_i_n.html#acbdfa0994b21b41ba126b99ac331a153", null ],
-    [ "vote_mgr_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a3eaa590f9df93f5e19bf48f94bd3cf64", null ]
+    [ "pillar_votes_", "group___p_i_l_l_a_r___c_h_a_i_n.html#acbdfa0994b21b41ba126b99ac331a153", null ]
 ];

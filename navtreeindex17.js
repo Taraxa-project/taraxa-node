@@ -1,6 +1,6 @@
 var NAVTREEINDEX17 =
 {
-"group___p_i_l_l_a_r___c_h_a_i_n.html#afae8b96905d0018d2d0e7b9c8b0e28b8":[14,3,3,20],
+"group___p_i_l_l_a_r___c_h_a_i_n.html#afae8b96905d0018d2d0e7b9c8b0e28b8":[14,3,3,21],
 "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block":[14,3,0],
 "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager":[14,3,3],
 "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db":[14,3,2],
