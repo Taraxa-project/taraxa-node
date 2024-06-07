@@ -861,7 +861,6 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
-  taraxa::thisThreadSleepForMilliSeconds(500);
   for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
     nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
@@ -902,7 +901,6 @@ TEST_F(FullNodeTest, persist_counter) {
     for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
       nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
-    taraxa::thisThreadSleepForMilliSeconds(500);
     for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
       nodes[1]->getTransactionManager()->insertTransaction(trx);
     }
