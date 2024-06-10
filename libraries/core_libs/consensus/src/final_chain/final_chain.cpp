@@ -108,6 +108,8 @@ class FinalChainImpl final : public FinalChain {
             num_executed_dag_blk_ -= period_data.dag_blocks.size();
             num_executed_trx_ -= period_data.transactions.size();
           }
+          auto period_system_transactions = db_->getPeriodSystemTransactionsHashes(block_n);
+          num_executed_trx_ -= period_system_transactions.size();
         }
         db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
         db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
@@ -230,7 +232,7 @@ class FinalChainImpl final : public FinalChain {
                                    receipts, new_blk.pbft_blk->getExtraDataRlp());
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
-    auto num_executed_trx = num_executed_trx_ + new_blk.transactions.size();
+    auto num_executed_trx = num_executed_trx_ + new_blk.transactions.size() + system_transactions.size();
     if (!finalized_dag_blk_hashes.empty()) {
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
