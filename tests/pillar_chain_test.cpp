@@ -166,29 +166,23 @@ TEST_F(PillarChainTest, votes_count_changes) {
 
   // Change validators delegation
   const auto delegation_value = 2 * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
-  const auto vote_count_change_validators_count = validators_count - 1;
-  for (size_t i = 0; i < vote_count_change_validators_count; i++) {
+  for (size_t i = 0; i < validators_count; i++) {
     const auto trx = make_delegate_tx(node_cfgs[i], delegation_value, 1, 1000);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
 
-  PbftPeriod executed_delegations_pbft_period = 1000000;
-  EXPECT_HAPPENS({20s, 1s}, [&](auto& ctx) {
+  EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
     for (auto& node : nodes) {
-      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != vote_count_change_validators_count)) {
+      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() <= validators_count)) {
         return;
-      }
-      const auto chain_size = node->getPbftChain()->getPbftChainSize();
-      if (chain_size < executed_delegations_pbft_period) {
-        executed_delegations_pbft_period = chain_size;
       }
     }
   });
+  const auto chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
 
   // Wait until new pillar block with changed validators vote_counts is created
   const auto new_pillar_block_period =
-      executed_delegations_pbft_period -
-      executed_delegations_pbft_period % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
+      chain_size - chain_size % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
       node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
@@ -203,8 +197,7 @@ TEST_F(PillarChainTest, votes_count_changes) {
     const auto new_pillar_block_data = node->getDB()->getPillarBlockData(new_pillar_block_period);
     ASSERT_TRUE(new_pillar_block_data.has_value());
     ASSERT_EQ(new_pillar_block_data->block_->getPeriod(), new_pillar_block_period);
-    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(),
-              vote_count_change_validators_count);
+    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(), validators_count);
     size_t idx = 0;
     for (const auto& vote_count_change : new_pillar_block_data->block_->getValidatorsVoteCountsChanges()) {
       ASSERT_EQ(vote_count_change.vote_count_change_,
