@@ -153,7 +153,7 @@ var searchData=
   ['getdifficulty_1213',['getDifficulty',['../classtaraxa_1_1_dag_block.html#ab5000039e1270206b704b94f8c846c6f',1,'taraxa::DagBlock::getDifficulty()'],['../classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a89234eac485bbc7013ba708f244bd550',1,'taraxa::vdf_sortition::VdfSortition::getDifficulty()'],['../classgraphql_1_1taraxa_1_1_block.html#a0abb206a60b4509eb2396eface8b8314',1,'graphql::taraxa::Block::getDifficulty()']]],
   ['getdisconnectreason_1214',['getDisconnectReason',['../classtaraxa_1_1_packet_processing_exception.html#ac21e7ffb13b25f5146f3f8115f196792',1,'taraxa::PacketProcessingException']]],
   ['getefficienciestoupperrange_1215',['getEfficienciesToUpperRange',['../group___d_a_g.html#af7c7cd8dca0441085bdabcc06d72f236',1,'taraxa::SortitionParamsManager']]],
-  ['getepoch_1216',['getEpoch',['../group___p_i_l_l_a_r___c_h_a_i_n.html#ab074e8052e04e2a8d737d1b0cd70317e',1,'taraxa::pillar_chain::PillarBlock']]],
+  ['getepoch_1216',['getEpoch',['../group___p_i_l_l_a_r___c_h_a_i_n.html#a18f5676a182a9a57eda6aa72b2c17d23',1,'taraxa::pillar_chain::PillarBlock']]],
   ['getestimategas_1217',['getEstimateGas',['../classgraphql_1_1taraxa_1_1_block.html#a5ad0ef6cdfd900b343e449d3856e3595',1,'graphql::taraxa::Block']]],
   ['getextradata_1218',['getExtraData',['../group___p_b_f_t.html#a0f8f19b2c6d25e1fb7512575513e89ed',1,'taraxa::PbftBlock::getExtraData()'],['../classgraphql_1_1taraxa_1_1_block.html#aad38071c41a1d22744f216911d20fba0',1,'graphql::taraxa::Block::getExtraData()']]],
   ['getextradatarlp_1219',['getExtraDataRlp',['../group___p_b_f_t.html#ae3feb650583387a505439972ca30c69f',1,'taraxa::PbftBlock']]],
