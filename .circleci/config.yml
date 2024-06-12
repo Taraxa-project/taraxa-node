@@ -355,11 +355,11 @@ commands:
       - run:
           name: Compile and build binaries
           command: |
-            docker build -t ${IMAGE}-ctest:${VERSION} --target build .
+            docker build --progress plain -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
           name: Build final Docker image
           command: |
-            docker build -t ${IMAGE}:${VERSION} .
+            docker build --progress plain -t ${IMAGE}:${VERSION} .
 
   build_builder:
     description: Builds docker image (${IMAGE})
@@ -367,7 +367,7 @@ commands:
       - run:
           name: Build builder image
           command: |
-            docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
+            docker build --progress plain -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
 
   tag_builder:
     description: Tags docker images (builder)
