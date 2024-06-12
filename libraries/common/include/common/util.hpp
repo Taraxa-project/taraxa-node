@@ -365,7 +365,7 @@ class ExpirationCacheMap {
   bool insert(Key const &key, Value const &value) {
     {
       std::shared_lock lock(mtx_);
-      if (cache_.count(key)) {
+      if (cache_.contains(key)) {
         return false;
       }
     }

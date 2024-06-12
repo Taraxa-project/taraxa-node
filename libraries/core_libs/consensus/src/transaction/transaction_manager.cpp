@@ -30,12 +30,26 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
     return trx->getGas();
   }
 
+  const auto trx_hash = trx->getHash();
   std::unique_lock transactions_lock(gas_estimations_mutex_);
 
-  auto estimation = gas_estimation_cache_.get(trx->getHash());
-  if (estimation.second && estimation.first.first == *proposal_period) {
-    return estimation.first.second;
+  const auto [estimation, exist] = gas_estimation_cache_.get(trx_hash);
+
+  if (!exist) {
+    gas_estimation_cache_.insert(trx_hash, {*proposal_period, -1});
+    gas_estimation_condition_vars_[trx_hash] = std::make_shared<std::condition_variable>();
+  } else {
+    if (estimation.first == *proposal_period && estimation.second != -1) {
+      return estimation.second;
+    }
+    auto cond_var = gas_estimation_condition_vars_[trx_hash];
+    cond_var->wait(transactions_lock, []{ return true; });
+    gas_estimation_condition_vars_.erase(trx_hash);
+    return gas_estimation_cache_.get(trx_hash).first.second;
   }
+
+  transactions_lock.unlock();
+
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
           trx->getSender(),
@@ -48,11 +62,16 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
       },
       proposal_period);
 
+  transactions_lock.lock();
+
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
+    gas_estimation_cache_.insert(trx_hash, {*proposal_period, 0});
+    gas_estimation_condition_vars_[trx_hash]->notify_all();
     return 0;
   }
 
-  gas_estimation_cache_.insert(trx->getHash(), {*proposal_period, result.gas_used});
+  gas_estimation_cache_.insert(trx_hash, {*proposal_period, result.gas_used});
+  gas_estimation_condition_vars_[trx_hash]->notify_all();
   return result.gas_used;
 }
 
