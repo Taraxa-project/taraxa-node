@@ -1605,6 +1605,10 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
     const auto pbft_block_hash = period_data.first.pbft_blk->getBlockHash();
     LOG(log_nf_) << "Picked sync block " << pbft_block_hash << " with period " << pbft_block_period;
 
+    for(auto d : period_data.first.dag_blocks) {
+      dag_mgr_->verifyBlock(d);
+    }
+
     if (pushPbftBlock_(std::move(period_data.first), std::move(period_data.second))) {
       LOG(log_dg_) << "Pushed synced PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
       net->setSyncStatePeriod(pbftSyncingPeriod());

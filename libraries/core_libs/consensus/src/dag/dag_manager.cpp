@@ -695,7 +695,13 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
     u256 total_block_weight = 0;
     auto block_gas_estimation = blk.getGasEstimation();
     for (const auto &trx : all_block_trxs) {
+      auto now = std::chrono::steady_clock::now();
+  
       total_block_weight += trx_mgr_->estimateTransactionGas(trx, propose_period);
+      auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - now).count();
+      if(duration > 1) {
+        LOG(log_er_) << "Transaction estimation took: " << duration << " sec. Trx: " << trx->getHash().toString();
+      }
     }
 
     if (total_block_weight != block_gas_estimation) {
