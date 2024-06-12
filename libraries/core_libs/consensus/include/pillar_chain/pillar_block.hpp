@@ -81,7 +81,7 @@ class PillarBlock {
   /**
    * @return epoch
    */
-  const u256& getEpoch() const;
+  const uint64_t& getEpoch() const;
 
   /**
    * @return pillar block rlp
@@ -128,7 +128,7 @@ class PillarBlock {
   h256 bridge_root_{};
 
   // Bridge epoch
-  u256 epoch_{};
+  uint64_t epoch_{};
 
   // Delta change of validators votes count between current and latest pillar block
   std::vector<ValidatorVoteCountChange> validators_votes_count_changes_{};

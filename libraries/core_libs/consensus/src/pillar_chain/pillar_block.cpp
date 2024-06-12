@@ -51,7 +51,7 @@ const h256& PillarBlock::getStateRoot() const { return state_root_; }
 
 const h256& PillarBlock::getBridgeRoot() const { return bridge_root_; }
 
-const u256& PillarBlock::getEpoch() const { return epoch_; }
+const uint64_t& PillarBlock::getEpoch() const { return epoch_; }
 
 blk_hash_t PillarBlock::getHash() const {
   {
