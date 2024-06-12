@@ -1,7 +1,7 @@
 var classtaraxa_1_1final__chain_1_1_final_chain_impl =
 [
     [ "FinalChainImpl", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a006e9fdb73dfcf514d0e378755808b14", null ],
-    [ "append_block", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aa1337554ab14c294eb069deb68f6a39b", null ],
+    [ "append_block", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a69ba8c1781c398a7b6125c2c12be962a", null ],
     [ "append_evm_transactions", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aefabfdd1432d6597dec29678b5cc2523", null ],
     [ "block_blooms", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aedd79a4913e2a299428d87e8c3fc4b89", null ],
     [ "block_blooms_chunk_id", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a083155d89e1b08725857668e2da8471f", null ],
