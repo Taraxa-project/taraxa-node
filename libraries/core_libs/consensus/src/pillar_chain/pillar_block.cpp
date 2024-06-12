@@ -68,7 +68,7 @@ blk_hash_t PillarBlock::getHash() const {
 
 Json::Value PillarBlock::getJson() const {
   Json::Value res;
-  res["pbft_period"] = static_cast<Json::Value::UInt64>(pbft_period_);
+  res["pbft_period"] = dev::toJS(pbft_period_);
   res["state_root"] = dev::toJS(state_root_);
   res["previous_pillar_block_hash"] = dev::toJS(previous_pillar_block_hash_);
   res["bridge_root"] = dev::toJS(bridge_root_);
