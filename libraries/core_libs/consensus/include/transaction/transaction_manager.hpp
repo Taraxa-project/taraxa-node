@@ -234,11 +234,16 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   // Transactions can be in one of three states:
   // 1. In transactions pool; 2. In non-finalized Dag block 3. Executed
   mutable std::shared_mutex transactions_mutex_;
+  mutable std::shared_mutex gas_estimations_mutex_;
+  
   TransactionQueue transactions_pool_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
   std::unordered_map<PbftPeriod, std::vector<trx_hash_t>> recently_finalized_transactions_per_period_;
   uint64_t trx_count_ = 0;
+
+  const uint64_t kGasEstimationCacheSize = 1000;
+  mutable ExpirationCacheMap<trx_hash_t, std::pair<PbftPeriod, uint64_t>> gas_estimation_cache_;
 
   const uint64_t kDagBlockGasLimit;
   const uint64_t kEstimateGasLimit = 200000;

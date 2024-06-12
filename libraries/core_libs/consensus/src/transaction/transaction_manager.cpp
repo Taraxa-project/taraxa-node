@@ -14,6 +14,7 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
     : kConf(conf),
       transactions_pool_(final_chain, kConf.transactions_pool_size),
       kDagBlockGasLimit(kConf.genesis.dag.gas_limit),
+      gas_estimation_cache_(kGasEstimationCacheSize, kGasEstimationCacheSize / 10),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -27,6 +28,13 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
                                                     std::optional<PbftPeriod> proposal_period) const {
   if (trx->getGas() <= kEstimateGasLimit) {
     return trx->getGas();
+  }
+
+  std::unique_lock transactions_lock(gas_estimations_mutex_);
+
+  auto estimation = gas_estimation_cache_.get(trx->getHash());
+  if (estimation.second && estimation.first.first == *proposal_period) {
+    return estimation.first.second;
   }
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
@@ -43,6 +51,8 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
     return 0;
   }
+
+  gas_estimation_cache_.insert(trx->getHash(), {*proposal_period, result.gas_used});
   return result.gas_used;
 }
 
