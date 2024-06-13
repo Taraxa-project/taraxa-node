@@ -173,13 +173,14 @@ class FinalChainImpl final : public FinalChain {
 
   std::vector<SharedTransaction> makeSystemTransactions(PbftPeriod blk_num) {
     std::vector<SharedTransaction> system_transactions;
-    auto bridge_contract = get_account(kHardforksConfig.ficus_hf.bridge_contract_address);
-    bool is_pillar_block_period = kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num);
-    bool is_bridge_contract_exists = bridge_contract && bridge_contract->code_size;
-    bool is_need_to_finalize = isNeedToFinalize(blk_num - 1);
-    if (is_pillar_block_period && is_bridge_contract_exists && is_need_to_finalize) {
-      auto finalize_trx = make_bridge_finalization_transaction();
-      system_transactions.push_back(finalize_trx);
+    if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num)) {
+      if (const auto bridge_contract = get_account(kHardforksConfig.ficus_hf.bridge_contract_address);
+          bridge_contract) {
+        if (bridge_contract->code_size && isNeedToFinalize(blk_num - 1)) {
+          auto finalize_trx = make_bridge_finalization_transaction();
+          system_transactions.push_back(finalize_trx);
+        }
+      }
     }
     return system_transactions;
   }
