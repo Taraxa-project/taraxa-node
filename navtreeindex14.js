@@ -1,5 +1,7 @@
 var NAVTREEINDEX14 =
 {
+"functions_vars_r.html":[16,3,2,17],
+"functions_vars_s.html":[16,3,2,18],
 "functions_vars_t.html":[16,3,2,19],
 "functions_vars_u.html":[16,3,2,20],
 "functions_vars_v.html":[16,3,2,21],
@@ -247,7 +249,5 @@ var NAVTREEINDEX14 =
 "group___d_a_g.html#afa3f18cf3f73a439e0e1f023f7948973":[14,0,4,17],
 "group___d_a_g.html#afbabead5b9d3b67d6419adcf03f823f7":[14,0,4,23],
 "group___d_a_g.html#afd43873f7de88687241db2e74a431966":[14,0,5,38],
-"group___d_a_g.html#afef4b41fe4b9bd9639a562ae42b366c1":[14,0,3,1],
-"group___d_a_g.html#aff9a70ff9192904a1c033c6ecb3c89c6":[14,0,5,22],
-"group___d_a_g.html#classtaraxa_1_1_dag":[14,0,0]
+"group___d_a_g.html#afef4b41fe4b9bd9639a562ae42b366c1":[14,0,3,1]
 };

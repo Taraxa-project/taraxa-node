@@ -1,5 +1,7 @@
 var NAVTREEINDEX15 =
 {
+"group___d_a_g.html#aff9a70ff9192904a1c033c6ecb3c89c6":[14,0,5,22],
+"group___d_a_g.html#classtaraxa_1_1_dag":[14,0,0],
 "group___d_a_g.html#classtaraxa_1_1_dag_block_proposer":[14,0,4],
 "group___d_a_g.html#classtaraxa_1_1_dag_manager":[14,0,5],
 "group___d_a_g.html#classtaraxa_1_1_pivot_tree":[14,0,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX15 =
 "group___p_b_f_t.html#a32af495911eba54a204465a01e9d1281":[14,2,3,4],
 "group___p_b_f_t.html#a337d6322baecf4ad6ee958c4cc447f30":[14,2,1,80],
 "group___p_b_f_t.html#a342745615e2001d0cdb0938a3ca0f9fc":[14,2,1,34],
-"group___p_b_f_t.html#a3484b9432ba8a2c2b91a1c0075785559":[14,2,1,61],
-"group___p_b_f_t.html#a3495e3adf8b3ea6c3d9b8a60960c2124":[14,2,3,16],
-"group___p_b_f_t.html#a353e47b13755fa85ed099a8212a887db":[14,2,1,21]
+"group___p_b_f_t.html#a3484b9432ba8a2c2b91a1c0075785559":[14,2,1,61]
 };
