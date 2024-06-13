@@ -162,6 +162,28 @@ class FinalChainImpl final : public FinalChain {
     return trx;
   }
 
+  bool isNeedToFinalize(EthBlockNumber blk_num) const {
+    const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("shouldFinalizeEpoch()");
+    return u256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
+                                               state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
+                     blk_num)
+                    .code_retval)
+        .convert_to<bool>();
+  }
+
+  std::vector<SharedTransaction> makeSystemTransactions(PbftPeriod blk_num) {
+    std::vector<SharedTransaction> system_transactions;
+    auto bridge_contract = get_account(kHardforksConfig.ficus_hf.bridge_contract_address);
+    bool is_pillar_block_period = kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num);
+    bool is_bridge_contract_exists = bridge_contract && bridge_contract->code_size;
+    bool is_need_to_finalize = isNeedToFinalize(blk_num - 1);
+    if (is_pillar_block_period && is_bridge_contract_exists && is_need_to_finalize) {
+      auto finalize_trx = make_bridge_finalization_transaction();
+      system_transactions.push_back(finalize_trx);
+    }
+    return system_transactions;
+  }
+
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor) {
@@ -186,12 +208,7 @@ class FinalChainImpl final : public FinalChain {
       }
     } */
 
-    std::vector<SharedTransaction> system_transactions;
-    const auto blk_num = new_blk.pbft_blk->getPeriod();
-    if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num)) {
-      auto finalize_trx = make_bridge_finalization_transaction();
-      system_transactions.push_back(finalize_trx);
-    }
+    auto system_transactions = makeSystemTransactions(new_blk.pbft_blk->getPeriod());
 
     auto all_transactions = new_blk.transactions;
     all_transactions.insert(all_transactions.end(), system_transactions.begin(), system_transactions.end());
