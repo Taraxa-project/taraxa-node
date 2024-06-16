@@ -204,7 +204,8 @@ PublicCompressed IdentitySchemeV4::publicKey(ENR const& _enr) {
 }
 
 std::ostream& operator<<(std::ostream& _out, ENR const& _enr) {
-  _out << "[ seq=" << _enr.sequenceNumber() << " " << "id=" << _enr.id() << " ";
+  _out << "[ seq=" << _enr.sequenceNumber() << " "
+       << "id=" << _enr.id() << " ";
 
   try {
     auto const pubKey = IdentitySchemeV4::publicKey(_enr);
