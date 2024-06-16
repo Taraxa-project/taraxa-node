@@ -166,29 +166,23 @@ TEST_F(PillarChainTest, votes_count_changes) {
 
   // Change validators delegation
   const auto delegation_value = 2 * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
-  const auto vote_count_change_validators_count = validators_count - 1;
-  for (size_t i = 0; i < vote_count_change_validators_count; i++) {
+  for (size_t i = 0; i < validators_count; i++) {
     const auto trx = make_delegate_tx(node_cfgs[i], delegation_value, 1, 1000);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
 
-  PbftPeriod executed_delegations_pbft_period = 1000000;
-  EXPECT_HAPPENS({20s, 1s}, [&](auto& ctx) {
+  EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
     for (auto& node : nodes) {
-      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != vote_count_change_validators_count)) {
+      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != validators_count)) {
         return;
-      }
-      const auto chain_size = node->getPbftChain()->getPbftChainSize();
-      if (chain_size < executed_delegations_pbft_period) {
-        executed_delegations_pbft_period = chain_size;
       }
     }
   });
+  const auto chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
 
   // Wait until new pillar block with changed validators vote_counts is created
   const auto new_pillar_block_period =
-      executed_delegations_pbft_period -
-      executed_delegations_pbft_period % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
+      chain_size - chain_size % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
       node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
@@ -203,8 +197,7 @@ TEST_F(PillarChainTest, votes_count_changes) {
     const auto new_pillar_block_data = node->getDB()->getPillarBlockData(new_pillar_block_period);
     ASSERT_TRUE(new_pillar_block_data.has_value());
     ASSERT_EQ(new_pillar_block_data->block_->getPeriod(), new_pillar_block_period);
-    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(),
-              vote_count_change_validators_count);
+    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(), validators_count);
     size_t idx = 0;
     for (const auto& vote_count_change : new_pillar_block_data->block_->getValidatorsVoteCountsChanges()) {
       ASSERT_EQ(vote_count_change.vote_count_change_,
@@ -429,45 +422,49 @@ TEST_F(PillarChainTest, pillar_vote_solidity_rlp_encoding) {
 }
 
 // contract BridgeMock {
-//     address public lightClient;
+//   address public lightClient;
 
-//     address[] public tokenAddresses;
-//     mapping(address => address) public connectors;
-//     mapping(address => address) public localAddress;
-//     uint256 finalizedEpoch;
-//     uint256 appliedEpoch;
-//     bytes32 bridgeRoot;
-//     event Finalized(uint256 epoch, bytes32 bridgeRoot);
-//     function finalizeEpoch() public { bridgeRoot = bytes32(appliedEpoch++); emit Finalized(appliedEpoch-1,
-//     bridgeRoot);}
+//   address[] public tokenAddresses;
+//   mapping(address => address) public connectors;
+//   mapping(address => address) public localAddress;
+//   uint256 finalizedEpoch;
+//   uint256 appliedEpoch;
+//   bytes32 bridgeRoot;
+//   event Finalized(uint256 epoch, bytes32 bridgeRoot);
+//   function finalizeEpoch() public {
+//     bridgeRoot = bytes32(appliedEpoch++);
+//     emit Finalized(appliedEpoch - 1, bridgeRoot);
+//   }
 
-//     function getBridgeRoot() public view returns (bytes32) {
-//         return bridgeRoot;
-//     }
+//   function getBridgeRoot() public view returns(bytes32) { return bridgeRoot; }
+//   function shouldFinalizeEpoch() public view returns(bool) { return true; }
 // }
+
 auto bridge_mock_bytecode =
-    "6080604052348015600e575f80fd5b506104bd8061001c5f395ff3fe608060405234801561000f575f80fd5b5060043610610060575f3560e0"
-    "1c80630e53aae914610064578063695a253f1461009457806376081bd5146100b257806382ae9ef7146100e2578063b5700e68146100ec5780"
-    "63e5df8b841461010a575b5f80fd5b61007e600480360381019061007991906102c8565b61013a565b60405161008b9190610302565b604051"
-    "80910390f35b61009c61016a565b6040516100a99190610333565b60405180910390f35b6100cc60048036038101906100c791906102c8565b"
-    "610173565b6040516100d99190610302565b60405180910390f35b6100ea6101a3565b005b6100f461020c565b604051610101919061030256"
-    "5b60405180910390f35b610124600480360381019061011f919061037f565b61022f565b6040516101319190610302565b60405180910390f3"
-    "5b6002602052805f5260405f205f915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b5f60065490509056"
-    "5b6003602052805f5260405f205f915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60055f8154809291"
-    "906101b5906103d7565b919050555f1b6006819055507fa05a0e9561eff1f01a29e7a680d5957bb7312e5766a8da1f494b6d6ac18031f46001"
-    "6005546101f1919061041e565b600654604051610202929190610460565b60405180910390a1565b5f8054906101000a900473ffffffffffff"
-    "ffffffffffffffffffffffffffff1681565b6001818154811061023e575f80fd5b905f5260205f20015f915054906101000a900473ffffffff"
-    "ffffffffffffffffffffffffffffffff1681565b5f80fd5b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f61"
-    "02978261026e565b9050919050565b6102a78161028d565b81146102b1575f80fd5b50565b5f813590506102c28161029e565b92915050565b"
-    "5f602082840312156102dd576102dc61026a565b5b5f6102ea848285016102b4565b91505092915050565b6102fc8161028d565b8252505056"
-    "5b5f6020820190506103155f8301846102f3565b92915050565b5f819050919050565b61032d8161031b565b82525050565b5f602082019050"
-    "6103465f830184610324565b92915050565b5f819050919050565b61035e8161034c565b8114610368575f80fd5b50565b5f81359050610379"
-    "81610355565b92915050565b5f602082840312156103945761039361026a565b5b5f6103a18482850161036b565b91505092915050565b7f4e"
-    "487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f6103e18261034c565b91507fff"
-    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8203610413576104126103aa565b5b600182019050919050565b"
-    "5f6104288261034c565b91506104338361034c565b925082820390508181111561044b5761044a6103aa565b5b92915050565b61045a816103"
-    "4c565b82525050565b5f6040820190506104735f830185610451565b6104806020830184610324565b939250505056fea26469706673582212"
-    "20733fb729feb3b0d4d1cecf12f9f57a37205e95e709a478b835534f1b7a03c8a164736f6c63430008190033";
+    "6080604052348015600e575f80fd5b506105318061001c5f395ff3fe608060405234801561000f575f80fd5b506004361061007b575f3560e0"
+    "1c806376081bd51161005957806376081bd5146100eb57806382ae9ef71461011b578063b5700e6814610125578063e5df8b84146101435761"
+    "007b565b80630e53aae91461007f578063567041cd146100af578063695a253f146100cd575b5f80fd5b610099600480360381019061009491"
+    "90610309565b610173565b6040516100a69190610343565b60405180910390f35b6100b76101a3565b6040516100c49190610376565b604051"
+    "80910390f35b6100d56101ab565b6040516100e291906103a7565b60405180910390f35b61010560048036038101906101009190610309565b"
+    "6101b4565b6040516101129190610343565b60405180910390f35b6101236101e4565b005b61012d61024d565b60405161013a919061034356"
+    "5b60405180910390f35b61015d600480360381019061015891906103f3565b610270565b60405161016a9190610343565b60405180910390f3"
+    "5b6002602052805f5260405f205f915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b5f6001905090565b"
+    "5f600654905090565b6003602052805f5260405f205f915054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b"
+    "60055f8154809291906101f69061044b565b919050555f1b6006819055507fa05a0e9561eff1f01a29e7a680d5957bb7312e5766a8da1f494b"
+    "6d6ac18031f460016005546102329190610492565b6006546040516102439291906104d4565b60405180910390a1565b5f8054906101000a90"
+    "0473ffffffffffffffffffffffffffffffffffffffff1681565b6001818154811061027f575f80fd5b905f5260205f20015f91505490610100"
+    "0a900473ffffffffffffffffffffffffffffffffffffffff1681565b5f80fd5b5f73ffffffffffffffffffffffffffffffffffffffff821690"
+    "50919050565b5f6102d8826102af565b9050919050565b6102e8816102ce565b81146102f2575f80fd5b50565b5f81359050610303816102df"
+    "565b92915050565b5f6020828403121561031e5761031d6102ab565b5b5f61032b848285016102f5565b91505092915050565b61033d816102"
+    "ce565b82525050565b5f6020820190506103565f830184610334565b92915050565b5f8115159050919050565b6103708161035c565b825250"
+    "50565b5f6020820190506103895f830184610367565b92915050565b5f819050919050565b6103a18161038f565b82525050565b5f60208201"
+    "90506103ba5f830184610398565b92915050565b5f819050919050565b6103d2816103c0565b81146103dc575f80fd5b50565b5f8135905061"
+    "03ed816103c9565b92915050565b5f60208284031215610408576104076102ab565b5b5f610415848285016103df565b91505092915050565b"
+    "7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f610455826103c0565b9150"
+    "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82036104875761048661041e565b5b600182019050919050"
+    "565b5f61049c826103c0565b91506104a7836103c0565b92508282039050818111156104bf576104be61041e565b5b92915050565b6104ce81"
+    "6103c0565b82525050565b5f6040820190506104e75f8301856104c5565b6104f46020830184610398565b939250505056fea2646970667358"
+    "22122085e3f65e550b0efa67168cceadab882db443d5c0057e7f286914bc35c257196064736f6c634300081a0033";
 
 TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
   auto node_cfgs = make_node_cfgs(2, 2, 10);

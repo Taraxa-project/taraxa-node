@@ -6,12 +6,10 @@
 
 #include "common/constants.hpp"
 #include "common/encoding_solidity.hpp"
-#include "common/thread_pool.hpp"
 #include "final_chain/cache.hpp"
 #include "final_chain/trie_common.hpp"
 #include "rewards/rewards_stats.hpp"
 #include "transaction/system_transaction.hpp"
-#include "vote/pbft_vote.hpp"
 
 namespace taraxa::final_chain {
 
@@ -108,6 +106,8 @@ class FinalChainImpl final : public FinalChain {
             num_executed_dag_blk_ -= period_data.dag_blocks.size();
             num_executed_trx_ -= period_data.transactions.size();
           }
+          auto period_system_transactions = db_->getPeriodSystemTransactionsHashes(block_n);
+          num_executed_trx_ -= period_system_transactions.size();
         }
         db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
         db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
@@ -162,6 +162,29 @@ class FinalChainImpl final : public FinalChain {
     return trx;
   }
 
+  bool isNeedToFinalize(EthBlockNumber blk_num) const {
+    const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("shouldFinalizeEpoch()");
+    return u256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
+                                               state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
+                     blk_num)
+                    .code_retval)
+        .convert_to<bool>();
+  }
+
+  std::vector<SharedTransaction> makeSystemTransactions(PbftPeriod blk_num) {
+    std::vector<SharedTransaction> system_transactions;
+    if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num)) {
+      if (const auto bridge_contract = get_account(kHardforksConfig.ficus_hf.bridge_contract_address);
+          bridge_contract) {
+        if (bridge_contract->code_size && isNeedToFinalize(blk_num - 1)) {
+          auto finalize_trx = make_bridge_finalization_transaction();
+          system_transactions.push_back(finalize_trx);
+        }
+      }
+    }
+    return system_transactions;
+  }
+
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor) {
@@ -186,16 +209,12 @@ class FinalChainImpl final : public FinalChain {
       }
     } */
 
-    std::vector<state_api::EVMTransaction> evm_trxs;
-    append_evm_transactions(evm_trxs, new_blk.transactions);
+    auto system_transactions = makeSystemTransactions(new_blk.pbft_blk->getPeriod());
 
-    SharedTransactions system_transactions;
-    const auto blk_num = new_blk.pbft_blk->getPeriod();
-    if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num)) {
-      auto finalize_trx = make_bridge_finalization_transaction();
-      system_transactions.push_back(finalize_trx);
-    }
-    append_evm_transactions(evm_trxs, system_transactions);
+    auto all_transactions = new_blk.transactions;
+    all_transactions.insert(all_transactions.end(), system_transactions.begin(), system_transactions.end());
+    std::vector<state_api::EVMTransaction> evm_trxs;
+    append_evm_transactions(evm_trxs, all_transactions);
 
     const auto& [exec_results] =
         state_api_.execute_transactions({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
@@ -226,17 +245,18 @@ class FinalChainImpl final : public FinalChain {
     auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used, batch);
     const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
 
-    auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
-                                   kBlockGasLimit, state_root, total_reward, new_blk.transactions, system_transactions,
-                                   receipts, new_blk.pbft_blk->getExtraDataRlp());
+    auto blk_header =
+        append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(), kBlockGasLimit,
+                     state_root, total_reward, all_transactions, receipts, new_blk.pbft_blk->getExtraDataRlp());
+
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
-    auto num_executed_trx = num_executed_trx_ + new_blk.transactions.size();
+    auto num_executed_trx = num_executed_trx_ + all_transactions.size();
     if (!finalized_dag_blk_hashes.empty()) {
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
       LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
-                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << new_blk.transactions.size();
+                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << all_transactions.size();
     }
 
     //// Update DAG lvl mapping
@@ -267,7 +287,7 @@ class FinalChainImpl final : public FinalChain {
             new_blk.pbft_blk->getBlockHash(),
         },
         blk_header,
-        std::move(new_blk.transactions),
+        std::move(all_transactions),
         std::move(receipts),
     });
 
@@ -320,7 +340,6 @@ class FinalChainImpl final : public FinalChain {
   std::shared_ptr<BlockHeader> append_block(DB::Batch& batch, const addr_t& author, uint64_t timestamp,
                                             uint64_t gas_limit, const h256& state_root, u256 total_reward,
                                             const SharedTransactions& transactions = {},
-                                            const SharedTransactions& system_transactions = {},
                                             const TransactionReceipts& receipts = {}, const bytes& extra_data = {}) {
     auto blk_header_ptr = std::make_shared<BlockHeader>();
     auto& blk_header = *blk_header_ptr;
@@ -347,19 +366,6 @@ class FinalChainImpl final : public FinalChain {
       db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp_strm.out());
 
       blk_header.log_bloom |= receipt.bloom();
-    }
-    if (system_transactions.size()) {
-      for (const auto& sys_trx : system_transactions) {
-        auto i_rlp = util::rlp_enc(rlp_strm, trx_idx);
-        trxs_trie[i_rlp] = sys_trx->rlp();
-
-        const auto& receipt = receipts[trx_idx];
-        receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
-        db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, sys_trx->getHash(), rlp_strm.out());
-
-        blk_header.log_bloom |= receipt.bloom();
-        trx_idx++;
-      }
     }
     blk_header.transactions_root = hash256(trxs_trie);
     blk_header.receipts_root = hash256(receipts_trie);

@@ -3,7 +3,7 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 #############################################
 # builder image - contains all dependencies #
 #############################################
-FROM ubuntu:24.04 as builder
+FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e48535ad4be12a as builder
 
 # deps versions
 ARG LLVM_VERSION=17
@@ -115,7 +115,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
 ###############################################################################
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e48535ad4be12a
 
 # Install curl and jq
 RUN apt-get update \

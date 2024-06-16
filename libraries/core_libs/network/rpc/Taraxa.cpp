@@ -5,13 +5,9 @@
 #include <libdevcore/CommonJS.h>
 #include <libp2p/Common.h>
 
-#include <algorithm>
-
 #include "dag/dag_manager.hpp"
 #include "json/reader.h"
-#include "network/rpc/eth/data.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "pillar_chain/pillar_chain_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 
 using namespace std;
@@ -146,7 +142,7 @@ Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetNode()->getConfig
 Json::Value Taraxa::taraxa_getChainStats() {
   Json::Value res;
   if (auto node = full_node_.lock()) {
-    res["pbft_period"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
+    res["pbft_period"] = Json::UInt64(node->getFinalChain()->last_block_number());
     res["dag_blocks_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
     res["transactions_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
   }
