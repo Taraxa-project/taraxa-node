@@ -121,6 +121,7 @@
       "pillar_chain_sync_interval": 25,
       "pbft_inclusion_delay": 6,
       "bridge_contract_address": "0xcAF2b453FE8382a4B8110356DF0508f6d71F22BF"
-    }
+    },
+    "cornus_hf_block_num": 0
   }
 }
