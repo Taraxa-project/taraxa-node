@@ -55,7 +55,8 @@ void hash256rlp(HexMap const& _s, HexMap::const_iterator _begin, HexMap::const_i
     for (auto i = std::next(_begin); i != _end && sharedPre; ++i, ++c) {
       unsigned x = std::min(sharedPre, std::min((unsigned)_begin->first.size(), (unsigned)i->first.size()));
       unsigned shared = _preLen;
-      for (; shared < x && _begin->first[shared] == i->first[shared]; ++shared);
+      for (; shared < x && _begin->first[shared] == i->first[shared]; ++shared)
+        ;
       sharedPre = std::min(shared, sharedPre);
     }
     if (sharedPre > _preLen) {
@@ -71,7 +72,8 @@ void hash256rlp(HexMap const& _s, HexMap::const_iterator _begin, HexMap::const_i
       }
       for (auto i = 0; i < 16; ++i) {
         auto n = b;
-        for (; n != _end && n->first[_preLen] == i; ++n);
+        for (; n != _end && n->first[_preLen] == i; ++n)
+          ;
         if (b == n) {
           _rlp << "";
         } else {
