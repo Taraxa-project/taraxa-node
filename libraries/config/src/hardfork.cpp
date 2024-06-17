@@ -53,7 +53,7 @@ RLP_FIELDS_DEFINE(AspenHardfork, block_num_part_one, block_num_part_two, max_sup
 bool FicusHardforkConfig::isFicusHardfork(taraxa::PbftPeriod period) const { return period >= block_num; }
 
 bool FicusHardforkConfig::isPillarBlockPeriod(taraxa::PbftPeriod period, bool skip_first_pillar_block) const {
-  return period >= firstPillarBlockPeriod() + (skip_first_pillar_block ? 1 : 0) * pillar_blocks_interval &&
+  return period >= block_num && period >= firstPillarBlockPeriod() + (skip_first_pillar_block ? 1 : 0) * pillar_blocks_interval &&
          period % pillar_blocks_interval == 0;
 }
 
