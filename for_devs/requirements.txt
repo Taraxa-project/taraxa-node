@@ -181,7 +181,7 @@ ubuntu-advantage-tools==8001
 ubuntu-drivers-common==0.0.0
 ufw==0.36.2
 unattended-upgrades==0.1
-urllib3==1.26.16
+urllib3==1.26.19
 usb-creator==0.3.16
 userpath==1.9.0
 virtualenv==20.24.1+ds
