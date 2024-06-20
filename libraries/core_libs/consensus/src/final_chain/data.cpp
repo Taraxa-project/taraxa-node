@@ -42,6 +42,4 @@ LogBloom TransactionReceipt::bloom() const {
   return ret;
 }
 
-RLP_FIELDS_DEFINE(TransactionLocation, blk_n, index)
-
 }  // namespace taraxa::final_chain

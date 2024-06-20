@@ -1,9 +1,11 @@
 set(HEADERS
     include/pbft/pbft_block.hpp
+    include/pbft/pbft_block_extra_data.hpp
     include/pbft/period_data.hpp
 )
 set(SOURCES
     src/pbft_block.cpp
+    src/pbft_block_extra_data.cpp
     src/period_data.cpp
 )
 

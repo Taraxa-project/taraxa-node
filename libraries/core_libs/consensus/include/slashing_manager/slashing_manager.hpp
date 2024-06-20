@@ -14,7 +14,7 @@ class SlashingManager {
   SlashingManager &operator=(const SlashingManager &) = delete;
   SlashingManager &operator=(SlashingManager &&) = delete;
 
-  bool submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a, const std::shared_ptr<Vote> &vote_b);
+  bool submitDoubleVotingProof(const std::shared_ptr<PbftVote> &vote_a, const std::shared_ptr<PbftVote> &vote_b);
 
  private:
   std::shared_ptr<FinalChain> final_chain_;

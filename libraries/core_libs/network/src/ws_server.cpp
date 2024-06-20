@@ -160,6 +160,19 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
   }
 }
 
+void WsSession::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_block_data) {
+  if (new_pillar_block_subscription_) {
+    Json::Value res, params;
+    params["result"] = pillar_block_data.getJson(include_pillar_block_signatures);
+    params["subscription"] = dev::toJS(new_pillar_block_subscription_);
+    res["jsonrpc"] = "2.0";
+    res["method"] = "eth_subscription";
+    res["params"] = params;
+    auto response = util::to_string(res);
+    writeAsync(std::move(response));
+  }
+}
+
 void WsSession::newPendingTransaction(trx_hash_t const &trx_hash) {
   if (new_transactions_subscription_) {
     Json::Value res, params;
@@ -301,6 +314,13 @@ void WsServer::newPendingTransaction(trx_hash_t const &trx_hash) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newPendingTransaction(trx_hash);
+  }
+}
+
+void WsServer::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_block_data) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
+  for (auto const &session : sessions) {
+    if (!session->is_closed()) session->newPillarBlockData(pillar_block_data);
   }
 }
 

@@ -1,34 +1,30 @@
-include(ExternalProject)
-
-if (MSVC)
-    set(_only_release_configuration -DCMAKE_CONFIGURATION_TYPES=Release)
-    set(_overwrite_install_command INSTALL_COMMAND cmake --build <BINARY_DIR> --config Release --target install)
-endif()
-
 set(prefix "${CMAKE_BINARY_DIR}/deps")
 set(SECP256K1_LIBRARY "${prefix}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}secp256k1${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set(SECP256K1_INCLUDE_DIR "${prefix}/include")
 
-ExternalProject_Add(
-    secp256k1
+ExternalProject_Add(secp256k1
     PREFIX "${prefix}"
-    DOWNLOAD_NAME secp256k1-ac8ccf29.tar.gz
-    DOWNLOAD_NO_PROGRESS 1
-    URL https://github.com/chfast/secp256k1/archive/ac8ccf29b8c6b2b793bc734661ce43d1f952977a.tar.gz
-    URL_HASH SHA256=02f8f05c9e9d2badc91be8e229a07ad5e4984c1e77193d6b00e549df129e7c3a
-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_LIST_DIR}/secp256k1/CMakeLists.txt <SOURCE_DIR>
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-               -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
-               -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-               -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-               ${_only_release_configuration}
-    LOG_CONFIGURE 1
-    BUILD_COMMAND ""
-    ${_overwrite_install_command}
-    LOG_INSTALL 1
-    BUILD_BYPRODUCTS "${SECP256K1_LIBRARY}"
+    GIT_REPOSITORY https://github.com/Taraxa-project/secp256k1.git
+    GIT_SHALLOW true
+    CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+        -DCMAKE_CXX_COMPILER_LAUNCHER=${DCMAKE_CXX_COMPILER_LAUNCHER}
+        -DSECP256K1_INCLUDE_DIR=${SECP256K1_INCLUDE_DIR}
+        -DBUILD_STATIC_LIBS=1
+        -DBUILD_SHARED_LIBS=0
+        -DSECP256K1_ENABLE_MODULE_RECOVERY=ON
+    BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target install
+    BUILD_BYPRODUCTS "${lib_path}"
     DOWNLOAD_EXTRACT_TIMESTAMP NEW
+    LOG_CONFIGURE 0
+    LOG_BUILD 0
+    LOG_INSTALL 0
 )
 
 # Create imported library

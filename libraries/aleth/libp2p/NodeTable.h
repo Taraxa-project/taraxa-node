@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <boost/integer/static_log2.hpp>
+#include <cstdint>
 
 #include "Common.h"
 #include "ENR.h"
@@ -109,7 +110,7 @@ class NodeTable : UDPSocketEvents {
   /// Constructor requiring host for I/O, credentials, and IP Address, port to
   /// listen on and host ENR.
   NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false, unsigned chain_id = 0);
+            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false, uint32_t chain_id = 0);
 
   ~NodeTable() {
     if (m_socket->isOpen()) {
@@ -198,6 +199,7 @@ class NodeTable : UDPSocketEvents {
     // endpoint proof (answers with Pong), then it will be added to the bucket
     // of the node table
     uint16_t tcpPort = 0;
+    uint16_t udpPort = 0;
     // Time we sent Ping - used to handle timeouts
     TimePoint pingSentTime;
     // Hash of the sent Ping packet - used to validate received Pong
@@ -206,10 +208,11 @@ class NodeTable : UDPSocketEvents {
     // if original pinged node doesn't answer after timeout
     std::shared_ptr<NodeEntry> replacementNodeEntry;
 
-    NodeValidation(NodeID const& _nodeID, uint16_t _tcpPort, TimePoint const& _pingSentTime, h256 const& _pingHash,
-                   std::shared_ptr<NodeEntry> _replacementNodeEntry)
+    NodeValidation(NodeID const& _nodeID, uint16_t _tcpPort, uint16_t _udpPort, TimePoint const& _pingSentTime,
+                   h256 const& _pingHash, std::shared_ptr<NodeEntry> _replacementNodeEntry)
         : nodeID{_nodeID},
           tcpPort{_tcpPort},
+          udpPort{_udpPort},
           pingSentTime{_pingSentTime},
           pingHash{_pingHash},
           replacementNodeEntry{std::move(_replacementNodeEntry)} {}
@@ -468,16 +471,16 @@ struct PingNode : DiscoveryDatagram {
   unsigned chain_id = 0;
   NodeIPEndpoint source;
   NodeIPEndpoint destination;
-  boost::optional<uint64_t> seq;
+  std::optional<uint64_t> seq;
 
   void streamRLP(RLPStream& _s) const override {
-    _s.appendList(seq.is_initialized() ? 5 : 4);
+    _s.appendList(seq.has_value() ? 6 : 5);
     _s << dev::p2p::c_protocolVersion;
     _s << chain_id;
     source.streamRLP(_s);
     destination.streamRLP(_s);
     _s << *expiration;
-    if (seq.is_initialized()) _s << *seq;
+    if (seq.has_value()) _s << *seq;
   }
 
   void interpretRLP(bytesConstRef _bytes) override {
@@ -505,15 +508,16 @@ struct Pong : DiscoveryDatagram {
   uint8_t packetType() const override { return type; }
 
   NodeIPEndpoint destination;
-  boost::optional<uint64_t> seq;
+  std::optional<uint64_t> seq;
 
   void streamRLP(RLPStream& _s) const override {
-    _s.appendList(seq.is_initialized() ? 4 : 3);
+    _s.appendList(seq.has_value() ? 4 : 3);
     destination.streamRLP(_s);
     _s << echo;
     _s << *expiration;
-    if (seq.is_initialized()) _s << *seq;
+    if (seq.has_value()) _s << *seq;
   }
+
   void interpretRLP(bytesConstRef _bytes) override {
     RLP r(_bytes, RLP::AllowNonCanon | RLP::ThrowOnFail);
     destination.interpretRLP(r[0]);
@@ -576,7 +580,13 @@ struct Neighbours : DiscoveryDatagram {
       : DiscoveryDatagram(_from, _fromid, _echo) {}
 
   struct Neighbour {
-    Neighbour(Node const& _node) : endpoint(_node.get_endpoint()), node(_node.id) {}
+    Neighbour(Node const& _node) : endpoint(_node.get_endpoint()), node(_node.id) {
+      // For external node we need to replace udp to reported one as we can communicate on upd port that's not available
+      // to everyone
+      if (_node.external_udp_port != 0) {
+        endpoint.setUdpPort(_node.external_udp_port);
+      }
+    }
     Neighbour(RLP const& _r) : endpoint(_r) { node = h512(_r[3].toBytes()); }
     NodeIPEndpoint endpoint;
     NodeID node;

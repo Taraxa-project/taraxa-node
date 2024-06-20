@@ -1,23 +1,29 @@
 #include "rewards/rewards_stats.hpp"
 
+#include <cstdint>
+
 #include "storage/storage.hpp"
 
 namespace taraxa::rewards {
 Stats::Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::shared_ptr<DB> db,
-             std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count)
+             std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count, EthBlockNumber last_blk_num)
     : kCommitteeSize(committee_size),
       kHardforksConfig(hardforks),
       db_(std::move(db)),
       dpos_eligible_total_vote_count_(dpos_eligible_total_vote_count) {
-  loadFromDb();
+  recoverFromDb(last_blk_num);
 }
 
-void Stats::loadFromDb() {
-  auto i = db_->getColumnIterator(DB::Columns::block_rewards_stats);
-  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+void Stats::recoverFromDb(EthBlockNumber lastBlockNumber) {
+  if (lastBlockNumber) {
+    clear(lastBlockNumber);
+  }
+
+  auto iterator = db_->getColumnIterator(DB::Columns::block_rewards_stats);
+  for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
     PbftPeriod period;
-    memcpy(&period, i->key().data(), sizeof(PbftPeriod));
-    blocks_stats_[period] = util::rlp_dec<BlockStats>(dev::RLP(i->value().ToString()));
+    memcpy(&period, iterator->key().data(), sizeof(PbftPeriod));
+    blocks_stats_[period] = util::rlp_dec<BlockStats>(dev::RLP(iterator->value().ToString()));
   }
 }
 
@@ -36,10 +42,13 @@ uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
   return (--itr)->second;
 }
 
-void Stats::clear() {
-  // clear need to be called on vector because it was moved before
-  blocks_stats_.clear();
-  db_->deleteColumnData(DB::Columns::block_rewards_stats);
+void Stats::clear(uint64_t current_period) {
+  const auto frequency = getCurrentDistributionFrequency(current_period);
+  if (frequency > 1 && current_period % frequency == 0) {
+    // clear need to be called on vector because it was moved before
+    blocks_stats_.clear();
+    db_->deleteColumnData(DB::Columns::block_rewards_stats);
+  }
 }
 
 BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>& trxs_fees) {
@@ -53,8 +62,8 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
     return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize};
   }
 
-  const auto aspen_hf_part_two = kHardforksConfig.isAspenHardforkPartTwo(blk.pbft_blk->getPeriod());
-  return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize, aspen_hf_part_two};
+  const auto aspen_hf_part_one = kHardforksConfig.isAspenHardforkPartOne(blk.pbft_blk->getPeriod());
+  return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize, aspen_hf_part_one};
 }
 
 std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
@@ -100,8 +109,6 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const
 
     res = transformStatsToVector(std::move(ordered_blocks_stats));
   }
-
-  clear();
   return res;
 }
 

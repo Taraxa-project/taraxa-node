@@ -25,7 +25,7 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
 
  protected:
   virtual PeriodData decodePeriodData(const dev::RLP& period_data_rlp) const;
-  virtual std::vector<std::shared_ptr<Vote>> decodeVotesBundle(const dev::RLP& votes_bundle_rlp) const;
+  virtual std::vector<std::shared_ptr<PbftVote>> decodeVotesBundle(const dev::RLP& votes_bundle_rlp) const;
 
   void pbftSyncComplete();
   void delayedPbftSync(int counter);

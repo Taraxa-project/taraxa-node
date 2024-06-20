@@ -75,5 +75,13 @@
     ],
     "order": [],
     "returns": {}
+  },
+  {
+    "name": "debug_dposTotalAmountDelegated",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
   }
 ]

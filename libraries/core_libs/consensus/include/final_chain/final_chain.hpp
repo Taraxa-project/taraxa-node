@@ -3,7 +3,6 @@
 #include <future>
 
 #include "common/event.hpp"
-#include "common/range_view.hpp"
 #include "common/types.hpp"
 #include "config/config.hpp"
 #include "final_chain/data.hpp"
@@ -230,6 +229,14 @@ class FinalChain {
 
   virtual std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const = 0;
 
+  virtual uint256_t dpos_total_amount_delegated(EthBlockNumber blk_num) const = 0;
+
+  /**
+   * @param blk_num
+   * @return vector of validators vote counts for provided blk_num
+   */
+  virtual std::vector<state_api::ValidatorVoteCount> dpos_validators_vote_counts(EthBlockNumber blk_num) const = 0;
+
   /**
    * @param blk_num
    * @return yield
@@ -242,6 +249,17 @@ class FinalChain {
    */
   virtual u256 dpos_total_supply(EthBlockNumber blk_num) const = 0;
 
+  /**
+   * @param blk_num
+   * @return bridge root
+   */
+  virtual h256 get_bridge_root(EthBlockNumber blk_num) const = 0;
+
+  /**
+   * @param blk_num
+   * @return bridge epoch
+   */
+  virtual h256 get_bridge_epoch(EthBlockNumber blk_num) const = 0;
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

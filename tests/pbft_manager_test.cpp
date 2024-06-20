@@ -1,12 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "common/lazy.hpp"
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
-#include "network/network.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "test_util/node_dag_creation_fixture.hpp"
-#include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
 
@@ -191,149 +188,6 @@ struct PbftManagerTest : NodesTest {
     }
   }
 };
-
-// Test that after some amount of elapsed time will give up on the next voting value if corresponding DAG blocks can't
-// be found
-
-// TODO: Replace with test that we won't soft vote and invalid block...
-
-/*
-TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
-  auto node_cfgs = make_node_cfgs(1, 1, 20);
-  makeNodesWithNonces(node_cfgs);
-
-  auto pbft_mgr = nodes[0]->getPbftManager();
-  pbft_mgr->stop();
-  std::cout << "PBFT manager stopped" << std::endl;
-
-  auto pbft_chain = nodes[0]->getPbftChain();
-  auto vote_mgr = nodes[0]->getVoteManager();
-
-  // Generate bogus DAG anchor for PBFT block
-  auto dag_anchor = blk_hash_t("1234567890000000000000000000000000000000000000000000000000000000");
-  auto last_pbft_block_hash = pbft_chain->getLastPbftBlockHash();
-  auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
-  auto reward_votes = nodes[0]->getDB()->getLastBlockCertVotes();
-  std::vector<vote_hash_t> reward_votes_hashes;
-  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
-                 [](const auto &v) { return v->getHash(); });
-  auto beneficiary = nodes[0]->getAddress();
-  auto node_sk = nodes[0]->getSecretKey();
-  auto propose_pbft_block =
-      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, kNullBlockHash, propose_pbft_period, beneficiary,
-                                  node_sk, std::move(reward_votes_hashes));
-  auto pbft_block_hash = propose_pbft_block->getBlockHash();
-  pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
-
-  // Generate bogus vote
-  auto period = 1;
-  auto round = 1;
-  auto step = 4;
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, PbftVoteTypes::next_vote, period, round, step);
-  propose_vote->calculateWeight(1, 1, 1);
-  vote_mgr->addVerifiedVote(propose_vote);
-
-  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
-  pbft_mgr->setPbftRound(1);
-  pbft_mgr->setPbftStep(4);
-  pbft_mgr->start();
-
-  // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
-    blk_hash_t soft_vote_value;
-    auto votes = vote_mgr->getVerifiedVotes();
-    for (const auto &v : votes) {
-      if (PbftVoteTypes::soft_vote == v->getType() && v->getBlockHash() == pbft_block_hash) {
-        soft_vote_value = v->getBlockHash();
-        break;
-      }
-    }
-
-    WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
-  });
-
-  std::cout << "After some time, terminate voting on the bogus value " << pbft_block_hash << std::endl;
-  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
-    auto proposal_value = pbft_block_hash;
-    auto votes = vote_mgr->getVerifiedVotes();
-    for (const auto &v : votes) {
-      if (PbftVoteTypes::propose_vote == v->getType() && v->getBlockHash() != pbft_block_hash) {
-        proposal_value = v->getBlockHash();
-        break;
-      }
-    }
-
-    WAIT_EXPECT_NE(ctx, proposal_value, pbft_block_hash)
-  });
-
-  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
-  auto start_round = pbft_mgr->getPbftRound();
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
-}
-
-// Test that after some number of rounds will give up the proposing value if proposed block is not available
-TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
-  auto node_cfgs = make_node_cfgs(1, 1, 20);
-  makeNodesWithNonces(node_cfgs);
-
-  auto pbft_mgr = nodes[0]->getPbftManager();
-  pbft_mgr->stop();
-  std::cout << "Initialize PBFT manager at round 1 step 4" << std::endl;
-
-  auto pbft_chain = nodes[0]->getPbftChain();
-  auto vote_mgr = nodes[0]->getVoteManager();
-  auto node_sk = nodes[0]->getSecretKey();
-
-  // Generate bogus vote
-  auto period = 1;
-  auto round = 1;
-  auto step = 4;
-  auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, PbftVoteTypes::next_vote, period, round, step);
-  next_vote->calculateWeight(1, 1, 1);
-  vote_mgr->addVerifiedVote(next_vote);
-
-  std::cout << "Initialize PBFT manager at round " << round << " step " << step << std::endl;
-  pbft_mgr->setPbftRound(round);
-  pbft_mgr->setPbftStep(step);
-  pbft_mgr->start();
-
-  // Vote at the bogus PBFT block hash
-  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
-    blk_hash_t soft_vote_value;
-    auto votes = vote_mgr->getVerifiedVotes();
-    for (auto const &v : votes) {
-      if (PbftVoteTypes::soft_vote == v->getType() && v->getBlockHash() == pbft_block_hash) {
-        soft_vote_value = v->getBlockHash();
-        break;
-      }
-    }
-
-    WAIT_EXPECT_EQ(ctx, soft_vote_value, pbft_block_hash)
-  });
-
-  std::cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << std::endl;
-  // After some rounds, terminate the bogus PBFT block value and propose PBFT block with NULL anchor
-  EXPECT_HAPPENS({20s, 50ms}, [&](auto &ctx) {
-    auto proposal_value = pbft_block_hash;
-    auto votes = vote_mgr->getVerifiedVotes();
-
-    for (auto const &v : votes) {
-      if (PbftVoteTypes::propose_vote == v->getType() && v->getBlockHash() != pbft_block_hash) {
-        // PBFT has terminated on the missing PBFT block value and proposed a new block value
-        proposal_value = v->getBlockHash();
-        break;
-      }
-    }
-
-    WAIT_EXPECT_NE(ctx, proposal_value, pbft_block_hash)
-  });
-
-  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
-  auto start_round = pbft_mgr->getPbftRound();
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
-}
-*/
 
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   auto node = create_nodes(1, true).front();

@@ -37,7 +37,7 @@ struct NetworkConfig {
 
   // Network Preferences with intended Public IP
   NetworkConfig(std::string const& _publicIP, std::string const& _listenAddress = std::string(),
-                unsigned short _listenPort = c_defaultListenPort, bool _upnp = true, bool _allowLocalDiscovery = false)
+                uint16_t _listenPort = c_defaultListenPort, bool _upnp = true, bool _allowLocalDiscovery = false)
       : publicIPAddress(_publicIP),
         listenIPAddress(_listenAddress),
         listenPort(_listenPort),
@@ -50,7 +50,7 @@ struct NetworkConfig {
 
   std::string publicIPAddress;
   std::string listenIPAddress;
-  unsigned short listenPort = c_defaultListenPort;
+  uint16_t listenPort = c_defaultListenPort;
 
   /// Preferences
 

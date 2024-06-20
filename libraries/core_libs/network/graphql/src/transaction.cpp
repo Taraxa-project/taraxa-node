@@ -29,7 +29,7 @@ std::optional<int> Transaction::getIndex() const noexcept {
     location_ = final_chain_->transaction_location(transaction_->getHash());
     if (!location_) return std::nullopt;
   }
-  return {location_->index};
+  return {location_->position};
 }
 
 std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Value>&&) const {
@@ -40,7 +40,7 @@ std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Va
     }
   }
   return std::make_shared<object::Account>(
-      std::make_shared<Account>(final_chain_, transaction_->getSender(), location_->blk_n));
+      std::make_shared<Account>(final_chain_, transaction_->getSender(), location_->period));
 }
 
 std::shared_ptr<object::Account> Transaction::getTo(std::optional<response::Value>&&) const {
@@ -52,7 +52,7 @@ std::shared_ptr<object::Account> Transaction::getTo(std::optional<response::Valu
     }
   }
   return std::make_shared<object::Account>(
-      std::make_shared<Account>(final_chain_, *transaction_->getReceiver(), location_->blk_n));
+      std::make_shared<Account>(final_chain_, *transaction_->getReceiver(), location_->period));
 }
 
 response::Value Transaction::getValue() const noexcept { return response::Value(transaction_->getValue().str()); }
@@ -72,7 +72,7 @@ std::shared_ptr<object::Block> Transaction::getBlock() const {
     location_ = final_chain_->transaction_location(transaction_->getHash());
     if (!location_) return nullptr;
   }
-  return get_block_by_num_(location_->blk_n);
+  return get_block_by_num_(location_->period);
 }
 
 std::optional<response::Value> Transaction::getStatus() const noexcept {

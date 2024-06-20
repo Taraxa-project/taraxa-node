@@ -30,10 +30,19 @@ using PublicCompressed = FixedHash<33>;
 /// @NOTE This is not endian-specific; it's just a bunch of bytes.
 using Signature = h520;
 
+/// A compact signature: 65 bytes: r: [0, 32), vs: [32, 64).
+/// @NOTE This is not endian-specific; it's just a bunch of bytes.
+/// https://eips.ethereum.org/EIPS/eip-2098
+using CompactSignature = h512;
+
 struct SignatureStruct {
   SignatureStruct() = default;
   SignatureStruct(Signature const& _s) { *(h520*)this = _s; }
   SignatureStruct(h256 const& _r, h256 const& _s, byte _v) : r(_r), s(_s), v(_v) {}
+  SignatureStruct(const CompactSignature& _s) : SignatureStruct(Signature(_s)) {
+    v = ::byte(u256(s) >> 255);
+    s = u256(s) & ((u256(1) << 255) - 1);
+  }
   operator Signature() const { return *reinterpret_cast<h520 const*>(this); }
 
   /// @returns true if r,s,v values are valid, otherwise false
@@ -42,6 +51,24 @@ struct SignatureStruct {
   h256 r;
   h256 s;
   ::byte v = 0;
+};
+
+/// Convert signature to compact form.
+/// https://eips.ethereum.org/EIPS/eip-2098
+h512 toCompact(const Signature& _s);
+
+struct CompactSignatureStruct {
+  CompactSignatureStruct() = default;
+  CompactSignatureStruct(const CompactSignature& _s) { *(h512*)this = _s; }
+  CompactSignatureStruct(const Signature& _s) : CompactSignatureStruct(toCompact(_s)) {}
+  CompactSignatureStruct(h256 const& _r, h256 const& _vs) : r(_r), vs(_vs) {}
+  operator CompactSignature() const { return *reinterpret_cast<h512 const*>(this); }
+
+  /// @returns true if r,s,v values are valid, otherwise false
+  bool isValid() const noexcept;
+
+  h256 r;
+  h256 vs;
 };
 
 /// A vector of secrets.

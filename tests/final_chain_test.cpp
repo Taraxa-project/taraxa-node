@@ -12,7 +12,7 @@
 #include "test_util/gtest.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa::final_chain {
 using namespace taraxa::core_tests;
@@ -32,17 +32,19 @@ struct FinalChainTest : WithDataDir {
   uint64_t expected_blk_num = 0;
   dev::KeyPair dag_proposer_keys = dev::KeyPair::create();
   dev::KeyPair pbft_proposer_keys = dev::KeyPair::create();
+
   void create_validators() {
     dev::KeyPair validator_owner_keys = dev::KeyPair::create();
     cfg.genesis.state.initial_balances[validator_owner_keys.address()] =
         10 * cfg.genesis.state.dpos.validator_maximum_stake;
     for (const auto& keys : {dag_proposer_keys, pbft_proposer_keys}) {
-      const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
-      state_api::ValidatorInfo validator{keys.address(), validator_owner_keys.address(), vrf_key, 0, "", "", {}};
+      const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
+      state_api::ValidatorInfo validator{keys.address(), validator_owner_keys.address(), vrf_pub_key, 0, "", "", {}};
       validator.delegations.emplace(validator_owner_keys.address(), cfg.genesis.state.dpos.validator_maximum_stake);
       cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
     }
   }
+
   void init() {
     SUT = NewFinalChain(db, cfg);
     const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
@@ -68,9 +70,10 @@ struct FinalChainTest : WithDataDir {
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
         std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
-                                    addr_t::random(), pbft_proposer_keys.secret(), std::move(reward_votes_hashes));
+                                    addr_t::random(), pbft_proposer_keys.secret(), std::move(reward_votes_hashes),
+                                    PbftBlockExtraData(1, 0, 0, 1, "", blk_hash_t(123)));
 
-    std::vector<std::shared_ptr<Vote>> votes;
+    std::vector<std::shared_ptr<PbftVote>> votes;
     PeriodData period_data(pbft_block, votes);
     period_data.dag_blocks.push_back(dag_blk);
     period_data.transactions = trxs;
@@ -106,7 +109,7 @@ struct FinalChainTest : WithDataDir {
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
     EXPECT_EQ(blk_h.gas_limit, cfg.genesis.pbft.gas_limit);
-    EXPECT_EQ(blk_h.extra_data, bytes());
+    EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraDataRlp());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
     EXPECT_EQ(blk_h.mix_hash(), h256());
@@ -151,8 +154,8 @@ struct FinalChainTest : WithDataDir {
       }
       expected_block_log_bloom |= r.bloom();
       auto trx_loc = *SUT->transaction_location(trx->getHash());
-      EXPECT_EQ(trx_loc.blk_n, blk_h.number);
-      EXPECT_EQ(trx_loc.index, i);
+      EXPECT_EQ(trx_loc.period, blk_h.number);
+      EXPECT_EQ(trx_loc.position, i);
     }
     EXPECT_EQ(blk_h.gas_used, cumulative_gas_used_actual);
     if (!receipts.empty()) {
@@ -296,8 +299,8 @@ TEST_F(FinalChainTest, initial_validators) {
   fillConfigForGenesisTests(key.address());
 
   for (const auto& vk : validator_keys) {
-    const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
-    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_key, 0, "", "", {}};
+    const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
+    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_pub_key, 0, "", "", {}};
     validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
     cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
   }
@@ -791,8 +794,8 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   }
 }
 
-std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<Vote>& vote_a,
-                                                     const std::shared_ptr<Vote>& vote_b, uint64_t nonce,
+std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<PbftVote>& vote_a,
+                                                     const std::shared_ptr<PbftVote>& vote_b, uint64_t nonce,
                                                      const dev::KeyPair& keys) {
   const auto kSlashingContractAddress = addr_t("0x00000000000000000000000000000000000000EE");
   // Create votes combination hash
@@ -807,8 +810,8 @@ std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<Vote>
   const auto hash_bytes = hash_rlp.invalidate();
   // const auto hash = dev::sha3(hash_bytes);
 
-  auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
-                                                                vote_b->rlp());
+  auto input =
+      util::EncodingSolidity::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(), vote_b->rlp());
   return std::make_shared<Transaction>(nonce, 0, 1, 100000, std::move(input), keys.secret(), kSlashingContractAddress);
 }
 
@@ -821,8 +824,8 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   cfg.genesis.state.hardforks.magnolia_hf.jail_time = 50;
 
   for (const auto& vk : validator_keys) {
-    const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
-    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_key, 0, "", "", {}};
+    const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
+    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_pub_key, 0, "", "", {}};
     validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
     cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
   }
@@ -840,18 +843,17 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   // submit double votes for one validator
   const auto [vrf_key, vrf_sk] = taraxa::vrf_wrapper::getVrfKeyPair();
   VrfPbftSortition vrf_sortition(vrf_sk, {PbftVoteTypes::propose_vote, 1, 1, 1});
-  auto vote_a = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(1));
+  auto vote_a = std::make_shared<PbftVote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(1));
   vote_a->calculateWeight(1, 1, 1);
-  auto vote_b = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(2));
+  auto vote_b = std::make_shared<PbftVote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(2));
   vote_b->calculateWeight(1, 1, 1);
 
   auto trx = makeDoubleVotingProofTx(vote_a, vote_b, 1, key);
   auto res = advance({trx}, {true});
-  advance({});
-  advance({});
-  advance({});
-  advance({});
-  advance({});
+  for (size_t idx = 0; idx < 5; idx++) {
+    advance({});
+  }
+
   const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
   EXPECT_EQ(total_votes_before - votes_per_address, total_votes);
 }
@@ -860,10 +862,10 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
 TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
   const dev::KeyPair key = dev::KeyPair::create();
   const dev::KeyPair validator_key = dev::KeyPair::create();
-  const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+  const auto vrf_pub_key = taraxa::vrf_wrapper::getVrfKeyPair().first;
   fillConfigForGenesisTests(key.address());
 
-  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_key, 0, "", "", {}};
+  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_pub_key, 0, "", "", {}};
   validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
   validator.delegations.emplace(validator_key.address(), cfg.genesis.state.dpos.minimum_deposit);
   cfg.genesis.state.dpos.initial_validators.emplace_back(validator);

@@ -19,9 +19,9 @@ class VotePacketHandler : public ExtVotesPacketHandler {
    * @param block block to send - nullptr means no block
    * @param rebroadcast - send even of vote i known for the peer
    */
-  void onNewPbftVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& block,
+  void onNewPbftVote(const std::shared_ptr<PbftVote>& vote, const std::shared_ptr<PbftBlock>& block,
                      bool rebroadcast = false);
-  void sendPbftVote(const std::shared_ptr<TaraxaPeer>& peer, const std::shared_ptr<Vote>& vote,
+  void sendPbftVote(const std::shared_ptr<TaraxaPeer>& peer, const std::shared_ptr<PbftVote>& vote,
                     const std::shared_ptr<PbftBlock>& block);
 
   // Packet type that is processed by this handler

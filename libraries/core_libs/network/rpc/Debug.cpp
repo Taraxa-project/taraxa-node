@@ -29,7 +29,7 @@ Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   }
   if (auto node = full_node_.lock()) {
     return util::readJsonFromString(
-        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n)));
+        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->period)));
   }
   return res;
 }
@@ -65,7 +65,7 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
   }
   if (auto node = full_node_.lock()) {
     return util::readJsonFromString(
-        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n), std::move(params)));
+        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->period), std::move(params)));
   }
   return res;
 }
@@ -225,6 +225,24 @@ Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
       res.append(validatorStakeJson);
     }
     return res;
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Json::Value Debug::debug_dposTotalAmountDelegated(const std::string& _period) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+
+    auto final_chain = node->getFinalChain();
+
+    auto period = dev::jsToInt(_period);
+    auto totalAmountDelegated = final_chain->dpos_total_amount_delegated(period);
+
+    return toJS(totalAmountDelegated);
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }

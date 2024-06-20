@@ -87,10 +87,9 @@ struct TransactionReceipt {
 using TransactionReceipts = std::vector<TransactionReceipt>;
 
 struct TransactionLocation {
-  EthBlockNumber blk_n = 0;
-  uint64_t index = 0;
-
-  HAS_RLP_FIELDS
+  EthBlockNumber period = 0;
+  uint32_t position = 0;
+  bool is_system = false;
 };
 
 struct NewBlock {
