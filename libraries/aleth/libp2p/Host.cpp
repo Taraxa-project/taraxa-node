@@ -137,7 +137,8 @@ Host::~Host() {
     }
   }
   // We need to poll both as strand_ is ioc_
-  while (0 < session_ioc_.poll() + ioc_.poll());
+  while (0 < session_ioc_.poll() + ioc_.poll())
+    ;
   save_state();
 
   ioc_.restart();

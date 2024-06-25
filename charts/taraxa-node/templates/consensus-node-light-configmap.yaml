@@ -145,7 +145,7 @@ data:
       {{- $lbEnabled := .Values.bootnode.loadBalancer.enabled -}}
       {{- $lbIPs := .Values.bootnode.loadBalancer.addresses -}}
       {{- range $key, $value := .Values.config.bootnode.addresses }}
-      --boot-nodes {{ if $lbEnabled }}{{ index $lbIPs $key }}{{- else }}{{ include "taraxa-boot-node.fullname" $ }}-{{ $key }}.{{ include "taraxa-boot-node.fullname" $ }}.{{$.Release.Namespace}}{{- end }}:10002/{{ $value }} \
+      --boot-nodes-append {{ if $lbEnabled }}{{ index $lbIPs $key }}{{- else }}{{ include "taraxa-boot-node.fullname" $ }}-{{ $key }}.{{ include "taraxa-boot-node.fullname" $ }}.{{$.Release.Namespace}}{{- end }}:10002/{{ $value }} \
       {{- end }}
       {{- end }}
       {{- if .Values.config.extraArgs }}
