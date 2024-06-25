@@ -53,6 +53,9 @@ struct DdosProtectionConfig {
   // Max packets queue size, 0 means unlimited
   uint64_t max_packets_queue_size{0};
 
+  // Time period between disconnecting peers
+  std::chrono::milliseconds peer_disconnect_interval{5000};
+
   void validate(uint32_t delegation_delay) const;
 };
 

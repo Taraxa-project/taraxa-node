@@ -48,6 +48,10 @@ struct FicusHardforkConfig {
       6};  // [periods] how many periods after the pillar block is created it is included in pbft block
   taraxa::addr_t bridge_contract_address;  // [address] of the bridge contract
 
+  // New gas limit after the hardfork
+  uint64_t dag_gas_limit{0x1908B100};
+  uint64_t pbft_gas_limit{0x7d2b7500};
+
   bool isFicusHardfork(taraxa::PbftPeriod period) const;
 
   /**

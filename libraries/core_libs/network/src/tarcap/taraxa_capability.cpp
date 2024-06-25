@@ -166,29 +166,31 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
 
   // Check max allowed packets queue size
   if (kConf.network.ddos_protection.max_packets_queue_size &&
-      tp_queue_size > kConf.network.ddos_protection.max_packets_queue_size) {
+      tp_queue_size > kConf.network.ddos_protection.max_packets_queue_size &&
+      (std::chrono::system_clock::now() - last_ddos_disconnect_time_) >
+          kConf.network.ddos_protection.peer_disconnect_interval) {
+    // If queue is growing start disconnecting peers one by one in
+    // kConf.network.ddos_protection.peer_disconnect_interval
+    last_ddos_disconnect_time_ = std::chrono::system_clock::now();
     const auto connected_peers = peers_state_->getAllPeers();
-    // Always keep at least 5 connected peers
-    if (connected_peers.size() > 5) {
-      // Find peer with the highest processing time and disconnect him
-      std::pair<std::chrono::microseconds, dev::p2p::NodeID> peer_max_processing_time{std::chrono::microseconds(0),
-                                                                                      dev::p2p::NodeID()};
+    // Find peer with the highest processing time and disconnect him
+    std::pair<std::chrono::microseconds, dev::p2p::NodeID> peer_max_processing_time{std::chrono::microseconds(0),
+                                                                                    dev::p2p::NodeID()};
 
-      for (const auto &connected_peer : connected_peers) {
-        const auto peer_packets_stats = connected_peer.second->getAllPacketsStatsCopy();
+    for (const auto &connected_peer : connected_peers) {
+      const auto peer_packets_stats = connected_peer.second->getAllPacketsStatsCopy();
 
-        if (peer_packets_stats.second.processing_duration_ > peer_max_processing_time.first) {
-          peer_max_processing_time = {peer_packets_stats.second.processing_duration_, connected_peer.first};
-        }
+      if (peer_packets_stats.second.processing_duration_ > peer_max_processing_time.first) {
+        peer_max_processing_time = {peer_packets_stats.second.processing_duration_, connected_peer.first};
       }
-
-      // Disconnect peer with the highest processing time
-      LOG(log_er_) << "Max allowed packets queue size " << kConf.network.ddos_protection.max_packets_queue_size
-                   << " exceeded: " << tp_queue_size << ". Peer with the highest processing time "
-                   << peer_max_processing_time.second << " will be disconnected";
-      host->disconnect(node_id, dev::p2p::UserReason);
-      return;
     }
+
+    // Disconnect peer with the highest processing time
+    LOG(log_er_) << "Max allowed packets queue size " << kConf.network.ddos_protection.max_packets_queue_size
+                 << " exceeded: " << tp_queue_size << ". Peer with the highest processing time "
+                 << peer_max_processing_time.second << " will be disconnected";
+    host->disconnect(node_id, dev::p2p::UserReason);
+    return;
   }
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does

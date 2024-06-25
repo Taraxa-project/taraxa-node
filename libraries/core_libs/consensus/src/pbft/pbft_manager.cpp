@@ -1240,7 +1240,12 @@ PbftManager::proposePbftBlock() {
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
 
-    if (total_weight + dag_block_weight > kGenesisConfig.pbft.gas_limit) {
+    auto gas_limit = kGenesisConfig.pbft.gas_limit;
+    if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(current_pbft_period)) {
+      gas_limit = kGenesisConfig.state.hardforks.ficus_hf.pbft_gas_limit;
+    }
+
+    if (total_weight + dag_block_weight > gas_limit) {
       break;
     }
     total_weight += dag_block_weight;
@@ -1541,7 +1546,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
     auto ghost = dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash());
     if (ghost.size() > 1 && anchor_hash != ghost[1]) {
-      if (!checkBlockWeight(anchor_dag_block_order_cache_[anchor_hash])) {
+      if (!checkBlockWeight(anchor_dag_block_order_cache_[anchor_hash], pbft_block->getPeriod())) {
         LOG(log_er_) << "PBFT block " << pbft_block_hash << " weight exceeded max limit";
         anchor_dag_block_order_cache_.erase(anchor_hash);
         return false;
@@ -1999,8 +2004,8 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
   if (current_pillar_block->getPeriod() != required_votes_period) {
-    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period
-                 << " != " << " current pillar block period " << current_pillar_block->getPeriod();
+    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period << " != "
+                 << " current pillar block period " << current_pillar_block->getPeriod();
     return false;
   }
 
@@ -2083,11 +2088,15 @@ void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID
 
 size_t PbftManager::periodDataQueueSize() const { return sync_queue_.size(); }
 
-bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) const {
+bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks, PbftPeriod period) const {
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
                       [](u256 value, const auto &dag_block) { return value + dag_block.getGasEstimation(); });
-  if (total_weight > kGenesisConfig.pbft.gas_limit) {
+  auto gas_limit = kGenesisConfig.pbft.gas_limit;
+  if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(period)) {
+    gas_limit = kGenesisConfig.state.hardforks.ficus_hf.pbft_gas_limit;
+  }
+  if (total_weight > gas_limit) {
     return false;
   }
   return true;

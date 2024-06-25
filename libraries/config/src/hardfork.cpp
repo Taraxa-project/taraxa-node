@@ -53,7 +53,8 @@ RLP_FIELDS_DEFINE(AspenHardfork, block_num_part_one, block_num_part_two, max_sup
 bool FicusHardforkConfig::isFicusHardfork(taraxa::PbftPeriod period) const { return period >= block_num; }
 
 bool FicusHardforkConfig::isPillarBlockPeriod(taraxa::PbftPeriod period, bool skip_first_pillar_block) const {
-  return period >= block_num && period >= firstPillarBlockPeriod() + (skip_first_pillar_block ? 1 : 0) * pillar_blocks_interval &&
+  return period >= block_num &&
+         period >= firstPillarBlockPeriod() + (skip_first_pillar_block ? 1 : 0) * pillar_blocks_interval &&
          period % pillar_blocks_interval == 0;
 }
 
@@ -96,6 +97,8 @@ Json::Value enc_json(const FicusHardforkConfig& obj) {
   json["pillar_chain_sync_interval"] = dev::toJS(obj.pillar_chain_sync_interval);
   json["pbft_inclusion_delay"] = dev::toJS(obj.pbft_inclusion_delay);
   json["bridge_contract_address"] = dev::toJS(obj.bridge_contract_address);
+  json["dag_gas_limit"] = dev::toJS(obj.dag_gas_limit);
+  json["pbft_gas_limit"] = dev::toJS(obj.pbft_gas_limit);
   return json;
 }
 
@@ -105,6 +108,8 @@ void dec_json(const Json::Value& json, FicusHardforkConfig& obj) {
   obj.pillar_chain_sync_interval = dev::getUInt(json["pillar_chain_sync_interval"]);
   obj.pbft_inclusion_delay = dev::getUInt(json["pbft_inclusion_delay"]);
   obj.bridge_contract_address = taraxa::addr_t(json["bridge_contract_address"].asString());
+  obj.dag_gas_limit = dev::getUInt(json["dag_gas_limit"]);
+  obj.pbft_gas_limit = dev::getUInt(json["pbft_gas_limit"]);
 }
 
 RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_blocks_interval, pillar_chain_sync_interval,

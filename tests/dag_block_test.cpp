@@ -406,6 +406,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   // make config
   auto node_cfgs = make_node_cfgs(1, 1, 20);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
+  node_cfgs.front().genesis.state.hardforks.ficus_hf.block_num = 2;
 
   auto node = create_nodes(node_cfgs).front();
   auto db = node->getDB();
@@ -419,7 +420,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx->getHash());
-    const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, std::nullopt);
+    const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, 0);
     estimations += e;
   }
 

@@ -28,6 +28,10 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   if (trx->getGas() <= kEstimateGasLimit) {
     return trx->getGas();
   }
+  auto gas_limit = kDagBlockGasLimit;
+  if (kConf.genesis.state.hardforks.ficus_hf.isFicusHardfork(*proposal_period)) {
+    gas_limit = kConf.genesis.state.hardforks.ficus_hf.dag_gas_limit;
+  }
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
           trx->getSender(),
@@ -35,7 +39,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
           trx->getReceiver(),
           trx->getNonce(),
           trx->getValue(),
-          kDagBlockGasLimit,
+          gas_limit,
           trx->getData(),
       },
       proposal_period);

@@ -116,6 +116,9 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
   // Main Threadpool for processing packets
   std::shared_ptr<threadpool::PacketsThreadPool> thread_pool_;
 
+  // Last disconnect time
+  std::chrono::_V2::system_clock::time_point last_ddos_disconnect_time_;
+
   LOG_OBJECTS_DEFINE
 };
 
