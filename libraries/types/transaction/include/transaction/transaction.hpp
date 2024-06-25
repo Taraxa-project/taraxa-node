@@ -22,7 +22,7 @@ struct Transaction {
     explicit InvalidFormat(const std::string &msg) : InvalidTransaction("rlp format:\n" + msg) {}
   };
 
- private:
+ protected:
   trx_nonce_t nonce_ = 0;
   val_t value_ = 0;
   val_t gas_price_;
@@ -43,11 +43,10 @@ struct Transaction {
   mutable bytes cached_rlp_;
   mutable std::mutex cached_rlp_mu_;
 
-  template <bool for_signature>
-  void streamRLP(dev::RLPStream &s) const;
   trx_hash_t hash_for_signature() const;
   addr_t const &get_sender_() const;
-  void fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash);
+  virtual void streamRLP(dev::RLPStream &s, bool for_signature) const;
+  virtual void fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash);
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
@@ -58,17 +57,18 @@ struct Transaction {
   explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {});
 
   auto isZero() const { return is_zero_; }
-  trx_hash_t const &getHash() const;
-  addr_t const &getSender() const;
+  const trx_hash_t &getHash() const;
   auto getNonce() const { return nonce_; }
-  auto const &getValue() const { return value_; }
-  auto const &getGasPrice() const { return gas_price_; }
+  const auto &getValue() const { return value_; }
+  const auto &getGasPrice() const { return gas_price_; }
   auto getGas() const { return gas_; }
-  auto const &getData() const { return data_; }
-  auto const &getReceiver() const { return receiver_; }
+  const auto &getData() const { return data_; }
+  const auto &getReceiver() const { return receiver_; }
   auto getChainID() const { return chain_id_; }
-  auto const &getVRS() const { return vrs_; }
+  const auto &getVRS() const { return vrs_; }
   auto getCost() const { return gas_price_ * gas_ + value_; }
+
+  virtual const addr_t &getSender() const;
 
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 

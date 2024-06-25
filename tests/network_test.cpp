@@ -41,10 +41,6 @@ struct NetworkTest : public NodesTest {};
 // is successful. Once restored from the file it is able to reestablish
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
-  auto key2 = dev::KeyPair::create();
-  auto key3 = dev::KeyPair::create();
-  h256 genesis_hash;
-
   auto node_cfgs = make_node_cfgs(3, 0, 20);
   std::filesystem::remove_all(node_cfgs[0].net_file_path());
   std::filesystem::remove_all(node_cfgs[1].net_file_path());
@@ -125,10 +121,10 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   for (auto trx : trxs) {
     auto tx = trx;
-    node1->getTransactionManager()->insertValidatedTransaction(std::move(tx), TransactionStatus::Verified);
+    node1->getTransactionManager()->insertValidatedTransaction(std::move(tx));
   }
   for (size_t i = 0; i < dag_blocks.size(); i++) {
-    if (dag_mgr1->verifyBlock(*dag_blocks[i]) == DagManager::VerifyBlockReturnType::Verified)
+    if (dag_mgr1->verifyBlock(*dag_blocks[i]).first == DagManager::VerifyBlockReturnType::Verified)
       dag_mgr1->addDagBlock(DagBlock(*dag_blocks[i]), {trxs[i]});
   }
   wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr1->getDagBlock(block_hash), nullptr) });
@@ -372,8 +368,8 @@ TEST_F(NetworkTest, transfer_transaction) {
   EXPECT_NE(peer2, nullptr);
   EXPECT_NE(peer1, nullptr);
 
-  SharedTransactions transactions;
-  transactions.push_back(g_signed_trx_samples[0]);
+  std::pair<SharedTransactions, std::vector<trx_hash_t>> transactions;
+  transactions.first.push_back(g_signed_trx_samples[0]);
 
   nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
                                                                                          std::move(transactions));
@@ -478,8 +474,8 @@ TEST_F(NetworkTest, node_sync) {
   blks.push_back(std::make_pair(blk6, g_signed_trx_samples[6]));
 
   for (size_t i = 0; i < blks.size(); ++i) {
-    node1->getTransactionManager()->insertValidatedTransaction(std::move(blks[i].second), TransactionStatus::Verified);
-    EXPECT_EQ(node1->getDagManager()->verifyBlock(blks[i].first), DagManager::VerifyBlockReturnType::Verified);
+    node1->getTransactionManager()->insertValidatedTransaction(std::move(blks[i].second));
+    EXPECT_EQ(node1->getDagManager()->verifyBlock(blks[i].first).first, DagManager::VerifyBlockReturnType::Verified);
     node1->getDagManager()->addDagBlock(std::move(blks[i].first));
   }
 
@@ -527,10 +523,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf1.computeVdfSolution(vdf_config, vdf_msg1, false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, 0, vdf1,
                 sk);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr<Transaction>(g_signed_trx_samples[0]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr<Transaction>(g_signed_trx_samples[1]),
-                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr<Transaction>(g_signed_trx_samples[0]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr<Transaction>(g_signed_trx_samples[1]));
   node1->getDagManager()->verifyBlock(DagBlock(blk1));
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
@@ -538,9 +532,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
+  const auto extra_data = PbftBlockExtraData{1, 0, 0, 1, "T", {}};
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
-  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
+  std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
@@ -581,10 +576,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf2.computeVdfSolution(vdf_config, vdf_msg2, false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, 0,
                 vdf2, sk);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]),
-                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]));
   node1->getDagManager()->verifyBlock(DagBlock(blk2));
   node1->getDagManager()->addDagBlock(DagBlock(blk2));
 
@@ -595,8 +588,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
-  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
+  std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
       node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 1, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
@@ -678,10 +671,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf1.computeVdfSolution(vdf_config, vdf_msg1, false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, 0, vdf1,
                 sk);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[0]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[1]),
-                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[0]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[1]));
   node1->getDagManager()->verifyBlock(DagBlock(blk1));
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
@@ -689,8 +680,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
+  const auto extra_data = PbftBlockExtraData{1, 0, 0, 1, "T", {}};
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
   const auto pbft_block1_cert_vote = node1->getVoteManager()->generateVote(
       pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block1.getPeriod(), 1, 3);
   pbft_block1_cert_vote->calculateWeight(1, 1, 1);
@@ -721,10 +713,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf2.computeVdfSolution(vdf_config, vdf_msg2, false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, 0,
                 vdf2, sk);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]),
-                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]));
   node1->getDagManager()->verifyBlock(DagBlock(blk2));
   node1->getDagManager()->addDagBlock(DagBlock(blk2));
 
@@ -737,7 +727,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream2 << blk2.getHash();
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
-                        beneficiary, node1->getSecretKey(), {});
+                        beneficiary, node1->getSecretKey(), {}, extra_data);
   const auto pbft_block2_cert_vote = node1->getVoteManager()->generateVote(
       pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block2.getPeriod(), 1, 3);
   pbft_block2_cert_vote->calculateWeight(1, 1, 1);
@@ -900,8 +890,6 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf1.computeVdfSolution(vdf_config, vdf_msg1, false);
   DagBlock blk1(dag_genesis, propose_level, {},
                 {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, 2 * estimation, vdf1, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr1{
-      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
 
   propose_level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
@@ -909,8 +897,6 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   dev::bytes vdf_msg2 = DagManager::getVdfMessage(blk1.getHash(), {g_signed_trx_samples[2]});
   vdf2.computeVdfSolution(vdf_config, vdf_msg2, false);
   DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2]->getHash()}, estimation, vdf2, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr2{
-      {g_signed_trx_samples[2], TransactionStatus::Verified}};
 
   propose_level = 3;
   vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
@@ -918,8 +904,6 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   dev::bytes vdf_msg3 = DagManager::getVdfMessage(blk2.getHash(), {g_signed_trx_samples[3]});
   vdf3.computeVdfSolution(vdf_config, vdf_msg3, false);
   DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3]->getHash()}, estimation, vdf3, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr3{
-      {g_signed_trx_samples[3], TransactionStatus::Verified}};
 
   propose_level = 4;
   vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
@@ -927,8 +911,6 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   dev::bytes vdf_msg4 = DagManager::getVdfMessage(blk3.getHash(), {g_signed_trx_samples[4]});
   vdf4.computeVdfSolution(vdf_config, vdf_msg4, false);
   DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4]->getHash()}, estimation, vdf4, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr4{
-      {g_signed_trx_samples[4], TransactionStatus::Verified}};
 
   propose_level = 5;
   vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
@@ -940,11 +922,6 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
                 {g_signed_trx_samples[5]->getHash(), g_signed_trx_samples[6]->getHash(),
                  g_signed_trx_samples[7]->getHash(), g_signed_trx_samples[8]->getHash()},
                 4 * estimation, vdf5, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr5{
-      {g_signed_trx_samples[5], TransactionStatus::Verified},
-      {g_signed_trx_samples[6], TransactionStatus::Verified},
-      {g_signed_trx_samples[7], TransactionStatus::Verified},
-      {g_signed_trx_samples[8], TransactionStatus::Verified}};
 
   propose_level = 6;
   vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
@@ -953,40 +930,28 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf6.computeVdfSolution(vdf_config, vdf_msg6, false);
   DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9]->getHash()},
                 estimation, vdf6, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr6{
-      {g_signed_trx_samples[9], TransactionStatus::Verified}};
 
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[0]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[1]),
-                                                             TransactionStatus::Verified);
-  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk1)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[0]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[1]));
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk1)).first, DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]),
-                                                             TransactionStatus::Verified);
-  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk2)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]));
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk2)).first, DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk2));
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]),
-                                                             TransactionStatus::Verified);
-  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk3)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]));
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk3)).first, DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk3));
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[4]),
-                                                             TransactionStatus::Verified);
-  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk4)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[4]));
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk4)).first, DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk4));
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[5]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[6]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[7]),
-                                                             TransactionStatus::Verified);
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[8]),
-                                                             TransactionStatus::Verified);
-  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk5)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[5]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[6]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[7]));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[8]));
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk5)).first, DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk5));
-  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[9]),
-                                                             TransactionStatus::Verified);
-  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk6)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[9]));
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk6)).first, DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk6));
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
@@ -1157,8 +1122,7 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr12);
 
   for (size_t i = 0; i < blks.size(); ++i) {
-    for (auto t : trxs[i])
-      node1->getTransactionManager()->insertValidatedTransaction(std::move(t), TransactionStatus::Verified);
+    for (auto t : trxs[i]) node1->getTransactionManager()->insertValidatedTransaction(std::move(t));
     node1->getDagManager()->verifyBlock(std::move(blks[i]));
     node1->getDagManager()->addDagBlock(DagBlock(blks[i]));
   }
@@ -1186,8 +1150,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
   auto& node1 = nodes[0];
   auto& node2 = nodes[1];
 
-  for (auto t : *g_signed_trx_samples)
-    node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(t), TransactionStatus::Verified);
+  for (auto t : *g_signed_trx_samples) node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(t));
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -1197,6 +1160,401 @@ TEST_F(NetworkTest, node_transaction_sync) {
     if (node2->getTransactionManager()->getTransaction(t->getHash()) != nullptr) {
       EXPECT_EQ(*t, *node2->getTransactionManager()->getTransaction(t->getHash()));
     }
+  }
+}
+
+TEST_F(NetworkTest, transaction_gossip_selection) {
+  class TestTransactionPacketHandler : public network::tarcap::TransactionPacketHandler {
+   public:
+    TestTransactionPacketHandler(std::shared_ptr<network::tarcap::PeersState> peers_state)
+        : TransactionPacketHandler({}, peers_state, {}, {}, {}, true) {}
+    std::vector<
+        std::pair<std::shared_ptr<network::tarcap::TaraxaPeer>, std::pair<SharedTransactions, std::vector<trx_hash_t>>>>
+    public_transactionsToSendToPeers(std::vector<SharedTransactions> transactions) {
+      auto res = transactionsToSendToPeers(std::move(transactions));
+      for (auto account : res) {
+        for (auto t : account.second.first) {
+          account.first->markTransactionAsKnown(t->getHash());
+        }
+      }
+      return res;
+    }
+  };
+
+  FullNodeConfig conf;
+  dev::KeyPair node_key1 = dev::KeyPair::create();
+  dev::KeyPair node_key2 = dev::KeyPair::create();
+  dev::KeyPair node_key3 = dev::KeyPair::create();
+  dev::p2p::NodeID node_id1(node_key1.pub());
+  dev::p2p::NodeID node_id2(node_key2.pub());
+  dev::p2p::NodeID node_id3(node_key3.pub());
+  addr_t node_addr1(node_key1.address());
+  addr_t node_addr2(node_key2.address());
+  addr_t node_addr3(node_key3.address());
+
+  auto peers_state = std::make_shared<network::tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), FullNodeConfig());
+  peers_state->addPendingPeer(node_id1, {});
+  auto peer1 = peers_state->getPendingPeer(node_id1);
+
+  peers_state->setPeerAsReadyToSendMessages(node_id1, peer1);
+
+  TestTransactionPacketHandler tph(peers_state);
+  auto trxs_node1_under = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket - 1, node_key1.secret(), {});
+  auto trxs_node1_at = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket, node_key1.secret(), {});
+  auto trxs_node1_over = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + 1, node_key1.secret(), {});
+  auto trxs_node1_at_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket, node_key1.secret(), {});
+  auto trxs_node1_over_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket + 1, node_key1.secret(), {});
+
+  auto trxs_node2_under = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket - 1, node_key2.secret(), {});
+  auto trxs_node2_at = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket, node_key2.secret(), {});
+  auto trxs_node2_over = samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + 1, node_key2.secret(), {});
+  auto trxs_node2_at_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket, node_key2.secret(), {});
+  auto trxs_node2_over_hash_limit =
+      samples::createSignedTrxSamples(1, kMaxTransactionsInPacket + kMaxHashesInPacket + 1, node_key2.secret(), {});
+
+  std::vector<SharedTransactions> trxs;
+
+  // Test 1 node under the max transactions limit
+  // Expect all transactions included in first call, second should have none
+  {
+    trxs.push_back(trxs_node1_under);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket - 1);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Test 1 node at the max transactions limit
+  // Expect all transactions included in first call, second should have none
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Test 1 node over the max transactions limit
+  // Expect kMaxTransactionsInPacket transactions included in first call, second should have 1
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 1);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+  }
+
+  // Test 1 node at the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at_hash_limit);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket);
+  }
+
+  // Test 1 node over the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over_hash_limit);
+    auto trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 1);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket + 1);
+  }
+
+  // Same test as above with two peers
+  peers_state->addPendingPeer(node_id2, {});
+  auto peer2 = peers_state->getPendingPeer(node_id2);
+  peers_state->setPeerAsReadyToSendMessages(node_id2, peer2);
+  TestTransactionPacketHandler tph2(peers_state);
+
+  // Expect all transactions included in first call, second should have none
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_under);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket - 1);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket - 1);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Expect all transactions included in first call, second should have none
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 0);
+  }
+
+  // Expect kMaxTransactionsInPacket transactions included in first call, second should have 1
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 1);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 1);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), 1);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), 1);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+  }
+
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at_hash_limit);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket);
+  }
+
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over_hash_limit);
+    auto trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    trx_peers = tph2.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket + 1);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket - kMaxTransactionsInPacket + 1);
+  }
+
+  // Test with three peers and multiple accounts transactions
+  peers_state->addPendingPeer(node_id3, {});
+  auto peer3 = peers_state->getPendingPeer(node_id3);
+  peers_state->setPeerAsReadyToSendMessages(node_id3, peer3);
+  TestTransactionPacketHandler tph3(peers_state);
+
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_under);
+    trxs.push_back(trxs_node2_under);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxTransactionsInPacket - 2);
+
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket - 2);
+    EXPECT_EQ(trx_peers[2].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr2);
+  }
+
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at);
+    trxs.push_back(trxs_node2_at);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), 0);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr2);
+  }
+
+  // Test 1 node over the max transactions limit
+  // Expect kMaxTransactionsInPacket transactions included in first call, second should have 1
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over);
+    trxs.push_back(trxs_node2_over);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxTransactionsInPacket + 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxTransactionsInPacket + 2);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxTransactionsInPacket + 2);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), 2);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), 2);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), 2);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr2);
+  }
+
+  // Test 1 node at the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_at_hash_limit);
+    trxs.push_back(trxs_node2_at_hash_limit);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+  }
+
+  // Test 1 node over the hash transactions limit
+  // Expect kMaxTransactionsInPacket included, check hashes count
+  {
+    peer1->resetKnownCaches();
+    peer2->resetKnownCaches();
+    peer3->resetKnownCaches();
+    trxs.clear();
+    trxs.push_back(trxs_node1_over_hash_limit);
+    trxs.push_back(trxs_node2_over_hash_limit);
+    auto trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
+    trx_peers = tph3.public_transactionsToSendToPeers(trxs);
+    EXPECT_EQ(trx_peers.size(), 3);
+    EXPECT_EQ(trx_peers[0].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[0].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[1].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[1].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[2].second.first.size(), kMaxTransactionsInPacket);
+    EXPECT_EQ(trx_peers[2].second.second.size(), kMaxHashesInPacket);
+    EXPECT_EQ(trx_peers[0].second.first[0]->getSender(), node_addr1);
+    EXPECT_EQ(trx_peers[1].second.first[0]->getSender(), node_addr2);
+    EXPECT_EQ(trx_peers[2].second.first[0]->getSender(), node_addr1);
   }
 }
 
@@ -1217,8 +1575,7 @@ TEST_F(NetworkTest, node_full_sync) {
   int num_of_trxs = 50;
   auto trxs = samples::createSignedTrxSamples(0, num_of_trxs, g_secret);
   for (auto i = 0; i < num_of_trxs; ++i) {
-    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransaction(std::move(trxs[i]),
-                                                                               TransactionStatus::Verified);
+    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransaction(std::move(trxs[i]));
     thisThreadSleepForMilliSeconds(distTransactions(rng));
   }
   ASSERT_EQ(num_of_trxs, 50);  // 50 transactions
@@ -1372,8 +1729,8 @@ TEST_F(NetworkTest, node_full_sync) {
 
 TEST_F(NetworkTest, suspicious_packets) {
   network::tarcap::TaraxaPeer peer;
-  // Verify that after 1000 reported suspicious packets true is returned
-  for (int i = 0; i < 1000; i++) {
+  // Verify that after 50000 reported suspicious packets true is returned
+  for (int i = 0; i < 50000; i++) {
     EXPECT_FALSE(peer.reportSuspiciousPacket());
   }
   EXPECT_TRUE(peer.reportSuspiciousPacket());

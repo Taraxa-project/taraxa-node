@@ -76,10 +76,21 @@ std::optional<taraxa::level_t> PacketsBlockingMask::getSmallestDagLevelBeingProc
   return {};
 }
 
+dev::RLP PacketsBlockingMask::dagBlockFromDagPacket(const PacketData& packet_data) const {
+  if (packet_data.rlp_.itemCount() == kRequiredDagPacketSizeV2) {
+    return packet_data.rlp_;
+  } else if (packet_data.rlp_.itemCount() == kRequiredDagPacketSizeV3) {
+    return packet_data.rlp_[kDagBlockPosV3];
+  } else {
+    // It should not be possible since packet validation is done before
+    assert(false);
+  }
+}
+
 void PacketsBlockingMask::setDagBlockBeingProcessed(const PacketData& packet) {
   // Signature is used as id for the dag block since it is cheaper to get signature than to calculate hash at this point
   // and signature should be unique per dag block
-  sig_t sig = DagBlock::extract_signature_from_rlp(packet.rlp_);
+  sig_t sig = DagBlock::extract_signature_from_rlp(dagBlockFromDagPacket(packet));
 
   // If blocking is working correctly it should not be possible that we already are processing the same block
   assert(processing_dag_blocks_.find(sig) == processing_dag_blocks_.end());
@@ -88,7 +99,7 @@ void PacketsBlockingMask::setDagBlockBeingProcessed(const PacketData& packet) {
 }
 
 void PacketsBlockingMask::unsetDagBlockBeingProcessed(const PacketData& packet) {
-  sig_t sig = DagBlock::extract_signature_from_rlp(packet.rlp_);
+  sig_t sig = DagBlock::extract_signature_from_rlp(dagBlockFromDagPacket(packet));
 
   // There must be existing block inside processing_dag_blocks_
   const auto processing_dag_block = processing_dag_blocks_.find(sig);
@@ -98,7 +109,7 @@ void PacketsBlockingMask::unsetDagBlockBeingProcessed(const PacketData& packet) 
 }
 
 void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packet) {
-  level_t dag_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_);
+  level_t dag_level = DagBlock::extract_dag_level_from_rlp(dagBlockFromDagPacket(packet));
 
   // Only new dag blocks with smaller or equal level than the smallest level from all blocks currently being processed
   // are allowed
@@ -116,7 +127,7 @@ void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packe
 }
 
 void PacketsBlockingMask::unsetDagBlockLevelBeingProcessed(const PacketData& packet) {
-  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_);
+  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(dagBlockFromDagPacket(packet));
 
   // There must be existing dag level inside processing_dag_levels_
   const auto processing_dag_level = processing_dag_levels_.find(dag_block_level);
@@ -143,7 +154,7 @@ bool PacketsBlockingMask::isPacketHardBlocked(const PacketData& packet_data) con
 }
 
 bool PacketsBlockingMask::isDagBlockPacketBlockedBySameDagBlock(const PacketData& packet_data) const {
-  sig_t sig = DagBlock::extract_signature_from_rlp(packet_data.rlp_);
+  sig_t sig = DagBlock::extract_signature_from_rlp(dagBlockFromDagPacket(packet_data));
   return processing_dag_blocks_.find(sig) != processing_dag_blocks_.end();
 }
 
@@ -154,7 +165,7 @@ bool PacketsBlockingMask::isDagBlockPacketBlockedByLevel(const PacketData& packe
     return false;
   }
 
-  const auto dag_level = DagBlock::extract_dag_level_from_rlp(packet_data.rlp_);
+  level_t dag_level = DagBlock::extract_dag_level_from_rlp(dagBlockFromDagPacket(packet_data));
   if (dag_level > *smallest_processing_dag_level) {
     return true;
   }

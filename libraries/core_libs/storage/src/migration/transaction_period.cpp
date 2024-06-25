@@ -38,7 +38,7 @@ void TransactionPeriod::migrate(logger::Logger& log) {
       auto batch = db_->createWriteBatch();
       const auto& transactions = db_->getPeriodTransactions(period);
       for (uint64_t position = 0; position < transactions->size(); ++position) {
-        db_->addTransactionPeriodToBatch(batch, (*transactions)[position]->getHash(), period, position);
+        db_->addTransactionLocationToBatch(batch, (*transactions)[position]->getHash(), period, position);
       }
       db_->commitWriteBatch(batch);
     });

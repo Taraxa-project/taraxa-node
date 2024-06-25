@@ -14,13 +14,25 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/period_data.hpp"
+#include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
+#include "transaction/system_transaction.hpp"
 #include "transaction/transaction.hpp"
+#include "vote/pillar_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
 
 namespace taraxa {
 namespace fs = std::filesystem;
 struct SortitionParamsChange;
+
+namespace pillar_chain {
+struct PillarBlockData;
+class PillarBlock;
+}  // namespace pillar_chain
+
+namespace final_chain {
+struct TransactionLocation;
+}  // namespace final_chain
 
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
@@ -122,6 +134,17 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     COLUMN_W_COMP(block_rewards_stats, getIntComparator<uint64_t>());
 
+    // Pillar blocks & 2t+1 pillr votes
+    COLUMN_W_COMP(pillar_block_data, getIntComparator<PbftPeriod>());
+    // Current pillar block data - current pillar block + current vote counts
+    COLUMN(current_pillar_block_data);
+    // Current pillar block own pillar vote
+    COLUMN(current_pillar_block_own_vote);
+    // system transactions that is not a part of the block
+    COLUMN(system_transaction);
+    // system transactions hashes by period
+    COLUMN(period_system_transactions);
+
 #undef COLUMN
 #undef COLUMN_W_COMP
   };
@@ -201,20 +224,18 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
-  std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;
+  std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
 
-  /**
-   * @brief Gets finalized transactions from provided hashes
-   *
-   * @param trx_hashes
-   *
-   * @return Returns transactions found if all transactions are present. If there is a transaction missing, no
-   * transaction is returned and missing trx hash is returned
-   */
-  std::pair<std::optional<SharedTransactions>, trx_hash_t> getFinalizedTransactions(
-      std::vector<trx_hash_t> const& trx_hashes) const;
+  // Pillar chain
+  void savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
+  std::optional<pillar_chain::PillarBlockData> getPillarBlockData(PbftPeriod period) const;
+  std::optional<pillar_chain::PillarBlockData> getLatestPillarBlockData() const;
+  void saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote);
+  std::shared_ptr<PillarVote> getOwnPillarBlockVote() const;
+  void saveCurrentPillarBlockData(const pillar_chain::CurrentPillarBlockDataDb& current_pillar_block_data);
+  std::optional<pillar_chain::CurrentPillarBlockDataDb> getCurrentPillarBlockData() const;
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
@@ -233,7 +254,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(PbftPeriod period);
 
   // Transaction
-  void saveTransaction(Transaction const& trx);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
@@ -243,11 +263,26 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
-  void saveTransactionPeriod(trx_hash_t const& trx, PbftPeriod period, uint32_t position);
-  void addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position);
-  std::optional<std::pair<PbftPeriod, uint32_t>> getTransactionPeriod(trx_hash_t const& hash) const;
+  void addTransactionLocationToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position,
+                                     bool is_system = false);
+  std::optional<final_chain::TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
+  /**
+   * @brief Gets finalized transactions from provided hashes
+   *
+   * @param trx_hashes
+   *
+   * @return Returns transactions
+   */
+  SharedTransactions getFinalizedTransactions(std::vector<trx_hash_t> const& trx_hashes) const;
+
+  // System transaction
+  void addSystemTransactionToBatch(Batch& write_batch, SharedTransaction trx);
+  std::shared_ptr<Transaction> getSystemTransaction(const trx_hash_t& hash) const;
+  void addPeriodSystemTransactions(Batch& write_batch, SharedTransactions trxs, PbftPeriod period);
+  std::vector<trx_hash_t> getPeriodSystemTransactionsHashes(PbftPeriod period) const;
+  SharedTransactions getPeriodSystemTransactions(PbftPeriod period) const;
 
   // PBFT manager
   uint32_t getPbftMgrField(PbftMgrField field);
@@ -282,20 +317,20 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addStatusFieldToBatch(StatusDbField const& field, uint64_t value, Batch& write_batch);
 
   // Own votes for the latest round
-  void saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote);
-  std::vector<std::shared_ptr<Vote>> getOwnVerifiedVotes();
-  void clearOwnVerifiedVotes(Batch& write_batch, const std::vector<std::shared_ptr<Vote>>& own_verified_votes);
+  void saveOwnVerifiedVote(const std::shared_ptr<PbftVote>& vote);
+  std::vector<std::shared_ptr<PbftVote>> getOwnVerifiedVotes();
+  void clearOwnVerifiedVotes(Batch& write_batch, const std::vector<std::shared_ptr<PbftVote>>& own_verified_votes);
 
   // 2t+1 votes bundles for the latest round
-  void replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes);
-  void replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes,
-                                      Batch& write_batch);
-  std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneVotes();
+  void replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<PbftVote>>& votes);
+  void replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
+                                      const std::vector<std::shared_ptr<PbftVote>>& votes, Batch& write_batch);
+  std::vector<std::shared_ptr<PbftVote>> getAllTwoTPlusOneVotes();
 
   // Reward votes - cert votes for the latest finalized block
   void removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Batch& write_batch);
-  void saveExtraRewardVote(const std::shared_ptr<Vote>& vote);
-  std::vector<std::shared_ptr<Vote>> getRewardVotes();
+  void saveExtraRewardVote(const std::shared_ptr<PbftVote>& vote);
+  std::vector<std::shared_ptr<PbftVote>> getRewardVotes();
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);

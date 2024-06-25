@@ -13,7 +13,7 @@ namespace taraxa {
 using namespace std;
 using namespace dev;
 
-uint64_t toChainID(u256 const &val) {
+uint64_t toChainID(const u256 &val) {
   if (val == 0 || std::numeric_limits<uint64_t>::max() < val) {
     BOOST_THROW_EXCEPTION(Transaction::InvalidTransaction("eip-155 chain id must be in the open interval: (0, 2^64)"));
   }
@@ -89,7 +89,7 @@ void Transaction::fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &
   }
 }
 
-trx_hash_t const &Transaction::getHash() const {
+const trx_hash_t &Transaction::getHash() const {
   if (!hash_initialized_.load()) {
     std::unique_lock l(hash_mu_);
     if (!hash_initialized_.load()) {
@@ -100,7 +100,7 @@ trx_hash_t const &Transaction::getHash() const {
   return hash_;
 }
 
-addr_t const &Transaction::get_sender_() const {
+const addr_t &Transaction::get_sender_() const {
   if (!sender_initialized_.load()) {
     std::unique_lock l(sender_mu_);
     if (!sender_initialized_.load()) {
@@ -114,7 +114,7 @@ addr_t const &Transaction::get_sender_() const {
   return sender_;
 }
 
-addr_t const &Transaction::getSender() const {
+const addr_t &Transaction::getSender() const {
   if (auto const &ret = get_sender_(); sender_valid_) {
     return ret;
   }
@@ -122,8 +122,7 @@ addr_t const &Transaction::getSender() const {
                          "\nOriginal RLP: " + (cached_rlp_set_ ? dev::toJS(cached_rlp_) : "wasn't created from rlp"));
 }
 
-template <bool for_signature>
-void Transaction::streamRLP(dev::RLPStream &s) const {
+void Transaction::streamRLP(dev::RLPStream &s, bool for_signature) const {
   s.appendList(!for_signature || chain_id_ ? 9 : 6);
   s << nonce_ << gas_price_ << gas_;
   if (receiver_) {
@@ -144,7 +143,7 @@ const bytes &Transaction::rlp() const {
     std::unique_lock l(cached_rlp_mu_);
     if (!cached_rlp_set_.load()) {
       dev::RLPStream s;
-      streamRLP<false>(s);
+      streamRLP(s, false);
       cached_rlp_ = s.invalidate();
       cached_rlp_set_ = true;
     }
@@ -154,7 +153,7 @@ const bytes &Transaction::rlp() const {
 
 trx_hash_t Transaction::hash_for_signature() const {
   dev::RLPStream s;
-  streamRLP<true>(s);
+  streamRLP(s, true);
   return dev::sha3(s.out());
 }
 

@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "common/range_view.hpp"
 #include "common/util.hpp"
 
 namespace taraxa::util {
@@ -54,9 +53,12 @@ void rlp(RLPEncoderRef encoding, std::optional<Param> const& target) {
 }
 
 template <typename Param>
-void rlp(RLPEncoderRef encoding, RangeView<Param> const& target) {
-  encoding.appendList(target.size);
-  target.for_each([&](auto const& el) { rlp(encoding, el); });
+void rlp(RLPEncoderRef encoding, std::shared_ptr<Param> const& target) {
+  if (target) {
+    rlp(encoding, *target);
+  } else {
+    encoding.append(unsigned(0));
+  }
 }
 
 template <typename T1, typename T2>
@@ -65,8 +67,8 @@ void rlp(RLPEncoderRef encoding, std::pair<T1, T2> const& target) {
 }
 
 template <typename Sequence>
-auto rlp(RLPEncoderRef encoding, Sequence const& target)
-    -> decltype(target.size(), target.begin(), target.end(), void()) {
+auto rlp(RLPEncoderRef encoding, Sequence const& target) -> decltype(target.size(), target.begin(), target.end(),
+                                                                     void()) {
   encoding.appendList(target.size());
   for (auto const& v : target) {
     rlp(encoding, v);
@@ -112,6 +114,16 @@ void rlp(RLPDecoderRef encoding, std::optional<Param>& target) {
     target = std::nullopt;
   } else {
     rlp(encoding, target.emplace());
+  }
+}
+
+template <typename Param>
+void rlp(RLPDecoderRef encoding, std::shared_ptr<Param>& target) {
+  if (encoding.value.isNull() || encoding.value.isEmpty()) {
+    target = nullptr;
+  } else {
+    target = std::make_shared<Param>();
+    rlp(encoding, *target);
   }
 }
 
