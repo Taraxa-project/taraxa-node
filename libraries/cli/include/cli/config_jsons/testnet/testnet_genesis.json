@@ -150,7 +150,7 @@
       "generated_rewards": "0x0"
     },
     "ficus_hf": {
-      "block_num": 1000,
+      "block_num": 4096,
       "pillar_blocks_interval": 16,
       "pillar_chain_sync_interval": 8,
       "pbft_inclusion_delay": 6,
