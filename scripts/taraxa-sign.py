@@ -64,7 +64,7 @@ def sign(key, wallet, text):
         private_key = key
 
     account = Account.from_key(private_key)
-    sig = account.signHash(keccak(hexstr=text))
+    sig = account.unsafe_sign_hash(keccak(hexstr=text))
     sig_hex = sig.signature.hex()
 
     click.echo(sig_hex)
