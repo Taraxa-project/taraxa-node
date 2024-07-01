@@ -31,6 +31,8 @@ class Taraxa : public TaraxaFace {
   virtual Json::Value taraxa_getChainStats() override;
   virtual std::string taraxa_yield(const std::string& _period) override;
   virtual std::string taraxa_totalSupply(const std::string& _period) override;
+  virtual Json::Value taraxa_getPillarBlockData(const std::string& pillar_block_period,
+                                                bool include_signatures) override;
 
  protected:
   std::weak_ptr<taraxa::FullNode> full_node_;

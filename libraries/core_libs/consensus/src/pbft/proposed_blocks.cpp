@@ -1,12 +1,12 @@
 #include "pbft/proposed_blocks.hpp"
 
 #include "pbft/pbft_block.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa {
 
 bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block,
-                                           const std::shared_ptr<Vote>& propose_vote) {
+                                           const std::shared_ptr<PbftVote>& propose_vote) {
   assert(propose_vote->getBlockHash() == proposed_block->getBlockHash());
   assert(propose_vote->getPeriod() == proposed_block->getPeriod());
   return pushProposedPbftBlock(proposed_block);

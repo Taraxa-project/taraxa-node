@@ -118,5 +118,12 @@ struct ValidatorStake {
 
   HAS_RLP_FIELDS
 };
+
+struct ValidatorVoteCount {
+  addr_t addr;
+  uint64_t vote_count;
+
+  HAS_RLP_FIELDS
+};
 /** @} */
 }  // namespace taraxa::state_api

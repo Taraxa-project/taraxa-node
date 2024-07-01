@@ -58,12 +58,13 @@
   },
   "initial_balances": {
     "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
-    "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
+    "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x27e72f1f12813088000000",
+    "fF310642f352E0b6b5266CE492e91D6af1241F41": "0x27e72f1f12813088000000"
   },
   "gas_price": {
     "blocks": 200,
     "percentile": 60,
-    "minimum_price" : 1
+    "minimum_price": 1
   },
   "pbft": {
     "committee_size": "0x3e8",
@@ -71,13 +72,13 @@
     "dag_blocks_size": "0x32",
     "ghost_path_move_back": "0x0",
     "lambda_ms": "0x5DC",
-    "gas_limit": "0x3938700"
+    "gas_limit": "0x12C684C0"
   },
   "dag": {
     "block_proposer": {
       "shard": 1
     },
-    "gas_limit": "0x989680"
+    "gas_limit": "0x1E0A6E0"
   },
   "sortition": {
     "changes_count_for_average": 10,
@@ -100,19 +101,26 @@
   "hardforks": {
     "fix_redelegate_block_num": 0,
     "rewards_distribution_frequency": {
-      "0" : 100
+      "0": 100
     },
-    "magnolia_hf" : {
-      "block_num" : 0,
+    "magnolia_hf": {
+      "block_num": 0,
       "jail_time": 163459
     },
     "phalaenopsis_hf_block_num": 0,
     "fix_claim_all_block_num": -1,
-    "aspen_hf" : {
-      "block_num_part_one" : 0,
-      "block_num_part_two" : 0,
+    "aspen_hf": {
+      "block_num_part_one": 0,
+      "block_num_part_two": 0,
       "max_supply": "0x26C62AD77DC602DAE0000000",
       "generated_rewards": "0x0"
+    },
+    "ficus_hf": {
+      "block_num": 200,
+      "pillar_blocks_interval": 100,
+      "pillar_chain_sync_interval": 25,
+      "pbft_inclusion_delay": 6,
+      "bridge_contract_address": "0xcAF2b453FE8382a4B8110356DF0508f6d71F22BF"
     }
   }
 }

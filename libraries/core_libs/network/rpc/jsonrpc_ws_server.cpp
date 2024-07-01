@@ -79,6 +79,11 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
       new_dag_block_finalized_subscription_ = subscription_id;
     } else if (params[0].asString() == "newPbftBlocks") {
       new_pbft_block_executed_subscription_ = subscription_id;
+    } else if (params[0].asString() == "newPillarBlockData") {
+      new_pillar_block_subscription_ = subscription_id;
+      if (params.size() == 2 && params[1].asString() == "includeSignatures") {
+        include_pillar_block_signatures = true;
+      }
     }
   }
 

@@ -416,9 +416,8 @@ struct NodeEntry {
 };
 
 inline std::ostream& operator<<(std::ostream& _out, NodeTable const& _nodeTable) {
-  _out << _nodeTable.m_hostNodeID << "\t"
-       << "0\t" << _nodeTable.m_hostNodeEndpoint.address() << ":" << _nodeTable.m_hostNodeEndpoint.udpPort()
-       << std::endl;
+  _out << _nodeTable.m_hostNodeID << "\t" << "0\t" << _nodeTable.m_hostNodeEndpoint.address() << ":"
+       << _nodeTable.m_hostNodeEndpoint.udpPort() << std::endl;
   auto s = _nodeTable.snapshot();
   for (auto n : s) _out << n.id() << "\t" << n.distance << "\t" << n.endpoint() << "\n";
   return _out;

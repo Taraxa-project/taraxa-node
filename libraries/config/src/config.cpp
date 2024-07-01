@@ -151,6 +151,7 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   } catch (const dev::Exception &e) {
     throw ConfigException(std::string("Could not parse vrf_public: ") + e.what());
   }
+
   // TODO configurable
   opts_final_chain.expected_max_trx_per_block = 1000;
   opts_final_chain.max_trie_full_node_levels_to_cache = 4;
@@ -193,9 +194,9 @@ void FullNodeConfig::InitLogging(const addr_t &node_address) {
 void FullNodeConfig::validate() const {
   genesis.validate();
   network.validate(genesis.state.dpos.delegation_delay);
+
   if (transactions_pool_size < kMinTransactionPoolSize) {
-    throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize) +
-                          ".");
+    throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize));
   }
 
   // TODO: add validation of other config values

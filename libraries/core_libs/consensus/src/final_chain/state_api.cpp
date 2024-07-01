@@ -179,7 +179,7 @@ StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
 }
 
 const TransactionsExecutionResult& StateAPI::execute_transactions(const EVMBlock& block,
-                                                                  const util::RangeView<EVMTransaction>& transactions) {
+                                                                  const std::vector<EVMTransaction>& transactions) {
   result_buf_execution_result_.execution_results.clear();
   rlp_enc_execution_result_.clear();
   c_method_args_rlp<TransactionsExecutionResult, from_rlp, taraxa_evm_state_api_execute_transactions>(
@@ -256,6 +256,15 @@ std::vector<ValidatorStake> StateAPI::dpos_validators_total_stakes(EthBlockNumbe
   std::vector<ValidatorStake> ret;
   taraxa_evm_state_api_validators_stakes(this_c_, blk_num, decoder_cb_c<std::vector<ValidatorStake>, from_rlp>(ret),
                                          err_h.cgo_part_);
+  err_h.check();
+  return ret;
+}
+
+std::vector<ValidatorVoteCount> StateAPI::dpos_validators_vote_counts(EthBlockNumber blk_num) const {
+  ErrorHandler err_h;
+  std::vector<ValidatorVoteCount> ret;
+  taraxa_evm_state_api_validators_vote_counts(
+      this_c_, blk_num, decoder_cb_c<std::vector<ValidatorVoteCount>, from_rlp>(ret), err_h.cgo_part_);
   err_h.check();
   return ret;
 }

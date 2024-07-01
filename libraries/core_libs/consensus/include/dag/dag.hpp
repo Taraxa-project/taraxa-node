@@ -130,8 +130,7 @@ class vertex_label_writer {
   vertex_label_writer(Property1 name) : name(name) {}
   template <class Vertex>
   void operator()(std::ostream &out, const Vertex &v) const {
-    out << "[label=\"" << name[v].toString().substr(0, 8) << " "
-        << "\"]";
+    out << "[label=\"" << name[v].toString().substr(0, 8) << " " << "\"]";
   }
 
  private:

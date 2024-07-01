@@ -13,22 +13,45 @@ DagBlockPacketHandler::DagBlockPacketHandler(const FullNodeConfig &conf, std::sh
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                                              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                                             const addr_t &node_addr, const std::string &logs_prefix)
+                                             bool trxs_in_dag_packet, const addr_t &node_addr,
+                                             const std::string &logs_prefix)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
                               logs_prefix + "DAG_BLOCK_PH"),
-      trx_mgr_(std::move(trx_mgr)) {}
+      trx_mgr_(std::move(trx_mgr)),
+      kTrxsInDagPacket(trxs_in_dag_packet) {}
 
 void DagBlockPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
+  constexpr size_t required_size_v2 = 8;
+  constexpr size_t required_size = 2;
   // Only one dag block can be received
-  if (constexpr size_t required_size = 8; packet_data.rlp_.itemCount() != required_size) {
+  if (kTrxsInDagPacket && packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
+  } else if (!kTrxsInDagPacket && packet_data.rlp_.itemCount() != required_size_v2) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size_v2);
   }
 }
 
 void DagBlockPacketHandler::process(const threadpool::PacketData &packet_data,
                                     const std::shared_ptr<TaraxaPeer> &peer) {
-  DagBlock block(packet_data.rlp_);
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions;
+  auto dag_rlp = packet_data.rlp_;
+  if (packet_data.rlp_.itemCount() == 2) {
+    const auto trx_count = packet_data.rlp_[0].itemCount();
+    transactions.reserve(trx_count);
+
+    for (const auto tx_rlp : packet_data.rlp_[0]) {
+      try {
+        auto trx = std::make_shared<Transaction>(tx_rlp);
+        peer->markTransactionAsKnown(trx->getHash());
+        transactions.emplace(trx->getHash(), std::move(trx));
+      } catch (const Transaction::InvalidTransaction &e) {
+        throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+      }
+    }
+    dag_rlp = packet_data.rlp_[1];
+  }
+  DagBlock block(dag_rlp);
   blk_hash_t const hash = block.getHash();
 
   peer->markDagBlockAsKnown(hash);
@@ -43,7 +66,7 @@ void DagBlockPacketHandler::process(const threadpool::PacketData &packet_data,
     return;
   }
 
-  onNewBlockReceived(std::move(block), peer);
+  onNewBlockReceived(std::move(block), peer, transactions);
 }
 
 void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
@@ -91,10 +114,45 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   }
 }
 
-void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer) {
+void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
+                                                      const SharedTransactions &trxs) {
+  std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
+  if (!peer) {
+    LOG(log_wr_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id;
+    return;
+  }
+
+  dev::RLPStream s(2);
+
+  // This lock prevents race condition between syncing and gossiping dag blocks
+  std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
+
+  taraxa::bytes trx_bytes;
+  for (uint32_t i = 0; i < trxs.size(); i++) {
+    auto trx_data = trxs[i]->rlp();
+    trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
+  }
+
+  s.appendList(trxs.size());
+  s.appendRaw(trx_bytes, trxs.size());
+
+  s.appendRaw(block.rlp(true));
+
+  if (!sealAndSend(peer_id, DagBlockPacket, std::move(s))) {
+    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed to " << peer_id;
+    return;
+  }
+
+  // Mark data as known if sending was successful
+  peer->markDagBlockAsKnown(block.getHash());
+}
+
+void DagBlockPacketHandler::onNewBlockReceived(
+    DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer,
+    const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs) {
   const auto block_hash = block.getHash();
-  const auto verified = dag_mgr_->verifyBlock(block);
-  switch (verified) {
+  auto verified = dag_mgr_->verifyBlock(block, trxs);
+  switch (verified.first) {
     case DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation:
     case DagManager::VerifyBlockReturnType::BlockTooBig:
     case DagManager::VerifyBlockReturnType::FailedVdfVerification:
@@ -102,7 +160,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
     case DagManager::VerifyBlockReturnType::FailedTipsVerification: {
       std::ostringstream err_msg;
       err_msg << "DagBlock " << block_hash << " failed verification with error code "
-              << static_cast<uint32_t>(verified);
+              << static_cast<uint32_t>(verified.first);
       throw MaliciousPeerException(err_msg.str());
     }
     case DagManager::VerifyBlockReturnType::MissingTransaction:
@@ -155,8 +213,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
       }
       break;
     case DagManager::VerifyBlockReturnType::Verified: {
-      auto transactions = trx_mgr_->getPoolTransactions(block.getTrxs()).first;
-      auto status = dag_mgr_->addDagBlock(std::move(block), std::move(transactions));
+      auto status = dag_mgr_->addDagBlock(std::move(block), std::move(verified.second));
       if (!status.first) {
         LOG(log_dg_) << "Received DagBlockPacket " << block_hash << "from: " << peer->getId();
         // Ignore new block packets when pbft syncing
@@ -201,18 +258,6 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
     }
   }
 
-  // trxs contains only transaction that were not already in some previous DAG block,
-  // block_trxs will contain hashes of transactions which were already in DAG
-  std::unordered_set<trx_hash_t> block_trxs;
-  block_trxs.reserve(block.getTrxs().size());
-  for (const auto &trx_hash : block.getTrxs()) {
-    block_trxs.insert(trx_hash);
-  }
-  // Exclude transactions from trxs
-  for (const auto &trx : trxs) {
-    block_trxs.erase(trx->getHash());
-  }
-
   std::string peer_and_transactions_to_log;
   // Sending it in same order favours some peers over others, always start with a different position
   const auto peers_to_send_count = peers_to_send.size();
@@ -234,19 +279,22 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
           transactions_to_send.push_back(trx);
           peer_and_transactions_to_log += trx_hash.abridged();
         }
-        for (const auto &trx_hash : block_trxs) {
+
+        for (const auto &trx : trxs) {
+          assert(trx != nullptr);
+          const auto trx_hash = trx->getHash();
           if (peer->isTransactionKnown(trx_hash)) {
             continue;
           }
 
-          // Db can be nullptr in some unit tests
-          auto trx = db_->getTransaction(trx_hash);
-          assert(trx != nullptr);
           transactions_to_send.push_back(trx);
           peer_and_transactions_to_log += trx_hash.abridged();
         }
-
-        sendBlock(peer_id, block, transactions_to_send);
+        if (kTrxsInDagPacket) {
+          sendBlockWithTransactions(peer_id, block, transactions_to_send);
+        } else {
+          sendBlock(peer_id, block, transactions_to_send);
+        }
         peer->markDagBlockAsKnown(block_hash);
       }
     }

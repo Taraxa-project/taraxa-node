@@ -20,6 +20,7 @@
 #include "dag/dag_block.hpp"
 #include "final_chain/data.hpp"
 #include "pbft/pbft_chain.hpp"
+#include "pillar_chain/pillar_block.hpp"
 
 namespace taraxa::net {
 
@@ -53,6 +54,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newDagBlockFinalized(const blk_hash_t& blk, uint64_t period);
   void newPbftBlockExecuted(const Json::Value& payload);
   void newPendingTransaction(const trx_hash_t& trx_hash);
+  void newPillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
   bool is_closed() const { return closed_; }
   bool is_normal(const beast::error_code& ec) const;
   void on_write(beast::error_code ec, std::size_t bytes_transferred);
@@ -71,6 +73,8 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   int new_transactions_subscription_ = 0;
   int new_dag_block_finalized_subscription_ = 0;
   int new_pbft_block_executed_subscription_ = 0;
+  int new_pillar_block_subscription_ = 0;
+  bool include_pillar_block_signatures = false;
   std::atomic<bool> closed_ = false;
   std::weak_ptr<WsServer> ws_server_;
 };
@@ -95,6 +99,7 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   void newDagBlockFinalized(const blk_hash_t& blk, uint64_t period);
   void newPbftBlockExecuted(const PbftBlock& sche_blk, const std::vector<blk_hash_t>& finalized_dag_blk_hashes);
   void newPendingTransaction(const trx_hash_t& trx_hash);
+  void newPillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
   uint32_t numberOfSessions();
 
   virtual std::shared_ptr<WsSession> createSession(tcp::socket&& socket) = 0;

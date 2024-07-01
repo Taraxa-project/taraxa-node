@@ -20,8 +20,10 @@ struct RewardsStatsTest : NodesTest {};
 class TestableRewardsStats : public rewards::Stats {
  public:
   TestableRewardsStats(const HardforksConfig::RewardsDistributionMap& rdm, std::shared_ptr<DB> db)
-      : rewards::Stats(100, HardforksConfig{0, {}, rdm, MagnoliaHardfork{0, 0}, 0, 0, AspenHardfork{0, 0}}, db,
-                       [](auto) { return 100; }) {}
+      : rewards::Stats(
+            100,
+            HardforksConfig{0, {}, rdm, MagnoliaHardfork{0, 0}, 0, 0, AspenHardfork{0, 0}, FicusHardforkConfig{0, 0}},
+            db, [](auto) { return 100; }) {}
   auto getStats() { return blocks_stats_; }
 };
 
@@ -35,7 +37,7 @@ TEST_F(RewardsStatsTest, defaultDistribution) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   auto batch = db->createWriteBatch();
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   auto rewards_stats = TestableRewardsStats({}, db);
 
   for (auto i = 1; i < 5; ++i) {
@@ -53,7 +55,7 @@ TEST_F(RewardsStatsTest, statsSaving) {
   // distribute every 5 blocks
   HardforksConfig::RewardsDistributionMap distribution{{0, 5}};
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   std::vector<addr_t> block_authors;
   {
     auto rewards_stats = TestableRewardsStats(distribution, db);
@@ -90,7 +92,7 @@ TEST_F(RewardsStatsTest, statsCleaning) {
   // distribute every 5 blocks
   HardforksConfig::RewardsDistributionMap distribution{{0, 5}};
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   std::vector<addr_t> block_authors;
   {
     auto rewards_stats = TestableRewardsStats(distribution, db);
@@ -123,7 +125,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
   auto rewards_stats = TestableRewardsStats({{0, 10}}, db);
   auto batch = db->createWriteBatch();
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   std::vector<addr_t> block_authors;
 
   // make blocks [1,9] and process them. output of processStats should be empty
@@ -164,7 +166,7 @@ TEST_F(RewardsStatsTest, distributionChange) {
 
   auto rewards_stats = TestableRewardsStats(distribution, db);
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   uint64_t period = 1;
   for (; period <= 5; ++period) {
     PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
@@ -196,7 +198,7 @@ TEST_F(RewardsStatsTest, feeRewards) {
 
   auto rewards_stats = TestableRewardsStats(distribution, db);
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   uint64_t period = 1;
   uint64_t nonce = 1;
 
@@ -233,7 +235,7 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   auto batch = db->createWriteBatch();
 
-  std::vector<std::shared_ptr<Vote>> empty_votes;
+  std::vector<std::shared_ptr<PbftVote>> empty_votes;
   HardforksConfig hfc;
   hfc.aspen_hf.block_num_part_two = 4;
 
@@ -291,7 +293,7 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
   ASSERT_EQ(dag_blk4.getDifficulty(), 17);
   ASSERT_EQ(dag_blk5.getDifficulty(), 16);
 
-  std::vector<uint64_t> gas_used{10, 20, 30};
+  std::vector<gas_t> gas_used{10, 20, 30};
 
   // Process rewards before aspen hf, expect dag_blocks_count to match blocks that include unique transactions which is
   // blocks 1, 2 and 5

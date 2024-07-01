@@ -30,7 +30,7 @@ void VotePacketHandler::process(const threadpool::PacketData &packet_data, const
   std::shared_ptr<PbftBlock> pbft_block{nullptr};
   std::optional<uint64_t> peer_chain_size{};
 
-  std::shared_ptr<Vote> vote = std::make_shared<Vote>(packet_data.rlp_[0]);
+  std::shared_ptr<PbftVote> vote = std::make_shared<PbftVote>(packet_data.rlp_[0]);
   if (const size_t item_count = packet_data.rlp_.itemCount(); item_count == kExtendedVotePacketSize) {
     try {
       pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[1]);
@@ -80,11 +80,11 @@ void VotePacketHandler::process(const threadpool::PacketData &packet_data, const
   }
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
-  peer->markVoteAsKnown(vote_hash);
+  peer->markPbftVoteAsKnown(vote_hash);
   onNewPbftVote(vote, pbft_block);
 }
 
-void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block,
+void VotePacketHandler::onNewPbftVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
                                       bool rebroadcast) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
@@ -92,7 +92,7 @@ void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const s
       continue;
     }
 
-    if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
+    if (!rebroadcast && peer.second->isPbftVoteKnown(vote->getHash())) {
       continue;
     }
 
@@ -105,7 +105,7 @@ void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const s
   }
 }
 
-void VotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, const std::shared_ptr<Vote> &vote,
+void VotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, const std::shared_ptr<PbftVote> &vote,
                                      const std::shared_ptr<PbftBlock> &block) {
   if (block && block->getBlockHash() != vote->getBlockHash()) {
     LOG(log_er_) << "Vote " << vote->getHash().abridged() << " voted block " << vote->getBlockHash().abridged()
@@ -126,7 +126,7 @@ void VotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, co
   }
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::VotePacket, std::move(s))) {
-    peer->markVoteAsKnown(vote->getHash());
+    peer->markPbftVoteAsKnown(vote->getHash());
     if (block) {
       peer->markPbftBlockAsKnown(block->getBlockHash());
       LOG(log_dg_) << " PBFT vote " << vote->getHash() << " together with block " << block->getBlockHash()

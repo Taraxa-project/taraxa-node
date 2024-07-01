@@ -36,7 +36,8 @@ class Network {
           const dev::KeyPair &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
           std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
           std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-          std::shared_ptr<SlashingManager> slashing_manager);
+          std::shared_ptr<SlashingManager> slashing_manager,
+          std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr);
 
   ~Network();
   Network(const Network &) = delete;
@@ -61,10 +62,20 @@ class Network {
   void setSyncStatePeriod(PbftPeriod period);
 
   void gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
-  void gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast = false);
-  void gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast = false);
+  void gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
+                  bool rebroadcast = false);
+  void gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes, bool rebroadcast = false);
+  void gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote, bool rebroadcast = false);
   void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
   std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;
+
+  /**
+   * @brief Request pillar block votes bundle packet from random peer
+   *
+   * @param period
+   * @param pillar_block_hash
+   */
+  void requestPillarBlockVotesBundle(PbftPeriod period, const blk_hash_t &pillar_block_hash);
 
   // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>

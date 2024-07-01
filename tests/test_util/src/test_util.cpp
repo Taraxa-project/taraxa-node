@@ -73,10 +73,21 @@ SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u25
   auto proof = dev::sign(sender_node_cfg.node_secret, dev::sha3(addr)).asBytes();
   // We need this for eth compatibility
   proof[64] += 27;
-  const auto input = final_chain::ContractInterface::packFunctionCall(
-      "registerValidator(address,bytes,bytes,uint16,string,string)", addr, proof,
-      vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret).asBytes(), 10, dev::asBytes("test"),
-      dev::asBytes("test"));
+
+  const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret);
+
+  const auto input = util::EncodingSolidity::packFunctionCall(
+      "registerValidator(address,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(), 10,
+      dev::asBytes("test"), dev::asBytes("test"));
+
+  return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+}
+
+SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
+                                   const u256& gas_price) {
+  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto input = util::EncodingSolidity::packFunctionCall("delegate(address)", addr);
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
@@ -141,21 +152,21 @@ void wait_for_balances(const shared_nodes_t& nodes, const expected_balances_map_
   });
 }
 
-std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
-                                   blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr) {
+std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
+                                       blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr) {
   auto vote = vote_mgr->generateVote(block_hash, type, period, round, step);
   vote->calculateWeight(1, 1, 1);
   return vote;
 }
 
-std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
-                                   blk_hash_t block_hash) {
+std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
+                                       blk_hash_t block_hash) {
   VrfPbftMsg msg(type, period, round, step);
   vrf_wrapper::vrf_sk_t vrf_sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   VrfPbftSortition vrf_sortition(vrf_sk, msg);
-  auto vote = std::make_shared<Vote>(g_secret, vrf_sortition, block_hash);
+  auto vote = std::make_shared<PbftVote>(g_secret, vrf_sortition, block_hash);
   vote->calculateWeight(1, 1, 1);
   return vote;
 }
@@ -210,6 +221,9 @@ NodesTest::NodesTest() {
         taraxa::NodeConfig{"7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e9"
                            "20e14b57a259a09c41767dd50d1da27b627412a",
                            "127.0.0.1", 10003});
+    cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
+    cfg.validate();
+
     node_cfgs.emplace_back(cfg);
   }
   node_cfgs.front().node_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd");

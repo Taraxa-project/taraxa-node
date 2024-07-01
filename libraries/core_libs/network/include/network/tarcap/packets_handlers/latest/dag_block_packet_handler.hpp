@@ -17,10 +17,12 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                        const addr_t &node_addr, const std::string &logs_prefix = "");
+                        bool trxs_in_dag_packet, const addr_t &node_addr, const std::string &logs_prefix = "");
 
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
-  void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
+  void sendBlockWithTransactions(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
+  void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr,
+                          const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs = {});
   void onNewBlockVerified(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
 
   // Packet type that is processed by this handler
@@ -32,6 +34,7 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
 
  protected:
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
+  const bool kTrxsInDagPacket;
 };
 
 }  // namespace taraxa::network::tarcap

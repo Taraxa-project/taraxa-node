@@ -26,7 +26,7 @@ class ProposedBlocks {
    * @return true if block was successfully pushed, otherwise false
    */
   bool pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block,
-                             const std::shared_ptr<Vote>& propose_vote);
+                             const std::shared_ptr<PbftVote>& propose_vote);
 
   /**
    * @brief Push proposed PBFT block into the proposed blocks

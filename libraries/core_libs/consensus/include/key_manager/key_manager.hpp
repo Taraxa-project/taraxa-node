@@ -7,6 +7,7 @@
 #include "final_chain/final_chain.hpp"
 
 namespace taraxa {
+
 class KeyManager {
  public:
   KeyManager(std::shared_ptr<FinalChain> final_chain);
@@ -15,12 +16,13 @@ class KeyManager {
   KeyManager &operator=(const KeyManager &) = delete;
   KeyManager &operator=(KeyManager &&) = delete;
 
-  std::shared_ptr<vrf_wrapper::vrf_pk_t> get(EthBlockNumber blk_n, const addr_t &addr);
+  std::shared_ptr<vrf_wrapper::vrf_pk_t> getVrfKey(EthBlockNumber blk_n, const addr_t &addr);
 
  private:
-  std::shared_mutex mutex_;
-  std::unordered_map<addr_t, std::shared_ptr<vrf_wrapper::vrf_pk_t>> key_map_;
+  std::shared_mutex vrf_keys_mutex_;
+  std::unordered_map<addr_t, std::shared_ptr<vrf_wrapper::vrf_pk_t>> vrf_keys_;
 
   std::shared_ptr<FinalChain> final_chain_;
 };
+
 }  // namespace taraxa

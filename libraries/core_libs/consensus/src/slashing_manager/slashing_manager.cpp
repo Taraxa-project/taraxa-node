@@ -1,7 +1,7 @@
 #include "slashing_manager/slashing_manager.hpp"
 
+#include "common/encoding_solidity.hpp"
 #include "common/types.hpp"
-#include "final_chain/contract_interface.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
@@ -19,8 +19,8 @@ SlashingManager::SlashingManager(std::shared_ptr<FinalChain> final_chain,
       kAddress(toAddress(node_sk)),
       kPrivateKey(std::move(node_sk)) {}
 
-bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a,
-                                              const std::shared_ptr<Vote> &vote_b) {
+bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<PbftVote> &vote_a,
+                                              const std::shared_ptr<PbftVote> &vote_b) {
   if (!kConfig.report_malicious_behaviour) {
     return false;
   }
@@ -57,8 +57,8 @@ bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_
     return false;
   }
 
-  auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
-                                                                vote_b->rlp());
+  auto input =
+      util::EncodingSolidity::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(), vote_b->rlp());
   const auto trx = std::make_shared<Transaction>(account.nonce, 0, gas_pricer_->bid(), 100000, std::move(input),
                                                  kPrivateKey, kContractAddress, kConfig.genesis.chain_id);
 

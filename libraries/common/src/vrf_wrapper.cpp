@@ -54,7 +54,7 @@ dev::bytes VrfSortitionBase::makeVrfInput(taraxa::level_t level, const dev::h256
 
 bool VrfSortitionBase::verify(const vrf_pk_t &pk, const bytes &msg, uint16_t vote_count, bool strict) const {
   auto res = vrf_wrapper::getVrfOutput(pk, proof_, msg, strict);
-  if (res != std::nullopt) {
+  if (res) {
     output_ = res.value();
     thresholdFromOutput(vote_count);
     return true;
