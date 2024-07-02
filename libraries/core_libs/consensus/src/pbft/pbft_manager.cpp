@@ -1053,7 +1053,7 @@ void PbftManager::secondFinish_() {
 
   // Lambda function for next voting 2t+1 next voted null block from previous round
   auto next_vote_null_block = [this, period = period, round = round]() {
-    if (already_next_voted_null_block_hash_ || round < 2) {
+    if (cert_voted_block_for_round_.has_value() || already_next_voted_null_block_hash_ || round < 2) {
       return;
     }
 
