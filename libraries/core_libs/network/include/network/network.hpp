@@ -77,6 +77,13 @@ class Network {
    */
   void requestPillarBlockVotesBundle(PbftPeriod period, const blk_hash_t &pillar_block_hash);
 
+  /**
+   * @brief Get packets queue status
+   *
+   * @return true if packets queue is over the limit
+   */
+  bool packetQueueOverLimit() const;
+
   // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;

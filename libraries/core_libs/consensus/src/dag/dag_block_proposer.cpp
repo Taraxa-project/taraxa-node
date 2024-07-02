@@ -51,6 +51,11 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
+  // Do not propose dag blocks if number of non finalized transactiosn is over the limit
+  if (trx_mgr_->getNonfinalizedTrxSize() > kMaxNonFinalizedTransactions) {
+    return false;
+  }
+
   auto frontier = dag_mgr_->getDagFrontier();
   LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
@@ -103,7 +108,14 @@ bool DagBlockProposer::proposeDagBlock() {
     }
   }
 
-  auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
+  auto dag_gas_limit = dag_mgr_->getDagConfig().gas_limit;
+  auto pbft_gas_limit = kPbftGasLimit;
+  if (kHardforks.ficus_hf.isFicusHardfork(*proposal_period)) {
+    dag_gas_limit = kHardforks.ficus_hf.dag_gas_limit;
+    pbft_gas_limit = kHardforks.ficus_hf.pbft_gas_limit;
+  }
+
+  auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_gas_limit);
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
     num_tries_ = 0;
@@ -151,8 +163,8 @@ bool DagBlockProposer::proposeDagBlock() {
   }
   LOG(log_dg_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
 
-  auto dag_block =
-      createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
+  auto dag_block = createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations),
+                                  std::move(vdf), pbft_gas_limit);
 
   if (dag_mgr_->addDagBlock(std::move(dag_block), std::move(transactions), true).first) {
     LOG(log_nf_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
@@ -183,12 +195,14 @@ void DagBlockProposer::start() {
     while (!stopped_) {
       // Blocks are not proposed if we are behind the network and still syncing
       auto syncing = false;
+      auto packets_over_the_limit = false;
       if (auto net = network_.lock()) {
         syncing = net->pbft_syncing();
+        packets_over_the_limit = net->packetQueueOverLimit();
       }
-      // Only sleep if block was not proposed or if we are syncing, if block is proposed try to propose another block
-      // immediately
-      if (syncing || !proposeDagBlock()) {
+      // Only sleep if block was not proposed or if we are syncing or if packets queue is over the limit, if block is
+      // proposed try to propose another block immediately
+      if (syncing || packets_over_the_limit || !proposeDagBlock()) {
         thisThreadSleepForMilliSeconds(min_proposal_delay);
       }
     }
@@ -316,7 +330,8 @@ vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips, u
 }
 
 DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
-                                          std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const {
+                                          std::vector<uint64_t>&& estimations, VdfSortition&& vdf,
+                                          uint64_t pbft_gas_limit) const {
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   vec_trx_t trx_hashes;
@@ -327,8 +342,8 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
   const uint64_t block_estimation = std::accumulate(estimations.begin(), estimations.end(), 0);
 
   // If number of tips is over the limit filter by producer and level
-  if (frontier.tips.size() > kDagBlockMaxTips || (frontier.tips.size() + 1) > kPbftGasLimit / kDagGasLimit) {
-    frontier.tips = selectDagBlockTips(frontier.tips, kPbftGasLimit - block_estimation);
+  if (frontier.tips.size() > kDagBlockMaxTips || (frontier.tips.size() + 1) > pbft_gas_limit / kDagGasLimit) {
+    frontier.tips = selectDagBlockTips(frontier.tips, pbft_gas_limit - block_estimation);
   }
 
   DagBlock block(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), block_estimation,

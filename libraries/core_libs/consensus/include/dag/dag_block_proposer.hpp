@@ -93,9 +93,10 @@ class DagBlockProposer {
    * @param trxs transactions to be included in the block
    * @param estimations transactions gas estimation
    * @param vdf vdf with correct difficulty calculation
+   * @param pbft_gas_limit pbft_gas_limit
    */
   DagBlock createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
-                          std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const;
+                          std::vector<uint64_t>&& estimations, VdfSortition&& vdf, uint64_t pbft_gas_limit) const;
 
   /**
    * @brief Gets transactions to include in the block - sharding not supported yet

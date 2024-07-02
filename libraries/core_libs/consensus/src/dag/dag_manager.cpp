@@ -705,14 +705,24 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
       return {VerifyBlockReturnType::IncorrectTransactionsEstimation, {}};
     }
 
-    if (total_block_weight > getDagConfig().gas_limit) {
-      LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " gas_limit: " << getDagConfig().gas_limit
+    auto gas_limit = getDagConfig().gas_limit;
+    if (kHardforks.ficus_hf.isFicusHardfork(*propose_period)) {
+      gas_limit = kHardforks.ficus_hf.dag_gas_limit;
+    }
+
+    if (total_block_weight > gas_limit) {
+      LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " gas_limit: " << gas_limit
                    << " total_block_weight " << total_block_weight << " current period "
                    << final_chain_->last_block_number();
       return {VerifyBlockReturnType::BlockTooBig, {}};
     }
 
-    if ((blk.getTips().size() + 1) > kPbftGasLimit / getDagConfig().gas_limit) {
+    auto pbft_gas_limit = kPbftGasLimit;
+    if (kHardforks.ficus_hf.isFicusHardfork(*propose_period)) {
+      pbft_gas_limit = kHardforks.ficus_hf.pbft_gas_limit;
+    }
+
+    if ((blk.getTips().size() + 1) > pbft_gas_limit / gas_limit) {
       for (const auto &t : blk.getTips()) {
         const auto tip_blk = getDagBlock(t);
         if (tip_blk == nullptr) {
@@ -721,8 +731,8 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
         }
         block_gas_estimation += tip_blk->getGasEstimation();
       }
-      if (block_gas_estimation > kPbftGasLimit) {
-        LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " with tips has limit: " << kPbftGasLimit
+      if (block_gas_estimation > pbft_gas_limit) {
+        LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " with tips has limit: " << pbft_gas_limit
                      << " block_gas_estimation " << block_gas_estimation << " current period "
                      << final_chain_->last_block_number();
         return {VerifyBlockReturnType::BlockTooBig, {}};
