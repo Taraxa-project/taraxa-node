@@ -45,6 +45,73 @@
   "logging": {
     "configurations": [
       {
+        "channels" :
+        [
+          {
+            "name" : "SUMMARY",
+            "verbosity" : "INFO"
+          },
+          {
+            "name" : "PILLAR_CHAIN",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "PILLAR_VOTE_PH",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "PILLAR_VOTES_BUNDLE_PH",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "PILLAR_CHAIN_SYNC_PH",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "GET_PILLAR_VOTES_BUNDLE_PH",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "GET_PILLAR_CHAIN_SYNC_PH",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "PBFT_MGR",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "PBFT_CHAIN",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "VOTE_MGR",
+            "verbosity" : "DEBUG"
+          },
+          {
+            "name" : "EXECUTOR",
+            "verbosity" : "DEBUG"
+          }
+        ],
+        "name" : "pillar",
+        "on" : true,
+        "outputs" :
+        [
+          {
+            "format" : "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "type" : "console"
+          },
+          {
+            "file_name" : "Taraxa_N1_%m%d%Y_%H%M%S_%5N.log",
+            "format" : "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size" : 1000000000,
+            "rotation_size" : 10000000,
+            "time_based_rotation" : "0,0,0",
+            "type" : "file"
+          }
+        ],
+        "verbosity" : "ERROR"
+      },
+      {
         "name": "standard",
         "on": true,
         "verbosity": "ERROR",
