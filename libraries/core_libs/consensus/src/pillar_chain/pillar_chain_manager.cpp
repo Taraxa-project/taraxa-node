@@ -24,6 +24,8 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
       current_pillar_block_vote_counts_{},
       pillar_votes_{},
       mutex_{} {
+  LOG_OBJECTS_CREATE("PILLAR_CHAIN");
+
   if (const auto vote = db_->getOwnPillarBlockVote(); vote) {
     addVerifiedPillarVote(vote);
   }
@@ -39,8 +41,6 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
       addVerifiedPillarVote(vote);
     }
   }
-
-  LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
 
 std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
