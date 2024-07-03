@@ -28,8 +28,9 @@ void PillarVotePacketHandler::process(const threadpool::PacketData &packet_data,
     throw MaliciousPeerException(err_msg.str());
   }
 
-  processPillarVote(pillar_vote, peer);
-  onNewPillarVote(pillar_vote);
+  if (processPillarVote(pillar_vote, peer)) {
+    onNewPillarVote(pillar_vote);
+  }
 }
 
 void PillarVotePacketHandler::onNewPillarVote(const std::shared_ptr<PillarVote> &vote, bool rebroadcast) {
