@@ -53,7 +53,8 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
       peer->markPillarVoteAsKnown(vote->getHash());
     }
 
-    LOG(log_nf_) << "Pillar votes bundle sent to " << peer->getId();
+    LOG(log_nf_) << "Pillar votes bundle for period " << period << " ans hash " << pillar_block_hash << " sent to "
+                 << peer->getId();
   }
 }
 

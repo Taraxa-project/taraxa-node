@@ -598,7 +598,7 @@ class PbftManager {
   bool already_next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
-  bool already_placed_pillar_vote_ = false;
+  bool last_placed_pillar_vote_period_ = 0;
 
   // Used to avoid cyclic logging in voting steps that are called repeatedly
   bool printSecondFinishStepInfo_ = true;

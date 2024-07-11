@@ -117,8 +117,9 @@ void PillarChainManager::saveNewPillarBlock(std::shared_ptr<PillarBlock> pillar_
   current_pillar_block_vote_counts_ = std::move(data.vote_counts);
 }
 
-bool PillarChainManager::genAndPlacePillarVote(PbftPeriod period, const blk_hash_t& pillar_block_hash,
-                                               const secret_t& node_sk, bool broadcast_vote) {
+std::shared_ptr<PillarVote> PillarChainManager::genAndPlacePillarVote(PbftPeriod period,
+                                                                      const blk_hash_t& pillar_block_hash,
+                                                                      const secret_t& node_sk, bool broadcast_vote) {
   const auto vote = std::make_shared<PillarVote>(node_sk, period, pillar_block_hash);
 
   // Broadcasts pillar vote
@@ -126,7 +127,7 @@ bool PillarChainManager::genAndPlacePillarVote(PbftPeriod period, const blk_hash
   if (!vote_weight) {
     LOG(log_er_) << "Unable to gen pillar vote. Vote was not added to the verified votes. Vote hash "
                  << vote->getHash();
-    return false;
+    return nullptr;
   }
   db_->saveOwnPillarBlockVote(vote);
 
@@ -139,7 +140,7 @@ bool PillarChainManager::genAndPlacePillarVote(PbftPeriod period, const blk_hash
                  << vote->getPeriod() << ", weight " << vote_weight;
   }
 
-  return true;
+  return vote;
 }
 
 bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) {
@@ -153,7 +154,8 @@ bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>&
     return false;
   }
 
-  auto above_threshold_votes = pillar_votes_.getVerifiedVotes(pillar_block->getPeriod(), pillar_block->getHash(), true);
+  auto above_threshold_votes =
+      pillar_votes_.getVerifiedVotes(pillar_block->getPeriod() + 1, pillar_block->getHash(), true);
   if (above_threshold_votes.empty()) {
     LOG(log_tr_) << "Unable to finalize pillar block " << pillar_block->getHash()
                  << ", period: " << pillar_block->getPeriod() << ". Not enough votes";
@@ -171,7 +173,7 @@ bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>&
     last_finalized_pillar_block_ = pillar_block;
 
     // Erase votes that are no longer needed
-    pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod());
+    pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod() + 1);
   }
 
   pillar_block_finalized_emitter_.emit(pillar_block_data);
@@ -207,19 +209,19 @@ bool PillarChainManager::isRelevantPillarVote(const std::shared_ptr<PillarVote> 
   // Empty current_pillar_block_ means there was no pillar block created yet at all
   if (!current_pillar_block) [[unlikely]] {
     // It could happen that other nodes created pillar block and voted for it before this node
-    if (vote->getPeriod() != kFicusHfConfig.firstPillarBlockPeriod()) {
+    if (vote->getPeriod() != kFicusHfConfig.firstPillarBlockPeriod() + 1) {
       LOG(log_nf_) << "Received vote's period " << vote_period << ", no pillar block created yet. Accepting votes with "
-                   << kFicusHfConfig.firstPillarBlockPeriod() << " period";
+                   << kFicusHfConfig.firstPillarBlockPeriod() + 1 << " period";
       return false;
     }
-  } else if (vote_period == current_pillar_block->getPeriod()) [[likely]] {
+  } else if (vote_period == current_pillar_block->getPeriod() + 1) [[likely]] {
     if (vote->getBlockHash() != current_pillar_block->getHash()) {
       LOG(log_nf_) << "Received vote's block hash " << vote->getBlockHash() << " != current pillar block hash "
                    << current_pillar_block->getHash();
       return false;
     }
-  } else if (vote_period !=
-             current_pillar_block->getPeriod() + kFicusHfConfig.pillar_blocks_interval /* +1 future pillar block */) {
+  } else if (vote_period != current_pillar_block->getPeriod() + kFicusHfConfig.pillar_blocks_interval +
+                                1 /* future pillar block votes */) {
     LOG(log_nf_) << "Received vote's period " << vote_period << ", current pillar block period "
                  << current_pillar_block->getPeriod();
     return false;
@@ -245,9 +247,7 @@ bool PillarChainManager::validatePillarVote(const std::shared_ptr<PillarVote> vo
 
   // Check if signer is eligible validator
   try {
-    // Note: period is used instead of period - 1 because pillar votes are created only after pbft block with <period>
-    // is finalized
-    if (!final_chain_->dpos_is_eligible(period, validator)) {
+    if (!final_chain_->dpos_is_eligible(period - 1, validator)) {
       LOG(log_er_) << "Validator is not eligible. Pillar vote " << vote->getHash();
       return false;
     }
@@ -268,9 +268,7 @@ bool PillarChainManager::validatePillarVote(const std::shared_ptr<PillarVote> vo
 uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote) {
   uint64_t validator_vote_count = 0;
   try {
-    // Note: period is used instead of period - 1 because pillar votes are created only after pbft block with <period>
-    // is finalized
-    validator_vote_count = final_chain_->dpos_eligible_vote_count(vote->getPeriod(), vote->getVoterAddr());
+    validator_vote_count = final_chain_->dpos_eligible_vote_count(vote->getPeriod() - 1, vote->getVoterAddr());
   } catch (state_api::ErrFutureBlock& e) {
     LOG(log_er_) << "Pillar vote " << vote->getHash() << " with period " << vote->getPeriod()
                  << " is too far ahead of DPOS. " << e.what();
@@ -284,9 +282,7 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
   }
 
   if (!pillar_votes_.periodDataInitialized(vote->getPeriod())) {
-    // Note: period is used instead of period - 1 because pillar votes are created only after pbft block with <period>
-    // is finalized
-    const auto threshold = getPillarConsensusThreshold(vote->getPeriod());
+    const auto threshold = getPillarConsensusThreshold(vote->getPeriod() - 1);
     if (!threshold) {
       LOG(log_er_) << "Unable to get pillar consensus threshold for period " << vote->getPeriod();
       return 0;

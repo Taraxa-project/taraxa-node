@@ -307,7 +307,6 @@ bool PbftManager::advancePeriod() {
   resetPbftConsensus(1 /* round */);
   broadcast_reward_votes_counter_ = 1;
   rebroadcast_reward_votes_counter_ = 1;
-  already_placed_pillar_vote_ = false;
   current_period_start_datetime_ = std::chrono::system_clock::now();
 
   const auto new_period = getPbftPeriod();
@@ -737,6 +736,30 @@ bool PbftManager::placeVote(const std::shared_ptr<PbftVote> &vote, std::string_v
   LOG(log_nf_) << "Placed " << log_vote_id << " " << vote->getHash() << " for block " << vote->getBlockHash()
                << ", vote weight " << *vote->getWeight() << ", period " << period << ", round " << vote->getRound()
                << ", step " << vote->getStep();
+
+  // In case it is pbft with pillar block period and we have not voted yet, place a pillar vote (can be placed during
+  // any pbft step)
+  if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(period) &&
+      last_placed_pillar_vote_period_ < period) {
+    std::optional<blk_hash_t> pillar_block_hash;
+    if (voted_block) {
+      // No need to check presence of extra data and pillar block hash - this was already validated in validatePbftBlock
+      pillar_block_hash = voted_block->getExtraData()->getPillarBlockHash();
+    } else {
+      const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+      // Check if the latest pillar block was created
+      if (current_pillar_block && current_pillar_block->getPeriod() == period - 1) {
+        pillar_block_hash = current_pillar_block->getHash();
+      }
+    }
+
+    if (pillar_block_hash.has_value()) {
+      const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(period, *pillar_block_hash, node_sk_, true);
+      if (pillar_vote) {
+        last_placed_pillar_vote_period_ = pillar_vote->getPeriod();
+      }
+    }
+  }
 
   return true;
 }
@@ -1180,7 +1203,7 @@ PbftManager::proposePbftBlock() {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
-  // Creates pillar block's extra data
+  // Creates pbft block's extra data
   const auto extra_data = createPbftBlockExtraData(current_pbft_period);
   if (!extra_data.has_value()) {
     LOG(log_er_) << "Unable to propose pbft block due to wrong pillar block, pbft period: " << current_pbft_period;
@@ -1682,7 +1705,13 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
     // already finalized
     if (final_chain_->dpos_is_eligible(period, node_addr_)) {
       if (pillar_block) {
-        pillar_chain_mgr_->genAndPlacePillarVote(period, pillar_block->getHash(), node_sk_, periodDataQueueEmpty());
+        // Pillar votes are created in the next period (thus period + 1), this is optimization to create & broadcast it
+        // a bit faster
+        const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(period + 1, pillar_block->getHash(), node_sk_,
+                                                                          periodDataQueueEmpty());
+        if (pillar_vote) {
+          last_placed_pillar_vote_period_ = pillar_vote->getPeriod();
+        }
       } else {
         LOG(log_er_) << "Unable to vote for pillar block with period " << period << ". Block was not created";
       }
@@ -1713,7 +1742,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
       LOG(log_er_) << "Cannot push PBFT block " << period_data.pbft_blk->getBlockHash() << ", period " << pbft_period
                    << ". Not enough pillar votes for pillar block " << *pillar_block_hash << ". Request it";
       if (auto net = network_.lock()) {
-        net->requestPillarBlockVotesBundle(pbft_period - 1, *pillar_block_hash);
+        net->requestPillarBlockVotesBundle(pbft_period, *pillar_block_hash);
       }
 
       return false;
@@ -2015,12 +2044,12 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
   }
 
   const auto &pbft_block_hash = period_data.pbft_blk->getBlockHash();
-  const auto required_votes_period = period_data.pbft_blk->getPeriod() - 1;
+  const auto required_votes_period = period_data.pbft_blk->getPeriod();
 
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
-  if (current_pillar_block->getPeriod() != required_votes_period) {
+  if (current_pillar_block->getPeriod() + 1 != required_votes_period) {
     LOG(log_er_) << "Sync pillar votes required period " << required_votes_period << " != "
-                 << " current pillar block period " << current_pillar_block->getPeriod();
+                 << " current pillar block period " << current_pillar_block->getPeriod() << " + 1";
     return false;
   }
 

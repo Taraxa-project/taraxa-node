@@ -57,10 +57,10 @@ class PillarChainManager {
    * @param pillar_block_hash
    * @param node_sk
    * @param broadcast_vote
-   * @return true if vote placed, otherwise false
+   * @return vote if it was created, otherwise nullptr
    */
-  bool genAndPlacePillarVote(PbftPeriod period, const blk_hash_t& pillar_block_hash, const secret_t& node_sk,
-                             bool broadcast_vote);
+  std::shared_ptr<PillarVote> genAndPlacePillarVote(PbftPeriod period, const blk_hash_t& pillar_block_hash,
+                                                    const secret_t& node_sk, bool broadcast_vote);
 
   /**
    * @brief Set network as a weak pointer
