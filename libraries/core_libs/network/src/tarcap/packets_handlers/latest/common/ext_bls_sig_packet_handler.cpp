@@ -14,7 +14,8 @@ ExtPillarVotePacketHandler::ExtPillarVotePacketHandler(
 bool ExtPillarVotePacketHandler::processPillarVote(const std::shared_ptr<PillarVote> &vote,
                                                    const std::shared_ptr<TaraxaPeer> &peer) {
   if (!pillar_chain_manager_->isRelevantPillarVote(vote)) {
-    LOG(log_dg_) << "Drop irrelevant pillar vote " << vote->getHash() << " from peer " << peer->getId();
+    LOG(log_dg_) << "Drop irrelevant pillar vote " << vote->getHash() << ", period " << vote->getPeriod()
+                 << " from peer " << peer->getId();
     return false;
   }
 

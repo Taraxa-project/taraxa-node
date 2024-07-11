@@ -1204,10 +1204,14 @@ PbftManager::proposePbftBlock() {
   }
 
   // Creates pbft block's extra data
-  const auto extra_data = createPbftBlockExtraData(current_pbft_period);
-  if (!extra_data.has_value()) {
-    LOG(log_er_) << "Unable to propose pbft block due to wrong pillar block, pbft period: " << current_pbft_period;
-    return {};
+  std::optional<PbftBlockExtraData> extra_data;
+  if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(current_pbft_period)) {
+    extra_data = createPbftBlockExtraData(current_pbft_period);
+    if (!extra_data.has_value()) {
+      LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
+                   << ". Empty extra data";
+      return {};
+    }
   }
 
   auto ghost = dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash);
@@ -1301,17 +1305,12 @@ PbftManager::proposePbftBlock() {
 }
 
 std::optional<PbftBlockExtraData> PbftManager::createPbftBlockExtraData(PbftPeriod pbft_period) const {
-  if (!kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(pbft_period)) {
-    return {};
-  }
-
   std::optional<blk_hash_t> pillar_block_hash;
   if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(pbft_period)) {
     // Anchor pillar block hash into the pbft block
     const auto pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
     if (!pillar_block) {
       LOG(log_er_) << "Missing pillar block, pbft period " << pbft_period;
-      assert(false);
       return {};
     }
 

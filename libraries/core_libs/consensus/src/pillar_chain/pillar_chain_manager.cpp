@@ -133,8 +133,8 @@ std::shared_ptr<PillarVote> PillarChainManager::genAndPlacePillarVote(PbftPeriod
 
   if (auto net = network_.lock(); net && broadcast_vote) {
     net->gossipPillarBlockVote(vote);
-    LOG(log_nf_) << "Created & broadcast pillar vote " << vote->getHash() << " for block " << vote->getBlockHash()
-                 << ", period " << vote->getPeriod() << ", weight " << vote_weight;
+    LOG(log_nf_) << "Placed pillar vote " << vote->getHash() << " for block " << vote->getBlockHash() << ", period "
+                 << vote->getPeriod() << ", weight " << vote_weight;
   } else {
     LOG(log_nf_) << "Created pillar vote " << vote->getHash() << " for block " << vote->getBlockHash() << ", period "
                  << vote->getPeriod() << ", weight " << vote_weight;
@@ -291,11 +291,13 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
   }
 
   if (!pillar_votes_.addVerifiedVote(vote, validator_vote_count)) {
-    LOG(log_er_) << "Non-unique pillar vote " << vote->getHash() << ", validator " << vote->getVoterAddr();
+    LOG(log_er_) << "Non-unique pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << ", validator "
+                 << vote->getVoterAddr();
     return 0;
   }
 
-  LOG(log_nf_) << "Added pillar vote " << vote->getHash();
+  LOG(log_nf_) << "Added pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << ", pillar block hash "
+               << vote->getBlockHash();
 
   if (const auto current_pillar_block = getCurrentPillarBlock();
       current_pillar_block && vote->getBlockHash() == current_pillar_block->getHash()) {

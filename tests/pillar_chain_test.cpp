@@ -241,8 +241,10 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
             pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
 
   // Trigger pillar votes syncing for the latest unfinalized pillar block
-  node2->getNetwork()->requestPillarBlockVotesBundle(node2_current_pillar_block_data->getPeriod() + 1, node2_current_pillar_block_data->getHash());
-  // After pillar votes syncing, node 2 should not have already finalized pillar block with period pillar_blocks_count * pillar_blocks_interval
+  node2->getNetwork()->requestPillarBlockVotesBundle(node2_current_pillar_block_data->getPeriod() + 1,
+                                                     node2_current_pillar_block_data->getHash());
+  // After pillar votes syncing, node 2 should not have already finalized pillar block with period pillar_blocks_count *
+  // pillar_blocks_interval
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node2->getDB()->getLatestPillarBlockData()->block_->getPeriod(),
                    pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval)
