@@ -40,14 +40,6 @@ class PillarVotes {
   bool isUniqueVote(const std::shared_ptr<PillarVote> vote) const;
 
   /**
-   * @brief Checks if there above threshold votes for specified period
-   *
-   * @param period
-   * @return
-   */
-  bool hasAboveThresholdVotes(PbftPeriod period, const blk_hash_t& block_hash) const;
-
-  /**
    * @brief Checks if specified period data have been already initialized
    *
    * @param period

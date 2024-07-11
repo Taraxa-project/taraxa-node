@@ -38,27 +38,6 @@ bool PillarVotes::isUniqueVote(const std::shared_ptr<PillarVote> vote) const {
   return false;
 }
 
-bool PillarVotes::hasAboveThresholdVotes(PbftPeriod period, const blk_hash_t& block_hash) const {
-  std::shared_lock<std::shared_mutex> lock(mutex_);
-
-  const auto found_period_votes = votes_.find(period);
-  if (found_period_votes == votes_.end()) [[unlikely]] {
-    return false;
-  }
-
-  const auto found_pillar_block_votes = found_period_votes->second.pillar_block_votes.find(block_hash);
-  if (found_pillar_block_votes == found_period_votes->second.pillar_block_votes.end()) [[unlikely]] {
-    return false;
-  }
-
-  if (found_pillar_block_votes->second.weight < found_period_votes->second.threshold) {
-    return false;
-  }
-
-  // There is > threshold votes
-  return true;
-}
-
 std::vector<std::shared_ptr<PillarVote>> PillarVotes::getVerifiedVotes(PbftPeriod period,
                                                                        const blk_hash_t& pillar_block_hash,
                                                                        bool above_threshold) const {

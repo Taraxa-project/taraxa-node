@@ -11,6 +11,7 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
 #include "dag/dag_block_proposer.hpp"
+#include "final_chain/final_chain_impl.hpp"
 #include "graphql/http_processor.hpp"
 #include "graphql/ws_server.hpp"
 #include "key_manager/key_manager.hpp"
@@ -112,7 +113,7 @@ void FullNode::init() {
   }
 
   gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis.gas_price, conf_.is_light_node, db_);
-  final_chain_ = NewFinalChain(db_, conf_, node_addr);
+  final_chain_ = std::make_shared<final_chain::FinalChainImpl>(db_, conf_, node_addr);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
@@ -138,7 +139,6 @@ void FullNode::init() {
                                             pbft_chain_, final_chain_, key_manager_, slashing_manager);
   pillar_chain_mgr_ = std::make_shared<pillar_chain::PillarChainManager>(conf_.genesis.state.hardforks.ficus_hf, db_,
                                                                          final_chain_, key_manager_, node_addr);
-
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.genesis, node_addr, db_, pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_,
                                             final_chain_, pillar_chain_mgr_, kp_.secret());
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(
@@ -323,43 +323,6 @@ void FullNode::start() {
         [trx_manager = as_weak(trx_mgr_)](auto const &res) {
           if (auto trx_mgr = trx_manager.lock()) {
             trx_mgr->blockFinalized(res->final_chain_blk->number);
-          }
-        },
-        subscription_pool_);
-
-    // Pillar blocks creation
-    final_chain_->block_finalized_.subscribe(
-        [ficus_hf_config = conf_.genesis.state.hardforks.ficus_hf, pillar_chain_weak = as_weak(pillar_chain_mgr_),
-         network_weak = as_weak(network_), node_secret = kp_.secret()](const auto &res) {
-          const auto block_num = res->final_chain_blk->number;
-          if (!ficus_hf_config.isFicusHardfork(block_num)) {
-            return;
-          }
-
-          auto pillar_chain = pillar_chain_weak.lock();
-          if (!pillar_chain) {
-            return;
-          }
-
-          auto is_pbft_syncing = [network_weak]() -> bool {
-            auto network = network_weak.lock();
-            if (!network) {
-              return false;
-            }
-
-            return network->pbft_syncing();
-          };
-
-          if (ficus_hf_config.isPillarBlockPeriod(block_num)) {
-            const auto pillar_block = pillar_chain->createPillarBlock(res);
-            if (pillar_block) {
-              pillar_chain->genAndPlacePillarVote(pillar_block->getHash(), node_secret, is_pbft_syncing());
-            }
-          } else if (block_num > ficus_hf_config.firstPillarBlockPeriod() &&
-                     block_num % ficus_hf_config.pillar_chain_sync_interval == 0) {
-            if (!is_pbft_syncing()) {
-              pillar_chain->checkPillarChainSynced(block_num);
-            }
           }
         },
         subscription_pool_);

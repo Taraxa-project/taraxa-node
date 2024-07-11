@@ -89,8 +89,6 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
   }
 
   auto nodes = launch_nodes(node_cfgs);
@@ -101,8 +99,7 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
       pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + 1)
     }
   });
 
@@ -125,8 +122,6 @@ TEST_F(PillarChainTest, votes_count_changes) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
   }
 
   std::vector<dev::s256> validators_vote_counts;
@@ -144,8 +139,7 @@ TEST_F(PillarChainTest, votes_count_changes) {
   const auto first_pillar_block_period = node_cfgs[0].genesis.state.hardforks.ficus_hf.firstPillarBlockPeriod();
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     first_pillar_block_period + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), first_pillar_block_period + 1)
     }
   });
 
@@ -186,8 +180,7 @@ TEST_F(PillarChainTest, votes_count_changes) {
       node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     new_pillar_block_period + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), new_pillar_block_period + 1)
     }
   });
 
@@ -214,8 +207,6 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
   }
 
   // Start first node
@@ -224,9 +215,8 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   // Wait until node1 creates at least 3 pillar blocks
   const auto pillar_blocks_count = 3;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_GE(ctx, node1->getPbftChain()->getPbftChainSize(),
-                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
-                       node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+    WAIT_EXPECT_GE(ctx, node1->getFinalChain()->last_block_number(),
+                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval + 1)
   });
   node1->getPbftManager()->stop();
 
@@ -234,19 +224,21 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   auto node2 = launch_nodes({node_cfgs[1]})[0];
   // Wait until node2 syncs pbft chain with node1
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getPbftChain()->getPbftChainSize(), node1->getPbftChain()->getPbftChainSize())
+    WAIT_EXPECT_EQ(ctx, node2->getFinalChain()->last_block_number(), node1->getFinalChain()->last_block_number())
   });
 
   // Pbft/pillar chain syncing works in a way that pbft block with period N contains pillar votes for pillar block with
   // period N-ficus_hf.pillar_blocks_interval.
   const auto node2_latest_finalized_pillar_block_data = node2->getDB()->getLatestPillarBlockData();
   ASSERT_TRUE(node2_latest_finalized_pillar_block_data.has_value());
+  //  ASSERT_EQ(node2_latest_finalized_pillar_block_data->block_->getPeriod(),
+  //            (pillar_blocks_count - 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
   ASSERT_EQ(node2_latest_finalized_pillar_block_data->block_->getPeriod(),
-            (pillar_blocks_count - 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
+            pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
 
   // Trigger pillar votes syncing
-  node2->getPillarChainManager()->checkPillarChainSynced(
-      pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
+  //  node2->getPillarChainManager()->checkPillarChainSynced(
+  //      pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
   // Wait until node2 gets pillar votes and finalized pillar block #3
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node2->getDB()->getLatestPillarBlockData()->block_->getPeriod(),
@@ -472,8 +464,6 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
     node_cfg.genesis.state.hardforks.ficus_hf.bridge_contract_address =
         dev::Address("0xc5b7d26bec6acdc3a0d33fe4c70be346a47a3a33");
   }
@@ -500,8 +490,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
       pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + 1)
     }
   });
 

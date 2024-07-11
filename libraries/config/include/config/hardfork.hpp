@@ -41,11 +41,7 @@ void dec_json(const Json::Value& json, AspenHardfork& obj);
 
 struct FicusHardforkConfig {
   uint64_t block_num{0};
-  uint64_t pillar_blocks_interval{100};     // [periods] how often is the new pillar block created
-  uint64_t pillar_chain_sync_interval{25};  // [periods] how often is pillar chain checked if it is in sync (has all
-                                            // previous pillar blocks and 2t+1 signatures for latest pillar block)
-  uint64_t pbft_inclusion_delay{
-      6};  // [periods] how many periods after the pillar block is created it is included in pbft block
+  uint64_t pillar_blocks_interval{100};    // [periods] how often is the new pillar block created
   taraxa::addr_t bridge_contract_address;  // [address] of the bridge contract
 
   bool isFicusHardfork(taraxa::PbftPeriod period) const;

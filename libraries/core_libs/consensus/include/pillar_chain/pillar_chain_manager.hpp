@@ -44,31 +44,23 @@ class PillarChainManager {
   /**
    * @Process Creates new pillar block
    *
-   * @param block_data
+   * @param block_header
    * @return pillar block in case block was created, otherwise nullptr
    */
-  std::shared_ptr<PillarBlock> createPillarBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
+  std::shared_ptr<PillarBlock> createPillarBlock(const std::shared_ptr<const final_chain::BlockHeader>& block_header);
 
   /**
    * @brief Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and
    * valid
    *
+   * @param period
    * @param pillar_block_hash
    * @param node_sk
-   * @param is_pbft_syncing
+   * @param broadcast_vote
    * @return true if vote placed, otherwise false
    */
-  bool genAndPlacePillarVote(const blk_hash_t& pillar_block_hash, const secret_t& node_sk, bool is_pbft_syncing);
-
-  /**
-   * @brief Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is > threshold
-   * votes for latest pillar block. If not, request them
-   *
-   * @param block_num - current block number
-   *
-   * @return true if synced, otherwise false
-   */
-  bool checkPillarChainSynced(EthBlockNumber block_num) const;
+  bool genAndPlacePillarVote(PbftPeriod period, const blk_hash_t& pillar_block_hash, const secret_t& node_sk,
+                             bool broadcast_vote);
 
   /**
    * @brief Set network as a weak pointer
