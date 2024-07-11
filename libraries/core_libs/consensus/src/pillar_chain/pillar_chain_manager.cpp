@@ -284,7 +284,7 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
   if (!pillar_votes_.periodDataInitialized(vote->getPeriod())) {
     const auto threshold = getPillarConsensusThreshold(vote->getPeriod() - 1);
     if (!threshold) {
-      LOG(log_er_) << "Unable to get pillar consensus threshold for period " << vote->getPeriod();
+      LOG(log_er_) << "Unable to get pillar consensus threshold for period " << vote->getPeriod() - 1;
       return 0;
     }
     pillar_votes_.initializePeriodData(vote->getPeriod(), *threshold);

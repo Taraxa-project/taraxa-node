@@ -215,31 +215,34 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   // Wait until node1 creates at least 3 pillar blocks
   const auto pillar_blocks_count = 3;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_GE(ctx, node1->getFinalChain()->last_block_number(),
-                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval + 1)
+    WAIT_EXPECT_EQ(ctx, node1->getFinalChain()->last_block_number(),
+                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval)
   });
   node1->getPbftManager()->stop();
 
   // Start second node
   auto node2 = launch_nodes({node_cfgs[1]})[0];
   // Wait until node2 syncs pbft chain with node1
-  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+  ASSERT_HAPPENS({20s, 200ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node2->getFinalChain()->last_block_number(), node1->getFinalChain()->last_block_number())
   });
+  node2->getPbftManager()->stop();
 
-  // Pbft/pillar chain syncing works in a way that pbft block with period N contains pillar votes for pillar block with
-  // period N-ficus_hf.pillar_blocks_interval.
+  // Node 2 should not have yet finalized pillar block with period pillar_blocks_count * pillar_blocks_interval
   const auto node2_latest_finalized_pillar_block_data = node2->getDB()->getLatestPillarBlockData();
   ASSERT_TRUE(node2_latest_finalized_pillar_block_data.has_value());
-  //  ASSERT_EQ(node2_latest_finalized_pillar_block_data->block_->getPeriod(),
-  //            (pillar_blocks_count - 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
   ASSERT_EQ(node2_latest_finalized_pillar_block_data->block_->getPeriod(),
+            (pillar_blocks_count - 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
+
+  // Node 2 should have already created pillar block with period pillar_blocks_count * pillar_blocks_interval
+  const auto node2_current_pillar_block_data = node2->getPillarChainManager()->getCurrentPillarBlock();
+  ASSERT_TRUE(node2_current_pillar_block_data != nullptr);
+  ASSERT_EQ(node2_current_pillar_block_data->getPeriod(),
             pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
 
-  // Trigger pillar votes syncing
-  //  node2->getPillarChainManager()->checkPillarChainSynced(
-  //      pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
-  // Wait until node2 gets pillar votes and finalized pillar block #3
+  // Trigger pillar votes syncing for the latest unfinalized pillar block
+  node2->getNetwork()->requestPillarBlockVotesBundle(node2_current_pillar_block_data->getPeriod() + 1, node2_current_pillar_block_data->getHash());
+  // After pillar votes syncing, node 2 should not have already finalized pillar block with period pillar_blocks_count * pillar_blocks_interval
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node2->getDB()->getLatestPillarBlockData()->block_->getPeriod(),
                    pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval)
