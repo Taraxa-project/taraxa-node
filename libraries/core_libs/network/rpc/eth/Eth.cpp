@@ -457,6 +457,8 @@ class EthImpl : public Eth, EthParams {
     }
     if (!_json["data"].empty()) {
       ret.data = jsToBytes(_json["data"].asString(), OnFailed::Throw);
+    } else if (!_json["input"].empty()) {
+      ret.data = jsToBytes(_json["input"].asString(), OnFailed::Throw);
     }
     if (!_json["code"].empty()) {
       ret.data = jsToBytes(_json["code"].asString(), OnFailed::Throw);
