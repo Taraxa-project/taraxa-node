@@ -101,8 +101,9 @@ sudo apt-get install -y \
     autoconf \
     ccache \
     cmake \
-    clang-format-18 \
-    clang-tidy-18 \
+    clang-format-17 \
+    clang-tidy-17 \
+    llvm-17 \
     golang-go \
     python3-full \
     # this libs are required for arm build by go part. you can skip it for amd64 build
@@ -122,8 +123,8 @@ sudo apt install solc
 sudo python3 -m pip install conan==1.64.1
 
 # Setup clang as default compiler either in your IDE or by env. variables"
-export CC="clang-18"
-export CXX="clang++-18"
+export CC="clang-17"
+export CXX="clang++-17"
 </pre> <h2><a class="anchor" id="autotoc_md32"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
@@ -134,10 +135,14 @@ Compile</h2>
 <pre class="fragment"># Optional - one time action
 # Create clang profile
 # It is recommended to use clang because on other compilers you could face some errors
-conan profile new clang --detect
-
-# Copy custom settings
-cp ./CMakeModules/settings.yml ~/.conan/settings.yml
+conan profile new clang --detect \
+&amp;&amp; conan profile update settings.compiler=clang clang  \
+&amp;&amp; conan profile update settings.compiler.version=17 clang  \
+&amp;&amp; conan profile update settings.compiler.libcxx=libstdc++11 clang \
+&amp;&amp; conan profile update settings.build_type=RelWithDebInfo clang \
+&amp;&amp; conan profile update env.CC=clang-17 clang  \
+&amp;&amp; conan profile update env.CXX=clang++-17 clang  \
+&amp;&amp; conan install --build missing -pr=clang .
 
 # Compile project using cmake
 mkdir cmake-build
