@@ -1999,8 +1999,8 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
   if (current_pillar_block->getPeriod() != required_votes_period) {
-    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period
-                 << " != " << " current pillar block period " << current_pillar_block->getPeriod();
+    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period << " != "
+                 << " current pillar block period " << current_pillar_block->getPeriod();
     return false;
   }
 
