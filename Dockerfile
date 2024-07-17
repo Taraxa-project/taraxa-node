@@ -6,7 +6,7 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e48535ad4be12a as builder
 
 # deps versions
-ARG LLVM_VERSION=18
+ARG LLVM_VERSION=17
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -70,7 +70,6 @@ RUN ln -s /usr/bin/clang++-${LLVM_VERSION} /usr/bin/clang++
 # Install conan
 RUN apt-get remove -y python3-distro
 RUN pip3 install conan==1.64.1 --break-system-packages
-COPY CMakeModules/settings.yml /root/.conan/settings.yml
 
 # Install conan deps
 WORKDIR /opt/taraxa/
