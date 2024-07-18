@@ -221,7 +221,6 @@ NodesTest::NodesTest() {
         taraxa::NodeConfig{"7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e9"
                            "20e14b57a259a09c41767dd50d1da27b627412a",
                            "127.0.0.1", 10003});
-    cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     cfg.validate();
 
     node_cfgs.emplace_back(cfg);

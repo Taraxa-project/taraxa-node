@@ -74,6 +74,10 @@ void FicusHardforkConfig::validate(uint32_t delegation_delay) const {
     return;
   }
 
+  if (block_num < delegation_delay) {
+    throw taraxa::ConfigException("ficus_hf.block_num must be >= dpos.delegation_delay");
+  }
+
   if (pillar_blocks_interval <= 1) {
     throw taraxa::ConfigException("ficus_hf.pillar_blocks_interval must be > 1");
   }

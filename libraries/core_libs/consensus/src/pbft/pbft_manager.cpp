@@ -1682,39 +1682,11 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
     }
   }
 
-  const auto period = period_data.pbft_blk->getPeriod();
   auto result =
       final_chain_->finalize(std::move(period_data), std::move(finalized_dag_blk_hashes), std::move(anchor_block));
 
-  bool is_pillar_block_period = kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(period);
-  if (synchronous_processing || is_pillar_block_period) {
+  if (synchronous_processing) {
     result.wait();
-
-    if (!is_pillar_block_period) {
-      return;
-    }
-
-    // Create new pillar block
-    const auto finalization_data = result.get();
-    const auto pillar_block = pillar_chain_mgr_->createPillarBlock(finalization_data->final_chain_blk);
-
-    // Check if node is eligible to vote for pillar block
-    // Note: No need to catch ErrFutureBlock because pillar block is create only after pbft block with <period> is
-    // finalized Note: period is used instead of period -1 because at this moment, block with period <period> was
-    // already finalized
-    if (final_chain_->dpos_is_eligible(period, node_addr_)) {
-      if (pillar_block) {
-        // Pillar votes are created in the next period (thus period + 1), this is optimization to create & broadcast it
-        // a bit faster
-        const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(period + 1, pillar_block->getHash(), node_sk_,
-                                                                          periodDataQueueEmpty());
-        if (pillar_vote) {
-          last_placed_pillar_vote_period_ = pillar_vote->getPeriod();
-        }
-      } else {
-        LOG(log_er_) << "Unable to vote for pillar block with period " << period << ". Block was not created";
-      }
-    }
   }
 }
 
@@ -1812,7 +1784,48 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   // Advance pbft consensus period
   advancePeriod();
 
+  // Create new pillar block
+  // !!! Important: processPillarBlock must be called only after advancePeriod()
+  if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(pbft_period)) {
+    assert(pbft_period == pbft_chain_->getPbftChainSize());
+    processPillarBlock(pbft_period);
+  }
+
   return true;
+}
+
+void PbftManager::processPillarBlock(PbftPeriod current_pbft_chain_size) {
+  // Pillar block use state from current_pbft_chain_size - final_chain_->delegation_delay(), e.g. block with period 32
+  // uses state from period 27.
+  PbftPeriod request_period = current_pbft_chain_size - final_chain_->delegation_delay();
+  // advancePeriod() -> resetConsensus() -> waitForPeriodFinalization() makes sure block request_period was already
+  // finalized
+  assert(final_chain_->last_block_number() >= request_period);
+
+  const auto block_header = final_chain_->block_header(request_period);
+  const auto bridge_root = final_chain_->get_bridge_root(request_period);
+  const auto bridge_epoch = final_chain_->get_bridge_epoch(request_period);
+
+  // Create pillar block
+  const auto pillar_block =
+      pillar_chain_mgr_->createPillarBlock(current_pbft_chain_size, block_header, bridge_root, bridge_epoch);
+
+  // Optimization - creates pillar vote right after pillar block was created, otherwise pillar votes are created during
+  // next period pbft voting Check if node is eligible to vote for pillar block No need to catch ErrFutureBlock,
+  // waitForPeriodFinalization() makes sure it does not happen
+  if (final_chain_->dpos_is_eligible(current_pbft_chain_size, node_addr_)) {
+    if (pillar_block) {
+      // Pillar votes are created in the next period (+ 1), this is optimization to create & broadcast it a bit faster
+      const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(
+          current_pbft_chain_size + 1, pillar_block->getHash(), node_sk_, periodDataQueueEmpty());
+      if (pillar_vote) {
+        last_placed_pillar_vote_period_ = pillar_vote->getPeriod();
+      }
+    } else {
+      LOG(log_er_) << "Unable to vote for pillar block with period " << current_pbft_chain_size
+                   << ". Block was not created";
+    }
+  }
 }
 
 PbftPeriod PbftManager::pbftSyncingPeriod() const {

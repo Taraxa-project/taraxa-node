@@ -128,7 +128,10 @@ bool FinalChainImpl::isNeedToFinalize(EthBlockNumber blk_num) const {
 
 std::vector<SharedTransaction> FinalChainImpl::makeSystemTransactions(PbftPeriod blk_num) {
   std::vector<SharedTransaction> system_transactions;
-  if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num)) {
+  // Make system transactions <delegation_delay()> blocks sooner than next pillar block period,
+  // e.g.: if pillar block period is 100, this will return true for period 100 - delegation_delay() == 95, 195, 295,
+  // etc...
+  if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num + delegation_delay())) {
     if (const auto bridge_contract = get_account(kHardforksConfig.ficus_hf.bridge_contract_address); bridge_contract) {
       if (bridge_contract->code_size && isNeedToFinalize(blk_num - 1)) {
         auto finalize_trx = make_bridge_finalization_transaction();
@@ -136,6 +139,7 @@ std::vector<SharedTransaction> FinalChainImpl::makeSystemTransactions(PbftPeriod
       }
     }
   }
+
   return system_transactions;
 }
 

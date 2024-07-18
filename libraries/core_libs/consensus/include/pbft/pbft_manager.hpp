@@ -548,6 +548,13 @@ class PbftManager {
    */
   void printVotingSummary() const;
 
+  /**
+   * @brief Creates pillar block (and pillar vote in case node is eligible to vote & is not syncing)
+   *
+   * @param period
+   */
+  void processPillarBlock(PbftPeriod period);
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of

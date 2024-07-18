@@ -44,10 +44,16 @@ class PillarChainManager {
   /**
    * @Process Creates new pillar block
    *
+   * @param period
    * @param block_header
+   * @param bridge_root
+   * @param bridge_epoch
+   *
    * @return pillar block in case block was created, otherwise nullptr
    */
-  std::shared_ptr<PillarBlock> createPillarBlock(const std::shared_ptr<const final_chain::BlockHeader>& block_header);
+  std::shared_ptr<PillarBlock> createPillarBlock(PbftPeriod period,
+                                                 const std::shared_ptr<const final_chain::BlockHeader>& block_header,
+                                                 const h256& bridge_root, const h256& bridge_epoch);
 
   /**
    * @brief Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and

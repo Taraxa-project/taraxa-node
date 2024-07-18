@@ -44,15 +44,14 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
 }
 
 std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
-    const std::shared_ptr<const final_chain::BlockHeader>& block_header) {
-  const auto block_num = block_header->number;
-
+    PbftPeriod period, const std::shared_ptr<const final_chain::BlockHeader>& block_header, const h256& bridge_root,
+    const h256& bridge_epoch) {
   blk_hash_t previous_pillar_block_hash{};  // null block hash
-  auto new_vote_counts = final_chain_->dpos_validators_vote_counts(block_num);
+  auto new_vote_counts = final_chain_->dpos_validators_vote_counts(period);
   std::vector<PillarBlock::ValidatorVoteCountChange> votes_count_changes;
 
   // First ever pillar block
-  if (block_num == kFicusHfConfig.firstPillarBlockPeriod()) {
+  if (period == kFicusHfConfig.firstPillarBlockPeriod()) {
     // First pillar block - use all current votes counts as changes
     votes_count_changes.reserve(new_vote_counts.size());
     std::transform(new_vote_counts.begin(), new_vote_counts.end(), std::back_inserter(votes_count_changes),
@@ -64,7 +63,7 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     const auto last_finalized_pillar_block = getLastFinalizedPillarBlock();
     // This should never happen !!!
     if (!last_finalized_pillar_block) {
-      LOG(log_er_) << "Empty last finalized pillar block, new pillar block period " << block_num;
+      LOG(log_er_) << "Empty last finalized pillar block, new pillar block period " << period;
       assert(false);
       return nullptr;
     }
@@ -73,7 +72,7 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     // which is always called once in a time
     // This should never happen !!!
     if (current_pillar_block_vote_counts_.empty()) {
-      LOG(log_er_) << "Empty current pillar block vote counts, new pillar block period " << block_num;
+      LOG(log_er_) << "Empty current pillar block vote counts, new pillar block period " << period;
       assert(false);
       return nullptr;
     }
@@ -84,11 +83,8 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     votes_count_changes = getOrderedValidatorsVoteCountsChanges(new_vote_counts, current_pillar_block_vote_counts_);
   }
 
-  h256 bridge_root = final_chain_->get_bridge_root(block_num);
-  u256 bridge_epoch = final_chain_->get_bridge_epoch(block_num);
-  const auto pillar_block =
-      std::make_shared<PillarBlock>(block_num, block_header->state_root, previous_pillar_block_hash, bridge_root,
-                                    bridge_epoch, std::move(votes_count_changes));
+  const auto pillar_block = std::make_shared<PillarBlock>(period, block_header->state_root, previous_pillar_block_hash,
+                                                          bridge_root, bridge_epoch, std::move(votes_count_changes));
 
   // Check if some pillar block was not skipped
   if (!isValidPillarBlock(pillar_block)) {

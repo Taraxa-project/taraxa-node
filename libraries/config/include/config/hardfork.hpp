@@ -40,8 +40,8 @@ Json::Value enc_json(const AspenHardfork& obj);
 void dec_json(const Json::Value& json, AspenHardfork& obj);
 
 struct FicusHardforkConfig {
-  uint64_t block_num{0};
-  uint64_t pillar_blocks_interval{100};    // [periods] how often is the new pillar block created
+  uint64_t block_num{10};
+  uint64_t pillar_blocks_interval{10};     // [periods] how often is the new pillar block created
   taraxa::addr_t bridge_contract_address;  // [address] of the bridge contract
 
   bool isFicusHardfork(taraxa::PbftPeriod period) const;
