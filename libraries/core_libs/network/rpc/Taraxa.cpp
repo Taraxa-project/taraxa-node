@@ -190,11 +190,17 @@ Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_pe
       return {};
     }
 
-    if (const auto pillar_block_data = node->getDB()->getPillarBlockData(pbft_period); pillar_block_data) {
-      return pillar_block_data->getJson(include_signatures);
+    const auto pillar_block = node->getDB()->getPillarBlock(pbft_period);
+    if (!pillar_block) {
+      return {};
     }
 
-    return {};
+    const auto& pillar_votes = node->getDB()->getPeriodPillarVotes(pbft_period + 1);
+    if (pillar_votes.empty()) {
+      return {};
+    }
+
+    return pillar_chain::PillarBlockData{pillar_block, pillar_votes}.getJson(include_signatures);
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }

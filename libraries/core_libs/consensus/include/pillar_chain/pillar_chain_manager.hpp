@@ -111,10 +111,10 @@ class PillarChainManager {
   /**
    * @brief Finalize pillar block
    *
-   * @param pillar_block
-   * @return true if successfully finalized, otherwise false
+   * @param pillar_block_hash
+   * @return above threshold pillar votes if successfully finalized, otherwise empty vector
    */
-  bool finalizePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block);
+  std::vector<std::shared_ptr<PillarVote>> finalizePillarBlock(const blk_hash_t& pillar_block_hash);
 
   /**
    * @return current pillar block
@@ -126,11 +126,12 @@ class PillarChainManager {
    *
    * @param period
    * @param pillar_block_hash
+   * @param above_threshold
    *
    * @return all pillar votes for specified period and pillar block hash
    */
-  std::vector<std::shared_ptr<PillarVote>> getVerifiedPillarVotes(PbftPeriod period,
-                                                                  const blk_hash_t pillar_block_hash) const;
+  std::vector<std::shared_ptr<PillarVote>> getVerifiedPillarVotes(PbftPeriod period, const blk_hash_t pillar_block_hash,
+                                                                  bool above_threshold = false) const;
 
   /**
    * @return true if pillar block is valid - previous pillar block hash == last finalized pillar block hash

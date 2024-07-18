@@ -2,7 +2,6 @@
 
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
-#include "pillar_chain/pillar_chain_manager.hpp"
 #include "storage/storage.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -14,16 +13,13 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain,
-                                                   std::shared_ptr<VoteManager> vote_mgr,
-                                                   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr,
-                                                   std::shared_ptr<DbStorage> db, const addr_t &node_addr,
-                                                   const std::string &logs_prefix)
+                                                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
+                                                   const addr_t &node_addr, const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
-      pillar_chain_mgr_(std::move(pillar_chain_mgr)),
       db_(std::move(db)) {}
 
 void GetPbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
@@ -83,21 +79,6 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       // This can happen when switching from light node to full node setting
       LOG(log_er_) << "DB corrupted. Cannot find period " << block_period << " PBFT block in db";
       return;
-    }
-
-    // Add pillar votes to period data
-    const auto &ficus_hf_conf = kConf.genesis.state.hardforks.ficus_hf;
-    if (ficus_hf_conf.isPbftWithPillarBlockPeriod(block_period)) {
-      // TODO: not ideal solution: should not decode PeriodData, add pillar votes and then encode it again...
-      PeriodData period_data{data};
-      auto pillar_data = db_->getPillarBlockData(block_period - 1);
-      if (!pillar_data.has_value()) {
-        LOG(log_er_) << "DB corrupted. Cannot find pillar votes for period " << block_period << " in db";
-        return;
-      }
-
-      period_data.pillar_votes_ = std::move(pillar_data->pillar_votes_);
-      data = period_data.rlp();
     }
 
     dev::RLPStream s;

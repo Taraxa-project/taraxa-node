@@ -1704,26 +1704,21 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   auto pbft_period = period_data.pbft_blk->getPeriod();
 
-  // To finalize the pbft block that includes pillar block hash, there needs to be enough pillar votes as well as pbft
-  // votes
+  // To finalize the pbft block that includes pillar block hash, pillar block needs to be finalized first
   if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(pbft_period)) {
     // Note: presence of pillar block hash in extra data was already validated in validatePbftBlock
     const auto pillar_block_hash = period_data.pbft_blk->getExtraData()->getPillarBlockHash();
-    if (!pillar_chain_mgr_->isPillarBlockLatestFinalized(*pillar_block_hash)) {
-      LOG(log_er_) << "Cannot push PBFT block " << period_data.pbft_blk->getBlockHash() << ", period " << pbft_period
-                   << ". Not enough pillar votes for pillar block " << *pillar_block_hash << ". Request it";
-      if (auto net = network_.lock()) {
-        net->requestPillarBlockVotesBundle(pbft_period, *pillar_block_hash);
-      }
 
+    // Finalize included pillar block
+    auto above_threshold_pillar_votes = pillar_chain_mgr_->finalizePillarBlock(*pillar_block_hash);
+    if (above_threshold_pillar_votes.empty()) {
+      LOG(log_er_) << "Cannot push PBFT block " << period_data.pbft_blk->getBlockHash() << ", period " << pbft_period
+                   << ": Unable to finalize included pillar block " << *pillar_block_hash;
       return false;
     }
-    const auto votes = pillar_chain_mgr_->getVerifiedPillarVotes(pbft_period, *pillar_block_hash);
-    if (votes.empty()) {
-      LOG(log_er_) << "No pillar votes for period " << pbft_period << "and pillar block hash " << *pillar_block_hash;
-      return false;
-    }
-    period_data.pillar_votes_ = std::move(votes);
+
+    // Save pillar votes into period data
+    period_data.pillar_votes_ = std::move(above_threshold_pillar_votes);
   }
 
   assert(cert_votes.empty() == false);
@@ -1731,10 +1726,10 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   auto null_anchor = period_data.pbft_blk->getPivotDagBlockHash() == kNullBlockHash;
 
-  auto batch = db_->createWriteBatch();
-
   LOG(log_dg_) << "Storing pbft blk " << pbft_block_hash << " cert votes: " << cert_votes;
+
   // Update PBFT chain head block
+  auto batch = db_->createWriteBatch();
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash, null_anchor),
                           batch);
 

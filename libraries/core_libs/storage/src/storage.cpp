@@ -22,6 +22,7 @@ static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
 static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
 static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
+static constexpr uint16_t PILLAR_VOTES_POS_IN_PERIOD_DATA = 4;
 static constexpr uint16_t PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK = 0;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
@@ -621,12 +622,12 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
 
     commitWriteBatch(write_batch);
     db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
-    db_->DeleteRange(write_options_, handle(Columns::pillar_block_data), start_slice, end_slice);
+    db_->DeleteRange(write_options_, handle(Columns::pillar_block), start_slice, end_slice);
 
     // Deletion alone does not guarantee that the disk space is freed, CompactRange actually compacts
     // the data in the database and free disk space
     db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
-    db_->CompactRange({}, handle(Columns::pillar_block_data), &start_slice, &end_slice);
+    db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
     db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
     db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
     db_->CompactRange({}, handle(Columns::pbft_block_period), nullptr, nullptr);
@@ -686,27 +687,27 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
-void DbStorage::savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data) {
-  insert(Columns::pillar_block_data, pillar_block_data.block_->getPeriod(), pillar_block_data.getRlp());
+void DbStorage::savePillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& pillar_block) {
+  insert(Columns::pillar_block, pillar_block->getPeriod(), pillar_block->getRlp());
 }
 
-std::optional<pillar_chain::PillarBlockData> DbStorage::getPillarBlockData(PbftPeriod period) const {
-  const auto bytes = asBytes(lookup(period, Columns::pillar_block_data));
+std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getPillarBlock(PbftPeriod period) const {
+  const auto bytes = asBytes(lookup(period, Columns::pillar_block));
   if (bytes.empty()) {
     return {};
   }
 
-  return pillar_chain::PillarBlockData(dev::RLP(bytes));
+  return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(bytes));
 }
 
-std::optional<pillar_chain::PillarBlockData> DbStorage::getLatestPillarBlockData() const {
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pillar_block_data)));
+std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getLatestPillarBlock() const {
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pillar_block)));
   it->SeekToLast();
   if (!it->Valid()) {
     return {};
   }
 
-  return pillar_chain::PillarBlockData(dev::RLP(it->value().ToString()));
+  return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(it->value().ToString()));
 }
 
 void DbStorage::saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote) {
@@ -947,6 +948,21 @@ std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod pe
   auto period_system_transactions = getPeriodSystemTransactions(period);
   ret.insert(ret.end(), period_system_transactions.begin(), period_system_transactions.end());
   return {ret};
+}
+
+std::vector<std::shared_ptr<PillarVote>> DbStorage::getPeriodPillarVotes(PbftPeriod period) const {
+  const auto period_data = getPeriodDataRaw(period);
+  if (!period_data.size()) {
+    return {};
+  }
+
+  auto period_data_rlp = dev::RLP(period_data);
+  // This could potentially happen if getPeriodPillarVotes is called for period that does not contain pillar votes
+  if (period_data_rlp.itemCount() < PILLAR_VOTES_POS_IN_PERIOD_DATA) {
+    return {};
+  }
+
+  return decodePillarVotesBundleRlp(period_data_rlp[PILLAR_VOTES_POS_IN_PERIOD_DATA]);
 }
 
 void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {
