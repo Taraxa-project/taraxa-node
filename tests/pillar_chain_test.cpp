@@ -517,20 +517,20 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
       // check system transactions
       {
         // check that we are getting this transaction from the final chain
-        auto trxs = node->getFinalChain()->transactions(period);
+        auto trxs = node->getFinalChain()->transactions(period - 1);
         ASSERT_EQ(trxs.size(), 1);
         // check that this 1 transaction is system transaction
         const auto& trx = trxs.at(0);
         ASSERT_EQ(trx->getSender(), kTaraxaSystemAccount);
         ASSERT_EQ(trx->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         // check that correct hash is returned
-        auto hashes = node->getFinalChain()->transaction_hashes(period);
+        auto hashes = node->getFinalChain()->transaction_hashes(period - 1);
         ASSERT_EQ(hashes->size(), 1);
         ASSERT_EQ(hashes->at(0), trx->getHash());
         // check that location by hash exists and is_system set to true
         const auto& trx_loc = node->getDB()->getTransactionLocation(trx->getHash());
         EXPECT_TRUE(trx_loc.has_value());
-        ASSERT_EQ(trx_loc->period, period);
+        ASSERT_EQ(trx_loc->period, period - 1);
         ASSERT_EQ(trx_loc->position, 1);
         ASSERT_EQ(trx_loc->is_system, true);
         // check that we can get this transaction by hash

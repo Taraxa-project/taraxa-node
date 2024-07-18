@@ -1718,6 +1718,12 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
       return false;
     }
+    const auto votes = pillar_chain_mgr_->getVerifiedPillarVotes(pbft_period, *pillar_block_hash);
+    if (votes.empty()) {
+      LOG(log_er_) << "No pillar votes for period " << pbft_period << "and pillar block hash " << *pillar_block_hash;
+      return false;
+    }
+    period_data.pillar_votes_ = std::move(votes);
   }
 
   assert(cert_votes.empty() == false);
