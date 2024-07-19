@@ -141,8 +141,8 @@ RLP_FIELDS_DEFINE(PillarBlock, pbft_period_, state_root_, previous_pillar_block_
                   validators_votes_count_changes_)
 
 PillarBlockData::PillarBlockData(std::shared_ptr<PillarBlock> block,
-                                 std::vector<std::shared_ptr<PillarVote>>&& pillar_votes)
-    : block_(std::move(block)), pillar_votes_(std::move(pillar_votes)) {}
+                                 const std::vector<std::shared_ptr<PillarVote>>& pillar_votes)
+    : block_(std::move(block)), pillar_votes_(pillar_votes) {}
 PillarBlockData::PillarBlockData(const dev::RLP& rlp) {
   if (rlp.itemCount() != kRlpItemCount) {
     throw std::runtime_error("PillarBlockData invalid itemCount: " + std::to_string(rlp.itemCount()));

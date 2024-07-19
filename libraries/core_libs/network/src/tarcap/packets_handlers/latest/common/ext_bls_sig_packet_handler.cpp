@@ -11,23 +11,27 @@ ExtPillarVotePacketHandler::ExtPillarVotePacketHandler(
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel),
       pillar_chain_manager_{std::move(pillar_chain_manager)} {}
 
-void ExtPillarVotePacketHandler::processPillarVote(const std::shared_ptr<PillarVote> &vote,
+bool ExtPillarVotePacketHandler::processPillarVote(const std::shared_ptr<PillarVote> &vote,
                                                    const std::shared_ptr<TaraxaPeer> &peer) {
   if (!pillar_chain_manager_->isRelevantPillarVote(vote)) {
-    LOG(log_dg_) << "Drop irrelevant pillar vote " << vote->getHash() << " from peer " << peer->getId();
-    return;
+    LOG(log_dg_) << "Drop irrelevant pillar vote " << vote->getHash() << ", period " << vote->getPeriod()
+                 << " from peer " << peer->getId();
+    return false;
   }
 
   if (!pillar_chain_manager_->validatePillarVote(vote)) {
-    std::ostringstream err_msg;
-    err_msg << "Invalid pillar vote " << vote->getHash() << " from peer " << peer->getId();
-    throw MaliciousPeerException(err_msg.str());
+    // TODO: enable for mainnet
+    // std::ostringstream err_msg;
+    // err_msg << "Invalid pillar vote " << vote->getHash() << " from peer " << peer->getId();
+    // throw MaliciousPeerException(err_msg.str());
+    return false;
   }
 
   pillar_chain_manager_->addVerifiedPillarVote(vote);
 
   // Mark pillar vote as known for peer
   peer->markPillarVoteAsKnown(vote->getHash());
+  return true;
 }
 
 }  // namespace taraxa::network::tarcap

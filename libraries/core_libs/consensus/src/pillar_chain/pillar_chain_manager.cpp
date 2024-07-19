@@ -24,6 +24,8 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
       current_pillar_block_vote_counts_{},
       pillar_votes_{},
       mutex_{} {
+  LOG_OBJECTS_CREATE("PILLAR_CHAIN");
+
   if (const auto vote = db_->getOwnPillarBlockVote(); vote) {
     addVerifiedPillarVote(vote);
   }
@@ -33,26 +35,28 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
     current_pillar_block_vote_counts_ = std::move(current_pillar_block_data->vote_counts);
   }
 
-  if (auto&& latest_pillar_block_data = db_->getLatestPillarBlockData(); latest_pillar_block_data.has_value()) {
-    last_finalized_pillar_block_ = std::move(latest_pillar_block_data->block_);
-    for (const auto& vote : latest_pillar_block_data->pillar_votes_) {
-      addVerifiedPillarVote(vote);
+  if (auto&& latest_pillar_block = db_->getLatestPillarBlock(); latest_pillar_block) {
+    last_finalized_pillar_block_ = std::move(latest_pillar_block);
+
+    const auto& last_finalized_pillar_block_votes =
+        db_->getPeriodPillarVotes(last_finalized_pillar_block_->getPeriod() + 1);
+    // There should always be pillar votes stored in period data for finalized pillar block
+    assert(!last_finalized_pillar_block_votes.empty());
+    for (const auto& pillar_vote : last_finalized_pillar_block_votes) {
+      addVerifiedPillarVote(pillar_vote);
     }
   }
-
-  LOG_OBJECTS_CREATE("PILLAR_CHAIN");
 }
 
 std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
-    const std::shared_ptr<final_chain::FinalizationResult>& block_data) {
-  const auto block_num = block_data->final_chain_blk->number;
-
+    PbftPeriod period, const std::shared_ptr<const final_chain::BlockHeader>& block_header, const h256& bridge_root,
+    const h256& bridge_epoch) {
   blk_hash_t previous_pillar_block_hash{};  // null block hash
-  auto new_vote_counts = final_chain_->dpos_validators_vote_counts(block_num);
+  auto new_vote_counts = final_chain_->dpos_validators_vote_counts(period);
   std::vector<PillarBlock::ValidatorVoteCountChange> votes_count_changes;
 
   // First ever pillar block
-  if (block_num == kFicusHfConfig.firstPillarBlockPeriod()) {
+  if (period == kFicusHfConfig.firstPillarBlockPeriod()) {
     // First pillar block - use all current votes counts as changes
     votes_count_changes.reserve(new_vote_counts.size());
     std::transform(new_vote_counts.begin(), new_vote_counts.end(), std::back_inserter(votes_count_changes),
@@ -61,40 +65,31 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
                                                                   static_cast<int32_t>(vote_count.vote_count));
                    });
   } else {
-    const auto current_pillar_block = getCurrentPillarBlock();
-    if (!current_pillar_block) {
-      LOG(log_er_) << "Empty previous pillar block, new pillar block period " << block_num;
+    const auto last_finalized_pillar_block = getLastFinalizedPillarBlock();
+    // This should never happen !!!
+    if (!last_finalized_pillar_block) {
+      LOG(log_er_) << "Empty last finalized pillar block, new pillar block period " << period;
       assert(false);
-      return nullptr;
-    }
-
-    // Try to finalize current pillar block in case it is not yet finalized
-    if (!finalizePillarBlock(current_pillar_block)) {
-      LOG(log_er_) << "Unable to create new pillar block, the current pillar block " << current_pillar_block->getHash()
-                   << " needs to be finalized first";
       return nullptr;
     }
 
     // !!!Note: No need to protect current_pillar_block_vote_counts_ as it is read & written only in this function,
     // which is always called once in a time
+    // This should never happen !!!
     if (current_pillar_block_vote_counts_.empty()) {
-      // This should never happen
-      LOG(log_er_) << "Empty current pillar block vote counts, new pillar block period " << block_num;
+      LOG(log_er_) << "Empty current pillar block vote counts, new pillar block period " << period;
       assert(false);
       return nullptr;
     }
 
-    previous_pillar_block_hash = current_pillar_block->getHash();
+    previous_pillar_block_hash = last_finalized_pillar_block->getHash();
 
     // Get validators vote counts changes between the current and previous pillar block
     votes_count_changes = getOrderedValidatorsVoteCountsChanges(new_vote_counts, current_pillar_block_vote_counts_);
   }
 
-  h256 bridge_root = final_chain_->get_bridge_root(block_num);
-  u256 bridge_epoch = final_chain_->get_bridge_epoch(block_num);
-  const auto pillar_block =
-      std::make_shared<PillarBlock>(block_num, block_data->final_chain_blk->state_root, previous_pillar_block_hash,
-                                    bridge_root, bridge_epoch, std::move(votes_count_changes));
+  const auto pillar_block = std::make_shared<PillarBlock>(period, block_header->state_root, previous_pillar_block_hash,
+                                                          bridge_root, bridge_epoch, std::move(votes_count_changes));
 
   // Check if some pillar block was not skipped
   if (!isValidPillarBlock(pillar_block)) {
@@ -106,9 +101,6 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
   saveNewPillarBlock(pillar_block, std::move(new_vote_counts));
   LOG(log_nf_) << "New pillar block " << pillar_block->getHash() << " with period " << pillar_block->getPeriod()
                << " created";
-
-  // Try to finalize current_pillar_block - there might > threshold votes for it already
-  finalizePillarBlock(pillar_block);
 
   return pillar_block;
 }
@@ -123,87 +115,80 @@ void PillarChainManager::saveNewPillarBlock(std::shared_ptr<PillarBlock> pillar_
   current_pillar_block_vote_counts_ = std::move(data.vote_counts);
 }
 
-bool PillarChainManager::genAndPlacePillarVote(const blk_hash_t& pillar_block_hash, const secret_t& node_sk,
-                                               bool is_pbft_syncing) {
-  const auto current_pillar_block = getCurrentPillarBlock();
-  if (!current_pillar_block) {
-    // This should never happen
-    LOG(log_er_) << "Unable to gen pillar vote. No pillar block present, pillar_block_hash " << pillar_block_hash;
-    assert(false);
-    return false;
-  }
-
-  // No need to catch ErrFutureBlock because pillar block as well as pillar vote are created only after the pbft block
-  // with current_pillar_block->getPeriod() was finalized
-  if (!final_chain_->dpos_is_eligible(current_pillar_block->getPeriod() - 1, node_addr_)) {
-    return false;
-  }
-
-  if (pillar_block_hash != current_pillar_block->getHash()) {
-    LOG(log_er_) << "Unable to gen pillar vote. Provided pillar_block_hash(" << pillar_block_hash
-                 << ") != current pillar block hash(" << current_pillar_block->getHash() << ")";
-    return false;
-  }
-
-  const auto vote =
-      std::make_shared<PillarVote>(node_sk, current_pillar_block->getPeriod(), current_pillar_block->getHash());
+std::shared_ptr<PillarVote> PillarChainManager::genAndPlacePillarVote(PbftPeriod period,
+                                                                      const blk_hash_t& pillar_block_hash,
+                                                                      const secret_t& node_sk, bool broadcast_vote) {
+  const auto vote = std::make_shared<PillarVote>(node_sk, period, pillar_block_hash);
 
   // Broadcasts pillar vote
   const auto vote_weight = addVerifiedPillarVote(vote);
   if (!vote_weight) {
     LOG(log_er_) << "Unable to gen pillar vote. Vote was not added to the verified votes. Vote hash "
                  << vote->getHash();
-    return false;
+    return nullptr;
   }
-
   db_->saveOwnPillarBlockVote(vote);
-  if (!is_pbft_syncing) {
-    if (auto net = network_.lock()) {
-      net->gossipPillarBlockVote(vote);
-    }
 
+  if (auto net = network_.lock(); net && broadcast_vote) {
+    net->gossipPillarBlockVote(vote);
     LOG(log_nf_) << "Placed pillar vote " << vote->getHash() << " for block " << vote->getBlockHash() << ", period "
+                 << vote->getPeriod() << ", weight " << vote_weight;
+  } else {
+    LOG(log_nf_) << "Created pillar vote " << vote->getHash() << " for block " << vote->getBlockHash() << ", period "
                  << vote->getPeriod() << ", weight " << vote_weight;
   }
 
-  return true;
+  return vote;
 }
 
-bool PillarChainManager::finalizePillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) {
-  if (isPillarBlockLatestFinalized(pillar_block->getHash())) {
-    LOG(log_dg_) << "Pillar block " << pillar_block->getHash() << " already finalized";
-    return true;
+std::vector<std::shared_ptr<PillarVote>> PillarChainManager::finalizePillarBlock(const blk_hash_t& pillar_block_hash) {
+  // Compare provided pillar block hash to the current pillar block
+  const auto current_pillar_block = getCurrentPillarBlock();
+  if (!current_pillar_block) {
+    // This should never happen
+    LOG(log_er_) << "Cannot finalize pillar block " << pillar_block_hash << ". Empty current pillar block";
+    return {};
   }
 
-  if (!isValidPillarBlock(pillar_block)) {
-    LOG(log_er_) << "Unable to finalize pillar block " << pillar_block->getHash() << ". Block is invalid";
-    return false;
+  if (current_pillar_block->getHash() != pillar_block_hash) {
+    // This should never happen
+    LOG(log_er_) << "Cannot finalize pillar block " << pillar_block_hash << ". Provided pillar block hash "
+                 << pillar_block_hash << " != current pillar block hash " << current_pillar_block->getHash();
+    return {};
   }
 
-  auto above_threshold_votes = pillar_votes_.getVerifiedVotes(pillar_block->getPeriod(), pillar_block->getHash(), true);
-  if (above_threshold_votes.empty()) {
-    LOG(log_dg_) << "Unable to finalize pillar block " << pillar_block->getHash()
-                 << ", period: " << pillar_block->getPeriod() << ". Not enough votes";
-    return false;
+  auto pillar_votes =
+      getVerifiedPillarVotes(current_pillar_block->getPeriod() + 1, pillar_block_hash, true /* above_threshold */);
+  if (pillar_votes.empty()) {
+    LOG(log_er_) << "Cannot finalize pillar block " << pillar_block_hash
+                 << ". Not enough pillar votes for pillar block. Request it";
+    if (auto net = network_.lock()) {
+      net->requestPillarBlockVotesBundle(current_pillar_block->getPeriod() + 1, pillar_block_hash);
+    }
+
+    return {};
   }
 
-  const PillarBlockData pillar_block_data{pillar_block, std::move(above_threshold_votes)};
+  if (isPillarBlockLatestFinalized(pillar_block_hash)) {
+    // This should never happen
+    LOG(log_er_) << "Pillar block already " << pillar_block_hash << " already finalized";
+    return pillar_votes;
+  }
 
-  db_->savePillarBlockData(pillar_block_data);
-  LOG(log_nf_) << "Pillar block " << pillar_block->getHash() << " with period " << pillar_block->getPeriod()
-               << " pushed into the pillar chain";
+  db_->savePillarBlock(current_pillar_block);
+  LOG(log_nf_) << "Pillar block " << pillar_block_hash << " with period " << current_pillar_block->getPeriod()
+               << " finalized";
 
   {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
-    last_finalized_pillar_block_ = pillar_block;
+    last_finalized_pillar_block_ = current_pillar_block;
 
     // Erase votes that are no longer needed
-    pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod());
+    pillar_votes_.eraseVotes(last_finalized_pillar_block_->getPeriod() + 1);
   }
+  pillar_block_finalized_emitter_.emit(PillarBlockData{current_pillar_block, pillar_votes});
 
-  pillar_block_finalized_emitter_.emit(pillar_block_data);
-
-  return true;
+  return pillar_votes;
 }
 
 bool PillarChainManager::isPillarBlockLatestFinalized(const blk_hash_t& block_hash) const {
@@ -227,49 +212,6 @@ std::shared_ptr<PillarBlock> PillarChainManager::getCurrentPillarBlock() const {
   return current_pillar_block_;
 }
 
-bool PillarChainManager::checkPillarChainSynced(EthBlockNumber block_num) const {
-  const auto current_pillar_block = getCurrentPillarBlock();
-
-  // No current pillar block registered... This should happen only before the first pillar block is created
-  if (!current_pillar_block) [[unlikely]] {
-    LOG(log_er_) << "No current pillar block saved, period " << block_num;
-    assert(false);
-    return false;
-  }
-
-  // Check > threshold votes for the current pillar block
-  if (!pillar_votes_.hasAboveThresholdVotes(current_pillar_block->getPeriod(), current_pillar_block->getHash())) {
-    // There is < threshold pillar votes, request it
-    if (auto net = network_.lock()) {
-      LOG(log_dg_) << "There is < threshold pillar votes for pillar block " << current_pillar_block->getHash()
-                   << ", period " << current_pillar_block->getPeriod() << ". Request it";
-      net->requestPillarBlockVotesBundle(current_pillar_block->getPeriod(), current_pillar_block->getHash());
-    } else {
-      LOG(log_er_) << "checkPillarChainSynced: Unable to obtain net";
-    }
-
-    return false;
-  }
-
-  PbftPeriod expected_pillar_block_period = 0;
-  if (block_num % kFicusHfConfig.pillar_blocks_interval == 0) {
-    expected_pillar_block_period = block_num - kFicusHfConfig.pillar_blocks_interval;
-  } else {
-    expected_pillar_block_period = block_num - (block_num % kFicusHfConfig.pillar_blocks_interval);
-  }
-
-  if (expected_pillar_block_period != current_pillar_block->getPeriod()) {
-    // This should never happen
-    LOG(log_er_) << "Pillar chain is out of sync. Current pbft period " << block_num << ", current pillar block period "
-                 << current_pillar_block->getPeriod() << ", expected pillar block period "
-                 << expected_pillar_block_period;
-    assert(false);
-    return false;
-  }
-
-  return true;
-}
-
 bool PillarChainManager::isRelevantPillarVote(const std::shared_ptr<PillarVote> vote) const {
   const auto current_pillar_block = getCurrentPillarBlock();
 
@@ -277,19 +219,19 @@ bool PillarChainManager::isRelevantPillarVote(const std::shared_ptr<PillarVote> 
   // Empty current_pillar_block_ means there was no pillar block created yet at all
   if (!current_pillar_block) [[unlikely]] {
     // It could happen that other nodes created pillar block and voted for it before this node
-    if (vote->getPeriod() != kFicusHfConfig.firstPillarBlockPeriod()) {
+    if (vote->getPeriod() != kFicusHfConfig.firstPillarBlockPeriod() + 1) {
       LOG(log_nf_) << "Received vote's period " << vote_period << ", no pillar block created yet. Accepting votes with "
-                   << kFicusHfConfig.firstPillarBlockPeriod() << " period";
+                   << kFicusHfConfig.firstPillarBlockPeriod() + 1 << " period";
       return false;
     }
-  } else if (vote_period == current_pillar_block->getPeriod()) [[likely]] {
+  } else if (vote_period == current_pillar_block->getPeriod() + 1) [[likely]] {
     if (vote->getBlockHash() != current_pillar_block->getHash()) {
       LOG(log_nf_) << "Received vote's block hash " << vote->getBlockHash() << " != current pillar block hash "
                    << current_pillar_block->getHash();
       return false;
     }
-  } else if (vote_period !=
-             current_pillar_block->getPeriod() + kFicusHfConfig.pillar_blocks_interval /* +1 future pillar block */) {
+  } else if (vote_period != current_pillar_block->getPeriod() + kFicusHfConfig.pillar_blocks_interval +
+                                1 /* future pillar block votes */) {
     LOG(log_nf_) << "Received vote's period " << vote_period << ", current pillar block period "
                  << current_pillar_block->getPeriod();
     return false;
@@ -359,33 +301,28 @@ uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarV
   }
 
   if (!pillar_votes_.addVerifiedVote(vote, validator_vote_count)) {
-    LOG(log_er_) << "Non-unique pillar vote " << vote->getHash() << ", validator " << vote->getVoterAddr();
+    LOG(log_er_) << "Non-unique pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << ", validator "
+                 << vote->getVoterAddr();
     return 0;
   }
 
-  LOG(log_nf_) << "Added pillar vote " << vote->getHash();
-
-  if (const auto current_pillar_block = getCurrentPillarBlock();
-      current_pillar_block && vote->getBlockHash() == current_pillar_block->getHash()) {
-    // Try to finalize current_pillar_block - there might > threshold votes for it already
-    finalizePillarBlock(current_pillar_block);
-  }
+  LOG(log_nf_) << "Added pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << ", pillar block hash "
+               << vote->getBlockHash();
 
   return validator_vote_count;
 }
 
-std::vector<std::shared_ptr<PillarVote>> PillarChainManager::getVerifiedPillarVotes(
-    PbftPeriod period, const blk_hash_t pillar_block_hash) const {
-  auto votes = pillar_votes_.getVerifiedVotes(period, pillar_block_hash);
+std::vector<std::shared_ptr<PillarVote>> PillarChainManager::getVerifiedPillarVotes(PbftPeriod period,
+                                                                                    const blk_hash_t pillar_block_hash,
+                                                                                    bool above_threshold) const {
+  auto pillar_votes = pillar_votes_.getVerifiedVotes(period, pillar_block_hash, above_threshold);
 
   // No votes returned from memory, try db
-  if (votes.empty()) {
-    if (auto pillar_block_data = db_->getPillarBlockData(period); pillar_block_data.has_value()) {
-      votes = std::move(pillar_block_data->pillar_votes_);
-    }
+  if (pillar_votes.empty()) {
+    pillar_votes = db_->getPeriodPillarVotes(period);
   }
 
-  return votes;
+  return pillar_votes;
 }
 
 bool PillarChainManager::isValidPillarBlock(const std::shared_ptr<PillarBlock>& pillar_block) const {

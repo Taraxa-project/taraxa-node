@@ -53,7 +53,7 @@ class FinalChain {
    * @param precommit_ext
    * @return finalization result
    */
-  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(
+  virtual std::future<std::shared_ptr<const FinalizationResult>> finalize(
       PeriodData&& period_data, std::vector<h256>&& finalized_dag_blk_hashes,
       std::shared_ptr<DagBlock>&& anchor = nullptr) = 0;
 
@@ -270,13 +270,10 @@ class FinalChain {
   }
 };
 
-std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config,
-                                          const addr_t& node_addr = {});
 /** @} */
 
 }  // namespace taraxa::final_chain
 
 namespace taraxa {
 using final_chain::FinalChain;
-using final_chain::NewFinalChain;
 }  // namespace taraxa

@@ -158,8 +158,15 @@ TEST_F(FullNodeTest, db_test) {
     cert_votes.emplace_back(genDummyVote(PbftVoteTypes::cert_vote, 2, 2, 3, blk_hash_t(1)));
   }
 
+  // Pillar votes
+  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
+  const auto vote1 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
+  const auto vote2 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
+
   std::vector<std::shared_ptr<PbftVote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
-  PeriodData period_data1(pbft_block1, cert_votes);
+  PeriodData period_data1(pbft_block1, cert_votes, pillar_votes);
   PeriodData period_data2(pbft_block2, votes);
   PeriodData period_data3(pbft_block3, votes);
   PeriodData period_data4(pbft_block4, votes);
@@ -180,10 +187,15 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
 
-  PeriodData pbft_block_cert_votes(pbft_block1, cert_votes);
   auto cert_votes_from_db = db.getPeriodCertVotes(pbft_block1->getPeriod());
-  PeriodData pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
-  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
+  auto pillar_votes_from_db = db.getPeriodPillarVotes(pbft_block1->getPeriod());
+  PeriodData period_data1_from_db(pbft_block1, cert_votes_from_db, pillar_votes_from_db);
+  EXPECT_EQ(period_data1.rlp(), period_data1_from_db.rlp());
+  EXPECT_TRUE(period_data1_from_db.pillar_votes_.has_value());
+  EXPECT_EQ(pillar_votes.size(), period_data1_from_db.pillar_votes_->size());
+  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
+    EXPECT_EQ(pillar_votes[idx]->getHash(), period_data1_from_db.pillar_votes_.operator*()[idx]->getHash());
+  }
 
   // pbft_blocks (head)
   PbftChain pbft_chain(addr_t(), db_ptr);

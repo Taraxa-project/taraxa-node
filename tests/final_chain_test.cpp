@@ -1,11 +1,10 @@
-#include "final_chain/final_chain.hpp"
-
 #include <optional>
 #include <vector>
 
 #include "common/constants.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
+#include "final_chain/final_chain_impl.hpp"
 #include "final_chain/trie_common.hpp"
 #include "libdevcore/CommonJS.h"
 #include "network/rpc/eth/Eth.h"
@@ -46,7 +45,7 @@ struct FinalChainTest : WithDataDir {
   }
 
   void init() {
-    SUT = NewFinalChain(db, cfg);
+    SUT = std::make_shared<FinalChainImpl>(db, cfg, addr_t{});
     const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
     cfg.genesis.state.dpos.yield_percentage = 0;
     for (const auto& [addr, _] : cfg.genesis.state.initial_balances) {

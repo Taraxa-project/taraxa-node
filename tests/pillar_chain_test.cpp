@@ -46,34 +46,19 @@ TEST_F(PillarChainTest, pillar_chain_db) {
               current_pillar_block_data_db->vote_counts[idx].vote_count);
   }
 
-  // Pillar block data
-  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
-  const auto vote1 = pillar_votes.emplace_back(
-      std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
-  const auto vote2 = pillar_votes.emplace_back(
-      std::make_shared<PillarVote>(secret_t::random(), pillar_block->getPeriod(), pillar_block->getHash()));
+  // Pillar block
 
   const auto previous_pillar_block =
       std::make_shared<pillar_chain::PillarBlock>(pillar_block_period - 1, h256{}, blk_hash_t{}, h256{}, 0,
                                                   std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange>{});
-  db.savePillarBlockData(
-      pillar_chain::PillarBlockData{pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
-  db.savePillarBlockData(
-      pillar_chain::PillarBlockData{previous_pillar_block, std::vector<std::shared_ptr<PillarVote>>{pillar_votes}});
+  db.savePillarBlock(pillar_block);
+  db.savePillarBlock(previous_pillar_block);
 
-  const auto pillar_block_data_db = db.getPillarBlockData(pillar_block->getPeriod());
-  EXPECT_EQ(pillar_block->getHash(), pillar_block_data_db->block_->getHash());
-  EXPECT_EQ(pillar_votes.size(), pillar_block_data_db->pillar_votes_.size());
-  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
-    EXPECT_EQ(pillar_votes[idx]->getHash(), pillar_block_data_db->pillar_votes_[idx]->getHash());
-  }
+  const auto pillar_block_db = db.getPillarBlock(pillar_block->getPeriod());
+  EXPECT_EQ(pillar_block->getHash(), pillar_block_db->getHash());
 
-  const auto latest_pillar_block_data_db = db.getLatestPillarBlockData();
-  EXPECT_EQ(pillar_block->getHash(), latest_pillar_block_data_db->block_->getHash());
-  EXPECT_EQ(pillar_votes.size(), latest_pillar_block_data_db->pillar_votes_.size());
-  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
-    EXPECT_EQ(pillar_votes[idx]->getHash(), latest_pillar_block_data_db->pillar_votes_[idx]->getHash());
-  }
+  const auto latest_pillar_block_db = db.getLatestPillarBlock();
+  EXPECT_EQ(pillar_block->getHash(), latest_pillar_block_db->getHash());
 
   // Pillar vote
   auto pillar_vote =
@@ -89,8 +74,6 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
   }
 
   auto nodes = launch_nodes(node_cfgs);
@@ -101,8 +84,7 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
       pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + 1)
     }
   });
 
@@ -110,9 +92,9 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
     node->getPbftManager()->stop();
 
     // Check if right amount of pillar blocks were created
-    const auto latest_pillar_block_data = node->getDB()->getLatestPillarBlockData();
-    ASSERT_TRUE(latest_pillar_block_data.has_value());
-    ASSERT_EQ(latest_pillar_block_data->block_->getPeriod(),
+    const auto latest_pillar_block = node->getDB()->getLatestPillarBlock();
+    ASSERT_TRUE(latest_pillar_block);
+    ASSERT_EQ(latest_pillar_block->getPeriod(),
               pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
   }
 }
@@ -125,8 +107,6 @@ TEST_F(PillarChainTest, votes_count_changes) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
   }
 
   std::vector<dev::s256> validators_vote_counts;
@@ -144,21 +124,20 @@ TEST_F(PillarChainTest, votes_count_changes) {
   const auto first_pillar_block_period = node_cfgs[0].genesis.state.hardforks.ficus_hf.firstPillarBlockPeriod();
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     first_pillar_block_period + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), first_pillar_block_period + 1)
     }
   });
 
   // Check if vote_counts changes in first pillar block == initial validators vote_counts
   for (auto& node : nodes) {
     // Check if right amount of pillar blocks were created
-    const auto first_pillar_block_data = node->getDB()->getPillarBlockData(first_pillar_block_period);
-    ASSERT_TRUE(first_pillar_block_data.has_value());
+    const auto first_pillar_block = node->getDB()->getPillarBlock(first_pillar_block_period);
+    ASSERT_TRUE(first_pillar_block);
 
-    ASSERT_EQ(first_pillar_block_data->block_->getPeriod(), first_pillar_block_period);
-    ASSERT_EQ(first_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(), validators_count);
+    ASSERT_EQ(first_pillar_block->getPeriod(), first_pillar_block_period);
+    ASSERT_EQ(first_pillar_block->getValidatorsVoteCountsChanges().size(), validators_count);
     size_t idx = 0;
-    for (const auto& vote_count_change : first_pillar_block_data->block_->getValidatorsVoteCountsChanges()) {
+    for (const auto& vote_count_change : first_pillar_block->getValidatorsVoteCountsChanges()) {
       ASSERT_EQ(vote_count_change.vote_count_change_, validators_vote_counts[idx]);
       idx++;
     }
@@ -186,20 +165,19 @@ TEST_F(PillarChainTest, votes_count_changes) {
       node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     new_pillar_block_period + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), new_pillar_block_period + 1)
     }
   });
 
   // Check if vote_counts changes in new pillar block changed according to new delegations
   for (auto& node : nodes) {
     // Check if right amount of pillar blocks were created
-    const auto new_pillar_block_data = node->getDB()->getPillarBlockData(new_pillar_block_period);
-    ASSERT_TRUE(new_pillar_block_data.has_value());
-    ASSERT_EQ(new_pillar_block_data->block_->getPeriod(), new_pillar_block_period);
-    ASSERT_EQ(new_pillar_block_data->block_->getValidatorsVoteCountsChanges().size(), validators_count);
+    const auto new_pillar_block = node->getDB()->getPillarBlock(new_pillar_block_period);
+    ASSERT_TRUE(new_pillar_block);
+    ASSERT_EQ(new_pillar_block->getPeriod(), new_pillar_block_period);
+    ASSERT_EQ(new_pillar_block->getValidatorsVoteCountsChanges().size(), validators_count);
     size_t idx = 0;
-    for (const auto& vote_count_change : new_pillar_block_data->block_->getValidatorsVoteCountsChanges()) {
+    for (const auto& vote_count_change : new_pillar_block->getValidatorsVoteCountsChanges()) {
       ASSERT_EQ(vote_count_change.vote_count_change_,
                 delegation_value / node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold);
       idx++;
@@ -214,8 +192,6 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
   }
 
   // Start first node
@@ -224,34 +200,55 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   // Wait until node1 creates at least 3 pillar blocks
   const auto pillar_blocks_count = 3;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_GE(ctx, node1->getPbftChain()->getPbftChainSize(),
-                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
-                       node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+    WAIT_EXPECT_EQ(ctx, node1->getFinalChain()->last_block_number(),
+                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval)
   });
   node1->getPbftManager()->stop();
 
   // Start second node
   auto node2 = launch_nodes({node_cfgs[1]})[0];
   // Wait until node2 syncs pbft chain with node1
-  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getPbftChain()->getPbftChainSize(), node1->getPbftChain()->getPbftChainSize())
+  ASSERT_HAPPENS({20s, 200ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getFinalChain()->last_block_number(), node1->getFinalChain()->last_block_number())
   });
+  node2->getPbftManager()->stop();
 
-  // Pbft/pillar chain syncing works in a way that pbft block with period N contains pillar votes for pillar block with
-  // period N-ficus_hf.pillar_blocks_interval.
-  const auto node2_latest_finalized_pillar_block_data = node2->getDB()->getLatestPillarBlockData();
-  ASSERT_TRUE(node2_latest_finalized_pillar_block_data.has_value());
-  ASSERT_EQ(node2_latest_finalized_pillar_block_data->block_->getPeriod(),
+  // Node 2 should not have yet finalized pillar block with period pillar_blocks_count * pillar_blocks_interval
+  const auto node2_latest_finalized_pillar_block = node2->getDB()->getLatestPillarBlock();
+  ASSERT_TRUE(node2_latest_finalized_pillar_block);
+  ASSERT_EQ(node2_latest_finalized_pillar_block->getPeriod(),
             (pillar_blocks_count - 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
 
-  // Trigger pillar votes syncing
-  node2->getPillarChainManager()->checkPillarChainSynced(
-      pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
-  // Wait until node2 gets pillar votes and finalized pillar block #3
+  // Node 2 should have already created pillar block with period pillar_blocks_count * pillar_blocks_interval
+  const auto node2_current_pillar_block = node2->getPillarChainManager()->getCurrentPillarBlock();
+  ASSERT_TRUE(node2_current_pillar_block != nullptr);
+  ASSERT_EQ(node2_current_pillar_block->getPeriod(),
+            pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
+
+  auto above_threshold_pillar_votes = node2->getPillarChainManager()->getVerifiedPillarVotes(
+      node2_current_pillar_block->getPeriod() + 1, node2_current_pillar_block->getHash(), true);
+  ASSERT_TRUE(above_threshold_pillar_votes.empty());
+
+  // Trigger pillar votes syncing for the latest unfinalized pillar block
+  node2->getNetwork()->requestPillarBlockVotesBundle(node2_current_pillar_block->getPeriod() + 1,
+                                                     node2_current_pillar_block->getHash());
+
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getDB()->getLatestPillarBlockData()->block_->getPeriod(),
-                   pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval)
+    above_threshold_pillar_votes = node2->getPillarChainManager()->getVerifiedPillarVotes(
+        node2_current_pillar_block->getPeriod() + 1, node2_current_pillar_block->getHash(), true);
+    WAIT_EXPECT_TRUE(ctx, !above_threshold_pillar_votes.empty())
   });
+
+  const auto threshold =
+      node2->getPillarChainManager()->getPillarConsensusThreshold(node2_current_pillar_block->getPeriod());
+  size_t votes_count = 0;
+  for (const auto& pillar_vote : above_threshold_pillar_votes) {
+    ASSERT_EQ(pillar_vote->getPeriod() - 1, node2_current_pillar_block->getPeriod());
+    ASSERT_EQ(pillar_vote->getBlockHash(), node2_current_pillar_block->getHash());
+    votes_count +=
+        node2->getFinalChain()->dpos_eligible_vote_count(pillar_vote->getPeriod() - 1, pillar_vote->getVoterAddr());
+  }
+  ASSERT_GE(votes_count, threshold);
 }
 
 TEST_F(PillarChainTest, block_serialization) {
@@ -472,8 +469,6 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
-    node_cfg.genesis.state.hardforks.ficus_hf.pillar_chain_sync_interval = 3;
-    node_cfg.genesis.state.hardforks.ficus_hf.pbft_inclusion_delay = 2;
     node_cfg.genesis.state.hardforks.ficus_hf.bridge_contract_address =
         dev::Address("0xc5b7d26bec6acdc3a0d33fe4c70be346a47a3a33");
   }
@@ -500,43 +495,42 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
       pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(),
-                     min_amount_of_pbft_blocks + node_cfgs[0].genesis.state.hardforks.ficus_hf.pbft_inclusion_delay)
+      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + 1)
     }
   });
 
   for (auto& node : nodes) {
     // Check if right amount of pillar blocks were created
-    const auto latest_pillar_block_data = node->getDB()->getLatestPillarBlockData();
-    ASSERT_TRUE(latest_pillar_block_data.has_value());
-    ASSERT_EQ(latest_pillar_block_data->block_->getPeriod(),
+    const auto latest_pillar_block = node->getDB()->getLatestPillarBlock();
+    ASSERT_TRUE(latest_pillar_block);
+    ASSERT_EQ(latest_pillar_block->getPeriod(),
               pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval);
   }
 
   for (auto& node : nodes) {
     for (auto epoch = 0; epoch < 4; epoch++) {
       auto period = (epoch + 1) * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
-      const auto pillar_block_data = node->getDB()->getPillarBlockData(period);
-      ASSERT_TRUE(pillar_block_data.has_value());
-      ASSERT_EQ(pillar_block_data->block_->getPeriod(), period);
-      ASSERT_EQ(u256(pillar_block_data->block_->getBridgeRoot()), u256(epoch));
+      const auto pillar_block = node->getDB()->getPillarBlock(period);
+      ASSERT_TRUE(pillar_block);
+      ASSERT_EQ(pillar_block->getPeriod(), period);
+      ASSERT_EQ(u256(pillar_block->getBridgeRoot()), u256(epoch));
       // check system transactions
       {
         // check that we are getting this transaction from the final chain
-        auto trxs = node->getFinalChain()->transactions(period);
+        auto trxs = node->getFinalChain()->transactions(period - 1);
         ASSERT_EQ(trxs.size(), 1);
         // check that this 1 transaction is system transaction
         const auto& trx = trxs.at(0);
         ASSERT_EQ(trx->getSender(), kTaraxaSystemAccount);
         ASSERT_EQ(trx->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         // check that correct hash is returned
-        auto hashes = node->getFinalChain()->transaction_hashes(period);
+        auto hashes = node->getFinalChain()->transaction_hashes(period - 1);
         ASSERT_EQ(hashes->size(), 1);
         ASSERT_EQ(hashes->at(0), trx->getHash());
         // check that location by hash exists and is_system set to true
         const auto& trx_loc = node->getDB()->getTransactionLocation(trx->getHash());
         EXPECT_TRUE(trx_loc.has_value());
-        ASSERT_EQ(trx_loc->period, period);
+        ASSERT_EQ(trx_loc->period, period - 1);
         ASSERT_EQ(trx_loc->position, 1);
         ASSERT_EQ(trx_loc->is_system, true);
         // check that we can get this transaction by hash

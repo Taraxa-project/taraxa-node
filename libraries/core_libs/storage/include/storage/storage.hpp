@@ -134,8 +134,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     COLUMN_W_COMP(block_rewards_stats, getIntComparator<uint64_t>());
 
-    // Pillar blocks & 2t+1 pillr votes
-    COLUMN_W_COMP(pillar_block_data, getIntComparator<PbftPeriod>());
+    // Finalized pillar blocks
+    COLUMN_W_COMP(pillar_block, getIntComparator<PbftPeriod>());
     // Current pillar block data - current pillar block + current vote counts
     COLUMN(current_pillar_block_data);
     // Current pillar block own pillar vote
@@ -227,11 +227,12 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
+  std::vector<std::shared_ptr<PillarVote>> getPeriodPillarVotes(PbftPeriod period) const;
 
   // Pillar chain
-  void savePillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
-  std::optional<pillar_chain::PillarBlockData> getPillarBlockData(PbftPeriod period) const;
-  std::optional<pillar_chain::PillarBlockData> getLatestPillarBlockData() const;
+  void savePillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& pillar_block);
+  std::shared_ptr<pillar_chain::PillarBlock> getPillarBlock(PbftPeriod period) const;
+  std::shared_ptr<pillar_chain::PillarBlock> getLatestPillarBlock() const;
   void saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote);
   std::shared_ptr<PillarVote> getOwnPillarBlockVote() const;
   void saveCurrentPillarBlockData(const pillar_chain::CurrentPillarBlockDataDb& current_pillar_block_data);

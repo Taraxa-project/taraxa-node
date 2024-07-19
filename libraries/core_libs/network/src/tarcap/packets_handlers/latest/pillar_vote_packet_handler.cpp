@@ -28,14 +28,16 @@ void PillarVotePacketHandler::process(const threadpool::PacketData &packet_data,
     throw MaliciousPeerException(err_msg.str());
   }
 
-  processPillarVote(pillar_vote, peer);
-  onNewPillarVote(pillar_vote);
+  if (processPillarVote(pillar_vote, peer)) {
+    onNewPillarVote(pillar_vote);
+  }
 }
 
 void PillarVotePacketHandler::onNewPillarVote(const std::shared_ptr<PillarVote> &vote, bool rebroadcast) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
-      LOG(log_dg_) << "Pillar vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
+      LOG(log_dg_) << "Pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << " not sent to "
+                   << peer.first << ". Peer syncing";
       continue;
     }
 
@@ -54,7 +56,8 @@ void PillarVotePacketHandler::sendPillarVote(const std::shared_ptr<TaraxaPeer> &
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::PillarVotePacket, std::move(s))) {
     peer->markPillarVoteAsKnown(vote->getHash());
-    LOG(log_nf_) << "Pillar vote " << vote->getHash() << " sent to " << peer->getId();
+    LOG(log_dg_) << "Pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << " sent to "
+                 << peer->getId();
   }
 }
 
