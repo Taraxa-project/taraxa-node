@@ -783,8 +783,8 @@ Collaboration diagram for taraxa::pillar_chain::PillarBlockData:</div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a4dd07889de4b81458f3a574a2c9c70de"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a4dd07889de4b81458f3a574a2c9c70de">PillarBlockData</a> (std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; block, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt;&gt; &amp;&amp;pillar_votes)</td></tr>
-<tr class="separator:a4dd07889de4b81458f3a574a2c9c70de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac21fe3b27dc4113c94fec54f056da5cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#ac21fe3b27dc4113c94fec54f056da5cd">PillarBlockData</a> (std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; block, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt;&gt; &amp;pillar_votes)</td></tr>
+<tr class="separator:ac21fe3b27dc4113c94fec54f056da5cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acae383b03e36d38f4981cc3458f5f980"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#acae383b03e36d38f4981cc3458f5f980">PillarBlockData</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;rlp)</td></tr>
 <tr class="separator:acae383b03e36d38f4981cc3458f5f980"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ee11c365a4b260b914fbcf749d8dbd3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a9ee11c365a4b260b914fbcf749d8dbd3">getRlp</a> () const</td></tr>
@@ -801,8 +801,8 @@ Collaboration diagram for taraxa::pillar_chain::PillarBlockData:</div>
 <tr class="separator:a6d465bd950ee7efffc313e0d831d4674"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a4dd07889de4b81458f3a574a2c9c70de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4dd07889de4b81458f3a574a2c9c70de">&#9670;&nbsp;</a></span>PillarBlockData() <span class="overload">[1/2]</span></h2>
+<a id="ac21fe3b27dc4113c94fec54f056da5cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac21fe3b27dc4113c94fec54f056da5cd">&#9670;&nbsp;</a></span>PillarBlockData() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -816,7 +816,7 @@ Collaboration diagram for taraxa::pillar_chain::PillarBlockData:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt;&gt; &amp;&amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt;&gt; &amp;&#160;</td>
           <td class="paramname"><em>pillar_votes</em>&#160;</td>
         </tr>
         <tr>
@@ -996,14 +996,11 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
 <tr class="memitem:ae30271f18d7f9387fbae227552b5ed7a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#ae30271f18d7f9387fbae227552b5ed7a">PillarChainManager</a> (const <a class="el" href="struct_ficus_hardfork_config.html">FicusHardforkConfig</a> &amp;ficus_hf_config, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">final_chain::FinalChain</a> &gt; final_chain, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a> &gt; key_manager, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr)</td></tr>
 <tr class="separator:ae30271f18d7f9387fbae227552b5ed7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4669a02cfb2b86b9333fe04d58925e52"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a4669a02cfb2b86b9333fe04d58925e52">createPillarBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">final_chain::FinalizationResult</a> &gt; &amp;block_data)</td></tr>
-<tr class="separator:a4669a02cfb2b86b9333fe04d58925e52"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a5859976e22c5e2951c3327625c059d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a3a5859976e22c5e2951c3327625c059d">genAndPlacePillarVote</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pillar_block_hash, const <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> &amp;node_sk, bool is_pbft_syncing)</td></tr>
-<tr class="memdesc:a3a5859976e22c5e2951c3327625c059d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and valid.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a3a5859976e22c5e2951c3327625c059d">More...</a><br /></td></tr>
-<tr class="separator:a3a5859976e22c5e2951c3327625c059d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a79e982cd5d3cf0666e60c9e4e7b798cf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a79e982cd5d3cf0666e60c9e4e7b798cf">checkPillarChainSynced</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> block_num) const</td></tr>
-<tr class="memdesc:a79e982cd5d3cf0666e60c9e4e7b798cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is &gt; threshold votes for latest pillar block. If not, request them.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a79e982cd5d3cf0666e60c9e4e7b798cf">More...</a><br /></td></tr>
-<tr class="separator:a79e982cd5d3cf0666e60c9e4e7b798cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a568f301c50fccba0cfc58e8e0b94f119"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a568f301c50fccba0cfc58e8e0b94f119">createPillarBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const std::shared_ptr&lt; const <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">final_chain::BlockHeader</a> &gt; &amp;block_header, const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;bridge_root, const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;bridge_epoch)</td></tr>
+<tr class="separator:a568f301c50fccba0cfc58e8e0b94f119"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ad0643f7632c26a66e39e58a0bc12fb"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a0ad0643f7632c26a66e39e58a0bc12fb">genAndPlacePillarVote</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pillar_block_hash, const <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> &amp;node_sk, bool broadcast_vote)</td></tr>
+<tr class="memdesc:a0ad0643f7632c26a66e39e58a0bc12fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and valid.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a0ad0643f7632c26a66e39e58a0bc12fb">More...</a><br /></td></tr>
+<tr class="separator:a0ad0643f7632c26a66e39e58a0bc12fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac37f860134f96cfbce37b245c4c8505d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#ac37f860134f96cfbce37b245c4c8505d">setNetwork</a> (std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt; network)</td></tr>
 <tr class="memdesc:ac37f860134f96cfbce37b245c4c8505d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set network as a weak pointer.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#ac37f860134f96cfbce37b245c4c8505d">More...</a><br /></td></tr>
 <tr class="separator:ac37f860134f96cfbce37b245c4c8505d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1020,14 +1017,14 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 <tr class="memitem:af9cbb2ec28b6528a6f70311e3f7af5a9"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#af9cbb2ec28b6528a6f70311e3f7af5a9">addVerifiedPillarVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &amp;vote)</td></tr>
 <tr class="memdesc:af9cbb2ec28b6528a6f70311e3f7af5a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a vote to the pillar votes map.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#af9cbb2ec28b6528a6f70311e3f7af5a9">More...</a><br /></td></tr>
 <tr class="separator:af9cbb2ec28b6528a6f70311e3f7af5a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24e3054ca15d0acb2e0e917d1580c4ca"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a24e3054ca15d0acb2e0e917d1580c4ca">finalizePillarBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; &amp;pillar_block)</td></tr>
-<tr class="memdesc:a24e3054ca15d0acb2e0e917d1580c4ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finalize pillar block.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a24e3054ca15d0acb2e0e917d1580c4ca">More...</a><br /></td></tr>
-<tr class="separator:a24e3054ca15d0acb2e0e917d1580c4ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a165e3c7634b52f919346845f4ebc9f94"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a165e3c7634b52f919346845f4ebc9f94">finalizePillarBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pillar_block_hash)</td></tr>
+<tr class="memdesc:a165e3c7634b52f919346845f4ebc9f94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finalize pillar block.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a165e3c7634b52f919346845f4ebc9f94">More...</a><br /></td></tr>
+<tr class="separator:a165e3c7634b52f919346845f4ebc9f94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5d1094a7eee92490e8314fe3373fcef"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#ac5d1094a7eee92490e8314fe3373fcef">getCurrentPillarBlock</a> () const</td></tr>
 <tr class="separator:ac5d1094a7eee92490e8314fe3373fcef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f9d607854695bc11834e26efd959b35"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a6f9d607854695bc11834e26efd959b35">getVerifiedPillarVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> pillar_block_hash) const</td></tr>
-<tr class="memdesc:a6f9d607854695bc11834e26efd959b35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all pillar votes for specified pillar block.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a6f9d607854695bc11834e26efd959b35">More...</a><br /></td></tr>
-<tr class="separator:a6f9d607854695bc11834e26efd959b35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57baf081305d7d7f98141e5e3f214ec9"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a57baf081305d7d7f98141e5e3f214ec9">getVerifiedPillarVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> pillar_block_hash, bool above_threshold=false) const</td></tr>
+<tr class="memdesc:a57baf081305d7d7f98141e5e3f214ec9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all pillar votes for specified pillar block.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a57baf081305d7d7f98141e5e3f214ec9">More...</a><br /></td></tr>
+<tr class="separator:a57baf081305d7d7f98141e5e3f214ec9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dc5b74e0fa9cae9867403bd3f1d76d9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a3dc5b74e0fa9cae9867403bd3f1d76d9">isValidPillarBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; &amp;pillar_block) const</td></tr>
 <tr class="separator:a3dc5b74e0fa9cae9867403bd3f1d76d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8149691b8a604d84344366fccbdbb955"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a8149691b8a604d84344366fccbdbb955">getPillarConsensusThreshold</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
@@ -1143,35 +1140,8 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 
 </div>
 </div>
-<a id="a79e982cd5d3cf0666e60c9e4e7b798cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a79e982cd5d3cf0666e60c9e4e7b798cf">&#9670;&nbsp;</a></span>checkPillarChainSynced()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::pillar_chain::PillarChainManager::checkPillarChainSynced </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
-          <td class="paramname"><em>block_num</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Check if pillar chain is synced - node has all previous pillar blocks(+votes) and there is &gt; threshold votes for latest pillar block. If not, request them. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">block_num</td><td>- current block number</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if synced, otherwise false </dd></dl>
-
-</div>
-</div>
-<a id="a4669a02cfb2b86b9333fe04d58925e52"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4669a02cfb2b86b9333fe04d58925e52">&#9670;&nbsp;</a></span>createPillarBlock()</h2>
+<a id="a568f301c50fccba0cfc58e8e0b94f119"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a568f301c50fccba0cfc58e8e0b94f119">&#9670;&nbsp;</a></span>createPillarBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1179,16 +1149,41 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
         <tr>
           <td class="memname">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; taraxa::pillar_chain::PillarChainManager::createPillarBlock </td>
           <td>(</td>
-          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">final_chain::FinalizationResult</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>block_data</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::shared_ptr&lt; const <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">final_chain::BlockHeader</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>block_header</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;&#160;</td>
+          <td class="paramname"><em>bridge_root</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;&#160;</td>
+          <td class="paramname"><em>bridge_epoch</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 <p>@Process Creates new pillar block</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">block_data</td><td></td></tr>
+    <tr><td class="paramname">period</td><td></td></tr>
+    <tr><td class="paramname">block_header</td><td></td></tr>
+    <tr><td class="paramname">bridge_root</td><td></td></tr>
+    <tr><td class="paramname">bridge_epoch</td><td></td></tr>
   </table>
   </dd>
 </dl>
@@ -1196,17 +1191,17 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 
 </div>
 </div>
-<a id="a24e3054ca15d0acb2e0e917d1580c4ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a24e3054ca15d0acb2e0e917d1580c4ca">&#9670;&nbsp;</a></span>finalizePillarBlock()</h2>
+<a id="a165e3c7634b52f919346845f4ebc9f94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a165e3c7634b52f919346845f4ebc9f94">&#9670;&nbsp;</a></span>finalizePillarBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::pillar_chain::PillarChainManager::finalizePillarBlock </td>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt; taraxa::pillar_chain::PillarChainManager::finalizePillarBlock </td>
           <td>(</td>
-          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>pillar_block</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>pillar_block_hash</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1215,23 +1210,29 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 <p>Finalize pillar block. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">pillar_block</td><td></td></tr>
+    <tr><td class="paramname">pillar_block_hash</td><td></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true if successfully finalized, otherwise false </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>above threshold pillar votes if successfully finalized, otherwise empty vector </dd></dl>
 
 </div>
 </div>
-<a id="a3a5859976e22c5e2951c3327625c059d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a5859976e22c5e2951c3327625c059d">&#9670;&nbsp;</a></span>genAndPlacePillarVote()</h2>
+<a id="a0ad0643f7632c26a66e39e58a0bc12fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ad0643f7632c26a66e39e58a0bc12fb">&#9670;&nbsp;</a></span>genAndPlacePillarVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::pillar_chain::PillarChainManager::genAndPlacePillarVote </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; taraxa::pillar_chain::PillarChainManager::genAndPlacePillarVote </td>
           <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
           <td class="paramname"><em>pillar_block_hash</em>, </td>
         </tr>
@@ -1245,7 +1246,7 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>is_pbft_syncing</em>&#160;</td>
+          <td class="paramname"><em>broadcast_vote</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1258,13 +1259,14 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 <p>Generate and place pillar vote for provided pillar_block_hash in case the whole pillar block is present and valid. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">period</td><td></td></tr>
     <tr><td class="paramname">pillar_block_hash</td><td></td></tr>
     <tr><td class="paramname">node_sk</td><td></td></tr>
-    <tr><td class="paramname">is_pbft_syncing</td><td></td></tr>
+    <tr><td class="paramname">broadcast_vote</td><td></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true if vote placed, otherwise false </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>vote if it was created, otherwise nullptr </dd></dl>
 
 </div>
 </div>
@@ -1375,8 +1377,8 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 
 </div>
 </div>
-<a id="a6f9d607854695bc11834e26efd959b35"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f9d607854695bc11834e26efd959b35">&#9670;&nbsp;</a></span>getVerifiedPillarVotes()</h2>
+<a id="a57baf081305d7d7f98141e5e3f214ec9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57baf081305d7d7f98141e5e3f214ec9">&#9670;&nbsp;</a></span>getVerifiedPillarVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1391,7 +1393,13 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td>
-          <td class="paramname"><em>pillar_block_hash</em>&#160;</td>
+          <td class="paramname"><em>pillar_block_hash</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>above_threshold</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1406,6 +1414,7 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
   <table class="params">
     <tr><td class="paramname">period</td><td></td></tr>
     <tr><td class="paramname">pillar_block_hash</td><td></td></tr>
+    <tr><td class="paramname">above_threshold</td><td></td></tr>
   </table>
   </dd>
 </dl>

@@ -197,12 +197,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a26daf94afb332ffa5f59094c6d68cbcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b26ad95106e0603d9c10768140e0d14"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8b26ad95106e0603d9c10768140e0d14">getPeriodTransactions</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
 <tr class="separator:a8b26ad95106e0603d9c10768140e0d14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafae836fad781d888dbcfdcb3773cc65"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aafae836fad781d888dbcfdcb3773cc65">savePillarBlockData</a> (const <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &amp;pillar_block_data)</td></tr>
-<tr class="separator:aafae836fad781d888dbcfdcb3773cc65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5f3fc2b5ef7ce92448a10aa27cf38e8"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab5f3fc2b5ef7ce92448a10aa27cf38e8">getPillarBlockData</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
-<tr class="separator:ab5f3fc2b5ef7ce92448a10aa27cf38e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a398e751a9e93ab3525a6eb10ac20c024"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a398e751a9e93ab3525a6eb10ac20c024">getLatestPillarBlockData</a> () const</td></tr>
-<tr class="separator:a398e751a9e93ab3525a6eb10ac20c024"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0cdcc36612e567cc619b7b3333d2db7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab0cdcc36612e567cc619b7b3333d2db7">getPeriodPillarVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
+<tr class="separator:ab0cdcc36612e567cc619b7b3333d2db7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6af33f691736f9419e4ac4bed99166d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6af33f691736f9419e4ac4bed99166d0">savePillarBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt; &amp;pillar_block)</td></tr>
+<tr class="separator:a6af33f691736f9419e4ac4bed99166d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a206fc78408662c1f1496d8085bb3d22d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a206fc78408662c1f1496d8085bb3d22d">getPillarBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
+<tr class="separator:a206fc78408662c1f1496d8085bb3d22d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6716620305be1f0cc90052f803e76fbf"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6716620305be1f0cc90052f803e76fbf">getLatestPillarBlock</a> () const</td></tr>
+<tr class="separator:a6716620305be1f0cc90052f803e76fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1da930fcb9abd8ffcae93bdefb2897d4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1da930fcb9abd8ffcae93bdefb2897d4">saveOwnPillarBlockVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &amp;vote)</td></tr>
 <tr class="separator:a1da930fcb9abd8ffcae93bdefb2897d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2dd3262a8afcb5d6996fba0fadbff368"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a2dd3262a8afcb5d6996fba0fadbff368">getOwnPillarBlockVote</a> () const</td></tr>
@@ -1857,14 +1859,14 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a398e751a9e93ab3525a6eb10ac20c024"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a398e751a9e93ab3525a6eb10ac20c024">&#9670;&nbsp;</a></span>getLatestPillarBlockData()</h2>
+<a id="a6716620305be1f0cc90052f803e76fbf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6716620305be1f0cc90052f803e76fbf">&#9670;&nbsp;</a></span>getLatestPillarBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &gt; taraxa::DbStorage::getLatestPillarBlockData </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt; taraxa::DbStorage::getLatestPillarBlock </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -2197,6 +2199,24 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="ab0cdcc36612e567cc619b7b3333d2db7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0cdcc36612e567cc619b7b3333d2db7">&#9670;&nbsp;</a></span>getPeriodPillarVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt; taraxa::DbStorage::getPeriodPillarVotes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a0a1c86b55b98aa738cac4a7030222f06"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0a1c86b55b98aa738cac4a7030222f06">&#9670;&nbsp;</a></span>getPeriodSystemTransactions()</h2>
 
@@ -2251,14 +2271,14 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="ab5f3fc2b5ef7ce92448a10aa27cf38e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5f3fc2b5ef7ce92448a10aa27cf38e8">&#9670;&nbsp;</a></span>getPillarBlockData()</h2>
+<a id="a206fc78408662c1f1496d8085bb3d22d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a206fc78408662c1f1496d8085bb3d22d">&#9670;&nbsp;</a></span>getPillarBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &gt; taraxa::DbStorage::getPillarBlockData </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt; taraxa::DbStorage::getPillarBlock </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em></td><td>)</td>
@@ -3492,17 +3512,17 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="aafae836fad781d888dbcfdcb3773cc65"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aafae836fad781d888dbcfdcb3773cc65">&#9670;&nbsp;</a></span>savePillarBlockData()</h2>
+<a id="a6af33f691736f9419e4ac4bed99166d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6af33f691736f9419e4ac4bed99166d0">&#9670;&nbsp;</a></span>savePillarBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DbStorage::savePillarBlockData </td>
+          <td class="memname">void taraxa::DbStorage::savePillarBlock </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">pillar_chain::PillarBlockData</a> &amp;&#160;</td>
-          <td class="paramname"><em>pillar_block_data</em></td><td>)</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>pillar_block</em></td><td>)</td>
           <td></td>
         </tr>
       </table>

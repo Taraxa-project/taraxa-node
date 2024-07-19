@@ -6,7 +6,7 @@ var searchData=
   ['make_5fbridge_5ffinalization_5ftransaction_5586',['make_bridge_finalization_transaction',['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ac0ce9ad209b3bba3444e3b62675f5d1f',1,'taraxa::final_chain::FinalChainImpl']]],
   ['make_5fslice_5587',['make_slice',['../classtaraxa_1_1_db_storage.html#a72104ddfc8298ca37a5a956eb8f82a0f',1,'taraxa::DbStorage']]],
   ['makeinsecure_5588',['makeInsecure',['../classdev_1_1secure__vector.html#ab5e0b2a1de70dbab43a574be81a4b34f',1,'dev::secure_vector::makeInsecure()'],['../classdev_1_1_secure_fixed_hash.html#a4c149df1ed78c3416771e7df52d4aa56',1,'dev::SecureFixedHash::makeInsecure()']]],
-  ['makesystemtransactions_5589',['makeSystemTransactions',['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a633a6b7dd65663acf3db5dd29054ad07',1,'taraxa::final_chain::FinalChainImpl']]],
+  ['makesystemtransactions_5589',['makeSystemTransactions',['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7b30900c461a2b614e89520399cabef7',1,'taraxa::final_chain::FinalChainImpl']]],
   ['makevrfinput_5590',['makeVrfInput',['../classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a004fe2754a9002b4b51c46becd19730f',1,'taraxa::vrf_wrapper::VrfSortitionBase']]],
   ['maliciouspeerexception_5591',['MaliciousPeerException',['../classtaraxa_1_1_malicious_peer_exception.html#aade387af4b9ecbb5d2ce1c90e1a3d46a',1,'taraxa::MaliciousPeerException']]],
   ['manager_5592',['Manager',['../classtaraxa_1_1storage_1_1migration_1_1_manager.html#aa35541821af41edc35e6678a0f87f4a8',1,'taraxa::storage::migration::Manager']]],

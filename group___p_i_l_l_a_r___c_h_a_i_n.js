@@ -41,7 +41,7 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
       [ "validators_votes_count_changes_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a89da25ba0007c7cadde38e7347deed2c", null ]
     ] ],
     [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data", [
-      [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#a4dd07889de4b81458f3a574a2c9c70de", null ],
+      [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#ac21fe3b27dc4113c94fec54f056da5cd", null ],
       [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#acae383b03e36d38f4981cc3458f5f980", null ],
       [ "getJson", "group___p_i_l_l_a_r___c_h_a_i_n.html#a5835fed25164703b02ce257d09cd7d77", null ],
       [ "getRlp", "group___p_i_l_l_a_r___c_h_a_i_n.html#a9ee11c365a4b260b914fbcf749d8dbd3", null ],
@@ -56,15 +56,14 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
     [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager", [
       [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#ae30271f18d7f9387fbae227552b5ed7a", null ],
       [ "addVerifiedPillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#af9cbb2ec28b6528a6f70311e3f7af5a9", null ],
-      [ "checkPillarChainSynced", "group___p_i_l_l_a_r___c_h_a_i_n.html#a79e982cd5d3cf0666e60c9e4e7b798cf", null ],
-      [ "createPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a4669a02cfb2b86b9333fe04d58925e52", null ],
-      [ "finalizePillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a24e3054ca15d0acb2e0e917d1580c4ca", null ],
-      [ "genAndPlacePillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#a3a5859976e22c5e2951c3327625c059d", null ],
+      [ "createPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a568f301c50fccba0cfc58e8e0b94f119", null ],
+      [ "finalizePillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a165e3c7634b52f919346845f4ebc9f94", null ],
+      [ "genAndPlacePillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#a0ad0643f7632c26a66e39e58a0bc12fb", null ],
       [ "getCurrentPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#ac5d1094a7eee92490e8314fe3373fcef", null ],
       [ "getLastFinalizedPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#aef3e777a5ec27565d7afdee2632e8506", null ],
       [ "getOrderedValidatorsVoteCountsChanges", "group___p_i_l_l_a_r___c_h_a_i_n.html#a5b6f1f5045b43b096b7dbb35f896520d", null ],
       [ "getPillarConsensusThreshold", "group___p_i_l_l_a_r___c_h_a_i_n.html#a8149691b8a604d84344366fccbdbb955", null ],
-      [ "getVerifiedPillarVotes", "group___p_i_l_l_a_r___c_h_a_i_n.html#a6f9d607854695bc11834e26efd959b35", null ],
+      [ "getVerifiedPillarVotes", "group___p_i_l_l_a_r___c_h_a_i_n.html#a57baf081305d7d7f98141e5e3f214ec9", null ],
       [ "isPillarBlockLatestFinalized", "group___p_i_l_l_a_r___c_h_a_i_n.html#ad4f4ec7d51e9ec24b19ea056ec6bd59e", null ],
       [ "isRelevantPillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#a05b005d4c13c5a8047e13b05f099e2c6", null ],
       [ "isValidPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a3dc5b74e0fa9cae9867403bd3f1d76d9", null ],

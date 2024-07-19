@@ -69,7 +69,7 @@ var group___final_chain =
       [ "dpos_validators_total_stakes", "group___final_chain.html#ad9f46da3a897b3cf463ef9d40d768614", null ],
       [ "dpos_validators_vote_counts", "group___final_chain.html#a12311645db6c3ff34e755426250042ed", null ],
       [ "dpos_yield", "group___final_chain.html#a26219b4de9c395dc0289e4a4ee512bd7", null ],
-      [ "finalize", "group___final_chain.html#ae71c5be266ef7366c0650c6ff9a31947", null ],
+      [ "finalize", "group___final_chain.html#ac0a6fcde7859c9ea33e86b2747c8cbb7", null ],
       [ "get_account", "group___final_chain.html#a4dd6baa7b56ef75d07e95fe604458be5", null ],
       [ "get_account_storage", "group___final_chain.html#a21e6eadc2a9e6d645d2ac7621e861d08", null ],
       [ "get_bridge_epoch", "group___final_chain.html#af143a5369809efb6b55194a3489e3ff8", null ],
@@ -213,7 +213,6 @@ var group___final_chain =
     [ "DBMetaKeys", "group___final_chain.html#ga649a511610909f817c366b4315f74425", [
       [ "LAST_NUMBER", "group___final_chain.html#gga649a511610909f817c366b4315f74425aa9a86bce9374c2830787105c02766385", null ]
     ] ],
-    [ "NewFinalChain", "group___final_chain.html#gabf02617246115ac51e89118a617ca5ca", null ],
     [ "c_bloomIndexLevels", "group___final_chain.html#gafa9d5d8f0427b57b0a22530677e2e99b", null ],
     [ "c_bloomIndexSize", "group___final_chain.html#gab574ac6d6a7a462feef4499a61a17be2", null ],
     [ "ZeroAccount", "group___final_chain.html#ga5c809a2ce1cbc35fa9a7d77abf02b1f7", null ]

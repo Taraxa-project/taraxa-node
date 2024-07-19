@@ -326,8 +326,6 @@ Typedefs</h2></td></tr>
 <tr class="separator:a4f73dd8b3ab86158ad05a70ad6414a54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71602624ba20127eaf3822a710e52dae"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a71602624ba20127eaf3822a710e52dae">EfficienciesMap</a> = std::map&lt; uint16_t, int32_t &gt;</td></tr>
 <tr class="separator:a71602624ba20127eaf3822a710e52dae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6099eea09b76da6f646bc24fdd7944ec"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a6099eea09b76da6f646bc24fdd7944ec">vrf_output_t</a> = <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a></td></tr>
-<tr class="separator:a6099eea09b76da6f646bc24fdd7944ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32216cff36a3565783afe8fa0099ae89"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> = <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a></td></tr>
 <tr class="separator:a32216cff36a3565783afe8fa0099ae89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6dbfbca5858f7b6fc55b134c217fa3bc"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a6dbfbca5858f7b6fc55b134c217fa3bc">VdfSortition</a> = <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">vdf_sortition::VdfSortition</a></td></tr>
@@ -610,6 +608,8 @@ Variables</h2></td></tr>
 <tr class="separator:a2ff7d24b0b2af2d725815c2514048460"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a43ba02b53dd89ed2d602d846af2a64cc"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a43ba02b53dd89ed2d602d846af2a64cc">TRANSACTIONS_POS_IN_PERIOD_DATA</a> = 3</td></tr>
 <tr class="separator:a43ba02b53dd89ed2d602d846af2a64cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8d5681671f721984e6f3fc4c05ba56d"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa8d5681671f721984e6f3fc4c05ba56d">PILLAR_VOTES_POS_IN_PERIOD_DATA</a> = 4</td></tr>
+<tr class="separator:aa8d5681671f721984e6f3fc4c05ba56d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a566bacb5f2fd273d3936d179bc4fa73f"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a566bacb5f2fd273d3936d179bc4fa73f">PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK</a> = 0</td></tr>
 <tr class="separator:a566bacb5f2fd273d3936d179bc4fa73f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7db38bf3c506132cff28937f0d28d4ea"><td class="memItemLeft" align="right" valign="top">constexpr static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ga7db38bf3c506132cff28937f0d28d4ea">kPbftVotesBundleRlpSize</a> {5}</td></tr>
@@ -1340,20 +1340,6 @@ lambda_bound</td>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">taraxa::vote_hash_t</a> = typedef <a class="el" href="namespacetaraxa.html#a5e82c539dc447e0f4562c69fe5d91145">uint256_hash_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6099eea09b76da6f646bc24fdd7944ec"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6099eea09b76da6f646bc24fdd7944ec">&#9670;&nbsp;</a></span>vrf_output_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">taraxa::vrf_output_t</a> = typedef <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3473,6 +3459,28 @@ template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">constexpr uint16_t taraxa::PBFT_BLOCK_POS_IN_PERIOD_DATA = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa8d5681671f721984e6f3fc4c05ba56d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8d5681671f721984e6f3fc4c05ba56d">&#9670;&nbsp;</a></span>PILLAR_VOTES_POS_IN_PERIOD_DATA</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr uint16_t taraxa::PILLAR_VOTES_POS_IN_PERIOD_DATA = 4</td>
         </tr>
       </table>
   </td>

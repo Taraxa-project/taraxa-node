@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TARAXA: libraries/core_libs/consensus/src/final_chain/final_chain.cpp File Reference</title>
+<title>TARAXA: libraries/core_libs/consensus/include/final_chain/final_chain_impl.hpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -62,7 +62,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
-$(document).ready(function(){initNavTree('final__chain_8cpp.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('final__chain__impl_8hpp.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -83,23 +83,27 @@ $(document).ready(function(){initNavTree('final__chain_8cpp.html',''); initResiz
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle">
-<div class="title">final_chain.cpp File Reference</div>  </div>
+<div class="title">final_chain_impl.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="final__chain_8hpp_source.html">final_chain/final_chain.hpp</a>&quot;</code><br />
-<code>#include &lt;cstdint&gt;</code><br />
-<code>#include &lt;stdexcept&gt;</code><br />
-<code>#include &lt;string&gt;</code><br />
-<code>#include &quot;<a class="el" href="constants_8hpp_source.html">common/constants.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="encoding__solidity_8hpp_source.html">common/encoding_solidity.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="cache_8hpp_source.html">final_chain/cache.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="trie__common_8hpp_source.html">final_chain/trie_common.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="cache_8hpp_source.html">final_chain/cache.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="final__chain_8hpp_source.html">final_chain/final_chain.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="rewards__stats_8hpp_source.html">rewards/rewards_stats.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="system__transaction_8hpp_source.html">transaction/system_transaction.hpp</a>&quot;</code><br />
-</div><table class="memberdecls">
+</div><div class="textblock"><div class="dynheader">
+This graph shows which files directly or indirectly include this file:</div>
+<div class="dyncontent">
+<div class="center"><img src="final__chain__impl_8hpp__dep__incl.png" border="0" usemap="#alibraries_2core__libs_2consensus_2include_2final__chain_2final__chain__impl_8hppdep" alt=""/></div>
+<map name="alibraries_2core__libs_2consensus_2include_2final__chain_2final__chain__impl_8hppdep" id="alibraries_2core__libs_2consensus_2include_2final__chain_2final__chain__impl_8hppdep">
+<area shape="rect" title=" " alt="" coords="97,5,299,61"/>
+<area shape="rect" href="final__chai__impl_8cpp.html" title=" " alt="" coords="5,109,199,165"/>
+<area shape="rect" href="node_8cpp.html" title=" " alt="" coords="223,117,367,158"/>
+</map>
+</div>
+</div>
+<p><a href="final__chain__impl_8hpp_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html">taraxa::final_chain::FinalChainImpl</a></td></tr>
@@ -111,18 +115,13 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1final__chain"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html">taraxa::final_chain</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:gabf02617246115ac51e89118a617ca5ca"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; FinalChain &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#gabf02617246115ac51e89118a617ca5ca">taraxa::final_chain::NewFinalChain</a> (const std::shared_ptr&lt; DB &gt; &amp;db, const <a class="el" href="structtaraxa_1_1_full_node_config.html">taraxa::FullNodeConfig</a> &amp;config, const addr_t &amp;node_addr={})</td></tr>
-<tr class="separator:gabf02617246115ac51e89118a617ca5ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_bc0718b08fb2015b8e59c47b2805f60c.html">libraries</a></li><li class="navelem"><a class="el" href="dir_26a07acc86f96606533d32694b27ad6e.html">core_libs</a></li><li class="navelem"><a class="el" href="dir_cfe3fd7e5f3bdd0f5dfa2b6860f93e94.html">consensus</a></li><li class="navelem"><a class="el" href="dir_4805b6acfd5fffc5e179e9c9cb76b961.html">src</a></li><li class="navelem"><a class="el" href="dir_0ee91262d8ec7dcba86dfcc3f95ef4d0.html">final_chain</a></li><li class="navelem"><a class="el" href="final__chain_8cpp.html">final_chain.cpp</a></li>
+    <li class="navelem"><a class="el" href="dir_bc0718b08fb2015b8e59c47b2805f60c.html">libraries</a></li><li class="navelem"><a class="el" href="dir_26a07acc86f96606533d32694b27ad6e.html">core_libs</a></li><li class="navelem"><a class="el" href="dir_cfe3fd7e5f3bdd0f5dfa2b6860f93e94.html">consensus</a></li><li class="navelem"><a class="el" href="dir_29459ddfa70b136c6779901e5c527d5b.html">include</a></li><li class="navelem"><a class="el" href="dir_e556156ebe2a1e142e6dd1628d526713.html">final_chain</a></li><li class="navelem"><a class="el" href="final__chain__impl_8hpp.html">final_chain_impl.hpp</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1 </li>
   </ul>
 </div>

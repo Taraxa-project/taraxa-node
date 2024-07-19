@@ -1,6 +1,5 @@
 var NAVTREEINDEX13 =
 {
-"dag__manager_8hpp.html":[17,0,1,4,0,0,0,2],
 "dag__manager_8hpp_source.html":[17,0,1,4,0,0,0,2],
 "dag__sync__packet__handler_8cpp.html":[17,0,1,4,1,3,0,0,0,2],
 "dag__sync__packet__handler_8hpp.html":[17,0,1,4,1,1,0,0,0,0,2],
@@ -168,13 +167,13 @@ var NAVTREEINDEX13 =
 "ext__votes__packet__handler_8hpp.html":[17,0,1,4,1,1,0,0,0,0,0,3],
 "ext__votes__packet__handler_8hpp_source.html":[17,0,1,4,1,1,0,0,0,0,0,3],
 "files.html":[17,0],
-"final__chain_8cpp.html":[17,0,1,4,0,1,1,1],
-"final__chain_8cpp.html#gabf02617246115ac51e89118a617ca5ca":[17,0,1,4,0,1,1,1,1],
+"final__chai__impl_8cpp.html":[17,0,1,4,0,1,1,1],
 "final__chain_8hpp.html":[17,0,1,4,0,0,1,2],
 "final__chain_8hpp.html#ga649a511610909f817c366b4315f74425":[17,0,1,4,0,0,1,2,0],
-"final__chain_8hpp.html#gabf02617246115ac51e89118a617ca5ca":[17,0,1,4,0,0,1,2,1],
 "final__chain_8hpp.html#gga649a511610909f817c366b4315f74425aa9a86bce9374c2830787105c02766385":[17,0,1,4,0,0,1,2,0,0],
 "final__chain_8hpp_source.html":[17,0,1,4,0,0,1,2],
+"final__chain__impl_8hpp.html":[17,0,1,4,0,0,1,3],
+"final__chain__impl_8hpp_source.html":[17,0,1,4,0,0,1,3],
 "from_hex-example.html":[18,2],
 "functional_8hpp.html":[17,0,1,2,0,0,6],
 "functional_8hpp.html#a2e2023bff6913264bc83ccef61e32275":[17,0,1,2,0,0,6,2],
@@ -249,5 +248,6 @@ var NAVTREEINDEX13 =
 "functions_vars_n.html":[16,3,2,13],
 "functions_vars_o.html":[16,3,2,14],
 "functions_vars_p.html":[16,3,2,15],
-"functions_vars_q.html":[16,3,2,16]
+"functions_vars_q.html":[16,3,2,16],
+"functions_vars_r.html":[16,3,2,17]
 };

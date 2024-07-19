@@ -108,9 +108,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7b326560879e1181d237324e0bdff22c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a7b326560879e1181d237324e0bdff22c">isUniqueVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; vote) const</td></tr>
 <tr class="memdesc:a7b326560879e1181d237324e0bdff22c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if vote is unique per period &amp; validator.  <a href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a7b326560879e1181d237324e0bdff22c">More...</a><br /></td></tr>
 <tr class="separator:a7b326560879e1181d237324e0bdff22c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad35510adbb504533eb63ed19b69a60b3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad35510adbb504533eb63ed19b69a60b3">hasAboveThresholdVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash) const</td></tr>
-<tr class="memdesc:ad35510adbb504533eb63ed19b69a60b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if there above threshold votes for specified period.  <a href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad35510adbb504533eb63ed19b69a60b3">More...</a><br /></td></tr>
-<tr class="separator:ad35510adbb504533eb63ed19b69a60b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad21db2e2da4c5a27481aeb1d9ddfb659"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad21db2e2da4c5a27481aeb1d9ddfb659">periodDataInitialized</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
 <tr class="memdesc:ad21db2e2da4c5a27481aeb1d9ddfb659"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if specified period data have been already initialized.  <a href="classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad21db2e2da4c5a27481aeb1d9ddfb659">More...</a><br /></td></tr>
 <tr class="separator:ad21db2e2da4c5a27481aeb1d9ddfb659"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -306,43 +303,6 @@ weight</td>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>all pillar block votes for specified period and pillar block hash </dd></dl>
-
-</div>
-</div>
-<a id="ad35510adbb504533eb63ed19b69a60b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad35510adbb504533eb63ed19b69a60b3">&#9670;&nbsp;</a></span>hasAboveThresholdVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::pillar_chain::PillarVotes::hasAboveThresholdVotes </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
-          <td class="paramname"><em>period</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>block_hash</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Checks if there above threshold votes for specified period. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">period</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd></dd></dl>
 
 </div>
 </div>

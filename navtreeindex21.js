@@ -1,6 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"namespacemembers_n.html":[15,0,14],
 "namespacemembers_o.html":[15,0,15],
 "namespacemembers_p.html":[15,0,16],
 "namespacemembers_r.html":[15,0,17],
@@ -43,8 +42,8 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[17,0,1,3,0,0,5,0],
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[17,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[17,0,1,4,0,0,8,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[17,0,1,4,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[17,0,1,4,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[17,0,1,4,1,2,0,6,0,0],
@@ -189,10 +188,9 @@ var NAVTREEINDEX21 =
 "pbft__config_8hpp.html#aca5cc9aeb1d46dec9df51efa8f4f666f":[17,0,1,3,0,0,6,2],
 "pbft__config_8hpp_source.html":[17,0,1,3,0,0,6],
 "pbft__manager_8cpp.html":[17,0,1,4,0,1,3,1],
-"pbft__manager_8cpp.html#a403dbfa46218932b1d7b59d85197f847":[17,0,1,4,0,1,3,1,1],
-"pbft__manager_8cpp.html#a568055ae86bee5e4c6bff09eff8c5336":[17,0,1,4,0,1,3,1,3],
-"pbft__manager_8cpp.html#a6099eea09b76da6f646bc24fdd7944ec":[17,0,1,4,0,1,3,1,0],
-"pbft__manager_8cpp.html#aabafad8a9eda2b4f3a4dec9da77ace14":[17,0,1,4,0,1,3,1,2],
+"pbft__manager_8cpp.html#a403dbfa46218932b1d7b59d85197f847":[17,0,1,4,0,1,3,1,0],
+"pbft__manager_8cpp.html#a568055ae86bee5e4c6bff09eff8c5336":[17,0,1,4,0,1,3,1,2],
+"pbft__manager_8cpp.html#aabafad8a9eda2b4f3a4dec9da77ace14":[17,0,1,4,0,1,3,1,1],
 "pbft__manager_8hpp.html":[17,0,1,4,0,0,3,1],
 "pbft__manager_8hpp.html#ga39898c94848b6a52779d398d677f0a9b":[17,0,1,4,0,0,3,1,0],
 "pbft__manager_8hpp.html#gaa671924d435517347832c7f40f1f6cfc":[17,0,1,4,0,0,3,1,1],
@@ -249,5 +247,7 @@ var NAVTREEINDEX21 =
 "priority__queue_8cpp.html":[17,0,1,4,1,3,1,3],
 "priority__queue_8hpp.html":[17,0,1,4,1,1,0,1,3],
 "priority__queue_8hpp_source.html":[17,0,1,4,1,1,0,1,3],
-"proposed__blocks_8cpp.html":[17,0,1,4,0,1,3,3]
+"proposed__blocks_8cpp.html":[17,0,1,4,0,1,3,3],
+"proposed__blocks_8hpp.html":[17,0,1,4,0,0,3,3],
+"proposed__blocks_8hpp_source.html":[17,0,1,4,0,0,3,3]
 };

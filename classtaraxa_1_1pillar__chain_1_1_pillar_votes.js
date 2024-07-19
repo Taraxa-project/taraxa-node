@@ -12,7 +12,6 @@ var classtaraxa_1_1pillar__chain_1_1_pillar_votes =
     [ "addVerifiedVote", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5e6a59af4e2d87a06c27bc029ca84e78", null ],
     [ "eraseVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ab0e60e3bb6761c5c7b692566c8140b0e", null ],
     [ "getVerifiedVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a32e7e941b8f5cc8bb703be5b5a4d009b", null ],
-    [ "hasAboveThresholdVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad35510adbb504533eb63ed19b69a60b3", null ],
     [ "initializePeriodData", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a69be18d7782bad66aa68d67fbdc1b4c9", null ],
     [ "isUniqueVote", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a7b326560879e1181d237324e0bdff22c", null ],
     [ "periodDataInitialized", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad21db2e2da4c5a27481aeb1d9ddfb659", null ],
