@@ -128,7 +128,8 @@ class PillarChainManager {
    * @param pillar_block_hash
    * @param above_threshold
    *
-   * @return all pillar votes for specified period and pillar block hash
+   * @return all pillar votes for specified period and pillar block hash. In case above_threshold == true, votes
+   *         are sorted based on vote weight and the minimum number of votes above threshold are returned
    */
   std::vector<std::shared_ptr<PillarVote>> getVerifiedPillarVotes(PbftPeriod period, const blk_hash_t pillar_block_hash,
                                                                   bool above_threshold = false) const;

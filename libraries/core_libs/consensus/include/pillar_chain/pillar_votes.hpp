@@ -10,8 +10,8 @@ namespace taraxa::pillar_chain {
 class PillarVotes {
  public:
   struct WeightVotes {
-    std::unordered_map<vote_hash_t, std::shared_ptr<PillarVote>> votes;
-    uint64_t weight{0};  // votes weight
+    std::unordered_map<vote_hash_t, std::pair<std::shared_ptr<PillarVote>, uint64_t /* vote weight */>> votes;
+    uint64_t weight{0};  // votes accumulated weight
   };
 
   struct PeriodVotes {
@@ -62,7 +62,7 @@ class PillarVotes {
    *
    * @return true if vote was successfully added, otherwise false
    */
-  bool addVerifiedVote(const std::shared_ptr<PillarVote>& vote, u_int64_t validator_vote_count);
+  bool addVerifiedVote(const std::shared_ptr<PillarVote>& vote, uint64_t validator_vote_count);
 
   /**
    * @brief Get all pillar block votes for specified pillar block
@@ -71,7 +71,8 @@ class PillarVotes {
    * @param pillar_block_hash
    * @param above_threshold if true, return only if there is > threshold verified votes
    *
-   * @return all pillar block votes for specified period and pillar block hash
+   * @return all pillar block votes for specified period and pillar block hash. In case above_threshold == true, votes
+   *         are sorted based on vote weight and the minimum number of votes above threshold are returned
    */
   std::vector<std::shared_ptr<PillarVote>> getVerifiedVotes(PbftPeriod period, const blk_hash_t& pillar_block_hash,
                                                             bool above_threshold = false) const;
