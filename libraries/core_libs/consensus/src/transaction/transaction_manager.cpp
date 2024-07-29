@@ -420,12 +420,10 @@ SharedTransactions TransactionManager::getTransactions(const vec_trx_t &trxs_has
   for (auto trx : finalizedTransactions) {
     // Only include transactions with valid nonce at proposal period
     auto acc = final_chain_->get_account(trx->getSender(), proposal_period);
-    if (acc.has_value()) {
-      if (acc->nonce > trx->getNonce()) {
-        LOG(log_nf_) << "Old transaction: " << trx->getHash();
-      } else {
-        transactions.emplace_back(std::move(trx));
-      }
+    if (acc.has_value() && acc->nonce > trx->getNonce()) {
+      LOG(log_er_) << "Old transaction: " << trx->getHash();
+    } else {
+      transactions.emplace_back(std::move(trx));
     }
   }
   return transactions;
