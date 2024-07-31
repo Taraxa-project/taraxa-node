@@ -21,7 +21,8 @@ class PbftBlockExtraData {
   PbftBlockExtraData(const uint16_t major_version, const uint16_t minor_version, const uint16_t patch_version,
                      const uint16_t net_version, const std::string node_implementation,
                      const std::optional<blk_hash_t>& pillar_block_hash);
-  PbftBlockExtraData(const bytes& data);
+
+  static std::optional<PbftBlockExtraData> fromBytes(const bytes& data);
 
   /**
    * @brief Get rlp
