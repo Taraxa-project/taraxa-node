@@ -20,9 +20,9 @@ void dec_json(Json::Value const &json, DBConfig &db_config) {
 
 std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value &logging) {
   // could be empty if config loaded from json e.g. tests
-  if (!json_file_name.empty()) {
-    last_json_update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
-  }
+  // if (!json_file_name.empty()) {
+  //   last_json_update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
+  // }
   std::vector<logger::Config> res;
   if (!logging.isNull()) {
     if (auto path = getConfigData(logging, {"log_path"}, true); !path.isNull()) {

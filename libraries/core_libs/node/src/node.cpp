@@ -50,7 +50,7 @@ void FullNode::init() {
     logging.InitLogging(node_addr);
   }
 
-  conf_.scheduleLoggingConfigUpdate();
+  // conf_.scheduleLoggingConfigUpdate();
 
   LOG_OBJECTS_CREATE("FULLND");
 
