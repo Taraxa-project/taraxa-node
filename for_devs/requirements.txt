@@ -17,7 +17,7 @@ bottle==0.12.25
 Brotli==1.0.9
 build==0.10.0
 CacheControl==0.13.1
-certifi==2022.9.24
+certifi==2024.7.4
 cffi==1.16.0
 chardet==5.1.0
 cleo==2.0.1
