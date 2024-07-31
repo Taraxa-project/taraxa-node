@@ -38,17 +38,17 @@
     "boot_nodes": [
       {
         "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",
-        "ip": "boot-node-3.testnet.taraxa.io",
+        "ip": "boot-node-0.testnet.taraxa.io",
         "port": 10002
       },
       {
         "id": "d2d445fc3276bdbf2a07628a484baabf45ccb91d6aa078a0dc3aefc11f1941899a923312ec0e664b8e57b63b774c47a006d9d1d16befd2135dcf76067736c688",
-        "ip": "boot-node-4.testnet.taraxa.io",
+        "ip": "boot-node-1.testnet.taraxa.io",
         "port": 10002
       },
       {
         "id": "c6e7263f44d88c0d6cc3b0d5ebdc31cf891908e8fa7e545e137d3ed0bfec1810fa24c1379228afbb53df0d59e716e17138115fd096782a84261718ab77665171",
-        "ip": "boot-node-5.testnet.taraxa.io",
+        "ip": "boot-node-2.testnet.taraxa.io",
         "port": 10002
       }
     ]

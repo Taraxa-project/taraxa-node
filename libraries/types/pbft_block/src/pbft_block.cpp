@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-#include "common/jsoncpp.hpp"
-
 namespace taraxa {
 
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
@@ -15,7 +13,7 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
     dev::bytes extra_data_bytes;
     util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
                     prev_state_root_hash_, period_, timestamp_, reward_votes_, extra_data_bytes, signature_);
-    extra_data_ = PbftBlockExtraData(extra_data_bytes);
+    extra_data_ = PbftBlockExtraData::fromBytes(extra_data_bytes);
   } else {
     util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
                     prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
