@@ -42,7 +42,7 @@ struct FullNodeConfig {
   void InitLogging(const addr_t &node_address);
 
   std::string json_file_name;
-  // std::filesystem::file_time_type last_json_update_time;
+  std::filesystem::file_time_type last_json_update_time;
   dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path data_path;
