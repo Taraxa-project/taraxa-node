@@ -352,8 +352,8 @@ void Session::doRead() {
                     auto packet_type_str = capabilityPacketTypeToString(capabilityFor(packetType), packetType);
                     LOG(m_netLogger) << "Received invalid packet. Packet type (possibly "
                                         "corrupted): "
-                                     << packetType << " (" << packet_type_str << ")."
-                                     << "Frame Size: " << frame.size() << ". Size encoded in RLP: "
+                                     << packetType << " (" << packet_type_str << "). Frame Size: " << frame.size()
+                                     << ". Size encoded in RLP: "
                                      << RLP(frame.cropped(1), RLP::LaissezFaire).actualSize()
                                      << ". Message: " << toHex(frame) << endl;
                     disconnect_(BadProtocol);
@@ -370,8 +370,7 @@ void Session::doRead() {
                   auto packet_type_str = capabilityPacketTypeToString(capabilityFor(packetType), packetType);
                   LOG(m_netLogger) << "Received invalid packet. Packet type (possibly "
                                       "corrupted): "
-                                   << packetType << " (" << packet_type_str << ")."
-                                   << "Frame Size: " << frame.size()
+                                   << packetType << " (" << packet_type_str << "). Frame Size: " << frame.size()
                                    << ". Size encoded in RLP: " << RLP(frame.cropped(1), RLP::LaissezFaire).actualSize()
                                    << ". Message: " << toHex(frame) << endl;
                   disconnect_(BadProtocol);

@@ -8,6 +8,69 @@ Specifies whether to build with or without optimization and without or with
 the symbol table for debugging. Unless you are specifically debugging or
 running tests, it is recommended to build as release.
 
+## Building on Ubuntu 24.04
+For Ubuntu 24.04 users, after installing the right packages with `apt` taraxa-node
+will build out of the box without further effort:
+
+### Install taraxa-node dependencies:
+
+    # Required packages
+    sudo apt-get install -y \
+        libtool \
+        autoconf \
+        ccache \
+        cmake \
+        clang-format-17 \
+        clang-tidy-17 \
+        llvm-17 \
+        golang-go \
+        python3-full \
+        # this libs are required for arm build by go part. you can skip it for amd64 build
+        libzstd-dev \
+        libsnappy-dev \
+        rapidjson-dev \
+        libgmp-dev \
+        libmpfr-dev \
+        libmicrohttpd-dev
+
+    # Optional. Needed to run py_test. This won't install on arm64 OS because package is missing in apt
+    sudo add-apt-repository ppa:ethereum/ethereum
+    sudo apt-get update
+    sudo apt install solc
+
+    # Install conan package manager
+    sudo python3 -m pip install conan==1.64.1
+
+    # Setup clang as default compiler either in your IDE or by env. variables"
+    export CC="clang-17"
+    export CXX="clang++-17"
+
+### Clone the Repository
+
+    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    cd taraxa-node
+    git submodule update --init --recursive
+
+### Compile
+
+    # Optional - one time action
+    # Create clang profile
+    # It is recommended to use clang because on other compilers you could face some errors
+    conan profile new clang --detect \
+    && conan profile update settings.compiler=clang clang  \
+    && conan profile update settings.compiler.version=17 clang  \
+    && conan profile update settings.compiler.libcxx=libstdc++11 clang \
+    && conan profile update settings.build_type=RelWithDebInfo clang \
+    && conan profile update env.CC=clang-17 clang  \
+    && conan profile update env.CXX=clang++-17 clang  \
+    && conan install --build missing -pr=clang .
+
+    # Compile project using cmake
+    mkdir cmake-build
+    cd cmake-build
+    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
+    make -j$(nproc)
+
 ## Building on Ubuntu 22.04
 For Ubuntu 22.04 users, after installing the right packages with `apt` taraxa-node
 will build out of the box without further effort:
@@ -38,7 +101,7 @@ will build out of the box without further effort:
     sudo apt install solc
 
     # Install conan package manager
-    sudo python3 -m pip install conan==1.60.0
+    sudo python3 -m pip install conan==1.64.1
 
     # Setup clang as default compiler either in your IDE or by env. variables"
     export CC="clang-14"
@@ -102,9 +165,9 @@ will build out of the box without further effort:
     sudo python3 -m pip install cmake
 
     # Go (required)
-    curl -LO https://go.dev/dl/go1.18.3.linux-amd64.tar.gz
-    sudo tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
-    rm -rf go1.18.3.linux-amd64.tar.gz
+    curl -LO https://go.dev/dl/go1.22.2.linux-amd64.tar.gz
+    sudo tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
+    rm -rf go1.22.2.linux-amd64.tar.gz
 
     # Add go to PATH
     # Add these env. variables to the ~/.profile to persist go settings even after restart
@@ -168,7 +231,7 @@ And optional:
 First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Clang-14 is used for compilation.
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd 
+    brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
 
 ### Clone the Repository
 

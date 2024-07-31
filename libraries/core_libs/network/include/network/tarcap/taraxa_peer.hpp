@@ -36,13 +36,13 @@ class TaraxaPeer : public boost::noncopyable {
   bool isTransactionKnown(const trx_hash_t& hash) const;
 
   /**
-   * @brief Mark vote as known
+   * @brief Mark pbft vote as known
    *
    * @param _hash
    * @return true in case vote was actually marked as known(was not known before), otherwise false (was already known)
    */
-  bool markVoteAsKnown(const vote_hash_t& hash);
-  bool isVoteKnown(const vote_hash_t& hash) const;
+  bool markPbftVoteAsKnown(const vote_hash_t& hash);
+  bool isPbftVoteKnown(const vote_hash_t& hash) const;
 
   /**
    * @brief Mark pbft block as known
@@ -53,6 +53,16 @@ class TaraxaPeer : public boost::noncopyable {
    */
   bool markPbftBlockAsKnown(const blk_hash_t& hash);
   bool isPbftBlockKnown(const blk_hash_t& hash) const;
+
+  /**
+   * @brief Mark pillar block vote as known
+   *
+   * @param _hash
+   * @return true in case pillar vote was actually marked as known(was not known before), otherwise false (was already
+   * known)
+   */
+  bool markPillarVoteAsKnown(const vote_hash_t& hash);
+  bool isPillarVoteKnown(const vote_hash_t& hash) const;
 
   const dev::p2p::NodeID& getId() const;
 
@@ -95,6 +105,11 @@ class TaraxaPeer : public boost::noncopyable {
    */
   void resetPacketsStats();
 
+  /**
+   * @brief Resets known caches - used for testing
+   */
+  void resetKnownCaches();
+
  public:
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
@@ -121,11 +136,11 @@ class TaraxaPeer : public boost::noncopyable {
   ExpirationBlockNumberCache<trx_hash_t> known_transactions_;
   // PBFT
   ExpirationBlockNumberCache<blk_hash_t> known_pbft_blocks_;
-  ExpirationBlockNumberCache<vote_hash_t> known_votes_;  // for peers
+  ExpirationBlockNumberCache<vote_hash_t> known_votes_;  // both pbft & pillar votes
 
   std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
   std::atomic<uint64_t> suspicious_packet_count_ = 0;
-  const uint64_t kMaxSuspiciousPacketPerMinute = 1000;
+  const uint64_t kMaxSuspiciousPacketPerMinute = 50000;
 
   // Performance extensive dag syncing is only allowed to be requested once each kDagSyncingLimit seconds
   const uint64_t kDagSyncingLimit = 60;

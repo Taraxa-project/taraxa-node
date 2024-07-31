@@ -12,7 +12,7 @@ namespace taraxa {
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : kConf(conf),
-      transactions_pool_(kConf.transactions_pool_size),
+      transactions_pool_(final_chain, kConf.transactions_pool_size),
       kDagBlockGasLimit(kConf.genesis.dag.gas_limit),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
@@ -46,48 +46,34 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   return result.gas_used;
 }
 
-std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
-    const std::shared_ptr<Transaction> &trx) const {
+std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
-    return {TransactionStatus::Verified, ""};
+    return {true, ""};
   }
 
   if (trx->getChainID() != kConf.genesis.chain_id) {
-    return {TransactionStatus::Invalid,
+    return {false,
             "chain_id mismatch " + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.genesis.chain_id)};
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.
   if (kDagBlockGasLimit < trx->getGas()) {
-    return {TransactionStatus::Invalid, "invalid gas"};
+    return {false, "invalid gas"};
   }
 
   try {
     trx->getSender();
   } catch (Transaction::InvalidSignature const &) {
-    return {TransactionStatus::Invalid, "invalid signature"};
+    return {false, "invalid signature"};
   }
 
   // gas_price in transaction must be greater than or equal to minimum value from config
   if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
-    return {TransactionStatus::Invalid, "gas_price too low"};
+    return {false, "gas_price too low"};
   }
 
-  const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
-
-  // Ensure the transaction adheres to nonce ordering
-  if (account.nonce > trx->getNonce()) {
-    return {TransactionStatus::LowNonce, "nonce too low"};
-  }
-
-  // Transactor should have enough funds to cover the costs
-  // cost == V + GP * GL
-  if (account.balance < trx->getCost()) {
-    return {TransactionStatus::InsufficentBalance, "insufficient balance"};
-  }
-
-  return {TransactionStatus::Verified, ""};
+  return {true, ""};
 }
 
 bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) {
@@ -99,38 +85,65 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
     return {false, "Transaction already in transactions pool"};
   }
 
-  const auto [status, reason] = verifyTransaction(trx);
-  if (status != TransactionStatus::Verified) {
+  const auto [verified, reason] = verifyTransaction(trx);
+  if (!verified) {
     return {false, reason};
   }
 
   const auto trx_hash = trx->getHash();
   auto trx_copy = trx;
-  if (insertValidatedTransaction(std::move(trx_copy), status)) {
+  if (insertValidatedTransaction(std::move(trx_copy), false) == TransactionStatus::Inserted) {
     return {true, ""};
   } else {
-    const auto period = db_->getTransactionPeriod(trx_hash);
-    if (period != std::nullopt) {
-      return {false, "Transaction already finalized in period" + std::to_string(period->first)};
+    const auto location = db_->getTransactionLocation(trx_hash);
+    if (location) {
+      return {false, "Transaction already finalized in period" + std::to_string(location->period)};
     } else {
       return {false, "Transaction could not be inserted"};
     }
   }
 }
 
-bool TransactionManager::insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, const TransactionStatus status) {
+TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr<Transaction> &&tx,
+                                                                 bool insert_non_proposable) {
   const auto trx_hash = tx->getHash();
 
   // This lock synchronizes inserting and removing transactions from transactions memory pool.
   // It is very important to lock transaction pool checking to be
   // protected from new DAG block and Period data transactions insertions.
   std::unique_lock transactions_lock(transactions_mutex_);
+
   if (nonfinalized_transactions_in_dag_.contains(trx_hash)) {
-    return false;
+    return TransactionStatus::Known;
   }
+
+  if (recently_finalized_transactions_.contains(trx_hash)) {
+    return TransactionStatus::Known;
+  }
+
+  const auto account = final_chain_->get_account(tx->getSender()).value_or(taraxa::state_api::ZeroAccount);
+  bool proposable = true;
+
+  // Ensure the transaction adheres to nonce ordering
+  if (account.nonce > tx->getNonce()) {
+    if (!insert_non_proposable) {
+      return TransactionStatus::Known;
+    }
+    proposable = false;
+  }
+
+  // Transactor should have enough funds to cover the costs
+  // cost == V + GP * GL
+  if (account.balance < tx->getCost()) {
+    if (!insert_non_proposable) {
+      return TransactionStatus::Known;
+    }
+    proposable = false;
+  }
+
   const auto last_block_number = final_chain_->last_block_number();
   LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
-  return transactions_pool_.insert(std::move(tx), status, last_block_number);
+  return transactions_pool_.insert(std::move(tx), proposable, last_block_number);
 }
 
 unsigned long TransactionManager::getTransactionCount() const {
@@ -175,19 +188,25 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
     std::unique_lock transactions_lock(transactions_mutex_);
 
-    auto trx_in_db = db_->transactionsInDb(trx_hashes);
-    for (uint64_t i = 0; i < trxs.size(); i++) {
-      auto const &trx_hash = trx_hashes[i];
-      // We only save transaction if it has not already been saved
-      if (!trx_in_db[i]) {
-        db_->addTransactionToBatch(*trxs[i], write_batch);
-        nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
-      }
-      if (transactions_pool_.erase(trx_hash)) {
-        LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
-        // Transactions are counted when included in DAG
-        trx_count_++;
-        accepted_transactions.emplace_back(trx_hash);
+    for (auto t : trxs) {
+      const auto account = final_chain_->get_account(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
+      const auto tx_hash = t->getHash();
+
+      // Cheacking nonce in cheaper than checking db, verify with nonce if possible
+      bool trx_not_executed = account.nonce < t->getNonce() || !db_->transactionFinalized(tx_hash);
+
+      if (trx_not_executed) {
+        if (!recently_finalized_transactions_.contains(tx_hash) &&
+            !nonfinalized_transactions_in_dag_.contains(tx_hash)) {
+          db_->addTransactionToBatch(*t, write_batch);
+          nonfinalized_transactions_in_dag_.emplace(tx_hash, t);
+          if (transactions_pool_.erase(tx_hash)) {
+            LOG(log_dg_) << "Transaction " << tx_hash << " removed from trx pool ";
+            // Transactions are counted when included in DAG
+            accepted_transactions.emplace_back(tx_hash);
+          }
+          trx_count_++;
+        }
       }
     }
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
@@ -297,9 +316,18 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   return {trxs, estimations};
 }
 
-SharedTransactions TransactionManager::getAllPoolTrxs() {
+std::vector<SharedTransactions> TransactionManager::getAllPoolTrxs() {
   std::shared_lock transactions_lock(transactions_mutex_);
   return transactions_pool_.getAllTransactions();
+}
+
+void TransactionManager::initializeRecentlyFinalizedTransactions(const PeriodData &period_data) {
+  std::unique_lock transactions_lock(transactions_mutex_);
+  for (auto const &trx : period_data.transactions) {
+    const auto hash = trx->getHash();
+    recently_finalized_transactions_[hash] = trx;
+    recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod()].push_back(hash);
+  }
 }
 
 /**
@@ -307,13 +335,22 @@ SharedTransactions TransactionManager::getAllPoolTrxs() {
  */
 void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &period_data) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
+  const auto recently_finalized_transactions_periods =
+      kRecentlyFinalizedTransactionsFactor * final_chain_->delegation_delay();
   if (period_data.transactions.size() > 0) {
-    if (period_data.transactions.size() + recently_finalized_transactions_.size() > kRecentlyFinalizedTransactionsMax) {
-      recently_finalized_transactions_.clear();
+    // Delete transactions older than recently_finalized_transactions_periods
+    if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
+      for (auto hash : recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod() -
+                                                                   recently_finalized_transactions_periods]) {
+        recently_finalized_transactions_.erase(hash);
+      }
+      recently_finalized_transactions_per_period_.erase(period_data.pbft_blk->getPeriod() -
+                                                        recently_finalized_transactions_periods);
     }
     for (auto const &trx : period_data.transactions) {
       const auto hash = trx->getHash();
       recently_finalized_transactions_[hash] = trx;
+      recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod()].push_back(hash);
       // we should mark trx as know just in case it was only synchronized from the period data
       transactions_pool_.markTransactionKnown(hash);
       if (!nonfinalized_transactions_in_dag_.erase(hash)) {
@@ -327,64 +364,68 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
     }
     db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
   }
+
+  // Sometimes transactions which nonce was skipped and will never be included in a block might remain in the
+  // transaction pool, remove them each 100 block
+  const uint32_t transaction_purge_interval = 100;
+  if (period_data.pbft_blk->getPeriod() % transaction_purge_interval == 0) {
+    transactions_pool_.purge();
+  }
 }
 
-void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::unordered_set<trx_hash_t> &&transactions) {
+void TransactionManager::removeNonFinalizedTransactions(std::unordered_set<trx_hash_t> &&transactions) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
   auto write_batch = db_->createWriteBatch();
   for (auto const &trx_hash : transactions) {
     auto trx = nonfinalized_transactions_in_dag_.find(trx_hash);
     if (trx != nonfinalized_transactions_in_dag_.end()) {
       db_->removeTransactionToBatch(trx_hash, write_batch);
-      transactions_pool_.insert(std::move(trx->second), TransactionStatus::Verified);
       nonfinalized_transactions_in_dag_.erase(trx);
     }
   }
   db_->commitWriteBatch(write_batch);
 }
 
-// Verify all block transactions are present
-std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBlock const &blk) {
-  vec_trx_t finalized_trx_hashes;
-  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
-  if (all_block_trx_hashes.empty()) {
-    LOG(log_er_) << "Ignore block " << blk.getHash() << " since it has no transactions";
-    return std::nullopt;
-  }
+SharedTransactions TransactionManager::getBlockTransactions(const DagBlock &blk, PbftPeriod proposal_period) {
+  return getTransactions(blk.getTrxs(), proposal_period);
+}
 
+SharedTransactions TransactionManager::getTransactions(const vec_trx_t &trxs_hashes, PbftPeriod proposal_period) {
+  vec_trx_t finalized_trx_hashes;
   SharedTransactions transactions;
-  transactions.reserve(all_block_trx_hashes.size());
-  {
+  transactions.reserve(trxs_hashes.size());
+  for (auto const &tx_hash : trxs_hashes) {
     std::shared_lock transactions_lock(transactions_mutex_);
-    for (auto const &tx_hash : all_block_trx_hashes) {
-      auto trx = transactions_pool_.get(tx_hash);
-      if (trx != nullptr) {
-        transactions.emplace_back(std::move(trx));
+    auto trx = transactions_pool_.get(tx_hash);
+    if (trx != nullptr) {
+      transactions.emplace_back(std::move(trx));
+    } else {
+      auto trx_it = nonfinalized_transactions_in_dag_.find(tx_hash);
+      if (trx_it != nonfinalized_transactions_in_dag_.end()) {
+        transactions.emplace_back(trx_it->second);
       } else {
-        auto trx_it = nonfinalized_transactions_in_dag_.find(tx_hash);
-        if (trx_it != nonfinalized_transactions_in_dag_.end()) {
+        trx_it = recently_finalized_transactions_.find(tx_hash);
+        if (trx_it != recently_finalized_transactions_.end()) {
           transactions.emplace_back(trx_it->second);
         } else {
-          trx_it = recently_finalized_transactions_.find(tx_hash);
-          if (trx_it != recently_finalized_transactions_.end()) {
-            transactions.emplace_back(trx_it->second);
-          } else {
-            finalized_trx_hashes.emplace_back(tx_hash);
-          }
+          finalized_trx_hashes.emplace_back(tx_hash);
         }
       }
     }
   }
+
+  // This should be an extremely rare case since transactions should be found in the caches
   auto finalizedTransactions = db_->getFinalizedTransactions(finalized_trx_hashes);
-  if (finalizedTransactions.first.has_value()) {
-    for (auto trx : *finalizedTransactions.first) {
+
+  for (auto trx : finalizedTransactions) {
+    // Only include transactions with valid nonce at proposal period
+    auto acc = final_chain_->get_account(trx->getSender(), proposal_period);
+    if (acc.has_value() && acc->nonce > trx->getNonce()) {
+      LOG(log_er_) << "Old transaction: " << trx->getHash();
+    } else {
       transactions.emplace_back(std::move(trx));
     }
-  } else {
-    LOG(log_nf_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
-    return std::nullopt;
   }
-
   return transactions;
 }
 

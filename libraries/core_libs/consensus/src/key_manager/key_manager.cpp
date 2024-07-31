@@ -6,18 +6,18 @@ static const vrf_wrapper::vrf_pk_t kEmptyVrfKey;
 
 KeyManager::KeyManager(std::shared_ptr<FinalChain> final_chain) : final_chain_(std::move(final_chain)) {}
 
-std::shared_ptr<vrf_wrapper::vrf_pk_t> KeyManager::get(EthBlockNumber blk_n, const addr_t& addr) {
+std::shared_ptr<vrf_wrapper::vrf_pk_t> KeyManager::getVrfKey(EthBlockNumber blk_n, const addr_t& addr) {
   {
-    std::shared_lock lock(mutex_);
-    if (const auto it = key_map_.find(addr); it != key_map_.end()) {
+    std::shared_lock lock(vrf_keys_mutex_);
+    if (const auto it = vrf_keys_.find(addr); it != vrf_keys_.end()) {
       return it->second;
     }
   }
 
   try {
     if (auto key = final_chain_->dpos_get_vrf_key(blk_n, addr); key != kEmptyVrfKey) {
-      std::unique_lock lock(mutex_);
-      return key_map_.insert_or_assign(addr, std::make_shared<vrf_wrapper::vrf_pk_t>(std::move(key))).first->second;
+      std::unique_lock lock(vrf_keys_mutex_);
+      return vrf_keys_.insert_or_assign(addr, std::make_shared<vrf_wrapper::vrf_pk_t>(std::move(key))).first->second;
     }
   } catch (state_api::ErrFutureBlock&) {
     return nullptr;
@@ -25,4 +25,5 @@ std::shared_ptr<vrf_wrapper::vrf_pk_t> KeyManager::get(EthBlockNumber blk_n, con
 
   return nullptr;
 }
+
 }  // namespace taraxa

@@ -9,9 +9,10 @@
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
 #include "final_chain/final_chain.hpp"
+#include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
@@ -21,6 +22,7 @@ static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
 static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
 static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
+static constexpr uint16_t PILLAR_VOTES_POS_IN_PERIOD_DATA = 4;
 static constexpr uint16_t PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK = 0;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
@@ -572,83 +574,89 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_data)));
   // Find the first non-deleted period
   it->SeekToFirst();
-  if (it->Valid()) {
-    uint64_t start_period;
-    memcpy(&start_period, it->key().data(), sizeof(uint64_t));
-    it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_level)));
-    it->SeekToFirst();
-    if (it->Valid()) {
-      uint64_t start_level;
-      memcpy(&start_level, it->key().data(), sizeof(uint64_t));
-      if (start_period < end_period) {
-        auto write_batch = createWriteBatch();
-        // Delete up to max 10000 period at once
-        const uint32_t max_batch_delete = 10000;
-        auto start_slice = toSlice(start_period);
-        auto end_slice = toSlice(end_period);
+  if (!it->Valid()) {
+    return;
+  }
 
-        for (auto period = start_period; period < end_period; period++) {
-          // Find transactions included in the old blocks and delete data related to these transactions to free
-          // disk space
-          const auto& [pbft_block_hash, dag_blocks] = getLastPbftblockHashAndFinalizedDagBlockByPeriod(period);
+  uint64_t start_period;
+  memcpy(&start_period, it->key().data(), sizeof(uint64_t));
+  it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_level)));
+  it->SeekToFirst();
+  if (!it->Valid()) {
+    return;
+  }
 
-          for (const auto& dag_block : dag_blocks) {
-            for (const auto& trx_hash : dag_block->getTrxs()) {
-              remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
-              remove(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()));
-            }
-          }
-          remove(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()));
+  uint64_t start_level;
+  memcpy(&start_level, it->key().data(), sizeof(uint64_t));
+  if (start_period < end_period) {
+    auto write_batch = createWriteBatch();
+    // Delete up to max 10000 period at once
+    const uint32_t max_batch_delete = 10000;
+    auto start_slice = toSlice(start_period);
+    auto end_slice = toSlice(end_period);
 
-          for (uint64_t level = 0, index = period; level < final_chain::c_bloomIndexLevels;
-               ++level, index /= final_chain::c_bloomIndexSize) {
-            auto chunk_id = h256(index / final_chain::c_bloomIndexSize * 0xff + level);
-            remove(write_batch, Columns::final_chain_log_blooms_index, chunk_id);
-          }
+    for (auto period = start_period; period < end_period; period++) {
+      // Find transactions included in the old blocks and delete data related to these transactions to free
+      // disk space
+      const auto& [pbft_block_hash, dag_blocks] = getLastPbftblockHashAndFinalizedDagBlockByPeriod(period);
 
-          if ((period - start_period + 1) % max_batch_delete == 0) {
-            commitWriteBatch(write_batch);
-            write_batch = createWriteBatch();
-          }
+      for (const auto& dag_block : dag_blocks) {
+        for (const auto& trx_hash : dag_block->getTrxs()) {
+          remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
+          remove(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()));
         }
+      }
+      remove(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()));
 
-        commitWriteBatch(write_batch);
-        db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
-
-        // Deletion alone does not guarantee that the disk space is freed, CompactRange  actually compacts
-        // the data in the database and free disk space
-        db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
-        db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-        db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
-        db_->CompactRange({}, handle(Columns::pbft_block_period), nullptr, nullptr);
-        db_->CompactRange({}, handle(Columns::final_chain_log_blooms_index), nullptr, nullptr);
+      for (uint64_t level = 0, index = period; level < final_chain::c_bloomIndexLevels;
+           ++level, index /= final_chain::c_bloomIndexSize) {
+        auto chunk_id = h256(index / final_chain::c_bloomIndexSize * 0xff + level);
+        remove(write_batch, Columns::final_chain_log_blooms_index, chunk_id);
       }
 
-      if (start_level < dag_level_to_keep) {
-        auto write_batch = createWriteBatch();
-        // Delete up to max 10000 period at once
-        const uint32_t max_batch_delete = 10000;
-        auto start_slice = toSlice(start_level);
-        auto end_slice = toSlice(dag_level_to_keep - 1);
-        for (auto level = start_level; level < dag_level_to_keep; level++) {
-          // Find old dag blocks and delete data related to these blocks to free disk space
-          auto dag_block_hashes = getBlocksByLevel(level);
-          for (auto dag_block_hash : dag_block_hashes) {
-            remove(write_batch, Columns::dag_block_period, toSlice(dag_block_hash.asBytes()));
-          }
-          if ((level - start_level + 1) % max_batch_delete == 0) {
-            commitWriteBatch(write_batch);
-            write_batch = createWriteBatch();
-          }
-        }
+      if ((period - start_period + 1) % max_batch_delete == 0) {
         commitWriteBatch(write_batch);
-        db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
-
-        db_->CompactRange({}, handle(Columns::dag_block_period), nullptr, nullptr);
-        db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
-        LOG(log_si_) << "Clear light node history completed";
+        write_batch = createWriteBatch();
       }
     }
+
+    commitWriteBatch(write_batch);
+    db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
+    db_->DeleteRange(write_options_, handle(Columns::pillar_block), start_slice, end_slice);
+
+    // Deletion alone does not guarantee that the disk space is freed, CompactRange actually compacts
+    // the data in the database and free disk space
+    db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
+    db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
+    db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
+    db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
+    db_->CompactRange({}, handle(Columns::pbft_block_period), nullptr, nullptr);
+    db_->CompactRange({}, handle(Columns::final_chain_log_blooms_index), nullptr, nullptr);
+  }
+
+  if (start_level < dag_level_to_keep) {
+    auto write_batch = createWriteBatch();
+    // Delete up to max 10000 period at once
+    const uint32_t max_batch_delete = 10000;
+    auto start_slice = toSlice(start_level);
+    auto end_slice = toSlice(dag_level_to_keep - 1);
+    for (auto level = start_level; level < dag_level_to_keep; level++) {
+      // Find old dag blocks and delete data related to these blocks to free disk space
+      auto dag_block_hashes = getBlocksByLevel(level);
+      for (auto dag_block_hash : dag_block_hashes) {
+        remove(write_batch, Columns::dag_block_period, toSlice(dag_block_hash.asBytes()));
+      }
+      if ((level - start_level + 1) % max_batch_delete == 0) {
+        commitWriteBatch(write_batch);
+        write_batch = createWriteBatch();
+      }
+    }
+    commitWriteBatch(write_batch);
+    db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
+
+    db_->CompactRange({}, handle(Columns::dag_block_period), nullptr, nullptr);
+    db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
+    LOG(log_si_) << "Clear light node history completed";
   }
 }
 
@@ -668,7 +676,7 @@ void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch
   uint32_t trx_pos = 0;
   for (auto const& trx : period_data.transactions) {
     removeTransactionToBatch(trx->getHash(), write_batch);
-    addTransactionPeriodToBatch(write_batch, trx->getHash(), period_data.pbft_blk->getPeriod(), trx_pos);
+    addTransactionLocationToBatch(write_batch, trx->getHash(), period_data.pbft_blk->getPeriod(), trx_pos);
     trx_pos++;
   }
 
@@ -679,35 +687,78 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
-void DbStorage::saveTransaction(Transaction const& trx) {
-  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
+void DbStorage::savePillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& pillar_block) {
+  insert(Columns::pillar_block, pillar_block->getPeriod(), pillar_block->getRlp());
 }
 
-void DbStorage::saveTransactionPeriod(trx_hash_t const& trx_hash, PbftPeriod period, uint32_t position) {
+std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getPillarBlock(PbftPeriod period) const {
+  const auto bytes = asBytes(lookup(period, Columns::pillar_block));
+  if (bytes.empty()) {
+    return {};
+  }
+
+  return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(bytes));
+}
+
+std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getLatestPillarBlock() const {
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pillar_block)));
+  it->SeekToLast();
+  if (!it->Valid()) {
+    return {};
+  }
+
+  return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(it->value().ToString()));
+}
+
+void DbStorage::saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote) {
+  insert(Columns::current_pillar_block_own_vote, 0, util::rlp_enc(vote));
+}
+
+std::shared_ptr<PillarVote> DbStorage::getOwnPillarBlockVote() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_own_vote));
+  if (bytes.empty()) {
+    return nullptr;
+  }
+
+  return std::make_shared<PillarVote>(dev::RLP(bytes));
+}
+
+void DbStorage::saveCurrentPillarBlockData(const pillar_chain::CurrentPillarBlockDataDb& current_pillar_block_data) {
+  insert(Columns::current_pillar_block_data, 0, util::rlp_enc(current_pillar_block_data));
+}
+
+std::optional<pillar_chain::CurrentPillarBlockDataDb> DbStorage::getCurrentPillarBlockData() const {
+  const auto bytes = asBytes(lookup(0, Columns::current_pillar_block_data));
+  if (bytes.empty()) {
+    return {};
+  }
+
+  return util::rlp_dec<pillar_chain::CurrentPillarBlockDataDb>(dev::RLP(bytes));
+}
+
+void DbStorage::addTransactionLocationToBatch(Batch& write_batch, trx_hash_t const& trx_hash, PbftPeriod period,
+                                              uint32_t position, bool is_system) {
   dev::RLPStream s;
-  s.appendList(2);
+  s.appendList(2 + is_system);
   s << period;
   s << position;
-  insert(Columns::trx_period, toSlice(trx_hash.asBytes()), toSlice(s.out()));
+  if (is_system) {
+    s << is_system;
+  }
+  insert(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()), toSlice(s.invalidate()));
 }
 
-void DbStorage::addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period,
-                                            uint32_t position) {
-  dev::RLPStream s;
-  s.appendList(2);
-  s << period;
-  s << position;
-  insert(write_batch, Columns::trx_period, toSlice(trx.asBytes()), toSlice(s.out()));
-}
-
-std::optional<std::pair<PbftPeriod, uint32_t>> DbStorage::getTransactionPeriod(trx_hash_t const& hash) const {
+std::optional<final_chain::TransactionLocation> DbStorage::getTransactionLocation(trx_hash_t const& hash) const {
   auto data = lookup(toSlice(hash.asBytes()), Columns::trx_period);
   if (!data.empty()) {
-    std::pair<PbftPeriod, uint32_t> res;
+    final_chain::TransactionLocation res;
     dev::RLP const rlp(data);
     auto it = rlp.begin();
-    res.first = (*it++).toInt<PbftPeriod>();
-    res.second = (*it++).toInt<uint32_t>();
+    res.period = (*it++).toInt<PbftPeriod>();
+    res.position = (*it++).toInt<uint32_t>();
+    if (rlp.itemCount() == 3) {
+      res.is_system = (*it++).toInt<bool>();
+    }
     return res;
   }
   return std::nullopt;
@@ -776,14 +827,17 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   if (data.size() > 0) {
     return std::make_shared<Transaction>(data);
   }
-  auto res = getTransactionPeriod(hash);
-  if (res) {
-    auto period_data = getPeriodDataRaw(res->first);
+  auto location = getTransactionLocation(hash);
+  if (location && !location->is_system) {
+    auto period_data = getPeriodDataRaw(location->period);
     if (period_data.size() > 0) {
       auto period_data_rlp = dev::RLP(period_data);
       auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
-      return std::make_shared<Transaction>(transaction_data[res->second]);
+      return std::make_shared<Transaction>(transaction_data[location->position]);
     }
+  } else {
+    // get system trx from a different column
+    return getSystemTransaction(hash);
   }
   return nullptr;
 }
@@ -797,18 +851,15 @@ uint64_t DbStorage::getTransactionCount(PbftPeriod period) const {
   return 0;
 }
 
-std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalizedTransactions(
-    std::vector<trx_hash_t> const& trx_hashes) const {
+SharedTransactions DbStorage::getFinalizedTransactions(std::vector<trx_hash_t> const& trx_hashes) const {
+  SharedTransactions trxs;
   // Map of period to position of transactions within a period
   std::map<PbftPeriod, std::set<uint32_t>> period_map;
-  SharedTransactions transactions;
-  transactions.reserve(trx_hashes.size());
+  trxs.reserve(trx_hashes.size());
   for (auto const& tx_hash : trx_hashes) {
-    auto trx_period = getTransactionPeriod(tx_hash);
+    auto trx_period = getTransactionLocation(tx_hash);
     if (trx_period.has_value()) {
-      period_map[trx_period->first].insert(trx_period->second);
-    } else {
-      return {std::nullopt, tx_hash};
+      period_map[trx_period->period].insert(trx_period->position);
     }
   }
   for (auto it : period_map) {
@@ -819,14 +870,56 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
 
     auto const transactions_rlp = dev::RLP(period_data)[TRANSACTIONS_POS_IN_PERIOD_DATA];
     for (auto pos : it.second) {
-      transactions.emplace_back(std::make_shared<Transaction>(transactions_rlp[pos]));
+      trxs.emplace_back(std::make_shared<Transaction>(transactions_rlp[pos]));
     }
   }
 
-  return {transactions, {}};
+  return trxs;
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
+void DbStorage::addSystemTransactionToBatch(Batch& write_batch, SharedTransaction trx) {
+  insert(write_batch, Columns::system_transaction, toSlice(trx->getHash().asBytes()), toSlice(trx->rlp()));
+}
+
+std::shared_ptr<Transaction> DbStorage::getSystemTransaction(const trx_hash_t& hash) const {
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::system_transaction));
+  if (data.size() > 0) {
+    // construct as system transaction to have proper sender
+    return std::make_shared<SystemTransaction>(data);
+  }
+  return nullptr;
+}
+
+void DbStorage::addPeriodSystemTransactions(Batch& write_batch, SharedTransactions trxs, PbftPeriod period) {
+  std::vector<trx_hash_t> trx_hashes;
+  trx_hashes.reserve(trxs.size());
+  std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
+                 [](const auto& trx) { return trx->getHash(); });
+  auto hashes_rlp = util::rlp_enc(trx_hashes);
+  insert(write_batch, Columns::period_system_transactions, toSlice(period), toSlice(hashes_rlp));
+}
+
+std::vector<trx_hash_t> DbStorage::getPeriodSystemTransactionsHashes(PbftPeriod period) const {
+  auto data = asBytes(lookup(toSlice(period), Columns::period_system_transactions));
+  if (data.size() == 0) {
+    return {};
+  }
+  return util::rlp_dec<std::vector<trx_hash_t>>(dev::RLP(data));
+}
+
+SharedTransactions DbStorage::getPeriodSystemTransactions(PbftPeriod period) const {
+  auto trx_hashes = getPeriodSystemTransactionsHashes(period);
+  if (trx_hashes.empty()) {
+    return {};
+  }
+
+  SharedTransactions trxs;
+  std::transform(trx_hashes.begin(), trx_hashes.end(), std::back_inserter(trxs),
+                 [this](const auto& trx_hash) { return getSystemTransaction(trx_hash); });
+  return trxs;
+}
+
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
   auto period_data = getPeriodDataRaw(period);
   if (period_data.empty()) {
     return {};
@@ -837,7 +930,7 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod peri
   if (votes_rlp.itemCount() == 0) {
     return {};
   }
-  return decodeVotesBundleRlp(votes_rlp);
+  return decodePbftVotesBundleRlp(votes_rlp);
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {
@@ -852,7 +945,24 @@ std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod pe
   for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
     ret.emplace_back(std::make_shared<Transaction>(transaction_data));
   }
+  auto period_system_transactions = getPeriodSystemTransactions(period);
+  ret.insert(ret.end(), period_system_transactions.begin(), period_system_transactions.end());
   return {ret};
+}
+
+std::vector<std::shared_ptr<PillarVote>> DbStorage::getPeriodPillarVotes(PbftPeriod period) const {
+  const auto period_data = getPeriodDataRaw(period);
+  if (!period_data.size()) {
+    return {};
+  }
+
+  auto period_data_rlp = dev::RLP(period_data);
+  // This could potentially happen if getPeriodPillarVotes is called for period that does not contain pillar votes
+  if (period_data_rlp.itemCount() < PILLAR_VOTES_POS_IN_PERIOD_DATA) {
+    return {};
+  }
+
+  return decodePillarVotesBundleRlp(period_data_rlp[PILLAR_VOTES_POS_IN_PERIOD_DATA]);
 }
 
 void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {
@@ -992,30 +1102,30 @@ void DbStorage::addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::str
   insert(write_batch, Columns::pbft_head, toSlice(head_hash.asBytes()), head_str);
 }
 
-void DbStorage::saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote) {
+void DbStorage::saveOwnVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
   insert(Columns::latest_round_own_votes, vote->getHash().asBytes(), vote->rlp(true, true));
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getOwnVerifiedVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getOwnVerifiedVotes() {
+  std::vector<std::shared_ptr<PbftVote>> votes;
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_round_own_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
+    votes.emplace_back(std::make_shared<PbftVote>(asBytes(it->value().ToString())));
   }
 
   return votes;
 }
 
 void DbStorage::clearOwnVerifiedVotes(Batch& write_batch,
-                                      const std::vector<std::shared_ptr<Vote>>& own_verified_votes) {
+                                      const std::vector<std::shared_ptr<PbftVote>>& own_verified_votes) {
   for (const auto& own_vote : own_verified_votes) {
     remove(write_batch, Columns::latest_round_own_votes, own_vote->getHash().asBytes());
   }
 }
 
 void DbStorage::replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type,
-                                        const std::vector<std::shared_ptr<Vote>>& votes) {
+                                        const std::vector<std::shared_ptr<PbftVote>>& votes) {
   remove(Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type));
 
   dev::RLPStream s(votes.size());
@@ -1026,7 +1136,8 @@ void DbStorage::replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type,
 }
 
 void DbStorage::replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
-                                               const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
+                                               const std::vector<std::shared_ptr<PbftVote>>& votes,
+                                               Batch& write_batch) {
   remove(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type));
 
   dev::RLPStream s(votes.size());
@@ -1036,15 +1147,15 @@ void DbStorage::replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
   insert(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type), s.out());
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getAllTwoTPlusOneVotes() {
+  std::vector<std::shared_ptr<PbftVote>> votes;
   auto load_db_votes = [this, &votes](TwoTPlusOneVotedBlockType type) {
     auto votes_raw = asBytes(lookup(static_cast<uint8_t>(type), Columns::latest_round_two_t_plus_one_votes));
     auto votes_rlp = dev::RLP(votes_raw);
     votes.reserve(votes.size() + votes_rlp.size());
 
     for (const auto vote : votes_rlp) {
-      votes.emplace_back(std::make_shared<Vote>(vote));
+      votes.emplace_back(std::make_shared<PbftVote>(vote));
     }
   };
 
@@ -1062,16 +1173,16 @@ void DbStorage::removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Ba
   }
 }
 
-void DbStorage::saveExtraRewardVote(const std::shared_ptr<Vote>& vote) {
+void DbStorage::saveExtraRewardVote(const std::shared_ptr<PbftVote>& vote) {
   insert(Columns::extra_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getRewardVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getRewardVotes() {
+  std::vector<std::shared_ptr<PbftVote>> votes;
 
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::extra_reward_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
+    votes.emplace_back(std::make_shared<PbftVote>(asBytes(it->value().ToString())));
   }
 
   return votes;

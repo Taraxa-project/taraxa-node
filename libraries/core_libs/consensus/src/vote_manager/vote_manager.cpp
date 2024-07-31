@@ -30,7 +30,8 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
       already_validated_votes_(1000000, 1000) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
-  auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<Vote>>& votes, bool set_reward_votes_info = false) {
+  auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<PbftVote>>& votes,
+                                 bool set_reward_votes_info = false) {
     bool rewards_info_already_set = false;
     for (const auto& vote : votes) {
       // Check if votes are unique per round, step & voter
@@ -76,8 +77,8 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
 
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() const {
-  std::vector<std::shared_ptr<Vote>> votes;
+std::vector<std::shared_ptr<PbftVote>> VoteManager::getVerifiedVotes() const {
+  std::vector<std::shared_ptr<PbftVote>> votes;
   votes.reserve(getVerifiedVotesSize());
 
   std::shared_lock lock(verified_votes_access_);
@@ -157,7 +158,7 @@ void VoteManager::setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound
         return;
       }
 
-      std::vector<std::shared_ptr<Vote>> votes;
+      std::vector<std::shared_ptr<PbftVote>> votes;
       votes.reserve(found_verified_votes_it->second.second.size());
       for (const auto& vote : found_verified_votes_it->second.second) {
         votes.push_back(vote.second);
@@ -184,7 +185,7 @@ PbftStep VoteManager::getNetworkTplusOneNextVotingStep(PbftPeriod period, PbftRo
   return found_round_it->second.network_t_plus_one_step;
 }
 
-bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
+bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
   assert(vote->getWeight().has_value());
   const auto hash = vote->getHash();
   const auto weight = *vote->getWeight();
@@ -287,7 +288,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
     // Function to save 2t+1 voted block + its votes
     auto saveTwoTPlusOneVotesInDb = [this, &found_round_it, &found_voted_value_it](
                                         TwoTPlusOneVotedBlockType two_plus_one_voted_block_type,
-                                        const std::shared_ptr<Vote> vote) {
+                                        const std::shared_ptr<PbftVote> vote) {
       auto found_two_t_plus_one_voted_block =
           found_round_it->second.two_t_plus_one_voted_blocks_.find(two_plus_one_voted_block_type);
 
@@ -312,7 +313,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
       // Cert votes are saved once the pbft block is pushed in the chain
       if (vote->getType() != PbftVoteTypes::cert_vote && vote->getPeriod() == current_pbft_period_ &&
           vote->getRound() == current_pbft_round_) {
-        std::vector<std::shared_ptr<Vote>> votes;
+        std::vector<std::shared_ptr<PbftVote>> votes;
         votes.reserve(found_voted_value_it->second.second.size());
         for (const auto& tmp_vote : found_voted_value_it->second.second) {
           votes.push_back(tmp_vote.second);
@@ -344,7 +345,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
   return true;
 }
 
-bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
+bool VoteManager::voteInVerifiedMap(const std::shared_ptr<PbftVote>& vote) const {
   std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(vote->getPeriod());
@@ -370,7 +371,7 @@ bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
   return found_voted_value_it->second.second.find(vote->getHash()) != found_voted_value_it->second.second.end();
 }
 
-std::pair<bool, std::shared_ptr<Vote>> VoteManager::isUniqueVote(const std::shared_ptr<Vote>& vote) const {
+std::pair<bool, std::shared_ptr<PbftVote>> VoteManager::isUniqueVote(const std::shared_ptr<PbftVote>& vote) const {
   std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(vote->getPeriod());
@@ -434,7 +435,7 @@ std::pair<bool, std::shared_ptr<Vote>> VoteManager::isUniqueVote(const std::shar
   return {false, found_voter_it->second.first};
 }
 
-std::pair<bool, std::shared_ptr<Vote>> VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
+std::pair<bool, std::shared_ptr<PbftVote>> VoteManager::insertUniqueVote(const std::shared_ptr<PbftVote>& vote) {
   auto found_period_it = verified_votes_.find(vote->getPeriod());
   if (found_period_it == verified_votes_.end()) {
     found_period_it = verified_votes_.insert({vote->getPeriod(), {}}).first;
@@ -513,7 +514,7 @@ void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {
   }
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(PbftPeriod period, PbftRound round) const {
+std::vector<std::shared_ptr<PbftVote>> VoteManager::getProposalVotes(PbftPeriod period, PbftRound round) const {
   std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
@@ -531,7 +532,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(PbftPeriod peri
     return {};
   }
 
-  std::vector<std::shared_ptr<Vote>> proposal_votes;
+  std::vector<std::shared_ptr<PbftVote>> proposal_votes;
   for (const auto& voted_value : found_proposal_step_it->second.votes) {
     // Multiple nodes might re-propose the same block from previous round
     for (const auto& vote_pair : voted_value.second.second) {
@@ -629,7 +630,7 @@ void VoteManager::resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep 
     assert(false);
     return;
   }
-  std::vector<std::shared_ptr<Vote>> votes;
+  std::vector<std::shared_ptr<PbftVote>> votes;
   votes.reserve(found_voted_value_it->second.second.size());
   for (const auto& tmp_vote : found_voted_value_it->second.second) {
     votes.push_back(tmp_vote.second);
@@ -643,7 +644,7 @@ void VoteManager::resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep 
                << ", round: " << round;
 }
 
-bool VoteManager::isValidRewardVote(const std::shared_ptr<Vote>& vote) const {
+bool VoteManager::isValidRewardVote(const std::shared_ptr<PbftVote>& vote) const {
   std::shared_lock lock(reward_votes_info_mutex_);
   if (vote->getType() != PbftVoteTypes::cert_vote) {
     LOG(log_tr_) << "Invalid reward vote: type " << static_cast<uint64_t>(vote->getType())
@@ -676,7 +677,7 @@ bool VoteManager::isValidRewardVote(const std::shared_ptr<Vote>& vote) const {
   return true;
 }
 
-std::pair<bool, std::vector<std::shared_ptr<Vote>>> VoteManager::checkRewardVotes(
+std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkRewardVotes(
     const std::shared_ptr<PbftBlock>& pbft_block, bool copy_votes) {
   if (pbft_block->getPeriod() == 1) [[unlikely]] {
     // First period no reward votes
@@ -685,7 +686,7 @@ std::pair<bool, std::vector<std::shared_ptr<Vote>>> VoteManager::checkRewardVote
 
   auto getRewardVotes = [this](const std::map<PbftRound, VerifiedVotes>::iterator round_votes_it,
                                const std::vector<vote_hash_t>& vote_hashes, const blk_hash_t& block_hash,
-                               bool copy_votes) -> std::pair<bool, std::vector<std::shared_ptr<Vote>>> {
+                               bool copy_votes) -> std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> {
     // Get cert votes
     const auto found_step_votes_it =
         round_votes_it->second.step_votes.find(static_cast<PbftStep>(PbftVoteTypes::cert_vote));
@@ -702,7 +703,7 @@ std::pair<bool, std::vector<std::shared_ptr<Vote>>> VoteManager::checkRewardVote
       return {false, {}};
     }
 
-    std::vector<std::shared_ptr<Vote>> found_reward_votes;
+    std::vector<std::shared_ptr<PbftVote>> found_reward_votes;
     const auto& potential_reward_votes = found_verified_votes_it->second.second;
     bool found_all_votes = true;
     for (const auto& vote_hash : vote_hashes) {
@@ -782,7 +783,7 @@ std::pair<bool, std::vector<std::shared_ptr<Vote>>> VoteManager::checkRewardVote
   return {false, {}};
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
+std::vector<std::shared_ptr<PbftVote>> VoteManager::getRewardVotes() {
   blk_hash_t reward_votes_block_hash;
   PbftRound reward_votes_period;
   PbftRound reward_votes_round;
@@ -807,12 +808,12 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
   return reward_votes;
 }
 
-void VoteManager::saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote) {
+void VoteManager::saveOwnVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
   own_verified_votes_.push_back(vote);
   db_->saveOwnVerifiedVote(vote);
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getOwnVerifiedVotes() { return own_verified_votes_; }
+std::vector<std::shared_ptr<PbftVote>> VoteManager::getOwnVerifiedVotes() { return own_verified_votes_; }
 
 void VoteManager::clearOwnVerifiedVotes(DbStorage::Batch& write_batch) {
   db_->clearOwnVerifiedVotes(write_batch, own_verified_votes_);
@@ -831,8 +832,9 @@ uint64_t VoteManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count,
   }
 }
 
-std::shared_ptr<Vote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash_t& blockhash, PbftVoteTypes vote_type,
-                                                          PbftPeriod period, PbftRound round, PbftStep step) {
+std::shared_ptr<PbftVote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash_t& blockhash,
+                                                              PbftVoteTypes vote_type, PbftPeriod period,
+                                                              PbftRound round, PbftStep step) {
   uint64_t voter_dpos_votes_count = 0;
   uint64_t total_dpos_votes_count = 0;
   uint64_t pbft_sortition_threshold = 0;
@@ -867,14 +869,14 @@ std::shared_ptr<Vote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash
   return vote;
 }
 
-std::shared_ptr<Vote> VoteManager::generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
-                                                PbftRound round, PbftStep step) {
+std::shared_ptr<PbftVote> VoteManager::generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
+                                                    PbftRound round, PbftStep step) {
   // sortition proof
   VrfPbftSortition vrf_sortition(kVrfSk, {type, period, round, step});
-  return std::make_shared<Vote>(kNodeSk, std::move(vrf_sortition), blockhash);
+  return std::make_shared<PbftVote>(kNodeSk, std::move(vrf_sortition), blockhash);
 }
 
-std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote, bool strict) const {
+std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<PbftVote>& vote, bool strict) const {
   std::stringstream err_msg;
   const uint64_t vote_period = vote->getPeriod();
 
@@ -892,7 +894,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
       return {false, err_msg.str()};
     }
 
-    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
+    const auto pk = key_manager_->getVrfKey(vote_period - 1, vote->getVoterAddr());
     if (!pk) {
       err_msg << "No vrf key mapped for vote author " << vote->getVoterAddr();
       return {false, err_msg.str()};
@@ -1018,8 +1020,8 @@ std::optional<blk_hash_t> VoteManager::getTwoTPlusOneVotedBlock(PbftPeriod perio
   return two_t_plus_one_voted_block_it->second.first;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(PbftPeriod period, PbftRound round,
-                                                                              TwoTPlusOneVotedBlockType type) const {
+std::vector<std::shared_ptr<PbftVote>> VoteManager::getTwoTPlusOneVotedBlockVotes(
+    PbftPeriod period, PbftRound round, TwoTPlusOneVotedBlockType type) const {
   std::shared_lock lock(verified_votes_access_);
   const auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {
@@ -1051,7 +1053,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(Pb
     return {};
   }
 
-  std::vector<std::shared_ptr<Vote>> votes;
+  std::vector<std::shared_ptr<PbftVote>> votes;
   votes.reserve(found_verified_votes_it->second.second.size());
   for (const auto& vote : found_verified_votes_it->second.second) {
     votes.push_back(vote.second);

@@ -4,10 +4,12 @@
 
 namespace taraxa {
 
-TransactionQueue::TransactionQueue(size_t max_size)
+TransactionQueue::TransactionQueue(std::shared_ptr<FinalChain> final_chain, size_t max_size)
     : known_txs_(max_size * 2, max_size / 5),
       kNonProposableTransactionsMaxSize(max_size * kNonProposableTransactionsLimitPercentage / 100),
-      kMaxSize(max_size) {
+      kMaxSize(max_size),
+      kMaxSingleAccountTransactionsSize(max_size * kSingleAccountTransactionsLimitPercentage / 100),
+      final_chain_(final_chain) {
   queue_transactions_.reserve(max_size);
 }
 
@@ -69,10 +71,17 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
   return ret;
 }
 
-SharedTransactions TransactionQueue::getAllTransactions() const {
-  SharedTransactions ret;
-  ret.reserve(queue_transactions_.size());
-  for (const auto &t : queue_transactions_) ret.push_back(t.second);
+std::vector<SharedTransactions> TransactionQueue::getAllTransactions() const {
+  std::vector<SharedTransactions> ret;
+  ret.reserve(account_nonce_transactions_.size());
+  for (const auto &account_it : account_nonce_transactions_) {
+    SharedTransactions trxs_per_account;
+    trxs_per_account.reserve(account_it.second.size());
+    for (const auto &t : account_it.second) {
+      trxs_per_account.emplace_back(t.second);
+    }
+    ret.emplace_back(std::move(trxs_per_account));
+  }
   return ret;
 }
 
@@ -98,79 +107,74 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
   return true;
 }
 
-bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const TransactionStatus status,
-                              uint64_t last_block_number) {
+TransactionStatus TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, bool proposable,
+                                           uint64_t last_block_number) {
   assert(transaction);
   const auto tx_hash = transaction->getHash();
 
   if (contains(tx_hash)) {
-    return false;
+    return TransactionStatus::Known;
   }
 
-  switch (status) {
-    case TransactionStatus::Verified: {
-      const auto &account_it = account_nonce_transactions_.find(transaction->getSender());
-      if (account_it == account_nonce_transactions_.end()) {
+  if (proposable) {
+    const auto &account_it = account_nonce_transactions_.find(transaction->getSender());
+    if (account_it == account_nonce_transactions_.end()) {
+      account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
+      queue_transactions_[tx_hash] = transaction;
+    } else {
+      if (account_it->second.size() == kMaxSingleAccountTransactionsSize) {
+        transaction_overflow_time_ = std::chrono::system_clock::now();
+        return TransactionStatus::Overflow;
+      }
+      const auto &nonce_it = account_it->second.find(transaction->getNonce());
+      if (nonce_it == account_it->second.end()) {
         account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
         queue_transactions_[tx_hash] = transaction;
       } else {
-        const auto &nonce_it = account_it->second.find(transaction->getNonce());
-        if (nonce_it == account_it->second.end()) {
+        // It should not be possible that transaction is already inside due to verification done before
+        assert(nonce_it->second->getHash() != tx_hash);
+        // Replace transaction if gas price higher
+        if (transaction->getGasPrice() > nonce_it->second->getGasPrice()) {
+          // Place same nonce transaction with lower gas price in non propsable transactions since it could be
+          // possible that some dag block might contain it
+          non_proposable_transactions_[nonce_it->second->getHash()] = {last_block_number, nonce_it->second};
+          queue_transactions_.erase(nonce_it->second->getHash());
           account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
           queue_transactions_[tx_hash] = transaction;
         } else {
-          // It should not be possible that transaction is already inside due to verification done before
-          assert(nonce_it->second->getHash() != tx_hash);
-          // Replace transaction if gas price higher
-          if (transaction->getGasPrice() > nonce_it->second->getGasPrice()) {
-            // Place same nonce transaction with lower gas price in non propsable transactions since it could be
-            // possible that some dag block might contain it
-            non_proposable_transactions_[nonce_it->second->getHash()] = {last_block_number, nonce_it->second};
-            queue_transactions_.erase(nonce_it->second->getHash());
-            account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
-            queue_transactions_[tx_hash] = transaction;
-          } else {
-            non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
-          }
+          non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
         }
       }
+    }
 
-      const auto queue_size = size();
-      // This check if priority_queue_ is not bigger than max size if so we delete 1% of transactions
-      if (queue_size > kMaxSize) [[unlikely]] {
-        auto ordered_transactions = getOrderedTransactions(queue_size);
-        uint32_t counter = 0;
-        for (auto it = ordered_transactions.rbegin(); it != ordered_transactions.rend(); it++) {
-          transaction_overflow_time_ = std::chrono::system_clock::now();
-          erase((*it)->getHash());
-          known_txs_.erase((*it)->getHash());
-          counter++;
-          if (counter >= queue_size / 100) break;
-        }
-        if (!queue_transactions_.contains(tx_hash)) {
-          return false;
-        }
-      }
-      known_txs_.insert(tx_hash);
-    } break;
-    case TransactionStatus::LowNonce:
-    case TransactionStatus::InsufficentBalance:
-      if (non_proposable_transactions_.size() <= kNonProposableTransactionsMaxSize) {
-        non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
-        known_txs_.insert(tx_hash);
-      } else {
+    const auto queue_size = size();
+    // This check if priority_queue_ is not bigger than max size if so we delete 1% of transactions
+    if (queue_size > kMaxSize) [[unlikely]] {
+      auto ordered_transactions = getOrderedTransactions(queue_size);
+      uint32_t counter = 0;
+      for (auto it = ordered_transactions.rbegin(); it != ordered_transactions.rend(); it++) {
         transaction_overflow_time_ = std::chrono::system_clock::now();
-        return false;
+        erase((*it)->getHash());
+        known_txs_.erase((*it)->getHash());
+        counter++;
+        if (counter >= queue_size / 100) break;
       }
-      break;
-    case TransactionStatus::Forced:
+      if (!queue_transactions_.contains(tx_hash)) {
+        return TransactionStatus::Overflow;
+      }
+    }
+    known_txs_.insert(tx_hash);
+  } else {
+    if (non_proposable_transactions_.size() <= kNonProposableTransactionsMaxSize) {
       non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
       known_txs_.insert(tx_hash);
-      break;
-    default:
-      assert(false);
+      return TransactionStatus::InsertedNonProposable;
+    } else {
+      transaction_overflow_time_ = std::chrono::system_clock::now();
+      return TransactionStatus::Overflow;
+    }
   }
-  return true;
+  return TransactionStatus::Inserted;
 }
 
 void TransactionQueue::blockFinalized(uint64_t block_number) {
@@ -180,6 +184,28 @@ void TransactionQueue::blockFinalized(uint64_t block_number) {
       it = non_proposable_transactions_.erase(it);
     } else {
       ++it;
+    }
+  }
+}
+
+void TransactionQueue::purge() {
+  for (auto account_it = account_nonce_transactions_.begin(); account_it != account_nonce_transactions_.end();) {
+    const auto account = final_chain_->get_account(account_it->first);
+    if (account.has_value()) {
+      for (auto nonce_it = account_it->second.begin(); nonce_it != account_it->second.end();) {
+        if (nonce_it->first < account->nonce) {
+          queue_transactions_.erase(nonce_it->second->getHash());
+          nonce_it = account_it->second.erase(nonce_it);
+        } else {
+          break;
+        }
+      }
+
+      if (account_it->second.size() == 0) {
+        account_it = account_nonce_transactions_.erase(account_it);
+      } else {
+        account_it++;
+      }
     }
   }
 }

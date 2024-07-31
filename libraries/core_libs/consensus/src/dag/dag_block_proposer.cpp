@@ -66,7 +66,7 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
-  auto pk = key_manager_->get(*proposal_period, node_addr_);
+  auto pk = key_manager_->getVrfKey(*proposal_period, node_addr_);
   if (pk && *pk != vrf_pk_) {
     LOG(log_er_) << "VRF public key mismatch " << *pk << " - " << vrf_pk_;
     return false;

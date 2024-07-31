@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.20)
 
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
-set(TARAXA_MINOR_VERSION 8)
-set(TARAXA_PATCH_VERSION 3)
+set(TARAXA_MINOR_VERSION 10)
+set(TARAXA_PATCH_VERSION 0)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 2)
+set(TARAXA_NET_VERSION 3)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchain is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 1)
@@ -191,7 +191,7 @@ endif()
 # We are using clang from llvm toolchain as default compiler as well as clang-format and clang-tidy
 # It is possible to build taraxa-node also with other C++ compilers but to contribute to the official repo,
 # changes must pass clang-format/clang-tidy checks for which we internally use llvm version=LLVM_VERSION
-set(LLVM_VERSION "14")
+set(LLVM_VERSION "17")
 
 # clang-tidy
 include(CMakeModules/clang_tidy.cmake)
@@ -207,11 +207,12 @@ add_custom_target(check-static DEPENDS cpp-check clang-format clang-format-check
 # execute command to get git info
 include(CMakeModules/git_info.cmake)
 
-# find and include system libraries used in submodues and libraries
+include(ExternalProject)
+
+# find and include system libraries used in submodules and libraries
 find_package(GMP)
 find_package(MPFR)
 
-include(ExternalProject)
 # use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)

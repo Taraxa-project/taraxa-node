@@ -73,9 +73,9 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getBlocksByLevel(2), s2);
 
   // Transaction
-  db.saveTransaction(*g_trx_signed_samples[0]);
-  db.saveTransaction(*g_trx_signed_samples[1]);
   auto batch = db.createWriteBatch();
+  db.addTransactionToBatch(*g_trx_signed_samples[0], batch);
+  db.addTransactionToBatch(*g_trx_signed_samples[1], batch);
   db.addTransactionToBatch(*g_trx_signed_samples[2], batch);
   db.addTransactionToBatch(*g_trx_signed_samples[3], batch);
   db.commitWriteBatch(batch);
@@ -153,13 +153,20 @@ TEST_F(FullNodeTest, db_test) {
   auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
 
   // Certified votes
-  std::vector<std::shared_ptr<Vote>> cert_votes;
+  std::vector<std::shared_ptr<PbftVote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
     cert_votes.emplace_back(genDummyVote(PbftVoteTypes::cert_vote, 2, 2, 3, blk_hash_t(1)));
   }
 
-  std::vector<std::shared_ptr<Vote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
-  PeriodData period_data1(pbft_block1, cert_votes);
+  // Pillar votes
+  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
+  const auto vote1 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
+  const auto vote2 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
+
+  std::vector<std::shared_ptr<PbftVote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
+  PeriodData period_data1(pbft_block1, cert_votes, pillar_votes);
   PeriodData period_data2(pbft_block2, votes);
   PeriodData period_data3(pbft_block3, votes);
   PeriodData period_data4(pbft_block4, votes);
@@ -180,10 +187,15 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
 
-  PeriodData pbft_block_cert_votes(pbft_block1, cert_votes);
   auto cert_votes_from_db = db.getPeriodCertVotes(pbft_block1->getPeriod());
-  PeriodData pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
-  EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
+  auto pillar_votes_from_db = db.getPeriodPillarVotes(pbft_block1->getPeriod());
+  PeriodData period_data1_from_db(pbft_block1, cert_votes_from_db, pillar_votes_from_db);
+  EXPECT_EQ(period_data1.rlp(), period_data1_from_db.rlp());
+  EXPECT_TRUE(period_data1_from_db.pillar_votes_.has_value());
+  EXPECT_EQ(pillar_votes.size(), period_data1_from_db.pillar_votes_->size());
+  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
+    EXPECT_EQ(pillar_votes[idx]->getHash(), period_data1_from_db.pillar_votes_.operator*()[idx]->getHash());
+  }
 
   // pbft_blocks (head)
   PbftChain pbft_chain(addr_t(), db_ptr);
@@ -213,7 +225,7 @@ TEST_F(FullNodeTest, db_test) {
 
   // Own verified votes
   EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
-  std::vector<std::shared_ptr<Vote>> verified_votes;
+  std::vector<std::shared_ptr<PbftVote>> verified_votes;
   for (auto i = 0; i < 3; i++) {
     const auto vote = genDummyVote(PbftVoteTypes::soft_vote, i, i, 2);
     verified_votes.push_back(vote);
@@ -263,7 +275,7 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   // Reward votes - cert votes for the latest finalized block
-  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> verified_votes_map;
+  std::unordered_map<vote_hash_t, std::shared_ptr<PbftVote>> verified_votes_map;
   for (const auto &vote : verified_votes) {
     verified_votes_map[vote->getHash()] = vote;
   }
@@ -761,7 +773,9 @@ TEST_F(FullNodeTest, destroy_db) {
   {
     auto node = create_nodes(node_cfgs).front();
     auto db = node->getDB();
-    db->saveTransaction(*g_trx_signed_samples[0]);
+    auto batch = db->createWriteBatch();
+    db->addTransactionToBatch(*g_trx_signed_samples[0], batch);
+    db->commitWriteBatch(batch);
     // Verify trx saved in db
     EXPECT_TRUE(db->getTransaction(g_trx_signed_samples[0]->getHash()));
   }
@@ -1505,8 +1519,38 @@ TEST_F(FullNodeTest, clear_period_data) {
 }
 
 TEST_F(FullNodeTest, transaction_pool_overflow) {
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
+  for (auto &cfg : node_cfgs) {
+    cfg.transactions_pool_size = kMinTransactionPoolSize;
+  }
+  auto nodes = launch_nodes(node_cfgs);
+  uint32_t nonce = 1;
+  const uint32_t gasprice = 5;
+  const uint32_t gas = 100000;
+  for (auto &node : nodes) {
+    node->getDagBlockProposer()->stop();
+  }
+
+  auto node0 = nodes.front();
+  while (true) {
+    auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                             node0->getSecretKey(), addr_t::random());
+    if (node0->getTransactionManager()->insertValidatedTransaction(std::move(trx), true) == TransactionStatus::Overflow)
+      break;
+  }
+
+  // Create transaction with lower gasprice
+  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                           node0->getSecretKey(), addr_t::random());
+
+  // Should fail as trx pool should be full
+  EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
+  EXPECT_TRUE(node0->getTransactionManager()->transactionsDropped());
+}
+
+TEST_F(FullNodeTest, transaction_pool_overflow_single_account) {
   // make 2 node verifiers to avoid out of sync state
-  auto node_cfgs = make_node_cfgs(2, 2, 5);
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
   for (auto &cfg : node_cfgs) {
     cfg.transactions_pool_size = kMinTransactionPoolSize;
   }
@@ -1522,48 +1566,22 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   do {
     auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                              node0->getSecretKey(), addr_t::random());
-    EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
+    if (nonce - 2 < 5 * kMinTransactionPoolSize / 100) {
+      EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
+    } else {
+      // Reached the limit of single account in transaction pool
+      EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
+      break;
+    }
   } while (!node0->getTransactionManager()->isTransactionPoolFull());
-
-  EXPECT_FALSE(node0->getTransactionManager()->transactionsDropped());
 
   // Crate transaction with lower gasprice
   auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                            node0->getSecretKey(), addr_t::random());
 
-  // Check if they synced
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto &ctx) {
-    // Check if transactions was propagated to node0
-    WAIT_EXPECT_EQ(ctx, nodes[1]->getTransactionManager()->isTransactionPoolFull(), true)
-  });
-
   // Should fail as trx pool should be full
   EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
-
   EXPECT_TRUE(node0->getTransactionManager()->transactionsDropped());
-
-  // Add one valid block
-  const auto proposal_level = 1;
-  const auto proposal_period = *node0->getDB()->getProposalPeriodForDagLevel(proposal_level);
-  const auto period_block_hash = node0->getDB()->getPeriodBlockHash(proposal_period);
-  const auto sortition_params =
-      nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
-  vdf_sortition::VdfSortition vdf(sortition_params, node0->getVrfSecretKey(),
-                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 2);
-  const auto dag_genesis = node0->getConfig().genesis.dag_genesis_block.getHash();
-  const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
-  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
-
-  vdf.computeVdfSolution(sortition_params, vdf_msg, false);
-
-  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, estimation, vdf, node0->getSecretKey());
-  const auto blk_hash = blk.getHash();
-  EXPECT_TRUE(nodes[1]->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
-
-  EXPECT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
-    // Check if transactions and block was propagated to node0
-    WAIT_EXPECT_NE(ctx, node0->getDagManager()->getDagBlock(blk_hash), nullptr);
-  });
 }
 
 TEST_F(FullNodeTest, graphql_test) {

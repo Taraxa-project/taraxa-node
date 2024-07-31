@@ -15,10 +15,9 @@ namespace taraxa {
  */
 
 /**
- * @brief TransactionStatus enum class defines current transaction status. All states except Forced are result of
- * verification. Forced status is used when trx is part of synced dag block which is about to be added to DAG
+ * @brief TransactionStatus enum class defines current transaction status
  */
-enum class TransactionStatus { Verified = 0, Invalid, LowNonce, InsufficentBalance, Forced };
+enum class TransactionStatus { Inserted = 0, InsertedNonProposable, Known, Overflow };
 
 class DagBlock;
 class DagManager;
@@ -47,7 +46,7 @@ class FullNode;
  * Transaction transition to finalized block state is done with call to updateFinalizedTransactionsStatus
  *
  * Class is thread safe in general with exception of two special methods: updateFinalizedTransactionsStatus and
- * moveNonFinalizedTransactionsToTransactionsPool. See details in function descriptions.
+ * removeNonFinalizedTransactions. See details in function descriptions.
  */
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:
@@ -71,10 +70,10 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<SharedTransactions, std::vector<uint64_t>> packTrxs(PbftPeriod proposal_period, uint64_t weight_limit);
 
   /**
-   * @brief Gets all transactions from pool
+   * @brief Gets all transactions from pool grouped per account
    * @return transactions
    */
-  SharedTransactions getAllPoolTrxs();
+  std::vector<SharedTransactions> getAllPoolTrxs();
 
   /**
    * Saves transactions from dag block which was added to the DAG. Removes transactions from memory pool
@@ -101,10 +100,10 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    *
    * @note transaction might be already processed -> they are not processed and inserted again
    * @param tx transaction to be processed
-   * @param status transaction status
-   * @return true if successfully inserted unseen transactions
+   * @param insert_non_proposable insert non proposable transactions
+   * @return transaction status
    */
-  bool insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, const TransactionStatus status);
+  TransactionStatus insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, bool insert_non_proposable = true);
 
   /**
    * @param trx_hash transaction hash
@@ -153,9 +152,19 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @brief Get the block transactions
    *
    * @param blk
+   * @param proposal_period
    * @return transactions retrieved from pool/db
    */
-  std::optional<SharedTransactions> getBlockTransactions(const DagBlock &blk);
+  SharedTransactions getBlockTransactions(const DagBlock &blk, PbftPeriod proposal_period);
+
+  /**
+   * @brief Get the transactions
+   *
+   * @param trxs_hashes
+   * @param proposal_period
+   * @return transactions retrieved from pool/db
+   */
+  SharedTransactions getTransactions(const vec_trx_t &trxs_hashes, PbftPeriod proposal_period);
 
   /**
    * @brief Updates the status of transactions to finalized
@@ -168,13 +177,20 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void updateFinalizedTransactionsStatus(const PeriodData &period_data);
 
   /**
-   * @brief Moves non-finalized transactions from discarded old dag blocks back to transactions pool
+   * @brief Initialize recenty finalized transactions
+   *
+   * @param period_data period data
+   */
+  void initializeRecentlyFinalizedTransactions(const PeriodData &period_data);
+
+  /**
+   * @brief Removes non-finalized transactions from discarded old dag blocks
    * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but
    * the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic
    *
-   * @param transactions transactions to move
+   * @param transactions transactions to remove
    */
-  void moveNonFinalizedTransactionsToTransactionsPool(std::unordered_set<trx_hash_t> &&transactions);
+  void removeNonFinalizedTransactions(std::unordered_set<trx_hash_t> &&transactions);
 
   /**
    * @brief Retrieves transactions mutex, only to be used when finalizing pbft block
@@ -204,7 +220,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<Transaction> getNonFinalizedTransaction(const trx_hash_t &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
-  std::pair<TransactionStatus, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
+  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
  private:
   addr_t getFullNodeAddress() const;
@@ -221,6 +237,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   TransactionQueue transactions_pool_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
+  std::unordered_map<PbftPeriod, std::vector<trx_hash_t>> recently_finalized_transactions_per_period_;
   uint64_t trx_count_ = 0;
 
   const uint64_t kDagBlockGasLimit;

@@ -3,7 +3,7 @@
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
-#include "vote/vote.hpp"
+#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -91,7 +91,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
         s.appendList(3);
         s << last_block;
         s.appendRaw(data);
-        s.appendRaw(encodeVotesBundleRlp(reward_votes, false));
+        s.appendRaw(encodePbftVotesBundleRlp(reward_votes));
       } else {
         s.appendList(2);
         s << last_block;
@@ -102,6 +102,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       s << last_block;
       s.appendRaw(data);
     }
+
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
     if (pbft_chain_synced && last_block) {
