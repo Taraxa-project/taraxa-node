@@ -5861,8 +5861,6 @@ Collaboration diagram for taraxa::PbftBlockExtraData:</div>
 <tr class="separator:aee7434e6c123e5b9925f1318af8fce64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24c4fed8e95f1c427ddccb340ef25f43"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a24c4fed8e95f1c427ddccb340ef25f43">PbftBlockExtraData</a> (const uint16_t major_version, const uint16_t minor_version, const uint16_t patch_version, const uint16_t net_version, const std::string node_implementation, const std::optional&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;pillar_block_hash)</td></tr>
 <tr class="separator:a24c4fed8e95f1c427ddccb340ef25f43"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea32dc25fc180ed04ba31f4755fb9218"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aea32dc25fc180ed04ba31f4755fb9218">PbftBlockExtraData</a> (const <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;data)</td></tr>
-<tr class="separator:aea32dc25fc180ed04ba31f4755fb9218"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9c9023f3daf43a8deaf4bba5942dd24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab9c9023f3daf43a8deaf4bba5942dd24">rlp</a> () const</td></tr>
 <tr class="memdesc:ab9c9023f3daf43a8deaf4bba5942dd24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get rlp.  <a href="group___p_b_f_t.html#ab9c9023f3daf43a8deaf4bba5942dd24">More...</a><br /></td></tr>
 <tr class="separator:ab9c9023f3daf43a8deaf4bba5942dd24"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -5871,6 +5869,9 @@ Collaboration diagram for taraxa::PbftBlockExtraData:</div>
 <tr class="separator:ab4b18040fb917fd501045f909eb877d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8cf41ce85ea5459c7536251ea894526"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af8cf41ce85ea5459c7536251ea894526">getPillarBlockHash</a> () const</td></tr>
 <tr class="separator:af8cf41ce85ea5459c7536251ea894526"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><h3>Static Public Member Functions</h3></td></tr>
+<tr class="memitem:a52b9f379fc3e500717fc5764a5836b73"><td class="memItemLeft" align="right" valign="top">static std::optional&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data">PbftBlockExtraData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a52b9f379fc3e500717fc5764a5836b73">fromBytes</a> (const <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;data)</td></tr>
+<tr class="separator:a52b9f379fc3e500717fc5764a5836b73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
 <tr class="memitem:ae407b113e427b09804d4ff6fe9134f54"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ae407b113e427b09804d4ff6fe9134f54">major_version_</a></td></tr>
 <tr class="separator:ae407b113e427b09804d4ff6fe9134f54"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -5890,7 +5891,7 @@ Collaboration diagram for taraxa::PbftBlockExtraData:</div>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
 <a id="aee7434e6c123e5b9925f1318af8fce64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee7434e6c123e5b9925f1318af8fce64">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aee7434e6c123e5b9925f1318af8fce64">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5915,7 +5916,7 @@ Collaboration diagram for taraxa::PbftBlockExtraData:</div>
 </div>
 </div>
 <a id="a24c4fed8e95f1c427ddccb340ef25f43"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a24c4fed8e95f1c427ddccb340ef25f43">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a24c4fed8e95f1c427ddccb340ef25f43">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5966,25 +5967,33 @@ Collaboration diagram for taraxa::PbftBlockExtraData:</div>
 
 </div>
 </div>
-<a id="aea32dc25fc180ed04ba31f4755fb9218"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea32dc25fc180ed04ba31f4755fb9218">&#9670;&nbsp;</a></span>PbftBlockExtraData() <span class="overload">[3/3]</span></h2>
+<h4 class="groupheader">Member Function Documentation</h4>
+<a id="a52b9f379fc3e500717fc5764a5836b73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52b9f379fc3e500717fc5764a5836b73">&#9670;&nbsp;</a></span>fromBytes()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">taraxa::PbftBlockExtraData::PbftBlockExtraData </td>
+          <td class="memname">std::optional&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data">PbftBlockExtraData</a> &gt; taraxa::PbftBlockExtraData::fromBytes </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;&#160;</td>
           <td class="paramname"><em>data</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<h4 class="groupheader">Member Function Documentation</h4>
 <a id="ab4b18040fb917fd501045f909eb877d9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab4b18040fb917fd501045f909eb877d9">&#9670;&nbsp;</a></span>getJson()</h2>
 
