@@ -153,7 +153,7 @@ pyxattr==0.8.1
 PyYAML==6.0
 pyyaml_env_tag==0.1
 regex==2022.10.31
-requests==2.31.0
+requests==2.32.0
 requests-toolbelt==1.0.0
 rich==13.3.1
 rlp==4.0.0
