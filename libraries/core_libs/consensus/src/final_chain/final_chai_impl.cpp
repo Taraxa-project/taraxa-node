@@ -47,8 +47,8 @@ FinalChainImpl::FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::Full
                                state_db_descriptor.state_root, u256(0));
 
     block_headers_cache_.append(header->number, header);
-    last_block_number_ = header->number;
     db_->commitWriteBatch(batch);
+    last_block_number_ = header->number;
   } else {
     // We need to recover latest changes as there was shutdown inside finalize function
     if (*last_blk_num != state_db_descriptor.blk_num) [[unlikely]] {
