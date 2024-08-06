@@ -28,7 +28,7 @@ class VoteManager {
  public:
   VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
               const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
+              std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
               std::shared_ptr<SlashingManager> slashing_manager);
   ~VoteManager() = default;
   VoteManager(const VoteManager&) = delete;
@@ -278,7 +278,7 @@ class VoteManager {
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<SlashingManager> slashing_manager_;

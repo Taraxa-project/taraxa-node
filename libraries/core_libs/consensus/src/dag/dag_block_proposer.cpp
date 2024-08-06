@@ -78,9 +78,9 @@ bool DagBlockProposer::proposeDagBlock() {
   }
 
   uint64_t max_vote_count = 0;
-  const auto vote_count = final_chain_->dpos_eligible_vote_count(*proposal_period, node_addr_);
+  const auto vote_count = final_chain_->dposEligibleVoteCount(*proposal_period, node_addr_);
   if (*proposal_period < kHardforks.magnolia_hf.block_num) {
-    max_vote_count = final_chain_->dpos_eligible_total_vote_count(*proposal_period);
+    max_vote_count = final_chain_->dposEligibleTotalVoteCount(*proposal_period);
   } else {
     max_vote_count = kValidatorMaxVote;
   }
@@ -345,14 +345,14 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
 }
 
 bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period) const {
-  if (final_chain_->last_block_number() < propose_period) {
-    LOG(log_wr_) << "Last finalized block period " << final_chain_->last_block_number() << " < propose_period "
+  if (final_chain_->lastBlockNumber() < propose_period) {
+    LOG(log_wr_) << "Last finalized block period " << final_chain_->lastBlockNumber() << " < propose_period "
                  << propose_period;
     return false;
   }
 
   try {
-    return final_chain_->dpos_is_eligible(propose_period, node_addr_);
+    return final_chain_->dposIsEligible(propose_period, node_addr_);
   } catch (state_api::ErrFutureBlock& c) {
     LOG(log_wr_) << "Proposal period " << propose_period << " is too far ahead of DPOS. " << c.what();
     return false;

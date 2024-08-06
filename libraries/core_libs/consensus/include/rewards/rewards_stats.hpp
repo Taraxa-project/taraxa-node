@@ -1,3 +1,5 @@
+#pragma once
+
 #include "config/hardfork.hpp"
 #include "rewards/block_stats.hpp"
 #include "storage/storage.hpp"

@@ -15,7 +15,7 @@ namespace taraxa {
 
 VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
                          const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db,
-                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
                          std::shared_ptr<KeyManager> key_manager, std::shared_ptr<SlashingManager> slashing_manager)
     : kNodeAddr(node_addr),
       kPbftConfig(pbft_config),
@@ -840,19 +840,19 @@ std::shared_ptr<PbftVote> VoteManager::generateVoteWithWeight(const taraxa::blk_
   uint64_t pbft_sortition_threshold = 0;
 
   try {
-    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, kNodeAddr);
+    voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(period - 1, kNodeAddr);
     if (!voter_dpos_votes_count) {
       // No delegation
       return nullptr;
     }
 
-    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period - 1);
+    total_dpos_votes_count = final_chain_->dposEligibleTotalVoteCount(period - 1);
     pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote_type);
 
   } catch (state_api::ErrFutureBlock& e) {
     LOG(log_er_) << "Unable to place vote for period: " << period << ", round: " << round << ", step: " << step
                  << ", voted block hash: " << blockhash.abridged() << ". "
-                 << "Period is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
+                 << "Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
                  << "). Err msg: " << e.what();
 
     return nullptr;
@@ -881,10 +881,9 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Pbf
   const uint64_t vote_period = vote->getPeriod();
 
   try {
-    const uint64_t voter_dpos_votes_count =
-        final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
+    const uint64_t voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(vote_period - 1, vote->getVoterAddr());
 
-    // Mark vote as validated only after getting dpos_eligible_vote_count and other values from dpos contract. It is
+    // Mark vote as validated only after getting dposEligibleVoteCount and other values from dpos contract. It is
     // possible that we are behind in processing pbft blocks, in which case we wont be able to get values from dpos
     // contract and validation fails due to this, not due to the fact that vote is invalid...
     already_validated_votes_.insert(vote->getHash());
@@ -910,7 +909,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Pbf
       return {false, err_msg.str()};
     }
 
-    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
+    const uint64_t total_dpos_votes_count = final_chain_->dposEligibleTotalVoteCount(vote_period - 1);
     const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
     if (!vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold)) {
       err_msg << "Invalid vote " << vote->getHash() << ": zero weight";
@@ -918,7 +917,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Pbf
     }
   } catch (state_api::ErrFutureBlock& e) {
     err_msg << "Unable to validate vote " << vote->getHash() << " against dpos contract. It's period (" << vote_period
-            << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
+            << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
             << "). Err msg: " << e.what();
     return {false, err_msg.str()};
   } catch (...) {
@@ -944,11 +943,11 @@ std::optional<uint64_t> VoteManager::getPbftTwoTPlusOne(PbftPeriod pbft_period, 
 
   uint64_t total_dpos_votes_count = 0;
   try {
-    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
+    total_dpos_votes_count = final_chain_->dposEligibleTotalVoteCount(pbft_period);
   } catch (state_api::ErrFutureBlock& e) {
     LOG(log_er_) << "Unable to calculate 2t + 1 for period: " << pbft_period
-                 << ". Period is too far ahead of actual finalized pbft chain size ("
-                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
+                 << "). Err msg: " << e.what();
     return {};
   }
 
@@ -971,14 +970,14 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
   VrfPbftSortition vrf_sortition(kVrfSk, {PbftVoteTypes::propose_vote, pbft_period, pbft_round, 1});
 
   try {
-    const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(pbft_period - 1, kNodeAddr);
+    const uint64_t voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(pbft_period - 1, kNodeAddr);
     if (!voter_dpos_votes_count) {
       LOG(log_er_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
                    << " is invalid. Voter dpos vote count is zero";
       return false;
     }
 
-    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period - 1);
+    const uint64_t total_dpos_votes_count = final_chain_->dposEligibleTotalVoteCount(pbft_period - 1);
     const uint64_t pbft_sortition_threshold =
         getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote);
 
@@ -990,8 +989,8 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
     }
   } catch (state_api::ErrFutureBlock& e) {
     LOG(log_er_) << "Unable to generate vrf sorititon for period " << pbft_period << ", round " << pbft_round
-                 << ". Period is too far ahead of actual finalized pbft chain size ("
-                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
+                 << "). Err msg: " << e.what();
     return false;
   }
 

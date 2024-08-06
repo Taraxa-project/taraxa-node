@@ -1,10 +1,11 @@
+#include "final_chain/final_chain.hpp"
+
 #include <optional>
 #include <vector>
 
 #include "common/constants.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "final_chain/final_chain_impl.hpp"
 #include "final_chain/trie_common.hpp"
 #include "libdevcore/CommonJS.h"
 #include "network/rpc/eth/Eth.h"
@@ -25,7 +26,7 @@ struct advance_check_opts {
 struct FinalChainTest : WithDataDir {
   std::shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
   FullNodeConfig cfg = FullNodeConfig();
-  std::shared_ptr<FinalChain> SUT;
+  std::shared_ptr<final_chain::FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   std::unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
@@ -45,11 +46,11 @@ struct FinalChainTest : WithDataDir {
   }
 
   void init() {
-    SUT = std::make_shared<FinalChainImpl>(db, cfg, addr_t{});
+    SUT = std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{});
     const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
     cfg.genesis.state.dpos.yield_percentage = 0;
     for (const auto& [addr, _] : cfg.genesis.state.initial_balances) {
-      auto acc_actual = SUT->get_account(addr);
+      auto acc_actual = SUT->getAccount(addr);
       ASSERT_TRUE(acc_actual);
       const auto expected_bal = effective_balances.at(addr);
       ASSERT_EQ(acc_actual->balance, expected_bal);
@@ -87,17 +88,17 @@ struct FinalChainTest : WithDataDir {
 
     auto result = SUT->finalize(std::move(period_data), {dag_blk.getHash()}).get();
     const auto& blk_h = *result->final_chain_blk;
-    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));
-    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header()));
+    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->blockHeader(blk_h.number)));
+    EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->blockHeader()));
     const auto& receipts = result->trx_receipts;
-    EXPECT_EQ(blk_h.hash, SUT->block_header()->hash);
-    EXPECT_EQ(blk_h.hash, SUT->block_hash());
-    EXPECT_EQ(blk_h.parent_hash, SUT->block_header(expected_blk_num - 1)->hash);
+    EXPECT_EQ(blk_h.hash, SUT->blockHeader()->hash);
+    EXPECT_EQ(blk_h.hash, SUT->blockHash());
+    EXPECT_EQ(blk_h.parent_hash, SUT->blockHeader(expected_blk_num - 1)->hash);
     EXPECT_EQ(blk_h.number, expected_blk_num);
-    EXPECT_EQ(blk_h.number, SUT->last_block_number());
+    EXPECT_EQ(blk_h.number, SUT->lastBlockNumber());
     EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
     for (size_t i = 0; i < trxs.size(); i++) EXPECT_EQ(*SUT->transactions(blk_h.number)[i], *trxs[i]);
-    EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
+    EXPECT_EQ(*SUT->blockNumber(*SUT->blockHash(blk_h.number)), expected_blk_num);
     EXPECT_EQ(blk_h.author, pbft_block->getBeneficiary());
     EXPECT_EQ(blk_h.timestamp, pbft_block->getTimestamp());
     EXPECT_EQ(receipts.size(), trxs.size());
@@ -124,7 +125,7 @@ struct FinalChainTest : WithDataDir {
       if (!opts.expect_to_fail) {
         EXPECT_TRUE(r.gas_used != 0);
       }
-      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transaction_receipt(trx->getHash())));
+      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transactionReceipt(trx->getHash())));
       cumulative_gas_used_actual += r.gas_used;
       if (assume_only_toplevel_transfers && trx->getValue() != 0 && r.status_code == 1) {
         const auto& sender = trx->getSender();
@@ -134,10 +135,10 @@ struct FinalChainTest : WithDataDir {
         all_addrs_w_changed_balance.insert(sender);
         all_addrs_w_changed_balance.insert(receiver);
         expected_balances[receiver] += trx->getValue();
-        if (SUT->get_account(sender)->code_size == 0) {
+        if (SUT->getAccount(sender)->code_size == 0) {
           expected_balance_changes[sender] = expected_balances[sender];
         }
-        if (SUT->get_account(receiver)->code_size == 0) {
+        if (SUT->getAccount(receiver)->code_size == 0) {
           expected_balance_changes[receiver] = expected_balances[receiver];
         }
       }
@@ -152,7 +153,7 @@ struct FinalChainTest : WithDataDir {
         EXPECT_EQ(r.bloom(), LogBloom());
       }
       expected_block_log_bloom |= r.bloom();
-      auto trx_loc = *SUT->transaction_location(trx->getHash());
+      auto trx_loc = *SUT->transactionLocation(trx->getHash());
       EXPECT_EQ(trx_loc.period, blk_h.number);
       EXPECT_EQ(trx_loc.position, i);
     }
@@ -163,7 +164,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.log_bloom, expected_block_log_bloom);
     if (assume_only_toplevel_transfers) {
       for (const auto& addr : all_addrs_w_changed_balance) {
-        EXPECT_EQ(SUT->get_account(addr)->balance, expected_balances[addr]);
+        EXPECT_EQ(SUT->getAccount(addr)->balance, expected_balances[addr]);
       }
     }
     return result;
@@ -307,9 +308,9 @@ TEST_F(FinalChainTest, initial_validators) {
   init();
   const auto votes_per_address =
       cfg.genesis.state.dpos.validator_maximum_stake / cfg.genesis.state.dpos.vote_eligibility_balance_step;
-  const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
+  const auto total_votes = SUT->dposEligibleTotalVoteCount(SUT->lastBlockNumber());
   for (const auto& vk : validator_keys) {
-    const auto address_votes = SUT->dpos_eligible_vote_count(SUT->last_block_number(), vk.address());
+    const auto address_votes = SUT->dposEligibleVoteCount(SUT->lastBlockNumber(), vk.address());
     EXPECT_EQ(votes_per_address, address_votes);
     EXPECT_EQ(validator_keys.size() * votes_per_address, total_votes);
   }
@@ -334,13 +335,13 @@ TEST_F(FinalChainTest, nonce_test) {
   advance({trx3});
   advance({trx4});
 
-  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 4);
+  ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 4);
 
   // nonce_skipping is enabled, ok
   auto trx6 = std::make_shared<Transaction>(6, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
   advance({trx6});
 
-  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 7);
+  ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 7);
 
   // nonce is lower, fail
   auto trx5 = std::make_shared<Transaction>(5, 101, 0, 100000, dev::bytes(), sk, receiver_addr);
@@ -362,10 +363,10 @@ TEST_F(FinalChainTest, nonce_skipping) {
   auto trx4 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
 
   advance({trx1});
-  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 1);
+  ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 1);
 
   advance({trx3});
-  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 3);
+  ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 3);
 
   // fail transaction with the same nonce
   advance({trx3}, {false, false, true});
@@ -373,10 +374,10 @@ TEST_F(FinalChainTest, nonce_skipping) {
   // fail transaction with lower nonce
   advance({trx2}, {false, false, true});
 
-  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 3);
+  ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 3);
 
   advance({trx4});
-  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 4);
+  ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 4);
 }
 
 TEST_F(FinalChainTest, exec_trx_with_nonce_from_api) {
@@ -398,7 +399,7 @@ TEST_F(FinalChainTest, exec_trx_with_nonce_from_api) {
     auto trx = std::make_shared<Transaction>(nonce, 1, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
     auto result = advance({trx}, {false, false, true});
   }
-  auto account = SUT->get_account(addr);
+  auto account = SUT->getAccount(addr);
   ASSERT_EQ(account->nonce, nonce + 1);
   auto trx =
       std::make_shared<Transaction>(account->nonce, 1, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
@@ -469,7 +470,7 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   auto trx2_1 = std::make_shared<Transaction>(2, 101, 1, gas, dev::bytes(), sk, receiver);
 
   advance({trx1});
-  auto blk = SUT->block_header(expected_blk_num);
+  auto blk = SUT->blockHeader(expected_blk_num);
   auto proposer_balance = SUT->getBalance(blk->author);
   EXPECT_EQ(proposer_balance.first, 21000);
   advance({trx2});
@@ -477,24 +478,24 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
 
   {
     // low nonce trx should fail and consume all gas
-    auto balance_before = SUT->get_account(addr)->balance;
+    auto balance_before = SUT->getAccount(addr)->balance;
     advance({trx2_1}, {false, false, true});
-    auto receipt = SUT->transaction_receipt(trx2_1->getHash());
+    auto receipt = SUT->transactionReceipt(trx2_1->getHash());
     EXPECT_EQ(receipt->gas_used, gas);
-    EXPECT_EQ(balance_before - SUT->get_account(addr)->balance, receipt->gas_used * trx2_1->getGasPrice());
+    EXPECT_EQ(balance_before - SUT->getAccount(addr)->balance, receipt->gas_used * trx2_1->getGasPrice());
   }
   {
     // transaction gas is bigger then current account balance. Use closest int as gas used and decrease sender balance
     // by gas_used * gas_price
-    ASSERT_GE(gas, SUT->get_account(addr)->balance);
-    auto balance_before = SUT->get_account(addr)->balance;
+    ASSERT_GE(gas, SUT->getAccount(addr)->balance);
+    auto balance_before = SUT->getAccount(addr)->balance;
     auto gas_price = 3;
     auto trx4 = std::make_shared<Transaction>(4, 100, gas_price, gas, dev::bytes(), sk, receiver);
     advance({trx4}, {false, false, true});
-    auto receipt = SUT->transaction_receipt(trx4->getHash());
+    auto receipt = SUT->transactionReceipt(trx4->getHash());
     EXPECT_GT(balance_before % gas_price, 0);
     EXPECT_EQ(receipt->gas_used, balance_before / gas_price);
-    EXPECT_EQ(SUT->get_account(addr)->balance, balance_before % gas_price);
+    EXPECT_EQ(SUT->getAccount(addr)->balance, balance_before % gas_price);
   }
 }
 
@@ -832,9 +833,9 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   init();
   const auto votes_per_address =
       cfg.genesis.state.dpos.validator_maximum_stake / cfg.genesis.state.dpos.vote_eligibility_balance_step;
-  const auto total_votes_before = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
+  const auto total_votes_before = SUT->dposEligibleTotalVoteCount(SUT->lastBlockNumber());
   for (const auto& vk : validator_keys) {
-    const auto address_votes = SUT->dpos_eligible_vote_count(SUT->last_block_number(), vk.address());
+    const auto address_votes = SUT->dposEligibleVoteCount(SUT->lastBlockNumber(), vk.address());
     EXPECT_EQ(votes_per_address, address_votes);
     EXPECT_EQ(validator_keys.size() * votes_per_address, total_votes_before);
   }
@@ -853,7 +854,7 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
     advance({});
   }
 
-  const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
+  const auto total_votes = SUT->dposEligibleTotalVoteCount(SUT->lastBlockNumber());
   EXPECT_EQ(total_votes_before - votes_per_address, total_votes);
 }
 
