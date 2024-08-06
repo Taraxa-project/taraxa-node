@@ -121,16 +121,23 @@ void LogFilter::match_one(const ExtendedTransactionLocation& trx_loc, const Tran
 
 std::vector<LocalisedLogEntry> LogFilter::match_all(const FinalChain& final_chain) const {
   std::vector<LocalisedLogEntry> ret;
+
+  // to_block can't be greater than the last executed block number
+  const auto last_block_number = final_chain.last_block_number();
+  auto to_blk_n = to_block_ ? *to_block_ : last_block_number;
+  if (to_blk_n > last_block_number) {
+    to_blk_n = last_block_number;
+  }
+
   auto action = [&, this](EthBlockNumber blk_n) {
-    ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.block_hash(blk_n)}};
+    ExtendedTransactionLocation trx_loc{{{blk_n}, final_chain.block_hash(blk_n).value()}};
     auto hashes = final_chain.transaction_hashes(trx_loc.period);
     for (const auto& hash : *hashes) {
       trx_loc.trx_hash = hash;
-      match_one(trx_loc, *final_chain.transaction_receipt(hash), [&](const auto& lle) { ret.push_back(lle); });
+      match_one(trx_loc, final_chain.transaction_receipt(hash).value(), [&](const auto& lle) { ret.push_back(lle); });
       ++trx_loc.position;
     }
   };
-  auto to_blk_n = to_block_ ? *to_block_ : final_chain.last_block_number();
   if (is_range_only_) {
     for (auto blk_n = from_block_; blk_n <= to_blk_n; ++blk_n) {
       action(blk_n);
