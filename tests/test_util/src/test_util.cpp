@@ -92,6 +92,22 @@ SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const 
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
 
+SharedTransaction make_undelegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
+                                     const u256& gas_price) {
+  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto input = util::EncodingSolidity::packFunctionCall("undelegate(address,uint256)", addr, value);
+  return std::make_shared<Transaction>(nonce, 0, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+}
+
+SharedTransaction make_redelegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, const Address& to,
+                                     uint64_t nonce, const u256& gas_price) {
+  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto input = util::EncodingSolidity::packFunctionCall("reDelegate(address,address,uint256)", addr, to, value);
+  return std::make_shared<Transaction>(nonce, 0, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+}
+
 u256 own_balance(const std::shared_ptr<FullNode>& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
 }
