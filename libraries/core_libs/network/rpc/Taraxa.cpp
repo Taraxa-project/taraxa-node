@@ -142,7 +142,7 @@ Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetNode()->getConfig
 Json::Value Taraxa::taraxa_getChainStats() {
   Json::Value res;
   if (auto node = full_node_.lock()) {
-    res["pbft_period"] = Json::UInt64(node->getFinalChain()->last_block_number());
+    res["pbft_period"] = Json::UInt64(node->getFinalChain()->lastBlockNumber());
     res["dag_blocks_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
     res["transactions_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
   }
@@ -158,7 +158,7 @@ std::string Taraxa::taraxa_yield(const std::string& _period) {
     }
 
     auto period = dev::jsToInt(_period);
-    return toJS(node->getFinalChain()->dpos_yield(period));
+    return toJS(node->getFinalChain()->dposYield(period));
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
@@ -172,7 +172,7 @@ std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
     }
 
     auto period = dev::jsToInt(_period);
-    return toJS(node->getFinalChain()->dpos_total_supply(period));
+    return toJS(node->getFinalChain()->dposTotalSupply(period));
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }

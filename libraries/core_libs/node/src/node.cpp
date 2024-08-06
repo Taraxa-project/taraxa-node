@@ -11,7 +11,7 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
 #include "dag/dag_block_proposer.hpp"
-#include "final_chain/final_chain_impl.hpp"
+#include "final_chain/final_chain.hpp"
 #include "graphql/http_processor.hpp"
 #include "graphql/ws_server.hpp"
 #include "key_manager/key_manager.hpp"
@@ -113,7 +113,7 @@ void FullNode::init() {
   }
 
   gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis.gas_price, conf_.is_light_node, db_);
-  final_chain_ = std::make_shared<final_chain::FinalChainImpl>(db_, conf_, node_addr);
+  final_chain_ = std::make_shared<final_chain::FinalChain>(db_, conf_, node_addr);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
@@ -423,7 +423,7 @@ void FullNode::rebuildDb() {
 
     LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
                  << " from old DB into syncing queue for processing, final chain size: "
-                 << final_chain_->last_block_number();
+                 << final_chain_->lastBlockNumber();
 
     pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
     pbft_mgr_->waitForPeriodFinalization();

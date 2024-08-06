@@ -26,7 +26,7 @@ response::Value Transaction::getNonce() const noexcept { return response::Value(
 
 std::optional<int> Transaction::getIndex() const noexcept {
   if (!location_) {
-    location_ = final_chain_->transaction_location(transaction_->getHash());
+    location_ = final_chain_->transactionLocation(transaction_->getHash());
     if (!location_) return std::nullopt;
   }
   return {location_->position};
@@ -34,7 +34,7 @@ std::optional<int> Transaction::getIndex() const noexcept {
 
 std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Value>&&) const {
   if (!location_) {
-    location_ = final_chain_->transaction_location(transaction_->getHash());
+    location_ = final_chain_->transactionLocation(transaction_->getHash());
     if (!location_) {
       return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, transaction_->getSender()));
     }
@@ -46,7 +46,7 @@ std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Va
 std::shared_ptr<object::Account> Transaction::getTo(std::optional<response::Value>&&) const {
   if (!transaction_->getReceiver()) return nullptr;
   if (!location_) {
-    location_ = final_chain_->transaction_location(transaction_->getHash());
+    location_ = final_chain_->transactionLocation(transaction_->getHash());
     if (!location_) {
       return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, *transaction_->getReceiver()));
     }
@@ -69,7 +69,7 @@ response::Value Transaction::getInputData() const noexcept {
 
 std::shared_ptr<object::Block> Transaction::getBlock() const {
   if (!location_) {
-    location_ = final_chain_->transaction_location(transaction_->getHash());
+    location_ = final_chain_->transactionLocation(transaction_->getHash());
     if (!location_) return nullptr;
   }
   return get_block_by_num_(location_->period);
@@ -77,7 +77,7 @@ std::shared_ptr<object::Block> Transaction::getBlock() const {
 
 std::optional<response::Value> Transaction::getStatus() const noexcept {
   if (!receipt_) {
-    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    receipt_ = final_chain_->transactionReceipt(transaction_->getHash());
     if (!receipt_) return std::nullopt;
   }
   return response::Value(static_cast<int>(receipt_->status_code));
@@ -85,7 +85,7 @@ std::optional<response::Value> Transaction::getStatus() const noexcept {
 
 std::optional<response::Value> Transaction::getGasUsed() const noexcept {
   if (!receipt_) {
-    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    receipt_ = final_chain_->transactionReceipt(transaction_->getHash());
     if (!receipt_) return std::nullopt;
   }
   return response::Value(static_cast<int>(receipt_->gas_used));
@@ -93,7 +93,7 @@ std::optional<response::Value> Transaction::getGasUsed() const noexcept {
 
 std::optional<response::Value> Transaction::getCumulativeGasUsed() const noexcept {
   if (!receipt_) {
-    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    receipt_ = final_chain_->transactionReceipt(transaction_->getHash());
     if (!receipt_) return std::nullopt;
   }
   return response::Value(static_cast<int>(receipt_->cumulative_gas_used));
@@ -101,7 +101,7 @@ std::optional<response::Value> Transaction::getCumulativeGasUsed() const noexcep
 
 std::shared_ptr<object::Account> Transaction::getCreatedContract(std::optional<response::Value>&&) const noexcept {
   if (!receipt_) {
-    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    receipt_ = final_chain_->transactionReceipt(transaction_->getHash());
     if (!receipt_) return nullptr;
   }
   if (!receipt_->new_contract_address) return nullptr;
@@ -111,7 +111,7 @@ std::shared_ptr<object::Account> Transaction::getCreatedContract(std::optional<r
 std::optional<std::vector<std::shared_ptr<object::Log>>> Transaction::getLogs() const noexcept {
   std::vector<std::shared_ptr<object::Log>> logs;
   if (!receipt_) {
-    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    receipt_ = final_chain_->transactionReceipt(transaction_->getHash());
     if (!receipt_) return std::nullopt;
   }
 

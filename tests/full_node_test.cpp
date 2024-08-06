@@ -417,7 +417,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     void assert_all_transactions_known() {
       for (auto &n : nodes_) {
         for (auto &t : transactions) {
-          auto location = n->getFinalChain()->transaction_location(t);
+          auto location = n->getFinalChain()->transactionLocation(t);
           ASSERT_EQ(location.has_value(), true);
         }
       }
@@ -426,7 +426,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     void assert_all_transactions_success() {
       for (auto &n : nodes_) {
         for (auto &t : transactions) {
-          auto receipt = n->getFinalChain()->transaction_receipt(t);
+          auto receipt = n->getFinalChain()->transactionReceipt(t);
           if (receipt->status_code != 1) {
             auto trx = n->getTransactionManager()->getTransaction(t);
             std::cout << "failed: " << t.toString() << " sender: " << trx->getSender() << " nonce: " << trx->getNonce()
@@ -442,7 +442,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       wait(wait_for, [this](auto &ctx) {
         for (auto &n : nodes_) {
           for (auto &t : transactions) {
-            if (!n->getFinalChain()->transaction_location(t)) {
+            if (!n->getFinalChain()->transactionLocation(t)) {
               ctx.fail();
             }
           }
@@ -1285,7 +1285,7 @@ TEST_F(FullNodeTest, db_rebuild) {
       nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
-      executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
+      executed_chain_size = nodes[0]->getFinalChain()->lastBlockNumber();
       if (executed_chain_size == 5) {
         trxs_count_at_pbft_size_5 = nodes[0]->getDB()->getNumTransactionExecuted();
       }
@@ -1303,7 +1303,7 @@ TEST_F(FullNodeTest, db_rebuild) {
         ctx.fail();
       }
     });
-    executed_chain_size = nodes[0]->getFinalChain()->last_block_number();
+    executed_chain_size = nodes[0]->getFinalChain()->lastBlockNumber();
     std::cout << "Executed transactions " << trxs_count_at_pbft_size_5 << " at chain size 5" << std::endl;
     std::cout << "Total executed transactions " << executed_trxs << std::endl;
     std::cout << "Executed chain size " << executed_chain_size << std::endl;
@@ -1316,7 +1316,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto nodes = launch_nodes(node_cfgs);
     ASSERT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
-      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), executed_chain_size)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->lastBlockNumber(), executed_chain_size)
     });
   }
 
@@ -1326,7 +1326,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
-      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), executed_chain_size)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->lastBlockNumber(), executed_chain_size)
     });
   }
 
@@ -1338,7 +1338,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
-      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), 5)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->lastBlockNumber(), 5)
     });
   }
 
@@ -1348,7 +1348,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
-      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), 5)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->lastBlockNumber(), 5)
     });
   }
 }
@@ -1639,7 +1639,7 @@ TEST_F(FullNodeTest, graphql_test) {
   data = service::ScalarArgument::require("data", result);
   block = service::ScalarArgument::require("block", data);
   const auto hash = service::StringArgument::require("hash", block);
-  EXPECT_EQ(nodes[0]->getFinalChain()->block_header(3)->hash.toString(), hash);
+  EXPECT_EQ(nodes[0]->getFinalChain()->blockHeader(3)->hash.toString(), hash);
 
   // Get block hash by number
   query = R"({ block(number: 2) { transactionAt(index: 0) { hash } } })"_graphql;
@@ -1656,7 +1656,7 @@ TEST_F(FullNodeTest, graphql_test) {
   block = service::ScalarArgument::require("block", data);
   auto transactionAt = service::ScalarArgument::require("transactionAt", block);
   const auto hash2 = service::StringArgument::require("hash", transactionAt);
-  EXPECT_EQ(nodes[0]->getFinalChain()->transaction_hashes(2)->at(0).toString(), hash2);
+  EXPECT_EQ(nodes[0]->getFinalChain()->transactionHashes(2)->at(0).toString(), hash2);
 }
 
 }  // namespace taraxa::core_tests
