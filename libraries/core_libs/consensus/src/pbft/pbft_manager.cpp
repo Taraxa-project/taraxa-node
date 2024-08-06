@@ -25,7 +25,7 @@ constexpr PbftStep kMaxSteps{13};  // Need to be a odd number
 PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                         std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<final_chain::FinalChain> final_chain,
                          std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk)
     : db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
@@ -42,7 +42,7 @@ PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::share
       proposed_blocks_(db_) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
-  for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
+  for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {
     auto period_raw = db_->getPeriodDataRaw(period);
     if (period_raw.size() == 0) {
@@ -68,7 +68,7 @@ PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::share
 
   PbftPeriod start_period = 1;
   const auto recently_finalized_transactions_periods =
-      kRecentlyFinalizedTransactionsFactor * final_chain_->delegation_delay();
+      kRecentlyFinalizedTransactionsFactor * final_chain_->delegationDelay();
   if (pbft_chain_->getPbftChainSize() > recently_finalized_transactions_periods) {
     start_period = pbft_chain_->getPbftChainSize() - recently_finalized_transactions_periods;
   }
@@ -201,7 +201,7 @@ void PbftManager::setPbftRound(PbftRound round) {
 void PbftManager::waitForPeriodFinalization() {
   do {
     // we need to be sure we finalized at least block block with num lower by delegation_delay
-    if (pbft_chain_->getPbftChainSize() <= final_chain_->last_block_number() + final_chain_->delegation_delay()) {
+    if (pbft_chain_->getPbftChainSize() <= final_chain_->lastBlockNumber() + final_chain_->delegationDelay()) {
       break;
     }
     thisThreadSleepForMilliSeconds(kPollingIntervalMs.count());
@@ -210,11 +210,11 @@ void PbftManager::waitForPeriodFinalization() {
 
 std::optional<uint64_t> PbftManager::getCurrentDposTotalVotesCount() const {
   try {
-    return final_chain_->dpos_eligible_total_vote_count(pbft_chain_->getPbftChainSize());
+    return final_chain_->dposEligibleTotalVoteCount(pbft_chain_->getPbftChainSize());
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_wr_) << "Unable to get CurrentDposTotalVotesCount for period: " << pbft_chain_->getPbftChainSize()
-                 << ". Period is too far ahead of actual finalized pbft chain size ("
-                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
+                 << "). Err msg: " << e.what();
   }
 
   return {};
@@ -222,11 +222,11 @@ std::optional<uint64_t> PbftManager::getCurrentDposTotalVotesCount() const {
 
 std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
   try {
-    return final_chain_->dpos_eligible_vote_count(pbft_chain_->getPbftChainSize(), node_addr_);
+    return final_chain_->dposEligibleVoteCount(pbft_chain_->getPbftChainSize(), node_addr_);
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_wr_) << "Unable to get CurrentNodeVotesCount for period: " << pbft_chain_->getPbftChainSize()
-                 << ". Period is too far ahead of actual finalized pbft chain size ("
-                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
+                 << "). Err msg: " << e.what();
   }
 
   return {};
@@ -1126,8 +1126,8 @@ PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev
                  [](const auto &v) { return v->getHash(); });
 
   h256 last_state_root;
-  if (propose_period > final_chain_->delegation_delay()) {
-    if (const auto header = final_chain_->block_header(propose_period - final_chain_->delegation_delay())) {
+  if (propose_period > final_chain_->delegationDelay()) {
+    if (const auto header = final_chain_->blockHeader(propose_period - final_chain_->delegationDelay())) {
       last_state_root = header->state_root;
     } else {
       LOG(log_wr_) << "Block for period " << propose_period << " could not be proposed as we are behind";
@@ -1387,8 +1387,8 @@ PbftStateRootValidation PbftManager::validatePbftBlockStateRoot(const std::share
   auto const &pbft_block_hash = pbft_block->getBlockHash();
   {
     h256 prev_state_root_hash;
-    if (period > final_chain_->delegation_delay()) {
-      if (const auto header = final_chain_->block_header(period - final_chain_->delegation_delay())) {
+    if (period > final_chain_->delegationDelay()) {
+      if (const auto header = final_chain_->blockHeader(period - final_chain_->delegationDelay())) {
         prev_state_root_hash = header->state_root;
       } else {
         LOG(log_wr_) << "Block " << pbft_block_hash << " could not be validated as we are behind";
@@ -1796,16 +1796,16 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 }
 
 void PbftManager::processPillarBlock(PbftPeriod current_pbft_chain_size) {
-  // Pillar block use state from current_pbft_chain_size - final_chain_->delegation_delay(), e.g. block with period 32
+  // Pillar block use state from current_pbft_chain_size - final_chain_->delegationDelay(), e.g. block with period 32
   // uses state from period 27.
-  PbftPeriod request_period = current_pbft_chain_size - final_chain_->delegation_delay();
+  PbftPeriod request_period = current_pbft_chain_size - final_chain_->delegationDelay();
   // advancePeriod() -> resetConsensus() -> waitForPeriodFinalization() makes sure block request_period was already
   // finalized
-  assert(final_chain_->last_block_number() >= request_period);
+  assert(final_chain_->lastBlockNumber() >= request_period);
 
-  const auto block_header = final_chain_->block_header(request_period);
-  const auto bridge_root = final_chain_->get_bridge_root(request_period);
-  const auto bridge_epoch = final_chain_->get_bridge_epoch(request_period);
+  const auto block_header = final_chain_->blockHeader(request_period);
+  const auto bridge_root = final_chain_->getBridgeRoot(request_period);
+  const auto bridge_epoch = final_chain_->getBridgeEpoch(request_period);
 
   // Create pillar block
   const auto pillar_block =
@@ -1814,7 +1814,7 @@ void PbftManager::processPillarBlock(PbftPeriod current_pbft_chain_size) {
   // Optimization - creates pillar vote right after pillar block was created, otherwise pillar votes are created during
   // next period pbft voting Check if node is eligible to vote for pillar block No need to catch ErrFutureBlock,
   // waitForPeriodFinalization() makes sure it does not happen
-  if (final_chain_->dpos_is_eligible(current_pbft_chain_size, node_addr_)) {
+  if (final_chain_->dposIsEligible(current_pbft_chain_size, node_addr_)) {
     if (pillar_block) {
       // Pillar votes are created in the next period (+ 1), this is optimization to create & broadcast it a bit faster
       const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(
@@ -1882,7 +1882,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
       break;
     }
     // If syncing and pbft manager is faster than execution a delay might be needed to allow EVM to catch up
-    final_chain_->wait_for_finalized();
+    final_chain_->waitForFinalized();
     if (!retry_logged) {
       LOG(log_wr_) << "PBFT block " << pbft_block_hash
                    << " validation delayed, state root missing, execution is behind";
@@ -2112,11 +2112,11 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
 bool PbftManager::canParticipateInConsensus(PbftPeriod period) const {
   try {
-    return final_chain_->dpos_is_eligible(period, node_addr_);
+    return final_chain_->dposIsEligible(period, node_addr_);
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to decide if node is consensus node or not for period: " << period
-                 << ". Period is too far ahead of actual finalized pbft chain size ("
-                 << final_chain_->last_block_number() << "). Err msg: " << e.what()
+                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
+                 << "). Err msg: " << e.what()
                  << ". Node is considered as not eligible to participate in consensus for period " << period;
   }
 

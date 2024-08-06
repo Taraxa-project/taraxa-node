@@ -80,12 +80,12 @@ TEST_F(StateAPITest, DISABLED_dpos_integration) {
   //     exp_q_acc_res[addr].is_eligible = true;
   //   }
   //   string meta = "at block " + to_string(curr_blk);
-  //   EXPECT_EQ(addr_1_bal_expected, SUT.get_account(curr_blk, make_addr(1))->balance) << meta;
+  //   EXPECT_EQ(addr_1_bal_expected, SUT.getAccount(curr_blk, make_addr(1))->balance) << meta;
   //   for (auto const& addr : expected_eligible_set) {
-  //     EXPECT_TRUE(SUT.dpos_is_eligible(curr_blk, addr)) << meta;
-  //     EXPECT_EQ(SUT.dpos_eligible_vote_count(curr_blk, addr), 1) << meta;
+  //     EXPECT_TRUE(SUT.dposIsEligible(curr_blk, addr)) << meta;
+  //     EXPECT_EQ(SUT.dposEligibleVoteCount(curr_blk, addr), 1) << meta;
   //   }
-  //   EXPECT_EQ(SUT.dpos_eligible_total_vote_count(curr_blk), expected_eligible_set.size()) << meta;
+  //   EXPECT_EQ(SUT.dposEligibleTotalVoteCount(curr_blk), expected_eligible_set.size()) << meta;
   //   // auto q_res = SUT.dpos_query(curr_blk, q);
   //   EXPECT_EQ(q_res.eligible_count, expected_eligible_set.size()) << meta;
   //   for (auto& [addr, res_exp] : exp_q_acc_res) {
@@ -222,8 +222,7 @@ TEST_F(StateAPITest, slashing) {
   auto nodes = launch_nodes(node_cfgs);
   auto node = nodes.begin()->get();
   auto node_cfg = node_cfgs.begin();
-  ASSERT_EQ(true,
-            node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()));
+  ASSERT_EQ(true, node->getFinalChain()->dposIsEligible(node->getFinalChain()->lastBlockNumber(), node->getAddress()));
 
   // Generate 2 cert votes for 2 different blocks
   auto vote_a = node->getVoteManager()->generateVote(blk_hash_t{1}, PbftVoteTypes::cert_vote, 1, 1, 3);
@@ -236,9 +235,8 @@ TEST_F(StateAPITest, slashing) {
 
   // After few blocks malicious validator should be jailed
   ASSERT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(
-        ctx, false,
-        node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()))
+    WAIT_EXPECT_EQ(ctx, false,
+                   node->getFinalChain()->dposIsEligible(node->getFinalChain()->lastBlockNumber(), node->getAddress()))
   });
 
   // Option 2: more sophisticated and longer test
@@ -246,7 +244,7 @@ TEST_F(StateAPITest, slashing) {
   //  ASSERT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
   //    WAIT_EXPECT_EQ(
   //        ctx, true,
-  //        node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()))
+  //        node->getFinalChain()->dposIsEligible(node->getFinalChain()->lastBlockNumber(), node->getAddress()))
   //  });
 }
 

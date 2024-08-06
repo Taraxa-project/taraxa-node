@@ -8,7 +8,7 @@ namespace taraxa {
 
 const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000EE");
 
-SlashingManager::SlashingManager(std::shared_ptr<FinalChain> final_chain,
+SlashingManager::SlashingManager(std::shared_ptr<final_chain::FinalChain> final_chain,
                                  std::shared_ptr<TransactionManager> trx_manager, std::shared_ptr<GasPricer> gas_pricer,
                                  const FullNodeConfig &config, secret_t node_sk)
     : final_chain_(std::move(final_chain)),
@@ -52,7 +52,7 @@ bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<PbftVote> &v
   }
 
   // Check the balance
-  const auto account = final_chain_->get_account(kAddress).value_or(taraxa::state_api::ZeroAccount);
+  const auto account = final_chain_->getAccount(kAddress).value_or(taraxa::state_api::ZeroAccount);
   if (account.balance == 0) {
     return false;
   }

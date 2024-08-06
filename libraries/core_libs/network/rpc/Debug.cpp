@@ -129,7 +129,7 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
     }
     auto final_chain = node->getFinalChain();
     auto period = dev::jsToInt(_period);
-    auto block_hash = final_chain->block_hash(period);
+    auto block_hash = final_chain->blockHash(period);
     auto trxs = node->getDB()->getPeriodTransactions(period);
     if (!trxs.has_value()) {
       return Json::Value(Json::arrayValue);
@@ -137,9 +137,9 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
 
     return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
       auto hash = trx->getHash();
-      auto r = final_chain->transaction_receipt(hash);
+      auto r = final_chain->transactionReceipt(hash);
       auto location =
-          rpc::eth::ExtendedTransactionLocation{{*final_chain->transaction_location(hash), *block_hash}, hash};
+          rpc::eth::ExtendedTransactionLocation{{*final_chain->transactionLocation(hash), *block_hash}, hash};
       auto transaction = rpc::eth::LocalisedTransaction{trx, location};
       auto receipt = rpc::eth::LocalisedTransactionReceipt{*r, location, trx->getSender(), trx->getReceiver()};
       auto receipt_json = rpc::eth::toJson(receipt);
@@ -191,7 +191,7 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
     }
 
     const auto votes_period = votes.front()->getPeriod();
-    const uint64_t total_dpos_votes_count = final_chain->dpos_eligible_total_vote_count(votes_period - 1);
+    const uint64_t total_dpos_votes_count = final_chain->dposEligibleTotalVoteCount(votes_period - 1);
     res["total_votes_count"] = total_dpos_votes_count;
     res["votes"] = transformToJsonParallel(votes, [&](const auto& vote) {
       vote_manager->validateVote(vote);
@@ -214,7 +214,7 @@ Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
     auto vote_manager = node->getVoteManager();
 
     auto period = dev::jsToInt(_period);
-    auto validatorsStakes = final_chain->dpos_validators_total_stakes(period);
+    auto validatorsStakes = final_chain->dposValidatorsTotalStakes(period);
 
     Json::Value res(Json::arrayValue);
 
@@ -240,7 +240,7 @@ Json::Value Debug::debug_dposTotalAmountDelegated(const std::string& _period) {
     auto final_chain = node->getFinalChain();
 
     auto period = dev::jsToInt(_period);
-    auto totalAmountDelegated = final_chain->dpos_total_amount_delegated(period);
+    auto totalAmountDelegated = final_chain->dposTotalAmountDelegated(period);
 
     return toJS(totalAmountDelegated);
   } catch (...) {
@@ -310,7 +310,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
     trx.nonce = jsToU256(json["nonce"].asString());
   } else {
     if (auto node = full_node_.lock()) {
-      trx.nonce = node->getFinalChain()->get_account(trx.from, blk_num).value_or(state_api::ZeroAccount).nonce;
+      trx.nonce = node->getFinalChain()->getAccount(trx.from, blk_num).value_or(state_api::ZeroAccount).nonce;
     }
   }
 
@@ -320,7 +320,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
 EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
   if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str.empty()) {
     if (auto node = full_node_.lock()) {
-      return node->getFinalChain()->last_block_number();
+      return node->getFinalChain()->lastBlockNumber();
     }
   } else if (blk_num_str == "earliest") {
     return 0;
@@ -342,7 +342,7 @@ std::pair<std::shared_ptr<Transaction>, std::optional<final_chain::TransactionLo
 Debug::get_transaction_with_location(const std::string& transaction_hash) const {
   if (auto node = full_node_.lock()) {
     const auto hash = jsToFixed<32>(transaction_hash);
-    return {node->getDB()->getTransaction(hash), node->getFinalChain()->transaction_location(hash)};
+    return {node->getDB()->getTransaction(hash), node->getFinalChain()->transactionLocation(hash)};
   }
   return {};
 }

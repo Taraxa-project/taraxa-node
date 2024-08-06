@@ -17,7 +17,7 @@
 namespace taraxa {
 DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
                        const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
-                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
+                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
                        std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
                        const state_api::Config &state_config, bool is_light_node, uint64_t light_node_history,
                        uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
@@ -506,9 +506,9 @@ void DagManager::recoverDag() {
         // Verify VDF solution
         try {
           uint64_t max_vote_count = 0;
-          const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
+          const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk.getSender());
           if (*propose_period < kHardforks.magnolia_hf.block_num) {
-            max_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+            max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
           } else {
             max_vote_count = kValidatorMaxVote;
           }
@@ -662,9 +662,9 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   try {
     const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
     uint64_t max_vote_count = 0;
-    const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
+    const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk.getSender());
     if (*propose_period < kHardforks.magnolia_hf.block_num) {
-      max_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+      max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
     } else {
       max_vote_count = kValidatorMaxVote;
     }
@@ -680,7 +680,7 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   auto dag_block_sender = blk.getSender();
   bool dpos_qualified;
   try {
-    dpos_qualified = final_chain_->dpos_is_eligible(*propose_period, dag_block_sender);
+    dpos_qualified = final_chain_->dposIsEligible(*propose_period, dag_block_sender);
   } catch (state_api::ErrFutureBlock &c) {
     LOG(log_er_) << "Verify proposal period " << *propose_period << " is too far ahead of DPOS. " << c.what();
     return {VerifyBlockReturnType::FutureBlock, {}};
@@ -688,7 +688,7 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   if (!dpos_qualified) {
     LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk << " is not eligible for DPOS at period "
                  << *propose_period << " for sender " << dag_block_sender.toString() << " current period "
-                 << final_chain_->last_block_number();
+                 << final_chain_->lastBlockNumber();
     return {VerifyBlockReturnType::NotEligible, {}};
   }
   {
@@ -701,14 +701,14 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
     if (total_block_weight != block_gas_estimation) {
       LOG(log_er_) << "Invalid block_gas_estimation. DAG block " << blk.getHash()
                    << " block_gas_estimation: " << block_gas_estimation << " total_block_weight " << total_block_weight
-                   << " current period " << final_chain_->last_block_number();
+                   << " current period " << final_chain_->lastBlockNumber();
       return {VerifyBlockReturnType::IncorrectTransactionsEstimation, {}};
     }
 
     if (total_block_weight > getDagConfig().gas_limit) {
       LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " gas_limit: " << getDagConfig().gas_limit
                    << " total_block_weight " << total_block_weight << " current period "
-                   << final_chain_->last_block_number();
+                   << final_chain_->lastBlockNumber();
       return {VerifyBlockReturnType::BlockTooBig, {}};
     }
 
@@ -724,7 +724,7 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
       if (block_gas_estimation > kPbftGasLimit) {
         LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " with tips has limit: " << kPbftGasLimit
                      << " block_gas_estimation " << block_gas_estimation << " current period "
-                     << final_chain_->last_block_number();
+                     << final_chain_->lastBlockNumber();
         return {VerifyBlockReturnType::BlockTooBig, {}};
       }
     }

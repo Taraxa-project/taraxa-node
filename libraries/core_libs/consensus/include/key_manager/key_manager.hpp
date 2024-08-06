@@ -10,7 +10,7 @@ namespace taraxa {
 
 class KeyManager {
  public:
-  KeyManager(std::shared_ptr<FinalChain> final_chain);
+  KeyManager(std::shared_ptr<final_chain::FinalChain> final_chain);
   KeyManager(const KeyManager &) = delete;
   KeyManager(KeyManager &&) = delete;
   KeyManager &operator=(const KeyManager &) = delete;
@@ -22,7 +22,7 @@ class KeyManager {
   std::shared_mutex vrf_keys_mutex_;
   std::unordered_map<addr_t, std::shared_ptr<vrf_wrapper::vrf_pk_t>> vrf_keys_;
 
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
 };
 
 }  // namespace taraxa
