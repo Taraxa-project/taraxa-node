@@ -49,7 +49,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   LOG_OBJECTS_CREATE("DBS");
 
   fs::create_directories(db_path_);
-  removeOldLogFiles();
+  removeTempFiles();
 
   rocksdb::Options options;
   options.create_missing_column_families = true;
@@ -94,10 +94,11 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   }
 }
 
-void DbStorage::removeOldLogFiles() const {
+void DbStorage::removeTempFiles() const {
   const std::regex filePattern("LOG\\.old\\.\\d+");
   removeFilesWithPattern(db_path_, filePattern);
   removeFilesWithPattern(state_db_path_, filePattern);
+  deleteTmpDirectories(path_);
 }
 
 void DbStorage::removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const {
@@ -115,6 +116,22 @@ void DbStorage::removeFilesWithPattern(const std::string& directory, const std::
     }
   } catch (const std::filesystem::filesystem_error& e) {
     LOG(log_dg_) << "Error accessing directory: " << e.what() << std::endl;
+  }
+}
+
+void DbStorage::deleteTmpDirectories(const std::string& path) const {
+  try {
+    for (const auto& entry : fs::directory_iterator(path)) {
+      if (entry.is_directory()) {
+        std::string dirName = entry.path().filename().string();
+        if (dirName.size() >= 4 && dirName.substr(dirName.size() - 4) == ".tmp") {
+          fs::remove_all(entry.path());
+          LOG(log_dg_) << "Deleted: " << entry.path() << std::endl;
+        }
+      }
+    }
+  } catch (const fs::filesystem_error& e) {
+    LOG(log_er_) << "Error: " << e.what() << std::endl;
   }
 }
 
