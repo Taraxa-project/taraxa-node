@@ -208,8 +208,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
                                                           const std::string& new_col_name, bool move_data = false);
 
   // For removal of LOG.old.* files in the database
-  void removeOldLogFiles() const;
+  void removeTempFiles() const;
   void removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const;
+  void deleteTmpDirectories(const std::string& path) const;
 
   uint32_t getMajorVersion() const;
   std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);
