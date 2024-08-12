@@ -1204,14 +1204,11 @@ PbftManager::proposePbftBlock() {
   }
 
   // Creates pbft block's extra data
-  std::optional<PbftBlockExtraData> extra_data;
-  if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(current_pbft_period)) {
-    extra_data = createPbftBlockExtraData(current_pbft_period);
-    if (!extra_data.has_value()) {
-      LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                   << ". Empty extra data";
-      return {};
-    }
+  std::optional<PbftBlockExtraData> extra_data = createPbftBlockExtraData(current_pbft_period);
+  if (!extra_data.has_value()) {
+    LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
+                 << ". Empty extra data";
+    return {};
   }
 
   auto ghost = dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash);
