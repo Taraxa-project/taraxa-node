@@ -132,6 +132,12 @@ void Network::start() {
 
 bool Network::isStarted() { return tp_.is_running(); }
 
+bool Network::packetQueueOverLimit() const {
+  auto [hp_queue_size, mp_queue_size, lp_queue_size] = packets_tp_->getQueueSize();
+  auto total_size = hp_queue_size + mp_queue_size + lp_queue_size;
+  return total_size > kConf.network.ddos_protection.max_packets_queue_size;
+}
+
 std::list<dev::p2p::NodeEntry> Network::getAllNodes() const { return host_->getNodes(); }
 
 size_t Network::getPeerCount() { return host_->peer_count(); }

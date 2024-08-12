@@ -51,6 +51,11 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
+  // Do not propose dag blocks if number of non finalized transactions is over the limit
+  if (trx_mgr_->getNonfinalizedTrxSize() > kMaxNonFinalizedTransactions) {
+    return false;
+  }
+
   auto frontier = dag_mgr_->getDagFrontier();
   LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
@@ -183,12 +188,14 @@ void DagBlockProposer::start() {
     while (!stopped_) {
       // Blocks are not proposed if we are behind the network and still syncing
       auto syncing = false;
+      auto packets_over_the_limit = false;
       if (auto net = network_.lock()) {
         syncing = net->pbft_syncing();
+        packets_over_the_limit = net->packetQueueOverLimit();
       }
-      // Only sleep if block was not proposed or if we are syncing, if block is proposed try to propose another block
-      // immediately
-      if (syncing || !proposeDagBlock()) {
+      // Only sleep if block was not proposed or if we are syncing or if packets queue is over the limit, if block is
+      // proposed try to propose another block immediately
+      if (syncing || packets_over_the_limit || !proposeDagBlock()) {
         thisThreadSleepForMilliSeconds(min_proposal_delay);
       }
     }
