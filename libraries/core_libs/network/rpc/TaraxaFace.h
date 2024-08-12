@@ -38,6 +38,9 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::TaraxaFace::taraxa_getScheduleBlockByPeriodI);
     this->bindAndAddMethod(
+        jsonrpc::Procedure("taraxa_getNodeVersions", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
+        &taraxa::net::TaraxaFace::taraxa_getNodeVersionsI);
+    this->bindAndAddMethod(
         jsonrpc::Procedure("taraxa_getConfig", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::TaraxaFace::taraxa_getConfigI);
     this->bindAndAddMethod(
@@ -83,6 +86,10 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   inline virtual void taraxa_getScheduleBlockByPeriodI(const Json::Value &request, Json::Value &response) {
     response = this->taraxa_getScheduleBlockByPeriod(request[0u].asString());
   }
+  inline virtual void taraxa_getNodeVersionsI(const Json::Value &request, Json::Value &response) {
+    (void)request;
+    response = this->taraxa_getNodeVersions();
+  }
   inline virtual void taraxa_getConfigI(const Json::Value &request, Json::Value &response) {
     (void)request;
     response = this->taraxa_getConfig();
@@ -114,6 +121,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   virtual std::string taraxa_dagBlockLevel() = 0;
   virtual std::string taraxa_dagBlockPeriod() = 0;
   virtual Json::Value taraxa_getScheduleBlockByPeriod(const std::string &param1) = 0;
+  virtual Json::Value taraxa_getNodeVersions() = 0;
   virtual Json::Value taraxa_getConfig() = 0;
   virtual Json::Value taraxa_getChainStats() = 0;
   virtual std::string taraxa_pbftBlockHashByPeriod(const std::string &param1) = 0;

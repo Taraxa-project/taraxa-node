@@ -48,6 +48,12 @@
     "returns": {}
   },
   {
+    "name": "taraxa_getNodeVersions",
+    "params": [],
+    "order": [],
+    "returns": {}
+  },
+  {
     "name": "taraxa_getConfig",
     "params": [],
     "order": [],
