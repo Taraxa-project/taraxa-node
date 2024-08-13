@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"classtaraxa_1_1net_1_1_taraxa.html#aef887e1a99c134121d894c6e9be617ed":[16,0,3,4,22,17],
 "classtaraxa_1_1net_1_1_taraxa.html#aff0d367292edba63b7097f201c7eb41f":[16,0,3,4,22,15],
 "classtaraxa_1_1net_1_1_taraxa_client.html":[16,0,3,4,23],
 "classtaraxa_1_1net_1_1_taraxa_client.html#a1ced5fc489bdc11edd5d116b942b01c8":[16,0,3,4,23,8],
@@ -198,8 +199,8 @@ var NAVTREEINDEX9 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#af5eb633f29fb7f4a4746b69e8ee15aa8":[16,0,3,4,0,0,7,4],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#af9ff64cd5895572a730404d52a28bab2":[16,0,3,4,0,0,7,17],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html":[16,0,3,4,0,0,13],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a039857c71e3e917756fcd98947d466af":[16,0,3,4,0,0,13,0,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a039857c71e3e917756fcd98947d466af":[17,0,1,4,1,2,0,6,3,3],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a039857c71e3e917756fcd98947d466af":[16,0,3,4,0,0,13,0,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a0c31eb3bc727f3add7ca13d5e59dae24":[16,0,3,4,0,0,13,17],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a0e868f4c316f67e976db2ff605b2bb57":[16,0,3,4,0,0,13,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a1197870c15f710bc592531760c9e6b94":[16,0,3,4,0,0,13,16],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#a8fc8ecad09f0fb173f3e94c4b664d4b9":[16,0,3,5,0,5,4],
 "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#a9e7f81b099cd3d80bbde5b7ada43a604":[16,0,3,5,0,5,9],
 "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#aa50b1d9d5a55194d3fc203ad74447277":[16,0,3,5,0,5,2],
-"classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#ab78ee7b487271b0b2591929cf089fef0":[16,0,3,5,0,5,0],
-"classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#abff302bfa44993476fde72c2e58af144":[16,0,3,5,0,5,3]
+"classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#ab78ee7b487271b0b2591929cf089fef0":[16,0,3,5,0,5,0]
 };

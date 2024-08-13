@@ -10,6 +10,7 @@ var constants_8hpp =
     [ "kDefaultTransactionPoolSize", "constants_8hpp.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d", null ],
     [ "kMaxHashesInPacket", "constants_8hpp.html#ade9fa0fc45e6f13cba99bbb3da1bb6d4", null ],
     [ "kMaxLevelsPerPeriod", "constants_8hpp.html#ab2f5ec0c8b9d91b604a61ca8062d0505", null ],
+    [ "kMaxNonFinalizedTransactions", "constants_8hpp.html#a362de53960470ae77608995191b6d53d", null ],
     [ "kMaxTransactionsInPacket", "constants_8hpp.html#ae8b2a4b2aa68f4fcb448a76b73dcc6c8", null ],
     [ "kMinTransactionPoolSize", "constants_8hpp.html#a5c4386d0ef4241fe4d08d14e43fbd1f6", null ],
     [ "kMinTxGas", "constants_8hpp.html#a80d7e0bedeecd255ab611e8054073fc5", null ],
