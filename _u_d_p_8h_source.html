@@ -283,7 +283,7 @@ $(document).ready(function(){initNavTree('_u_d_p_8h_source.html',''); initResiza
 <div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160; </div>
 <div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> Handler, <span class="keywordtype">unsigned</span> MaxDatagramSize&gt;</div>
 <div class="line"><a name="l00228"></a><span class="lineno"><a class="line" href="classdev_1_1p2p_1_1_u_d_p_socket.html#a217844e4646e15f30c5b1fe7ad8a372c">  228</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="classdev_1_1p2p_1_1_u_d_p_socket.html#a217844e4646e15f30c5b1fe7ad8a372c">UDPSocket&lt;Handler, MaxDatagramSize&gt;::disconnectWithError</a>(boost::system::error_code _ec) {</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;  <span class="comment">// If !started and already stopped, shutdown has already occured. (EOF or</span></div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;  <span class="comment">// If !started and already stopped, shutdown has already occurred. (EOF or</span></div>
 <div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;  <span class="comment">// Operation canceled)</span></div>
 <div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;  <span class="keywordflow">if</span> (!m_started &amp;&amp; m_closed &amp;&amp; !m_socket.is_open() <span class="comment">/* todo: veirfy this logic*/</span>) <span class="keywordflow">return</span>;</div>
 <div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160; </div>

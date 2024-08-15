@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"types_2dag__block_2include_2dag_2dag__block_8hpp_source.html":[17,0,1,7,0,0,0,0],
 "types_2dag__block_2src_2dag__block_8cpp.html":[17,0,1,7,0,1,0],
 "types_2transaction_2include_2transaction_2transaction_8hpp.html":[17,0,1,7,2,0,0,1],
 "types_2transaction_2include_2transaction_2transaction_8hpp.html#a1b37b05665a051ae2ceda7a2607c8e36":[17,0,1,7,2,0,0,1,4],

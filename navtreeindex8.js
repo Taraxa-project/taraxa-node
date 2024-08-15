@@ -1,5 +1,6 @@
 var NAVTREEINDEX8 =
 {
+"classtaraxa_1_1net_1_1_debug_client.html#a505873f73ad1956705354e120b02dcf4":[16,0,3,4,12,10],
 "classtaraxa_1_1net_1_1_debug_client.html#a7220c05786d04075274a94ba00c2c863":[16,0,3,4,12,4],
 "classtaraxa_1_1net_1_1_debug_client.html#a8a49ef866539508c238271fab43870ae":[16,0,3,4,12,3],
 "classtaraxa_1_1net_1_1_debug_client.html#aa50bd584eff17885f5b20ac3534dcf15":[16,0,3,4,12,7],
@@ -248,6 +249,5 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1_taraxa.html#acf532d81425d987e793b5060418d2f6c":[16,0,3,4,22,9],
 "classtaraxa_1_1net_1_1_taraxa.html#adacc718a58626bf15b71f3a8e606bc41":[16,0,3,4,22,16],
 "classtaraxa_1_1net_1_1_taraxa.html#adb45f5372d6b149ce94c5555e33db1f0":[16,0,3,4,22,10],
-"classtaraxa_1_1net_1_1_taraxa.html#ae5a356e17a7caef2a470d43fe18aff60":[16,0,3,4,22,2],
-"classtaraxa_1_1net_1_1_taraxa.html#aedec7694b0f10833caeedd41c8f3d13f":[16,0,3,4,22,4]
+"classtaraxa_1_1net_1_1_taraxa.html#ae5a356e17a7caef2a470d43fe18aff60":[16,0,3,4,22,2]
 };

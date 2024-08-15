@@ -1,5 +1,6 @@
 var NAVTREEINDEX25 =
 {
+"structtaraxa_1_1_transaction.html#a4e8f91f7dec8e84dc51f046f4b4ef41c":[16,0,3,62,35],
 "structtaraxa_1_1_transaction.html#a50c87de18de516593e6175bafc19edc7":[16,0,3,62,27],
 "structtaraxa_1_1_transaction.html#a590dd0e853b205dc0713a456c46fbb58":[16,0,3,62,11],
 "structtaraxa_1_1_transaction.html#a5becd18abbf7c55be3380009e310c7a6":[16,0,3,62,25],
@@ -248,6 +249,5 @@ var NAVTREEINDEX25 =
 "trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[17,0,1,4,0,0,1,6,0],
 "trie__common_8hpp_source.html":[17,0,1,4,0,0,1,6],
 "types_2dag__block_2include_2dag_2dag__block_8hpp.html":[17,0,1,7,0,0,0,0],
-"types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[17,0,1,7,0,0,0,0,2],
-"types_2dag__block_2include_2dag_2dag__block_8hpp_source.html":[17,0,1,7,0,0,0,0]
+"types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[17,0,1,7,0,0,0,0,2]
 };

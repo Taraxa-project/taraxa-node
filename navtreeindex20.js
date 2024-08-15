@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"md_doc_coding_practices.html#autotoc_md138":[62],
 "md_doc_coding_practices.html#autotoc_md139":[63],
 "md_doc_coding_practices.html#autotoc_md140":[3,0,15],
 "md_doc_coding_practices.html#autotoc_md141":[64],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "namespacemembers_h.html":[15,0,8],
 "namespacemembers_i.html":[15,0,9],
 "namespacemembers_j.html":[15,0,10],
-"namespacemembers_k.html":[15,0,11],
-"namespacemembers_l.html":[15,0,12]
+"namespacemembers_k.html":[15,0,11]
 };

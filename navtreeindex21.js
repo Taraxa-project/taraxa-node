@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"namespacemembers_l.html":[15,0,12],
 "namespacemembers_m.html":[15,0,13],
 "namespacemembers_n.html":[15,0,14],
 "namespacemembers_o.html":[15,0,15],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "pillar__votes__bundle__packet__handler_8hpp_source.html":[17,0,1,4,1,1,0,0,0,0,9],
 "priority__queue_8cpp.html":[17,0,1,4,1,3,1,3],
 "priority__queue_8hpp.html":[17,0,1,4,1,1,0,1,3],
-"priority__queue_8hpp_source.html":[17,0,1,4,1,1,0,1,3],
-"proposed__blocks_8cpp.html":[17,0,1,4,0,1,3,3]
+"priority__queue_8hpp_source.html":[17,0,1,4,1,1,0,1,3]
 };

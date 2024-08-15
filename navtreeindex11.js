@@ -1,5 +1,6 @@
 var NAVTREEINDEX11 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac377d3b4ac4aeeac65d31448036468dd":[16,0,3,5,0,25,6],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac3ba3188d8fdc5278972c8df2c93d183":[16,0,3,5,0,25,3],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ad041eedebc836e35186f63be6481617c":[16,0,3,5,0,25,23],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae3bd8b37fc085d21a4a3034b5b5f1cbd":[16,0,3,5,0,25,22],
@@ -248,6 +249,5 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1rewards_1_1_stats.html#af3ea90ef92edb2fb0a6e380ebe922c40":[16,0,3,7,1,11],
 "classtaraxa_1_1rewards_1_1_stats.html#af516a0f0db6f7f3776af3e48d4872073":[16,0,3,7,1,0],
 "classtaraxa_1_1state__api_1_1_error_handler.html":[16,0,3,8,21],
-"classtaraxa_1_1state__api_1_1_error_handler.html#a6059fa522aa177b104faac8dea20514c":[16,0,3,8,21,3],
-"classtaraxa_1_1state__api_1_1_error_handler.html#a967eb06bb633d87f5962c7d1d23b4926":[16,0,3,8,21,0]
+"classtaraxa_1_1state__api_1_1_error_handler.html#a6059fa522aa177b104faac8dea20514c":[16,0,3,8,21,3]
 };

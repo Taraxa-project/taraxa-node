@@ -169,10 +169,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7c11fd9e55153a57c59d4df9ad9745e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1580acf1e5a153b8a0ce83e89ea6b61"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::ColumnFamilyHandle &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab1580acf1e5a153b8a0ce83e89ea6b61">copyColumn</a> (rocksdb::ColumnFamilyHandle *orig_column, const std::string &amp;new_col_name, bool move_data=false)</td></tr>
 <tr class="separator:ab1580acf1e5a153b8a0ce83e89ea6b61"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fdea06e7db5a040e06a77cd95e6f980"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8fdea06e7db5a040e06a77cd95e6f980">removeOldLogFiles</a> () const</td></tr>
-<tr class="separator:a8fdea06e7db5a040e06a77cd95e6f980"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abbe50c6d93e97b21b67ccc3a9cd6cba0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abbe50c6d93e97b21b67ccc3a9cd6cba0">removeTempFiles</a> () const</td></tr>
+<tr class="separator:abbe50c6d93e97b21b67ccc3a9cd6cba0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbda8888e46152dd8fd14fee81ae5ffb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afbda8888e46152dd8fd14fee81ae5ffb">removeFilesWithPattern</a> (const std::string &amp;directory, const std::regex &amp;pattern) const</td></tr>
 <tr class="separator:afbda8888e46152dd8fd14fee81ae5ffb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa8f56746f4bbfbb7f1b9079d7998724"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aaa8f56746f4bbfbb7f1b9079d7998724">deleteTmpDirectories</a> (const std::string &amp;<a class="el" href="classtaraxa_1_1_db_storage.html#a5a2781b175a0dbc9ee52127271ba3aeb">path</a>) const</td></tr>
+<tr class="separator:aaa8f56746f4bbfbb7f1b9079d7998724"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c216a3511b4e530505a25198f7181e6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9c216a3511b4e530505a25198f7181e6">getMajorVersion</a> () const</td></tr>
 <tr class="separator:a9c216a3511b4e530505a25198f7181e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc663f43099756e78a3da91d21af167c"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::Iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afc663f43099756e78a3da91d21af167c">getColumnIterator</a> (const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;c)</td></tr>
@@ -1367,6 +1369,24 @@ Private Attributes</h2></td></tr>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aaa8f56746f4bbfbb7f1b9079d7998724"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa8f56746f4bbfbb7f1b9079d7998724">&#9670;&nbsp;</a></span>deleteTmpDirectories()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::deleteTmpDirectories </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3109,23 +3129,6 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a8fdea06e7db5a040e06a77cd95e6f980"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8fdea06e7db5a040e06a77cd95e6f980">&#9670;&nbsp;</a></span>removeOldLogFiles()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::removeOldLogFiles </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a17e5a0c8f762f8fc9d1220c67d58fa03"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a17e5a0c8f762f8fc9d1220c67d58fa03">&#9670;&nbsp;</a></span>removeProposedPbftBlock()</h2>
 
@@ -3148,6 +3151,23 @@ template&lt;typename K &gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abbe50c6d93e97b21b67ccc3a9cd6cba0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abbe50c6d93e97b21b67ccc3a9cd6cba0">&#9670;&nbsp;</a></span>removeTempFiles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::removeTempFiles </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
