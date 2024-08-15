@@ -614,7 +614,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
   if (sourceNodeEntry) {
     sourceNodeEntry->lastPongSentTime = RLPXDatagramFace::secondsSinceEpoch();
-    // We should update entrypoint the the one that node is reporting
+    // We should update entrypoint the one that node is reporting
     sourceNodeEntry->node.external_udp_port = in.source.udpPort();
   }
 
