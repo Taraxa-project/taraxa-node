@@ -206,6 +206,8 @@ void TransactionQueue::purge() {
       } else {
         account_it++;
       }
+    } else {
+      account_it++;
     }
   }
 }
