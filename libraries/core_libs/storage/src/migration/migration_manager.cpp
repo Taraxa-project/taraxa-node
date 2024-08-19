@@ -1,9 +1,12 @@
 #include "storage/migration/migration_manager.hpp"
 
+#include "storage/migration/dag_block.hpp"
 #include "storage/migration/transaction_period.hpp"
-
 namespace taraxa::storage::migration {
-Manager::Manager(std::shared_ptr<DbStorage> db, const addr_t& node_addr) : db_(db) { LOG_OBJECTS_CREATE("MIGRATIONS"); }
+Manager::Manager(std::shared_ptr<DbStorage> db, const addr_t& node_addr) : db_(db) {
+  LOG_OBJECTS_CREATE("MIGRATIONS");
+  registerMigration<migration::DagBlockData>();
+}
 void Manager::applyMigration(std::shared_ptr<migration::Base> m) {
   if (m->isApplied()) {
     LOG(log_si_) << "Skip \"" << m->id() << "\" migration. It was already applied";

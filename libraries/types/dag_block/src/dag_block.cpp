@@ -75,6 +75,13 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
   vdf_ = vdf_sortition::VdfSortition(vdf_bytes);
 }
 
+DagBlock::DagBlock(dev::RLP const &rlp, vec_trx_t &&trxs) {
+  dev::bytes vdf_bytes;
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pivot_, level_, timestamp_, vdf_bytes, tips_, sig_, gas_estimation_);
+  vdf_ = vdf_sortition::VdfSortition(vdf_bytes);
+  trxs_ = std::move(trxs);
+}
+
 level_t DagBlock::extract_dag_level_from_rlp(const dev::RLP &rlp) { return rlp[kLevelPosInRlp].toInt<level_t>(); }
 sig_t DagBlock::extract_signature_from_rlp(const dev::RLP &rlp) { return rlp[kSigPosInRlp].toHash<sig_t>(); }
 
@@ -158,17 +165,26 @@ addr_t const &DagBlock::getSender() const {
   return cached_sender_;
 }
 
-dev::RLPStream DagBlock::streamRLP(bool include_sig) const {
+dev::RLPStream DagBlock::streamRLP(bool include_sig, bool include_trxs) const {
   dev::RLPStream s;
 
-  constexpr auto base_field_count = 7;
-  s.appendList(include_sig ? base_field_count + 1 : base_field_count);
+  auto base_field_count = 6;
+  if (include_sig) {
+    base_field_count += 1;
+  }
+  if (include_trxs) {
+    base_field_count += 1;
+  }
+
+  s.appendList(base_field_count);
   s << pivot_;
   s << level_;
   s << timestamp_;
   s << vdf_.rlp();
   s.appendVector(tips_);
-  s.appendVector(trxs_);
+  if (include_trxs) {
+    s.appendVector(trxs_);
+  }
   if (include_sig) {
     s << sig_;
   }
@@ -177,7 +193,9 @@ dev::RLPStream DagBlock::streamRLP(bool include_sig) const {
   return s;
 }
 
-bytes DagBlock::rlp(bool include_sig) const { return streamRLP(include_sig).invalidate(); }
+bytes DagBlock::rlp(bool include_sig, bool include_trxs) const {
+  return streamRLP(include_sig, include_trxs).invalidate();
+}
 
 blk_hash_t DagBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }
 

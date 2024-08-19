@@ -149,7 +149,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
     return nullptr;
   }
 
-  rocksdb::Checkpoint* checkpoint_raw;
+  rocksdb::Checkpoint* checkpoint_raw = nullptr;
   auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint_raw);
   std::unique_ptr<rocksdb::Checkpoint> checkpoint(checkpoint_raw);
   checkStatus(status);
@@ -160,7 +160,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   // Export dir should not exist before exporting the column family
   fs::remove_all(export_dir);
 
-  rocksdb::ExportImportFilesMetaData* metadata_raw;
+  rocksdb::ExportImportFilesMetaData* metadata_raw = nullptr;
   status = checkpoint->ExportColumnFamily(orig_column, export_dir, &metadata_raw);
   std::unique_ptr<rocksdb::ExportImportFilesMetaData> metadata(metadata_raw);
   checkStatus(status);
@@ -174,7 +174,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   rocksdb::ImportColumnFamilyOptions import_options;
   import_options.move_files = move_data;
 
-  rocksdb::ColumnFamilyHandle* copied_column_raw;
+  rocksdb::ColumnFamilyHandle* copied_column_raw = nullptr;
   status = db_->CreateColumnFamilyWithImport(options, new_col_name, import_options, *metadata, &copied_column_raw);
   std::unique_ptr<rocksdb::ColumnFamilyHandle> copied_column(copied_column_raw);
   checkStatus(status);
