@@ -8,16 +8,15 @@ namespace taraxa {
 
 const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000EE");
 
-SlashingManager::SlashingManager(std::shared_ptr<final_chain::FinalChain> final_chain,
-                                 std::shared_ptr<TransactionManager> trx_manager, std::shared_ptr<GasPricer> gas_pricer,
-                                 const FullNodeConfig &config, secret_t node_sk)
+SlashingManager::SlashingManager(const FullNodeConfig &config, std::shared_ptr<final_chain::FinalChain> final_chain,
+                                 std::shared_ptr<TransactionManager> trx_manager, std::shared_ptr<GasPricer> gas_pricer)
     : final_chain_(std::move(final_chain)),
       trx_manager_(std::move(trx_manager)),
       gas_pricer_(std::move(gas_pricer)),
       double_voting_proofs_(1000, 100),
       kConfig(config),
-      kAddress(toAddress(node_sk)),
-      kPrivateKey(std::move(node_sk)) {}
+      kAddress(toAddress(kConfig.node_secret)),
+      kPrivateKey(kConfig.node_secret) {}
 
 bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<PbftVote> &vote_a,
                                               const std::shared_ptr<PbftVote> &vote_b) {

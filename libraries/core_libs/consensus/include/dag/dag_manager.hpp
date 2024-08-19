@@ -44,13 +44,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     MissingTip
   };
 
-  explicit DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
-                      const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
+  explicit DagManager(const FullNodeConfig &config, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
-                      std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
-                      const state_api::Config &state_config, bool is_light_node = false,
-                      uint64_t light_node_history = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
-                      uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
+                      std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager);
 
   DagManager(const DagManager &) = delete;
   DagManager(DagManager &&) = delete;
@@ -122,9 +118,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @return number of dag blocks finalized
    */
   uint setDagBlockOrder(blk_hash_t const &anchor, PbftPeriod period, vec_blk_t const &dag_order);
-
-  uint64_t getLightNodeHistory() const { return light_node_history_; }
-  bool isLightNode() const { return is_light_node_; }
 
   std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
 
@@ -237,7 +230,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @brief Clears light node history
    *
    */
-  void clearLightNodeHistory();
+  void clearLightNodeHistory(uint64_t light_node_history);
 
  private:
   void recoverDag();
@@ -267,8 +260,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   SortitionParamsManager sortition_params_manager_;
   const DagConfig dag_config_;
   const std::shared_ptr<DagBlock> genesis_block_;
-  const bool is_light_node_ = false;
-  const uint64_t light_node_history_ = 0;
   const uint32_t max_levels_per_period_;
   const uint32_t dag_expiry_limit_;  // Any non finalized dag block with a level smaller by
   // dag_expiry_limit_ than the current period anchor level is considered

@@ -22,11 +22,11 @@ using namespace std::chrono_literals;
 constexpr std::chrono::milliseconds kPollingIntervalMs{100};
 constexpr PbftStep kMaxSteps{13};  // Need to be a odd number
 
-PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
+PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                          std::shared_ptr<final_chain::FinalChain> final_chain,
-                         std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk)
+                         std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr)
     : db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
@@ -34,12 +34,13 @@ PbftManager::PbftManager(const GenesisConfig &conf, addr_t node_addr, std::share
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
       pillar_chain_mgr_(std::move(pillar_chain_mgr)),
-      node_addr_(std::move(node_addr)),
-      node_sk_(std::move(node_sk)),
-      kMinLambda(conf.pbft.lambda_ms),
-      dag_genesis_block_hash_(conf.dag_genesis_block.getHash()),
-      kGenesisConfig(conf),
+      node_addr_(dev::toAddress(conf.node_secret)),
+      node_sk_(conf.node_secret),
+      kMinLambda(conf.genesis.pbft.lambda_ms),
+      dag_genesis_block_hash_(conf.genesis.dag_genesis_block.getHash()),
+      kGenesisConfig(conf.genesis),
       proposed_blocks_(db_) {
+  const auto &node_addr = node_addr_;
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();

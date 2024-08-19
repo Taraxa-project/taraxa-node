@@ -13,14 +13,13 @@
 
 namespace taraxa {
 
-VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
-                         const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db,
+VoteManager::VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
                          std::shared_ptr<KeyManager> key_manager, std::shared_ptr<SlashingManager> slashing_manager)
-    : kNodeAddr(node_addr),
-      kPbftConfig(pbft_config),
-      kVrfSk(vrf_sk),
-      kNodeSk(node_sk),
+    : kNodeAddr(dev::toAddress(config.node_secret)),
+      kPbftConfig(config.genesis.pbft),
+      kVrfSk(config.vrf_secret),
+      kNodeSk(config.node_secret),
       kNodePub(dev::toPublic(kNodeSk)),
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
@@ -28,6 +27,7 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
       key_manager_(std::move(key_manager)),
       slashing_manager_(std::move(slashing_manager)),
       already_validated_votes_(1000000, 1000) {
+  const auto& node_addr = kNodeAddr;
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
   auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<PbftVote>>& votes,

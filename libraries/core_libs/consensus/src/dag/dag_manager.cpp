@@ -3,7 +3,6 @@
 #include <libdevcore/CommonIO.h>
 
 #include <algorithm>
-#include <fstream>
 #include <tuple>
 #include <unordered_set>
 #include <utility>
@@ -15,33 +14,30 @@
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
-DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
-                       const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
+
+DagManager::DagManager(const FullNodeConfig &config, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
-                       std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
-                       const state_api::Config &state_config, bool is_light_node, uint64_t light_node_history,
-                       uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
+                       std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager) try
     : max_level_(db->getLastBlocksLevel()),
-      pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block.getHash(), node_addr)),
-      total_dag_(std::make_shared<Dag>(dag_genesis_block.getHash(), node_addr)),
+      pivot_tree_(std::make_shared<PivotTree>(config.genesis.dag_genesis_block.getHash(), node_addr)),
+      total_dag_(std::make_shared<Dag>(config.genesis.dag_genesis_block.getHash(), node_addr)),
       trx_mgr_(std::move(trx_mgr)),
       pbft_chain_(std::move(pbft_chain)),
       db_(std::move(db)),
       key_manager_(std::move(key_manager)),
-      anchor_(dag_genesis_block.getHash()),
+      anchor_(config.genesis.dag_genesis_block.getHash()),
       period_(0),
-      sortition_params_manager_(node_addr, sortition_config, db_),
-      dag_config_(dag_config),
-      genesis_block_(std::make_shared<DagBlock>(dag_genesis_block)),
-      is_light_node_(is_light_node),
-      light_node_history_(light_node_history),
-      max_levels_per_period_(max_levels_per_period),
-      dag_expiry_limit_(dag_expiry_limit),
+      sortition_params_manager_(node_addr, config.genesis.sortition, db_),
+      dag_config_(config.genesis.dag),
+      genesis_block_(std::make_shared<DagBlock>(config.genesis.dag_genesis_block)),
+      max_levels_per_period_(config.max_levels_per_period),
+      dag_expiry_limit_(config.dag_expiry_limit),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       final_chain_(std::move(final_chain)),
-      kPbftGasLimit(pbft_gas_limit),
-      kHardforks(state_config.hardforks),
-      kValidatorMaxVote(state_config.dpos.validator_maximum_stake / state_config.dpos.vote_eligibility_balance_step) {
+      kPbftGasLimit(config.genesis.pbft.gas_limit),
+      kHardforks(config.genesis.state.hardforks),
+      kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
+                        config.genesis.state.dpos.vote_eligibility_balance_step) {
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;
@@ -50,13 +46,13 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
     }
   }
   // Set DAG level proposal period map
-  if (!db_->getProposalPeriodForDagLevel(max_levels_per_period)) {
+  if (!db_->getProposalPeriodForDagLevel(max_levels_per_period_)) {
     // Node start from scratch
-    db_->saveProposalPeriodDagLevelsMap(max_levels_per_period, 0);
+    db_->saveProposalPeriodDagLevelsMap(max_levels_per_period_, 0);
   }
   recoverDag();
-  if (is_light_node_) {
-    clearLightNodeHistory();
+  if (config.is_light_node) {
+    clearLightNodeHistory(config.light_node_history);
   }
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
@@ -284,9 +280,9 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
   return blk_orders;
 }
 
-void DagManager::clearLightNodeHistory() {
+void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
   bool dag_expiry_level_condition = dag_expiry_level_ > max_levels_per_period_ + 1;
-  bool period_over_history_condition = period_ > light_node_history_;
+  bool period_over_history_condition = period_ > light_node_history;
   if (period_over_history_condition && dag_expiry_level_condition) {
     const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level_ - max_levels_per_period_ - 1);
     assert(proposal_period);
@@ -294,8 +290,8 @@ void DagManager::clearLightNodeHistory() {
     const uint64_t start = 0;
     // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired dag
     // blocks
-    const uint64_t end = std::min(period_ - light_node_history_, *proposal_period);
-    LOG(log_tr_) << "period_ - light_node_history_ " << period_ - light_node_history_;
+    const uint64_t end = std::min(period_ - light_node_history, *proposal_period);
+    LOG(log_tr_) << "period_ - light_node_history_ " << period_ - light_node_history;
     LOG(log_tr_) << "dag_expiry_level - max_levels_per_period_ - 1: " << dag_expiry_level_ - max_levels_per_period_ - 1
                  << " *proposal_period " << *proposal_period;
     LOG(log_tr_) << "Delete period history from: " << start << " to " << end;
