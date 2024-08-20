@@ -231,7 +231,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 }
 
 PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_rlp) const {
-  return PeriodData(period_data_rlp);
+  return PeriodData::FromOldPeriodData(period_data_rlp);
 }
 
 std::vector<std::shared_ptr<PbftVote>> PbftSyncPacketHandler::decodeVotesBundle(

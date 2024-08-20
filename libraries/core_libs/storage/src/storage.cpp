@@ -7,6 +7,7 @@
 #include <regex>
 
 #include "config/version.hpp"
+#include "dag/dag_block_bundle_rlp.hpp"
 #include "dag/sortition_params_manager.hpp"
 #include "final_chain/final_chain.hpp"
 #include "pillar_chain/pillar_block.hpp"
@@ -438,7 +439,7 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
     if (period_data.size() > 0) {
       auto period_data_rlp = dev::RLP(period_data);
       auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-      return std::make_shared<DagBlock>(dag_blocks_data[data->second]);
+      return decodeDAGBlockBundleRlp(data->second, dag_blocks_data);
     }
   }
   return nullptr;

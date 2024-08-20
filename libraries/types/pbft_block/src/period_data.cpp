@@ -100,7 +100,6 @@ PeriodData PeriodData::FromOldPeriodData(const dev::RLP& rlp) {
     period_data.pillar_votes_ = decodePillarVotesBundleRlp(*it);
   }
   return period_data;
-
 }
 
 std::ostream& operator<<(std::ostream& strm, PeriodData const& b) {

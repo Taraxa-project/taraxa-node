@@ -59,9 +59,8 @@ std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp
 
   // Decode transaction hashes and
   ordered_trx_hashes.reserve(blocks_bundle_rlp[0].itemCount());
-  for (const auto& trx_hash_rlp : blocks_bundle_rlp[0]) {
-    ordered_trx_hashes.push_back(trx_hash_rlp.toHash<trx_hash_t>());
-  }
+  std::transform(blocks_bundle_rlp[0].begin(), blocks_bundle_rlp[0].end(), std::back_inserter(ordered_trx_hashes),
+                 [](const auto& trx_hash_rlp) { return trx_hash_rlp.template toHash<trx_hash_t>(); });
 
   for (const auto& idx_rlp : blocks_bundle_rlp[1]) {
     std::vector<trx_hash_t> hashes;
@@ -83,15 +82,27 @@ std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp
   return blocks;
 }
 
-// // constexpr static size_t kPillarblocksBundleRlpSize{3};
+std::shared_ptr<DagBlock> decodeDAGBlockBundleRlp(uint64_t index, const dev::RLP& blocks_bundle_rlp) {
+  if (blocks_bundle_rlp.itemCount() != kDAGBlocksBundleRlpSize) {
+    return {};
+  }
+  if (index >= blocks_bundle_rlp[2].itemCount()) {
+    return {};
+  }
 
-// /**
-//  * @brief Decodes single dag block from optimized blocks bundle rlp
-//  *
-//  * @param blocks_bundle_rlp
-//  * @return block
-//  */
-// std::shared_ptr<DagBlock> decodeDAGBlockBundleRlp(uint64_t index, const dev::RLP& blocks_bundle_rlp);
+  std::vector<trx_hash_t> ordered_trx_hashes;
+  ordered_trx_hashes.reserve(blocks_bundle_rlp[0].itemCount());
+  std::transform(blocks_bundle_rlp[0].begin(), blocks_bundle_rlp[0].end(), std::back_inserter(ordered_trx_hashes),
+                 [](const auto& trx_hash_rlp) { return trx_hash_rlp.template toHash<trx_hash_t>(); });
+
+  const auto idx_rlp = blocks_bundle_rlp[1][index];
+  std::vector<trx_hash_t> trx_hashes;
+  trx_hashes.reserve(idx_rlp.itemCount());
+  for (const auto& i : idx_rlp) {
+    trx_hashes.push_back(ordered_trx_hashes[i.toInt<uint16_t>()]);
+  }
+  return std::make_shared<DagBlock>(blocks_bundle_rlp[2][index], std::move(trx_hashes));
+}
 
 /** @}*/
 

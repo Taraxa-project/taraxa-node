@@ -31,7 +31,7 @@ class PeriodData {
   explicit PeriodData(const dev::RLP& all_rlp);
   explicit PeriodData(bytes const& all_rlp);
 
-  static PeriodData FromOldPeriodData(const dev::RLP& rlp) ;
+  static PeriodData FromOldPeriodData(const dev::RLP& rlp);
 
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<std::shared_ptr<PbftVote>> previous_block_cert_votes;  // These votes are the cert votes of previous block
