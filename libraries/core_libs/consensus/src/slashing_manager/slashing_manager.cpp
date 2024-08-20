@@ -2,7 +2,9 @@
 
 #include "common/encoding_solidity.hpp"
 #include "common/types.hpp"
+#include "config/config.hpp"
 #include "transaction/transaction_manager.hpp"
+#include "vote/pbft_vote.hpp"
 
 namespace taraxa {
 

@@ -5,18 +5,10 @@
 
 #include <atomic>
 #include <boost/asio.hpp>
-#include <iostream>
 #include <memory>
-#include <string>
-#include <thread>
-#include <type_traits>
-#include <vector>
 
 #include "common/thread_pool.hpp"
-#include "common/util.hpp"
-#include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "config/version.hpp"
 #include "network/http_server.hpp"
 #include "network/rpc/DebugFace.h"
 #include "network/rpc/EthFace.h"
@@ -26,7 +18,6 @@
 #include "network/ws_server.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
-#include "transaction/transaction.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {

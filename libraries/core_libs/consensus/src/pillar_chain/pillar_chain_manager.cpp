@@ -2,6 +2,7 @@
 
 #include <libff/common/profiling.hpp>
 
+#include "config/hardfork.hpp"
 #include "final_chain/final_chain.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/network.hpp"

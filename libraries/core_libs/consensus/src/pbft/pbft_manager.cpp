@@ -632,7 +632,7 @@ void PbftManager::broadcastVotes() {
   }
 }
 
-void PbftManager::testBroadcatVotesFunctionality() {
+void PbftManager::testBroadcastVotesFunctionality() {
   // Set these variables to force broadcastVotes() send votes
   current_round_start_datetime_ = time_point{};
   current_period_start_datetime_ = time_point{};

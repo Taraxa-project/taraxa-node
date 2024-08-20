@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/ext_syncing_packet_handler.hpp"
+#include "common/thread_pool.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {

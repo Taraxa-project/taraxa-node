@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "config/config.hpp"
 #include "dag/dag.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/network.hpp"
@@ -174,7 +175,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
     }
     if (save) {
       block_verified_.emit(blk);
-      if (auto net = network_.lock()) {
+      if (std::shared_ptr<Network> net = network_.lock()) {
         net->gossipDagBlock(blk, proposed, trxs);
       }
     }

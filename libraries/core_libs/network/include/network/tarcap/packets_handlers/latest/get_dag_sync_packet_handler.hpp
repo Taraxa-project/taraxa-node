@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa {
 class DagManager;

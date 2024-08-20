@@ -4,10 +4,10 @@
 
 #include <boost/filesystem.hpp>
 #include <fstream>
-#include <optional>
 #include <vector>
 
 #include "common/encoding_rlp.hpp"
+#include "slashing_manager/slashing_manager.hpp"
 #include "test_util/test_util.hpp"
 
 namespace taraxa::state_api {

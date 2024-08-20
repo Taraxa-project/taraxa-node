@@ -1,5 +1,6 @@
 #include "pillar_chain/pillar_block.hpp"
 
+#include <libdevcore/CommonJS.h>
 #include <libdevcore/SHA3.h>
 
 #include "common/encoding_rlp.hpp"

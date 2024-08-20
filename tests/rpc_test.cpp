@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
-#include <libdevcore/Address.h>
 #include <libdevcore/Common.h>
 #include <libdevcore/CommonJS.h>
 
 #include "network/rpc/eth/Eth.h"
-#include "test_util/gtest.hpp"
 #include "test_util/samples.hpp"
 
 namespace taraxa::core_tests {

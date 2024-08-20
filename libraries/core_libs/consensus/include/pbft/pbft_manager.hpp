@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <thread>
 
 #include "common/types.hpp"
@@ -257,7 +256,7 @@ class PbftManager {
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
    */
-  void testBroadcatVotesFunctionality();
+  void testBroadcastVotesFunctionality();
 
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
@@ -305,7 +304,7 @@ class PbftManager {
 
   /**
    * @brief Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain
-   * @return true if new cert voted block was pushed into the chain, otheriwse false
+   * @return true if new cert voted block was pushed into the chain, otherwise false
    */
   bool tryPushCertVotesBlock();
 
@@ -529,7 +528,7 @@ class PbftManager {
                                   const std::vector<std::shared_ptr<PbftVote>> &cert_votes) const;
 
   /**
-   @brief Validates PBFT block [illar] votes
+   @brief Validates PBFT block pillar votes
    *
    * @param period_data
    * @return

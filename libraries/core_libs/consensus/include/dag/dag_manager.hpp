@@ -6,6 +6,7 @@
 #include "sortition_params_manager.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction_manager.hpp"
+
 namespace taraxa {
 
 /** @addtogroup DAG
@@ -15,6 +16,7 @@ class Network;
 class DagBuffer;
 class FullNode;
 class KeyManager;
+struct DagConfig;
 
 /**
  * @brief DagManager class contains in memory representation of part of the DAG that is not yet finalized in a pbft
@@ -258,7 +260,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
   DagFrontier frontier_;
   SortitionParamsManager sortition_params_manager_;
-  const DagConfig dag_config_;
+  const DagConfig &dag_config_;
   const std::shared_ptr<DagBlock> genesis_block_;
   const uint32_t max_levels_per_period_;
   const uint32_t dag_expiry_limit_;  // Any non finalized dag block with a level smaller by

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "common/constants.hpp"
+#include "common/encoding_solidity.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "final_chain/trie_common.hpp"

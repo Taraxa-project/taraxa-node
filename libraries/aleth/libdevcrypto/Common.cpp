@@ -6,8 +6,6 @@
 
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
-#include <cryptopp/pwdbased.h>
-#include <cryptopp/sha.h>
 #include <libdevcore/Guards.h>  // <boost/thread> conflicts with <thread>
 #include <libdevcore/SHA3.h>
 #include <secp256k1.h>
@@ -17,7 +15,6 @@
 
 #include "AES.h"
 #include "CryptoPP.h"
-#include "Exceptions.h"
 using namespace std;
 using namespace dev;
 using namespace dev::crypto;

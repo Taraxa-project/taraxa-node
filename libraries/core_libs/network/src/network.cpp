@@ -5,7 +5,6 @@
 #include <libp2p/Network.h>
 
 #include <boost/tokenizer.hpp>
-#include <ranges>
 
 #include "config/version.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"

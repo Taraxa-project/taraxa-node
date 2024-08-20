@@ -5,6 +5,7 @@
 #include <atomic>
 #include <boost/noncopyable.hpp>
 
+#include "common/types.hpp"
 #include "common/util.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
 

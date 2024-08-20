@@ -1,7 +1,5 @@
 #pragma once
 
-#include <map>
-
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 #include "pbft/period_data.hpp"

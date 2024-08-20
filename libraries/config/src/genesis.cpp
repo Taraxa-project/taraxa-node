@@ -2,13 +2,10 @@
 
 #include <libdevcore/CommonJS.h>
 
-#include <sstream>
-
 #include "common/config_exception.hpp"
 #include "libdevcore/SHA3.h"
 
 namespace taraxa {
-using std::stringstream;
 
 Json::Value enc_json(GasPriceConfig const& obj) {
   Json::Value json(Json::objectValue);

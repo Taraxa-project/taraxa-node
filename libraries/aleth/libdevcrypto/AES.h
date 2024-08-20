@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Common.h"
+#include <libdevcore/Common.h>
 
 namespace dev {
 

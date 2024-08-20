@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common/encoding_solidity.hpp"
+#include "logger/logger.hpp"
 #include "test_util/gtest.hpp"
 
 namespace taraxa::core_tests {

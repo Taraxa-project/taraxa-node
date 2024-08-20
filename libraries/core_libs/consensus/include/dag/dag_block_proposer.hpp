@@ -1,12 +1,9 @@
 #pragma once
 
 #include <atomic>
-#include <random>
 #include <thread>
 #include <vector>
 
-#include "boost/thread.hpp"
-#include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
@@ -19,6 +16,7 @@ namespace taraxa {
 class TransactionManager;
 class KeyManager;
 class DagManager;
+struct FullNodeConfig;
 
 namespace final_chain {
 class FinalChain;

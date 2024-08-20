@@ -8,15 +8,11 @@
 #include <libdevcore/Guards.h>
 #include <libdevcore/RLP.h>
 
-#include <array>
 #include <deque>
 #include <memory>
-#include <mutex>
-#include <set>
 #include <shared_mutex>
 #include <utility>
 
-#include "Capability.h"
 #include "Common.h"
 #include "Peer.h"
 #include "RLPXSocket.h"

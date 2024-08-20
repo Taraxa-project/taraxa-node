@@ -7,8 +7,6 @@
 #include <shared_mutex>
 
 #include "network/network.hpp"
-#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 
 namespace taraxa {
@@ -583,7 +581,7 @@ PbftPeriod VoteManager::getRewardVotesPbftBlockPeriod() {
 }
 
 void VoteManager::resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep step, const blk_hash_t& block_hash,
-                                   DbStorage::Batch& batch) {
+                                   Batch& batch) {
   // Save 2t+1 cert votes to database, remove old reward votes
   {
     std::scoped_lock lock(reward_votes_info_mutex_);
@@ -815,7 +813,7 @@ void VoteManager::saveOwnVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
 
 std::vector<std::shared_ptr<PbftVote>> VoteManager::getOwnVerifiedVotes() { return own_verified_votes_; }
 
-void VoteManager::clearOwnVerifiedVotes(DbStorage::Batch& write_batch) {
+void VoteManager::clearOwnVerifiedVotes(Batch& write_batch) {
   db_->clearOwnVerifiedVotes(write_batch, own_verified_votes_);
   own_verified_votes_.clear();
 }
@@ -988,7 +986,7 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
       return false;
     }
   } catch (state_api::ErrFutureBlock& e) {
-    LOG(log_er_) << "Unable to generate vrf sorititon for period " << pbft_period << ", round " << pbft_round
+    LOG(log_er_) << "Unable to generate vrf sortition for period " << pbft_period << ", round " << pbft_round
                  << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
                  << "). Err msg: " << e.what();
     return false;

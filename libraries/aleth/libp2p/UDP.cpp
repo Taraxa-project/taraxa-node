@@ -3,11 +3,8 @@
 // Licensed under the GNU General Public License, Version 3.
 
 #include "UDP.h"
-using namespace std;
-using namespace dev;
-using namespace dev::p2p;
 
-h256 RLPXDatagramFace::sign(Secret const& _k) {
+dev::h256 dev::p2p::RLPXDatagramFace::sign(Secret const& _k) {
   assert(packetType());
 
   RLPStream rlpxstream;
@@ -35,7 +32,7 @@ h256 RLPXDatagramFace::sign(Secret const& _k) {
   return hash;
 }
 
-Public RLPXDatagramFace::authenticate(bytesConstRef _sig, bytesConstRef _rlp) {
+dev::Public dev::p2p::RLPXDatagramFace::authenticate(bytesConstRef _sig, bytesConstRef _rlp) {
   Signature const& sig = *(Signature const*)_sig.data();
   return dev::recover(sig, sha3(_rlp));
 }

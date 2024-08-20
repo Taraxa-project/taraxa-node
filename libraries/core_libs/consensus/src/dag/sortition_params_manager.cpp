@@ -1,7 +1,5 @@
 #include "dag/sortition_params_manager.hpp"
 
-#include "pbft/pbft_block.hpp"
-
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(PbftPeriod period, uint16_t efficiency, const VrfParams& vrf)
@@ -100,7 +98,7 @@ void SortitionParamsManager::cleanup() {
   }
 }
 
-void SortitionParamsManager::pbftBlockPushed(const PeriodData& block, DbStorage::Batch& batch,
+void SortitionParamsManager::pbftBlockPushed(const PeriodData& block, Batch& batch,
                                              PbftPeriod non_empty_pbft_chain_size) {
   if (config_.changing_interval == 0) {
     return;
@@ -162,18 +160,18 @@ int32_t getClosestThreshold(const EfficienciesMap& efficiencies, uint16_t target
 
 EfficienciesMap SortitionParamsManager::getEfficienciesToUpperRange(uint16_t efficiency,
                                                                     int32_t last_threshold_upper) const {
-  // efficiencies_to_uppper_range provide mapping from efficiency to VRF upper threshold, params_changes contain
+  // efficiencies_to_upper_range provide mapping from efficiency to VRF upper threshold, params_changes contain
   // efficiency for previous setting so mapping is done efficiency of i relates to VRF upper threshold of (i + 1)
-  EfficienciesMap efficiencies_to_uppper_range;
+  EfficienciesMap efficiencies_to_upper_range;
   for (uint32_t i = 1; i < params_changes_.size(); i++) {
-    efficiencies_to_uppper_range[params_changes_[i].interval_efficiency] =
+    efficiencies_to_upper_range[params_changes_[i].interval_efficiency] =
         params_changes_[i - 1].vrf_params.threshold_upper;
   }
   if (params_changes_.size() > 1) {
-    efficiencies_to_uppper_range[efficiency] = last_threshold_upper;
+    efficiencies_to_upper_range[efficiency] = last_threshold_upper;
   }
 
-  return efficiencies_to_uppper_range;
+  return efficiencies_to_upper_range;
 }
 
 int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
@@ -192,17 +190,17 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
     threshold_change *= -1;
   }
 
-  auto efficiencies_to_uppper_range = getEfficienciesToUpperRange(efficiency, last_threshold_upper);
+  auto efficiencies_to_upper_range = getEfficienciesToUpperRange(efficiency, last_threshold_upper);
 
   // Check if all params are below, over target efficiency or empty. If so target is still not reached and change it by
   // calculated amount
-  if (efficiencies_to_uppper_range.empty() || (efficiencies_to_uppper_range.rbegin()->first < target_efficiency) ||
-      (efficiencies_to_uppper_range.begin()->first >= target_efficiency)) {
+  if (efficiencies_to_upper_range.empty() || (efficiencies_to_upper_range.rbegin()->first < target_efficiency) ||
+      (efficiencies_to_upper_range.begin()->first >= target_efficiency)) {
     return last_threshold_upper + threshold_change;
   }
 
   const auto closest_threshold =
-      getClosestThreshold(efficiencies_to_uppper_range, target_efficiency, is_over_target_efficiency);
+      getClosestThreshold(efficiencies_to_upper_range, target_efficiency, is_over_target_efficiency);
 
   const bool is_over_last_threshold = closest_threshold >= last_threshold_upper;
 

@@ -2,6 +2,8 @@
 
 #include <libdevcore/CommonJS.h>
 
+#include "common/constants.hpp"
+
 namespace taraxa::final_chain {
 
 h256 const& BlockHeader::uncles_hash() { return EmptyRLPListSHA3(); }

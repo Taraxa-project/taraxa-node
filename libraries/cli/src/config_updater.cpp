@@ -1,8 +1,6 @@
 #include "cli/config_updater.hpp"
 
 #include "cli/tools.hpp"
-#include "common/jsoncpp.hpp"
-#include "config/version.hpp"
 
 namespace taraxa::cli {
 
@@ -19,7 +17,7 @@ auto NetworkIPChange = [](Json::Value&, const Json::Value&) {
 
 ConfigUpdater::ConfigUpdater(int chain_id) {
   new_conf_ = tools::getConfig(static_cast<Config::ChainIdType>(chain_id));
-  // Regiser changes that should apply
+  // Register changes that should apply
   config_changes_.emplace_back(NetworkIPChange);
 }
 

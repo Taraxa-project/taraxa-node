@@ -16,6 +16,9 @@ namespace taraxa {
 
 class Network;
 class SlashingManager;
+class PbftVote;
+struct PbftConfig;
+struct FullNodeConfig;
 
 namespace network::tarcap {
 class TaraxaPeer;
@@ -105,8 +108,7 @@ class VoteManager {
    * @param block_hash
    * @param batch
    */
-  void resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep step, const blk_hash_t& block_hash,
-                        DbStorage::Batch& batch);
+  void resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep step, const blk_hash_t& block_hash, Batch& batch);
 
   /**
    * @brief Check reward votes for specified pbft block
@@ -149,7 +151,7 @@ class VoteManager {
    *
    * @param write_batch
    */
-  void clearOwnVerifiedVotes(DbStorage::Batch& write_batch);
+  void clearOwnVerifiedVotes(Batch& write_batch);
 
   /**
    * @brief Place a vote, save it in the verified votes queue, and gossip to peers
@@ -199,7 +201,7 @@ class VoteManager {
   bool voteAlreadyValidated(const vote_hash_t& vote_hash) const;
 
   /**
-   * @brief Generates vrf sorition and calculates its weight
+   * @brief Generates vrf sortition and calculates its weight
    * @return true if sortition weight > 0, otherwise false
    */
   bool genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const;
@@ -210,7 +212,7 @@ class VoteManager {
    * @param period
    * @param round
    * @param votes_type
-   * @return emoty optional if no 2t+1 voted block was found, otherwise initialized optional with block hash
+   * @return empty optional if no 2t+1 voted block was found, otherwise initialized optional with block hash
    */
   std::optional<blk_hash_t> getTwoTPlusOneVotedBlock(PbftPeriod period, PbftRound round,
                                                      TwoTPlusOneVotedBlockType type) const;
@@ -227,7 +229,7 @@ class VoteManager {
                                                                        TwoTPlusOneVotedBlockType type) const;
 
   /**
-   * @brief Sets current pbft period & round. It also checks if we dont alredy have 2t+1 vote bundles(pf any type) for
+   * @brief Sets current pbft period & round. It also checks if we dont already have 2t+1 vote bundles(pf any type) for
    *                the provided period & round and if so, it saves these bundles into db
    *
    * @param pbft_period
