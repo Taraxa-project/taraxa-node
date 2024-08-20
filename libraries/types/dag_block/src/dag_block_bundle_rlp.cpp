@@ -21,8 +21,7 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
     idx.reserve(block.getTrxs().size());
 
     for (const auto& trx : block.getTrxs()) {
-      if (trx_hash_map.find(trx) == trx_hash_map.end()) {
-        trx_hash_map[trx] = static_cast<uint16_t>(trx_hash_map.size());
+      if (const auto [_, ok] = trx_hash_map.try_emplace(trx, static_cast<uint16_t>(trx_hash_map.size())); ok) {
         ordered_trx_hashes.push_back(trx);  // Track the insertion order
       }
       idx.push_back(trx_hash_map[trx]);
@@ -65,9 +64,9 @@ std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp
   for (const auto& idx_rlp : blocks_bundle_rlp[1]) {
     std::vector<trx_hash_t> hashes;
     hashes.reserve(idx_rlp.itemCount());
-    for (const auto& i : idx_rlp) {
-      hashes.push_back(ordered_trx_hashes[i.toInt<uint16_t>()]);
-    }
+    std::transform(idx_rlp.begin(), idx_rlp.end(), std::back_inserter(hashes),
+                   [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint16_t>()]; });
+
     dags_trx_hashes.push_back(std::move(hashes));
   }
 
@@ -96,12 +95,11 @@ std::shared_ptr<DagBlock> decodeDAGBlockBundleRlp(uint64_t index, const dev::RLP
                  [](const auto& trx_hash_rlp) { return trx_hash_rlp.template toHash<trx_hash_t>(); });
 
   const auto idx_rlp = blocks_bundle_rlp[1][index];
-  std::vector<trx_hash_t> trx_hashes;
-  trx_hashes.reserve(idx_rlp.itemCount());
-  for (const auto& i : idx_rlp) {
-    trx_hashes.push_back(ordered_trx_hashes[i.toInt<uint16_t>()]);
-  }
-  return std::make_shared<DagBlock>(blocks_bundle_rlp[2][index], std::move(trx_hashes));
+  std::vector<trx_hash_t> hashes;
+  hashes.reserve(idx_rlp.itemCount());
+  std::transform(idx_rlp.begin(), idx_rlp.end(), std::back_inserter(hashes),
+                 [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint16_t>()]; });
+  return std::make_shared<DagBlock>(blocks_bundle_rlp[2][index], std::move(hashes));
 }
 
 /** @}*/
