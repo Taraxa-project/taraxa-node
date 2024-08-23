@@ -23,7 +23,7 @@ var group___p_b_f_t =
     ] ],
     [ "PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", [
       [ "time_point", "group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8", null ],
-      [ "PbftManager", "group___p_b_f_t.html#a3b963da40e8a57daef93d0eff676a8f4", null ],
+      [ "PbftManager", "group___p_b_f_t.html#a901626028a3aa0c5ae4f8a772dcda124", null ],
       [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
       [ "PbftManager", "group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e", null ],
       [ "PbftManager", "group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948", null ],
@@ -115,7 +115,7 @@ var group___p_b_f_t =
       [ "dag_mgr_", "group___p_b_f_t.html#a5c07848027fb2b186ddb512e9e5b9cd8", null ],
       [ "db_", "group___p_b_f_t.html#afe4427d4c3cf84e1bc69322057167721", null ],
       [ "executed_pbft_block_", "group___p_b_f_t.html#a248c0e6239aabf0a0f030965dbb6db41", null ],
-      [ "final_chain_", "group___p_b_f_t.html#a16d3610a90811441524181fa5657a63e", null ],
+      [ "final_chain_", "group___p_b_f_t.html#a6a11dbc3981b49fafaa02b1050d7e1d9", null ],
       [ "go_finish_state_", "group___p_b_f_t.html#a3e19126cae83075ff10f088e155bc7f8", null ],
       [ "kBroadcastVotesLambdaTime", "group___p_b_f_t.html#ae136c43ffd49e97a67186b2cf5719f91", null ],
       [ "kGenesisConfig", "group___p_b_f_t.html#ac0398594ecfd62866c4e88c255284e0f", null ],

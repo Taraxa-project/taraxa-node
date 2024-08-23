@@ -33,7 +33,7 @@ var classtaraxa_1_1_full_node =
     [ "dag_block_proposer_", "classtaraxa_1_1_full_node.html#ace4a885b3a59850d5133fb23eca3bd6b", null ],
     [ "dag_mgr_", "classtaraxa_1_1_full_node.html#af336b43e37cc96080c62f10de5682886", null ],
     [ "db_", "classtaraxa_1_1_full_node.html#a39df5579e354f4b4a7402600c320ed5a", null ],
-    [ "final_chain_", "classtaraxa_1_1_full_node.html#ad6ee8cc463be28c15f19be9839a964fd", null ],
+    [ "final_chain_", "classtaraxa_1_1_full_node.html#a78d5edaacf06bff894f717b93cff1f4a", null ],
     [ "gas_pricer_", "classtaraxa_1_1_full_node.html#a8a8e4e25ccbe61db16e27ee4ce062e4a", null ],
     [ "graphql_http_", "classtaraxa_1_1_full_node.html#aeb50a34ae5f18c072debdbeeeea16bef", null ],
     [ "graphql_thread_pool_", "classtaraxa_1_1_full_node.html#aa9be7d833ab947cf35d93d197d243169", null ],

@@ -146,9 +146,7 @@ var hierarchy =
     [ "ExpirationCacheMap< Key, Value >", "class_expiration_cache_map.html", null ],
     [ "ExpirationCacheMap< dev::FixedHash, taraxa::DagBlock >", "class_expiration_cache_map.html", null ],
     [ "FicusHardforkConfig", "struct_ficus_hardfork_config.html", null ],
-    [ "taraxa::final_chain::FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", [
-      [ "taraxa::final_chain::FinalChainImpl", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html", null ]
-    ] ],
+    [ "taraxa::final_chain::FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", null ],
     [ "dev::FixedHash< N >", "classdev_1_1_fixed_hash.html", null ],
     [ "dev::FixedHash< 32 >", "classdev_1_1_fixed_hash.html", null ],
     [ "dev::FixedHash< 64 >", "classdev_1_1_fixed_hash.html", null ],

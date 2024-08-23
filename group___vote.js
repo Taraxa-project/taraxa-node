@@ -1,7 +1,7 @@
 var group___vote =
 [
     [ "VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", [
-      [ "VoteManager", "group___vote.html#adbe36f53be8ddc081c215a7741d4963f", null ],
+      [ "VoteManager", "group___vote.html#aacaa92e9176db461d64d2d3fc9e19353", null ],
       [ "~VoteManager", "group___vote.html#a030b575a581433e9d0d6da3fba0ee29f", null ],
       [ "VoteManager", "group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246", null ],
       [ "VoteManager", "group___vote.html#a958687409ea47afffc8e2bc179528683", null ],
@@ -43,7 +43,7 @@ var group___vote =
       [ "current_two_t_plus_one_mutex_", "group___vote.html#afe5c2a85f19780be66afa8c0f0ea3382", null ],
       [ "db_", "group___vote.html#a487a45c3807de23f9efd2797ed7da376", null ],
       [ "extra_reward_votes_", "group___vote.html#a2032545e950f6e1751e1e54f493e576c", null ],
-      [ "final_chain_", "group___vote.html#aaf9d334119e08a3083eae8be3725dbfd", null ],
+      [ "final_chain_", "group___vote.html#a0c5262d542cdab8451d4620eb46c5eab", null ],
       [ "key_manager_", "group___vote.html#a7d6ef7f016e3e9870229a67ae64c1dfc", null ],
       [ "kNodeAddr", "group___vote.html#a37887491fb17879f44204e2d7e0da280", null ],
       [ "kNodePub", "group___vote.html#ab40ee465a0ae9c5d6f9bdb76784abf0e", null ],

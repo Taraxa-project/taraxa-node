@@ -129,8 +129,7 @@ var annotated_dup =
         [ "TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", "group___final_chain_structtaraxa_1_1final__chain_1_1_transaction_location" ],
         [ "NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", "group___final_chain_structtaraxa_1_1final__chain_1_1_new_block" ],
         [ "FinalizationResult", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result", "group___final_chain_structtaraxa_1_1final__chain_1_1_finalization_result" ],
-        [ "FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", "group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain" ],
-        [ "FinalChainImpl", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html", "classtaraxa_1_1final__chain_1_1_final_chain_impl" ]
+        [ "FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", "group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain" ]
       ] ],
       [ "logger", "namespacetaraxa_1_1logger.html", [
         [ "Config", "classtaraxa_1_1logger_1_1_config.html", "classtaraxa_1_1logger_1_1_config" ]

@@ -19,7 +19,7 @@ var group___transaction =
       [ "price_list_", "group___transaction.html#a5fda2f7af43fa418f5735fe70284a677", null ]
     ] ],
     [ "TransactionManager", "group___transaction.html#classtaraxa_1_1_transaction_manager", [
-      [ "TransactionManager", "group___transaction.html#a86600c030e8c5442f8f404b1b1e68d9d", null ],
+      [ "TransactionManager", "group___transaction.html#af79c738b08f3b82b18d9b05c0a96c104", null ],
       [ "blockFinalized", "group___transaction.html#a5518e05109ea6a098343f4e2a0f58711", null ],
       [ "estimateTransactionGas", "group___transaction.html#aa9a4b84564847186483c6e54c80e16c5", null ],
       [ "excludeFinalizedTransactions", "group___transaction.html#a385cd5d97c6b15e819db9328db01fede", null ],
@@ -49,7 +49,7 @@ var group___transaction =
       [ "updateFinalizedTransactionsStatus", "group___transaction.html#a8039ea2ebadfc5b9e21bb4b845bfc939", null ],
       [ "verifyTransaction", "group___transaction.html#a24fdc0d8b8877ca9859afb962aa4e6d3", null ],
       [ "db_", "group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec", null ],
-      [ "final_chain_", "group___transaction.html#a2f95db203650edcd773cc2bbbcf0574f", null ],
+      [ "final_chain_", "group___transaction.html#a436ba8aeecf4a00b2644f60d272cbb2f", null ],
       [ "kConf", "group___transaction.html#a6834f70d8689221cac865bf82f79891a", null ],
       [ "kDagBlockGasLimit", "group___transaction.html#acea2679465eaa2198cf68212c3626936", null ],
       [ "kEstimateGasLimit", "group___transaction.html#a73ff8227a0b64365c57f054016400e6b", null ],

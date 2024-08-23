@@ -234,7 +234,7 @@ var group___d_a_g =
         [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ],
         [ "MissingTip", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484acd9ea5e61108c6f8d0592a48ffae5f36", null ]
       ] ],
-      [ "DagManager", "group___d_a_g.html#a235e8769bbfc5b0a0cc5f4a3df9087d9", null ],
+      [ "DagManager", "group___d_a_g.html#ac234bd5af0b45bb41eda56354258d649", null ],
       [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
       [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
       [ "addDagBlock", "group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17", null ],
@@ -287,7 +287,7 @@ var group___d_a_g =
       [ "dag_expiry_level_", "group___d_a_g.html#a7c5c2559e31fc397527a42cbdfa20128", null ],
       [ "dag_expiry_limit_", "group___d_a_g.html#a6dc29019c4f006c91f4831b2e4f43162", null ],
       [ "db_", "group___d_a_g.html#a8df95cccdea775300aec10f65ab0cdea", null ],
-      [ "final_chain_", "group___d_a_g.html#aa495661e7bb6c853172edf4311e86da8", null ],
+      [ "final_chain_", "group___d_a_g.html#ad3d7297d99a08b09d60d6eab697d58b6", null ],
       [ "frontier_", "group___d_a_g.html#aa8ecef50260ac0b2b2da330f53fb42c2", null ],
       [ "genesis_block_", "group___d_a_g.html#ac2cbd5c2284f9a75e3eb012ad2ea371d", null ],
       [ "is_light_node_", "group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c", null ],
