@@ -620,7 +620,6 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
       for (const auto& dag_block : dag_blocks) {
         for (const auto& trx_hash : dag_block->getTrxs()) {
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
-          remove(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()));
         }
       }
       remove(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()));
@@ -646,7 +645,6 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
     db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
     db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-    db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
     db_->CompactRange({}, handle(Columns::pbft_block_period), nullptr, nullptr);
     db_->CompactRange({}, handle(Columns::final_chain_log_blooms_index), nullptr, nullptr);
   }
