@@ -1,6 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"pillar__votes__bundle__packet__handler_8hpp_source.html":[17,0,1,4,1,1,0,0,0,0,9],
 "priority__queue_8cpp.html":[17,0,1,4,1,3,1,3],
 "priority__queue_8hpp.html":[17,0,1,4,1,1,0,1,3],
 "priority__queue_8hpp_source.html":[17,0,1,4,1,1,0,1,3],
@@ -249,5 +248,6 @@ var NAVTREEINDEX22 =
 "structdev_1_1p2p_1_1_find_node.html#aa2d6118a2ade86aa6b464dba3d61f08a":[16,0,0,1,22,1],
 "structdev_1_1p2p_1_1_find_node.html#ae786f2d5f11db32aa749fd8e846a3dcf":[16,0,0,1,22,4],
 "structdev_1_1p2p_1_1_host.html":[16,0,0,1,13],
+"structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[17,0,1,0,2,9,4,2],
 "structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[16,0,0,1,13,1,2]
 };

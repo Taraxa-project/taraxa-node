@@ -1,6 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"namespacemembers_h.html":[15,0,8],
 "namespacemembers_i.html":[15,0,9],
 "namespacemembers_j.html":[15,0,10],
 "namespacemembers_k.html":[15,0,11],
@@ -49,8 +48,8 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[17,0,1,3,0,0,5,0],
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[17,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[17,0,1,4,0,0,8,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[17,0,1,4,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[17,0,1,4,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[17,0,1,4,1,2,0,6,0,0],
@@ -249,5 +248,6 @@ var NAVTREEINDEX21 =
 "pillar__votes_8hpp.html":[17,0,1,4,0,0,4,2],
 "pillar__votes_8hpp_source.html":[17,0,1,4,0,0,4,2],
 "pillar__votes__bundle__packet__handler_8cpp.html":[17,0,1,4,1,3,0,0,0,9],
-"pillar__votes__bundle__packet__handler_8hpp.html":[17,0,1,4,1,1,0,0,0,0,9]
+"pillar__votes__bundle__packet__handler_8hpp.html":[17,0,1,4,1,1,0,0,0,0,9],
+"pillar__votes__bundle__packet__handler_8hpp_source.html":[17,0,1,4,1,1,0,0,0,0,9]
 };

@@ -1,6 +1,5 @@
 var NAVTREEINDEX26 =
 {
-"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[17,0,1,4,0,0,1,6,0],
 "trie__common_8hpp_source.html":[17,0,1,4,0,0,1,6],
 "types_2dag__block_2include_2dag_2dag__block_8hpp.html":[17,0,1,7,0,0,0,0],
 "types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[17,0,1,7,0,0,0,0,2],
