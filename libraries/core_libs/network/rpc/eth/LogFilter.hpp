@@ -27,7 +27,7 @@ struct LogFilter {
   bool blk_number_matches(EthBlockNumber blk_n) const;
   void match_one(ExtendedTransactionLocation const& trx_loc, TransactionReceipt const& r,
                  std::function<void(LocalisedLogEntry const&)> const& cb) const;
-  std::vector<LocalisedLogEntry> match_all(FinalChain const& final_chain) const;
+  std::vector<LocalisedLogEntry> match_all(final_chain::FinalChain const& final_chain) const;
 };
 
 }  // namespace taraxa::net::rpc::eth

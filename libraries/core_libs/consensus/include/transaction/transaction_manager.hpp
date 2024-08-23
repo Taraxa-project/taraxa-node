@@ -50,8 +50,8 @@ class FullNode;
  */
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:
-  TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-                     addr_t node_addr);
+  TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db,
+                     std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr);
 
   /**
    * @brief Estimates required gas value to execute transaction
@@ -245,7 +245,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   const uint64_t kRecentlyFinalizedTransactionsMax = 50000;
 
   std::shared_ptr<DbStorage> db_{nullptr};
-  std::shared_ptr<FinalChain> final_chain_{nullptr};
+  std::shared_ptr<final_chain::FinalChain> final_chain_{nullptr};
 
   LOG_OBJECTS_DEFINE
 };

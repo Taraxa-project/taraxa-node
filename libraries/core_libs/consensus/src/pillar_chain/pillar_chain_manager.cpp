@@ -52,7 +52,7 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     PbftPeriod period, const std::shared_ptr<const final_chain::BlockHeader>& block_header, const h256& bridge_root,
     const h256& bridge_epoch) {
   blk_hash_t previous_pillar_block_hash{};  // null block hash
-  auto new_vote_counts = final_chain_->dpos_validators_vote_counts(period);
+  auto new_vote_counts = final_chain_->dposValidatorsVoteCounts(period);
   std::vector<PillarBlock::ValidatorVoteCountChange> votes_count_changes;
 
   // First ever pillar block
@@ -257,7 +257,7 @@ bool PillarChainManager::validatePillarVote(const std::shared_ptr<PillarVote> vo
 
   // Check if signer is eligible validator
   try {
-    if (!final_chain_->dpos_is_eligible(period - 1, validator)) {
+    if (!final_chain_->dposIsEligible(period - 1, validator)) {
       LOG(log_er_) << "Validator is not eligible. Pillar vote " << vote->getHash();
       return false;
     }
@@ -278,7 +278,7 @@ bool PillarChainManager::validatePillarVote(const std::shared_ptr<PillarVote> vo
 uint64_t PillarChainManager::addVerifiedPillarVote(const std::shared_ptr<PillarVote>& vote) {
   uint64_t validator_vote_count = 0;
   try {
-    validator_vote_count = final_chain_->dpos_eligible_vote_count(vote->getPeriod() - 1, vote->getVoterAddr());
+    validator_vote_count = final_chain_->dposEligibleVoteCount(vote->getPeriod() - 1, vote->getVoterAddr());
   } catch (state_api::ErrFutureBlock& e) {
     LOG(log_er_) << "Pillar vote " << vote->getHash() << " with period " << vote->getPeriod()
                  << " is too far ahead of DPOS. " << e.what();
@@ -352,7 +352,7 @@ std::optional<uint64_t> PillarChainManager::getPillarConsensusThreshold(PbftPeri
 
   try {
     // Pillar chain consensus threshold = total votes count / 2 + 1
-    threshold = final_chain_->dpos_eligible_total_vote_count(period) / 2 + 1;
+    threshold = final_chain_->dposEligibleTotalVoteCount(period) / 2 + 1;
   } catch (state_api::ErrFutureBlock& e) {
     LOG(log_er_) << "Unable to get dpos total votes count for period " << period
                  << " to calculate pillar consensus threshold: " << e.what();

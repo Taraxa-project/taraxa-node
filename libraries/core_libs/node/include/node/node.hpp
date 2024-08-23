@@ -114,7 +114,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
   std::shared_ptr<KeyManager> key_manager_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<net::HttpServer> jsonrpc_http_;
   std::shared_ptr<net::HttpServer> graphql_http_;
   std::shared_ptr<net::WsServer> jsonrpc_ws_;
