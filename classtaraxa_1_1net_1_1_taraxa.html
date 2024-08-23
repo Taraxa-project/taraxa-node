@@ -125,6 +125,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aedec7694b0f10833caeedd41c8f3d13f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb45f5372d6b149ce94c5555e33db1f0"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa.html#adb45f5372d6b149ce94c5555e33db1f0">taraxa_getScheduleBlockByPeriod</a> (const std::string &amp;_period) override</td></tr>
 <tr class="separator:adb45f5372d6b149ce94c5555e33db1f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69a3a1bcfecb91c2f6031ec068355c65"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa.html#a69a3a1bcfecb91c2f6031ec068355c65">taraxa_getNodeVersions</a> () override</td></tr>
+<tr class="separator:a69a3a1bcfecb91c2f6031ec068355c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dba65272713169e722deba2da5e7ee2"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa.html#a3dba65272713169e722deba2da5e7ee2">taraxa_pbftBlockHashByPeriod</a> (const std::string &amp;_period) override</td></tr>
 <tr class="separator:a3dba65272713169e722deba2da5e7ee2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:accac5fc87f1430aeb38335f6fb99ca06"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa.html#accac5fc87f1430aeb38335f6fb99ca06">taraxa_getConfig</a> () override</td></tr>
@@ -154,6 +156,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac20edc894c5587015ddce51ad108933f inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83df89f5f0f26cb1c413051d0a9cb177 inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a83df89f5f0f26cb1c413051d0a9cb177">taraxa_getScheduleBlockByPeriodI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a83df89f5f0f26cb1c413051d0a9cb177 inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4928da859d4220816e6c332eb525a33 inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#af4928da859d4220816e6c332eb525a33">taraxa_getNodeVersionsI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:af4928da859d4220816e6c332eb525a33 inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91aecfab498b65869e5546e338a5e5da inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a91aecfab498b65869e5546e338a5e5da">taraxa_getConfigI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a91aecfab498b65869e5546e338a5e5da inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a25577c1f61f76409cbd90e31566692 inherit pub_methods_classtaraxa_1_1net_1_1_taraxa_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a8a25577c1f61f76409cbd90e31566692">taraxa_getChainStatsI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
@@ -480,6 +484,33 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a12d2b9f9b1d93d90dc971ccd88737424">taraxa::net::TaraxaFace</a>.</p>
+
+</div>
+</div>
+<a id="a69a3a1bcfecb91c2f6031ec068355c65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69a3a1bcfecb91c2f6031ec068355c65">&#9670;&nbsp;</a></span>taraxa_getNodeVersions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Json::Value taraxa::net::Taraxa::taraxa_getNodeVersions </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a518dc0514896fe077e96fc171ff499b7">taraxa::net::TaraxaFace</a>.</p>
 
 </div>
 </div>

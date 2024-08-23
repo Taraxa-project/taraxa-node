@@ -1,5 +1,9 @@
 var NAVTREEINDEX20 =
 {
+"md_doc_coding_practices.html#autotoc_md134":[58],
+"md_doc_coding_practices.html#autotoc_md135":[59],
+"md_doc_coding_practices.html#autotoc_md136":[60],
+"md_doc_coding_practices.html#autotoc_md137":[61],
 "md_doc_coding_practices.html#autotoc_md138":[62],
 "md_doc_coding_practices.html#autotoc_md139":[63],
 "md_doc_coding_practices.html#autotoc_md140":[3,0,15],
@@ -212,8 +216,8 @@ var NAVTREEINDEX20 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[17,0,1,0,2,24,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[17,0,1,0,2,3,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[17,0,1,0,2,24,0],
-"namespacemembers.html":[15,0],
 "namespacemembers.html":[15,0,0],
+"namespacemembers.html":[15,0],
 "namespacemembers_a.html":[15,0,1],
 "namespacemembers_b.html":[15,0,2],
 "namespacemembers_c.html":[15,0,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX20 =
 "namespacemembers_func_u.html":[15,1,19],
 "namespacemembers_func_v.html":[15,1,20],
 "namespacemembers_func_w.html":[15,1,21],
-"namespacemembers_g.html":[15,0,7],
-"namespacemembers_h.html":[15,0,8],
-"namespacemembers_i.html":[15,0,9],
-"namespacemembers_j.html":[15,0,10],
-"namespacemembers_k.html":[15,0,11]
+"namespacemembers_g.html":[15,0,7]
 };

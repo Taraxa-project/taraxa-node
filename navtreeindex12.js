@@ -1,5 +1,9 @@
 var NAVTREEINDEX12 =
 {
+"classtaraxa_1_1rewards_1_1_stats.html#af3ea90ef92edb2fb0a6e380ebe922c40":[16,0,3,7,1,11],
+"classtaraxa_1_1rewards_1_1_stats.html#af516a0f0db6f7f3776af3e48d4872073":[16,0,3,7,1,0],
+"classtaraxa_1_1state__api_1_1_error_handler.html":[16,0,3,8,21],
+"classtaraxa_1_1state__api_1_1_error_handler.html#a6059fa522aa177b104faac8dea20514c":[16,0,3,8,21,3],
 "classtaraxa_1_1state__api_1_1_error_handler.html#a967eb06bb633d87f5962c7d1d23b4926":[16,0,3,8,21,0],
 "classtaraxa_1_1state__api_1_1_error_handler.html#ad9d02cdb3616c456d391fcb4067af886":[16,0,3,8,21,1],
 "classtaraxa_1_1state__api_1_1_error_handler.html#aff63269474287280f914a37e067d4d0f":[16,0,3,8,21,2],
@@ -245,9 +249,5 @@ var NAVTREEINDEX12 =
 "dag__config_8cpp.html#a681e859a51cfd602ec476273ae67ce91":[17,0,1,3,1,2,0],
 "dag__config_8cpp.html#a9c00e55e957ffb65d8891c88785cf57e":[17,0,1,3,1,2,1],
 "dag__config_8cpp.html#af048650cf3dc86bc3af3a4bdb4824df7":[17,0,1,3,1,2,3],
-"dag__config_8hpp.html":[17,0,1,3,0,0,2],
-"dag__config_8hpp.html#a48523fb260955ed0881f6945e84066a3":[17,0,1,3,0,0,2,4],
-"dag__config_8hpp.html#a681e859a51cfd602ec476273ae67ce91":[17,0,1,3,0,0,2,2],
-"dag__config_8hpp.html#a9c00e55e957ffb65d8891c88785cf57e":[17,0,1,3,0,0,2,3],
-"dag__config_8hpp.html#af048650cf3dc86bc3af3a4bdb4824df7":[17,0,1,3,0,0,2,5]
+"dag__config_8hpp.html":[17,0,1,3,0,0,2]
 };
