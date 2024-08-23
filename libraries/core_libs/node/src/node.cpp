@@ -214,10 +214,10 @@ void FullNode::start() {
 
     auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
     std::shared_ptr<net::Test> test_json_rpc;
-    if (conf_.enable_test_rpc) {
-      // TODO Because this object refers to FullNode, the lifecycle/dependency management is more complicated);
-      test_json_rpc = std::make_shared<net::Test>(shared_from_this());
-    }
+    // if (conf_.enable_test_rpc) {
+    //  TODO Because this object refers to FullNode, the lifecycle/dependency management is more complicated);
+    test_json_rpc = std::make_shared<net::Test>(shared_from_this());
+    //}
 
     std::shared_ptr<net::Debug> debug_json_rpc;
     if (conf_.enable_debug) {
