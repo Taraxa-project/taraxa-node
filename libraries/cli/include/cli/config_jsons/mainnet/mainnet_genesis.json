@@ -1653,6 +1653,7 @@
       "block_num": 11616000,
       "pillar_blocks_interval": 4000,
       "bridge_contract_address": "0xe126E0BaeAE904b8Cfd619Be1A8667A173b763a1"
-    }
+    },
+    "cornus_hf_block_num": -1
   }
 }
