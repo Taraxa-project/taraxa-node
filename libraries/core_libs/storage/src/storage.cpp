@@ -1249,9 +1249,10 @@ std::vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(PbftPeriod
   std::vector<blk_hash_t> ret;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    std::transform(dag_blocks_data.begin(), dag_blocks_data.end(), std::back_inserter(ret),
-                   [](const auto& dag_block) { return DagBlock(dag_block).getHash(); });
+    const auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    std::transform(dag_blocks.begin(), dag_blocks.end(), std::back_inserter(ret),
+                   [](const auto& dag_block) { return dag_block.getHash(); });
   }
 
   return ret;
@@ -1261,9 +1262,10 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(P
   std::vector<std::shared_ptr<DagBlock>> ret;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
+    auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
     for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
+      ret.emplace_back(std::make_shared<DagBlock>(std::move(block)));
     }
   }
   return ret;
@@ -1276,9 +1278,10 @@ DbStorage::getLastPbftblockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto const period_data_rlp = dev::RLP(period_data);
     auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
+    auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    for (auto const block : dag_blocks) {
+      ret.emplace_back(std::make_shared<DagBlock>(std::move(block)));
     }
     last_pbft_block_hash =
         period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA][PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK].toHash<blk_hash_t>();
