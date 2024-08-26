@@ -5,6 +5,7 @@
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 
+namespace taraxa {
 struct Redelegation {
   taraxa::addr_t validator;
   taraxa::addr_t delegator;
@@ -134,3 +135,4 @@ struct HardforksConfig {
 
 Json::Value enc_json(const HardforksConfig& obj);
 void dec_json(const Json::Value& json, HardforksConfig& obj);
+}  // namespace taraxa

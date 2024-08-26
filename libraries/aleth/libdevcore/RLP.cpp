@@ -2,6 +2,14 @@
 // Copyright 2013-2019 Aleth Authors.
 // Licensed under the GNU General Public License, Version 3.
 #include "RLP.h"
+
+#include <libdevcore/Exceptions.h>
+#include <libdevcore/vector_ref.h>
+
+#include <boost/exception/detail/error_info_impl.hpp>
+#include <boost/exception/info_tuple.hpp>
+#include <sstream>
+
 using namespace std;
 using namespace dev;
 

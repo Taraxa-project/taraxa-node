@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <tuple>
-
 #include "config/config.hpp"
+#include "config/version.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handler.hpp"

@@ -6,7 +6,6 @@
 #include <utility>
 
 #include "logger/logger.hpp"
-#include "network/tarcap/packet_types.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/packets_blocking_mask.hpp"
 #include "packets_queue.hpp"

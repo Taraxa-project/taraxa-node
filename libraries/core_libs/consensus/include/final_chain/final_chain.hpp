@@ -5,10 +5,10 @@
 #include "common/event.hpp"
 #include "common/types.hpp"
 #include "config/config.hpp"
+#include "config/state_config.hpp"
 #include "final_chain/cache.hpp"
 #include "final_chain/data.hpp"
 #include "final_chain/state_api.hpp"
-#include "final_chain/state_api_data.hpp"
 #include "rewards/rewards_stats.hpp"
 #include "storage/storage.hpp"
 
@@ -38,7 +38,7 @@ class FinalChain {
 
   FinalChain() = default;
   ~FinalChain() = default;
-  FinalChain(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr);
+  FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr);
   FinalChain(const FinalChain&) = delete;
   FinalChain(FinalChain&&) = delete;
   FinalChain& operator=(const FinalChain&) = delete;
@@ -268,8 +268,8 @@ class FinalChain {
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor);
-  std::shared_ptr<BlockHeader> appendBlock(DB::Batch& batch, const addr_t& author, uint64_t timestamp,
-                                           uint64_t gas_limit, const h256& state_root, u256 total_reward,
+  std::shared_ptr<BlockHeader> appendBlock(Batch& batch, const addr_t& author, uint64_t timestamp, uint64_t gas_limit,
+                                           const h256& state_root, u256 total_reward,
                                            const SharedTransactions& transactions = {},
                                            const TransactionReceipts& receipts = {}, const bytes& extra_data = {});
 
@@ -287,7 +287,7 @@ class FinalChain {
                                              EthBlockNumber level, EthBlockNumber index) const;
 
  private:
-  std::shared_ptr<DB> db_;
+  std::shared_ptr<DbStorage> db_;
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
   const bool kLightNode = false;

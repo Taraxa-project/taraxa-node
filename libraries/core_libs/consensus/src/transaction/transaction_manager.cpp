@@ -4,12 +4,12 @@
 #include <unordered_set>
 #include <utility>
 
-#include "dag/dag.hpp"
+#include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
-TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
+TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr)
     : kConf(conf),
       transactions_pool_(final_chain, kConf.transactions_pool_size),
@@ -192,7 +192,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
       const auto account = final_chain_->getAccount(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
       const auto tx_hash = t->getHash();
 
-      // Cheacking nonce in cheaper than checking db, verify with nonce if possible
+      // Checking nonce in cheaper than checking db, verify with nonce if possible
       bool trx_not_executed = account.nonce < t->getNonce() || !db_->transactionFinalized(tx_hash);
 
       if (trx_not_executed) {
@@ -235,7 +235,7 @@ void TransactionManager::recoverNonfinalizedTransactions() {
       // line can be removed or replaced with an assert
       db_->removeTransactionToBatch(trx_hash, write_batch);
     } else {
-      // Cache sender now by caling getSender since getting sender later on proposing blocks can affect performance
+      // Cache sender now by calling getSender since getting sender later on proposing blocks can affect performance
       trxs[i]->getSender();
       nonfinalized_transactions_in_dag_.emplace(trx_hash, std::move(trxs[i]));
     }
@@ -253,9 +253,9 @@ bool TransactionManager::nonProposableTransactionsOverTheLimit() const {
   return transactions_pool_.nonProposableTransactionsOverTheLimit();
 }
 
-bool TransactionManager::isTransactionPoolFull(size_t precentage) const {
+bool TransactionManager::isTransactionPoolFull(size_t percentage) const {
   std::shared_lock transactions_lock(transactions_mutex_);
-  return transactions_pool_.size() >= (kConf.transactions_pool_size * precentage / 100);
+  return transactions_pool_.size() >= (kConf.transactions_pool_size * percentage / 100);
 }
 
 size_t TransactionManager::getNonfinalizedTrxSize() const {

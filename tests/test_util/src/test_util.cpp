@@ -1,5 +1,8 @@
 #include "test_util/test_util.hpp"
 
+#include <fstream>
+
+#include "common/encoding_solidity.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 

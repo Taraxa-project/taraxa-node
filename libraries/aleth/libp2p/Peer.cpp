@@ -4,8 +4,6 @@
 
 #include "Peer.h"
 using namespace std;
-using namespace dev;
-using namespace dev::p2p;
 
 namespace dev {
 

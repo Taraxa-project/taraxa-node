@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/constants.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bitset>
 #include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
@@ -12,15 +11,11 @@
 #include <boost/property_map/property_map.hpp>
 #include <boost/thread.hpp>
 #include <iostream>
-#include <iterator>
-#include <list>
-#include <mutex>
-#include <queue>
 #include <string>
 
 #include "common/types.hpp"
-#include "common/util.hpp"
-#include "dag/dag_block.hpp"
+#include "logger/logger.hpp"
+
 namespace taraxa {
 
 /** @addtogroup DAG

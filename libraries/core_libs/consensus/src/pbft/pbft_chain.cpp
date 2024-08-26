@@ -2,7 +2,6 @@
 
 #include <libdevcore/CommonJS.h>
 
-#include "common/jsoncpp.hpp"
 #include "pbft/pbft_manager.hpp"
 
 using namespace std;

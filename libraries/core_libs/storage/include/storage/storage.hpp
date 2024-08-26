@@ -7,7 +7,7 @@
 
 #include <filesystem>
 #include <functional>
-#include <string_view>
+#include <regex>
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
@@ -16,7 +16,6 @@
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
-#include "transaction/system_transaction.hpp"
 #include "transaction/transaction.hpp"
 #include "vote/pillar_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -69,12 +68,12 @@ class DbException : public std::exception {
   const std::string desc_;
 };
 
+using Batch = rocksdb::WriteBatch;
+using Slice = rocksdb::Slice;
+using OnEntry = std::function<void(Slice const&, Slice const&)>;
+
 class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
-  using Slice = rocksdb::Slice;
-  using Batch = rocksdb::WriteBatch;
-  using OnEntry = std::function<void(Slice const&, Slice const&)>;
-
   class Column {
     string const name_;
 
@@ -251,7 +250,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
   void removeDagBlock(blk_hash_t const& hash);
   // Sortition params
-  void saveSortitionParamsChange(PbftPeriod period, const SortitionParamsChange& params, DbStorage::Batch& batch);
+  void saveSortitionParamsChange(PbftPeriod period, const SortitionParamsChange& params, Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(PbftPeriod period);
 
@@ -350,7 +349,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(PbftPeriod period);
   std::vector<std::shared_ptr<DagBlock>> getFinalizedDagBlockByPeriod(PbftPeriod period);
-  std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>> getLastPbftblockHashAndFinalizedDagBlockByPeriod(
+  std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>> getLastPbftBlockHashAndFinalizedDagBlockByPeriod(
       PbftPeriod period);
 
   // DPOS level to proposal period map
@@ -469,7 +468,5 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   void forEach(Column const& col, OnEntry const& f);
 };
-
-using DB = DbStorage;
 
 }  // namespace taraxa

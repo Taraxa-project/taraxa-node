@@ -4,10 +4,10 @@
 
 #include <boost/filesystem.hpp>
 #include <fstream>
-#include <optional>
 #include <vector>
 
 #include "common/encoding_rlp.hpp"
+#include "slashing_manager/slashing_manager.hpp"
 #include "test_util/test_util.hpp"
 
 namespace taraxa::state_api {
@@ -229,8 +229,8 @@ TEST_F(StateAPITest, slashing) {
   auto vote_b = node->getVoteManager()->generateVote(blk_hash_t{2}, PbftVoteTypes::cert_vote, 1, 1, 3);
 
   // Commit double voting proof
-  auto slashing_manager = std::make_shared<SlashingManager>(node->getFinalChain(), node->getTransactionManager(),
-                                                            node->getGasPricer(), *node_cfg, node->getSecretKey());
+  auto slashing_manager = std::make_shared<SlashingManager>(*node_cfg, node->getFinalChain(),
+                                                            node->getTransactionManager(), node->getGasPricer());
   ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b));
 
   // After few blocks malicious validator should be jailed

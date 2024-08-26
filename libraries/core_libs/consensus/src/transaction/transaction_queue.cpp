@@ -135,7 +135,7 @@ TransactionStatus TransactionQueue::insert(std::shared_ptr<Transaction> &&transa
         assert(nonce_it->second->getHash() != tx_hash);
         // Replace transaction if gas price higher
         if (transaction->getGasPrice() > nonce_it->second->getGasPrice()) {
-          // Place same nonce transaction with lower gas price in non propsable transactions since it could be
+          // Place same nonce transaction with lower gas price in non proposable transactions since it could be
           // possible that some dag block might contain it
           non_proposable_transactions_[nonce_it->second->getHash()] = {last_block_number, nonce_it->second};
           queue_transactions_.erase(nonce_it->second->getHash());

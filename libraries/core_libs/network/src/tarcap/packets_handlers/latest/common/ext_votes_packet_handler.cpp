@@ -1,5 +1,6 @@
 #include "network/tarcap/packets_handlers/latest/common/ext_votes_packet_handler.hpp"
 
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"

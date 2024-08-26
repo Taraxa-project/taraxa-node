@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <iostream>
-
+#include "common/encoding_solidity.hpp"
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"

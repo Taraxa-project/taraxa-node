@@ -8,10 +8,11 @@
 
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
-#include "final_chain/final_chain.hpp"
+#include "final_chain/data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
+#include "transaction/system_transaction.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
@@ -306,7 +307,7 @@ bool DbStorage::createSnapshot(PbftPeriod period) {
 
   LOG(log_nf_) << "Creating DB snapshot on period: " << period;
 
-  // Create rocskd checkpoint/snapshot
+  // Create rocksdb checkpoint/snapshot
   rocksdb::Checkpoint* checkpoint;
   auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint);
   // Scope is to delete checkpoint object as soon as we don't need it anymore
@@ -419,7 +420,7 @@ void DbStorage::checkStatus(rocksdb::Status const& status) {
                     " SubCode: " + std::to_string(status.subcode()) + " Message:" + status.ToString());
 }
 
-DbStorage::Batch DbStorage::createWriteBatch() { return DbStorage::Batch(); }
+Batch DbStorage::createWriteBatch() { return Batch(); }
 
 void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts) {
   auto status = db_->Write(opts, write_batch.GetWriteBatch());
@@ -615,7 +616,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     for (auto period = start_period; period < end_period; period++) {
       // Find transactions included in the old blocks and delete data related to these transactions to free
       // disk space
-      const auto& [pbft_block_hash, dag_blocks] = getLastPbftblockHashAndFinalizedDagBlockByPeriod(period);
+      const auto& [pbft_block_hash, dag_blocks] = getLastPbftBlockHashAndFinalizedDagBlockByPeriod(period);
 
       for (const auto& dag_block : dag_blocks) {
         for (const auto& trx_hash : dag_block->getTrxs()) {
@@ -1267,7 +1268,7 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(P
 }
 
 std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>>
-DbStorage::getLastPbftblockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
+DbStorage::getLastPbftBlockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
   std::vector<std::shared_ptr<DagBlock>> ret;
   blk_hash_t last_pbft_block_hash;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
