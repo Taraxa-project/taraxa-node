@@ -75,7 +75,7 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
       [ "db_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a37ca0cec62f3ebe1fa9cf1bb089a1ca8", null ],
       [ "final_chain_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a322c81f7b4993fa1f773b1fcedc04c6a", null ],
       [ "key_manager_", "group___p_i_l_l_a_r___c_h_a_i_n.html#afae8b96905d0018d2d0e7b9c8b0e28b8", null ],
-      [ "kFicusHfConfig", "group___p_i_l_l_a_r___c_h_a_i_n.html#a0ec5dbeac1b291babb0b911a13aaf782", null ],
+      [ "kFicusHfConfig", "group___p_i_l_l_a_r___c_h_a_i_n.html#a5e28bd357ec6c6e4146a8084c3888139", null ],
       [ "last_finalized_pillar_block_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a47196b48309a5ee40e4efd9948a47e95", null ],
       [ "mutex_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a8a1188c8d8ec755d68ab90132dbd2444", null ],
       [ "network_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a289c3b9928d5c227910aec76e1a82a49", null ],

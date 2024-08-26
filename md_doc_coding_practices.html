@@ -612,7 +612,7 @@ Example</h4>
 <div class="line">  stage decorator([&amp;](buffer&amp; b){ decorate(b); compressor.process(b); });</div>
 <div class="line">  <span class="keywordflow">for</span> (<span class="keyword">auto</span>&amp; b : bufs) { decorator.process(b); }</div>
 <div class="line">}  <span class="comment">// automatically blocks waiting for pipeline to finish</span></div>
-<div class="ttc" id="anamespacedev_html_a7f377e436eaf0967cedb0fa1370d17ba"><div class="ttname"><a href="namespacedev.html#a7f377e436eaf0967cedb0fa1370d17ba">dev::encrypt</a></div><div class="ttdeci">void encrypt(Public const &amp;_k, bytesConstRef _plain, bytes &amp;o_cipher)</div><div class="ttdoc">Encrypts plain text using Public key.</div><div class="ttdef"><b>Definition:</b> Common.cpp:102</div></div>
+<div class="ttc" id="anamespacedev_html_a7f377e436eaf0967cedb0fa1370d17ba"><div class="ttname"><a href="namespacedev.html#a7f377e436eaf0967cedb0fa1370d17ba">dev::encrypt</a></div><div class="ttdeci">void encrypt(Public const &amp;_k, bytesConstRef _plain, bytes &amp;o_cipher)</div><div class="ttdoc">Encrypts plain text using Public key.</div><div class="ttdef"><b>Definition:</b> Common.cpp:99</div></div>
 </div><!-- fragment --> <h4><a class="anchor" id="autotoc_md138"></a>
 Enforcement</h4>
 <p>Flag a lambda that captures by reference, but is used other than locally within the function scope or passed to a function by reference. (Note: This rule is an approximation, but does flag passing by pointer as those are more likely to be stored by the callee, writing to a heap location accessed via a parameter, returning the lambda, etc. The Lifetime rules will also provide general rules that flag escaping pointers and references including via lambdas.)</p>
@@ -1234,8 +1234,8 @@ Reason</h4>
 <p>If you use member functions, you need two. Unless you use a nonmember function for (say) <code>==</code>, <code>a == b</code> and <code>b == a</code> will be subtly different.</p>
 <h4><a class="anchor" id="autotoc_md204"></a>
 Example</h4>
-<div class="fragment"><div class="line"><span class="keywordtype">bool</span> <a class="code" href="namespacedev_1_1p2p.html#a1b068440ef1dbbeea042bc9c91b14877">operator==</a>(Point a, Point b) { <span class="keywordflow">return</span> a.x == b.x &amp;&amp; a.y == b.y; }</div>
-<div class="ttc" id="anamespacedev_1_1p2p_html_a1b068440ef1dbbeea042bc9c91b14877"><div class="ttname"><a href="namespacedev_1_1p2p.html#a1b068440ef1dbbeea042bc9c91b14877">dev::p2p::operator==</a></div><div class="ttdeci">bool operator==(weak_ptr&lt; NodeEntry &gt; const &amp;_weak, shared_ptr&lt; NodeEntry &gt; const &amp;_shared)</div><div class="ttdef"><b>Definition:</b> NodeTable.cpp:33</div></div>
+<div class="fragment"><div class="line"><span class="keywordtype">bool</span> <a class="code" href="namespacedev_1_1p2p.html#ad4859d7b596e021a930f7209efa62e0e">operator==</a>(Point a, Point b) { <span class="keywordflow">return</span> a.x == b.x &amp;&amp; a.y == b.y; }</div>
+<div class="ttc" id="anamespacedev_1_1p2p_html_ad4859d7b596e021a930f7209efa62e0e"><div class="ttname"><a href="namespacedev_1_1p2p.html#ad4859d7b596e021a930f7209efa62e0e">dev::p2p::operator==</a></div><div class="ttdeci">bool operator==(std::weak_ptr&lt; NodeEntry &gt; const &amp;_weak, std::shared_ptr&lt; NodeEntry &gt; const &amp;_shared)</div><div class="ttdef"><b>Definition:</b> NodeTable.cpp:32</div></div>
 </div><!-- fragment --><h4><a class="anchor" id="autotoc_md205"></a>
 Note</h4>
 <p><em>When to use a normal, friend, or member function overload?</em></p>

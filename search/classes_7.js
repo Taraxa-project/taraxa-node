@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['hardforksconfig_4024',['HardforksConfig',['../struct_hardforks_config.html',1,'']]],
+  ['hardforksconfig_4024',['HardforksConfig',['../structtaraxa_1_1_hardforks_config.html',1,'taraxa']]],
   ['hash_4025',['hash',['../structdev_1_1_fixed_hash_1_1hash.html',1,'dev::FixedHash']]],
   ['hash_3c_20bi_3a_3aaddress_20_3e_4026',['hash&lt; bi::address &gt;',['../structstd_1_1hash_3_01bi_1_1address_01_4.html',1,'std']]],
   ['hash_3c_20dev_3a_3ah128_20_3e_4027',['hash&lt; dev::h128 &gt;',['../structstd_1_1hash_3_01dev_1_1h128_01_4.html',1,'std']]],

@@ -14,6 +14,5 @@ var searchData=
   ['get_5fpillar_5fvotes_5fbundle_5fpacket_5fhandler_2ehpp_4402',['get_pillar_votes_bundle_packet_handler.hpp',['../get__pillar__votes__bundle__packet__handler_8hpp.html',1,'']]],
   ['git_5fpractices_2emd_4403',['git_practices.md',['../git__practices_8md.html',1,'']]],
   ['global_5fconst_2ehpp_4404',['global_const.hpp',['../global__const_8hpp.html',1,'']]],
-  ['guards_2ecpp_4405',['Guards.cpp',['../_guards_8cpp.html',1,'']]],
-  ['guards_2eh_4406',['Guards.h',['../_guards_8h.html',1,'']]]
+  ['guards_2eh_4405',['Guards.h',['../_guards_8h.html',1,'']]]
 ];

@@ -1,6 +1,6 @@
 var group___d_a_g_classtaraxa_1_1_dag_block_proposer =
 [
-    [ "DagBlockProposer", "group___d_a_g.html#a32b558c1ef9413eca9b144811b1538b7", null ],
+    [ "DagBlockProposer", "group___d_a_g.html#ad5a7d03ac99f49210e6338e2f53e45c5", null ],
     [ "~DagBlockProposer", "group___d_a_g.html#a168ea7c60b4c3535c6ec999a8ff0b5d0", null ],
     [ "DagBlockProposer", "group___d_a_g.html#aace097ada959a377e46c6a6e57c43c21", null ],
     [ "DagBlockProposer", "group___d_a_g.html#ab6d80eccedea603e03d4a194c5df0327", null ],

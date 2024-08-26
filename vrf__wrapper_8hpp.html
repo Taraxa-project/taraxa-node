@@ -91,65 +91,63 @@ $(document).ready(function(){initNavTree('vrf__wrapper_8hpp.html',''); initResiz
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="_r_l_p_8h_source.html">libdevcore/RLP.h</a>&gt;</code><br />
-<code>#include &lt;optional&gt;</code><br />
 <code>#include &quot;<a class="el" href="types_8hpp_source.html">common/types.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="util_8hpp_source.html">common/util.hpp</a>&quot;</code><br />
-<code>#include &quot;sodium.h&quot;</code><br />
+<code>#include &quot;sodium/crypto_vrf.h&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="vrf__wrapper_8hpp__dep__incl.png" border="0" usemap="#alibraries_2common_2include_2common_2vrf__wrapper_8hppdep" alt=""/></div>
 <map name="alibraries_2common_2include_2common_2vrf__wrapper_8hppdep" id="alibraries_2common_2include_2common_2vrf__wrapper_8hppdep">
-<area shape="rect" title=" " alt="" coords="2495,5,2687,47"/>
-<area shape="rect" href="tools_8hpp.html" title=" " alt="" coords="419,503,564,545"/>
-<area shape="rect" href="vrf__wrapper_8cpp.html" title=" " alt="" coords="3003,95,3161,136"/>
-<area shape="rect" href="config_2include_2config_2config_8hpp.html" title=" " alt="" coords="1677,281,1847,322"/>
-<area shape="rect" href="key__manager_8hpp.html" title=" " alt="" coords="849,600,1056,656"/>
-<area shape="rect" href="vote__manager_8hpp.html" title=" " alt="" coords="2513,704,2725,760"/>
-<area shape="rect" href="node_8hpp.html" title=" " alt="" coords="4132,830,4341,871"/>
-<area shape="rect" href="state__config_8hpp.html" title=" " alt="" coords="2267,95,2443,136"/>
-<area shape="rect" href="state__config_8cpp.html" title=" " alt="" coords="2389,184,2530,225"/>
-<area shape="rect" href="pbft__vote_8hpp.html" title=" " alt="" coords="2628,607,2827,649"/>
-<area shape="rect" href="vrf__sortition_8hpp.html" title=" " alt="" coords="2680,184,2897,225"/>
-<area shape="rect" href="sortition_8hpp.html" title=" " alt="" coords="3185,95,3336,136"/>
-<area shape="rect" href="cli_2src_2config_8cpp.html" title=" " alt="" coords="638,615,825,641"/>
-<area shape="rect" href="config__updater_8cpp.html" title=" " alt="" coords="454,607,614,649"/>
-<area shape="rect" href="tools_8cpp.html" title=" " alt="" coords="249,615,429,641"/>
-<area shape="rect" href="taraxa-bootnode_2main_8cpp.html" title=" " alt="" coords="29,607,225,649"/>
-<area shape="rect" href="cli_2include_2cli_2config_8hpp.html" title=" " alt="" coords="529,392,675,433"/>
-<area shape="rect" href="config__updater_8hpp.html" title=" " alt="" coords="690,503,858,545"/>
-<area shape="rect" href="config_2src_2config_8cpp.html" title=" " alt="" coords="1889,392,2030,433"/>
-<area shape="rect" href="dag__block__proposer_8hpp.html" title=" " alt="" coords="371,704,553,760"/>
-<area shape="rect" href="final__chain_8hpp.html" title=" " alt="" coords="1839,496,2016,552"/>
-<area shape="rect" href="pbft__manager_8hpp.html" title=" " alt="" coords="2219,704,2393,760"/>
-<area shape="rect" href="transaction__manager_8hpp.html" title=" " alt="" coords="1292,600,1515,656"/>
-<area shape="rect" href="pillar__chain__manager_8hpp.html" title=" " alt="" coords="1589,600,1823,656"/>
-<area shape="rect" href="graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="1329,385,1483,441"/>
-<area shape="rect" href="core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="1081,600,1267,656"/>
-<area shape="rect" href="peers__state_8hpp.html" title=" " alt="" coords="1102,377,1305,448"/>
-<area shape="rect" href="taraxa__capability_8hpp.html" title=" " alt="" coords="1102,496,1313,552"/>
-<area shape="rect" href="include_2network_2ws__server_8hpp.html" title=" " alt="" coords="2357,385,2543,441"/>
-<area shape="rect" href="src_2ws__server_8cpp.html" title=" " alt="" coords="2305,503,2504,545"/>
-<area shape="rect" href="jsonrpc__ws__server_8cpp.html" title=" " alt="" coords="1507,385,1662,441"/>
-<area shape="rect" href="dag__block__proposer_8cpp.html" title=" " alt="" coords="1071,823,1245,879"/>
-<area shape="rect" href="node_8cpp.html" title=" " alt="" coords="1662,1045,1806,1087"/>
-<area shape="rect" href="pbft__manager_8cpp.html" title=" " alt="" coords="1898,941,2045,997"/>
-<area shape="rect" href="pillar__chain__manager_8cpp.html" title=" " alt="" coords="1386,704,1621,760"/>
-<area shape="rect" href="dag_8cpp.html" title=" " alt="" coords="1061,711,1261,753"/>
-<area shape="rect" href="dag__manager_8cpp.html" title=" " alt="" coords="863,704,1037,760"/>
-<area shape="rect" href="key__manager_8cpp.html" title=" " alt="" coords="629,704,839,760"/>
-<area shape="rect" href="vote__manager_8cpp.html" title=" " alt="" coords="1999,823,2210,879"/>
-<area shape="rect" href="pbft__sync__packet__handler_8hpp.html" title=" " alt="" coords="3649,808,3835,893"/>
-<area shape="rect" href="ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="3423,808,3624,893"/>
-<area shape="rect" href="get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="2898,808,3125,893"/>
-<area shape="rect" href="get__pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="3859,815,4107,886"/>
-<area shape="rect" href="status__packet__handler_8cpp.html" title=" " alt="" coords="3149,815,3348,886"/>
-<area shape="rect" href="vote__packet__handler_8cpp.html" title=" " alt="" coords="2418,815,2605,886"/>
-<area shape="rect" href="votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="2629,815,2874,886"/>
-<area shape="rect" href="node__stats_8cpp.html" title=" " alt="" coords="2234,823,2394,879"/>
-<area shape="rect" href="_debug_8h.html" title=" " alt="" coords="3647,949,3808,990"/>
-<area shape="rect" href="genesis_8hpp.html" title=" " alt="" coords="2000,184,2169,225"/>
-<area shape="rect" href="state__api__data_8hpp.html" title=" " alt="" coords="2151,273,2343,329"/>
+<area shape="rect" title=" " alt="" coords="2347,5,2539,47"/>
+<area shape="rect" href="tools_8hpp.html" title=" " alt="" coords="418,503,563,545"/>
+<area shape="rect" href="vrf__wrapper_8cpp.html" title=" " alt="" coords="1717,95,1875,136"/>
+<area shape="rect" href="config_2include_2config_2config_8hpp.html" title=" " alt="" coords="1543,288,1713,329"/>
+<area shape="rect" href="key__manager_8hpp.html" title=" " alt="" coords="1846,496,2053,552"/>
+<area shape="rect" href="vote__manager_8hpp.html" title=" " alt="" coords="2322,600,2534,656"/>
+<area shape="rect" href="state__config_8hpp.html" title=" " alt="" coords="2269,95,2445,136"/>
+<area shape="rect" href="state__config_8cpp.html" title=" " alt="" coords="2459,191,2600,233"/>
+<area shape="rect" href="pbft__vote_8hpp.html" title=" " alt="" coords="3173,503,3371,545"/>
+<area shape="rect" href="vrf__sortition_8hpp.html" title=" " alt="" coords="3163,392,3381,433"/>
+<area shape="rect" href="sortition_8hpp.html" title=" " alt="" coords="2794,95,2945,136"/>
+<area shape="rect" href="cli_2src_2config_8cpp.html" title=" " alt="" coords="5,615,192,641"/>
+<area shape="rect" href="config__updater_8cpp.html" title=" " alt="" coords="216,607,376,649"/>
+<area shape="rect" href="tools_8cpp.html" title=" " alt="" coords="401,615,581,641"/>
+<area shape="rect" href="taraxa-bootnode_2main_8cpp.html" title=" " alt="" coords="605,607,801,649"/>
+<area shape="rect" href="cli_2include_2cli_2config_8hpp.html" title=" " alt="" coords="529,392,674,433"/>
+<area shape="rect" href="config_2src_2config_8cpp.html" title=" " alt="" coords="1831,392,1972,433"/>
+<area shape="rect" href="final__chain_8hpp.html" title=" " alt="" coords="2197,385,2374,441"/>
+<area shape="rect" href="node_8hpp.html" title=" " alt="" coords="1225,726,1434,767"/>
+<area shape="rect" href="dag__manager_8cpp.html" title=" " alt="" coords="1027,719,1200,775"/>
+<area shape="rect" href="pbft__manager_8hpp.html" title=" " alt="" coords="2147,719,2322,775"/>
+<area shape="rect" href="slashing__manager_8cpp.html" title=" " alt="" coords="2607,600,2843,656"/>
+<area shape="rect" href="transaction__manager_8cpp.html" title=" " alt="" coords="927,385,1121,441"/>
+<area shape="rect" href="graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="1145,385,1300,441"/>
+<area shape="rect" href="core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="1376,600,1563,656"/>
+<area shape="rect" href="peers__state_8hpp.html" title=" " alt="" coords="1425,377,1628,448"/>
+<area shape="rect" href="taraxa__capability_8hpp.html" title=" " alt="" coords="1364,496,1575,552"/>
+<area shape="rect" href="include_2network_2ws__server_8hpp.html" title=" " alt="" coords="1013,496,1200,552"/>
+<area shape="rect" href="jsonrpc__ws__server_8cpp.html" title=" " alt="" coords="1652,385,1807,441"/>
+<area shape="rect" href="pbft__manager_8cpp.html" title=" " alt="" coords="2801,852,2948,908"/>
+<area shape="rect" href="node_8cpp.html" title=" " alt="" coords="1260,859,1404,901"/>
+<area shape="rect" href="dag__block__proposer_8cpp.html" title=" " alt="" coords="1973,600,2147,656"/>
+<area shape="rect" href="pillar__chain__manager_8cpp.html" title=" " alt="" coords="1509,719,1744,775"/>
+<area shape="rect" href="key__manager_8cpp.html" title=" " alt="" coords="1689,600,1898,656"/>
+<area shape="rect" href="vote__manager_8cpp.html" title=" " alt="" coords="1428,852,1639,908"/>
+<area shape="rect" href="pbft__sync__packet__handler_8hpp.html" title=" " alt="" coords="2600,704,2787,789"/>
+<area shape="rect" href="ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="3217,837,3418,923"/>
+<area shape="rect" href="get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="1663,837,1889,923"/>
+<area shape="rect" href="get__pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="3087,711,3335,782"/>
+<area shape="rect" href="status__packet__handler_8cpp.html" title=" " alt="" coords="1914,845,2113,915"/>
+<area shape="rect" href="vote__packet__handler_8cpp.html" title=" " alt="" coords="2137,845,2324,915"/>
+<area shape="rect" href="votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="2348,845,2593,915"/>
+<area shape="rect" href="node__stats_8cpp.html" title=" " alt="" coords="2617,852,2777,908"/>
+<area shape="rect" href="pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="2973,845,3193,915"/>
+<area shape="rect" href="genesis_8hpp.html" title=" " alt="" coords="1951,191,2121,233"/>
+<area shape="rect" href="state__api_8cpp.html" title=" " alt="" coords="2280,184,2435,240"/>
+<area shape="rect" href="block__stats_8hpp.html" title=" " alt="" coords="2867,600,3069,656"/>
+<area shape="rect" href="proposed__blocks_8cpp.html" title=" " alt="" coords="3093,600,3256,656"/>
+<area shape="rect" href="storage_8cpp.html" title=" " alt="" coords="3280,607,3459,649"/>
+<area shape="rect" href="pbft__vote_8cpp.html" title=" " alt="" coords="3635,607,3783,649"/>
 </map>
 </div>
 </div>

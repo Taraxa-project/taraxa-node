@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['redelegation_4149',['Redelegation',['../hardfork_8hpp.html#struct_redelegation',1,'']]],
+  ['redelegation_4149',['Redelegation',['../namespacetaraxa.html#structtaraxa_1_1_redelegation',1,'taraxa']]],
   ['rewardsdistributionresult_4150',['RewardsDistributionResult',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result',1,'taraxa::state_api']]],
   ['rewardsstats_4151',['RewardsStats',['../namespace_3global_scope_4.html#class_rewards_stats',1,'']]],
   ['rlp_4152',['RLP',['../classdev_1_1_r_l_p.html',1,'dev']]],

@@ -8,6 +8,6 @@ var classtaraxa_1_1storage_1_1migration_1_1_base =
     [ "isApplied", "classtaraxa_1_1storage_1_1migration_1_1_base.html#ab031f9cbf5d7946d7042fb5b59d2bc11", null ],
     [ "migrate", "classtaraxa_1_1storage_1_1migration_1_1_base.html#a50799e51a915c5b6bdd1855c2850e4df", null ],
     [ "setApplied", "classtaraxa_1_1storage_1_1migration_1_1_base.html#aae990ecdaf741dc7b71edc84667eae3e", null ],
-    [ "batch_", "classtaraxa_1_1storage_1_1migration_1_1_base.html#af430c28d41286190b7a8fa42cecc70d2", null ],
+    [ "batch_", "classtaraxa_1_1storage_1_1migration_1_1_base.html#a98d3ef8dab00ee0a3cb0d4529c30f086", null ],
     [ "db_", "classtaraxa_1_1storage_1_1migration_1_1_base.html#a1cf74b9bbc4777ef02b4a04923128198", null ]
 ];

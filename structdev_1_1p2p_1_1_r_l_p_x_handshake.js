@@ -17,8 +17,8 @@ var structdev_1_1p2p_1_1_r_l_p_x_handshake =
       [ "ReadHello", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a708429ef7a5ed14e8ceee7ac8dfa3fcda7d204409dc5f68f93d09ecad596cff45", null ],
       [ "StartSession", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a708429ef7a5ed14e8ceee7ac8dfa3fcdaab5a71b716f3c42ca8077975d739c658", null ]
     ] ],
-    [ "RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ab7d7cf9497942c35b64a29112f24a17f", null ],
-    [ "RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a3893d2b12f8307aadb69b0744f778639", null ],
+    [ "RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a9f7b47969aa08e6656c67125a16dbb45", null ],
+    [ "RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a0409cdfa2a8f8213e5ad3169e065efa6", null ],
     [ "cancel", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ad87a1fa85e6b2a9a891ead173ebfaae9", null ],
     [ "connectionDirectionString", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a021c9db633bf5ada237c1b52f18ea2e7", null ],
     [ "error", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#adcbc9beafa0baca8cb2854ccb8311516", null ],

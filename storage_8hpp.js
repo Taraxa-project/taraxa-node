@@ -6,7 +6,9 @@ var storage_8hpp =
     [ "Columns", "classtaraxa_1_1_db_storage_1_1_columns.html", "classtaraxa_1_1_db_storage_1_1_columns" ],
     [ "COLUMN", "storage_8hpp.html#a2eaa50d8ab492e7c148571d65b81f7d9", null ],
     [ "COLUMN_W_COMP", "storage_8hpp.html#ac9945ca6fe197b285226f1698ce8a202", null ],
-    [ "DB", "storage_8hpp.html#a32216cff36a3565783afe8fa0099ae89", null ],
+    [ "Batch", "storage_8hpp.html#a0cd0083754f45af046225376c7cc813a", null ],
+    [ "OnEntry", "storage_8hpp.html#aa5b900007b052af5ec2f066acd73662c", null ],
+    [ "Slice", "storage_8hpp.html#aa54de5a6140b27c17434850ecdb84cd1", null ],
     [ "PbftMgrField", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161", [
       [ "Round", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161ab7f41fc1412ad2ee75e9b2635d3b9d5c", null ],
       [ "Step", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161a48c7c41b72e1d678923ce3571aa65b2d", null ]

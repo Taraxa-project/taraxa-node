@@ -1,13 +1,13 @@
 var hardfork_8cpp =
 [
-    [ "dec_json", "hardfork_8cpp.html#a7f5bc0b7b5eec75c54920eefa9816f71", null ],
-    [ "dec_json", "hardfork_8cpp.html#aa0a41c5ffaae749875f71651deb8f088", null ],
-    [ "dec_json", "hardfork_8cpp.html#aee3750fcf3856743f5e71f64f88ad959", null ],
-    [ "dec_json", "hardfork_8cpp.html#ae6551b937467c5972009ffa1ac192aec", null ],
-    [ "dec_json", "hardfork_8cpp.html#a3d203167ce341d6ad0ebba86baf013fc", null ],
-    [ "enc_json", "hardfork_8cpp.html#ae26fc5741c9165c093419908b665d18a", null ],
-    [ "enc_json", "hardfork_8cpp.html#a760ac54ed1c9b5d0551ce32e307f2978", null ],
-    [ "enc_json", "hardfork_8cpp.html#ab6a85b139db5ad20b93828cf63d51c7c", null ],
-    [ "enc_json", "hardfork_8cpp.html#abd62dbe54ecc518f4c7dc601eb4b7f7f", null ],
-    [ "enc_json", "hardfork_8cpp.html#a280d6fe653a1c7e6c87fd8f2162a2090", null ]
+    [ "dec_json", "hardfork_8cpp.html#a14157ba246d30ca958cb600e23b4620b", null ],
+    [ "dec_json", "hardfork_8cpp.html#a38c082406284e8f00e5cd7250a1fef7e", null ],
+    [ "dec_json", "hardfork_8cpp.html#a0f8a7499f7a4537c48b4523fae22c2d2", null ],
+    [ "dec_json", "hardfork_8cpp.html#a6eac5418c10fdef73281a7cf00bc23a5", null ],
+    [ "dec_json", "hardfork_8cpp.html#a1e5265c1850dd356b18a5ff39ceeac13", null ],
+    [ "enc_json", "hardfork_8cpp.html#a3af963721eeee04395d4098149a375aa", null ],
+    [ "enc_json", "hardfork_8cpp.html#a0c10319bd16b5dfdc2cc23cfecd6004c", null ],
+    [ "enc_json", "hardfork_8cpp.html#abd5dd8236f7b0d4f2c0fc43227caa5fa", null ],
+    [ "enc_json", "hardfork_8cpp.html#a27b546b68991f92f8697e2d241d8fa97", null ],
+    [ "enc_json", "hardfork_8cpp.html#a6e2d6cca1959ed7824b2f3b710d7844f", null ]
 ];

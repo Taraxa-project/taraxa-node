@@ -1,7 +1,6 @@
 var constants_8hpp =
 [
     [ "GLOBAL_CONST", "constants_8hpp.html#aa24a93982a2f6390a23ba54c11027e5f", null ],
-    [ "GLOBAL_CONST", "constants_8hpp.html#a60aeda22294e3e8700f448b7ff73b720", null ],
     [ "GLOBAL_CONST", "constants_8hpp.html#a0d9f9e3d1c27b680e799c858e31e0d45", null ],
     [ "GLOBAL_CONST", "constants_8hpp.html#adfe9ef8a9e899342e53c4753eae451f6", null ],
     [ "GLOBAL_CONST", "constants_8hpp.html#a198f44157b005998e37b60245f01e0f6", null ],

@@ -1,7 +1,8 @@
 <map id="taraxa::rewards::Stats" name="taraxa::rewards::Stats">
-<area shape="rect" id="node1" title="class that is managing rewards stats processing and hardforks(intervals changes) So intermediate bloc..." alt="" coords="163,184,328,211"/>
-<area shape="rect" id="node2" href="$struct_hardforks_config.html" title=" " alt="" coords="182,95,309,121"/>
-<area shape="rect" id="node3" href="$hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="5,5,144,32"/>
-<area shape="rect" id="node4" href="$struct_ficus_hardfork_config.html" title=" " alt="" coords="169,5,322,32"/>
-<area shape="rect" id="node5" href="$hardfork_8hpp.html#struct_aspen_hardfork" title=" " alt="" coords="346,5,465,32"/>
+<area shape="rect" id="node1" title="class that is managing rewards stats processing and hardforks(intervals changes) So intermediate bloc..." alt="" coords="218,273,383,300"/>
+<area shape="rect" id="node2" href="$structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="212,184,389,211"/>
+<area shape="rect" id="node3" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="5,95,175,121"/>
+<area shape="rect" id="node4" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="199,95,402,121"/>
+<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="221,5,381,32"/>
+<area shape="rect" id="node6" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="426,95,615,121"/>
 </map>

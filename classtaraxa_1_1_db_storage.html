@@ -83,7 +83,6 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1_db_storage.html',''); 
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
@@ -112,15 +111,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage_1_1_columns.html">Columns</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
-Public Types</h2></td></tr>
-<tr class="memitem:a19955d5978b5029bda2397466bd296e0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> = rocksdb::Slice</td></tr>
-<tr class="separator:a19955d5978b5029bda2397466bd296e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3ed22973ae9def566967947aed72c63"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> = rocksdb::WriteBatch</td></tr>
-<tr class="separator:ac3ed22973ae9def566967947aed72c63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b03875569a66efcada69ddd866989a3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1b03875569a66efcada69ddd866989a3">OnEntry</a> = std::function&lt; void(<a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> const  &amp;, <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> const  &amp;)&gt;</td></tr>
-<tr class="separator:a1b03875569a66efcada69ddd866989a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac0b98de59537f7274bc9d1c57576e78b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac0b98de59537f7274bc9d1c57576e78b">handle</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col) const</td></tr>
@@ -143,9 +133,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9b3cbfc1c55197bafc743ffc9f886ab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dc4827d96659dc2ea04610a6e31216c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3dc4827d96659dc2ea04610a6e31216c">stateDbStoragePath</a> () const</td></tr>
 <tr class="separator:a3dc4827d96659dc2ea04610a6e31216c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a18273694ac5bef0c063a72ca19408c00"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a18273694ac5bef0c063a72ca19408c00">commitWriteBatch</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch, rocksdb::WriteOptions const &amp;opts)</td></tr>
+<tr class="memitem:a18273694ac5bef0c063a72ca19408c00"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a18273694ac5bef0c063a72ca19408c00">commitWriteBatch</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch, rocksdb::WriteOptions const &amp;opts)</td></tr>
 <tr class="separator:a18273694ac5bef0c063a72ca19408c00"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a88a606470708384489145d70b5e1c11b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a88a606470708384489145d70b5e1c11b">commitWriteBatch</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a88a606470708384489145d70b5e1c11b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a88a606470708384489145d70b5e1c11b">commitWriteBatch</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a88a606470708384489145d70b5e1c11b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a236300c02e7ccfd1946b2788efa005aa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a236300c02e7ccfd1946b2788efa005aa">rebuildColumns</a> (const rocksdb::Options &amp;options)</td></tr>
 <tr class="separator:a236300c02e7ccfd1946b2788efa005aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -185,7 +175,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a996ba68dcc57852ac1e84bb712da079f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b5913c661bb192e45c7a6b659886aed"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3b5913c661bb192e45c7a6b659886aed">getGenesisHash</a> ()</td></tr>
 <tr class="separator:a3b5913c661bb192e45c7a6b659886aed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55029b172261c0dc91da128fef909e06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a55029b172261c0dc91da128fef909e06">savePeriodData</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;period_data, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a55029b172261c0dc91da128fef909e06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a55029b172261c0dc91da128fef909e06">savePeriodData</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;period_data, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a55029b172261c0dc91da128fef909e06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b6957e4c2d6e706975cc4fa1a7a9912"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6b6957e4c2d6e706975cc4fa1a7a9912">clearPeriodDataHistory</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, uint64_t dag_level_to_keep)</td></tr>
 <tr class="separator:a6b6957e4c2d6e706975cc4fa1a7a9912"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -215,7 +205,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4b58aeee0778d9472f447e248113b65e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1cffc469a9745f34790bb2c344df26d"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db">pillar_chain::CurrentPillarBlockDataDb</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac1cffc469a9745f34790bb2c344df26d">getCurrentPillarBlockData</a> () const</td></tr>
 <tr class="separator:ac1cffc469a9745f34790bb2c344df26d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78da78cc5c8beadb10b5884f848403ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a78da78cc5c8beadb10b5884f848403ee">saveDagBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> *write_batch_p=nullptr)</td></tr>
+<tr class="memitem:a78da78cc5c8beadb10b5884f848403ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a78da78cc5c8beadb10b5884f848403ee">saveDagBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> *write_batch_p=nullptr)</td></tr>
 <tr class="separator:a78da78cc5c8beadb10b5884f848403ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f71fda142f1ecfb890e7a4d044f73a4"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0f71fda142f1ecfb890e7a4d044f73a4">getDagBlock</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:a0f71fda142f1ecfb890e7a4d044f73a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -231,12 +221,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7ab3d35941a4d9bc7ad20554bf404a43"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafbe68c93f3501f659beafdeae61b746"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>, std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aafbe68c93f3501f659beafdeae61b746">getNonfinalizedDagBlocks</a> ()</td></tr>
 <tr class="separator:aafbe68c93f3501f659beafdeae61b746"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae36e49e8e5977e63ca4ee2bd509637b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae36e49e8e5977e63ca4ee2bd509637b5">removeDagBlockBatch</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
+<tr class="memitem:ae36e49e8e5977e63ca4ee2bd509637b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae36e49e8e5977e63ca4ee2bd509637b5">removeDagBlockBatch</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:ae36e49e8e5977e63ca4ee2bd509637b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52ac6fd748255b5b9ee3bbc65df5c6a4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a52ac6fd748255b5b9ee3bbc65df5c6a4">removeDagBlock</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:a52ac6fd748255b5b9ee3bbc65df5c6a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f3c7fd6e259e84b867ac81ca4d81035"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1f3c7fd6e259e84b867ac81ca4d81035">saveSortitionParamsChange</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> &amp;params, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;batch)</td></tr>
-<tr class="separator:a1f3c7fd6e259e84b867ac81ca4d81035"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad84cf5ab9b72a83dc1d6f40fcc306f53"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ad84cf5ab9b72a83dc1d6f40fcc306f53">saveSortitionParamsChange</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> &amp;params, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;batch)</td></tr>
+<tr class="separator:ad84cf5ab9b72a83dc1d6f40fcc306f53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74ceb5b21b5007ad1ec3d68c57a6cb52"><td class="memItemLeft" align="right" valign="top">std::deque&lt; <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a74ceb5b21b5007ad1ec3d68c57a6cb52">getLastSortitionParams</a> (size_t count)</td></tr>
 <tr class="separator:a74ceb5b21b5007ad1ec3d68c57a6cb52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af02b3d7be68505a2ffc5527df0a02a85"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#af02b3d7be68505a2ffc5527df0a02a85">getParamsChangeForPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
@@ -253,11 +243,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a5370e33d423e4cf63443a862a04c8867"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7342c6413ce610945b7d68fedbf6f2eb"><td class="memItemLeft" align="right" valign="top">std::vector&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7342c6413ce610945b7d68fedbf6f2eb">transactionsFinalized</a> (std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; const &amp;trx_hashes)</td></tr>
 <tr class="separator:a7342c6413ce610945b7d68fedbf6f2eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91cb10fa3a8499a93c36a435efe09dae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a91cb10fa3a8499a93c36a435efe09dae">addTransactionToBatch</a> (<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> const &amp;trx, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a91cb10fa3a8499a93c36a435efe09dae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a91cb10fa3a8499a93c36a435efe09dae">addTransactionToBatch</a> (<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> const &amp;trx, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a91cb10fa3a8499a93c36a435efe09dae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8176573026b914f06c298c0dc138140"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae8176573026b914f06c298c0dc138140">removeTransactionToBatch</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;trx, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:ae8176573026b914f06c298c0dc138140"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae8176573026b914f06c298c0dc138140">removeTransactionToBatch</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;trx, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:ae8176573026b914f06c298c0dc138140"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24ad3a7be3b243419932bda90da6ecea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a24ad3a7be3b243419932bda90da6ecea">addTransactionLocationToBatch</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;trx, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, uint32_t position, bool is_system=false)</td></tr>
+<tr class="memitem:a24ad3a7be3b243419932bda90da6ecea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a24ad3a7be3b243419932bda90da6ecea">addTransactionLocationToBatch</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;trx, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, uint32_t position, bool is_system=false)</td></tr>
 <tr class="separator:a24ad3a7be3b243419932bda90da6ecea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae4ea4a35fc975529e8df688faa4a38a"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location">final_chain::TransactionLocation</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aae4ea4a35fc975529e8df688faa4a38a">getTransactionLocation</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;hash) const</td></tr>
 <tr class="separator:aae4ea4a35fc975529e8df688faa4a38a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -268,11 +258,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a44b3af26c8e44701d0a48f358f245576"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a44b3af26c8e44701d0a48f358f245576">getFinalizedTransactions</a> (std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; const &amp;trx_hashes) const</td></tr>
 <tr class="memdesc:a44b3af26c8e44701d0a48f358f245576"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets finalized transactions from provided hashes.  <a href="classtaraxa_1_1_db_storage.html#a44b3af26c8e44701d0a48f358f245576">More...</a><br /></td></tr>
 <tr class="separator:a44b3af26c8e44701d0a48f358f245576"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a858e545948f39f504ba18a23ed8999fc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a858e545948f39f504ba18a23ed8999fc">addSystemTransactionToBatch</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a1b37b05665a051ae2ceda7a2607c8e36">SharedTransaction</a> trx)</td></tr>
+<tr class="memitem:a858e545948f39f504ba18a23ed8999fc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a858e545948f39f504ba18a23ed8999fc">addSystemTransactionToBatch</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a1b37b05665a051ae2ceda7a2607c8e36">SharedTransaction</a> trx)</td></tr>
 <tr class="separator:a858e545948f39f504ba18a23ed8999fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae475f3b13854c213868e54cbf663130d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae475f3b13854c213868e54cbf663130d">getSystemTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
 <tr class="separator:ae475f3b13854c213868e54cbf663130d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39eddb83eb7b21bfe95d28d9ad3a0ca4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a39eddb83eb7b21bfe95d28d9ad3a0ca4">addPeriodSystemTransactions</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> trxs, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
+<tr class="memitem:a39eddb83eb7b21bfe95d28d9ad3a0ca4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a39eddb83eb7b21bfe95d28d9ad3a0ca4">addPeriodSystemTransactions</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> trxs, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:a39eddb83eb7b21bfe95d28d9ad3a0ca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf685fbe64632d0dcd5927c4a62d0b11"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#adf685fbe64632d0dcd5927c4a62d0b11">getPeriodSystemTransactionsHashes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
 <tr class="separator:adf685fbe64632d0dcd5927c4a62d0b11"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -282,19 +272,19 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1565ab76a03d761a73d53d714e03bb7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c8689b3445f7ff99492f4cc010ddec6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6c8689b3445f7ff99492f4cc010ddec6">savePbftMgrField</a> (<a class="el" href="namespacetaraxa.html#aee6857336aadf37a8ece8a666a2ca161">PbftMgrField</a> field, uint32_t value)</td></tr>
 <tr class="separator:a6c8689b3445f7ff99492f4cc010ddec6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb846ceaa52ed2cd9f151cc2abd3fe8e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#adb846ceaa52ed2cd9f151cc2abd3fe8e">addPbftMgrFieldToBatch</a> (<a class="el" href="namespacetaraxa.html#aee6857336aadf37a8ece8a666a2ca161">PbftMgrField</a> field, uint32_t value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:adb846ceaa52ed2cd9f151cc2abd3fe8e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#adb846ceaa52ed2cd9f151cc2abd3fe8e">addPbftMgrFieldToBatch</a> (<a class="el" href="namespacetaraxa.html#aee6857336aadf37a8ece8a666a2ca161">PbftMgrField</a> field, uint32_t value, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:adb846ceaa52ed2cd9f151cc2abd3fe8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68ce2eeb6453524622f4673bc4db166a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a68ce2eeb6453524622f4673bc4db166a">getPbftMgrStatus</a> (<a class="el" href="namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8e">PbftMgrStatus</a> field)</td></tr>
 <tr class="separator:a68ce2eeb6453524622f4673bc4db166a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b89bb6349af34b6f8a66442c45861b8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7b89bb6349af34b6f8a66442c45861b8">savePbftMgrStatus</a> (<a class="el" href="namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8e">PbftMgrStatus</a> field, bool const &amp;value)</td></tr>
 <tr class="separator:a7b89bb6349af34b6f8a66442c45861b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21df216baf6c3ac2f01c11cb93b0973c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a21df216baf6c3ac2f01c11cb93b0973c">addPbftMgrStatusToBatch</a> (<a class="el" href="namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8e">PbftMgrStatus</a> field, bool const &amp;value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a21df216baf6c3ac2f01c11cb93b0973c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a21df216baf6c3ac2f01c11cb93b0973c">addPbftMgrStatusToBatch</a> (<a class="el" href="namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8e">PbftMgrStatus</a> field, bool const &amp;value, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a21df216baf6c3ac2f01c11cb93b0973c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1baabb14538ea94b01ac49586f00410b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1baabb14538ea94b01ac49586f00410b">saveCertVotedBlockInRound</a> (<a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;block)</td></tr>
 <tr class="separator:a1baabb14538ea94b01ac49586f00410b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71661181663d424c54f22674b2467e20"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a>, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a71661181663d424c54f22674b2467e20">getCertVotedBlockInRound</a> () const</td></tr>
 <tr class="separator:a71661181663d424c54f22674b2467e20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7af1875f20241a41477937f1f2b2872e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7af1875f20241a41477937f1f2b2872e">removeCertVotedBlockInRound</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a7af1875f20241a41477937f1f2b2872e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7af1875f20241a41477937f1f2b2872e">removeCertVotedBlockInRound</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a7af1875f20241a41477937f1f2b2872e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b42f08e7be82a334247e92f782c00ff"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7b42f08e7be82a334247e92f782c00ff">getPbftBlock</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:a7b42f08e7be82a334247e92f782c00ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -302,7 +292,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae173b51945d0eb5e71d9d8040de88553"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a173c7e7fcb9a734581ec840af5768aaf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a173c7e7fcb9a734581ec840af5768aaf">saveProposedPbftBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;block)</td></tr>
 <tr class="separator:a173c7e7fcb9a734581ec840af5768aaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17e5a0c8f762f8fc9d1220c67d58fa03"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a17e5a0c8f762f8fc9d1220c67d58fa03">removeProposedPbftBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a17e5a0c8f762f8fc9d1220c67d58fa03"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a17e5a0c8f762f8fc9d1220c67d58fa03">removeProposedPbftBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a17e5a0c8f762f8fc9d1220c67d58fa03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a276a15a035a3ce0d655f332dff2af491"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a276a15a035a3ce0d655f332dff2af491">getProposedPbftBlocks</a> ()</td></tr>
 <tr class="separator:a276a15a035a3ce0d655f332dff2af491"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -310,39 +300,39 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7b535601fbd1922f61a5a85ac19531c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af69f3e7594f36c9d4ea2884bec31fa0f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#af69f3e7594f36c9d4ea2884bec31fa0f">savePbftHead</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash, string const &amp;pbft_chain_head_str)</td></tr>
 <tr class="separator:af69f3e7594f36c9d4ea2884bec31fa0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad519340760d0cefb10174c10e4851071"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ad519340760d0cefb10174c10e4851071">addPbftHeadToBatch</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;head_hash, std::string const &amp;head_str, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:ad519340760d0cefb10174c10e4851071"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ad519340760d0cefb10174c10e4851071">addPbftHeadToBatch</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;head_hash, std::string const &amp;head_str, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:ad519340760d0cefb10174c10e4851071"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abcbe399ba3465cdf96c4b612732c81b2"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abcbe399ba3465cdf96c4b612732c81b2">getStatusField</a> (<a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901">StatusDbField</a> const &amp;field)</td></tr>
 <tr class="separator:abcbe399ba3465cdf96c4b612732c81b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ae4857feead345b0f165e6b97653999"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a4ae4857feead345b0f165e6b97653999">saveStatusField</a> (<a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901">StatusDbField</a> const &amp;field, uint64_t value)</td></tr>
 <tr class="separator:a4ae4857feead345b0f165e6b97653999"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0093c29ef1e270e9200a112453790b1c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0093c29ef1e270e9200a112453790b1c">addStatusFieldToBatch</a> (<a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901">StatusDbField</a> const &amp;field, uint64_t value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a0093c29ef1e270e9200a112453790b1c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0093c29ef1e270e9200a112453790b1c">addStatusFieldToBatch</a> (<a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901">StatusDbField</a> const &amp;field, uint64_t value, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a0093c29ef1e270e9200a112453790b1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41692b26da1e4b5b5a7116a7560a93f2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a41692b26da1e4b5b5a7116a7560a93f2">saveOwnVerifiedVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;vote)</td></tr>
 <tr class="separator:a41692b26da1e4b5b5a7116a7560a93f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa834c59e6d84ecaeee9d4292cb3d206c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aa834c59e6d84ecaeee9d4292cb3d206c">getOwnVerifiedVotes</a> ()</td></tr>
 <tr class="separator:aa834c59e6d84ecaeee9d4292cb3d206c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8eed50fe09e03bacc937c50af77e582b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8eed50fe09e03bacc937c50af77e582b">clearOwnVerifiedVotes</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;&gt; &amp;own_verified_votes)</td></tr>
+<tr class="memitem:a8eed50fe09e03bacc937c50af77e582b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8eed50fe09e03bacc937c50af77e582b">clearOwnVerifiedVotes</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;&gt; &amp;own_verified_votes)</td></tr>
 <tr class="separator:a8eed50fe09e03bacc937c50af77e582b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa6bf26b6a062acb11c60182a26d1b458"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aa6bf26b6a062acb11c60182a26d1b458">replaceTwoTPlusOneVotes</a> (<a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> type, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;&gt; &amp;votes)</td></tr>
 <tr class="separator:aa6bf26b6a062acb11c60182a26d1b458"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab6138d3abb10fbd8d195d5e951c06469"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab6138d3abb10fbd8d195d5e951c06469">replaceTwoTPlusOneVotesToBatch</a> (<a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> type, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;&gt; &amp;votes, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:ab6138d3abb10fbd8d195d5e951c06469"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab6138d3abb10fbd8d195d5e951c06469">replaceTwoTPlusOneVotesToBatch</a> (<a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> type, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;&gt; &amp;votes, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:ab6138d3abb10fbd8d195d5e951c06469"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a142af5c0f2438f022a151bf50489b03b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a142af5c0f2438f022a151bf50489b03b">getAllTwoTPlusOneVotes</a> ()</td></tr>
 <tr class="separator:a142af5c0f2438f022a151bf50489b03b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2271d68a677903a0d080b9184fa9f062"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a2271d68a677903a0d080b9184fa9f062">removeExtraRewardVotes</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;votes, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a2271d68a677903a0d080b9184fa9f062"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a2271d68a677903a0d080b9184fa9f062">removeExtraRewardVotes</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;votes, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a2271d68a677903a0d080b9184fa9f062"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a511541be548a80ce82d80f396cda345f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a511541be548a80ce82d80f396cda345f">saveExtraRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;vote)</td></tr>
 <tr class="separator:a511541be548a80ce82d80f396cda345f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad09b78af7abde1926cc4b4d8f214a5b2"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ad09b78af7abde1926cc4b4d8f214a5b2">getRewardVotes</a> ()</td></tr>
 <tr class="separator:ad09b78af7abde1926cc4b4d8f214a5b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a850f427148761a7aa1227014db6b3653"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a850f427148761a7aa1227014db6b3653">addPbftBlockPeriodToBatch</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;pbft_block_hash, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a850f427148761a7aa1227014db6b3653"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a850f427148761a7aa1227014db6b3653">addPbftBlockPeriodToBatch</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;pbft_block_hash, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a850f427148761a7aa1227014db6b3653"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab21a00dbe414aac9337b36c115729a27"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab21a00dbe414aac9337b36c115729a27">getPeriodFromPbftHash</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;pbft_block_hash)</td></tr>
 <tr class="separator:ab21a00dbe414aac9337b36c115729a27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78632c03d082cac70a125d7eb18aef46"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, uint32_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a78632c03d082cac70a125d7eb18aef46">getDagBlockPeriod</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:a78632c03d082cac70a125d7eb18aef46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00c4fc691ed546f7c74cbed2a7062413"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a00c4fc691ed546f7c74cbed2a7062413">addDagBlockPeriodToBatch</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, uint32_t position, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a00c4fc691ed546f7c74cbed2a7062413"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a00c4fc691ed546f7c74cbed2a7062413">addDagBlockPeriodToBatch</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, uint32_t position, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a00c4fc691ed546f7c74cbed2a7062413"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3df4f2e6e754ff8c924c26b0abfed379"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3df4f2e6e754ff8c924c26b0abfed379">getDagBlocksCount</a> () const</td></tr>
 <tr class="separator:a3df4f2e6e754ff8c924c26b0abfed379"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -358,13 +348,13 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a40229bddbced5243a1cdf57bbccc4bc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c2a8b3742a98a95db170e4d1cf49001"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9c2a8b3742a98a95db170e4d1cf49001">getFinalizedDagBlockByPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:a9c2a8b3742a98a95db170e4d1cf49001"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aefef0b130c28177416ff54cead2b65e2"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aefef0b130c28177416ff54cead2b65e2">getLastPbftblockHashAndFinalizedDagBlockByPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
-<tr class="separator:aefef0b130c28177416ff54cead2b65e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53b98907d8dab63d076f8de0110338b8"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a53b98907d8dab63d076f8de0110338b8">getLastPbftBlockHashAndFinalizedDagBlockByPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
+<tr class="separator:a53b98907d8dab63d076f8de0110338b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14db1e88a6b4a4dd71f6a2c15d8e46c7"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a14db1e88a6b4a4dd71f6a2c15d8e46c7">getProposalPeriodForDagLevel</a> (uint64_t level)</td></tr>
 <tr class="separator:a14db1e88a6b4a4dd71f6a2c15d8e46c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab47b8c737823242ffe4a374cac60b690"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab47b8c737823242ffe4a374cac60b690">saveProposalPeriodDagLevelsMap</a> (uint64_t level, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:ab47b8c737823242ffe4a374cac60b690"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1888e12ce4a4e49c0bd6eb1af0ffe743"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1888e12ce4a4e49c0bd6eb1af0ffe743">addProposalPeriodDagLevelsMapToBatch</a> (uint64_t level, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="memitem:a1888e12ce4a4e49c0bd6eb1af0ffe743"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1888e12ce4a4e49c0bd6eb1af0ffe743">addProposalPeriodDagLevelsMapToBatch</a> (uint64_t level, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a1888e12ce4a4e49c0bd6eb1af0ffe743"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc2340acad061b1f9698e54c2018e0ea"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abc2340acad061b1f9698e54c2018e0ea">hasMinorVersionChanged</a> ()</td></tr>
 <tr class="separator:abc2340acad061b1f9698e54c2018e0ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -388,44 +378,44 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a52bc018a68867f795fdec7542d227fc7"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a52bc018a68867f795fdec7542d227fc7">insert</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, K const &amp;k, V const &amp;v)</td></tr>
 <tr class="separator:a52bc018a68867f795fdec7542d227fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3db124c57eac1ab701ef8c172204a30d"><td class="memTemplParams" colspan="2">template&lt;typename K , typename V &gt; </td></tr>
-<tr class="memitem:a3db124c57eac1ab701ef8c172204a30d"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3db124c57eac1ab701ef8c172204a30d">insert</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;batch, <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, K const &amp;k, V const &amp;v)</td></tr>
+<tr class="memitem:a3db124c57eac1ab701ef8c172204a30d"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3db124c57eac1ab701ef8c172204a30d">insert</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;batch, <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, K const &amp;k, V const &amp;v)</td></tr>
 <tr class="separator:a3db124c57eac1ab701ef8c172204a30d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7983ff911837add05c36203d34226057"><td class="memTemplParams" colspan="2">template&lt;typename K &gt; </td></tr>
 <tr class="memitem:a7983ff911837add05c36203d34226057"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7983ff911837add05c36203d34226057">remove</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, K const &amp;k)</td></tr>
 <tr class="separator:a7983ff911837add05c36203d34226057"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ebbb9d49740a23fa2dd0af03e3a9f78"><td class="memTemplParams" colspan="2">template&lt;typename K &gt; </td></tr>
-<tr class="memitem:a0ebbb9d49740a23fa2dd0af03e3a9f78"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0ebbb9d49740a23fa2dd0af03e3a9f78">remove</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;batch, <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, K const &amp;k)</td></tr>
+<tr class="memitem:a0ebbb9d49740a23fa2dd0af03e3a9f78"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0ebbb9d49740a23fa2dd0af03e3a9f78">remove</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;batch, <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, K const &amp;k)</td></tr>
 <tr class="separator:a0ebbb9d49740a23fa2dd0af03e3a9f78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a79215a30976f4f99dab68ce664551945"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a79215a30976f4f99dab68ce664551945">forEach</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, <a class="el" href="classtaraxa_1_1_db_storage.html#a1b03875569a66efcada69ddd866989a3">OnEntry</a> const &amp;f)</td></tr>
+<tr class="memitem:a79215a30976f4f99dab68ce664551945"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a79215a30976f4f99dab68ce664551945">forEach</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, <a class="el" href="namespacetaraxa.html#aa5b900007b052af5ec2f066acd73662c">OnEntry</a> const &amp;f)</td></tr>
 <tr class="separator:a79215a30976f4f99dab68ce664551945"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:aea08b8d408a7e3f26f1fb011fe5ccd27"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aea08b8d408a7e3f26f1fb011fe5ccd27">createWriteBatch</a> ()</td></tr>
-<tr class="separator:aea08b8d408a7e3f26f1fb011fe5ccd27"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b2b4952e1b11b991b8c06dbff8bb33e"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8b2b4952e1b11b991b8c06dbff8bb33e">createWriteBatch</a> ()</td></tr>
+<tr class="separator:a8b2b4952e1b11b991b8c06dbff8bb33e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a665e81c5b3353666c4df63adb0b34df1"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a665e81c5b3353666c4df63adb0b34df1">asBytes</a> (string const &amp;b)</td></tr>
 <tr class="separator:a665e81c5b3353666c4df63adb0b34df1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72104ddfc8298ca37a5a956eb8f82a0f"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
-<tr class="memitem:a72104ddfc8298ca37a5a956eb8f82a0f"><td class="memTemplItemLeft" align="right" valign="top">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a72104ddfc8298ca37a5a956eb8f82a0f">make_slice</a> (T const *begin, size_t size)</td></tr>
+<tr class="memitem:a72104ddfc8298ca37a5a956eb8f82a0f"><td class="memTemplItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a72104ddfc8298ca37a5a956eb8f82a0f">make_slice</a> (T const *begin, size_t size)</td></tr>
 <tr class="separator:a72104ddfc8298ca37a5a956eb8f82a0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:accff58a635118560cf22ae0a85e4460a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#accff58a635118560cf22ae0a85e4460a">toSlice</a> (<a class="el" href="namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4">dev::bytesConstRef</a> const &amp;b)</td></tr>
+<tr class="memitem:accff58a635118560cf22ae0a85e4460a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#accff58a635118560cf22ae0a85e4460a">toSlice</a> (<a class="el" href="namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4">dev::bytesConstRef</a> const &amp;b)</td></tr>
 <tr class="separator:accff58a635118560cf22ae0a85e4460a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbd426142bb055b87292741ab4abe96f"><td class="memTemplParams" colspan="2">template&lt;unsigned N&gt; </td></tr>
-<tr class="memitem:afbd426142bb055b87292741ab4abe96f"><td class="memTemplItemLeft" align="right" valign="top">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afbd426142bb055b87292741ab4abe96f">toSlice</a> (<a class="el" href="classdev_1_1_fixed_hash.html">dev::FixedHash</a>&lt; N &gt; const &amp;h)</td></tr>
+<tr class="memitem:afbd426142bb055b87292741ab4abe96f"><td class="memTemplItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afbd426142bb055b87292741ab4abe96f">toSlice</a> (<a class="el" href="classdev_1_1_fixed_hash.html">dev::FixedHash</a>&lt; N &gt; const &amp;h)</td></tr>
 <tr class="separator:afbd426142bb055b87292741ab4abe96f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aedeb329641122c2397ea59163e42899d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aedeb329641122c2397ea59163e42899d">toSlice</a> (<a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> const &amp;b)</td></tr>
+<tr class="memitem:aedeb329641122c2397ea59163e42899d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aedeb329641122c2397ea59163e42899d">toSlice</a> (<a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> const &amp;b)</td></tr>
 <tr class="separator:aedeb329641122c2397ea59163e42899d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a76c9dd6b0bd249bed6b9d43e603f87d2"><td class="memTemplParams" colspan="2">template&lt;class N &gt; </td></tr>
-<tr class="memitem:a76c9dd6b0bd249bed6b9d43e603f87d2"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a76c9dd6b0bd249bed6b9d43e603f87d2">toSlice</a> (N const &amp;n) -&gt; std::enable_if_t&lt; std::is_integral_v&lt; N &gt;||std::is_enum_v&lt; N &gt;, <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> &gt;</td></tr>
+<tr class="memitem:a76c9dd6b0bd249bed6b9d43e603f87d2"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a76c9dd6b0bd249bed6b9d43e603f87d2">toSlice</a> (N const &amp;n) -&gt; std::enable_if_t&lt; std::is_integral_v&lt; N &gt;||std::is_enum_v&lt; N &gt;, <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> &gt;</td></tr>
 <tr class="separator:a76c9dd6b0bd249bed6b9d43e603f87d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a751f96aed835680369aa5ee4d7955250"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a751f96aed835680369aa5ee4d7955250">toSlice</a> (string const &amp;str)</td></tr>
+<tr class="memitem:a751f96aed835680369aa5ee4d7955250"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a751f96aed835680369aa5ee4d7955250">toSlice</a> (string const &amp;str)</td></tr>
 <tr class="separator:a751f96aed835680369aa5ee4d7955250"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abde6570e222c007c5c15a532d26035a7"><td class="memItemLeft" align="right" valign="top">static auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abde6570e222c007c5c15a532d26035a7">toSlice</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> const &amp;s)</td></tr>
+<tr class="memitem:abde6570e222c007c5c15a532d26035a7"><td class="memItemLeft" align="right" valign="top">static auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abde6570e222c007c5c15a532d26035a7">toSlice</a> (<a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> const &amp;s)</td></tr>
 <tr class="separator:abde6570e222c007c5c15a532d26035a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d46bd5104681a4a92a96870f275f8fa"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a0d46bd5104681a4a92a96870f275f8fa"><td class="memTemplItemLeft" align="right" valign="top">static auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0d46bd5104681a4a92a96870f275f8fa">toSlices</a> (std::vector&lt; T &gt; const &amp;keys)</td></tr>
 <tr class="separator:a0d46bd5104681a4a92a96870f275f8fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a029990e648b1a374b6a01ad1dfb1ea16"><td class="memItemLeft" align="right" valign="top">static auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a029990e648b1a374b6a01ad1dfb1ea16">toSlices</a> (std::vector&lt; <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> &gt; const &amp;ss)</td></tr>
+<tr class="memitem:a029990e648b1a374b6a01ad1dfb1ea16"><td class="memItemLeft" align="right" valign="top">static auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a029990e648b1a374b6a01ad1dfb1ea16">toSlices</a> (std::vector&lt; <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> &gt; const &amp;ss)</td></tr>
 <tr class="separator:a029990e648b1a374b6a01ad1dfb1ea16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88f561f5cd166f5ca10f466fdccc8e31"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a88f561f5cd166f5ca10f466fdccc8e31">checkStatus</a> (rocksdb::Status const &amp;status)</td></tr>
 <tr class="separator:a88f561f5cd166f5ca10f466fdccc8e31"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -471,49 +461,6 @@ Private Attributes</h2></td></tr>
 <tr class="memitem:a436aff92256ca1bb93c76443efaa7c10"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a436aff92256ca1bb93c76443efaa7c10">minor_version_changed_</a> = false</td></tr>
 <tr class="separator:a436aff92256ca1bb93c76443efaa7c10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="ac3ed22973ae9def566967947aed72c63"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3ed22973ae9def566967947aed72c63">&#9670;&nbsp;</a></span>Batch</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">taraxa::DbStorage::Batch</a> =  rocksdb::WriteBatch</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a1b03875569a66efcada69ddd866989a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1b03875569a66efcada69ddd866989a3">&#9670;&nbsp;</a></span>OnEntry</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classtaraxa_1_1_db_storage.html#a1b03875569a66efcada69ddd866989a3">taraxa::DbStorage::OnEntry</a> =  std::function&lt;void(<a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> const&amp;, <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> const&amp;)&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a19955d5978b5029bda2397466bd296e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19955d5978b5029bda2397466bd296e0">&#9670;&nbsp;</a></span>Slice</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">taraxa::DbStorage::Slice</a> =  rocksdb::Slice</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aa41cccbaab43c81d7297013102e8f83c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa41cccbaab43c81d7297013102e8f83c">&#9670;&nbsp;</a></span>DbStorage() <span class="overload">[1/3]</span></h2>
@@ -678,7 +625,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -712,7 +659,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -746,7 +693,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -780,7 +727,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -814,7 +761,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -836,7 +783,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::DbStorage::addPeriodSystemTransactions </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>, </td>
         </tr>
         <tr>
@@ -882,7 +829,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -916,7 +863,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -938,7 +885,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::DbStorage::addSystemTransactionToBatch </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>, </td>
         </tr>
         <tr>
@@ -966,7 +913,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::DbStorage::addTransactionLocationToBatch </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>, </td>
         </tr>
         <tr>
@@ -1018,7 +965,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -1092,7 +1039,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::DbStorage::clearOwnVerifiedVotes </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>, </td>
         </tr>
         <tr>
@@ -1151,7 +1098,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::DbStorage::commitWriteBatch </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1174,7 +1121,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::DbStorage::commitWriteBatch </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>, </td>
         </tr>
         <tr>
@@ -1271,8 +1218,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aea08b8d408a7e3f26f1fb011fe5ccd27"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea08b8d408a7e3f26f1fb011fe5ccd27">&#9670;&nbsp;</a></span>createWriteBatch()</h2>
+<a id="a8b2b4952e1b11b991b8c06dbff8bb33e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b2b4952e1b11b991b8c06dbff8bb33e">&#9670;&nbsp;</a></span>createWriteBatch()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1281,7 +1228,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> taraxa::DbStorage::createWriteBatch </td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> taraxa::DbStorage::createWriteBatch </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -1480,7 +1427,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#a1b03875569a66efcada69ddd866989a3">OnEntry</a> const &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#aa5b900007b052af5ec2f066acd73662c">OnEntry</a> const &amp;&#160;</td>
           <td class="paramname"><em>f</em>&#160;</td>
         </tr>
         <tr>
@@ -1843,14 +1790,14 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="aefef0b130c28177416ff54cead2b65e2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aefef0b130c28177416ff54cead2b65e2">&#9670;&nbsp;</a></span>getLastPbftblockHashAndFinalizedDagBlockByPeriod()</h2>
+<a id="a53b98907d8dab63d076f8de0110338b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53b98907d8dab63d076f8de0110338b8">&#9670;&nbsp;</a></span>getLastPbftBlockHashAndFinalizedDagBlockByPeriod()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; &gt; taraxa::DbStorage::getLastPbftblockHashAndFinalizedDagBlockByPeriod </td>
+          <td class="memname">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; &gt; taraxa::DbStorage::getLastPbftBlockHashAndFinalizedDagBlockByPeriod </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em></td><td>)</td>
@@ -2541,7 +2488,7 @@ template&lt;typename K , typename V &gt; </div>
         <tr>
           <td class="memname">void taraxa::DbStorage::insert </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>batch</em>, </td>
         </tr>
         <tr>
@@ -2770,7 +2717,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> taraxa::DbStorage::make_slice </td>
+          <td class="memname">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> taraxa::DbStorage::make_slice </td>
           <td>(</td>
           <td class="paramtype">T const *&#160;</td>
           <td class="paramname"><em>begin</em>, </td>
@@ -2941,7 +2888,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="memname">void taraxa::DbStorage::remove </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>batch</em>, </td>
         </tr>
         <tr>
@@ -3018,7 +2965,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="memname">void taraxa::DbStorage::removeCertVotedBlockInRound </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em></td><td>)</td>
           <td></td>
         </tr>
@@ -3054,7 +3001,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="memname">void taraxa::DbStorage::removeDagBlockBatch </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>, </td>
         </tr>
         <tr>
@@ -3088,7 +3035,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -3144,7 +3091,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -3189,7 +3136,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -3279,7 +3226,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -3353,7 +3300,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> *&#160;</td>
           <td class="paramname"><em>write_batch_p</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
@@ -3519,7 +3466,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
@@ -3596,8 +3543,8 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a1f3c7fd6e259e84b867ac81ca4d81035"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f3c7fd6e259e84b867ac81ca4d81035">&#9670;&nbsp;</a></span>saveSortitionParamsChange()</h2>
+<a id="ad84cf5ab9b72a83dc1d6f40fcc306f53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad84cf5ab9b72a83dc1d6f40fcc306f53">&#9670;&nbsp;</a></span>saveSortitionParamsChange()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3617,7 +3564,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>batch</em>&#160;</td>
         </tr>
         <tr>
@@ -3711,7 +3658,7 @@ template&lt;typename K &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> taraxa::DbStorage::toSlice </td>
+          <td class="memname">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> taraxa::DbStorage::toSlice </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> const &amp;&#160;</td>
           <td class="paramname"><em>b</em></td><td>)</td>
@@ -3737,7 +3684,7 @@ template&lt;typename K &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> taraxa::DbStorage::toSlice </td>
+          <td class="memname">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> taraxa::DbStorage::toSlice </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4">dev::bytesConstRef</a> const &amp;&#160;</td>
           <td class="paramname"><em>b</em></td><td>)</td>
@@ -3765,7 +3712,7 @@ template&lt;unsigned N&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> taraxa::DbStorage::toSlice </td>
+          <td class="memname">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> taraxa::DbStorage::toSlice </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classdev_1_1_fixed_hash.html">dev::FixedHash</a>&lt; N &gt; const &amp;&#160;</td>
           <td class="paramname"><em>h</em></td><td>)</td>
@@ -3797,7 +3744,7 @@ template&lt;class N &gt; </div>
           <td>(</td>
           <td class="paramtype">N const &amp;&#160;</td>
           <td class="paramname"><em>n</em></td><td>)</td>
-          <td> -&gt; std::enable_if_t&lt;std::is_integral_v&lt;N&gt; || std::is_enum_v&lt;N&gt;, <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a>&gt; </td>
+          <td> -&gt; std::enable_if_t&lt;std::is_integral_v&lt;N&gt; || std::is_enum_v&lt;N&gt;, <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a>&gt; </td>
         </tr>
       </table>
   </td>
@@ -3821,7 +3768,7 @@ template&lt;class N &gt; </div>
         <tr>
           <td class="memname">static auto const&amp; taraxa::DbStorage::toSlice </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> const &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> const &amp;&#160;</td>
           <td class="paramname"><em>s</em></td><td>)</td>
           <td></td>
         </tr>
@@ -3845,7 +3792,7 @@ template&lt;class N &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> taraxa::DbStorage::toSlice </td>
+          <td class="memname">static <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> taraxa::DbStorage::toSlice </td>
           <td>(</td>
           <td class="paramtype">string const &amp;&#160;</td>
           <td class="paramname"><em>str</em></td><td>)</td>
@@ -3873,7 +3820,7 @@ template&lt;class N &gt; </div>
         <tr>
           <td class="memname">static auto const&amp; taraxa::DbStorage::toSlices </td>
           <td>(</td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">Slice</a> &gt; const &amp;&#160;</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1">Slice</a> &gt; const &amp;&#160;</td>
           <td class="paramname"><em>ss</em></td><td>)</td>
           <td></td>
         </tr>

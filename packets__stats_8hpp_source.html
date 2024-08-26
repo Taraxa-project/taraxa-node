@@ -87,10 +87,10 @@ $(document).ready(function(){initNavTree('packets__stats_8hpp_source.html',''); 
 <div class="contents">
 <a href="packets__stats_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &lt;optional&gt;</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &lt;json/json.h&gt;</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160; </div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="max__stats_8hpp.html">network/tarcap/stats/max_stats.hpp</a>&quot;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="packets__stats_8hpp.html">network/tarcap/stats/packets_stats.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="max__stats_8hpp.html">max_stats.hpp</a>&quot;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="packets__stats_8hpp.html">packets_stats.hpp</a>&quot;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160; </div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacetaraxa_1_1network_1_1tarcap.html">taraxa::network::tarcap</a> {</div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160; </div>
@@ -127,7 +127,7 @@ $(document).ready(function(){initNavTree('packets__stats_8hpp_source.html',''); 
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;};</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;}  <span class="comment">// namespace taraxa::network::tarcap</span></div>
-<div class="ttc" id="aclasstaraxa_1_1network_1_1tarcap_1_1_packet_stats_html"><div class="ttname"><a href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">taraxa::network::tarcap::PacketStats</a></div><div class="ttdoc">Stats single packet type.</div><div class="ttdef"><b>Definition:</b> packet_stats.hpp:14</div></div>
+<div class="ttc" id="aclasstaraxa_1_1network_1_1tarcap_1_1_packet_stats_html"><div class="ttname"><a href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">taraxa::network::tarcap::PacketStats</a></div><div class="ttdoc">Stats single packet type.</div><div class="ttdef"><b>Definition:</b> packet_stats.hpp:13</div></div>
 <div class="ttc" id="aclasstaraxa_1_1network_1_1tarcap_1_1_packets_stats_html"><div class="ttname"><a href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">taraxa::network::tarcap::PacketsStats</a></div><div class="ttdoc">Stats for all packet types.</div><div class="ttdef"><b>Definition:</b> packets_stats.hpp:13</div></div>
 <div class="ttc" id="aclasstaraxa_1_1network_1_1tarcap_1_1_packets_stats_html_a13bcd9ae1715fa00e446640d87e2503e"><div class="ttname"><a href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#a13bcd9ae1715fa00e446640d87e2503e">taraxa::network::tarcap::PacketsStats::PacketsStats</a></div><div class="ttdeci">PacketsStats(const PacketsStats &amp;)=delete</div></div>
 <div class="ttc" id="aclasstaraxa_1_1network_1_1tarcap_1_1_packets_stats_html_a242585a9b072edcd401a0d02b9228c2a"><div class="ttname"><a href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#a242585a9b072edcd401a0d02b9228c2a">taraxa::network::tarcap::PacketsStats::mutex_</a></div><div class="ttdeci">std::shared_mutex mutex_</div><div class="ttdef"><b>Definition:</b> packets_stats.hpp:45</div></div>
@@ -146,7 +146,7 @@ $(document).ready(function(){initNavTree('packets__stats_8hpp_source.html',''); 
 <div class="ttc" id="aclasstaraxa_1_1network_1_1tarcap_1_1_packets_stats_html_afd4f0d1c2677d49190e4fcdd12b53fed"><div class="ttname"><a href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#afd4f0d1c2677d49190e4fcdd12b53fed">taraxa::network::tarcap::PacketsStats::all_packets_stats_</a></div><div class="ttdeci">PacketStats all_packets_stats_</div><div class="ttdef"><b>Definition:</b> packets_stats.hpp:41</div></div>
 <div class="ttc" id="amax__stats_8hpp_html"><div class="ttname"><a href="max__stats_8hpp.html">max_stats.hpp</a></div></div>
 <div class="ttc" id="anamespacetaraxa_1_1net_1_1rpc_1_1eth_html_ad1b782697d2ffcfad031bf5ee494afb8"><div class="ttname"><a href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#ad1b782697d2ffcfad031bf5ee494afb8">taraxa::net::rpc::eth::time_point</a></div><div class="ttdeci">std::chrono::system_clock::time_point time_point</div><div class="ttdef"><b>Definition:</b> watches.hpp:12</div></div>
-<div class="ttc" id="anamespacetaraxa_1_1network_1_1tarcap_html"><div class="ttname"><a href="namespacetaraxa_1_1network_1_1tarcap.html">taraxa::network::tarcap</a></div><div class="ttdef"><b>Definition:</b> vote_manager.hpp:20</div></div>
+<div class="ttc" id="anamespacetaraxa_1_1network_1_1tarcap_html"><div class="ttname"><a href="namespacetaraxa_1_1network_1_1tarcap.html">taraxa::network::tarcap</a></div><div class="ttdef"><b>Definition:</b> vote_manager.hpp:23</div></div>
 <div class="ttc" id="apackets__stats_8hpp_html"><div class="ttname"><a href="packets__stats_8hpp.html">packets_stats.hpp</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

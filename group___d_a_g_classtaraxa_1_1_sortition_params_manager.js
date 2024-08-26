@@ -9,7 +9,7 @@ var group___d_a_g_classtaraxa_1_1_sortition_params_manager =
     [ "getNewUpperRange", "group___d_a_g.html#a51f92bbc51d4495b915b48458f580169", null ],
     [ "getParamsChanges", "group___d_a_g.html#a4a999528259fcdb861b9e8388cc550df", null ],
     [ "getSortitionParams", "group___d_a_g.html#a0ca51512dc39ce724673d66bda3ded32", null ],
-    [ "pbftBlockPushed", "group___d_a_g.html#add3f6cbfe7dc61c09e9843c1d05c41cd", null ],
+    [ "pbftBlockPushed", "group___d_a_g.html#a8b0025f330485e726caa263dd7459175", null ],
     [ "config_", "group___d_a_g.html#ad2957d59620752ac0d4f6b664ecf362c", null ],
     [ "dag_efficiencies_", "group___d_a_g.html#a09ec4df22fdff55c437c27d67b59cb9b", null ],
     [ "db_", "group___d_a_g.html#a7d2d20da7fc504c22810038aa83cd5db", null ],

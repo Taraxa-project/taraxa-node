@@ -1,14 +1,14 @@
 var group___vote =
 [
     [ "VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", [
-      [ "VoteManager", "group___vote.html#aacaa92e9176db461d64d2d3fc9e19353", null ],
+      [ "VoteManager", "group___vote.html#aca725de2f586a37bfb3935f55a711046", null ],
       [ "~VoteManager", "group___vote.html#a030b575a581433e9d0d6da3fba0ee29f", null ],
       [ "VoteManager", "group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246", null ],
       [ "VoteManager", "group___vote.html#a958687409ea47afffc8e2bc179528683", null ],
       [ "addVerifiedVote", "group___vote.html#a05596452fd0fbb074834769406b04498", null ],
       [ "checkRewardVotes", "group___vote.html#a184467892aa78efab40a1cb9840feaaf", null ],
       [ "cleanupVotesByPeriod", "group___vote.html#afee33f7d2ebeb7049e9cc0f5d2af64f0", null ],
-      [ "clearOwnVerifiedVotes", "group___vote.html#a5b61047fe10782ee2c1124b216ac5f47", null ],
+      [ "clearOwnVerifiedVotes", "group___vote.html#a549829e07d5859392458d60b033ef026", null ],
       [ "determineNewRound", "group___vote.html#a0040cd4fb2c849752421dffcc062d430", null ],
       [ "genAndValidateVrfSortition", "group___vote.html#ab17438646b07052074ff6d9f010c6e8f", null ],
       [ "generateVote", "group___vote.html#a2c0994bd60e2eaf3d0297510012458f9", null ],
@@ -29,7 +29,7 @@ var group___vote =
       [ "isValidRewardVote", "group___vote.html#ae973c977717f006fae10b7878a4c2fbc", null ],
       [ "operator=", "group___vote.html#a38bd14449af576be965293785cc4d8ac", null ],
       [ "operator=", "group___vote.html#a71368f8f7056743c74eb64be733d4e5a", null ],
-      [ "resetRewardVotes", "group___vote.html#afe18f43b7e39ffa71d17de30177f9cfb", null ],
+      [ "resetRewardVotes", "group___vote.html#a003002f11b3556882aba09032de484f0", null ],
       [ "saveOwnVerifiedVote", "group___vote.html#a84fb210740a3d5cf36175b22fe41cf2a", null ],
       [ "setCurrentPbftPeriodAndRound", "group___vote.html#aad3b0005eb4bf67641018be3db3e1962", null ],
       [ "setNetwork", "group___vote.html#a4f02ca46c944d4c4b207e249eb4a1621", null ],

@@ -92,7 +92,6 @@ $(document).ready(function(){initNavTree('priority__queue_8hpp.html',''); initRe
 <code>#include &lt;array&gt;</code><br />
 <code>#include &lt;utility&gt;</code><br />
 <code>#include &quot;<a class="el" href="logger_8hpp_source.html">logger/logger.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="packet__types_8hpp_source.html">network/tarcap/packet_types.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="tarcap__version_8hpp_source.html">network/tarcap/tarcap_version.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="packets__blocking__mask_8hpp_source.html">network/threadpool/packets_blocking_mask.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="packets__queue_8hpp_source.html">packets_queue.hpp</a>&quot;</code><br />
@@ -101,46 +100,44 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="priority__queue_8hpp__dep__incl.png" border="0" usemap="#alibraries_2core__libs_2network_2include_2network_2threadpool_2priority__queue_8hppdep" alt=""/></div>
 <map name="alibraries_2core__libs_2network_2include_2network_2threadpool_2priority__queue_8hppdep" id="alibraries_2core__libs_2network_2include_2network_2threadpool_2priority__queue_8hppdep">
-<area shape="rect" title=" " alt="" coords="4343,5,4566,61"/>
-<area shape="rect" href="tarcap__thread__pool_8hpp.html" title=" " alt="" coords="4255,109,4446,180"/>
-<area shape="rect" href="priority__queue_8cpp.html" title=" " alt="" coords="4471,117,4647,173"/>
-<area shape="rect" href="taraxa__capability_8hpp.html" title=" " alt="" coords="4089,228,4300,284"/>
-<area shape="rect" href="node__stats_8cpp.html" title=" " alt="" coords="4279,555,4439,611"/>
-<area shape="rect" href="tarcap__thread__pool_8cpp.html" title=" " alt="" coords="4388,228,4567,284"/>
-<area shape="rect" href="core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="1897,332,2084,388"/>
-<area shape="rect" href="core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="4068,562,4255,603"/>
-<area shape="rect" href="taraxa__capability_8cpp.html" title=" " alt="" coords="4463,555,4627,611"/>
-<area shape="rect" href="dag__block__proposer_8hpp.html" title=" " alt="" coords="110,436,293,492"/>
-<area shape="rect" href="pbft__manager_8hpp.html" title=" " alt="" coords="1903,436,2078,492"/>
-<area shape="rect" href="vote__manager_8cpp.html" title=" " alt="" coords="576,555,787,611"/>
-<area shape="rect" href="query_8hpp.html" title=" " alt="" coords="369,555,551,611"/>
-<area shape="rect" href="http__processor_8hpp.html" title=" " alt="" coords="304,673,507,729"/>
-<area shape="rect" href="_test_8cpp.html" title=" " alt="" coords="1040,562,1200,603"/>
-<area shape="rect" href="dag_8cpp.html" title=" " alt="" coords="2153,443,2353,485"/>
-<area shape="rect" href="dag__manager_8cpp.html" title=" " alt="" coords="2377,436,2551,492"/>
-<area shape="rect" href="pillar__chain__manager_8cpp.html" title=" " alt="" coords="2575,436,2809,492"/>
-<area shape="rect" href="sync__state_8hpp.html" title=" " alt="" coords="847,436,1030,492"/>
-<area shape="rect" href="_net_8cpp.html" title=" " alt="" coords="2833,443,2991,485"/>
-<area shape="rect" href="dag__block__proposer_8cpp.html" title=" " alt="" coords="5,555,179,611"/>
-<area shape="rect" href="node_8cpp.html" title=" " alt="" coords="177,785,321,826"/>
-<area shape="rect" href="pbft__chain_8cpp.html" title=" " alt="" coords="1224,555,1371,611"/>
-<area shape="rect" href="pbft__manager_8cpp.html" title=" " alt="" coords="1395,555,1541,611"/>
-<area shape="rect" href="core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp.html" title=" " alt="" coords="1565,555,1779,611"/>
-<area shape="rect" href="_debug_8cpp.html" title=" " alt="" coords="1803,562,1979,603"/>
-<area shape="rect" href="_taraxa_8cpp.html" title=" " alt="" coords="2003,562,2181,603"/>
-<area shape="rect" href="ext__syncing__packet__handler_8cpp.html" title=" " alt="" coords="2205,540,2419,625"/>
-<area shape="rect" href="ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="2443,540,2645,625"/>
-<area shape="rect" href="get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="2669,540,2896,625"/>
-<area shape="rect" href="pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="2921,547,3141,618"/>
-<area shape="rect" href="status__packet__handler_8cpp.html" title=" " alt="" coords="3165,547,3363,618"/>
-<area shape="rect" href="vote__packet__handler_8cpp.html" title=" " alt="" coords="3388,547,3575,618"/>
-<area shape="rect" href="votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="3599,547,3844,618"/>
-<area shape="rect" href="transaction__period_8cpp.html" title=" " alt="" coords="3869,555,4043,611"/>
-<area shape="rect" href="query_8cpp.html" title=" " alt="" coords="747,673,901,729"/>
-<area shape="rect" href="graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="531,673,685,729"/>
-<area shape="rect" href="http__processor_8cpp.html" title=" " alt="" coords="345,777,500,833"/>
-<area shape="rect" href="core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html" title=" " alt="" coords="1593,673,1751,729"/>
-<area shape="rect" href="sync__state_8cpp.html" title=" " alt="" coords="861,555,1016,611"/>
+<area shape="rect" title=" " alt="" coords="3813,5,4036,61"/>
+<area shape="rect" href="tarcap__thread__pool_8hpp.html" title=" " alt="" coords="3725,109,3916,180"/>
+<area shape="rect" href="priority__queue_8cpp.html" title=" " alt="" coords="3941,117,4117,173"/>
+<area shape="rect" href="taraxa__capability_8hpp.html" title=" " alt="" coords="2426,228,2637,284"/>
+<area shape="rect" href="node__stats_8cpp.html" title=" " alt="" coords="3778,555,3938,611"/>
+<area shape="rect" href="tarcap__thread__pool_8cpp.html" title=" " alt="" coords="3858,228,4037,284"/>
+<area shape="rect" href="core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="2947,332,3134,388"/>
+<area shape="rect" href="core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="194,562,381,603"/>
+<area shape="rect" href="taraxa__capability_8cpp.html" title=" " alt="" coords="5,555,169,611"/>
+<area shape="rect" href="dag__block__proposer_8hpp.html" title=" " alt="" coords="3296,436,3479,492"/>
+<area shape="rect" href="pbft__manager_8hpp.html" title=" " alt="" coords="2177,436,2352,492"/>
+<area shape="rect" href="vote__manager_8cpp.html" title=" " alt="" coords="3285,555,3495,611"/>
+<area shape="rect" href="query_8hpp.html" title=" " alt="" coords="3571,555,3753,611"/>
+<area shape="rect" href="http__processor_8hpp.html" title=" " alt="" coords="3927,673,4130,729"/>
+<area shape="rect" href="_test_8cpp.html" title=" " alt="" coords="405,562,565,603"/>
+<area shape="rect" href="dag__manager_8cpp.html" title=" " alt="" coords="2839,436,3013,492"/>
+<area shape="rect" href="pillar__chain__manager_8cpp.html" title=" " alt="" coords="3037,436,3271,492"/>
+<area shape="rect" href="sync__state_8hpp.html" title=" " alt="" coords="4081,436,4264,492"/>
+<area shape="rect" href="_net_8cpp.html" title=" " alt="" coords="3503,443,3661,485"/>
+<area shape="rect" href="dag__block__proposer_8cpp.html" title=" " alt="" coords="3962,555,4135,611"/>
+<area shape="rect" href="node_8cpp.html" title=" " alt="" coords="3461,785,3605,826"/>
+<area shape="rect" href="pbft__chain_8cpp.html" title=" " alt="" coords="2253,555,2399,611"/>
+<area shape="rect" href="pbft__manager_8cpp.html" title=" " alt="" coords="2423,555,2570,611"/>
+<area shape="rect" href="core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp.html" title=" " alt="" coords="3047,555,3261,611"/>
+<area shape="rect" href="_debug_8cpp.html" title=" " alt="" coords="2645,562,2821,603"/>
+<area shape="rect" href="_taraxa_8cpp.html" title=" " alt="" coords="2845,562,3023,603"/>
+<area shape="rect" href="ext__syncing__packet__handler_8cpp.html" title=" " alt="" coords="589,540,804,625"/>
+<area shape="rect" href="ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="828,540,1029,625"/>
+<area shape="rect" href="get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="1054,540,1281,625"/>
+<area shape="rect" href="pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="1305,547,1525,618"/>
+<area shape="rect" href="status__packet__handler_8cpp.html" title=" " alt="" coords="1549,547,1748,618"/>
+<area shape="rect" href="vote__packet__handler_8cpp.html" title=" " alt="" coords="1773,547,1959,618"/>
+<area shape="rect" href="votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="1983,547,2229,618"/>
+<area shape="rect" href="query_8cpp.html" title=" " alt="" coords="3570,673,3725,729"/>
+<area shape="rect" href="graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="3749,673,3903,729"/>
+<area shape="rect" href="http__processor_8cpp.html" title=" " alt="" coords="3951,777,4106,833"/>
+<area shape="rect" href="core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html" title=" " alt="" coords="3075,673,3233,729"/>
+<area shape="rect" href="sync__state_8cpp.html" title=" " alt="" coords="4210,555,4365,611"/>
 </map>
 </div>
 </div>

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['ficushardforkconfig_3997',['FicusHardforkConfig',['../struct_ficus_hardfork_config.html',1,'']]],
+  ['ficushardforkconfig_3997',['FicusHardforkConfig',['../structtaraxa_1_1_ficus_hardfork_config.html',1,'taraxa']]],
   ['finalchain_3998',['FinalChain',['../group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain',1,'taraxa::final_chain']]],
   ['finalizationresult_3999',['FinalizationResult',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result',1,'taraxa::final_chain']]],
   ['findnode_4000',['FindNode',['../structdev_1_1p2p_1_1_find_node.html',1,'dev::p2p']]],

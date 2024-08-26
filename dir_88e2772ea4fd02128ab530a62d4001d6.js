@@ -13,7 +13,6 @@ var dir_88e2772ea4fd02128ab530a62d4001d6 =
     [ "CommonJS.h", "_common_j_s_8h.html", "_common_j_s_8h" ],
     [ "Exceptions.h", "libdevcore_2_exceptions_8h.html", "libdevcore_2_exceptions_8h" ],
     [ "FixedHash.h", "_fixed_hash_8h.html", "_fixed_hash_8h" ],
-    [ "Guards.cpp", "_guards_8cpp.html", null ],
     [ "Guards.h", "_guards_8h.html", "_guards_8h" ],
     [ "Log.h", "_log_8h.html", "_log_8h" ],
     [ "RLP.cpp", "_r_l_p_8cpp.html", "_r_l_p_8cpp" ],

@@ -9,7 +9,7 @@ var hierarchy =
     ] ],
     [ "graphql::taraxa::Account", "classgraphql_1_1taraxa_1_1_account.html", null ],
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
-    [ "AspenHardfork", "hardfork_8hpp.html#struct_aspen_hardfork", null ],
+    [ "taraxa::AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
       [ "taraxa::storage::migration::TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", null ]
     ] ],
@@ -145,7 +145,7 @@ var hierarchy =
     ] ],
     [ "ExpirationCacheMap< Key, Value >", "class_expiration_cache_map.html", null ],
     [ "ExpirationCacheMap< dev::FixedHash, taraxa::DagBlock >", "class_expiration_cache_map.html", null ],
-    [ "FicusHardforkConfig", "struct_ficus_hardfork_config.html", null ],
+    [ "taraxa::FicusHardforkConfig", "structtaraxa_1_1_ficus_hardfork_config.html", null ],
     [ "taraxa::final_chain::FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", null ],
     [ "dev::FixedHash< N >", "classdev_1_1_fixed_hash.html", null ],
     [ "dev::FixedHash< 32 >", "classdev_1_1_fixed_hash.html", null ],
@@ -167,7 +167,7 @@ var hierarchy =
     [ "GuardType", null, [
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],
-    [ "HardforksConfig", "struct_hardforks_config.html", null ],
+    [ "taraxa::HardforksConfig", "structtaraxa_1_1_hardforks_config.html", null ],
     [ "dev::FixedHash< N >::hash", "structdev_1_1_fixed_hash_1_1hash.html", [
       [ "std::hash< dev::h128 >", "structstd_1_1hash_3_01dev_1_1h128_01_4.html", null ],
       [ "std::hash< dev::h160 >", "structstd_1_1hash_3_01dev_1_1h160_01_4.html", null ],
@@ -209,7 +209,7 @@ var hierarchy =
     [ "taraxa::final_chain::LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", null ],
     [ "taraxa::net::rpc::eth::LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", null ],
     [ "taraxa::state_api::LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", null ],
-    [ "MagnoliaHardfork", "hardfork_8hpp.html#struct_magnolia_hardfork", null ],
+    [ "taraxa::MagnoliaHardfork", "namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork", null ],
     [ "taraxa::storage::migration::Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", null ],
     [ "taraxa::MapByBlockCache< Key, Value >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::MapByBlockCache< dev::FixedHash, std::optional< const taraxa::state_api::Account > >", "classtaraxa_1_1_map_by_block_cache.html", null ],
@@ -300,7 +300,7 @@ var hierarchy =
     [ "taraxa::PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", null ],
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],
-    [ "Redelegation", "hardfork_8hpp.html#struct_redelegation", null ],
+    [ "taraxa::Redelegation", "namespacetaraxa.html#structtaraxa_1_1_redelegation", null ],
     [ "taraxa::state_api::RewardsDistributionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result", null ],
     [ "RewardsStats", "namespace_3global_scope_4.html#class_rewards_stats", null ],
     [ "dev::RLP", "classdev_1_1_r_l_p.html", null ],

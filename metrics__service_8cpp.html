@@ -88,8 +88,9 @@ $(document).ready(function(){initNavTree('metrics__service_8cpp.html',''); initR
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="metrics__service_8hpp_source.html">metrics/metrics_service.hpp</a>&quot;</code><br />
-<code>#include &lt;prometheus/counter.h&gt;</code><br />
-<code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;prometheus/exposer.h&gt;</code><br />
+<code>#include &lt;prometheus/registry.h&gt;</code><br />
+<code>#include &lt;chrono&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;thread&gt;</code><br />
 </div><table class="memberdecls">

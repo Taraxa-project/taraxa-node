@@ -1,6 +1,5 @@
 <map id="libraries/core_libs/network/rpc/eth/Eth.h" name="libraries/core_libs/network/rpc/eth/Eth.h">
-<area shape="rect" id="node1" title=" " alt="" coords="226,5,391,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="106,5,271,47"/>
 <area shape="rect" id="node2" href="$_eth_8cpp.html" title=" " alt="" coords="5,95,185,136"/>
-<area shape="rect" id="node3" href="$src_2ws__server_8cpp.html" title=" " alt="" coords="209,95,408,136"/>
-<area shape="rect" id="node4" href="$node_8cpp.html" title=" " alt="" coords="433,95,577,136"/>
+<area shape="rect" id="node3" href="$node_8cpp.html" title=" " alt="" coords="210,95,354,136"/>
 </map>

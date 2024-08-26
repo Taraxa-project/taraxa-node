@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['magnoliahardfork_4067',['MagnoliaHardfork',['../hardfork_8hpp.html#struct_magnolia_hardfork',1,'']]],
+  ['magnoliahardfork_4067',['MagnoliaHardfork',['../namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork',1,'taraxa']]],
   ['maliciouspeerexception_4068',['MaliciousPeerException',['../classtaraxa_1_1_malicious_peer_exception.html',1,'taraxa']]],
   ['manager_4069',['Manager',['../classtaraxa_1_1storage_1_1migration_1_1_manager.html',1,'taraxa::storage::migration']]],
   ['mapbyblockcache_4070',['MapByBlockCache',['../classtaraxa_1_1_map_by_block_cache.html',1,'taraxa']]],

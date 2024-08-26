@@ -87,15 +87,13 @@ $(document).ready(function(){initNavTree('global__const_8hpp_source.html',''); i
 <div class="contents">
 <a href="global__const_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160; </div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno"><a class="line" href="global__const_8hpp.html#ad40b241b3bf6ed216755de1fe285d0a0">    3</a></span>&#160;<span class="preprocessor">#define GLOBAL_CONST(_type_, _name_) _type_ const &amp;_name_()</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160; </div>
-<div class="line"><a name="l00005"></a><span class="lineno"><a class="line" href="global__const_8hpp.html#ad40b241b3bf6ed216755de1fe285d0a0">    5</a></span>&#160;<span class="preprocessor">#define GLOBAL_CONST(_type_, _name_) _type_ const &amp;_name_()</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160; </div>
-<div class="line"><a name="l00007"></a><span class="lineno"><a class="line" href="global__const_8hpp.html#a34b04a4b977ba346596be0625537526b">    7</a></span>&#160;<span class="preprocessor">#define GLOBAL_CONST_DEF(_name_, _init_)                               \</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">  decltype(_name_()) _name_() {                                        \</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">    static ::std::remove_reference_t&lt;decltype(_name_())&gt; val = _init_; \</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">    return val;                                                        \</span></div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">  }</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno"><a class="line" href="global__const_8hpp.html#a34b04a4b977ba346596be0625537526b">    5</a></span>&#160;<span class="preprocessor">#define GLOBAL_CONST_DEF(_name_, _init_)                               \</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">  decltype(_name_()) _name_() {                                        \</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">    static ::std::remove_reference_t&lt;decltype(_name_())&gt; val = _init_; \</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">    return val;                                                        \</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">  }</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

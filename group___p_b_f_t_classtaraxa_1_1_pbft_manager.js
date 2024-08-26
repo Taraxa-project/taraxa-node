@@ -1,7 +1,7 @@
 var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
 [
     [ "time_point", "group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8", null ],
-    [ "PbftManager", "group___p_b_f_t.html#a901626028a3aa0c5ae4f8a772dcda124", null ],
+    [ "PbftManager", "group___p_b_f_t.html#a65d0c990704bf0b2efa42aac80761a36", null ],
     [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
     [ "PbftManager", "group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e", null ],
     [ "PbftManager", "group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948", null ],
@@ -70,7 +70,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "start", "group___p_b_f_t.html#a2592f1fa6ffb499e1886827e8e904e29", null ],
     [ "stateOperations_", "group___p_b_f_t.html#a5734de8f8252ba4603d5250393f8bdd8", null ],
     [ "stop", "group___p_b_f_t.html#ac5ead3278d49e1a51265d649d347a2f4", null ],
-    [ "testBroadcatVotesFunctionality", "group___p_b_f_t.html#a5cc963ae8b275cdaa2fc50a96b44cb2d", null ],
+    [ "testBroadcastVotesFunctionality", "group___p_b_f_t.html#a16797c464cc5265dc5b930196d043a6d", null ],
     [ "tryPushCertVotesBlock", "group___p_b_f_t.html#ada3b947a91cf04d2474cfb1cc4a84bdd", null ],
     [ "validatePbftBlock", "group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948", null ],
     [ "validatePbftBlockCertVotes", "group___p_b_f_t.html#aae5e8f78af09ae45656324efdecf0fbe", null ],
