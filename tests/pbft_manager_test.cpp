@@ -740,7 +740,7 @@ TEST_F(PbftManagerWithDagCreation, state_root_hash) {
     if (period > state_root_delay) {
       state_root = node->getFinalChain()->blockHeader(period - state_root_delay)->state_root;
     }
-    EXPECT_EQ(pbft_block.getPrevStateRoot(), state_root);
+    EXPECT_EQ(pbft_block.getFinalChainHash(), state_root);
 
     pbft_block = node->getPbftChain()->getPbftBlockInChain(pbft_block.getPrevBlockHash());
   }
