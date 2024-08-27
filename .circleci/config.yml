@@ -280,6 +280,7 @@ commands:
                 --set image.tag=develop-d3ffe33-1717006630 \
                 --set app.overrideRpcProvider="https://rpc-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
                 --set app.overrideGraphQl="https://graphql-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
+                --set app.overrideApi="https://explorer-indexer-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
                 --set ingress.enabled=true \
                 --set ingress.className=nginx-public \
                 --set ingress.hosts\[0\].host=explorer-pr-<< parameters.pr-name >>.prnet.taraxa.io \
