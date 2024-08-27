@@ -237,6 +237,7 @@ void DagBlockPacketHandler::onNewBlockReceived(
       }
     } break;
     case DagManager::VerifyBlockReturnType::ExpiredBlock:
+    case DagManager::VerifyBlockReturnType::FailedTxSenderVerification:
       break;
   }
 }

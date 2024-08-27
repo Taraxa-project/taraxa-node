@@ -639,6 +639,12 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   }
 
   for (auto t : transactions) {
+    if (kHardforks.isCornusHardfork(*propose_period) && !final_chain_->getAccount(t->getSender()).has_value()) {
+      LOG(log_nf_) << "Ignore dag block " << block_hash << " since tx's " << t->getHash() << " sender "
+                   << t->getSender() << " does not exist";
+      return {VerifyBlockReturnType::FailedTxSenderVerification, {}};
+    }
+
     all_block_trxs.emplace_back(std::move(t));
   }
 
