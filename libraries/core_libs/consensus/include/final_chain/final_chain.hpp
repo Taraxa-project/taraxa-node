@@ -259,19 +259,12 @@ class FinalChain {
    * @return bridge epoch
    */
   h256 getBridgeEpoch(EthBlockNumber blk_num) const;
-  // TODO move out of here:
 
+  // TODO move out of here:
   std::pair<val_t, bool> getBalance(addr_t const& addr) const;
-  SharedTransaction makeBridgeFinalizationTransaction();
-  bool isNeedToFinalize(EthBlockNumber blk_num) const;
-  std::vector<SharedTransaction> makeSystemTransactions(PbftPeriod blk_num);
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor);
-  std::shared_ptr<BlockHeader> appendBlock(Batch& batch, const addr_t& author, uint64_t timestamp, uint64_t gas_limit,
-                                           const h256& state_root, u256 total_reward,
-                                           const SharedTransactions& transactions = {},
-                                           const TransactionReceipts& receipts = {}, const bytes& extra_data = {});
 
  private:
   std::shared_ptr<TransactionHashes> getTransactionHashes(std::optional<EthBlockNumber> n = {}) const;
@@ -285,6 +278,18 @@ class FinalChain {
   static h256 blockBloomsChunkId(EthBlockNumber level, EthBlockNumber index);
   std::vector<EthBlockNumber> withBlockBloom(const LogBloom& b, EthBlockNumber from, EthBlockNumber to,
                                              EthBlockNumber level, EthBlockNumber index) const;
+  bool isNeedToFinalize(EthBlockNumber blk_num) const;
+
+  SharedTransaction makeBridgeFinalizationTransaction();
+  std::vector<SharedTransaction> makeSystemTransactions(PbftPeriod blk_num);
+
+  std::shared_ptr<BlockHeader> makeGenesisHeader(std::string&& raw_header) const;
+  std::shared_ptr<BlockHeader> appendBlock(Batch& batch, const PbftBlock& pbft_blk, const h256& state_root,
+                                           u256 total_reward, const SharedTransactions& transactions = {},
+                                           const TransactionReceipts& receipts = {});
+  std::shared_ptr<BlockHeader> appendBlock(Batch& batch, std::shared_ptr<BlockHeader> header,
+                                           const SharedTransactions& transactions = {},
+                                           const TransactionReceipts& receipts = {});
 
  private:
   std::shared_ptr<DbStorage> db_;

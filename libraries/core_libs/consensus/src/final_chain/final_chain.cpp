@@ -3,11 +3,10 @@
 #include "common/encoding_solidity.hpp"
 #include "common/util.hpp"
 #include "final_chain/trie_common.hpp"
-#include "storage/storage.hpp"
+#include "pbft/pbft_block.hpp"
 #include "transaction/system_transaction.hpp"
 
 namespace taraxa::final_chain {
-
 FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config,
                        const addr_t& node_addr)
     : db_(db),
@@ -47,8 +46,10 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
   // If we don't have genesis block in db then create and push it
   if (!last_blk_num) [[unlikely]] {
     auto batch = db_->createWriteBatch();
-    auto header = appendBlock(batch, addr_t(), config.genesis.dag_genesis_block.getTimestamp(), kBlockGasLimit,
-                              state_db_descriptor.state_root, u256(0));
+    auto header = std::make_shared<BlockHeader>();
+    header->timestamp = config.genesis.dag_genesis_block.getTimestamp();
+    header->state_root = state_db_descriptor.state_root;
+    appendBlock(batch, header);
 
     block_headers_cache_.append(header->number, header);
     last_block_number_ = header->number;
@@ -206,9 +207,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used, batch);
   const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
 
-  auto blk_header =
-      appendBlock(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(), kBlockGasLimit,
-                  state_root, total_reward, all_transactions, receipts, new_blk.pbft_blk->getExtraDataRlp());
+  auto blk_header = appendBlock(batch, *new_blk.pbft_blk, state_root, total_reward, all_transactions, receipts);
 
   // Update number of executed DAG blocks and transactions
   auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
@@ -298,22 +297,29 @@ void FinalChain::prune(EthBlockNumber blk_n) {
   }
 }
 
-std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, const addr_t& author, uint64_t timestamp,
-                                                     uint64_t gas_limit, const h256& state_root, u256 total_reward,
+std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, const PbftBlock& pbft_blk, const h256& state_root,
+                                                     u256 total_reward, const SharedTransactions& transactions,
+                                                     const TransactionReceipts& receipts) {
+  auto header = std::make_shared<BlockHeader>();
+  header->setFromPbft(pbft_blk);
+
+  if (auto last_block = blockHeader(); last_block) {
+    header->number = last_block->number + 1;
+    header->parent_hash = last_block->hash;
+  }
+  if (!receipts.empty()) {
+    header->gas_used = receipts.back().cumulative_gas_used;
+  }
+  header->state_root = state_root;
+  header->total_reward = total_reward;
+  header->gas_limit = kBlockGasLimit;
+
+  return appendBlock(batch, header, transactions, receipts);
+}
+
+std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_ptr<BlockHeader> header,
                                                      const SharedTransactions& transactions,
-                                                     const TransactionReceipts& receipts, const bytes& extra_data) {
-  auto blk_header_ptr = std::make_shared<BlockHeader>();
-  auto& blk_header = *blk_header_ptr;
-  auto last_block = blockHeader();
-  blk_header.number = last_block ? last_block->number + 1 : 0;
-  blk_header.parent_hash = last_block ? last_block->hash : h256();
-  blk_header.author = author;
-  blk_header.timestamp = timestamp;
-  blk_header.state_root = state_root;
-  blk_header.gas_used = receipts.empty() ? 0 : receipts.back().cumulative_gas_used;
-  blk_header.gas_limit = gas_limit;
-  blk_header.total_reward = total_reward;
-  blk_header.extra_data = extra_data;
+                                                     const TransactionReceipts& receipts) {
   dev::BytesMap trxs_trie, receipts_trie;
   dev::RLPStream rlp_strm;
   auto trx_idx = 0;
@@ -326,28 +332,31 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, const addr_t&
     receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
     db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp_strm.out());
 
-    blk_header.log_bloom |= receipt.bloom();
+    header->log_bloom |= receipt.bloom();
   }
-  blk_header.transactions_root = hash256(trxs_trie);
-  blk_header.receipts_root = hash256(receipts_trie);
-  rlp_strm.clear(), blk_header.ethereum_rlp(rlp_strm);
-  blk_header.hash = dev::sha3(rlp_strm.out());
-  db_->insert(batch, DbStorage::Columns::final_chain_blk_by_number, blk_header.number,
-              util::rlp_enc(rlp_strm, blk_header));
-  auto log_bloom_for_index = blk_header.log_bloom;
-  log_bloom_for_index.shiftBloom<3>(sha3(blk_header.author.ref()));
-  for (uint64_t level = 0, index = blk_header.number; level < c_bloomIndexLevels; ++level, index /= c_bloomIndexSize) {
+
+  header->transactions_root = hash256(trxs_trie);
+  header->receipts_root = hash256(receipts_trie);
+
+  header->hash = dev::sha3(header->ethereumRlp());
+
+  auto data = header->serializeForDB();
+  db_->insert(batch, DbStorage::Columns::final_chain_blk_by_number, header->number, data);
+
+  auto log_bloom_for_index = header->log_bloom;
+  log_bloom_for_index.shiftBloom<3>(sha3(header->author.ref()));
+  for (uint64_t level = 0, index = header->number; level < c_bloomIndexLevels; ++level, index /= c_bloomIndexSize) {
     auto chunk_id = blockBloomsChunkId(level, index / c_bloomIndexSize);
     auto chunk_to_alter = blockBlooms(chunk_id);
     chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
     db_->insert(batch, DbStorage::Columns::final_chain_log_blooms_index, chunk_id,
                 util::rlp_enc(rlp_strm, chunk_to_alter));
   }
-  db_->insert(batch, DbStorage::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
-  db_->insert(batch, DbStorage::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
-  db_->insert(batch, DbStorage::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
+  db_->insert(batch, DbStorage::Columns::final_chain_blk_hash_by_number, header->number, header->hash);
+  db_->insert(batch, DbStorage::Columns::final_chain_blk_number_by_hash, header->hash, header->number);
+  db_->insert(batch, DbStorage::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, header->number);
 
-  return blk_header_ptr;
+  return header;
 }
 
 EthBlockNumber FinalChain::lastBlockNumber() const { return last_block_number_; }
@@ -425,6 +434,7 @@ bytes FinalChain::getCode(const addr_t& addr, std::optional<EthBlockNumber> blk_
 
 state_api::ExecutionResult FinalChain::call(const state_api::EVMTransaction& trx,
                                             std::optional<EthBlockNumber> blk_n) const {
+  std::cout << blk_n.value_or(-1) << " " << lastIfAbsent(blk_n) << std::endl;
   auto const blk_header = blockHeader(lastIfAbsent(blk_n));
   if (!blk_header) {
     throw std::runtime_error("Future block");
@@ -534,11 +544,25 @@ const SharedTransactions FinalChain::getTransactions(std::optional<EthBlockNumbe
   return {};
 }
 
+std::shared_ptr<BlockHeader> FinalChain::makeGenesisHeader(std::string&& raw_header) const {
+  auto bh = std::make_shared<BlockHeader>(std::move(raw_header));
+  bh->gas_limit = kBlockGasLimit;
+  // bh->timestamp = config.genesis.dag_genesis_block.getTimestamp();
+  bh->number = 0;
+  return bh;
+}
+
 std::shared_ptr<const BlockHeader> FinalChain::getBlockHeader(EthBlockNumber n) const {
   if (auto raw = db_->lookup(n, DbStorage::Columns::final_chain_blk_by_number); !raw.empty()) {
-    auto ret = std::make_shared<BlockHeader>();
-    ret->rlp(dev::RLP(raw));
-    return ret;
+    if (n == 0) {
+      return makeGenesisHeader(std::move(raw));
+    }
+    auto pbft = db_->getPbftBlock(n);
+    // we should usually have a pbft block for a final chain block
+    if (!pbft) {
+      return {};
+    }
+    return std::make_shared<BlockHeader>(std::move(raw), *pbft, kBlockGasLimit);
   }
   return {};
 }
