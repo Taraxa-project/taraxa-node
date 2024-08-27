@@ -43,7 +43,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     IncorrectTransactionsEstimation,
     BlockTooBig,
     FailedTipsVerification,
-    MissingTip
+    MissingTip,
+    FailedTxSenderVerification
   };
 
   explicit DagManager(const FullNodeConfig &config, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
