@@ -10,7 +10,7 @@ namespace taraxa::final_chain {
 
 dev::bytes BlockHeaderData::serializeForDB() const { return util::rlp_enc(*this); }
 
-RLP_FIELDS_DEFINE(BlockHeaderData, hash, parent_hash, state_root, transactions_root, receipts_root, log_bloom, gas_used,
+RLP_FIELDS_DEFINE(BlockHeaderData, parent_hash, state_root, transactions_root, receipts_root, log_bloom, gas_used,
                   total_reward)
 
 BlockHeader::BlockHeader(std::string&& raw_header_data)
@@ -20,6 +20,7 @@ BlockHeader::BlockHeader(std::string&& raw_header_data_, const PbftBlock& pbft_,
     : BlockHeader(std::move(raw_header_data_)) {
   setFromPbft(pbft_);
   gas_limit = gas_limit_;
+  hash = dev::sha3(ethereumRlp());
 }
 
 void BlockHeader::setFromPbft(const PbftBlock& pbft) {
@@ -37,7 +38,7 @@ u256 const& BlockHeader::difficulty() { return ZeroU256(); }
 
 h256 const& BlockHeader::mixHash() { return ZeroHash(); }
 
-dev::bytes&& BlockHeader::ethereumRlp() const {
+dev::bytes BlockHeader::ethereumRlp() const {
   dev::RLPStream rlp_strm;
   util::rlp_tuple(rlp_strm, parent_hash, BlockHeader::unclesHash(), author, state_root, transactions_root,
                   receipts_root, log_bloom, BlockHeader::difficulty(), number, gas_limit, gas_used, timestamp,

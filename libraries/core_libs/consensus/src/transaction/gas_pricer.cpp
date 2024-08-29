@@ -1,6 +1,5 @@
 #include "transaction/gas_pricer.hpp"
 
-#include "final_chain/final_chain.hpp"
 #include "storage/storage.hpp"
 
 namespace taraxa {
@@ -28,7 +27,7 @@ u256 GasPricer::bid() const {
 
 void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
   const auto last_blk_num =
-      db->lookup_int<EthBlockNumber>(final_chain::DBMetaKeys::LAST_NUMBER, DbStorage::Columns::final_chain_meta);
+      db->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DbStorage::Columns::final_chain_meta);
   if (!last_blk_num || *last_blk_num == 0) return;
   auto block_num = *last_blk_num;
 

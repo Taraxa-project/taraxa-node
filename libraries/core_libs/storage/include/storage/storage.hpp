@@ -52,6 +52,8 @@ enum PbftMgrStatus : uint8_t {
   NextVotedNullBlockHash,
 };
 
+enum class DBMetaKeys { LAST_NUMBER = 1 };
+
 class DbException : public std::exception {
  public:
   explicit DbException(const std::string& desc) : desc_(desc) {}

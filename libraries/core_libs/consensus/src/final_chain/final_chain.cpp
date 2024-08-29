@@ -37,7 +37,7 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
       dpos_is_eligible_cache_(
           config.final_chain_cache_in_blocks,
           [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
-      kHardforksConfig(config.genesis.state.hardforks) {
+      kConfig(config) {
   LOG_OBJECTS_CREATE("EXECUTOR");
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -46,10 +46,8 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
   // If we don't have genesis block in db then create and push it
   if (!last_blk_num) [[unlikely]] {
     auto batch = db_->createWriteBatch();
-    auto header = std::make_shared<BlockHeader>();
-    header->timestamp = config.genesis.dag_genesis_block.getTimestamp();
-    header->state_root = state_db_descriptor.state_root;
-    appendBlock(batch, header);
+    auto header = makeGenesisHeader(state_db_descriptor.state_root);
+    appendBlock(batch, header, {}, {});
 
     block_headers_cache_.append(header->number, header);
     last_block_number_ = header->number;
@@ -118,13 +116,14 @@ SharedTransaction FinalChain::makeBridgeFinalizationTransaction() {
   auto account = getAccount(kTaraxaSystemAccount).value_or(state_api::ZeroAccount);
 
   auto trx = std::make_shared<SystemTransaction>(account.nonce, 0, 0, kBlockGasLimit, finalize_method,
-                                                 kHardforksConfig.ficus_hf.bridge_contract_address);
+                                                 kConfig.genesis.state.hardforks.ficus_hf.bridge_contract_address);
   return trx;
 }
 
 bool FinalChain::isNeedToFinalize(EthBlockNumber blk_num) const {
   const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("shouldFinalizeEpoch()");
-  return u256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
+  return u256(call(state_api::EVMTransaction{dev::ZeroAddress, 1,
+                                             kConfig.genesis.state.hardforks.ficus_hf.bridge_contract_address,
                                              state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
                    blk_num)
                   .code_retval)
@@ -136,8 +135,9 @@ std::vector<SharedTransaction> FinalChain::makeSystemTransactions(PbftPeriod blk
   // Make system transactions <delegationDelay()> blocks sooner than next pillar block period,
   // e.g.: if pillar block period is 100, this will return true for period 100 - delegationDelay() == 95, 195, 295,
   // etc...
-  if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num + delegationDelay())) {
-    if (const auto bridge_contract = getAccount(kHardforksConfig.ficus_hf.bridge_contract_address); bridge_contract) {
+  if (kConfig.genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(blk_num + delegationDelay())) {
+    if (const auto bridge_contract = getAccount(kConfig.genesis.state.hardforks.ficus_hf.bridge_contract_address);
+        bridge_contract) {
       if (bridge_contract->code_size && isNeedToFinalize(blk_num - 1)) {
         auto finalize_trx = makeBridgeFinalizationTransaction();
         system_transactions.push_back(finalize_trx);
@@ -314,7 +314,7 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, const PbftBlo
   header->total_reward = total_reward;
   header->gas_limit = kBlockGasLimit;
 
-  return appendBlock(batch, header, transactions, receipts);
+  return appendBlock(batch, std::move(header), transactions, receipts);
 }
 
 std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_ptr<BlockHeader> header,
@@ -337,7 +337,6 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_p
 
   header->transactions_root = hash256(trxs_trie);
   header->receipts_root = hash256(receipts_trie);
-
   header->hash = dev::sha3(header->ethereumRlp());
 
   auto data = header->serializeForDB();
@@ -504,7 +503,8 @@ u256 FinalChain::dposTotalSupply(EthBlockNumber blk_num) const { return state_ap
 
 h256 FinalChain::getBridgeRoot(EthBlockNumber blk_num) const {
   const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("getBridgeRoot()");
-  return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
+  return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1,
+                                             kConfig.genesis.state.hardforks.ficus_hf.bridge_contract_address,
                                              state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
                    blk_num)
                   .code_retval);
@@ -512,7 +512,8 @@ h256 FinalChain::getBridgeRoot(EthBlockNumber blk_num) const {
 
 h256 FinalChain::getBridgeEpoch(EthBlockNumber blk_num) const {
   const static auto getBridgeEpoch_method = util::EncodingSolidity::packFunctionCall("finalizedEpoch()");
-  return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
+  return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1,
+                                             kConfig.genesis.state.hardforks.ficus_hf.bridge_contract_address,
                                              state_api::ZeroAccount.nonce, 0, 10000000, getBridgeEpoch_method},
                    blk_num)
                   .code_retval);
@@ -546,10 +547,19 @@ const SharedTransactions FinalChain::getTransactions(std::optional<EthBlockNumbe
 
 std::shared_ptr<BlockHeader> FinalChain::makeGenesisHeader(std::string&& raw_header) const {
   auto bh = std::make_shared<BlockHeader>(std::move(raw_header));
-  bh->gas_limit = kBlockGasLimit;
-  // bh->timestamp = config.genesis.dag_genesis_block.getTimestamp();
-  bh->number = 0;
+  bh->gas_limit = kConfig.genesis.pbft.gas_limit;
+  bh->timestamp = kConfig.genesis.dag_genesis_block.getTimestamp();
+  bh->hash = dev::sha3(bh->ethereumRlp());
   return bh;
+}
+
+std::shared_ptr<BlockHeader> FinalChain::makeGenesisHeader(const h256& state_root) const {
+  auto header = std::make_shared<BlockHeader>();
+  header->timestamp = kConfig.genesis.dag_genesis_block.getTimestamp();
+  header->state_root = state_root;
+  header->gas_limit = kConfig.genesis.pbft.gas_limit;
+  header->hash = dev::sha3(header->ethereumRlp());
+  return header;
 }
 
 std::shared_ptr<const BlockHeader> FinalChain::getBlockHeader(EthBlockNumber n) const {

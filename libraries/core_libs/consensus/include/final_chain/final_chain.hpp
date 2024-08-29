@@ -18,8 +18,6 @@ namespace taraxa::final_chain {
  * @{
  */
 
-enum class DBMetaKeys { LAST_NUMBER = 1 };
-
 /**
  * @brief main responsibility is blocks execution in EVM, getting data from EVM state
  *
@@ -284,6 +282,8 @@ class FinalChain {
   std::vector<SharedTransaction> makeSystemTransactions(PbftPeriod blk_num);
 
   std::shared_ptr<BlockHeader> makeGenesisHeader(std::string&& raw_header) const;
+  std::shared_ptr<BlockHeader> makeGenesisHeader(const h256& state_root) const;
+
   std::shared_ptr<BlockHeader> appendBlock(Batch& batch, const PbftBlock& pbft_blk, const h256& state_root,
                                            u256 total_reward, const SharedTransactions& transactions = {},
                                            const TransactionReceipts& receipts = {});
@@ -322,7 +322,7 @@ class FinalChain {
 
   std::atomic<EthBlockNumber> last_block_number_;
 
-  const HardforksConfig& kHardforksConfig;
+  const FullNodeConfig& kConfig;
   LOG_OBJECTS_DEFINE
 };
 

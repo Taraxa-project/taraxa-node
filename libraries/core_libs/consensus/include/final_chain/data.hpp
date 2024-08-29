@@ -24,7 +24,6 @@ using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
 
 struct BlockHeaderData {
-  h256 hash;
   h256 parent_hash;
   h256 state_root;
   h256 transactions_root;
@@ -42,6 +41,7 @@ struct BlockHeader : BlockHeaderData {
   BlockHeader() = default;
   BlockHeader(std::string&& raw_header_data);
   BlockHeader(std::string&& raw_header_data, const PbftBlock& pbft, uint64_t gas_limit);
+  h256 hash;
   Address author;
   uint64_t gas_limit = 0;
   uint64_t timestamp = 0;
@@ -58,7 +58,7 @@ struct BlockHeader : BlockHeaderData {
 
   static h256 const& mixHash();
 
-  dev::bytes&& ethereumRlp() const;
+  dev::bytes ethereumRlp() const;
 };
 
 static constexpr auto c_bloomIndexSize = 16;
