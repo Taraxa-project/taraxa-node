@@ -125,14 +125,13 @@ struct HardforksConfig {
   // Aspen hardfork implements new yield curve
   AspenHardfork aspen_hf;
 
+  bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
+
   // Ficus hardfork: implementation of pillar chain
   FicusHardforkConfig ficus_hf;
 
   // Cornus hf - support multiple undelegations from the same validator at the same time
   uint64_t cornus_hf_block_num{0};
-
-  bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
-  bool isCornusHardfork(uint64_t block_number) const { return block_number >= cornus_hf_block_num; }
 
   HAS_RLP_FIELDS
 };
