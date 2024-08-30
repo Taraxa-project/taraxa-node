@@ -9,7 +9,7 @@ class VoteManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
-  class PbftSyncingState;
+class PbftSyncingState;
 }
 
 namespace taraxa::network::tarcap::v3 {

@@ -10,10 +10,9 @@ namespace taraxa::network::tarcap {
 TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<TransactionManager> trx_mgr, const addr_t &node_addr,
-                                                   bool hash_gossip, const std::string &logs_prefix)
+                                                   const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, logs_prefix + "TRANSACTION_PH"),
-      trx_mgr_(std::move(trx_mgr)),
-      kHashGossip(hash_gossip) {}
+      trx_mgr_(std::move(trx_mgr)) {}
 
 void TransactionPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
@@ -100,46 +99,6 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   }
 }
 
-void TransactionPacketHandler::periodicSendTransactionsWithoutHashGossip(
-    std::vector<SharedTransactions> &&transactions) {
-  std::vector<std::pair<dev::p2p::NodeID, std::pair<SharedTransactions, std::vector<trx_hash_t>>>>
-      peers_with_transactions_to_send;
-
-  auto peers = peers_state_->getAllPeers();
-  for (const auto &peer : peers) {
-    // Confirm that status messages were exchanged otherwise message might be ignored and node would
-    // incorrectly markTransactionAsKnown
-    if (!peer.second->syncing_) {
-      SharedTransactions peer_trxs;
-      for (auto const &account_trx : transactions) {
-        for (auto const &trx : account_trx) {
-          auto trx_hash = trx->getHash();
-          if (peer.second->isTransactionKnown(trx_hash)) {
-            continue;
-          }
-          peer_trxs.push_back(trx);
-          if (peer_trxs.size() == kMaxTransactionsInPacket) {
-            peers_with_transactions_to_send.push_back({peer.first, {peer_trxs, {}}});
-            peer_trxs.clear();
-          };
-        }
-      }
-      if (peer_trxs.size() > 0) {
-        peers_with_transactions_to_send.push_back({peer.first, {peer_trxs, {}}});
-      }
-    }
-  }
-  const auto peers_to_send_count = peers_with_transactions_to_send.size();
-  if (peers_to_send_count > 0) {
-    // Sending it in same order favours some peers over others, always start with a different position
-    uint32_t start_with = rand() % peers_to_send_count;
-    for (uint32_t i = 0; i < peers_to_send_count; i++) {
-      auto peer_to_send = peers_with_transactions_to_send[(start_with + i) % peers_to_send_count];
-      sendTransactions(peers[peer_to_send.first], std::move(peer_to_send.second));
-    }
-  }
-}
-
 std::pair<uint32_t, std::pair<SharedTransactions, std::vector<trx_hash_t>>>
 TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> peer,
                                                    const std::vector<SharedTransactions> &transactions,
@@ -216,12 +175,6 @@ TransactionPacketHandler::transactionsToSendToPeers(std::vector<SharedTransactio
 }
 
 void TransactionPacketHandler::periodicSendTransactions(std::vector<SharedTransactions> &&transactions) {
-  // Support of old v2 net version. Remove once network is fully updated
-  if (!kHashGossip) {
-    periodicSendTransactionsWithoutHashGossip(std::move(transactions));
-    return;
-  }
-
   auto peers_with_transactions_to_send = transactionsToSendToPeers(std::move(transactions));
   const auto peers_to_send_count = peers_with_transactions_to_send.size();
   if (peers_to_send_count > 0) {

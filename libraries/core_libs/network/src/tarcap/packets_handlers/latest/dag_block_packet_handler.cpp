@@ -13,22 +13,17 @@ DagBlockPacketHandler::DagBlockPacketHandler(const FullNodeConfig &conf, std::sh
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                                              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                                             bool trxs_in_dag_packet, const addr_t &node_addr,
-                                             const std::string &logs_prefix)
+                                             const addr_t &node_addr, const std::string &logs_prefix)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
                               logs_prefix + "DAG_BLOCK_PH"),
-      trx_mgr_(std::move(trx_mgr)),
-      kTrxsInDagPacket(trxs_in_dag_packet) {}
+      trx_mgr_(std::move(trx_mgr)) {}
 
 void DagBlockPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
-  constexpr size_t required_size_v2 = 8;
   constexpr size_t required_size = 2;
   // Only one dag block can be received
-  if (kTrxsInDagPacket && packet_data.rlp_.itemCount() != required_size) {
+  if (packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
-  } else if (!kTrxsInDagPacket && packet_data.rlp_.itemCount() != required_size_v2) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size_v2);
   }
 }
 
@@ -67,51 +62,6 @@ void DagBlockPacketHandler::process(const threadpool::PacketData &packet_data,
   }
 
   onNewBlockReceived(std::move(block), peer, transactions);
-}
-
-void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
-                                      const SharedTransactions &trxs) {
-  std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
-  if (!peer) {
-    LOG(log_wr_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id;
-    return;
-  }
-
-  // This lock prevents race condition between syncing and gossiping dag blocks
-  std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
-
-  // Transactions are first sent in transactions packet before sending the block
-  uint32_t index = 0;
-  while (index < trxs.size()) {
-    const uint32_t trx_count_to_send = std::min(static_cast<size_t>(kMaxTransactionsInPacket), trxs.size() - index);
-
-    dev::RLPStream s(TransactionPacketHandler::kTransactionPacketItemCount);
-    s.appendList(trx_count_to_send);
-
-    taraxa::bytes trx_bytes;
-    for (uint32_t i = index; i < index + trx_count_to_send; i++) {
-      auto trx_data = trxs[i]->rlp();
-      s << trxs[i]->getHash();
-      trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
-    }
-
-    s.appendList(trx_count_to_send);
-    s.appendRaw(trx_bytes, trx_count_to_send);
-    sealAndSend(peer_id, TransactionPacket, std::move(s));
-
-    index += trx_count_to_send;
-  }
-
-  if (!sealAndSend(peer_id, DagBlockPacket, block.streamRLP(true))) {
-    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed to " << peer_id;
-    return;
-  }
-
-  // Mark data as known if sending was successful
-  peer->markDagBlockAsKnown(block.getHash());
-  for (const auto &trx : trxs) {
-    peer->markTransactionAsKnown(trx->getHash());
-  }
 }
 
 void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
@@ -290,11 +240,8 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
           transactions_to_send.push_back(trx);
           peer_and_transactions_to_log += trx_hash.abridged();
         }
-        if (kTrxsInDagPacket) {
-          sendBlockWithTransactions(peer_id, block, transactions_to_send);
-        } else {
-          sendBlock(peer_id, block, transactions_to_send);
-        }
+
+        sendBlockWithTransactions(peer_id, block, transactions_to_send);
         peer->markDagBlockAsKnown(block_hash);
       }
     }
