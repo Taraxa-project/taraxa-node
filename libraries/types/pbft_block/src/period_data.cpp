@@ -50,7 +50,11 @@ bytes PeriodData::rlp() const {
     s.append("");
   }
 
-  s.appendRaw(encodeDAGBlocksBundleRlp(dag_blocks));
+  if (dag_blocks.empty()) {
+    s.append("");
+  } else {
+    s.appendRaw(encodeDAGBlocksBundleRlp(dag_blocks));
+  }
 
   s.appendList(transactions.size());
   for (auto const& t : transactions) {
