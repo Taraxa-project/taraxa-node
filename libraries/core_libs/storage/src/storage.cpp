@@ -1263,7 +1263,7 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(P
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
     auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
     ret.reserve(dag_blocks.size());
-    for (auto const block : dag_blocks_data) {
+    for (auto const block : dag_blocks) {
       ret.emplace_back(std::make_shared<DagBlock>(std::move(block)));
     }
   }
