@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/pbft_sync_packet_handler.hpp"
 
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -7,7 +7,7 @@
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v3 {
 
 PbftSyncPacketHandler::PbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -231,7 +231,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 }
 
 PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_rlp) const {
-  return PeriodData(period_data_rlp);
+  return PeriodData::FromOldPeriodData(period_data_rlp);
 }
 
 std::vector<std::shared_ptr<PbftVote>> PbftSyncPacketHandler::decodeVotesBundle(
@@ -293,4 +293,4 @@ void PbftSyncPacketHandler::handleMaliciousSyncPeer(const dev::p2p::NodeID &id) 
   }
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::tarcap::v3

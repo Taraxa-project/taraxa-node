@@ -98,6 +98,36 @@ PeriodData PeriodData::FromOldPeriodData(const dev::RLP& rlp) {
   return period_data;
 }
 
+bytes PeriodData::ToOldPeriodData(const bytes& rlp) {
+  PeriodData period_data(rlp);
+  const auto kRlpSize = period_data.pillar_votes_.has_value() ? kBaseRlpItemCount + 1 : kBaseRlpItemCount;
+  dev::RLPStream s(kRlpSize);
+  s.appendRaw(period_data.pbft_blk->rlp(true));
+
+  if (period_data.pbft_blk->getPeriod() > 1) [[likely]] {
+    s.appendRaw(encodePbftVotesBundleRlp(period_data.previous_block_cert_votes));
+  } else {
+    s.append("");
+  }
+
+  s.appendList(period_data.dag_blocks.size());
+  for (auto const& b : period_data.dag_blocks) {
+    s.appendRaw(b.rlp(true));
+  }
+
+  s.appendList(period_data.transactions.size());
+  for (auto const& t : period_data.transactions) {
+    s.appendRaw(t->rlp());
+  }
+
+  // Pillar votes are optional data of period data since ficus hardfork
+  if (period_data.pillar_votes_.has_value()) {
+    s.appendRaw(encodePillarVotesBundleRlp(*period_data.pillar_votes_));
+  }
+
+  return s.invalidate();
+}
+
 std::ostream& operator<<(std::ostream& strm, PeriodData const& b) {
   strm << "[PeriodData] : " << b.pbft_blk << " , num of votes " << b.previous_block_cert_votes.size() << std::endl;
   return strm;
