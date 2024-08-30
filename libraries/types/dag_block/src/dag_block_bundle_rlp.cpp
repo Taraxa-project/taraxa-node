@@ -12,9 +12,9 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
     return {};
   }
 
-  std::unordered_map<trx_hash_t, uint16_t> trx_hash_map;
+  std::unordered_map<trx_hash_t, uint16_t> trx_hash_map;  // Map to store transaction hash and its index
   std::vector<trx_hash_t> ordered_trx_hashes;
-  std::vector<std::vector<uint16_t>> flat_ranges;  // Flat structure for each block
+  std::vector<std::vector<uint16_t>> indexes;
 
   for (const auto& block : blocks) {
     std::vector<uint16_t> idx;
@@ -22,30 +22,11 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
 
     for (const auto& trx : block.getTrxs()) {
       if (const auto [_, ok] = trx_hash_map.try_emplace(trx, static_cast<uint16_t>(trx_hash_map.size())); ok) {
-        ordered_trx_hashes.push_back(trx);
+        ordered_trx_hashes.push_back(trx);  // Track the insertion order
       }
       idx.push_back(trx_hash_map[trx]);
     }
-
-    // Convert indexes into ranges and store in a flat structure
-    std::vector<uint16_t> block_flat_ranges;
-    uint16_t range_start = idx[0];
-    uint16_t range_length = 1;
-
-    for (size_t i = 1; i < idx.size(); ++i) {
-      if (idx[i] == range_start + range_length) {
-        ++range_length;
-      } else {
-        block_flat_ranges.push_back(range_start);
-        block_flat_ranges.push_back(range_length);
-        range_start = idx[i];
-        range_length = 1;
-      }
-    }
-    block_flat_ranges.push_back(range_start);
-    block_flat_ranges.push_back(range_length);
-
-    flat_ranges.push_back(std::move(block_flat_ranges));
+    indexes.push_back(idx);
   }
 
   dev::RLPStream blocks_bundle_rlp(kDAGBlocksBundleRlpSize);
@@ -53,20 +34,17 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
   for (const auto& trx_hash : ordered_trx_hashes) {
     blocks_bundle_rlp.append(trx_hash);
   }
-
-  blocks_bundle_rlp.appendList(flat_ranges.size());
-  for (const auto& block_flat_ranges : flat_ranges) {
-    blocks_bundle_rlp.appendList(block_flat_ranges.size());
-    for (const auto& range_value : block_flat_ranges) {
-      blocks_bundle_rlp.append(range_value);
+  blocks_bundle_rlp.appendList(indexes.size());
+  for (const auto& idx : indexes) {
+    blocks_bundle_rlp.appendList(idx.size());
+    for (const auto& i : idx) {
+      blocks_bundle_rlp.append(i);
     }
   }
-
   blocks_bundle_rlp.appendList(blocks.size());
   for (const auto& block : blocks) {
     blocks_bundle_rlp.appendRaw(block.rlp(true, false));
   }
-
   return blocks_bundle_rlp.invalidate();
 }
 
@@ -78,20 +56,17 @@ std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp
   std::vector<trx_hash_t> ordered_trx_hashes;
   std::vector<std::vector<trx_hash_t>> dags_trx_hashes;
 
+  // Decode transaction hashes and
   ordered_trx_hashes.reserve(blocks_bundle_rlp[0].itemCount());
   std::transform(blocks_bundle_rlp[0].begin(), blocks_bundle_rlp[0].end(), std::back_inserter(ordered_trx_hashes),
                  [](const auto& trx_hash_rlp) { return trx_hash_rlp.template toHash<trx_hash_t>(); });
 
-  for (const auto& block_ranges_rlp : blocks_bundle_rlp[1]) {
+  for (const auto& idx_rlp : blocks_bundle_rlp[1]) {
     std::vector<trx_hash_t> hashes;
-    for (size_t i = 0; i < block_ranges_rlp.itemCount(); i += 2) {
-      uint16_t start_index = block_ranges_rlp[i].toInt<uint16_t>();
-      uint16_t length = block_ranges_rlp[i + 1].toInt<uint16_t>();
+    hashes.reserve(idx_rlp.itemCount());
+    std::transform(idx_rlp.begin(), idx_rlp.end(), std::back_inserter(hashes),
+                   [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint16_t>()]; });
 
-      for (uint16_t j = 0; j < length; ++j) {
-        hashes.push_back(ordered_trx_hashes[start_index + j]);
-      }
-    }
     dags_trx_hashes.push_back(std::move(hashes));
   }
 
@@ -119,18 +94,11 @@ std::shared_ptr<DagBlock> decodeDAGBlockBundleRlp(uint64_t index, const dev::RLP
   std::transform(blocks_bundle_rlp[0].begin(), blocks_bundle_rlp[0].end(), std::back_inserter(ordered_trx_hashes),
                  [](const auto& trx_hash_rlp) { return trx_hash_rlp.template toHash<trx_hash_t>(); });
 
-  const auto block_ranges_rlp = blocks_bundle_rlp[1][index];
+  const auto idx_rlp = blocks_bundle_rlp[1][index];
   std::vector<trx_hash_t> hashes;
-
-  for (size_t i = 0; i < block_ranges_rlp.itemCount(); i += 2) {
-    uint16_t start_index = block_ranges_rlp[i].toInt<uint16_t>();
-    uint16_t length = block_ranges_rlp[i + 1].toInt<uint16_t>();
-
-    for (uint16_t j = 0; j < length; ++j) {
-      hashes.push_back(ordered_trx_hashes[start_index + j]);
-    }
-  }
-
+  hashes.reserve(idx_rlp.itemCount());
+  std::transform(idx_rlp.begin(), idx_rlp.end(), std::back_inserter(hashes),
+                 [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint16_t>()]; });
   return std::make_shared<DagBlock>(blocks_bundle_rlp[2][index], std::move(hashes));
 }
 

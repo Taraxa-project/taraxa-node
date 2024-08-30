@@ -48,6 +48,7 @@ void DagBlockData::migrate(logger::Logger& log) {
     executor.post([this, i, &copied_col]() {
       const auto bytes = db_->getPeriodDataRaw(i);
       const auto period_data_old_rlp = dev::RLP(bytes);
+      assert(period_data_old_rlp.itemCount() == 4);
 
       auto period_data = ::taraxa::PeriodData::FromOldPeriodData(period_data_old_rlp);
 
