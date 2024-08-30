@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libp2p/Common.h"
+#include "Common.h"
 
 namespace dev::p2p {
 

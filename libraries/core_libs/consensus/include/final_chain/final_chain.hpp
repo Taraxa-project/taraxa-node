@@ -5,9 +5,11 @@
 #include "common/event.hpp"
 #include "common/types.hpp"
 #include "config/config.hpp"
+#include "config/state_config.hpp"
+#include "final_chain/cache.hpp"
 #include "final_chain/data.hpp"
 #include "final_chain/state_api.hpp"
-#include "final_chain/state_api_data.hpp"
+#include "rewards/rewards_stats.hpp"
 #include "storage/storage.hpp"
 
 namespace taraxa::final_chain {
@@ -35,15 +37,16 @@ class FinalChain {
   decltype(block_applying_emitter_)::Subscriber const& block_applying_ = block_applying_emitter_;
 
   FinalChain() = default;
-  virtual ~FinalChain() = default;
+  ~FinalChain() = default;
+  FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr);
   FinalChain(const FinalChain&) = delete;
   FinalChain(FinalChain&&) = delete;
   FinalChain& operator=(const FinalChain&) = delete;
   FinalChain& operator=(FinalChain&&) = delete;
 
-  virtual void stop() = 0;
+  void stop();
 
-  virtual EthBlockNumber delegation_delay() const = 0;
+  EthBlockNumber delegationDelay() const;
 
   /**
    * @brief Method which finalizes a block and executes it in EVM
@@ -53,9 +56,9 @@ class FinalChain {
    * @param precommit_ext
    * @return finalization result
    */
-  virtual std::future<std::shared_ptr<const FinalizationResult>> finalize(
-      PeriodData&& period_data, std::vector<h256>&& finalized_dag_blk_hashes,
-      std::shared_ptr<DagBlock>&& anchor = nullptr) = 0;
+  std::future<std::shared_ptr<const FinalizationResult>> finalize(PeriodData&& period_data,
+                                                                  std::vector<h256>&& finalized_dag_blk_hashes,
+                                                                  std::shared_ptr<DagBlock>&& anchor = nullptr);
 
   /**
    * @brief Method to get block header by block number
@@ -63,13 +66,13 @@ class FinalChain {
    * @param n block number of header to get. If not specified then it returns latest
    * @return BlockHeader
    */
-  virtual std::shared_ptr<const BlockHeader> block_header(std::optional<EthBlockNumber> n = {}) const = 0;
+  std::shared_ptr<const BlockHeader> blockHeader(std::optional<EthBlockNumber> n = {}) const;
 
   /**
    * @brief Method to get last block number(chain size)
    * @return EthBlockNumber
    */
-  virtual EthBlockNumber last_block_number() const = 0;
+  EthBlockNumber lastBlockNumber() const;
 
   /**
    * @brief Method to get block number by hash
@@ -77,7 +80,7 @@ class FinalChain {
    * @param h block hash
    * @return EthBlockNumber
    */
-  virtual std::optional<EthBlockNumber> block_number(h256 const& h) const = 0;
+  std::optional<EthBlockNumber> blockNumber(h256 const& h) const;
 
   /**
    * @brief Method to get block hash by block number
@@ -85,48 +88,48 @@ class FinalChain {
    * @param n EthBlockNumber
    * @return BlockHash h256
    */
-  virtual std::optional<h256> block_hash(std::optional<EthBlockNumber> n = {}) const = 0;
+  std::optional<h256> blockHash(std::optional<EthBlockNumber> n = {}) const;
 
   /**
    * @brief Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract
    * @param new_config state_api::Config
    */
-  virtual void update_state_config(const state_api::Config& new_config) = 0;
+  void updateStateConfig(const state_api::Config& new_config);
 
   /**
    * @brief Method to get all transaction hashes from the block
    * @param n EthBlockNumber
    * @return TransactionHashes list if transaction hashes
    */
-  virtual std::shared_ptr<const TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const = 0;
+  std::shared_ptr<const TransactionHashes> transactionHashes(std::optional<EthBlockNumber> n = {}) const;
 
   /**
    * @brief Method to get all transactions from the block
    * @param n EthBlockNumber
    * @return SharedTransactions vector of shared_ptrs to Transaction
    */
-  virtual const SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
+  const SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const;
 
   /**
    * @brief Method to get transaction location by hash
    * @param trx_hash hash of transaction to get location for
    * @return std::optional<TransactionLocation> transaction location or nullopt
    */
-  virtual std::optional<TransactionLocation> transaction_location(h256 const& trx_hash) const = 0;
+  std::optional<TransactionLocation> transactionLocation(h256 const& trx_hash) const;
 
   /**
    * @brief Method to get transaction receipt by hash
    * @param _transactionHash hash of transaction to get receipt for
    * @return std::optional<TransactionReceipt> transaction receipt or nullopt
    */
-  virtual std::optional<TransactionReceipt> transaction_receipt(h256 const& _transactionHash) const = 0;
+  std::optional<TransactionReceipt> transactionReceipt(h256 const& _transactionHash) const;
 
   /**
    * @brief Method to get transactions count in block
    * @param n block number
    * @return count of transactions in block
    */
-  virtual uint64_t transactionCount(std::optional<EthBlockNumber> n = {}) const = 0;
+  uint64_t transactionCount(std::optional<EthBlockNumber> n = {}) const;
 
   /**
    * @brief Method used to search for contract logs with bloom filter
@@ -135,8 +138,7 @@ class FinalChain {
    * @param to EthBlockNumber block to end search
    * @return block that matches specified bloom filter
    */
-  virtual std::vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from,
-                                                     EthBlockNumber to) const = 0;
+  std::vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to) const;
 
   /**
    * @brief Method to get account information
@@ -145,8 +147,7 @@ class FinalChain {
    * @param blk_n number of block we are getting state from
    * @return std::optional<state_api::Account> account object or nullopt if account wasn't found
    */
-  virtual std::optional<state_api::Account> get_account(addr_t const& addr,
-                                                        std::optional<EthBlockNumber> blk_n = {}) const = 0;
+  std::optional<state_api::Account> getAccount(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const;
 
   /**
    * @brief Returns the value from a storage position at a given address.
@@ -155,15 +156,14 @@ class FinalChain {
    * @param blk_n number of block we are getting state from
    * @return the value at this storage position
    */
-  virtual h256 get_account_storage(addr_t const& addr, u256 const& key,
-                                   std::optional<EthBlockNumber> blk_n = {}) const = 0;
+  h256 getAccountStorage(addr_t const& addr, u256 const& key, std::optional<EthBlockNumber> blk_n = {}) const;
   /**
    * @brief Returns code at a given address.
    * @param addr account address
    * @param blk_n number of block we are getting state from
    * @return code at a given address.
    */
-  virtual bytes get_code(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;
+  bytes getCode(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const;
 
   /**
    * @brief Executes a new message call immediately without creating a transaction on the block chain. That means that
@@ -172,8 +172,7 @@ class FinalChain {
    * @param blk_n EthBlockNumber number of block we are getting state from
    * @return state_api::ExecutionResult
    */
-  virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
-                                          std::optional<EthBlockNumber> blk_n = {}) const = 0;
+  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, std::optional<EthBlockNumber> blk_n = {}) const;
 
   /**
    * @brief Trace execution of a new message call immediately without creating a transactions on the block chain. That
@@ -182,15 +181,15 @@ class FinalChain {
    * @param blk_n EthBlockNumber number of block we are getting state from
    * @return std::string
    */
-  virtual std::string trace(std::vector<state_api::EVMTransaction> trx, EthBlockNumber blk_n,
-                            std::optional<state_api::Tracing> params = {}) const = 0;
+  std::string trace(std::vector<state_api::EVMTransaction> trx, EthBlockNumber blk_n,
+                    std::optional<state_api::Tracing> params = {}) const;
 
   /**
    * @brief total count of eligible votes are in DPOS precompiled contract
    * @param blk_num EthBlockNumber number of block we are getting state from
    * @return total count of eligible votes
    */
-  virtual uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const = 0;
+  uint64_t dposEligibleTotalVoteCount(EthBlockNumber blk_num) const;
 
   /**
    * @brief total count of eligible votes account has in DPOS precompiled contract
@@ -198,7 +197,7 @@ class FinalChain {
    * @param addr account address
    * @return address eligible votes count
    */
-  virtual uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const = 0;
+  uint64_t dposEligibleVoteCount(EthBlockNumber blk_num, addr_t const& addr) const;
 
   /**
    * @brief method to check if address have enough votes to participate in consensus
@@ -206,7 +205,7 @@ class FinalChain {
    * @param addr account address
    * @return is address eligible
    */
-  virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
+  bool dposIsEligible(EthBlockNumber blk_num, addr_t const& addr) const;
 
   /**
    * @brief Get the vrf key object from DPOS state
@@ -214,66 +213,114 @@ class FinalChain {
    * @param blk_n number of block we are getting state from
    * @return vrf_wrapper::vrf_pk_t
    */
-  virtual vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const = 0;
+  vrf_wrapper::vrf_pk_t dposGetVrfKey(EthBlockNumber blk_n, const addr_t& addr) const;
 
   /**
    * @brief Prune state db for all blocks older than blk_n
    * @param blk_n number of block we are getting state from
    */
-  virtual void prune(EthBlockNumber blk_n) = 0;
+  void prune(EthBlockNumber blk_n);
 
   /**
    * @brief Wait until next block is finalized
    */
-  virtual void wait_for_finalized() = 0;
+  void waitForFinalized();
 
-  virtual std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const = 0;
+  std::vector<state_api::ValidatorStake> dposValidatorsTotalStakes(EthBlockNumber blk_num) const;
 
-  virtual uint256_t dpos_total_amount_delegated(EthBlockNumber blk_num) const = 0;
+  uint256_t dposTotalAmountDelegated(EthBlockNumber blk_num) const;
 
   /**
    * @param blk_num
    * @return vector of validators vote counts for provided blk_num
    */
-  virtual std::vector<state_api::ValidatorVoteCount> dpos_validators_vote_counts(EthBlockNumber blk_num) const = 0;
+  std::vector<state_api::ValidatorVoteCount> dposValidatorsVoteCounts(EthBlockNumber blk_num) const;
 
   /**
    * @param blk_num
    * @return yield
    */
-  virtual uint64_t dpos_yield(EthBlockNumber blk_num) const = 0;
+  uint64_t dposYield(EthBlockNumber blk_num) const;
 
   /**
    * @param blk_num
    * @return total supply
    */
-  virtual u256 dpos_total_supply(EthBlockNumber blk_num) const = 0;
+  u256 dposTotalSupply(EthBlockNumber blk_num) const;
 
   /**
    * @param blk_num
    * @return bridge root
    */
-  virtual h256 get_bridge_root(EthBlockNumber blk_num) const = 0;
+  h256 getBridgeRoot(EthBlockNumber blk_num) const;
 
   /**
    * @param blk_num
    * @return bridge epoch
    */
-  virtual h256 get_bridge_epoch(EthBlockNumber blk_num) const = 0;
+  h256 getBridgeEpoch(EthBlockNumber blk_num) const;
   // TODO move out of here:
 
-  std::pair<val_t, bool> getBalance(addr_t const& addr) const {
-    if (auto acc = get_account(addr)) {
-      return {acc->balance, true};
-    }
-    return {0, false};
-  }
+  std::pair<val_t, bool> getBalance(addr_t const& addr) const;
+  SharedTransaction makeBridgeFinalizationTransaction();
+  bool isNeedToFinalize(EthBlockNumber blk_num) const;
+  std::vector<SharedTransaction> makeSystemTransactions(PbftPeriod blk_num);
+  std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
+                                                      std::vector<h256>&& finalized_dag_blk_hashes,
+                                                      std::shared_ptr<DagBlock>&& anchor);
+  std::shared_ptr<BlockHeader> appendBlock(Batch& batch, const addr_t& author, uint64_t timestamp, uint64_t gas_limit,
+                                           const h256& state_root, u256 total_reward,
+                                           const SharedTransactions& transactions = {},
+                                           const TransactionReceipts& receipts = {}, const bytes& extra_data = {});
+
+ private:
+  std::shared_ptr<TransactionHashes> getTransactionHashes(std::optional<EthBlockNumber> n = {}) const;
+  const SharedTransactions getTransactions(std::optional<EthBlockNumber> n = {}) const;
+  std::shared_ptr<const BlockHeader> getBlockHeader(EthBlockNumber n) const;
+  std::optional<h256> getBlockHash(EthBlockNumber n) const;
+  EthBlockNumber lastIfAbsent(const std::optional<EthBlockNumber>& client_blk_n) const;
+  static state_api::EVMTransaction toEvmTransaction(const SharedTransaction& trx);
+  static void appendEvmTransactions(std::vector<state_api::EVMTransaction>& evm_trxs, const SharedTransactions& trxs);
+  BlocksBlooms blockBlooms(const h256& chunk_id) const;
+  static h256 blockBloomsChunkId(EthBlockNumber level, EthBlockNumber index);
+  std::vector<EthBlockNumber> withBlockBloom(const LogBloom& b, EthBlockNumber from, EthBlockNumber to,
+                                             EthBlockNumber level, EthBlockNumber index) const;
+
+ private:
+  std::shared_ptr<DbStorage> db_;
+  const uint64_t kBlockGasLimit;
+  StateAPI state_api_;
+  const bool kLightNode = false;
+  const uint32_t kMaxLevelsPerPeriod;
+  rewards::Stats rewards_;
+
+  // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
+  boost::asio::thread_pool executor_thread_{1};
+
+  std::atomic<uint64_t> num_executed_dag_blk_ = 0;
+  std::atomic<uint64_t> num_executed_trx_ = 0;
+
+  EthBlockNumber delegation_delay_;
+
+  ValueByBlockCache<std::shared_ptr<const BlockHeader>> block_headers_cache_;
+  ValueByBlockCache<std::optional<const h256>> block_hashes_cache_;
+  ValueByBlockCache<const SharedTransactions> transactions_cache_;
+  ValueByBlockCache<std::shared_ptr<const TransactionHashes>> transaction_hashes_cache_;
+  MapByBlockCache<addr_t, std::optional<const state_api::Account>> accounts_cache_;
+
+  ValueByBlockCache<uint64_t> total_vote_count_cache_;
+  MapByBlockCache<addr_t, uint64_t> dpos_vote_count_cache_;
+  MapByBlockCache<addr_t, uint64_t> dpos_is_eligible_cache_;
+
+  std::condition_variable finalized_cv_;
+  std::mutex finalized_mtx_;
+
+  std::atomic<EthBlockNumber> last_block_number_;
+
+  const HardforksConfig& kHardforksConfig;
+  LOG_OBJECTS_DEFINE
 };
 
 /** @} */
 
 }  // namespace taraxa::final_chain
-
-namespace taraxa {
-using final_chain::FinalChain;
-}  // namespace taraxa

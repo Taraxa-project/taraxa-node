@@ -2,17 +2,15 @@
 // Copyright 2014-2019 Aleth Authors.
 // Licensed under the GNU General Public License, Version 3.
 
-#include <sys/types.h>
 #ifndef _WIN32
 #include <ifaddrs.h>
 #endif
 
 #include <libdevcore/Assertions.h>
-#include <libdevcore/Common.h>
 #include <libdevcore/CommonIO.h>
 #include <libdevcore/Exceptions.h>
 
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
 #include "Common.h"

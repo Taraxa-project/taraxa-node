@@ -11,9 +11,6 @@
 #include "RLPXFrameCoder.h"
 #include "RLPXSocket.h"
 
-namespace ba = boost::asio;
-namespace bi = boost::asio::ip;
-
 namespace dev {
 namespace p2p {
 

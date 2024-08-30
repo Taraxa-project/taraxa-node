@@ -2,11 +2,8 @@
 
 #include <libdevcore/RLP.h>
 
-#include <optional>
-
 #include "common/types.hpp"
-#include "common/util.hpp"
-#include "sodium.h"
+#include "sodium/crypto_vrf.h"
 
 namespace taraxa::vrf_wrapper {
 
@@ -21,7 +18,7 @@ vrf_pk_t getVrfPublicKey(vrf_sk_t const &sk);
 bool isValidVrfPublicKey(vrf_pk_t const &pk);
 // get proof if public is valid
 std::optional<vrf_proof_t> getVrfProof(vrf_sk_t const &pk, bytes const &msg);
-// get output if proff is valid
+// get output if proof is valid
 std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &proof, bytes const &msg,
                                          bool strict = true);
 

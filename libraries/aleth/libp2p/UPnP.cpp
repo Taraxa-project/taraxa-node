@@ -15,8 +15,7 @@
 #include <libdevcore/CommonIO.h>
 #include <libdevcore/Exceptions.h>
 #include <libdevcore/Log.h>
-using namespace std;
-using namespace dev;
+
 using namespace dev::p2p;
 
 UPnP::UPnP()
@@ -82,7 +81,7 @@ UPnP::~UPnP() {
   for (auto i : r) removeRedirect(i);
 }
 
-string UPnP::externalIP() {
+std::string UPnP::externalIP() {
 #if ETH_MINIUPNPC
   char addr[16];
   if (!UPNP_GetExternalIPAddress(m_urls->controlURL, m_data->first.servicetype, addr)) return addr;

@@ -1,5 +1,13 @@
 #include "config/config_utils.hpp"
 
+#include <json/reader.h>
+#include <json/value.h>
+#include <stddef.h>
+
+#include <fstream>
+
+#include "common/config_exception.hpp"
+
 namespace taraxa {
 
 std::string getConfigErr(const std::vector<std::string> &path) {

@@ -19,7 +19,7 @@ struct RewardsStatsTest : NodesTest {};
 
 class TestableRewardsStats : public rewards::Stats {
  public:
-  TestableRewardsStats(const HardforksConfig::RewardsDistributionMap& rdm, std::shared_ptr<DB> db)
+  TestableRewardsStats(const HardforksConfig::RewardsDistributionMap& rdm, std::shared_ptr<DbStorage> db)
       : rewards::Stats(
             100,
             HardforksConfig{0, {}, rdm, MagnoliaHardfork{0, 0}, 0, 0, AspenHardfork{0, 0}, FicusHardforkConfig{0, 0}},

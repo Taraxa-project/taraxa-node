@@ -5,12 +5,8 @@
 #include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 
-#include <algorithm>
-
-#include "common/constants.hpp"
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "final_chain/state_api_data.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {

@@ -3,22 +3,16 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
-#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <iostream>
 #include <memory>
-#include <stdexcept>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include "../../gtest.hpp"
-#include "common/encoding_solidity.hpp"
-#include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "network/network.hpp"
 #include "node/node.hpp"
 #include "transaction/transaction_manager.hpp"
 

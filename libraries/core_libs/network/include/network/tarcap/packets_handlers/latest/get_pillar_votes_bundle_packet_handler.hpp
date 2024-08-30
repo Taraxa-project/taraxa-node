@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
-#include "pillar_chain/pillar_block.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 
 namespace taraxa::network::tarcap {

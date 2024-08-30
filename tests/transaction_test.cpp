@@ -8,7 +8,7 @@
 
 #include "common/static_init.hpp"
 #include "config/genesis.hpp"
-#include "final_chain/final_chain_impl.hpp"
+#include "final_chain/final_chain.hpp"
 #include "final_chain/trie_common.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -122,7 +122,7 @@ TEST_F(TransactionTest, sig) {
 TEST_F(TransactionTest, verifiers) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
-  auto final_chain = std::make_shared<final_chain::FinalChainImpl>(db, cfg, addr_t{});
+  auto final_chain = std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{});
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
@@ -143,7 +143,7 @@ TEST_F(TransactionTest, verifiers) {
 TEST_F(TransactionTest, transaction_limit) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
-  TransactionManager trx_mgr(cfg, db, std::make_shared<final_chain::FinalChainImpl>(db, cfg, addr_t{}), addr_t());
+  TransactionManager trx_mgr(cfg, db, std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{}), addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
@@ -164,7 +164,7 @@ TEST_F(TransactionTest, transaction_limit) {
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
-  TransactionManager trx_mgr(cfg, db, std::make_shared<final_chain::FinalChainImpl>(db, cfg, addr_t{}), addr_t());
+  TransactionManager trx_mgr(cfg, db, std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{}), addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(t);
@@ -194,7 +194,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 TEST_F(TransactionTest, transaction_low_nonce) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
-  auto final_chain = std::make_shared<final_chain::FinalChainImpl>(db, cfg, addr_t{});
+  auto final_chain = std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{});
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   const auto& trx_2 = g_signed_trx_samples[1];
   auto& trx_1 = g_signed_trx_samples[0];
@@ -234,7 +234,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
 
   // Verify insufficient balance transaction is detected in verification
   auto trx_insufficient_balance =
-      std::make_shared<Transaction>(3, final_chain->get_account(dev::toAddress(g_secret))->balance + 1, 0, 100000,
+      std::make_shared<Transaction>(3, final_chain->getAccount(dev::toAddress(g_secret))->balance + 1, 0, 100000,
                                     dev::bytes(), g_secret, addr_t::random());
   result = trx_mgr.verifyTransaction(trx_insufficient_balance);
   EXPECT_EQ(result.first, true);
@@ -266,7 +266,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
 TEST_F(TransactionTest, transaction_concurrency) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
-  TransactionManager trx_mgr(cfg, db, std::make_shared<final_chain::FinalChainImpl>(db, cfg, addr_t{}), addr_t());
+  TransactionManager trx_mgr(cfg, db, std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{}), addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
   std::thread insertTrx([&trx_mgr, &stopped]() {
@@ -650,7 +650,7 @@ TEST_F(TransactionTest, typed_deserialization) {
 TEST_F(TransactionTest, zero_gas_price_limit) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
-  auto final_chain = std::make_shared<final_chain::FinalChainImpl>(db, cfg, addr_t{});
+  auto final_chain = std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{});
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   auto make_trx_with_price = [](uint64_t price) {
     return std::make_shared<Transaction>(1, 100, price, 100000, dev::bytes(), g_secret, addr_t::random());
@@ -673,7 +673,7 @@ TEST_F(TransactionTest, gas_price_limiting) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
   auto minimum_price = cfg.genesis.gas_price.minimum_price = 10;
-  auto final_chain = std::make_shared<final_chain::FinalChainImpl>(db, cfg, addr_t{});
+  auto final_chain = std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{});
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   auto make_trx_with_price = [](uint64_t price) {
     return std::make_shared<Transaction>(1, 100, price, 100000, dev::bytes(), g_secret, addr_t::random());

@@ -9,9 +9,9 @@
 #include <cryptopp/modes.h>
 #include <cryptopp/pwdbased.h>
 #include <cryptopp/sha.h>
+#include <libdevcore/CommonData.h>
 
 using namespace dev;
-using namespace dev::crypto;
 
 bytes dev::aesDecrypt(bytesConstRef _ivCipher, std::string const& _password, unsigned _rounds, bytesConstRef _salt) {
   bytes pw = asBytes(_password);

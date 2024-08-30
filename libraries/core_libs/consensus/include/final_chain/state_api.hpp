@@ -6,9 +6,12 @@
 
 #include "final_chain/state_api_data.hpp"
 #include "rewards/block_stats.hpp"
-#include "storage/storage.hpp"
 
 namespace taraxa::state_api {
+
+struct Config;
+struct Opts;
+struct OptsDB;
 
 /** @addtogroup FinalChain
  * @{

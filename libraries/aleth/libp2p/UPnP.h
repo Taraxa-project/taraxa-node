@@ -7,7 +7,6 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <thread>
 
 struct UPNPUrls;
 struct IGDdatas;

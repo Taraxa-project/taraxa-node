@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <thread>
 
 #include "common/types.hpp"
@@ -55,11 +54,10 @@ class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk);
+  PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
+              std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -258,7 +256,7 @@ class PbftManager {
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
    */
-  void testBroadcatVotesFunctionality();
+  void testBroadcastVotesFunctionality();
 
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
@@ -306,7 +304,7 @@ class PbftManager {
 
   /**
    * @brief Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain
-   * @return true if new cert voted block was pushed into the chain, otheriwse false
+   * @return true if new cert voted block was pushed into the chain, otherwise false
    */
   bool tryPushCertVotesBlock();
 
@@ -530,7 +528,7 @@ class PbftManager {
                                   const std::vector<std::shared_ptr<PbftVote>> &cert_votes) const;
 
   /**
-   @brief Validates PBFT block [illar] votes
+   @brief Validates PBFT block pillar votes
    *
    * @param period_data
    * @return
@@ -568,7 +566,7 @@ class PbftManager {
   std::shared_ptr<DagManager> dag_mgr_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
   const addr_t node_addr_;

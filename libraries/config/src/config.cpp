@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include "common/jsoncpp.hpp"
+#include "common/config_exception.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config_utils.hpp"
 

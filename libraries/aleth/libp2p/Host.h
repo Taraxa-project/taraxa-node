@@ -4,16 +4,14 @@
 
 #pragma once
 
+#include <libdevcore/CommonIO.h>
 #include <libdevcore/Guards.h>
 #include <libdevcrypto/Common.h>
 
 #include <chrono>
 #include <filesystem>
-#include <map>
 #include <memory>
-#include <mutex>
 #include <set>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -25,9 +23,6 @@
 #include "RLPxHandshake.h"
 #include "Session.h"
 #include "taraxa.hpp"
-
-namespace io = boost::asio;
-namespace bi = io::ip;
 
 namespace std {
 template <>

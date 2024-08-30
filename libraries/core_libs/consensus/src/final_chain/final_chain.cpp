@@ -1,14 +1,18 @@
+#include "final_chain/final_chain.hpp"
+
 #include "common/encoding_solidity.hpp"
-#include "final_chain/final_chain_impl.hpp"
+#include "common/util.hpp"
 #include "final_chain/trie_common.hpp"
+#include "storage/storage.hpp"
+#include "transaction/system_transaction.hpp"
 
 namespace taraxa::final_chain {
 
-FinalChainImpl::FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config,
-                               const addr_t& node_addr)
+FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config,
+                       const addr_t& node_addr)
     : db_(db),
       kBlockGasLimit(config.genesis.pbft.gas_limit),
-      state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
+      state_api_([this](auto n) { return blockHash(n).value_or(ZeroHash()); },  //
                  config.genesis.state, config.opts_final_chain,
                  {
                      db->stateDbStoragePath().string(),
@@ -17,13 +21,13 @@ FinalChainImpl::FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::Full
       kMaxLevelsPerPeriod(config.max_levels_per_period),
       rewards_(
           config.genesis.pbft.committee_size, config.genesis.state.hardforks, db_,
-          [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); },
+          [this](EthBlockNumber n) { return dposEligibleTotalVoteCount(n); },
           state_api_.get_last_committed_state_descriptor().blk_num),
-      block_headers_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_header(blk); }),
-      block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
-      transactions_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_transactions(blk); }),
+      block_headers_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return getBlockHeader(blk); }),
+      block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return getBlockHash(blk); }),
+      transactions_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return getTransactions(blk); }),
       transaction_hashes_cache_(config.final_chain_cache_in_blocks,
-                                [this](uint64_t blk) { return get_transaction_hashes(blk); }),
+                                [this](uint64_t blk) { return getTransactionHashes(blk); }),
       accounts_cache_(config.final_chain_cache_in_blocks,
                       [this](uint64_t blk, const addr_t& addr) { return state_api_.get_account(blk, addr); }),
       total_vote_count_cache_(config.final_chain_cache_in_blocks,
@@ -39,12 +43,12 @@ FinalChainImpl::FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::Full
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   auto state_db_descriptor = state_api_.get_last_committed_state_descriptor();
-  auto last_blk_num = db_->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
+  auto last_blk_num = db_->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DbStorage::Columns::final_chain_meta);
   // If we don't have genesis block in db then create and push it
   if (!last_blk_num) [[unlikely]] {
     auto batch = db_->createWriteBatch();
-    auto header = append_block(batch, addr_t(), config.genesis.dag_genesis_block.getTimestamp(), kBlockGasLimit,
-                               state_db_descriptor.state_root, u256(0));
+    auto header = appendBlock(batch, addr_t(), config.genesis.dag_genesis_block.getTimestamp(), kBlockGasLimit,
+                              state_db_descriptor.state_root, u256(0));
 
     block_headers_cache_.append(header->number, header);
     last_block_number_ = header->number;
@@ -65,9 +69,9 @@ FinalChainImpl::FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::Full
         auto period_system_transactions = db_->getPeriodSystemTransactionsHashes(block_n);
         num_executed_trx_ -= period_system_transactions.size();
       }
-      db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
-      db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
-      db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
+      db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
+      db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
+      db_->insert(batch, DbStorage::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
       db_->commitWriteBatch(batch);
       last_blk_num = state_db_descriptor.blk_num;
     }
@@ -92,9 +96,9 @@ FinalChainImpl::FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::Full
   }
 }
 
-void FinalChainImpl::stop() { executor_thread_.join(); }
+void FinalChain::stop() { executor_thread_.join(); }
 
-std::future<std::shared_ptr<const FinalizationResult>> FinalChainImpl::finalize(
+std::future<std::shared_ptr<const FinalizationResult>> FinalChain::finalize(
     PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes, std::shared_ptr<DagBlock>&& anchor) {
   auto p = std::make_shared<std::promise<std::shared_ptr<const FinalizationResult>>>();
   boost::asio::post(executor_thread_, [this, new_blk = std::move(new_blk),
@@ -106,18 +110,18 @@ std::future<std::shared_ptr<const FinalizationResult>> FinalChainImpl::finalize(
   return p->get_future();
 }
 
-EthBlockNumber FinalChainImpl::delegation_delay() const { return delegation_delay_; }
+EthBlockNumber FinalChain::delegationDelay() const { return delegation_delay_; }
 
-SharedTransaction FinalChainImpl::make_bridge_finalization_transaction() {
+SharedTransaction FinalChain::makeBridgeFinalizationTransaction() {
   const static auto finalize_method = util::EncodingSolidity::packFunctionCall("finalizeEpoch()");
-  auto account = get_account(kTaraxaSystemAccount).value_or(state_api::ZeroAccount);
+  auto account = getAccount(kTaraxaSystemAccount).value_or(state_api::ZeroAccount);
 
   auto trx = std::make_shared<SystemTransaction>(account.nonce, 0, 0, kBlockGasLimit, finalize_method,
                                                  kHardforksConfig.ficus_hf.bridge_contract_address);
   return trx;
 }
 
-bool FinalChainImpl::isNeedToFinalize(EthBlockNumber blk_num) const {
+bool FinalChain::isNeedToFinalize(EthBlockNumber blk_num) const {
   const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("shouldFinalizeEpoch()");
   return u256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
                                              state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
@@ -126,15 +130,15 @@ bool FinalChainImpl::isNeedToFinalize(EthBlockNumber blk_num) const {
       .convert_to<bool>();
 }
 
-std::vector<SharedTransaction> FinalChainImpl::makeSystemTransactions(PbftPeriod blk_num) {
+std::vector<SharedTransaction> FinalChain::makeSystemTransactions(PbftPeriod blk_num) {
   std::vector<SharedTransaction> system_transactions;
-  // Make system transactions <delegation_delay()> blocks sooner than next pillar block period,
-  // e.g.: if pillar block period is 100, this will return true for period 100 - delegation_delay() == 95, 195, 295,
+  // Make system transactions <delegationDelay()> blocks sooner than next pillar block period,
+  // e.g.: if pillar block period is 100, this will return true for period 100 - delegationDelay() == 95, 195, 295,
   // etc...
-  if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num + delegation_delay())) {
-    if (const auto bridge_contract = get_account(kHardforksConfig.ficus_hf.bridge_contract_address); bridge_contract) {
+  if (kHardforksConfig.ficus_hf.isPillarBlockPeriod(blk_num + delegationDelay())) {
+    if (const auto bridge_contract = getAccount(kHardforksConfig.ficus_hf.bridge_contract_address); bridge_contract) {
       if (bridge_contract->code_size && isNeedToFinalize(blk_num - 1)) {
-        auto finalize_trx = make_bridge_finalization_transaction();
+        auto finalize_trx = makeBridgeFinalizationTransaction();
         system_transactions.push_back(finalize_trx);
       }
     }
@@ -143,12 +147,12 @@ std::vector<SharedTransaction> FinalChainImpl::makeSystemTransactions(PbftPeriod
   return system_transactions;
 }
 
-std::shared_ptr<const FinalizationResult> FinalChainImpl::finalize_(PeriodData&& new_blk,
-                                                                    std::vector<h256>&& finalized_dag_blk_hashes,
-                                                                    std::shared_ptr<DagBlock>&& anchor) {
+std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new_blk,
+                                                                std::vector<h256>&& finalized_dag_blk_hashes,
+                                                                std::shared_ptr<DagBlock>&& anchor) {
   auto batch = db_->createWriteBatch();
 
-  block_applying_emitter_.emit(block_header()->number + 1);
+  block_applying_emitter_.emit(blockHeader()->number + 1);
 
   /*
   // Any dag block producer producing duplicate dag blocks on same level should be slashed
@@ -172,7 +176,7 @@ std::shared_ptr<const FinalizationResult> FinalChainImpl::finalize_(PeriodData&&
   auto all_transactions = new_blk.transactions;
   all_transactions.insert(all_transactions.end(), system_transactions.begin(), system_transactions.end());
   std::vector<state_api::EVMTransaction> evm_trxs;
-  append_evm_transactions(evm_trxs, all_transactions);
+  appendEvmTransactions(evm_trxs, all_transactions);
 
   const auto& [exec_results] = state_api_.execute_transactions(
       {new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit, new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
@@ -203,15 +207,15 @@ std::shared_ptr<const FinalizationResult> FinalChainImpl::finalize_(PeriodData&&
   const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
 
   auto blk_header =
-      append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(), kBlockGasLimit,
-                   state_root, total_reward, all_transactions, receipts, new_blk.pbft_blk->getExtraDataRlp());
+      appendBlock(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(), kBlockGasLimit,
+                  state_root, total_reward, all_transactions, receipts, new_blk.pbft_blk->getExtraDataRlp());
 
   // Update number of executed DAG blocks and transactions
   auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
   auto num_executed_trx = num_executed_trx_ + all_transactions.size();
   if (!finalized_dag_blk_hashes.empty()) {
-    db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
-    db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
+    db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
+    db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
     LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
                  << num_executed_dag_blk_ - 1 << " , Transactions count: " << all_transactions.size();
   }
@@ -268,40 +272,39 @@ std::shared_ptr<const FinalizationResult> FinalChainImpl::finalize_(PeriodData&&
   return result;
 }
 
-void FinalChainImpl::prune(EthBlockNumber blk_n) {
+void FinalChain::prune(EthBlockNumber blk_n) {
   LOG(log_nf_) << "Pruning data older than " << blk_n;
-  auto last_block_to_keep = get_block_header(blk_n);
+  auto last_block_to_keep = getBlockHeader(blk_n);
   if (last_block_to_keep) {
     auto block_to_keep = last_block_to_keep;
     std::vector<dev::h256> state_root_to_keep;
     while (block_to_keep) {
       state_root_to_keep.push_back(block_to_keep->state_root);
-      block_to_keep = get_block_header(block_to_keep->number + 1);
+      block_to_keep = getBlockHeader(block_to_keep->number + 1);
     }
-    auto block_to_prune = get_block_header(last_block_to_keep->number - 1);
+    auto block_to_prune = getBlockHeader(last_block_to_keep->number - 1);
     while (block_to_prune && block_to_prune->number > 0) {
-      db_->remove(DB::Columns::final_chain_blk_by_number, block_to_prune->number);
-      db_->remove(DB::Columns::final_chain_blk_hash_by_number, block_to_prune->number);
-      db_->remove(DB::Columns::final_chain_blk_number_by_hash, block_to_prune->hash);
-      block_to_prune = get_block_header(block_to_prune->number - 1);
+      db_->remove(DbStorage::Columns::final_chain_blk_by_number, block_to_prune->number);
+      db_->remove(DbStorage::Columns::final_chain_blk_hash_by_number, block_to_prune->number);
+      db_->remove(DbStorage::Columns::final_chain_blk_number_by_hash, block_to_prune->hash);
+      block_to_prune = getBlockHeader(block_to_prune->number - 1);
     }
 
-    db_->compactColumn(DB::Columns::final_chain_blk_by_number);
-    db_->compactColumn(DB::Columns::final_chain_blk_hash_by_number);
-    db_->compactColumn(DB::Columns::final_chain_blk_number_by_hash);
+    db_->compactColumn(DbStorage::Columns::final_chain_blk_by_number);
+    db_->compactColumn(DbStorage::Columns::final_chain_blk_hash_by_number);
+    db_->compactColumn(DbStorage::Columns::final_chain_blk_number_by_hash);
 
     state_api_.prune(state_root_to_keep, last_block_to_keep->number);
   }
 }
 
-std::shared_ptr<BlockHeader> FinalChainImpl::append_block(DB::Batch& batch, const addr_t& author, uint64_t timestamp,
-                                                          uint64_t gas_limit, const h256& state_root, u256 total_reward,
-                                                          const SharedTransactions& transactions,
-                                                          const TransactionReceipts& receipts,
-                                                          const bytes& extra_data) {
+std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, const addr_t& author, uint64_t timestamp,
+                                                     uint64_t gas_limit, const h256& state_root, u256 total_reward,
+                                                     const SharedTransactions& transactions,
+                                                     const TransactionReceipts& receipts, const bytes& extra_data) {
   auto blk_header_ptr = std::make_shared<BlockHeader>();
   auto& blk_header = *blk_header_ptr;
-  auto last_block = block_header();
+  auto last_block = blockHeader();
   blk_header.number = last_block ? last_block->number + 1 : 0;
   blk_header.parent_hash = last_block ? last_block->hash : h256();
   blk_header.author = author;
@@ -321,7 +324,7 @@ std::shared_ptr<BlockHeader> FinalChainImpl::append_block(DB::Batch& batch, cons
 
     const auto& receipt = receipts[trx_idx];
     receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
-    db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp_strm.out());
+    db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp_strm.out());
 
     blk_header.log_bloom |= receipt.bloom();
   }
@@ -329,45 +332,47 @@ std::shared_ptr<BlockHeader> FinalChainImpl::append_block(DB::Batch& batch, cons
   blk_header.receipts_root = hash256(receipts_trie);
   rlp_strm.clear(), blk_header.ethereum_rlp(rlp_strm);
   blk_header.hash = dev::sha3(rlp_strm.out());
-  db_->insert(batch, DB::Columns::final_chain_blk_by_number, blk_header.number, util::rlp_enc(rlp_strm, blk_header));
+  db_->insert(batch, DbStorage::Columns::final_chain_blk_by_number, blk_header.number,
+              util::rlp_enc(rlp_strm, blk_header));
   auto log_bloom_for_index = blk_header.log_bloom;
   log_bloom_for_index.shiftBloom<3>(sha3(blk_header.author.ref()));
   for (uint64_t level = 0, index = blk_header.number; level < c_bloomIndexLevels; ++level, index /= c_bloomIndexSize) {
-    auto chunk_id = block_blooms_chunk_id(level, index / c_bloomIndexSize);
-    auto chunk_to_alter = block_blooms(chunk_id);
+    auto chunk_id = blockBloomsChunkId(level, index / c_bloomIndexSize);
+    auto chunk_to_alter = blockBlooms(chunk_id);
     chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
-    db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(rlp_strm, chunk_to_alter));
+    db_->insert(batch, DbStorage::Columns::final_chain_log_blooms_index, chunk_id,
+                util::rlp_enc(rlp_strm, chunk_to_alter));
   }
-  db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
-  db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
-  db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
+  db_->insert(batch, DbStorage::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
+  db_->insert(batch, DbStorage::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
+  db_->insert(batch, DbStorage::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
 
   return blk_header_ptr;
 }
 
-EthBlockNumber FinalChainImpl::last_block_number() const { return last_block_number_; }
+EthBlockNumber FinalChain::lastBlockNumber() const { return last_block_number_; }
 
-std::optional<EthBlockNumber> FinalChainImpl::block_number(const h256& h) const {
-  return db_->lookup_int<EthBlockNumber>(h, DB::Columns::final_chain_blk_number_by_hash);
+std::optional<EthBlockNumber> FinalChain::blockNumber(const h256& h) const {
+  return db_->lookup_int<EthBlockNumber>(h, DbStorage::Columns::final_chain_blk_number_by_hash);
 }
 
-std::optional<h256> FinalChainImpl::block_hash(std::optional<EthBlockNumber> n) const {
-  return block_hashes_cache_.get(last_if_absent(n));
+std::optional<h256> FinalChain::blockHash(std::optional<EthBlockNumber> n) const {
+  return block_hashes_cache_.get(lastIfAbsent(n));
 }
 
-std::shared_ptr<const BlockHeader> FinalChainImpl::block_header(std::optional<EthBlockNumber> n) const {
+std::shared_ptr<const BlockHeader> FinalChain::blockHeader(std::optional<EthBlockNumber> n) const {
   if (!n) {
     return block_headers_cache_.last();
   }
   return block_headers_cache_.get(*n);
 }
 
-std::optional<TransactionLocation> FinalChainImpl::transaction_location(const h256& trx_hash) const {
+std::optional<TransactionLocation> FinalChain::transactionLocation(const h256& trx_hash) const {
   return db_->getTransactionLocation(trx_hash);
 }
 
-std::optional<TransactionReceipt> FinalChainImpl::transaction_receipt(const h256& trx_h) const {
-  auto raw = db_->lookup(trx_h, DB::Columns::final_chain_receipt_by_trx_hash);
+std::optional<TransactionReceipt> FinalChain::transactionReceipt(const h256& trx_h) const {
+  auto raw = db_->lookup(trx_h, DbStorage::Columns::final_chain_receipt_by_trx_hash);
   if (raw.empty()) {
     return {};
   }
@@ -376,20 +381,20 @@ std::optional<TransactionReceipt> FinalChainImpl::transaction_receipt(const h256
   return ret;
 }
 
-uint64_t FinalChainImpl::transactionCount(std::optional<EthBlockNumber> n) const {
-  return db_->getTransactionCount(last_if_absent(n));
+uint64_t FinalChain::transactionCount(std::optional<EthBlockNumber> n) const {
+  return db_->getTransactionCount(lastIfAbsent(n));
 }
 
-std::shared_ptr<const TransactionHashes> FinalChainImpl::transaction_hashes(std::optional<EthBlockNumber> n) const {
-  return transaction_hashes_cache_.get(last_if_absent(n));
+std::shared_ptr<const TransactionHashes> FinalChain::transactionHashes(std::optional<EthBlockNumber> n) const {
+  return transaction_hashes_cache_.get(lastIfAbsent(n));
 }
 
-const SharedTransactions FinalChainImpl::transactions(std::optional<EthBlockNumber> n) const {
-  return transactions_cache_.get(last_if_absent(n));
+const SharedTransactions FinalChain::transactions(std::optional<EthBlockNumber> n) const {
+  return transactions_cache_.get(lastIfAbsent(n));
 }
 
-std::vector<EthBlockNumber> FinalChainImpl::withBlockBloom(const LogBloom& b, EthBlockNumber from,
-                                                           EthBlockNumber to) const {
+std::vector<EthBlockNumber> FinalChain::withBlockBloom(const LogBloom& b, EthBlockNumber from,
+                                                       EthBlockNumber to) const {
   std::vector<EthBlockNumber> ret;
   // start from the top-level
   auto u = int_pow(c_bloomIndexSize, c_bloomIndexLevels);
@@ -400,28 +405,27 @@ std::vector<EthBlockNumber> FinalChainImpl::withBlockBloom(const LogBloom& b, Et
   return ret;
 }
 
-std::optional<state_api::Account> FinalChainImpl::get_account(const addr_t& addr,
-                                                              std::optional<EthBlockNumber> blk_n) const {
-  return accounts_cache_.get(last_if_absent(blk_n), addr);
+std::optional<state_api::Account> FinalChain::getAccount(const addr_t& addr,
+                                                         std::optional<EthBlockNumber> blk_n) const {
+  return accounts_cache_.get(lastIfAbsent(blk_n), addr);
 }
 
-void FinalChainImpl::update_state_config(const state_api::Config& new_config) {
+void FinalChain::updateStateConfig(const state_api::Config& new_config) {
   delegation_delay_ = new_config.dpos.delegation_delay;
   state_api_.update_state_config(new_config);
 }
 
-h256 FinalChainImpl::get_account_storage(const addr_t& addr, const u256& key,
-                                         std::optional<EthBlockNumber> blk_n) const {
-  return state_api_.get_account_storage(last_if_absent(blk_n), addr, key);
+h256 FinalChain::getAccountStorage(const addr_t& addr, const u256& key, std::optional<EthBlockNumber> blk_n) const {
+  return state_api_.get_account_storage(lastIfAbsent(blk_n), addr, key);
 }
 
-bytes FinalChainImpl::get_code(const addr_t& addr, std::optional<EthBlockNumber> blk_n) const {
-  return state_api_.get_code_by_address(last_if_absent(blk_n), addr);
+bytes FinalChain::getCode(const addr_t& addr, std::optional<EthBlockNumber> blk_n) const {
+  return state_api_.get_code_by_address(lastIfAbsent(blk_n), addr);
 }
 
-state_api::ExecutionResult FinalChainImpl::call(const state_api::EVMTransaction& trx,
-                                                std::optional<EthBlockNumber> blk_n) const {
-  auto const blk_header = block_header(last_if_absent(blk_n));
+state_api::ExecutionResult FinalChain::call(const state_api::EVMTransaction& trx,
+                                            std::optional<EthBlockNumber> blk_n) const {
+  auto const blk_header = blockHeader(lastIfAbsent(blk_n));
   if (!blk_header) {
     throw std::runtime_error("Future block");
   }
@@ -435,9 +439,9 @@ state_api::ExecutionResult FinalChainImpl::call(const state_api::EVMTransaction&
                                         trx);
 }
 
-std::string FinalChainImpl::trace(std::vector<state_api::EVMTransaction> trxs, EthBlockNumber blk_n,
-                                  std::optional<state_api::Tracing> params) const {
-  const auto blk_header = block_header(last_if_absent(blk_n));
+std::string FinalChain::trace(std::vector<state_api::EVMTransaction> trxs, EthBlockNumber blk_n,
+                              std::optional<state_api::Tracing> params) const {
+  const auto blk_header = blockHeader(lastIfAbsent(blk_n));
   if (!blk_header) {
     throw std::runtime_error("Future block");
   }
@@ -451,44 +455,44 @@ std::string FinalChainImpl::trace(std::vector<state_api::EVMTransaction> trxs, E
                                         trxs, params));
 }
 
-uint64_t FinalChainImpl::dpos_eligible_total_vote_count(EthBlockNumber blk_num) const {
+uint64_t FinalChain::dposEligibleTotalVoteCount(EthBlockNumber blk_num) const {
   return total_vote_count_cache_.get(blk_num);
 }
 
-uint64_t FinalChainImpl::dpos_eligible_vote_count(EthBlockNumber blk_num, const addr_t& addr) const {
+uint64_t FinalChain::dposEligibleVoteCount(EthBlockNumber blk_num, const addr_t& addr) const {
   return dpos_vote_count_cache_.get(blk_num, addr);
 }
 
-bool FinalChainImpl::dpos_is_eligible(EthBlockNumber blk_num, const addr_t& addr) const {
+bool FinalChain::dposIsEligible(EthBlockNumber blk_num, const addr_t& addr) const {
   return dpos_is_eligible_cache_.get(blk_num, addr);
 }
 
-vrf_wrapper::vrf_pk_t FinalChainImpl::dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const {
+vrf_wrapper::vrf_pk_t FinalChain::dposGetVrfKey(EthBlockNumber blk_n, const addr_t& addr) const {
   return state_api_.dpos_get_vrf_key(blk_n, addr);
 }
 
-std::vector<state_api::ValidatorStake> FinalChainImpl::dpos_validators_total_stakes(EthBlockNumber blk_num) const {
+std::vector<state_api::ValidatorStake> FinalChain::dposValidatorsTotalStakes(EthBlockNumber blk_num) const {
   return state_api_.dpos_validators_total_stakes(blk_num);
 }
 
-uint256_t FinalChainImpl::dpos_total_amount_delegated(EthBlockNumber blk_num) const {
+uint256_t FinalChain::dposTotalAmountDelegated(EthBlockNumber blk_num) const {
   return state_api_.dpos_total_amount_delegated(blk_num);
 }
 
-std::vector<state_api::ValidatorVoteCount> FinalChainImpl::dpos_validators_vote_counts(EthBlockNumber blk_num) const {
+std::vector<state_api::ValidatorVoteCount> FinalChain::dposValidatorsVoteCounts(EthBlockNumber blk_num) const {
   return state_api_.dpos_validators_vote_counts(blk_num);
 }
 
-void FinalChainImpl::wait_for_finalized() {
+void FinalChain::waitForFinalized() {
   std::unique_lock lck(finalized_mtx_);
   finalized_cv_.wait_for(lck, std::chrono::milliseconds(10));
 }
 
-uint64_t FinalChainImpl::dpos_yield(EthBlockNumber blk_num) const { return state_api_.dpos_yield(blk_num); }
+uint64_t FinalChain::dposYield(EthBlockNumber blk_num) const { return state_api_.dpos_yield(blk_num); }
 
-u256 FinalChainImpl::dpos_total_supply(EthBlockNumber blk_num) const { return state_api_.dpos_total_supply(blk_num); }
+u256 FinalChain::dposTotalSupply(EthBlockNumber blk_num) const { return state_api_.dpos_total_supply(blk_num); }
 
-h256 FinalChainImpl::get_bridge_root(EthBlockNumber blk_num) const {
+h256 FinalChain::getBridgeRoot(EthBlockNumber blk_num) const {
   const static auto get_bridge_root_method = util::EncodingSolidity::packFunctionCall("getBridgeRoot()");
   return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
                                              state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_root_method},
@@ -496,16 +500,23 @@ h256 FinalChainImpl::get_bridge_root(EthBlockNumber blk_num) const {
                   .code_retval);
 }
 
-h256 FinalChainImpl::get_bridge_epoch(EthBlockNumber blk_num) const {
-  const static auto get_bridge_epoch_method = util::EncodingSolidity::packFunctionCall("finalizedEpoch()");
+h256 FinalChain::getBridgeEpoch(EthBlockNumber blk_num) const {
+  const static auto getBridgeEpoch_method = util::EncodingSolidity::packFunctionCall("finalizedEpoch()");
   return h256(call(state_api::EVMTransaction{dev::ZeroAddress, 1, kHardforksConfig.ficus_hf.bridge_contract_address,
-                                             state_api::ZeroAccount.nonce, 0, 10000000, get_bridge_epoch_method},
+                                             state_api::ZeroAccount.nonce, 0, 10000000, getBridgeEpoch_method},
                    blk_num)
                   .code_retval);
 }
 
-std::shared_ptr<TransactionHashes> FinalChainImpl::get_transaction_hashes(std::optional<EthBlockNumber> n) const {
-  const auto& trxs = db_->getPeriodTransactions(last_if_absent(n));
+std::pair<val_t, bool> FinalChain::getBalance(addr_t const& addr) const {
+  if (auto acc = getAccount(addr)) {
+    return {acc->balance, true};
+  }
+  return {0, false};
+}
+
+std::shared_ptr<TransactionHashes> FinalChain::getTransactionHashes(std::optional<EthBlockNumber> n) const {
+  const auto& trxs = db_->getPeriodTransactions(lastIfAbsent(n));
   auto ret = std::make_shared<TransactionHashes>();
   if (!trxs) {
     return ret;
@@ -516,15 +527,15 @@ std::shared_ptr<TransactionHashes> FinalChainImpl::get_transaction_hashes(std::o
   return ret;
 }
 
-const SharedTransactions FinalChainImpl::get_transactions(std::optional<EthBlockNumber> n) const {
-  if (auto trxs = db_->getPeriodTransactions(last_if_absent(n))) {
+const SharedTransactions FinalChain::getTransactions(std::optional<EthBlockNumber> n) const {
+  if (auto trxs = db_->getPeriodTransactions(lastIfAbsent(n))) {
     return *trxs;
   }
   return {};
 }
 
-std::shared_ptr<const BlockHeader> FinalChainImpl::get_block_header(EthBlockNumber n) const {
-  if (auto raw = db_->lookup(n, DB::Columns::final_chain_blk_by_number); !raw.empty()) {
+std::shared_ptr<const BlockHeader> FinalChain::getBlockHeader(EthBlockNumber n) const {
+  if (auto raw = db_->lookup(n, DbStorage::Columns::final_chain_blk_by_number); !raw.empty()) {
     auto ret = std::make_shared<BlockHeader>();
     ret->rlp(dev::RLP(raw));
     return ret;
@@ -532,50 +543,48 @@ std::shared_ptr<const BlockHeader> FinalChainImpl::get_block_header(EthBlockNumb
   return {};
 }
 
-std::optional<h256> FinalChainImpl::get_block_hash(EthBlockNumber n) const {
-  auto raw = db_->lookup(n, DB::Columns::final_chain_blk_hash_by_number);
+std::optional<h256> FinalChain::getBlockHash(EthBlockNumber n) const {
+  auto raw = db_->lookup(n, DbStorage::Columns::final_chain_blk_hash_by_number);
   if (raw.empty()) {
     return {};
   }
   return h256(raw, h256::FromBinary);
 }
 
-EthBlockNumber FinalChainImpl::last_if_absent(const std::optional<EthBlockNumber>& client_blk_n) const {
-  return client_blk_n ? *client_blk_n : last_block_number();
+EthBlockNumber FinalChain::lastIfAbsent(const std::optional<EthBlockNumber>& client_blk_n) const {
+  return client_blk_n ? *client_blk_n : lastBlockNumber();
 }
 
-state_api::EVMTransaction FinalChainImpl::to_evm_transaction(const SharedTransaction& trx) {
+state_api::EVMTransaction FinalChain::toEvmTransaction(const SharedTransaction& trx) {
   return state_api::EVMTransaction{
       trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
       trx->getValue(),  trx->getGas(),      trx->getData(),
   };
 }
 
-void FinalChainImpl::append_evm_transactions(std::vector<state_api::EVMTransaction>& evm_trxs,
-                                             const SharedTransactions& trxs) {
+void FinalChain::appendEvmTransactions(std::vector<state_api::EVMTransaction>& evm_trxs,
+                                       const SharedTransactions& trxs) {
   std::transform(trxs.cbegin(), trxs.cend(), std::back_inserter(evm_trxs),
-                 [](const auto& trx) { return to_evm_transaction(trx); });
+                 [](const auto& trx) { return toEvmTransaction(trx); });
 }
 
-BlocksBlooms FinalChainImpl::block_blooms(const h256& chunk_id) const {
-  if (auto raw = db_->lookup(chunk_id, DB::Columns::final_chain_log_blooms_index); !raw.empty()) {
+BlocksBlooms FinalChain::blockBlooms(const h256& chunk_id) const {
+  if (auto raw = db_->lookup(chunk_id, DbStorage::Columns::final_chain_log_blooms_index); !raw.empty()) {
     return dev::RLP(raw).toArray<LogBloom, c_bloomIndexSize>();
   }
   return {};
 }
 
-h256 FinalChainImpl::block_blooms_chunk_id(EthBlockNumber level, EthBlockNumber index) {
-  return h256(index * 0xff + level);
-}
+h256 FinalChain::blockBloomsChunkId(EthBlockNumber level, EthBlockNumber index) { return h256(index * 0xff + level); }
 
-std::vector<EthBlockNumber> FinalChainImpl::withBlockBloom(const LogBloom& b, EthBlockNumber from, EthBlockNumber to,
-                                                           EthBlockNumber level, EthBlockNumber index) const {
+std::vector<EthBlockNumber> FinalChain::withBlockBloom(const LogBloom& b, EthBlockNumber from, EthBlockNumber to,
+                                                       EthBlockNumber level, EthBlockNumber index) const {
   std::vector<EthBlockNumber> ret;
   auto uCourse = int_pow(c_bloomIndexSize, level + 1);
   auto uFine = int_pow(c_bloomIndexSize, level);
   auto obegin = index == from / uCourse ? from / uFine % c_bloomIndexSize : 0;
   auto oend = index == to / uCourse ? (to / uFine) % c_bloomIndexSize + 1 : c_bloomIndexSize;
-  auto bb = block_blooms(block_blooms_chunk_id(level, index));
+  auto bb = blockBlooms(blockBloomsChunkId(level, index));
   for (auto o = obegin; o < oend; ++o) {
     if (bb[o].contains(b)) {
       // This level has something like what we want.

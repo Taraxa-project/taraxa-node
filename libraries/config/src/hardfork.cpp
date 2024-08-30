@@ -2,6 +2,7 @@
 
 #include "common/config_exception.hpp"
 
+namespace taraxa {
 Json::Value enc_json(const Redelegation& obj) {
   Json::Value json(Json::objectValue);
   json["validator"] = dev::toJS(obj.validator);
@@ -192,3 +193,4 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
                   phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf)
+}  // namespace taraxa

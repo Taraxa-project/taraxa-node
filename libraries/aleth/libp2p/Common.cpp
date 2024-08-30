@@ -7,6 +7,7 @@
 #include <regex>
 
 #include "Network.h"
+#include "libdevcore/CommonIO.h"
 
 namespace dev {
 namespace p2p {

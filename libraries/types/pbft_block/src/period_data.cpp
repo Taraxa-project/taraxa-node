@@ -1,11 +1,7 @@
 #include "pbft/period_data.hpp"
 
-#include <libdevcore/CommonJS.h>
-
 #include "dag/dag_block_bundle_rlp.hpp"
 #include "pbft/pbft_block.hpp"
-#include "transaction/transaction.hpp"
-#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {

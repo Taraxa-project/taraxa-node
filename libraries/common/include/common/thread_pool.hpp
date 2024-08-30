@@ -1,7 +1,6 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <shared_mutex>
 
 #include "common/functional.hpp"
 

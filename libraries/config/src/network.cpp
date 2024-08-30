@@ -1,5 +1,6 @@
 #include "config/network.hpp"
 
+#include "common/config_exception.hpp"
 #include "config/config_utils.hpp"
 
 namespace taraxa {

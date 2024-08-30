@@ -7,11 +7,11 @@
 
 #include <utility>
 
+#include "common/encoding_rlp.hpp"
 #include "common/util.hpp"
 
 namespace taraxa {
 
-using std::to_string;
 using vrf_wrapper::VrfSortitionBase;
 
 DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, sig_t sig,

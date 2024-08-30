@@ -1,10 +1,9 @@
 #pragma once
 
-#include <json/json.h>
+#include <json/value.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 
-#include "common/default_construct_copyable_movable.hpp"
 #include "common/types.hpp"
 
 namespace taraxa {

@@ -46,14 +46,14 @@ void NodeDagCreationFixture::deployContract() {
     WAIT_EXPECT_TRUE(ctx, node->getDB()->transactionFinalized(trx->getHash()));
 
     if (!contract_addr) {
-      auto receipt = node->getFinalChain()->transaction_receipt(trx->getHash());
+      auto receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
       WAIT_EXPECT_TRUE(ctx, receipt.has_value());
       WAIT_EXPECT_TRUE(ctx, receipt->new_contract_address.has_value());
       contract_addr = receipt->new_contract_address;
     }
-    auto r = node->getFinalChain()->transaction_receipt(trx->getHash());
+    auto r = node->getFinalChain()->transactionReceipt(trx->getHash());
 
-    WAIT_EXPECT_TRUE(ctx, !node->getFinalChain()->get_code(contract_addr.value()).empty());
+    WAIT_EXPECT_TRUE(ctx, !node->getFinalChain()->getCode(contract_addr.value()).empty());
   });
   ASSERT_TRUE(contract_addr.has_value());
   std::cout << "Contract deployed: " << contract_addr.value() << std::endl;
