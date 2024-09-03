@@ -64,7 +64,8 @@ class TransactionQueue {
    * @param count
    * @return std::vector<std::shared_ptr<Transaction>>
    */
-  std::vector<std::shared_ptr<Transaction>> getOrderedTransactions(uint64_t count) const;
+  std::vector<std::shared_ptr<Transaction>> getOrderedTransactions(uint64_t count,
+                                                                   std::optional<PbftPeriod> period = {}) const;
 
   /**
    * @brief returns all transactions grouped by transactions author

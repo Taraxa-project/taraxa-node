@@ -155,6 +155,7 @@ void DagBlockPacketHandler::onNewBlockReceived(
   switch (verified.first) {
     case DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation:
     case DagManager::VerifyBlockReturnType::BlockTooBig:
+    case DagManager::VerifyBlockReturnType::InvalidSender:
     case DagManager::VerifyBlockReturnType::FailedVdfVerification:
     case DagManager::VerifyBlockReturnType::NotEligible:
     case DagManager::VerifyBlockReturnType::FailedTipsVerification: {
