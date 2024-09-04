@@ -371,6 +371,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
     }
 
+    void dummy_initial_transfer() { coin_transfer(0, dummy_client.getAddress(), 1000000, true); }
+
     auto getIssuedTrxCount() {
       shared_lock l(m);
       return issued_trx_count;
@@ -455,8 +457,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   std::vector<trx_hash_t> all_transactions;
   // transfer some coins to your friends ...
-  auto init_bal = own_effective_genesis_bal(nodes[0]->getConfig()) / nodes.size();
+  auto init_bal = own_effective_genesis_bal(nodes[0]->getConfig()) / (nodes.size() + 1);
 
+  context.dummy_initial_transfer();
   {
     for (size_t i(1); i < nodes.size(); ++i) {
       // we shouldn't wait for transaction execution because it could be in alternative dag
@@ -982,7 +985,7 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    sendTrx(1000, 7778);
+    sendTrx(1000, 7778, nodes[0]->getSecretKey());
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception &e) {
@@ -1109,7 +1112,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   try {
-    sendTrx(1000, 7778);
+    sendTrx(1000, 7778, node->getSecretKey());
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }

@@ -151,6 +151,8 @@ struct TransactionClient {
   Context process(const std::shared_ptr<Transaction>& trx, bool wait_executed = true) const;
 
   Context coinTransfer(const addr_t& to, const val_t& val, bool wait_executed = true);
+
+  addr_t getAddress() const { return dev::KeyPair(secret_).address(); }
 };
 
 SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& value = 0, uint64_t nonce = 0,
