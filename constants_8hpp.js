@@ -19,5 +19,5 @@ var constants_8hpp =
     [ "kPeriodicEventsThreadCount", "constants_8hpp.html#a7ecb57c956c8d0467fb9514f5e85c005", null ],
     [ "kRecentlyFinalizedTransactionsFactor", "constants_8hpp.html#a017ff573490da91468122ecd635edb96", null ],
     [ "kTaraxaSystemAccount", "constants_8hpp.html#a2d2dbd306cf75267a8ecff658d013f66", null ],
-    [ "kV2NetworkVersion", "constants_8hpp.html#a8b1964de45bc5010bdb33fb60fa57744", null ]
+    [ "kV3NetworkVersion", "constants_8hpp.html#aa05ef1169875a95c1f2c76038cd546f1", null ]
 ];

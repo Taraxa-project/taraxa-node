@@ -21,6 +21,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "all_packets_stats_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aae94f00d772023dfdf64c641fe5e874a", null ],
     [ "kConf", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1d83c18dcaae2cb7bc166664f2fd5240", null ],
     [ "kInitLatestVersionHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a48c76b3acfc0c33fbde3a76794f17214", null ],
+    [ "kInitV3Handlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ace452104ba3902d4e90f6290ecfdd962", null ],
     [ "last_ddos_disconnect_time_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a5cbf98793ef32713b20f8a7561228d8b", null ],
     [ "last_disconnect_number_of_peers_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3c10363f0276200813c50a2b12d9a096", null ],
     [ "packets_handlers_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa9133eace1c8ca9d5ff3ed760d8f671f", null ],

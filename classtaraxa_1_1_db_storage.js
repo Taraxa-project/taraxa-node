@@ -91,6 +91,7 @@ var classtaraxa_1_1_db_storage =
     [ "hasMajorVersionChanged", "classtaraxa_1_1_db_storage.html#ade6b6c770cc8cc4b5a99a6eb157be87d", null ],
     [ "hasMinorVersionChanged", "classtaraxa_1_1_db_storage.html#abc2340acad061b1f9698e54c2018e0ea", null ],
     [ "insert", "classtaraxa_1_1_db_storage.html#a3db124c57eac1ab701ef8c172204a30d", null ],
+    [ "insert", "classtaraxa_1_1_db_storage.html#afd72640b7190fb29957238d6a8018c69", null ],
     [ "insert", "classtaraxa_1_1_db_storage.html#a52bc018a68867f795fdec7542d227fc7", null ],
     [ "insert", "classtaraxa_1_1_db_storage.html#ab25e512d7547f3b9d80ad862af1af0f0", null ],
     [ "loadSnapshots", "classtaraxa_1_1_db_storage.html#af9a8bc3584e3d96d459648ee2fd279c0", null ],

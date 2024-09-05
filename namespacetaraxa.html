@@ -548,6 +548,15 @@ Functions</h2></td></tr>
 <tr class="memitem:aced41bb0204474f3fd03a0aac32a126c"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
 <tr class="memitem:aced41bb0204474f3fd03a0aac32a126c"><td class="memTemplItemLeft" align="right" valign="top">const rocksdb::Comparator *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aced41bb0204474f3fd03a0aac32a126c">getIntComparator</a> ()</td></tr>
 <tr class="separator:aced41bb0204474f3fd03a0aac32a126c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">encodeDAGBlocksBundleRlp</a> (const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;blocks)</td></tr>
+<tr class="memdesc:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encodes pbft blocks into optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">More...</a><br /></td></tr>
+<tr class="separator:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">decodeDAGBlocksBundleRlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
+<tr class="memdesc:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes pbft blocks from optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">More...</a><br /></td></tr>
+<tr class="separator:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga91f496e181660542c01639bf624a40e0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">decodeDAGBlockBundleRlp</a> (uint64_t index, const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
+<tr class="memdesc:ga91f496e181660542c01639bf624a40e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes single dag block from optimized blocks bundle rlp.  <a href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">More...</a><br /></td></tr>
+<tr class="separator:ga91f496e181660542c01639bf624a40e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga788b2a39c7312a656ddb0116585697b9"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ga788b2a39c7312a656ddb0116585697b9">operator&lt;&lt;</a> (std::ostream &amp;strm, const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &amp;pbft_blk)</td></tr>
 <tr class="separator:ga788b2a39c7312a656ddb0116585697b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4eb5ae28c1fec5d7a7695d4545961ea0"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ga4eb5ae28c1fec5d7a7695d4545961ea0">operator&lt;&lt;</a> (std::ostream &amp;strm, <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> const &amp;b)</td></tr>
@@ -616,8 +625,8 @@ Variables</h2></td></tr>
 <tr class="separator:a14fc5210f7f52dbf8a90d2a6b6de8f8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a362de53960470ae77608995191b6d53d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a362de53960470ae77608995191b6d53d">kMaxNonFinalizedTransactions</a> {1000000}</td></tr>
 <tr class="separator:a362de53960470ae77608995191b6d53d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b1964de45bc5010bdb33fb60fa57744"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a8b1964de45bc5010bdb33fb60fa57744">kV2NetworkVersion</a> = 2</td></tr>
-<tr class="separator:a8b1964de45bc5010bdb33fb60fa57744"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa05ef1169875a95c1f2c76038cd546f1"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa05ef1169875a95c1f2c76038cd546f1">kV3NetworkVersion</a> = 3</td></tr>
+<tr class="separator:aa05ef1169875a95c1f2c76038cd546f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a017ff573490da91468122ecd635edb96"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a017ff573490da91468122ecd635edb96">kRecentlyFinalizedTransactionsFactor</a> = 2</td></tr>
 <tr class="separator:a017ff573490da91468122ecd635edb96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af37c840bbc7870c8fb9f5c878ac55582"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#af37c840bbc7870c8fb9f5c878ac55582">kOneTara</a> = <a class="el" href="namespacedev.html#aaa0b3b33e41c3a8aad65a07acd88a897">dev::exp10</a>&lt;18&gt;()</td></tr>
@@ -644,6 +653,8 @@ Variables</h2></td></tr>
 <tr class="separator:aa8d5681671f721984e6f3fc4c05ba56d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a566bacb5f2fd273d3936d179bc4fa73f"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a566bacb5f2fd273d3936d179bc4fa73f">PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK</a> = 0</td></tr>
 <tr class="separator:a566bacb5f2fd273d3936d179bc4fa73f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5a031fccb0b38aa775eb9c4634d85696"><td class="memItemLeft" align="right" valign="top">constexpr static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga5a031fccb0b38aa775eb9c4634d85696">kDAGBlocksBundleRlpSize</a> {3}</td></tr>
+<tr class="separator:ga5a031fccb0b38aa775eb9c4634d85696"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7db38bf3c506132cff28937f0d28d4ea"><td class="memItemLeft" align="right" valign="top">constexpr static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ga7db38bf3c506132cff28937f0d28d4ea">kPbftVotesBundleRlpSize</a> {5}</td></tr>
 <tr class="separator:ga7db38bf3c506132cff28937f0d28d4ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1a0928ea74f0edb946321eaf485f786c"><td class="memItemLeft" align="right" valign="top">constexpr static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ga1a0928ea74f0edb946321eaf485f786c">kPillarVotesBundleRlpSize</a> {3}</td></tr>
@@ -3804,14 +3815,14 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a8b1964de45bc5010bdb33fb60fa57744"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8b1964de45bc5010bdb33fb60fa57744">&#9670;&nbsp;</a></span>kV2NetworkVersion</h2>
+<a id="aa05ef1169875a95c1f2c76038cd546f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa05ef1169875a95c1f2c76038cd546f1">&#9670;&nbsp;</a></span>kV3NetworkVersion</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const size_t taraxa::kV2NetworkVersion = 2</td>
+          <td class="memname">const size_t taraxa::kV3NetworkVersion = 3</td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -191,6 +191,10 @@ var annotated_dup =
       ] ],
       [ "network", "namespacetaraxa_1_1network.html", [
         [ "tarcap", "namespacetaraxa_1_1network_1_1tarcap.html", [
+          [ "v3", "namespacetaraxa_1_1network_1_1tarcap_1_1v3.html", [
+            [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pbft_sync_packet_handler" ],
+            [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler" ]
+          ] ],
           [ "PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler" ],
           [ "ExtPillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler" ],
           [ "ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler" ],
@@ -264,6 +268,7 @@ var annotated_dup =
       ] ],
       [ "storage", "namespacetaraxa_1_1storage.html", [
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
+          [ "PeriodDataDagBlockMigration", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration.html", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration" ],
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
           [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
           [ "TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period" ]

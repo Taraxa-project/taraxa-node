@@ -82,7 +82,9 @@ $(document).ready(function(){initNavTree('group___d_a_g.html',''); initResizable
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">DAG</div>  </div>
 </div><!--header-->
@@ -111,6 +113,23 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_sortition_params_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">taraxa::SortitionParamsManager</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_sortition_params_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title="SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments.">SortitionParamsManager</a> class calculates DAG efficiency and makes VDF difficulty adjustments.  <a href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_sortition_params_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">taraxa::encodeDAGBlocksBundleRlp</a> (const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;blocks)</td></tr>
+<tr class="memdesc:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encodes pbft blocks into optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">More...</a><br /></td></tr>
+<tr class="separator:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">taraxa::decodeDAGBlocksBundleRlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
+<tr class="memdesc:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes pbft blocks from optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">More...</a><br /></td></tr>
+<tr class="separator:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga91f496e181660542c01639bf624a40e0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">taraxa::decodeDAGBlockBundleRlp</a> (uint64_t index, const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
+<tr class="memdesc:ga91f496e181660542c01639bf624a40e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes single dag block from optimized blocks bundle rlp.  <a href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">More...</a><br /></td></tr>
+<tr class="separator:ga91f496e181660542c01639bf624a40e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ga5a031fccb0b38aa775eb9c4634d85696"><td class="memItemLeft" align="right" valign="top">constexpr static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga5a031fccb0b38aa775eb9c4634d85696">taraxa::kDAGBlocksBundleRlpSize</a> {3}</td></tr>
+<tr class="separator:ga5a031fccb0b38aa775eb9c4634d85696"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <hr/><h2 class="groupheader">Class Documentation</h2>
@@ -5393,6 +5412,121 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="ga91f496e181660542c01639bf624a40e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga91f496e181660542c01639bf624a40e0">&#9670;&nbsp;</a></span>decodeDAGBlockBundleRlp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; taraxa::decodeDAGBlockBundleRlp </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>index</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;&#160;</td>
+          <td class="paramname"><em>blocks_bundle_rlp</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Decodes single dag block from optimized blocks bundle rlp. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blocks_bundle_rlp</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>block </dd></dl>
+
+</div>
+</div>
+<a id="gaa96b4d465129a3edd0fbb85a2f3a3de1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa96b4d465129a3edd0fbb85a2f3a3de1">&#9670;&nbsp;</a></span>decodeDAGBlocksBundleRlp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; taraxa::decodeDAGBlocksBundleRlp </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;&#160;</td>
+          <td class="paramname"><em>blocks_bundle_rlp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Decodes pbft blocks from optimized blocks bundle rlp. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blocks_bundle_rlp</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>blocks </dd></dl>
+
+</div>
+</div>
+<a id="gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">&#9670;&nbsp;</a></span>encodeDAGBlocksBundleRlp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> taraxa::encodeDAGBlocksBundleRlp </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>blocks</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Encodes pbft blocks into optimized blocks bundle rlp. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blocks</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>blocks bundle rlp bytes </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="ga5a031fccb0b38aa775eb9c4634d85696"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5a031fccb0b38aa775eb9c4634d85696">&#9670;&nbsp;</a></span>kDAGBlocksBundleRlpSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr static size_t taraxa::kDAGBlocksBundleRlpSize {3}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

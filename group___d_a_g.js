@@ -332,5 +332,9 @@ var group___d_a_g =
       [ "db_", "group___d_a_g.html#a7d2d20da7fc504c22810038aa83cd5db", null ],
       [ "ignored_efficiency_counter_", "group___d_a_g.html#ab62614d14c2cef62ba1ab1b82c0b68fb", null ],
       [ "params_changes_", "group___d_a_g.html#a819aa6076a9305d48ec7e18c2912a4c5", null ]
-    ] ]
+    ] ],
+    [ "decodeDAGBlockBundleRlp", "group___d_a_g.html#ga91f496e181660542c01639bf624a40e0", null ],
+    [ "decodeDAGBlocksBundleRlp", "group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1", null ],
+    [ "encodeDAGBlocksBundleRlp", "group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca", null ],
+    [ "kDAGBlocksBundleRlpSize", "group___d_a_g.html#ga5a031fccb0b38aa775eb9c4634d85696", null ]
 ];
