@@ -123,6 +123,7 @@ var annotated_dup =
         [ "ConfigUpdater", "classtaraxa_1_1cli_1_1_config_updater.html", "classtaraxa_1_1cli_1_1_config_updater" ]
       ] ],
       [ "final_chain", "namespacetaraxa_1_1final__chain.html", [
+        [ "BlockHeaderData", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data", "group___final_chain_structtaraxa_1_1final__chain_1_1_block_header_data" ],
         [ "BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", "group___final_chain_structtaraxa_1_1final__chain_1_1_block_header" ],
         [ "LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", "group___final_chain_structtaraxa_1_1final__chain_1_1_log_entry" ],
         [ "TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", "group___final_chain_structtaraxa_1_1final__chain_1_1_transaction_receipt" ],
@@ -269,9 +270,11 @@ var annotated_dup =
       [ "storage", "namespacetaraxa_1_1storage.html", [
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
           [ "PeriodDataDagBlockMigration", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration.html", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration" ],
+          [ "FinalChainHeader", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header.html", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header" ],
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
           [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
-          [ "TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period" ]
+          [ "TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period" ],
+          [ "OldHeader", "structtaraxa_1_1storage_1_1migration_1_1_old_header.html", null ]
         ] ]
       ] ],
       [ "util", "namespacetaraxa_1_1util.html", [

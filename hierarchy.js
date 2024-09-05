@@ -11,11 +11,16 @@ var hierarchy =
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
     [ "taraxa::AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
+      [ "taraxa::storage::migration::FinalChainHeader", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header.html", null ],
       [ "taraxa::storage::migration::PeriodDataDagBlockMigration", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration.html", null ],
       [ "taraxa::storage::migration::TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", null ]
     ] ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
-    [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],
+    [ "taraxa::final_chain::BlockHeaderData", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data", [
+      [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", [
+        [ "taraxa::storage::migration::OldHeader", "structtaraxa_1_1storage_1_1migration_1_1_old_header.html", null ]
+      ] ]
+    ] ],
     [ "taraxa::rewards::BlockStats", "classtaraxa_1_1rewards_1_1_block_stats.html", null ],
     [ "dev::p2p::Capability", "structdev_1_1p2p_1_1_capability.html", [
       [ "dev::p2p::SessionCapability", "structdev_1_1p2p_1_1_session_capability.html", null ]

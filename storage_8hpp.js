@@ -9,6 +9,9 @@ var storage_8hpp =
     [ "Batch", "storage_8hpp.html#a0cd0083754f45af046225376c7cc813a", null ],
     [ "OnEntry", "storage_8hpp.html#aa5b900007b052af5ec2f066acd73662c", null ],
     [ "Slice", "storage_8hpp.html#aa54de5a6140b27c17434850ecdb84cd1", null ],
+    [ "DBMetaKeys", "storage_8hpp.html#a4d1af07216835cb881b8a716e9331a3d", [
+      [ "LAST_NUMBER", "storage_8hpp.html#a4d1af07216835cb881b8a716e9331a3daa9a86bce9374c2830787105c02766385", null ]
+    ] ],
     [ "PbftMgrField", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161", [
       [ "Round", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161ab7f41fc1412ad2ee75e9b2635d3b9d5c", null ],
       [ "Step", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161a48c7c41b72e1d678923ce3571aa65b2d", null ]

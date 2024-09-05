@@ -1,33 +1,40 @@
 var group___final_chain =
 [
+    [ "BlockHeaderData", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data", [
+      [ "serializeForDB", "group___final_chain.html#aa28c833612399e987152dbddc8b931c6", null ],
+      [ "gas_used", "group___final_chain.html#ad74775c2e0f5c0429c93d31dd7720ead", null ],
+      [ "log_bloom", "group___final_chain.html#adb876110627de99837efb692077c227e", null ],
+      [ "parent_hash", "group___final_chain.html#ab1eae3914213aea2192bc38becaaeba2", null ],
+      [ "receipts_root", "group___final_chain.html#aba2e760e1754c4998c9eecfc32056a35", null ],
+      [ "state_root", "group___final_chain.html#a1a0885dfcc255e5a53fd13f89d0d1b84", null ],
+      [ "total_reward", "group___final_chain.html#a967d4c115aeb10b41180c7f62955e780", null ],
+      [ "transactions_root", "group___final_chain.html#a028fa18da2901ff915e8a6d2cf4f0c70", null ]
+    ] ],
     [ "BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", [
+      [ "BlockHeader", "group___final_chain.html#a4fda266a8b6a2399b6f9c8d441e132f9", null ],
+      [ "BlockHeader", "group___final_chain.html#a3608aafb975fdfcfbbd8ed75bf953426", null ],
+      [ "BlockHeader", "group___final_chain.html#a700e8591a4e80e77717271f3d01f4d27", null ],
       [ "difficulty", "group___final_chain.html#a992dc52632834c876af8ba07aa474028", null ],
-      [ "ethereum_rlp", "group___final_chain.html#a4e4ee82e2be72f358a13034e52214890", null ],
-      [ "mix_hash", "group___final_chain.html#aaeb1bd841674e236d62d8855f65a46c6", null ],
+      [ "ethereumRlp", "group___final_chain.html#a760a02431751bfe3a9c1825ebf72cef1", null ],
+      [ "mixHash", "group___final_chain.html#a48824cc608bb5e701635edc8fa0c3746", null ],
       [ "nonce", "group___final_chain.html#a39e0181dc461b55c6a329146170d0760", null ],
-      [ "uncles_hash", "group___final_chain.html#a6a5d6a5e6a93b99e15cacd49fd76b546", null ],
+      [ "setFromPbft", "group___final_chain.html#a7ac9ba2b0fb370ab980479e242684ab6", null ],
+      [ "unclesHash", "group___final_chain.html#a3dd1006e38415238cb572b3c8117ee92", null ],
       [ "author", "group___final_chain.html#ab5a06871a68dbf272adee45dfe15e985", null ],
       [ "extra_data", "group___final_chain.html#a7a31c3f1a5eb98a23e37b51b783e2466", null ],
       [ "gas_limit", "group___final_chain.html#ad038301b98381c50d7ca2a09609e1506", null ],
-      [ "gas_used", "group___final_chain.html#adb132d664d6d9c27c0968ca4f5f5caab", null ],
       [ "hash", "group___final_chain.html#aa248d8ceb01bdb669ae3c64822dae150", null ],
-      [ "log_bloom", "group___final_chain.html#a4062e4cd77236c231830c74c706cb327", null ],
       [ "number", "group___final_chain.html#a2150879a49281a5426b712612329b2ed", null ],
-      [ "parent_hash", "group___final_chain.html#a0bac080ed60c991a08d7b1e3b7fe3c9b", null ],
-      [ "receipts_root", "group___final_chain.html#a6e5f70efb1b1bd7a472deea54eece7c9", null ],
-      [ "state_root", "group___final_chain.html#ae85b81d392741dd9953bc11a32eaec2f", null ],
-      [ "timestamp", "group___final_chain.html#a20e929aebe9b03aa67fcffeb2874cccc", null ],
-      [ "total_reward", "group___final_chain.html#a0a6ccdd5ddda008d6a39d52a752e13d3", null ],
-      [ "transactions_root", "group___final_chain.html#a6d6e46b703c85fcdb0176ef063b5032a", null ]
+      [ "timestamp", "group___final_chain.html#a20e929aebe9b03aa67fcffeb2874cccc", null ]
     ] ],
     [ "LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", [
-      [ "bloom", "group___final_chain.html#aff8665e430d6b7e0201bc4e19f611168", null ],
+      [ "bloom", "group___final_chain.html#a86821d4841b46a039be1e7b71a54e89e", null ],
       [ "address", "group___final_chain.html#a4063796bd3a87794411f6cfdc3b4655a", null ],
       [ "data", "group___final_chain.html#a8fc725e0f668a0d0bd698da7b9199b4f", null ],
       [ "topics", "group___final_chain.html#a1d8ca5785c8af2536b1790f68b89b76b", null ]
     ] ],
     [ "TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", [
-      [ "bloom", "group___final_chain.html#abc0de504b2054bd57ae6eaf43298fed0", null ],
+      [ "bloom", "group___final_chain.html#a2f26020632ef8a3aba6dd91554abd4f9", null ],
       [ "cumulative_gas_used", "group___final_chain.html#abb89719649d4299b268bf6614d70d0e6", null ],
       [ "gas_used", "group___final_chain.html#a87dd70441e9227e6961829bacfd220cf", null ],
       [ "logs", "group___final_chain.html#a2af8c575511f01b9254f45021a135657", null ],
@@ -56,7 +63,8 @@ var group___final_chain =
       [ "FinalChain", "group___final_chain.html#a55a42e8e4457428e266e4350a64a1587", null ],
       [ "FinalChain", "group___final_chain.html#a596dff53cf6de6397b5775c048f9a000", null ],
       [ "FinalChain", "group___final_chain.html#aae038c82ad09224f49a8645c209e45e9", null ],
-      [ "appendBlock", "group___final_chain.html#a2474756bc155a0ed63e0707b56df1e94", null ],
+      [ "appendBlock", "group___final_chain.html#abc6ac332556f6db92c462ce469b9ac8e", null ],
+      [ "appendBlock", "group___final_chain.html#a6cead9a8694167e975e36845104c5ed8", null ],
       [ "appendEvmTransactions", "group___final_chain.html#a39f1381947c19b5d10f82bd43eac8329", null ],
       [ "blockBlooms", "group___final_chain.html#a8257b5e6e37302b0f98446c6d8928259", null ],
       [ "blockBloomsChunkId", "group___final_chain.html#aebe0c683d8649b51f796085ec330cb26", null ],
@@ -90,6 +98,8 @@ var group___final_chain =
       [ "lastBlockNumber", "group___final_chain.html#ae0d033ab1ceceaedc3030515ed3da192", null ],
       [ "lastIfAbsent", "group___final_chain.html#ae1315aa4d26ab6ea48773ff368a3acb0", null ],
       [ "makeBridgeFinalizationTransaction", "group___final_chain.html#a0d19201e1e6657883c7b1ecabc4ecb89", null ],
+      [ "makeGenesisHeader", "group___final_chain.html#aeb8be93cfbe678679d17d75b26ed7db7", null ],
+      [ "makeGenesisHeader", "group___final_chain.html#a1dafb913596369a1849184a213a13e62", null ],
       [ "makeSystemTransactions", "group___final_chain.html#a681611077a4cdbbe86ee07874dcfee77", null ],
       [ "operator=", "group___final_chain.html#add84b37513bf456c4dc32ce8f7a617db", null ],
       [ "operator=", "group___final_chain.html#a417ad359468f6932de665cb660c505e1", null ],
@@ -121,7 +131,7 @@ var group___final_chain =
       [ "finalized_cv_", "group___final_chain.html#a6b43fc648f313930762ab7c1f5924a95", null ],
       [ "finalized_mtx_", "group___final_chain.html#ae71a61e17e3e0661c30eefada7baf810", null ],
       [ "kBlockGasLimit", "group___final_chain.html#a09daf236b4ab107d10b5de469c6851a4", null ],
-      [ "kHardforksConfig", "group___final_chain.html#ac855b16da2504ba0c709ff0b70fe02de", null ],
+      [ "kConfig", "group___final_chain.html#aa45171300401024b5ea32ef5a9a3d55c", null ],
       [ "kLightNode", "group___final_chain.html#a89d14db8173ec009d2ab3ba5368b25d4", null ],
       [ "kMaxLevelsPerPeriod", "group___final_chain.html#a74fb986cf6af9a2bff42ebddfc2f4348", null ],
       [ "last_block_number_", "group___final_chain.html#a642834515ef2554c73d88d5f8f7aad68", null ],
@@ -248,9 +258,6 @@ var group___final_chain =
     [ "LogEntries", "group___final_chain.html#ga12616fa78b8d1e267634739c1d717d0e", null ],
     [ "Nonce", "group___final_chain.html#ga001b5bf2760971962153e566acb2943a", null ],
     [ "TransactionReceipts", "group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb", null ],
-    [ "DBMetaKeys", "group___final_chain.html#ga649a511610909f817c366b4315f74425", [
-      [ "LAST_NUMBER", "group___final_chain.html#gga649a511610909f817c366b4315f74425aa9a86bce9374c2830787105c02766385", null ]
-    ] ],
     [ "c_bloomIndexLevels", "group___final_chain.html#gafa9d5d8f0427b57b0a22530677e2e99b", null ],
     [ "c_bloomIndexSize", "group___final_chain.html#gab574ac6d6a7a462feef4499a61a17be2", null ],
     [ "ZeroAccount", "group___final_chain.html#ga5c809a2ce1cbc35fa9a7d77abf02b1f7", null ]
