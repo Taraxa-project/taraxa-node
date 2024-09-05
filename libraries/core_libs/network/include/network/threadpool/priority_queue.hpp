@@ -56,6 +56,20 @@ class PriorityQueue {
    */
   size_t getPrirotityQueueSize(PacketData::PacketPriority priority) const;
 
+  /**
+   * @param packet_type
+   * @return true for non-blocking packet types, otherwise false
+   */
+  bool isNonBlockingPacket(SubprotocolPacketType packet_type) const;
+
+  /**
+   * @brief Updates packet blocking dependency
+   * @param packet
+   * @param unblock_processing if true, unblock packet processing, otherwise block processing
+   * @return true if blocking dependency for provided packet was updated, otherwise false
+   */
+  bool updateBlockingDependencies(const PacketData& packet, bool unblock_processing = false);
+
  private:
   /**
    * @brief Queue can borrow reserved thread from one of the other priority queues but each queue must have
