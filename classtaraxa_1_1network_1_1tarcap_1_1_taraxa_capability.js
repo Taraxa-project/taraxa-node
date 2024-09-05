@@ -8,6 +8,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "filterSyncIrrelevantPackets", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae943e5cd74d383e06f7e7d9c64189d46", null ],
     [ "getPeersState", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac377d3b4ac4aeeac65d31448036468dd", null ],
     [ "getSpecificHandler", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab9cc01fbd4061a7fe9c5981a3825502a", null ],
+    [ "handlePacketQueueOverLimit", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a18a9939da7326c9c5f288c1e5935bd4e", null ],
     [ "interpretCapabilityPacket", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aaa47685602704d45f4198ec6fd09e30a", null ],
     [ "messageCount", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae7b9a80aedd5f191c43f554a34531b98", null ],
     [ "name", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a05b88f9aacc3ee4028e4c09e0e392611", null ],
@@ -20,9 +21,13 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "all_packets_stats_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aae94f00d772023dfdf64c641fe5e874a", null ],
     [ "kConf", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1d83c18dcaae2cb7bc166664f2fd5240", null ],
     [ "kInitLatestVersionHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a48c76b3acfc0c33fbde3a76794f17214", null ],
+    [ "last_ddos_disconnect_time_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a5cbf98793ef32713b20f8a7561228d8b", null ],
+    [ "last_disconnect_number_of_peers_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3c10363f0276200813c50a2b12d9a096", null ],
     [ "packets_handlers_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa9133eace1c8ca9d5ff3ed760d8f671f", null ],
     [ "pbft_syncing_state_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3f781760904296d022e2c221854cbc3a", null ],
     [ "peers_state_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae3bd8b37fc085d21a4a3034b5b5f1cbd", null ],
+    [ "queue_over_limit_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#adacb5e77df8056f4088564e2c39d5a38", null ],
+    [ "queue_over_limit_start_time_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aebc2a14afd72c94f6139c0d2789b2295", null ],
     [ "thread_pool_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ad041eedebc836e35186f63be6481617c", null ],
     [ "version_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a0594c16d6d4e55cb14ffb1a3e5a0c843", null ]
 ];

@@ -1,5 +1,10 @@
 var NAVTREEINDEX19 =
 {
+"logger_8cpp.html":[17,0,1,5,1,0],
+"logger_8cpp.html#a32d1e1885c2d8304b53417ceb5a0da6a":[17,0,1,5,1,0,2],
+"logger_8cpp.html#a65ec35addf583c82df610354d05d8769":[17,0,1,5,1,0,1],
+"logger_8cpp.html#aa10a0f22210c83fe10627ce57b472fd9":[17,0,1,5,1,0,0],
+"logger_8hpp.html":[17,0,1,5,0,0,0],
 "logger_8hpp.html#a159ca84d25a5487d8e81e4438725df19":[17,0,1,5,0,0,0,0],
 "logger_8hpp.html#a32d1e1885c2d8304b53417ceb5a0da6a":[17,0,1,5,0,0,0,8],
 "logger_8hpp.html#a41399a11426ea3272948aca283625fb5":[17,0,1,5,0,0,0,3],
@@ -244,10 +249,5 @@ var NAVTREEINDEX19 =
 "md_doc_coding_practices.html#autotoc_md185":[3,0,23],
 "md_doc_coding_practices.html#autotoc_md186":[102],
 "md_doc_coding_practices.html#autotoc_md187":[103],
-"md_doc_coding_practices.html#autotoc_md188":[104],
-"md_doc_coding_practices.html#autotoc_md189":[3,0,24],
-"md_doc_coding_practices.html#autotoc_md190":[105],
-"md_doc_coding_practices.html#autotoc_md191":[106],
-"md_doc_coding_practices.html#autotoc_md192":[107],
-"md_doc_coding_practices.html#autotoc_md193":[108]
+"md_doc_coding_practices.html#autotoc_md188":[104]
 };

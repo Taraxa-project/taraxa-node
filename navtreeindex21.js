@@ -1,5 +1,10 @@
 var NAVTREEINDEX21 =
 {
+"namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork":[17,0,1,3,0,0,4,1],
+"namespacetaraxa.html#structtaraxa_1_1_node_config":[17,0,1,3,0,0,5,2],
+"namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[17,0,1,3,0,0,5,0],
+"namespacetaraxa.html#structtaraxa_1_1_redelegation":[17,0,1,3,0,0,4,0],
+"namespacetaraxa.html#structtaraxa_1_1_vdf_params":[17,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[17,0,1,4,0,0,8,0,0],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,4,0,0,8,0,0,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX21 =
 "state__api_8hpp.html":[17,0,1,4,0,0,1,3],
 "state__api_8hpp_source.html":[17,0,1,4,0,0,1,3],
 "state__api__data_8cpp.html":[17,0,1,4,0,1,1,3],
-"state__api__data_8hpp.html":[17,0,1,4,0,0,1,4],
-"state__api__data_8hpp.html#ga5c809a2ce1cbc35fa9a7d77abf02b1f7":[17,0,1,4,0,0,1,4,0],
-"state__api__data_8hpp_source.html":[17,0,1,4,0,0,1,4],
-"state__config_8cpp.html":[17,0,1,3,1,7],
-"state__config_8cpp.html#a0cdba49b2802bab1d0da7a671714e77b":[17,0,1,3,1,7,1],
-"state__config_8cpp.html#a142767c95d8323471aee83d86833ee8c":[17,0,1,3,1,7,4]
+"state__api__data_8hpp.html":[17,0,1,4,0,0,1,4]
 };

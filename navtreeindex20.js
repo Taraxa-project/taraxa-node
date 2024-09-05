@@ -1,5 +1,10 @@
 var NAVTREEINDEX20 =
 {
+"md_doc_coding_practices.html#autotoc_md189":[3,0,24],
+"md_doc_coding_practices.html#autotoc_md190":[105],
+"md_doc_coding_practices.html#autotoc_md191":[106],
+"md_doc_coding_practices.html#autotoc_md192":[107],
+"md_doc_coding_practices.html#autotoc_md193":[108],
 "md_doc_coding_practices.html#autotoc_md194":[109],
 "md_doc_coding_practices.html#autotoc_md195":[3,0,25],
 "md_doc_coding_practices.html#autotoc_md196":[110],
@@ -156,8 +161,8 @@ var NAVTREEINDEX20 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[17,0,1,0,2,23,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[17,0,1,0,2,2,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[17,0,1,0,2,23,0],
-"namespacemembers.html":[15,0,0],
 "namespacemembers.html":[15,0],
+"namespacemembers.html":[15,0,0],
 "namespacemembers_a.html":[15,0,1],
 "namespacemembers_b.html":[15,0,2],
 "namespacemembers_c.html":[15,0,3],
@@ -226,8 +231,8 @@ var NAVTREEINDEX20 =
 "namespacetaraxa.html#a750ea236fc9a952abc71508807c75ce8":[17,0,1,3,0,0,5,0,2],
 "namespacetaraxa.html#a755e4a0a6744a31b65b04cb9022d6a47":[17,0,1,8,0,0,0,1,2],
 "namespacetaraxa.html#a8eae5cf0479f4747c27adf4810f45c1a":[17,0,1,3,0,0,5,0,0],
-"namespacetaraxa.html#a93e7c6131557d9ff218a4c80b19507db":[17,0,1,4,0,0,8,0,1,0],
 "namespacetaraxa.html#a93e7c6131557d9ff218a4c80b19507db":[17,0,1,4,0,0,8,0,0,0,0],
+"namespacetaraxa.html#a93e7c6131557d9ff218a4c80b19507db":[17,0,1,4,0,0,8,0,1,0],
 "namespacetaraxa.html#a9a427e4addb6ff6e9d70279791a9637b":[17,0,1,8,0,0,0,1,3],
 "namespacetaraxa.html#aa0de37558696314f72215e80df0d2105":[17,0,1,3,0,0,5,0,1],
 "namespacetaraxa.html#aae336b6b543c9febf3efb2a8065d0a06":[17,0,1,8,0,0,0,1,1],
@@ -244,10 +249,5 @@ var NAVTREEINDEX20 =
 "namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39":[17,0,1,3,0,0,0,0,3],
 "namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce":[17,0,1,3,0,0,0,0,7],
 "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork":[17,0,1,3,0,0,4,2],
-"namespacetaraxa.html#structtaraxa_1_1_d_b_config":[17,0,1,3,0,0,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork":[17,0,1,3,0,0,4,1],
-"namespacetaraxa.html#structtaraxa_1_1_node_config":[17,0,1,3,0,0,5,2],
-"namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[17,0,1,3,0,0,5,0],
-"namespacetaraxa.html#structtaraxa_1_1_redelegation":[17,0,1,3,0,0,4,0],
-"namespacetaraxa.html#structtaraxa_1_1_vdf_params":[17,0,1,8,0,0,0,1]
+"namespacetaraxa.html#structtaraxa_1_1_d_b_config":[17,0,1,3,0,0,0,0]
 };
