@@ -10,13 +10,13 @@
 
 namespace taraxa::storage::migration {
 
-DagBlockPeriodMigration::DagBlockPeriodMigration(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
+PeriodDataDagBlockMigration::PeriodDataDagBlockMigration(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
 
-std::string DagBlockPeriodMigration::id() { return "DagBlockPeriodMigration"; }
+std::string PeriodDataDagBlockMigration::id() { return "PeriodDataDagBlockMigration"; }
 
-uint32_t DagBlockPeriodMigration::dbVersion() { return 1; }
+uint32_t PeriodDataDagBlockMigration::dbVersion() { return 1; }
 
-void DagBlockPeriodMigration::migrate(logger::Logger& log) {
+void PeriodDataDagBlockMigration::migrate(logger::Logger& log) {
   auto orig_col = DbStorage::Columns::period_data;
   auto copied_col = db_->copyColumn(db_->handle(orig_col), orig_col.name() + "-copy");
 

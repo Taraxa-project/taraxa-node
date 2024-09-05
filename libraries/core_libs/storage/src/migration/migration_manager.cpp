@@ -1,11 +1,11 @@
 #include "storage/migration/migration_manager.hpp"
 
-#include "storage/migration/dag_block.hpp"
+#include "storage/migration/dag_block_period_migration.hpp"
 #include "storage/migration/transaction_period.hpp"
 namespace taraxa::storage::migration {
 Manager::Manager(std::shared_ptr<DbStorage> db, const addr_t& node_addr) : db_(db) {
   LOG_OBJECTS_CREATE("MIGRATIONS");
-  registerMigration<migration::DagBlockPeriodMigration>();
+  registerMigration<migration::PeriodDataDagBlockMigration>();
 }
 void Manager::applyMigration(std::shared_ptr<migration::Base> m) {
   if (m->isApplied()) {
