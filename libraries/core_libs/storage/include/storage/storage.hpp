@@ -52,6 +52,8 @@ enum PbftMgrStatus : uint8_t {
   NextVotedNullBlockHash,
 };
 
+enum class DBMetaKeys { LAST_NUMBER = 1 };
+
 class DbException : public std::exception {
  public:
   explicit DbException(const std::string& desc) : desc_(desc) {}
@@ -454,6 +456,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   template <typename K, typename V>
   void insert(Batch& batch, Column const& col, K const& k, V const& v) {
     checkStatus(batch.Put(handle(col), toSlice(k), toSlice(v)));
+  }
+
+  template <typename K, typename V>
+  void insert(Batch& batch, rocksdb::ColumnFamilyHandle* col, K const& k, V const& v) {
+    checkStatus(batch.Put(col, toSlice(k), toSlice(v)));
   }
 
   template <typename K>

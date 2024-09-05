@@ -16,6 +16,8 @@
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/get_pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -74,6 +76,13 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
   if (peers_state_->is_peer_malicious(node_id)) {
     session_p->disconnect(dev::p2p::UserReason);
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
+    return;
+  }
+
+  // If queue is over the limit do not allow new nodes to connect until queue size is reduced
+  if (queue_over_limit_ && peers_state_->getPeersCount() >= last_disconnect_number_of_peers_) {
+    session_p->disconnect(dev::p2p::UserReason);
+    LOG(log_wr_) << "Node " << node_id << " connection dropped - queue over limit";
     return;
   }
 
@@ -166,33 +175,55 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
   // Check max allowed packets queue size
   if (kConf.network.ddos_protection.max_packets_queue_size &&
       tp_queue_size > kConf.network.ddos_protection.max_packets_queue_size) {
-    const auto connected_peers = peers_state_->getAllPeers();
-    // Always keep at least 5 connected peers
-    if (connected_peers.size() > 5) {
-      // Find peer with the highest processing time and disconnect him
-      std::pair<std::chrono::microseconds, dev::p2p::NodeID> peer_max_processing_time{std::chrono::microseconds(0),
-                                                                                      dev::p2p::NodeID()};
-
-      for (const auto &connected_peer : connected_peers) {
-        const auto peer_packets_stats = connected_peer.second->getAllPacketsStatsCopy();
-
-        if (peer_packets_stats.second.processing_duration_ > peer_max_processing_time.first) {
-          peer_max_processing_time = {peer_packets_stats.second.processing_duration_, connected_peer.first};
-        }
-      }
-
-      // Disconnect peer with the highest processing time
-      LOG(log_er_) << "Max allowed packets queue size " << kConf.network.ddos_protection.max_packets_queue_size
-                   << " exceeded: " << tp_queue_size << ". Peer with the highest processing time "
-                   << peer_max_processing_time.second << " will be disconnected";
-      host->disconnect(node_id, dev::p2p::UserReason);
-      return;
-    }
+    // Queue size is over the limit
+    handlePacketQueueOverLimit(host, node_id, tp_queue_size);
+  } else {
+    queue_over_limit_ = false;
+    last_disconnect_number_of_peers_ = 0;
   }
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
   thread_pool_->push({version(), threadpool::PacketData(packet_type, node_id, _r.data().toBytes())});
+}
+
+void TaraxaCapability::handlePacketQueueOverLimit(std::shared_ptr<dev::p2p::Host> host, dev::p2p::NodeID node_id,
+                                                  size_t tp_queue_size) {
+  if (!queue_over_limit_) {
+    queue_over_limit_start_time_ = std::chrono::system_clock::now();
+    queue_over_limit_ = true;
+  }
+
+  // Check if Queue is over the limit for queue_limit_time
+  if ((std::chrono::system_clock::now() - queue_over_limit_start_time_) >
+      kConf.network.ddos_protection.queue_limit_time) {
+    // Only disconnect if there is more than peer_disconnect_interval since last disconnect
+    if ((std::chrono::system_clock::now() - last_ddos_disconnect_time_) >
+        kConf.network.ddos_protection.peer_disconnect_interval) {
+      auto connected_peers = peers_state_->getAllPeers();
+      last_disconnect_number_of_peers_ = connected_peers.size();
+      last_ddos_disconnect_time_ = std::chrono::system_clock::now();
+      // Always keep at least 5 connected peers
+      if (connected_peers.size() > 5) {
+        // Find peers with the highest processing time and disconnect
+        std::pair<std::chrono::microseconds, dev::p2p::NodeID> peer_max_processing_time{std::chrono::microseconds(0),
+                                                                                        dev::p2p::NodeID()};
+        for (const auto &connected_peer : connected_peers) {
+          const auto peer_packets_stats = connected_peer.second->getAllPacketsStatsCopy();
+          if (peer_packets_stats.second.processing_duration_ > peer_max_processing_time.first) {
+            peer_max_processing_time = {peer_packets_stats.second.processing_duration_, connected_peer.first};
+          }
+        }
+
+        // Disconnect peer with the highest processing time
+        LOG(log_er_) << "Max allowed packets queue size " << kConf.network.ddos_protection.max_packets_queue_size
+                     << " exceeded: " << tp_queue_size << ". Peer with the highest processing time "
+                     << peer_max_processing_time.second << " will be disconnected";
+        host->disconnect(node_id, dev::p2p::UserReason);
+        connected_peers.erase(node_id);
+      }
+    }
+  }
 }
 
 inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const {
@@ -228,13 +259,11 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
 
       // Standard packets with mid processing priority
       packets_handlers->registerHandler<DagBlockPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db,
-                                                               version > kV2NetworkVersion, node_addr, logs_prefix);
+                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
+                                                               logs_prefix);
 
-      // Support for transaition from V2 to V3, once all nodes update to V3 post next hardfork, V2 support can be
-      // removed
       packets_handlers->registerHandler<TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                  node_addr, version > kV2NetworkVersion, logs_prefix);
+                                                                  node_addr, logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<StatusPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
@@ -253,6 +282,59 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
                                                                pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,
                                                                logs_prefix);
+      packets_handlers->registerHandler<PillarVotePacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
+                                                                 node_addr, logs_prefix);
+      packets_handlers->registerHandler<GetPillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
+                                                                           pillar_chain_mgr, node_addr, logs_prefix);
+      packets_handlers->registerHandler<PillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
+                                                                        pillar_chain_mgr, node_addr, logs_prefix);
+
+      return packets_handlers;
+    };
+
+const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitV3Handlers =
+    [](const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
+       const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
+       const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
+       const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
+       const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
+       const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
+       const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, TarcapVersion version,
+       const addr_t &node_addr) {
+      auto packets_handlers = std::make_shared<PacketsHandler>();
+      // Consensus packets with high processing priority
+      packets_handlers->registerHandler<VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
+                                                           vote_mgr, slashing_manager, node_addr, logs_prefix);
+      packets_handlers->registerHandler<GetNextVotesBundlePacketHandler>(
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
+      packets_handlers->registerHandler<VotesBundlePacketHandler>(
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
+
+      // Standard packets with mid processing priority
+      packets_handlers->registerHandler<DagBlockPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
+                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
+                                                               logs_prefix);
+
+      packets_handlers->registerHandler<TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
+                                                                  node_addr, logs_prefix);
+
+      // Non critical packets with low processing priority
+      packets_handlers->registerHandler<StatusPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
+                                                             pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash, node_addr,
+                                                             logs_prefix);
+      packets_handlers->registerHandler<GetDagSyncPacketHandler>(config, peers_state, packets_stats, trx_mgr, dag_mgr,
+                                                                 db, node_addr, logs_prefix);
+
+      packets_handlers->registerHandler<DagSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
+                                                              pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
+                                                              logs_prefix);
+
+      packets_handlers->registerHandler<v3::GetPbftSyncPacketHandler>(
+          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, vote_mgr, db, node_addr, logs_prefix);
+
+      packets_handlers->registerHandler<v3::PbftSyncPacketHandler>(config, peers_state, packets_stats,
+                                                                   pbft_syncing_state, pbft_chain, pbft_mgr, dag_mgr,
+                                                                   vote_mgr, db, node_addr, logs_prefix);
       packets_handlers->registerHandler<PillarVotePacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
                                                                  node_addr, logs_prefix);
       packets_handlers->registerHandler<GetPillarVotesBundlePacketHandler>(config, peers_state, packets_stats,

@@ -49,7 +49,7 @@ Json::Value toJson(const LocalisedTransaction& lt) { return toJson(*lt.trx, lt.t
 Json::Value toJson(const BlockHeader& obj) {
   Json::Value res(Json::objectValue);
   res["parentHash"] = toJS(obj.parent_hash);
-  res["sha3Uncles"] = toJS(BlockHeader::uncles_hash());
+  res["sha3Uncles"] = toJS(BlockHeader::unclesHash());
   res["stateRoot"] = toJS(obj.state_root);
   res["transactionsRoot"] = toJS(obj.transactions_root);
   res["receiptsRoot"] = toJS(obj.receipts_root);
@@ -61,7 +61,7 @@ Json::Value toJson(const BlockHeader& obj) {
   res["timestamp"] = toJS(obj.timestamp);
   res["author"] = toJS(obj.author);
   res["miner"] = toJS(obj.author);
-  res["mixHash"] = toJS(BlockHeader::mix_hash());
+  res["mixHash"] = toJS(BlockHeader::mixHash());
   res["nonce"] = toJS(BlockHeader::nonce());
   res["uncles"] = Json::Value(Json::arrayValue);
   res["hash"] = toJS(obj.hash);
