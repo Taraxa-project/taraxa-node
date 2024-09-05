@@ -123,6 +123,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a85f417dda9c3d6d4965e308fc7d8e339"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a85f417dda9c3d6d4965e308fc7d8e339">getPrirotityQueueSize</a> (<a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0">PacketData::PacketPriority</a> priority) const</td></tr>
 <tr class="memdesc:a85f417dda9c3d6d4965e308fc7d8e339"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns specified priority queue actual size.  <a href="classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a85f417dda9c3d6d4965e308fc7d8e339">More...</a><br /></td></tr>
 <tr class="separator:a85f417dda9c3d6d4965e308fc7d8e339"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aacaca4ea2d64622478c53489e1f1d6ef"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#aacaca4ea2d64622478c53489e1f1d6ef">isNonBlockingPacket</a> (<a class="el" href="namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9">SubprotocolPacketType</a> packet_type) const</td></tr>
+<tr class="separator:aacaca4ea2d64622478c53489e1f1d6ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a859b984c9018f5e76cfae4421fb824e5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a859b984c9018f5e76cfae4421fb824e5">updateBlockingDependencies</a> (const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">PacketData</a> &amp;packet, bool unblock_processing=false)</td></tr>
+<tr class="memdesc:a859b984c9018f5e76cfae4421fb824e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates packet blocking dependency.  <a href="classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a859b984c9018f5e76cfae4421fb824e5">More...</a><br /></td></tr>
+<tr class="separator:a859b984c9018f5e76cfae4421fb824e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -244,6 +249,31 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="aacaca4ea2d64622478c53489e1f1d6ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aacaca4ea2d64622478c53489e1f1d6ef">&#9670;&nbsp;</a></span>isNonBlockingPacket()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::network::threadpool::PriorityQueue::isNonBlockingPacket </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9">SubprotocolPacketType</a>&#160;</td>
+          <td class="paramname"><em>packet_type</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">packet_type</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true for non-blocking packet types, otherwise false </dd></dl>
+
+</div>
+</div>
 <a id="ad386d57320bb983a1afec3b65912dec2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad386d57320bb983a1afec3b65912dec2">&#9670;&nbsp;</a></span>pop()</h2>
 
@@ -285,6 +315,44 @@ Private Attributes</h2></td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a859b984c9018f5e76cfae4421fb824e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a859b984c9018f5e76cfae4421fb824e5">&#9670;&nbsp;</a></span>updateBlockingDependencies()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::network::threadpool::PriorityQueue::updateBlockingDependencies </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">PacketData</a> &amp;&#160;</td>
+          <td class="paramname"><em>packet</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>unblock_processing</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Updates packet blocking dependency. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">packet</td><td></td></tr>
+    <tr><td class="paramname">unblock_processing</td><td>if true, unblock packet processing, otherwise block processing </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if blocking dependency for provided packet was updated, otherwise false </dd></dl>
 
 </div>
 </div>
