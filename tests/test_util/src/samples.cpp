@@ -1,7 +1,7 @@
 #include "test_util/samples.hpp"
 
 namespace taraxa::core_tests::samples {
-bool sendTrx(uint64_t count, unsigned port) {
+bool sendTrx(uint64_t count, unsigned port, dev::Secret secret) {
   auto pattern = R"(
       curl --silent -m 10 --output /dev/null -d \
       '{
@@ -21,9 +21,8 @@ bool sendTrx(uint64_t count, unsigned port) {
       }' 0.0.0.0:%s
     )";
   for (uint64_t i = 0; i < count; ++i) {
-    auto retcode = system(fmt(pattern, i + 1, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
-                              samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
-                              .c_str());
+    auto retcode = system(
+        fmt(pattern, i + 1, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(), secret.makeInsecure(), port).c_str());
     if (retcode != 0) {
       return false;
     }

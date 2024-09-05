@@ -99,7 +99,7 @@ class TxGenerator {
 
 inline auto const TX_GEN = Lazy([] { return TxGenerator(); });
 
-bool sendTrx(uint64_t count, unsigned port);
+bool sendTrx(uint64_t count, unsigned port, dev::Secret secret);
 
 SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk,
                                           bytes data = dev::fromHex("00FEDCBA9876543210000000"));

@@ -121,20 +121,27 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
     return TransactionStatus::Known;
   }
 
-  const auto account = final_chain_->getAccount(tx->getSender()).value_or(taraxa::state_api::ZeroAccount);
+  const auto account = final_chain_->getAccount(tx->getSender());
   bool proposable = true;
 
-  // Ensure the transaction adheres to nonce ordering
-  if (account.nonce > tx->getNonce()) {
-    if (!insert_non_proposable) {
-      return TransactionStatus::Known;
+  if (account.has_value()) {
+    // Ensure the transaction adheres to nonce ordering
+    if (account->nonce > tx->getNonce()) {
+      if (!insert_non_proposable) {
+        return TransactionStatus::Known;
+      }
+      proposable = false;
     }
-    proposable = false;
-  }
 
-  // Transactor should have enough funds to cover the costs
-  // cost == V + GP * GL
-  if (account.balance < tx->getCost()) {
+    // Transactor should have enough funds to cover the costs
+    // cost == V + GP * GL
+    if (account->balance < tx->getCost()) {
+      if (!insert_non_proposable) {
+        return TransactionStatus::Known;
+      }
+      proposable = false;
+    }
+  } else {
     if (!insert_non_proposable) {
       return TransactionStatus::Known;
     }
