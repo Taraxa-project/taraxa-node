@@ -2,7 +2,7 @@
 set(include_dir ethash/include)
 set(prefix_ethash ethash/lib/ethash)
 ## add new target, because ethash at submodule have too many properties
-## and we can do it here more simplier
+## and we can do it here more simpler
 add_library(
     ethash
     ${prefix_ethash}/bit_manipulation.h
@@ -36,13 +36,13 @@ set(BUILD_DIR_PREFIX "${CMAKE_BINARY_DIR}/deps")
 ## buildcommand - build command of library (example: "${CMAKE_MAKE_PROGRAM} OPENSSL_HOME=${CONAN_OPENSSL_ROOT} all")
 function(add_make_target libprefix libname buildcommand)
     # write it to file
-    # because if we use it as it is we will have an error with enviroment vars
+    # because if we use it as it is we will have an error with environment vars
     # they will be interpreted in the wrong key (CGO_CFLAGS_ALLOW='.*' goes as "CGO_CFLAGS_ALLOW=.*")
     set(${libprefix}_SHFILE ${BUILD_DIR_PREFIX}/setenv_for_taraxa_${libprefix}.sh)
     file(WRITE ${${libprefix}_SHFILE} "${buildcommand}")
     # library path
     set(${libprefix}_LIBRARY "${BUILD_DIR_PREFIX}/taraxa-${libprefix}/lib/${libname}")
-    # inlcude path
+    # include path
     set(${libprefix}_INCLUDE_DIR "${BUILD_DIR_PREFIX}/taraxa-${libprefix}/include")
     ExternalProject_Add(
         ${libprefix}_lib_submodule
