@@ -1,4 +1,4 @@
-#include "storage/migration/dag_block.hpp"
+#include "storage/migration/dag_block_period_migration.hpp"
 
 #include <libdevcore/Common.h>
 
@@ -10,13 +10,13 @@
 
 namespace taraxa::storage::migration {
 
-DagBlockData::DagBlockData(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
+DagBlockPeriodMigration::DagBlockPeriodMigration(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
 
-std::string DagBlockData::id() { return "DagBlockData"; }
+std::string DagBlockPeriodMigration::id() { return "DagBlockPeriodMigration"; }
 
-uint32_t DagBlockData::dbVersion() { return 1; }
+uint32_t DagBlockPeriodMigration::dbVersion() { return 1; }
 
-void DagBlockData::migrate(logger::Logger& log) {
+void DagBlockPeriodMigration::migrate(logger::Logger& log) {
   auto orig_col = DbStorage::Columns::period_data;
   auto copied_col = db_->copyColumn(db_->handle(orig_col), orig_col.name() + "-copy");
 

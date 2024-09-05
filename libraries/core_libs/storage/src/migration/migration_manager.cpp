@@ -5,7 +5,7 @@
 namespace taraxa::storage::migration {
 Manager::Manager(std::shared_ptr<DbStorage> db, const addr_t& node_addr) : db_(db) {
   LOG_OBJECTS_CREATE("MIGRATIONS");
-  registerMigration<migration::DagBlockData>();
+  registerMigration<migration::DagBlockPeriodMigration>();
 }
 void Manager::applyMigration(std::shared_ptr<migration::Base> m) {
   if (m->isApplied()) {
