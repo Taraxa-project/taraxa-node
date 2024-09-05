@@ -113,8 +113,8 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.extra_data, pbft_block->getExtraDataRlp());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
-    EXPECT_EQ(blk_h.mix_hash(), h256());
-    EXPECT_EQ(blk_h.uncles_hash(), EmptyRLPListSHA3());
+    EXPECT_EQ(blk_h.mixHash(), h256());
+    EXPECT_EQ(blk_h.unclesHash(), EmptyRLPListSHA3());
     EXPECT_TRUE(!blk_h.state_root.isZero());
     LogBloom expected_block_log_bloom;
     std::unordered_map<addr_t, u256> expected_balance_changes;
