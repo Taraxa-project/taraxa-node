@@ -29,7 +29,10 @@ class PeriodData {
              const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes,
              std::optional<std::vector<std::shared_ptr<PillarVote>>>&& pillar_votes = {});
   explicit PeriodData(const dev::RLP& all_rlp);
-  explicit PeriodData(bytes const& all_rlp);
+  explicit PeriodData(const bytes& all_rlp);
+
+  static PeriodData FromOldPeriodData(const dev::RLP& rlp);
+  static bytes ToOldPeriodData(const bytes& rlp);
 
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<std::shared_ptr<PbftVote>> previous_block_cert_votes;  // These votes are the cert votes of previous block

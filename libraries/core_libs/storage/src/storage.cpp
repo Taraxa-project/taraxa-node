@@ -7,6 +7,7 @@
 #include <regex>
 
 #include "config/version.hpp"
+#include "dag/dag_block_bundle_rlp.hpp"
 #include "dag/sortition_params_manager.hpp"
 #include "final_chain/data.hpp"
 #include "pillar_chain/pillar_block.hpp"
@@ -150,7 +151,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
     return nullptr;
   }
 
-  rocksdb::Checkpoint* checkpoint_raw;
+  rocksdb::Checkpoint* checkpoint_raw = nullptr;
   auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint_raw);
   std::unique_ptr<rocksdb::Checkpoint> checkpoint(checkpoint_raw);
   checkStatus(status);
@@ -161,7 +162,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   // Export dir should not exist before exporting the column family
   fs::remove_all(export_dir);
 
-  rocksdb::ExportImportFilesMetaData* metadata_raw;
+  rocksdb::ExportImportFilesMetaData* metadata_raw = nullptr;
   status = checkpoint->ExportColumnFamily(orig_column, export_dir, &metadata_raw);
   std::unique_ptr<rocksdb::ExportImportFilesMetaData> metadata(metadata_raw);
   checkStatus(status);
@@ -175,7 +176,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   rocksdb::ImportColumnFamilyOptions import_options;
   import_options.move_files = move_data;
 
-  rocksdb::ColumnFamilyHandle* copied_column_raw;
+  rocksdb::ColumnFamilyHandle* copied_column_raw = nullptr;
   status = db_->CreateColumnFamilyWithImport(options, new_col_name, import_options, *metadata, &copied_column_raw);
   std::unique_ptr<rocksdb::ColumnFamilyHandle> copied_column(copied_column_raw);
   checkStatus(status);
@@ -439,7 +440,7 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
     if (period_data.size() > 0) {
       auto period_data_rlp = dev::RLP(period_data);
       auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-      return std::make_shared<DagBlock>(dag_blocks_data[data->second]);
+      return decodeDAGBlockBundleRlp(data->second, dag_blocks_data);
     }
   }
   return nullptr;
@@ -1247,9 +1248,10 @@ std::vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(PbftPeriod
   std::vector<blk_hash_t> ret;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    std::transform(dag_blocks_data.begin(), dag_blocks_data.end(), std::back_inserter(ret),
-                   [](const auto& dag_block) { return DagBlock(dag_block).getHash(); });
+    const auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    std::transform(dag_blocks.begin(), dag_blocks.end(), std::back_inserter(ret),
+                   [](const auto& dag_block) { return dag_block.getHash(); });
   }
 
   return ret;
@@ -1259,9 +1261,10 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(P
   std::vector<std::shared_ptr<DagBlock>> ret;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
+    auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    for (auto const block : dag_blocks) {
+      ret.emplace_back(std::make_shared<DagBlock>(std::move(block)));
     }
   }
   return ret;
@@ -1274,9 +1277,10 @@ DbStorage::getLastPbftBlockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto const period_data_rlp = dev::RLP(period_data);
     auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
+    auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    for (auto const block : dag_blocks) {
+      ret.emplace_back(std::make_shared<DagBlock>(std::move(block)));
     }
     last_pbft_block_hash =
         period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA][PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK].toHash<blk_hash_t>();

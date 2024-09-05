@@ -1165,7 +1165,7 @@ TEST_F(NetworkTest, transaction_gossip_selection) {
   class TestTransactionPacketHandler : public network::tarcap::TransactionPacketHandler {
    public:
     TestTransactionPacketHandler(std::shared_ptr<network::tarcap::PeersState> peers_state)
-        : TransactionPacketHandler({}, peers_state, {}, {}, {}, true) {}
+        : TransactionPacketHandler({}, peers_state, {}, {}, {}) {}
     std::vector<
         std::pair<std::shared_ptr<network::tarcap::TaraxaPeer>, std::pair<SharedTransactions, std::vector<trx_hash_t>>>>
     public_transactionsToSendToPeers(std::vector<SharedTransactions> transactions) {

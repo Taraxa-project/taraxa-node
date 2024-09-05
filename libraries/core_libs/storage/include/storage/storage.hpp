@@ -456,6 +456,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     checkStatus(batch.Put(handle(col), toSlice(k), toSlice(v)));
   }
 
+  template <typename K, typename V>
+  void insert(Batch& batch, rocksdb::ColumnFamilyHandle* col, K const& k, V const& v) {
+    checkStatus(batch.Put(col, toSlice(k), toSlice(v)));
+  }
+
   template <typename K>
   void remove(Column const& col, K const& k) {
     checkStatus(db_->Delete(write_options_, handle(col), toSlice(k)));
