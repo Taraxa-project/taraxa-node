@@ -3,6 +3,8 @@
 #include "common/encoding_solidity.hpp"
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
+#include "network/tarcap/packets_handlers/latest/pillar_votes_bundle_packet_handler.hpp"
+#include "network/threadpool/packet_data.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 #include "test_util/test_util.hpp"
@@ -228,20 +230,40 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
       node2_current_pillar_block->getPeriod() + 1, node2_current_pillar_block->getHash(), true);
   ASSERT_TRUE(above_threshold_pillar_votes.empty());
 
-  // Trigger pillar votes syncing for the latest unfinalized pillar block
+  // Get latest pillar votes from node1
+  const auto pillar_votes = node1->getPillarChainManager()->getVerifiedPillarVotes(
+      node2_current_pillar_block->getPeriod() + 1, node2_current_pillar_block->getHash(), true);
+  ASSERT_FALSE(pillar_votes.empty());
+  // Create rlp from the votes
+  dev::RLPStream pillar_votes_rlp(pillar_votes.size());
+  for (const auto& pillar_vote : pillar_votes) {
+    pillar_votes_rlp << pillar_vote->rlp();
+  }
+
+  // Manually send pillar votes (without syncing request) from node1 to node2 for the latest unfinalized pillar block
+  // node2 should reject votes because syncing wasn't triggered by node2
+  network::threadpool::PacketData packet_data(network::SubprotocolPacketType::PillarVotesBundlePacket,
+                                              node1->getNetwork()->getNodeId(), pillar_votes_rlp.invalidate());
+  node2->getNetwork()->getSpecificHandler<network::tarcap::PillarVotesBundlePacketHandler>()->processPacket(
+      packet_data);
+  auto node2_above_threshold_pillar_votes = node2->getPillarChainManager()->getVerifiedPillarVotes(
+      node2_current_pillar_block->getPeriod() + 1, node2_current_pillar_block->getHash(), true);
+  ASSERT_TRUE(node2_above_threshold_pillar_votes.empty());
+
+  // Trigger pillar votes syncing through request from node1 to node2 for the latest unfinalized pillar block
   node2->getNetwork()->requestPillarBlockVotesBundle(node2_current_pillar_block->getPeriod() + 1,
                                                      node2_current_pillar_block->getHash());
 
-  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    above_threshold_pillar_votes = node2->getPillarChainManager()->getVerifiedPillarVotes(
+  ASSERT_HAPPENS({5s, 250ms}, [&](auto& ctx) {
+    node2_above_threshold_pillar_votes = node2->getPillarChainManager()->getVerifiedPillarVotes(
         node2_current_pillar_block->getPeriod() + 1, node2_current_pillar_block->getHash(), true);
-    WAIT_EXPECT_TRUE(ctx, !above_threshold_pillar_votes.empty())
+    WAIT_EXPECT_TRUE(ctx, !node2_above_threshold_pillar_votes.empty())
   });
 
   const auto threshold =
       node2->getPillarChainManager()->getPillarConsensusThreshold(node2_current_pillar_block->getPeriod());
   size_t votes_count = 0;
-  for (const auto& pillar_vote : above_threshold_pillar_votes) {
+  for (const auto& pillar_vote : node2_above_threshold_pillar_votes) {
     ASSERT_EQ(pillar_vote->getPeriod() - 1, node2_current_pillar_block->getPeriod());
     ASSERT_EQ(pillar_vote->getBlockHash(), node2_current_pillar_block->getHash());
     votes_count +=
