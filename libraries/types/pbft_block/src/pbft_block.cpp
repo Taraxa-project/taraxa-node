@@ -87,7 +87,7 @@ Json::Value PbftBlock::getJson() const {
   json["prev_block_hash"] = prev_block_hash_.toString();
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
   json["order_hash"] = order_hash_.toString();
-  json["prev_state_root_hash"] = final_chain_hash_.toString();
+  json["final_chain_hash"] = final_chain_hash_.toString();
   json["period"] = (Json::Value::UInt64)period_;
   json["timestamp"] = (Json::Value::UInt64)timestamp_;
   json["block_hash"] = block_hash_.toString();

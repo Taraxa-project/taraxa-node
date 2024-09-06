@@ -736,11 +736,7 @@ TEST_F(PbftManagerWithDagCreation, state_root_hash) {
   // Check that all produced blocks have correct state_root_hashes
   while (pbft_block.getPeriod() != 1) {
     auto period = pbft_block.getPeriod();
-    h256 state_root;
-    if (period > state_root_delay) {
-      state_root = node->getFinalChain()->blockHeader(period - state_root_delay)->state_root;
-    }
-    EXPECT_EQ(pbft_block.getFinalChainHash(), state_root);
+    EXPECT_EQ(pbft_block.getFinalChainHash(), node->getFinalChain()->finalChainHash(period));
 
     pbft_block = node->getPbftChain()->getPbftBlockInChain(pbft_block.getPrevBlockHash());
   }

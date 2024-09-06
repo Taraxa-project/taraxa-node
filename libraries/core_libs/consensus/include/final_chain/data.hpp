@@ -41,12 +41,6 @@ struct BlockHeader : BlockHeaderData {
   BlockHeader() = default;
   BlockHeader(std::string&& raw_header_data);
   BlockHeader(std::string&& raw_header_data, const PbftBlock& pbft, uint64_t gas_limit);
-  h256 hash;
-  Address author;
-  uint64_t gas_limit = 0;
-  uint64_t timestamp = 0;
-  EthBlockNumber number = 0;
-  bytes extra_data;
 
   void setFromPbft(const PbftBlock& pbft);
 
@@ -59,6 +53,13 @@ struct BlockHeader : BlockHeaderData {
   static h256 const& mixHash();
 
   dev::bytes ethereumRlp() const;
+
+  h256 hash;
+  Address author;
+  uint64_t gas_limit = 0;
+  uint64_t timestamp = 0;
+  EthBlockNumber number = 0;
+  bytes extra_data;
 };
 
 static constexpr auto c_bloomIndexSize = 16;

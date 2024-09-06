@@ -133,6 +133,8 @@ struct HardforksConfig {
   // Cornus hf - support multiple undelegations from the same validator at the same time
   uint64_t cornus_hf_block_num{0};
 
+  bool isCornusHardfork(uint64_t block_number) const { return block_number >= cornus_hf_block_num; }
+
   HAS_RLP_FIELDS
 };
 

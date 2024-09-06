@@ -466,11 +466,11 @@ class PbftManager {
   bool validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
-   * @brief Validates pbft block state root.
+   * @brief Validates pbft block final chain hash.
    * @param pbft_block PBFT block
    * @return validation result
    */
-  PbftStateRootValidation validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
+  PbftStateRootValidation validateFinalChainHash(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
    * @brief Validates pbft block extra data presence:

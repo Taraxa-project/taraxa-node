@@ -89,6 +89,14 @@ class FinalChain {
   std::optional<h256> blockHash(std::optional<EthBlockNumber> n = {}) const;
 
   /**
+   * @brief Method to get the final chain hash by block number
+   *
+   * @param n block number
+   * @return std::optional<h256> final chain hash or nullopt
+   */
+  std::optional<h256> finalChainHash(EthBlockNumber n) const;
+
+  /**
    * @brief Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract
    * @param new_config state_api::Config
    */
