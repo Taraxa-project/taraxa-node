@@ -1,6 +1,5 @@
 #pragma once
 
-#include "dag/dag_block.hpp"
 #include "dag/dag_manager.hpp"
 #include "packet_handler.hpp"
 

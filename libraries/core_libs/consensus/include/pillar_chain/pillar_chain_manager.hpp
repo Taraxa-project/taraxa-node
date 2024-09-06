@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "common/event.hpp"
-#include "config/config.hpp"
 #include "final_chain/data.hpp"
 #include "logger/logger.hpp"
 #include "pillar_chain/pillar_block.hpp"
@@ -13,6 +12,7 @@ namespace taraxa {
 class DbStorage;
 class Network;
 class KeyManager;
+struct FicusHardforkConfig;
 }  // namespace taraxa
 
 namespace taraxa::final_chain {
@@ -169,7 +169,7 @@ class PillarChainManager {
 
  private:
   // Node config
-  const FicusHardforkConfig kFicusHfConfig;
+  const FicusHardforkConfig& kFicusHfConfig;
 
   std::shared_ptr<DbStorage> db_;
   std::weak_ptr<Network> network_;

@@ -31,7 +31,7 @@
 
 #include <string>
 
-#include "FixedHash.h"
+#include "Common.h"
 
 namespace dev {
 std::string toBase64(bytesConstRef _in);

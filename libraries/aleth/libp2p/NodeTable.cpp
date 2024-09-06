@@ -5,7 +5,6 @@
 #include "NodeTable.h"
 
 #include <cstdint>
-using namespace std;
 
 namespace dev {
 namespace p2p {
@@ -15,9 +14,9 @@ BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS(g_discoveryWarnLogger, boost::log::sour
                                          (boost::log::keywords::severity = 0)(boost::log::keywords::channel = "discov"))
 
 // Cadence at which we timeout sent pings and evict unresponsive nodes
-constexpr chrono::milliseconds c_handleTimeoutsIntervalMs{5000};
+constexpr std::chrono::milliseconds c_handleTimeoutsIntervalMs{5000};
 // Cadence at which we remove old records from EndpointTracker
-constexpr chrono::milliseconds c_removeOldEndpointStatementsIntervalMs{5000};
+constexpr std::chrono::milliseconds c_removeOldEndpointStatementsIntervalMs{5000};
 // Change external endpoint after this number of peers report new one
 constexpr size_t c_minEndpointTrackStatements{10};
 // Interval during which each endpoint statement is kept
@@ -25,12 +24,12 @@ constexpr std::chrono::minutes c_endpointStatementTimeToLiveMin{5};
 
 }  // namespace
 
-constexpr chrono::seconds DiscoveryDatagram::c_timeToLiveS;
-constexpr chrono::milliseconds NodeTable::c_reqTimeoutMs;
-constexpr chrono::milliseconds NodeTable::c_bucketRefreshMs;
-constexpr chrono::milliseconds NodeTable::c_discoveryRoundIntervalMs;
+constexpr std::chrono::seconds DiscoveryDatagram::c_timeToLiveS;
+constexpr std::chrono::milliseconds NodeTable::c_reqTimeoutMs;
+constexpr std::chrono::milliseconds NodeTable::c_bucketRefreshMs;
+constexpr std::chrono::milliseconds NodeTable::c_discoveryRoundIntervalMs;
 
-inline bool operator==(weak_ptr<NodeEntry> const& _weak, shared_ptr<NodeEntry> const& _shared) {
+inline bool operator==(std::weak_ptr<NodeEntry> const& _weak, std::shared_ptr<NodeEntry> const& _shared) {
   return !_weak.owner_before(_shared) && !_shared.owner_before(_weak);
 }
 
@@ -100,8 +99,8 @@ bool NodeTable::addKnownNode(Node const& _node, uint32_t _lastPongReceivedTime, 
     return true;
   }
 
-  auto entry = make_shared<NodeEntry>(m_hostNodeIDHash, _node.id, _node.get_endpoint(), _lastPongReceivedTime,
-                                      _lastPongSentTime);
+  auto entry = std::make_shared<NodeEntry>(m_hostNodeIDHash, _node.id, _node.get_endpoint(), _lastPongReceivedTime,
+                                           _lastPongSentTime);
 
   if (entry->hasValidEndpointProof()) {
     LOG(m_logger) << "Known " << _node;
@@ -137,16 +136,16 @@ bool NodeTable::isValidNode(Node const& _node) const {
   return true;
 }
 
-list<NodeID> NodeTable::nodes() const {
-  list<NodeID> nodes;
+std::list<NodeID> NodeTable::nodes() const {
+  std::list<NodeID> nodes;
   DEV_GUARDED(x_nodes) {
     for (auto& i : m_allNodes) nodes.push_back(i.second->id());
   }
   return nodes;
 }
 
-list<NodeEntry> NodeTable::snapshot() const {
-  list<NodeEntry> ret;
+std::list<NodeEntry> NodeTable::snapshot() const {
+  std::list<NodeEntry> ret;
   DEV_GUARDED(x_state) {
     for (auto const& s : m_buckets)
       for (auto const& np : s.nodes)
@@ -165,13 +164,14 @@ Node NodeTable::node(NodeID const& _id) {
   return UnspecifiedNode;
 }
 
-shared_ptr<NodeEntry> NodeTable::nodeEntry(NodeID const& _id) {
+std::shared_ptr<NodeEntry> NodeTable::nodeEntry(NodeID const& _id) {
   Guard l(x_nodes);
   auto const it = m_allNodes.find(_id);
-  return it != m_allNodes.end() ? it->second : shared_ptr<NodeEntry>();
+  return it != m_allNodes.end() ? it->second : std::shared_ptr<NodeEntry>();
 }
 
-void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round, shared_ptr<set<shared_ptr<NodeEntry>>> _tried) {
+void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round,
+                                 std::shared_ptr<std::set<std::shared_ptr<NodeEntry>>> _tried) {
   // NOTE: ONLY called by doDiscovery or "recursively" via lambda scheduled via
   // timer at the end of this function
   if (!m_socket->isOpen()) return;
@@ -192,7 +192,7 @@ void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round, shared_ptr<set<s
       FindNode p(nodeEntry->endpoint(), _node);
       p.expiration = nextRequestExpirationTime();
       p.sign(m_secret);
-      m_sentFindNodes.emplace_back(nodeEntry->id(), chrono::steady_clock::now());
+      m_sentFindNodes.emplace_back(nodeEntry->id(), std::chrono::steady_clock::now());
       LOG(m_logger) << p.typeName() << " to " << nodeEntry->node << " (target: " << _node << ")";
       m_socket->send(p);
 
@@ -225,15 +225,15 @@ void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round, shared_ptr<set<s
       }));
 }
 
-vector<shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID const& _target) {
-  auto const distanceToTargetLess = [](pair<int, shared_ptr<NodeEntry>> const& _node1,
-                                       pair<int, shared_ptr<NodeEntry>> const& _node2) {
+std::vector<std::shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID const& _target) {
+  auto const distanceToTargetLess = [](std::pair<int, std::shared_ptr<NodeEntry>> const& _node1,
+                                       std::pair<int, std::shared_ptr<NodeEntry>> const& _node2) {
     return _node1.first < _node2.first;
   };
 
   h256 const targetHash = sha3(_target);
 
-  std::multiset<pair<int, shared_ptr<NodeEntry>>, decltype(distanceToTargetLess)> nodesByDistanceToTarget(
+  std::multiset<std::pair<int, std::shared_ptr<NodeEntry>>, decltype(distanceToTargetLess)> nodesByDistanceToTarget(
       distanceToTargetLess);
   for (auto const& bucket : m_buckets)
     for (auto const& nodeWeakPtr : bucket.nodes)
@@ -244,13 +244,13 @@ vector<shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID const& _targe
           nodesByDistanceToTarget.erase(--nodesByDistanceToTarget.end());
       }
 
-  vector<shared_ptr<NodeEntry>> ret;
+  std::vector<std::shared_ptr<NodeEntry>> ret;
   for (auto& distanceAndNode : nodesByDistanceToTarget) ret.emplace_back(std::move(distanceAndNode.second));
 
   return ret;
 }
 
-void NodeTable::ping(Node const& _node, shared_ptr<NodeEntry> _replacementNodeEntry) {
+void NodeTable::ping(Node const& _node, std::shared_ptr<NodeEntry> _replacementNodeEntry) {
   if (!m_socket->isOpen()) return;
 
   // Don't send Ping if one is already sent
@@ -267,7 +267,7 @@ void NodeTable::ping(Node const& _node, shared_ptr<NodeEntry> _replacementNodeEn
   m_socket->send(p);
 
   NodeValidation const validation{
-      _node.id, _node.get_endpoint().tcpPort(), _node.get_endpoint().udpPort(), chrono::steady_clock::now(),
+      _node.id, _node.get_endpoint().tcpPort(), _node.get_endpoint().udpPort(), std::chrono::steady_clock::now(),
       pingHash, _replacementNodeEntry};
   m_sentPings.insert({_node.get_endpoint(), validation});
 }
@@ -276,7 +276,7 @@ void NodeTable::schedulePing(Node const& _node) {
   post(strand_, [this, _node] { ping(_node, {}); });
 }
 
-void NodeTable::evict(NodeEntry const& _leastSeen, shared_ptr<NodeEntry> _replacement) {
+void NodeTable::evict(NodeEntry const& _leastSeen, std::shared_ptr<NodeEntry> _replacement) {
   if (!m_socket->isOpen()) return;
   LOG(m_logger) << "Evicting node " << _leastSeen.node;
   ping(_leastSeen.node, std::move(_replacement));
@@ -284,7 +284,7 @@ void NodeTable::evict(NodeEntry const& _leastSeen, shared_ptr<NodeEntry> _replac
   if (m_nodeEventHandler) m_nodeEventHandler->appendEvent(_leastSeen.id(), NodeEntryScheduledForEviction);
 }
 
-void NodeTable::noteActiveNode(shared_ptr<NodeEntry> _nodeEntry) {
+void NodeTable::noteActiveNode(std::shared_ptr<NodeEntry> _nodeEntry) {
   assert(_nodeEntry);
 
   if (_nodeEntry->id() == m_hostNodeID) {
@@ -300,7 +300,7 @@ void NodeTable::noteActiveNode(shared_ptr<NodeEntry> _nodeEntry) {
 
   LOG(m_logger) << "Active node " << _nodeEntry->node;
 
-  shared_ptr<NodeEntry> nodeToEvict;
+  std::shared_ptr<NodeEntry> nodeToEvict;
   {
     Guard l(x_state);
     // Find a bucket to put a node to
@@ -349,12 +349,12 @@ void NodeTable::invalidateNode(NodeID const& _id) {
   sourceNodeEntry->lastPongReceivedTime = RLPXDatagramFace::secondsSinceEpoch() - NodeTable::c_bondingTimeSeconds;
 }
 
-void NodeTable::dropNode(shared_ptr<NodeEntry> _n) {
+void NodeTable::dropNode(std::shared_ptr<NodeEntry> _n) {
   // remove from nodetable
   {
     Guard l(x_state);
     NodeBucket& s = bucket_UNSAFE(_n.get());
-    s.nodes.remove_if([_n](weak_ptr<NodeEntry> const& _bucketEntry) { return _bucketEntry == _n; });
+    s.nodes.remove_if([_n](std::weak_ptr<NodeEntry> const& _bucketEntry) { return _bucketEntry == _n; });
   }
 
   DEV_GUARDED(x_nodes) { m_allNodes.erase(_n->id()); }
@@ -379,7 +379,7 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
     }
   }
   try {
-    unique_ptr<DiscoveryDatagram> packet = DiscoveryDatagram::interpretUDP(node_ip, _packet);
+    std::unique_ptr<DiscoveryDatagram> packet = DiscoveryDatagram::interpretUDP(node_ip, _packet);
     if (!packet) return;
     if (packet->isExpired()) {
       LOG(m_logger) << "Expired " << packet->typeName() << " from " << packet->sourceid << "@" << node_ip;
@@ -387,7 +387,7 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
     }
     LOG(m_logger) << packet->typeName() << " from " << packet->sourceid << "@" << node_ip;
 
-    shared_ptr<NodeEntry> sourceNodeEntry;
+    std::shared_ptr<NodeEntry> sourceNodeEntry;
     switch (packet->packetType()) {
       case Pong::type:
         sourceNodeEntry = handlePong(node_ip, *packet);
@@ -415,7 +415,7 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
     }
 
     if (sourceNodeEntry) noteActiveNode(std::move(sourceNodeEntry));
-  } catch (exception const& _e) {
+  } catch (std::exception const& _e) {
     LOG(m_logger) << "Exception processing message from " << node_ip.address().to_string() << ":" << node_ip.port()
                   << ": " << _e.what();
   } catch (...) {
@@ -423,7 +423,7 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
   }
 }
 
-shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
+std::shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
   // validate pong
   auto const sentPing = m_sentPings.find(_from);
   if (sentPing == m_sentPings.end()) {
@@ -447,13 +447,13 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
   }
 
   // create or update nodeEntry with new Pong received time
-  shared_ptr<NodeEntry> sourceNodeEntry;
+  std::shared_ptr<NodeEntry> sourceNodeEntry;
   DEV_GUARDED(x_nodes) {
     auto it = m_allNodes.find(sourceId);
     if (it == m_allNodes.end()) {
-      sourceNodeEntry = make_shared<NodeEntry>(m_hostNodeIDHash, sourceId,
-                                               NodeIPEndpoint{_from.address(), _from.port(), nodeValidation.tcpPort},
-                                               RLPXDatagramFace::secondsSinceEpoch(), 0 /* lastPongSentTime */);
+      sourceNodeEntry = std::make_shared<NodeEntry>(
+          m_hostNodeIDHash, sourceId, NodeIPEndpoint{_from.address(), _from.port(), nodeValidation.tcpPort},
+          RLPXDatagramFace::secondsSinceEpoch(), 0 /* lastPongSentTime */);
 
       // We need to setup external port, as we where able to do ping-pong exchange and node is active
       sourceNodeEntry->node.external_udp_port = nodeValidation.udpPort;
@@ -488,8 +488,9 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
   return sourceNodeEntry;
 }
 
-shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
-  shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
+std::shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& _from,
+                                                       DiscoveryDatagram const& _packet) {
+  std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
   if (!sourceNodeEntry) {
     LOG(m_logger) << "Source node (" << _packet.sourceid << "@" << _from
                   << ") not found in node table. Ignoring Neighbours packet.";
@@ -504,7 +505,7 @@ shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& _from
   auto const& in = dynamic_cast<Neighbours const&>(_packet);
 
   bool expected = false;
-  auto now = chrono::steady_clock::now();
+  auto now = std::chrono::steady_clock::now();
   m_sentFindNodes.remove_if([&](NodeIdTimePoint const& _t) noexcept {
     if (_t.first != in.sourceid) return false;
     if (now - _t.second < c_reqTimeoutMs) expected = true;
@@ -544,7 +545,7 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
   }
 
   auto const& in = dynamic_cast<FindNode const&>(_packet);
-  vector<shared_ptr<NodeEntry>> nearest = nearestNodeEntries(in.target);
+  std::vector<std::shared_ptr<NodeEntry>> nearest = nearestNodeEntries(in.target);
   static unsigned constexpr nlimit = (NodeSocket::maxDatagramSize - 109) / 90;
   for (unsigned offset = 0; offset < nearest.size(); offset += nlimit) {
     Neighbours out(_from, nearest, offset, nlimit);
@@ -614,7 +615,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
   if (sourceNodeEntry) {
     sourceNodeEntry->lastPongSentTime = RLPXDatagramFace::secondsSinceEpoch();
-    // We should update entrypoint the the one that node is reporting
+    // We should update entrypoint the one that node is reporting
     sourceNodeEntry->node.external_udp_port = in.source.udpPort();
   }
 
@@ -696,15 +697,15 @@ void NodeTable::doDiscovery() {
         crypto::Nonce::get().ref().copyTo(
             randNodeId.ref().cropped(static_cast<size_t>(h256::size), static_cast<size_t>(h256::size)));
         LOG(m_logger) << "Starting discovery algorithm run for random node id: " << randNodeId;
-        doDiscoveryRound(randNodeId, 0 /* round */, make_shared<set<shared_ptr<NodeEntry>>>());
+        doDiscoveryRound(randNodeId, 0 /* round */, std::make_shared<std::set<std::shared_ptr<NodeEntry>>>());
       }));
 }
 
 void NodeTable::doHandleTimeouts() {
   runBackgroundTask(c_handleTimeoutsIntervalMs, m_timeoutsTimer, [this]() {
-    vector<shared_ptr<NodeEntry>> nodesToActivate;
+    std::vector<std::shared_ptr<NodeEntry>> nodesToActivate;
     for (auto it = m_sentPings.begin(); it != m_sentPings.end();) {
-      if (chrono::steady_clock::now() > it->second.pingSentTime + m_requestTimeToLive) {
+      if (std::chrono::steady_clock::now() > it->second.pingSentTime + m_requestTimeToLive) {
         if (auto node = nodeEntry(it->second.nodeID)) {
           if (node->lastPongReceivedTime < RLPXDatagramFace::secondsSinceEpoch() - m_requestTimeToLive.count()) {
             if (it->first == node->endpoint()) {
@@ -765,8 +766,9 @@ void NodeTable::cancelTimer(std::shared_ptr<ba::steady_timer> _timer) {
   post(strand_, [_timer] { _timer->expires_at(c_steadyClockMin); });
 }
 
-unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endpoint const& _from, bytesConstRef _packet) {
-  unique_ptr<DiscoveryDatagram> decoded;
+std::unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endpoint const& _from,
+                                                                   bytesConstRef _packet) {
+  std::unique_ptr<DiscoveryDatagram> decoded;
   // h256 + Signature + type + RLP (smallest possible packet is empty neighbours
   // packet which is 3 bytes)
   if (_packet.size() < static_cast<size_t>(h256::size) + static_cast<size_t>(Signature::size) + 1 + 3) {

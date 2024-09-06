@@ -172,7 +172,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
         std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
                   << kConf.genesis.chain_id << dag_max_level << kGenesisHash << pbft_chain_size
                   << pbft_syncing_state_->isPbftSyncing() << pbft_round << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
-                  << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode() << dag_mgr_->getLightNodeHistory()));
+                  << TARAXA_PATCH_VERSION << kConf.is_light_node << kConf.light_node_history));
   } else {
     success = sealAndSend(
         node_id, StatusPacket,

@@ -15,11 +15,8 @@
 #include <deque>
 #include <memory>
 #include <utility>
-#include <vector>
 
 #include "Common.h"
-namespace ba = boost::asio;
-namespace bi = ba::ip;
 
 namespace dev {
 namespace p2p {
@@ -226,7 +223,7 @@ void UDPSocket<Handler, MaxDatagramSize>::doWrite() {
 
 template <typename Handler, unsigned MaxDatagramSize>
 void UDPSocket<Handler, MaxDatagramSize>::disconnectWithError(boost::system::error_code _ec) {
-  // If !started and already stopped, shutdown has already occured. (EOF or
+  // If !started and already stopped, shutdown has already occurred. (EOF or
   // Operation canceled)
   if (!m_started && m_closed && !m_socket.is_open() /* todo: veirfy this logic*/) return;
 

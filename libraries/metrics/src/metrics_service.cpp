@@ -1,8 +1,9 @@
 #include "metrics/metrics_service.hpp"
 
-#include <prometheus/counter.h>
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
 
-#include <iostream>
+#include <chrono>
 #include <memory>
 #include <thread>
 

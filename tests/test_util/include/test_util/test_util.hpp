@@ -3,22 +3,16 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
-#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <iostream>
 #include <memory>
-#include <stdexcept>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include "../../gtest.hpp"
-#include "common/encoding_solidity.hpp"
-#include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
-#include "network/network.hpp"
 #include "node/node.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -157,6 +151,8 @@ struct TransactionClient {
   Context process(const std::shared_ptr<Transaction>& trx, bool wait_executed = true) const;
 
   Context coinTransfer(const addr_t& to, const val_t& val, bool wait_executed = true);
+
+  addr_t getAddress() const { return dev::KeyPair(secret_).address(); }
 };
 
 SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& value = 0, uint64_t nonce = 0,

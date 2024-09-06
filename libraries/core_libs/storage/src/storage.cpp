@@ -7,11 +7,13 @@
 #include <regex>
 
 #include "config/version.hpp"
+#include "dag/dag_block_bundle_rlp.hpp"
 #include "dag/sortition_params_manager.hpp"
-#include "final_chain/final_chain.hpp"
+#include "final_chain/data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
+#include "transaction/system_transaction.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
@@ -49,7 +51,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   LOG_OBJECTS_CREATE("DBS");
 
   fs::create_directories(db_path_);
-  removeOldLogFiles();
+  removeTempFiles();
 
   rocksdb::Options options;
   options.create_missing_column_families = true;
@@ -94,10 +96,11 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   }
 }
 
-void DbStorage::removeOldLogFiles() const {
+void DbStorage::removeTempFiles() const {
   const std::regex filePattern("LOG\\.old\\.\\d+");
   removeFilesWithPattern(db_path_, filePattern);
   removeFilesWithPattern(state_db_path_, filePattern);
+  deleteTmpDirectories(path_);
 }
 
 void DbStorage::removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const {
@@ -118,6 +121,22 @@ void DbStorage::removeFilesWithPattern(const std::string& directory, const std::
   }
 }
 
+void DbStorage::deleteTmpDirectories(const std::string& path) const {
+  try {
+    for (const auto& entry : fs::directory_iterator(path)) {
+      if (entry.is_directory()) {
+        std::string dirName = entry.path().filename().string();
+        if (dirName.size() >= 4 && dirName.substr(dirName.size() - 4) == ".tmp") {
+          fs::remove_all(entry.path());
+          LOG(log_dg_) << "Deleted: " << entry.path() << std::endl;
+        }
+      }
+    }
+  } catch (const fs::filesystem_error& e) {
+    LOG(log_er_) << "Error: " << e.what() << std::endl;
+  }
+}
+
 void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
@@ -132,7 +151,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
     return nullptr;
   }
 
-  rocksdb::Checkpoint* checkpoint_raw;
+  rocksdb::Checkpoint* checkpoint_raw = nullptr;
   auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint_raw);
   std::unique_ptr<rocksdb::Checkpoint> checkpoint(checkpoint_raw);
   checkStatus(status);
@@ -143,7 +162,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   // Export dir should not exist before exporting the column family
   fs::remove_all(export_dir);
 
-  rocksdb::ExportImportFilesMetaData* metadata_raw;
+  rocksdb::ExportImportFilesMetaData* metadata_raw = nullptr;
   status = checkpoint->ExportColumnFamily(orig_column, export_dir, &metadata_raw);
   std::unique_ptr<rocksdb::ExportImportFilesMetaData> metadata(metadata_raw);
   checkStatus(status);
@@ -157,7 +176,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   rocksdb::ImportColumnFamilyOptions import_options;
   import_options.move_files = move_data;
 
-  rocksdb::ColumnFamilyHandle* copied_column_raw;
+  rocksdb::ColumnFamilyHandle* copied_column_raw = nullptr;
   status = db_->CreateColumnFamilyWithImport(options, new_col_name, import_options, *metadata, &copied_column_raw);
   std::unique_ptr<rocksdb::ColumnFamilyHandle> copied_column(copied_column_raw);
   checkStatus(status);
@@ -289,7 +308,7 @@ bool DbStorage::createSnapshot(PbftPeriod period) {
 
   LOG(log_nf_) << "Creating DB snapshot on period: " << period;
 
-  // Create rocskd checkpoint/snapshot
+  // Create rocksdb checkpoint/snapshot
   rocksdb::Checkpoint* checkpoint;
   auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint);
   // Scope is to delete checkpoint object as soon as we don't need it anymore
@@ -402,7 +421,7 @@ void DbStorage::checkStatus(rocksdb::Status const& status) {
                     " SubCode: " + std::to_string(status.subcode()) + " Message:" + status.ToString());
 }
 
-DbStorage::Batch DbStorage::createWriteBatch() { return DbStorage::Batch(); }
+Batch DbStorage::createWriteBatch() { return Batch(); }
 
 void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts) {
   auto status = db_->Write(opts, write_batch.GetWriteBatch());
@@ -421,7 +440,7 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
     if (period_data.size() > 0) {
       auto period_data_rlp = dev::RLP(period_data);
       auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-      return std::make_shared<DagBlock>(dag_blocks_data[data->second]);
+      return decodeDAGBlockBundleRlp(data->second, dag_blocks_data);
     }
   }
   return nullptr;
@@ -598,12 +617,11 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     for (auto period = start_period; period < end_period; period++) {
       // Find transactions included in the old blocks and delete data related to these transactions to free
       // disk space
-      const auto& [pbft_block_hash, dag_blocks] = getLastPbftblockHashAndFinalizedDagBlockByPeriod(period);
+      const auto& [pbft_block_hash, dag_blocks] = getLastPbftBlockHashAndFinalizedDagBlockByPeriod(period);
 
       for (const auto& dag_block : dag_blocks) {
         for (const auto& trx_hash : dag_block->getTrxs()) {
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
-          remove(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()));
         }
       }
       remove(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()));
@@ -629,7 +647,6 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
     db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
     db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-    db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
     db_->CompactRange({}, handle(Columns::pbft_block_period), nullptr, nullptr);
     db_->CompactRange({}, handle(Columns::final_chain_log_blooms_index), nullptr, nullptr);
   }
@@ -1231,9 +1248,10 @@ std::vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(PbftPeriod
   std::vector<blk_hash_t> ret;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    std::transform(dag_blocks_data.begin(), dag_blocks_data.end(), std::back_inserter(ret),
-                   [](const auto& dag_block) { return DagBlock(dag_block).getHash(); });
+    const auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    std::transform(dag_blocks.begin(), dag_blocks.end(), std::back_inserter(ret),
+                   [](const auto& dag_block) { return dag_block.getHash(); });
   }
 
   return ret;
@@ -1243,24 +1261,26 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(P
   std::vector<std::shared_ptr<DagBlock>> ret;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
+    auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    for (auto const block : dag_blocks) {
+      ret.emplace_back(std::make_shared<DagBlock>(std::move(block)));
     }
   }
   return ret;
 }
 
 std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>>
-DbStorage::getLastPbftblockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
+DbStorage::getLastPbftBlockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
   std::vector<std::shared_ptr<DagBlock>> ret;
   blk_hash_t last_pbft_block_hash;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto const period_data_rlp = dev::RLP(period_data);
     auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
+    auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    for (auto const block : dag_blocks) {
+      ret.emplace_back(std::make_shared<DagBlock>(std::move(block)));
     }
     last_pbft_block_hash =
         period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA][PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK].toHash<blk_hash_t>();

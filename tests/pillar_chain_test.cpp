@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <iostream>
-
+#include "common/encoding_solidity.hpp"
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -234,7 +233,7 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   // Wait until node1 creates at least 3 pillar blocks
   const auto pillar_blocks_count = 3;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getFinalChain()->last_block_number(),
+    WAIT_EXPECT_EQ(ctx, node1->getFinalChain()->lastBlockNumber(),
                    pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval)
   });
   node1->getPbftManager()->stop();
@@ -243,7 +242,7 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   auto node2 = launch_nodes({node_cfgs[1]})[0];
   // Wait until node2 syncs pbft chain with node1
   ASSERT_HAPPENS({20s, 200ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getFinalChain()->last_block_number(), node1->getFinalChain()->last_block_number())
+    WAIT_EXPECT_EQ(ctx, node2->getFinalChain()->lastBlockNumber(), node1->getFinalChain()->lastBlockNumber())
   });
   node2->getPbftManager()->stop();
 
@@ -280,7 +279,7 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
     ASSERT_EQ(pillar_vote->getPeriod() - 1, node2_current_pillar_block->getPeriod());
     ASSERT_EQ(pillar_vote->getBlockHash(), node2_current_pillar_block->getHash());
     votes_count +=
-        node2->getFinalChain()->dpos_eligible_vote_count(pillar_vote->getPeriod() - 1, pillar_vote->getVoterAddr());
+        node2->getFinalChain()->dposEligibleVoteCount(pillar_vote->getPeriod() - 1, pillar_vote->getVoterAddr());
   }
   ASSERT_GE(votes_count, threshold);
 }
@@ -558,7 +557,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         ASSERT_EQ(trx->getSender(), kTaraxaSystemAccount);
         ASSERT_EQ(trx->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         // check that correct hash is returned
-        auto hashes = node->getFinalChain()->transaction_hashes(period - 1);
+        auto hashes = node->getFinalChain()->transactionHashes(period - 1);
         ASSERT_EQ(hashes->size(), 1);
         ASSERT_EQ(hashes->at(0), trx->getHash());
         // check that location by hash exists and is_system set to true
@@ -574,7 +573,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         ASSERT_EQ(trx_by_hash->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         ASSERT_EQ(trx_by_hash->getSender(), kTaraxaSystemAccount);
         // check that receipt exists
-        const auto& trx_receipt = node->getFinalChain()->transaction_receipt(trx->getHash());
+        const auto& trx_receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
         ASSERT_TRUE(trx_receipt.has_value());
         ASSERT_EQ(trx_receipt->status_code, 1);
       }

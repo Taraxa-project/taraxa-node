@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-TransactionQueue::TransactionQueue(std::shared_ptr<FinalChain> final_chain, size_t max_size)
+TransactionQueue::TransactionQueue(std::shared_ptr<final_chain::FinalChain> final_chain, size_t max_size)
     : known_txs_(max_size * 2, max_size / 5),
       kNonProposableTransactionsMaxSize(max_size * kNonProposableTransactionsLimitPercentage / 100),
       kMaxSize(max_size),
@@ -135,7 +135,7 @@ TransactionStatus TransactionQueue::insert(std::shared_ptr<Transaction> &&transa
         assert(nonce_it->second->getHash() != tx_hash);
         // Replace transaction if gas price higher
         if (transaction->getGasPrice() > nonce_it->second->getGasPrice()) {
-          // Place same nonce transaction with lower gas price in non propsable transactions since it could be
+          // Place same nonce transaction with lower gas price in non proposable transactions since it could be
           // possible that some dag block might contain it
           non_proposable_transactions_[nonce_it->second->getHash()] = {last_block_number, nonce_it->second};
           queue_transactions_.erase(nonce_it->second->getHash());
@@ -190,7 +190,7 @@ void TransactionQueue::blockFinalized(uint64_t block_number) {
 
 void TransactionQueue::purge() {
   for (auto account_it = account_nonce_transactions_.begin(); account_it != account_nonce_transactions_.end();) {
-    const auto account = final_chain_->get_account(account_it->first);
+    const auto account = final_chain_->getAccount(account_it->first);
     if (account.has_value()) {
       for (auto nonce_it = account_it->second.begin(); nonce_it != account_it->second.end();) {
         if (nonce_it->first < account->nonce) {
@@ -206,6 +206,8 @@ void TransactionQueue::purge() {
       } else {
         account_it++;
       }
+    } else {
+      account_it++;
     }
   }
 }

@@ -7,8 +7,6 @@
 #pragma once
 
 #include <array>
-#include <exception>
-#include <iomanip>
 #include <iosfwd>
 #include <type_traits>
 #include <vector>
@@ -500,8 +498,6 @@ class RLPStream {
   std::enable_if_t<is_integer<N>(Signedness::signed_only), RLPStream&> append(N const& _i) {
     bigint big_i(_i);
     if (big_i.sign() < 0) {
-      std::cerr << "negative number will be serialized as rlp list: " << _i
-                << "; it is recommended to not serialize negative numbers" << std::endl;
       appendList(1);
       big_i = boost::multiprecision::abs(big_i);
     }

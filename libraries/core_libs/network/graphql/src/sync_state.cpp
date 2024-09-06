@@ -12,7 +12,7 @@ SyncState::SyncState(std::shared_ptr<::taraxa::final_chain::FinalChain> final_ch
 response::Value SyncState::getStartingBlock() const noexcept { return response::Value(0); }
 
 response::Value SyncState::getCurrentBlock() const noexcept {
-  return response::Value(static_cast<int>(final_chain_->last_block_number()));
+  return response::Value(static_cast<int>(final_chain_->lastBlockNumber()));
 }
 
 response::Value SyncState::getHighestBlock() const noexcept {

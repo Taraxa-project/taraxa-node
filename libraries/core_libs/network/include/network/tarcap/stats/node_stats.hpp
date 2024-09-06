@@ -1,7 +1,8 @@
 #pragma once
 
+#include <json/value.h>
+
 #include "common/types.hpp"
-#include "json/value.h"
 #include "logger/logger.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 

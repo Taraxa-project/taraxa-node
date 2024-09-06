@@ -7,15 +7,9 @@
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
 
-#include <atomic>
 #include <boost/thread.hpp>
-#include <condition_variable>
-#include <iostream>
-#include <mutex>
-#include <string>
 
 #include "common/thread_pool.hpp"
-#include "common/util.hpp"
 #include "config/config.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 #include "network/tarcap/tarcap_version.hpp"
@@ -76,6 +70,13 @@ class Network {
    * @param pillar_block_hash
    */
   void requestPillarBlockVotesBundle(PbftPeriod period, const blk_hash_t &pillar_block_hash);
+
+  /**
+   * @brief Get packets queue status
+   *
+   * @return true if packets queue is over the limit
+   */
+  bool packetQueueOverLimit() const;
 
   // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>

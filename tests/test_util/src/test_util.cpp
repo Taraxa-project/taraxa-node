@@ -1,5 +1,8 @@
 #include "test_util/test_util.hpp"
 
+#include <fstream>
+
+#include "common/encoding_solidity.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -53,8 +56,8 @@ TransactionClient::Context TransactionClient::process(const std::shared_ptr<Tran
   ctx.stage = TransactionStage::inserted;
   auto trx_hash = ctx.trx->getHash();
   if (wait_executed) {
-    auto success = wait(wait_opts_,
-                        [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->transaction_location(trx_hash)); });
+    auto success =
+        wait(wait_opts_, [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->transactionLocation(trx_hash)); });
     if (success) {
       ctx.stage = TransactionStage::executed;
     }

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string>
+#include <json/value.h>
 
-#include "config/config.hpp"
+#include <functional>
+#include <vector>
 
 namespace taraxa::cli {
 

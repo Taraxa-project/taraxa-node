@@ -4,6 +4,9 @@
 
 #include <iostream>
 
+#include "common/encoding_rlp.hpp"
+#include "common/util.hpp"
+
 namespace taraxa {
 
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
@@ -56,7 +59,7 @@ void PbftBlock::calculateHash_() {
   if (!block_hash_) {
     block_hash_ = dev::sha3(rlp(true));
   } else {
-    // Hash sould only be calculated once
+    // Hash should only be calculated once
     assert(false);
   }
   auto p = dev::recover(signature_, sha3(false));
