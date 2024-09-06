@@ -204,8 +204,7 @@ TEST_F(PillarChainTest, votes_count_changes) {
   expected_validators_vote_counts_changes[redelegate_to_addr] = 0;
   for (size_t i = 0; i < validators_count - 3; i++) {
     const auto node_addr = toAddress(node_cfgs[i].node_secret);
-    const auto node_vote_count =
-        nodes[0]->getFinalChain()->dpos_eligible_vote_count(new_pillar_block_period, node_addr);
+    const auto node_vote_count = nodes[0]->getFinalChain()->dposEligibleVoteCount(new_pillar_block_period, node_addr);
     const auto redelegation_value = node_vote_count * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
     expected_validators_vote_counts_changes[node_addr] = dev::s256(node_vote_count) * -1;
     expected_validators_vote_counts_changes[redelegate_to_addr] += dev::s256(node_vote_count);
