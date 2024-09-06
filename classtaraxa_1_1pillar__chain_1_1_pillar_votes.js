@@ -6,10 +6,10 @@ var classtaraxa_1_1pillar__chain_1_1_pillar_votes =
       [ "unique_voters", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ac6a4beccc3be3ad957e2a39e9026a2c7", null ]
     ] ],
     [ "WeightVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_weight_votes", [
-      [ "votes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a018b3eae8c1923ff735d64468772f2f2", null ],
+      [ "votes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#aff57ed02b28dbd4e36f00d67041186f8", null ],
       [ "weight", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a94bc2e5004018f8f58b258a2bf7abc09", null ]
     ] ],
-    [ "addVerifiedVote", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5e6a59af4e2d87a06c27bc029ca84e78", null ],
+    [ "addVerifiedVote", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a6883f0a28874d691d822d8d3fb4ed62a", null ],
     [ "eraseVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ab0e60e3bb6761c5c7b692566c8140b0e", null ],
     [ "getVerifiedVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a32e7e941b8f5cc8bb703be5b5a4d009b", null ],
     [ "initializePeriodData", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a69be18d7782bad66aa68d67fbdc1b4c9", null ],

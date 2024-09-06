@@ -7,7 +7,7 @@ var dir_f0122066e2f9ce0d7e28c214a2b49c2a =
     [ "pillar_votes.hpp", "pillar__votes_8hpp.html", [
       [ "PillarVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html", "classtaraxa_1_1pillar__chain_1_1_pillar_votes" ],
       [ "WeightVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_weight_votes", [
-        [ "votes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a018b3eae8c1923ff735d64468772f2f2", null ],
+        [ "votes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#aff57ed02b28dbd4e36f00d67041186f8", null ],
         [ "weight", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a94bc2e5004018f8f58b258a2bf7abc09", null ]
       ] ],
       [ "PeriodVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_period_votes", [
