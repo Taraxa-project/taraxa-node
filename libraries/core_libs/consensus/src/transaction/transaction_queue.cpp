@@ -32,7 +32,7 @@ std::shared_ptr<Transaction> TransactionQueue::get(const trx_hash_t &hash) const
   return nullptr;
 }
 
-SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) const {
+SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count, std::optional<PbftPeriod> period) const {
   SharedTransactions ret;
   ret.reserve(count);
 
@@ -55,6 +55,11 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
   while (!head_transactions.empty()) {
     // Take transactions with highest gas and put it in ordered transactions
     auto head_trx = head_transactions.begin();
+    // we will check if the account exist at proposal time
+    if (period.has_value() && !final_chain_->getAccount(head_trx->second->getSender(), *period).has_value()) {
+      head_transactions.erase(head_trx);
+      continue;
+    }
     ret.push_back(head_trx->second);
     if (ret.size() == count) {
       break;

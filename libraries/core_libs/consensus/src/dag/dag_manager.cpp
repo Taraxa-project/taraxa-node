@@ -692,6 +692,11 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
     u256 total_block_weight = 0;
     auto block_gas_estimation = blk.getGasEstimation();
     for (const auto &trx : all_block_trxs) {
+      if (*propose_period >= kHardforks.cornus_hf_block_num) {
+        if (!final_chain_->getAccount(trx->getSender(), *propose_period).has_value()) {
+          return {VerifyBlockReturnType::InvalidSender, {}};
+        }
+      }
       total_block_weight += trx_mgr_->estimateTransactionGas(trx, propose_period);
     }
 
