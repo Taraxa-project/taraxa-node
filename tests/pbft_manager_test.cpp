@@ -675,11 +675,13 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
 
   std::map<blk_hash_t, std::shared_ptr<PbftBlock>> blocks;
   // Create blocks
-  for (PbftPeriod period = 1; period <= 3; period++) {
-    for (uint32_t i = 1; i <= 40; i++) {
+  const auto max_period = 3;
+  const auto blocks_per_period = 40;
+  for (PbftPeriod period = 1; period <= max_period; period++) {
+    for (uint32_t i = 1; i <= blocks_per_period; i++) {
       std::vector<vote_hash_t> reward_votes_hashes;
       auto block =
-          std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash, period, addr_t(),
+          std::make_shared<PbftBlock>(blk_hash_t(i), kNullBlockHash, kNullBlockHash, kNullBlockHash, period, addr_t(),
                                       dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
       blocks.insert({block->getBlockHash(), block});
     }
