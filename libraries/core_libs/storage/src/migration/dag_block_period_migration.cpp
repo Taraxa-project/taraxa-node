@@ -4,8 +4,6 @@
 
 #include <cstdint>
 
-#include "common/thread_pool.hpp"
-#include "common/util.hpp"
 #include "pbft/period_data.hpp"
 
 namespace taraxa::storage::migration {
@@ -17,15 +15,7 @@ std::string PeriodDataDagBlockMigration::id() { return "PeriodDataDagBlockMigrat
 uint32_t PeriodDataDagBlockMigration::dbVersion() { return 1; }
 
 void PeriodDataDagBlockMigration::migrate(logger::Logger& log) {
-  auto orig_col = DbStorage::Columns::period_data;
-  auto copied_col = db_->copyColumn(db_->handle(orig_col), orig_col.name() + "-copy");
-
-  if (copied_col == nullptr) {
-    LOG(log) << "Migration " << id() << " skipped: Unable to copy " << orig_col.name() << " column";
-    return;
-  }
-
-  auto it = db_->getColumnIterator(orig_col);
+  auto it = db_->getColumnIterator(DbStorage::Columns::period_data);
   it->SeekToFirst();
   if (!it->Valid()) {
     return;
@@ -40,31 +30,36 @@ void PeriodDataDagBlockMigration::migrate(logger::Logger& log) {
   }
   memcpy(&end_period, it->key().data(), sizeof(uint64_t));
   const auto diff = (end_period - start_period) ? (end_period - start_period) : 1;
+
   uint64_t curr_progress = 0;
   auto batch = db_->createWriteBatch();
   const size_t max_size = 500000000;
-  it->SeekToFirst();
+
   // Get and save data in new format for all blocks
-  for (; it->Valid(); it->Next()) {
-    uint64_t period;
-    memcpy(&period, it->key().data(), sizeof(uint64_t));
-    std::string raw = it->value().ToString();
-    const auto period_data_old_rlp = dev::RLP(raw);
-    auto period_data = ::taraxa::PeriodData::FromOldPeriodData(period_data_old_rlp);
-    db_->insert(batch, copied_col.get(), period, period_data.rlp());
-
-    if (batch.GetDataSize() > max_size) {
-      db_->commitWriteBatch(batch);
-    }
-
+  for (uint64_t period = start_period; period <= end_period; period++) {
+    const auto bts = db_->getPeriodDataRaw(period);
+    const auto db_rlp = dev::RLP(bts);
     auto percentage = (period - start_period) * 100 / diff;
     if (percentage > curr_progress) {
       curr_progress = percentage;
       LOG(log) << "Migration " << id() << " progress " << curr_progress << "%";
     }
+    // If there are no dag blocks in the period, skip it
+    if (db_rlp.itemCount() > 2 && db_rlp[2].itemCount() == 0) {
+      continue;
+    }
+    // skip if the period data is already in the new format
+    try {
+      auto period_data = ::taraxa::PeriodData::FromOldPeriodData(db_rlp);
+      db_->insert(batch, DbStorage::Columns::period_data, period, period_data.rlp());
+    } catch (const dev::RLPException& e) {
+      continue;
+    }
+    if (batch.GetDataSize() > max_size) {
+      db_->commitWriteBatch(batch);
+    }
   }
   db_->commitWriteBatch(batch);
-
-  db_->replaceColumn(orig_col, std::move(copied_col));
+  db_->compactColumn(DbStorage::Columns::period_data);
 }
 }  // namespace taraxa::storage::migration
