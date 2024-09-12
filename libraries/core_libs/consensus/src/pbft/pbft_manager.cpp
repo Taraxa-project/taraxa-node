@@ -456,6 +456,11 @@ void PbftManager::initialState() {
     proposed_blocks_.pushProposedPbftBlock(block, false);
   }
 
+  // TODO[2840]: remove this check if case nodes do not log the err messages after restart
+  if (const auto &err_msg = proposed_blocks_.checkOldBlocksPresence(current_pbft_period); err_msg.has_value()) {
+    LOG(log_er_) << "Old proposed blocks saved in db <period> -> <blocks count>: " << *err_msg;
+  }
+
   // Process saved cert voted block from db
   if (auto cert_voted_block_data = db_->getCertVotedBlockInRound(); cert_voted_block_data.has_value()) {
     const auto [cert_voted_block_round, cert_voted_block] = *cert_voted_block_data;

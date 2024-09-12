@@ -81,4 +81,14 @@ void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(PbftPeriod period) {
   }
 }
 
+std::optional<std::string> ProposedBlocks::checkOldBlocksPresence(PbftPeriod current_period) const {
+  std::string msg;
+  for (auto period_it = proposed_blocks_.begin();
+       period_it != proposed_blocks_.end() && period_it->first < current_period; period_it++) {
+    msg += std::to_string(period_it->first) + " -> " + std::to_string(period_it->second.size()) + ". ";
+  }
+
+  return msg.empty() ? std::nullopt : std::make_optional(msg);
+}
+
 }  // namespace taraxa
