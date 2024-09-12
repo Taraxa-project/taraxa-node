@@ -674,14 +674,19 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   ProposedBlocks proposed_blocks(db);
 
   std::map<blk_hash_t, std::shared_ptr<PbftBlock>> blocks;
-  const uint32_t block_count = 100;
   // Create blocks
-  for (uint32_t i = 1; i <= block_count; i++) {
-    std::vector<vote_hash_t> reward_votes_hashes;
-    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash, 2, addr_t(),
-                                             dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
-    blocks.insert({block->getBlockHash(), block});
+  const auto max_period = 3;
+  const auto blocks_per_period = 40;
+  for (PbftPeriod period = 1; period <= max_period; period++) {
+    for (uint32_t i = 1; i <= blocks_per_period; i++) {
+      std::vector<vote_hash_t> reward_votes_hashes;
+      auto block =
+          std::make_shared<PbftBlock>(blk_hash_t(i), kNullBlockHash, kNullBlockHash, kNullBlockHash, period, addr_t(),
+                                      dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+      blocks.insert({block->getBlockHash(), block});
+    }
   }
+  const uint32_t block_count = blocks.size();
   auto now = std::chrono::steady_clock::now();
   for (auto b : blocks) {
     proposed_blocks.pushProposedPbftBlock(b.second);
@@ -695,7 +700,7 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
     EXPECT_TRUE(blocks.find(b->getBlockHash()) != blocks.end());
   }
   now = std::chrono::steady_clock::now();
-  proposed_blocks.cleanupProposedPbftBlocksByPeriod(3);
+  proposed_blocks.cleanupProposedPbftBlocksByPeriod(4);
   std::cout << "Time to erase " << block_count
             << " blocks: " << duration_cast<microseconds>(std::chrono::steady_clock::now() - now).count()
             << " microseconds" << std::endl;

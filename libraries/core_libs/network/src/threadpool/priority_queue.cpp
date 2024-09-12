@@ -125,11 +125,40 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
   act_total_workers_count_++;
 
   packets_queues_[packet.priority_].incrementActWorkersCount();
+  updateBlockingDependencies(packet);
+}
 
-  // Process all dependencies here - it is called when packet processing has started
-  // !!! Important - there is a "mirror" function updateDependenciesFinish and all dependencies that are set
-  // here should be unset in updateDependenciesFinish
+void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex,
+                                             std::condition_variable& cond_var) {
+  assert(act_total_workers_count_ > 0);
 
+  if (!isNonBlockingPacket(packet.type_)) {
+    // Note: every blocking packet must lock queue_mutex !!!
+    std::unique_lock<std::mutex> lock(queue_mutex);
+    updateBlockingDependencies(packet, true);
+    cond_var.notify_all();
+  }
+
+  act_total_workers_count_--;
+  packets_queues_[packet.priority_].decrementActWorkersCount();
+}
+
+bool PriorityQueue::isNonBlockingPacket(SubprotocolPacketType packet_type) const {
+  // Note: any packet type that is not in this switch should be processed in updateDependencies
+  switch (packet_type) {
+    case SubprotocolPacketType::VotePacket:
+    case SubprotocolPacketType::GetNextVotesSyncPacket:
+    case SubprotocolPacketType::VotesBundlePacket:
+    case SubprotocolPacketType::StatusPacket:
+    case SubprotocolPacketType::PillarVotePacket:
+      return true;
+  }
+
+  return false;
+}
+
+bool PriorityQueue::updateBlockingDependencies(const PacketData& packet, bool unblock_processing) {
+  // Note: any packet type that is not in this switch should be processed in isNonBlockingPacket
   switch (packet.type_) {
     // Packets that can be processed only 1 at the time
     //  GetDagSyncPacket -> serve dag syncing data to only 1 node at the time
@@ -141,83 +170,57 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
     case SubprotocolPacketType::GetPbftSyncPacket:
     case SubprotocolPacketType::GetPillarVotesBundlePacket:
     case SubprotocolPacketType::PillarVotesBundlePacket:  // TODO[2744]: remove
-    case SubprotocolPacketType::PbftSyncPacket:
-      blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
+    case SubprotocolPacketType::PbftSyncPacket: {
+      if (!unblock_processing) {
+        blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
+      } else {
+        blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
+      }
       break;
+    }
 
     //  When syncing dag blocks, process only 1 packet at a time:
     //  DagSyncPacket -> process sync dag blocks synchronously
     //  DagBlockPacket -> wait with processing of new dag blocks until old blocks are synced
-    case SubprotocolPacketType::DagSyncPacket:
-      blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
-      blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
+    case SubprotocolPacketType::DagSyncPacket: {
+      if (!unblock_processing) {
+        blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
+        blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
+      } else {
+        blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
+        blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+      }
       break;
+    }
 
     // When processing TransactionPacket, processing of all dag block packets that were received after that (from the
     // same peer). No need to block processing of dag blocks packets received before as it should not be possible to
     // send dag block before sending txs it contains...
-    case SubprotocolPacketType::TransactionPacket:
-      blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
-      break;
-
-    case SubprotocolPacketType::DagBlockPacket:
-      blocked_packets_mask_.setDagBlockLevelBeingProcessed(packet);
-      blocked_packets_mask_.setDagBlockBeingProcessed(packet);
-      break;
-
-    default:
-      break;
-  }
-}
-
-void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mutex& queue_mutex,
-                                             std::condition_variable& cond_var) {
-  assert(act_total_workers_count_ > 0);
-
-  // Process all dependencies here - it is called when packet processing is finished
-
-  // Note: every case in this switch must lock queue_mutex !!!
-  switch (packet.type_) {
-    case SubprotocolPacketType::GetDagSyncPacket:
-    case SubprotocolPacketType::GetPbftSyncPacket:
-    case SubprotocolPacketType::GetPillarVotesBundlePacket:
-    case SubprotocolPacketType::PillarVotesBundlePacket:  // TODO[2744]: remove
-    case SubprotocolPacketType::PbftSyncPacket: {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-      blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
-      cond_var.notify_all();
-      break;
-    }
-
-    case SubprotocolPacketType::DagSyncPacket: {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-      blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
-      blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
-      cond_var.notify_all();
-      break;
-    }
-
     case SubprotocolPacketType::TransactionPacket: {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-      blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
-      cond_var.notify_all();
+      if (!unblock_processing) {
+        blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
+      } else {
+        blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+      }
       break;
     }
 
     case SubprotocolPacketType::DagBlockPacket: {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-      blocked_packets_mask_.unsetDagBlockLevelBeingProcessed(packet);
-      blocked_packets_mask_.unsetDagBlockBeingProcessed(packet);
-      cond_var.notify_all();
+      if (!unblock_processing) {
+        blocked_packets_mask_.setDagBlockLevelBeingProcessed(packet);
+        blocked_packets_mask_.setDagBlockBeingProcessed(packet);
+      } else {
+        blocked_packets_mask_.unsetDagBlockLevelBeingProcessed(packet);
+        blocked_packets_mask_.unsetDagBlockBeingProcessed(packet);
+      }
       break;
     }
 
     default:
-      break;
+      return false;
   }
 
-  act_total_workers_count_--;
-  packets_queues_[packet.priority_].decrementActWorkersCount();
+  return true;
 }
 
 size_t PriorityQueue::getPrirotityQueueSize(PacketData::PacketPriority priority) const {

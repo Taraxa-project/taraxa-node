@@ -307,6 +307,38 @@ size_t queuesSize(const threadpool::PacketsThreadPool& tp) {
 // Threshold for packets queue to be emptied
 constexpr std::chrono::milliseconds QUEUE_EMPTIED_WAIT_TRESHOLD_MS = 15ms;
 
+// Test all packet types if they are either in non-blocking or blocking list of packets
+TEST_F(TarcapTpTest, packets_blocking_dependencies) {
+  network::threadpool::PriorityQueue priority_queue(3);
+
+  for (auto packet_type = SubprotocolPacketType{0}; packet_type != SubprotocolPacketType::PacketCount;
+       packet_type = static_cast<SubprotocolPacketType>(static_cast<uint32_t>(packet_type) + 1)) {
+    // Skip unreal packet types
+    switch (packet_type) {
+      case SubprotocolPacketType::HighPriorityPackets:
+      case SubprotocolPacketType::MidPriorityPackets:
+      case SubprotocolPacketType::LowPriorityPackets:
+      case SubprotocolPacketType::PacketCount:
+        continue;
+    }
+
+    std::vector<unsigned char> packet_bytes;
+
+    // Generate proper rlp for packets that need it for processing
+    if (packet_type == SubprotocolPacketType::DagBlockPacket) {
+      DagBlock blk(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)}, sig_t(3), blk_hash_t(0x4), addr_t(5));
+      packet_bytes = blk.rlp(true);
+    }
+    network::threadpool::PacketData packet_data{packet_type, {}, std::move(packet_bytes)};
+    packet_data.id_ = static_cast<uint32_t>(packet_type);
+
+    bool is_non_blocking_packet = priority_queue.isNonBlockingPacket(packet_data.type_);
+    bool is_blocking_packet = priority_queue.updateBlockingDependencies(packet_data);
+
+    EXPECT_TRUE(is_non_blocking_packet != is_blocking_packet);
+  }
+}
+
 // Test if all "block-free" packets are processed concurrently
 // Note: in case someone creates new blocking dependency and does not adjust tests, this test should fail
 TEST_F(TarcapTpTest, block_free_packets) {
