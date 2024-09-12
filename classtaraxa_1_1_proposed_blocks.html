@@ -117,6 +117,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1b221518bae7f5641dc39e6e919ce681"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a1b221518bae7f5641dc39e6e919ce681">cleanupProposedPbftBlocksByPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="memdesc:a1b221518bae7f5641dc39e6e919ce681"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleanup all proposed PBFT blocks for the finalized period.  <a href="classtaraxa_1_1_proposed_blocks.html#a1b221518bae7f5641dc39e6e919ce681">More...</a><br /></td></tr>
 <tr class="separator:a1b221518bae7f5641dc39e6e919ce681"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35efe83a90309e07bdf9d54c6395f27a"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a35efe83a90309e07bdf9d54c6395f27a">checkOldBlocksPresence</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> current_period) const</td></tr>
+<tr class="memdesc:a35efe83a90309e07bdf9d54c6395f27a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if there are any old proposed blocks that were supposed to be deleted.  <a href="classtaraxa_1_1_proposed_blocks.html#a35efe83a90309e07bdf9d54c6395f27a">More...</a><br /></td></tr>
+<tr class="separator:a35efe83a90309e07bdf9d54c6395f27a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -157,6 +160,33 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a35efe83a90309e07bdf9d54c6395f27a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35efe83a90309e07bdf9d54c6395f27a">&#9670;&nbsp;</a></span>checkOldBlocksPresence()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; std::string &gt; taraxa::ProposedBlocks::checkOldBlocksPresence </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>current_period</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check if there are any old proposed blocks that were supposed to be deleted. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">current_period</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>err msg in case there are some old blocks, otherwise empty optional </dd></dl>
+
+</div>
+</div>
 <a id="a1b221518bae7f5641dc39e6e919ce681"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1b221518bae7f5641dc39e6e919ce681">&#9670;&nbsp;</a></span>cleanupProposedPbftBlocksByPeriod()</h2>
 

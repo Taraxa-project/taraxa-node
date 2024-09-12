@@ -1,6 +1,7 @@
 var classtaraxa_1_1_proposed_blocks =
 [
     [ "ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html#a22d91ab51e5c1ce862ca29ee70c95f2e", null ],
+    [ "checkOldBlocksPresence", "classtaraxa_1_1_proposed_blocks.html#a35efe83a90309e07bdf9d54c6395f27a", null ],
     [ "cleanupProposedPbftBlocksByPeriod", "classtaraxa_1_1_proposed_blocks.html#a1b221518bae7f5641dc39e6e919ce681", null ],
     [ "getPbftProposedBlock", "classtaraxa_1_1_proposed_blocks.html#a83ac95e2efe8f0859b3fcf1d0deb450e", null ],
     [ "isInProposedBlocks", "classtaraxa_1_1_proposed_blocks.html#af3b1c579aa64b0c50a1c5421fb699b5c", null ],
