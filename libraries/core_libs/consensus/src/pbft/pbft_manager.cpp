@@ -807,6 +807,17 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
 }
 
 void PbftManager::gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block) {
+  gossipVote(vote, voted_block);
+
+  auto found_voted_block_it = current_round_broadcasted_votes_.find(vote->getBlockHash());
+  if (found_voted_block_it == current_round_broadcasted_votes_.end()) {
+    found_voted_block_it = current_round_broadcasted_votes_.insert({vote->getBlockHash(), {}}).first;
+  }
+
+  found_voted_block_it->second.emplace_back(vote->getStep());
+}
+
+void PbftManager::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block) {
   assert(!voted_block || vote->getBlockHash() == voted_block->getBlockHash());
 
   auto net = network_.lock();
@@ -817,13 +828,6 @@ void PbftManager::gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std
   }
 
   net->gossipVote(vote, voted_block);
-
-  auto found_voted_block_it = current_round_broadcasted_votes_.find(vote->getBlockHash());
-  if (found_voted_block_it == current_round_broadcasted_votes_.end()) {
-    found_voted_block_it = current_round_broadcasted_votes_.insert({vote->getBlockHash(), {}}).first;
-  }
-
-  found_voted_block_it->second.emplace_back(vote->getStep());
 }
 
 void PbftManager::proposeBlock_() {

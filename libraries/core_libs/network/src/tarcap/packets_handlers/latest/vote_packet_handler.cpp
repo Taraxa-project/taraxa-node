@@ -81,7 +81,8 @@ void VotePacketHandler::process(const threadpool::PacketData &packet_data, const
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markPbftVoteAsKnown(vote_hash);
-  onNewPbftVote(vote, pbft_block);
+
+  pbft_mgr_->gossipVote(vote, pbft_block);
 }
 
 void VotePacketHandler::onNewPbftVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,

@@ -279,6 +279,14 @@ class PbftManager {
    */
   bool validatePillarDataInPeriodData(const PeriodData &period_data) const;
 
+  /**
+   * @brief Gossips vote to the other peers
+   *
+   * @param vote
+   * @param voted_block
+   */
+  void gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+
  private:
   /**
    * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
@@ -411,7 +419,6 @@ class PbftManager {
    *
    * @param vote
    * @param voted_block
-   * @return true if successful, otherwise false
    */
   void gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
