@@ -8,10 +8,8 @@
 
 #include "config/version.hpp"
 #include "dag/dag.hpp"
+#include "dag/dag_manager.hpp"
 #include "final_chain/final_chain.hpp"
-#include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
@@ -1135,18 +1133,15 @@ PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
 
-  h256 last_state_root;
-  if (propose_period > final_chain_->delegationDelay()) {
-    if (const auto header = final_chain_->blockHeader(propose_period - final_chain_->delegationDelay())) {
-      last_state_root = header->state_root;
-    } else {
-      LOG(log_wr_) << "Block for period " << propose_period << " could not be proposed as we are behind";
-      return {};
-    }
+  auto final_chain_hash = final_chain_->finalChainHash(propose_period);
+  if (!final_chain_hash) {
+    LOG(log_wr_) << "Block for period " << propose_period << " could not be proposed as we are behind";
+    return {};
   }
   try {
-    auto block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
-                                             node_addr_, node_sk_, std::move(reward_votes_hashes), extra_data);
+    auto block =
+        std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, final_chain_hash.value(), propose_period,
+                                    node_addr_, node_sk_, std::move(reward_votes_hashes), extra_data);
 
     return {std::make_pair(std::move(block), std::move(reward_votes))};
   } catch (const std::exception &e) {
@@ -1392,25 +1387,21 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
   return empty_leader_block;
 }
 
-PbftStateRootValidation PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const {
+PbftStateRootValidation PbftManager::validateFinalChainHash(const std::shared_ptr<PbftBlock> &pbft_block) const {
   auto period = pbft_block->getPeriod();
-  auto const &pbft_block_hash = pbft_block->getBlockHash();
-  {
-    h256 prev_state_root_hash;
-    if (period > final_chain_->delegationDelay()) {
-      if (const auto header = final_chain_->blockHeader(period - final_chain_->delegationDelay())) {
-        prev_state_root_hash = header->state_root;
-      } else {
-        LOG(log_wr_) << "Block " << pbft_block_hash << " could not be validated as we are behind";
-        return PbftStateRootValidation::Missing;
-      }
-    }
-    if (pbft_block->getPrevStateRoot() != prev_state_root_hash) {
-      LOG(log_er_) << "Block " << pbft_block_hash << " state root " << pbft_block->getPrevStateRoot()
-                   << " isn't matching actual " << prev_state_root_hash;
-      return PbftStateRootValidation::Invalid;
-    }
+  const auto &pbft_block_hash = pbft_block->getBlockHash();
+
+  auto prev_final_chain_hash = final_chain_->finalChainHash(period);
+  if (!prev_final_chain_hash) {
+    LOG(log_wr_) << "Block " << pbft_block_hash << " could not be validated as we are behind";
+    return PbftStateRootValidation::Missing;
   }
+  if (pbft_block->getFinalChainHash() != prev_final_chain_hash) {
+    LOG(log_er_) << "Block " << pbft_block_hash << " state root " << pbft_block->getFinalChainHash()
+                 << " isn't matching actual " << prev_final_chain_hash.value();
+    return PbftStateRootValidation::Invalid;
+  }
+
   return PbftStateRootValidation::Valid;
 }
 
@@ -1483,7 +1474,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   auto const &pbft_block_hash = pbft_block->getBlockHash();
 
-  if (validatePbftBlockStateRoot(pbft_block) != PbftStateRootValidation::Valid) {
+  if (validateFinalChainHash(pbft_block) != PbftStateRootValidation::Valid) {
     return false;
   }
 
@@ -1879,11 +1870,11 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
 
   bool retry_logged = false;
   while (true) {
-    auto validation_result = validatePbftBlockStateRoot(period_data.pbft_blk);
+    auto validation_result = validateFinalChainHash(period_data.pbft_blk);
     if (validation_result != PbftStateRootValidation::Missing) {
       if (validation_result == PbftStateRootValidation::Invalid) {
         LOG(log_er_) << "Failed verifying block " << pbft_block_hash
-                     << " with invalid state root: " << period_data.pbft_blk->getPrevStateRoot()
+                     << " with invalid state root: " << period_data.pbft_blk->getFinalChainHash()
                      << ". Disconnect malicious peer " << node_id.abridged();
         sync_queue_.clear();
         net->handleMaliciousSyncPeer(node_id);

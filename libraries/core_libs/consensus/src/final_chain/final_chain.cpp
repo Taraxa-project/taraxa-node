@@ -433,7 +433,6 @@ bytes FinalChain::getCode(const addr_t& addr, std::optional<EthBlockNumber> blk_
 
 state_api::ExecutionResult FinalChain::call(const state_api::EVMTransaction& trx,
                                             std::optional<EthBlockNumber> blk_n) const {
-  std::cout << blk_n.value_or(-1) << " " << lastIfAbsent(blk_n) << std::endl;
   auto const blk_header = blockHeader(lastIfAbsent(blk_n));
   if (!blk_header) {
     throw std::runtime_error("Future block");
@@ -575,6 +574,23 @@ std::shared_ptr<const BlockHeader> FinalChain::getBlockHeader(EthBlockNumber n) 
     return std::make_shared<BlockHeader>(std::move(raw), *pbft, kBlockGasLimit);
   }
   return {};
+}
+
+std::optional<h256> FinalChain::finalChainHash(EthBlockNumber n) const {
+  auto delay = delegationDelay();
+  if (n <= delay) {
+    // first delegation delay blocks will have zero hash
+    return ZeroHash();
+  }
+  auto header = blockHeader(n - delay);
+  if (!header) {
+    return {};
+  }
+
+  if (kConfig.genesis.state.hardforks.isCornusHardfork(n)) {
+    return header->hash;
+  }
+  return header->state_root;
 }
 
 std::optional<h256> FinalChain::getBlockHash(EthBlockNumber n) const {
