@@ -1268,6 +1268,9 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:a3bd0011891b8ee02ea43253e67c34e9b"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a3bd0011891b8ee02ea43253e67c34e9b">blockHash</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const</td></tr>
 <tr class="memdesc:a3bd0011891b8ee02ea43253e67c34e9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get block hash by block number.  <a href="group___final_chain.html#a3bd0011891b8ee02ea43253e67c34e9b">More...</a><br /></td></tr>
 <tr class="separator:a3bd0011891b8ee02ea43253e67c34e9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfc9b740ddbe9d0d07c914b1cddef0a5"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#adfc9b740ddbe9d0d07c914b1cddef0a5">finalChainHash</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> n) const</td></tr>
+<tr class="memdesc:adfc9b740ddbe9d0d07c914b1cddef0a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get the final chain hash by block number.  <a href="group___final_chain.html#adfc9b740ddbe9d0d07c914b1cddef0a5">More...</a><br /></td></tr>
+<tr class="separator:adfc9b740ddbe9d0d07c914b1cddef0a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98575a5df57cb51ddf929592a2d06b7f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a98575a5df57cb51ddf929592a2d06b7f">updateStateConfig</a> (const <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">state_api::Config</a> &amp;new_config)</td></tr>
 <tr class="memdesc:a98575a5df57cb51ddf929592a2d06b7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract.  <a href="group___final_chain.html#a98575a5df57cb51ddf929592a2d06b7f">More...</a><br /></td></tr>
 <tr class="separator:a98575a5df57cb51ddf929592a2d06b7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2161,6 +2164,33 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>yield </dd></dl>
+
+</div>
+</div>
+<a id="adfc9b740ddbe9d0d07c914b1cddef0a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfc9b740ddbe9d0d07c914b1cddef0a5">&#9670;&nbsp;</a></span>finalChainHash()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; taraxa::final_chain::FinalChain::finalChainHash </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>n</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Method to get the final chain hash by block number. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>block number </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>std::optional&lt;h256&gt; final chain hash or nullopt </dd></dl>
 
 </div>
 </div>

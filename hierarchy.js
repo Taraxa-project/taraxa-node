@@ -12,7 +12,7 @@ var hierarchy =
     [ "taraxa::AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
       [ "taraxa::storage::migration::FinalChainHeader", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header.html", null ],
-      [ "taraxa::storage::migration::PeriodDataDagBlockMigration", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration.html", null ],
+      [ "taraxa::storage::migration::PeriodDagBlocks", "classtaraxa_1_1storage_1_1migration_1_1_period_dag_blocks.html", null ],
       [ "taraxa::storage::migration::TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", null ]
     ] ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],

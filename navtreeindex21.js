@@ -1,7 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"namespacemembers_func_g.html":[15,1,7],
-"namespacemembers_func_h.html":[15,1,8],
 "namespacemembers_func_i.html":[15,1,9],
 "namespacemembers_func_j.html":[15,1,10],
 "namespacemembers_func_k.html":[15,1,11],
@@ -63,8 +61,8 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#ac844af3765833743b765ce695265d486":[17,0,1,4,0,0,8,0,0,1],
 "namespacetaraxa.html#acb88135b62c8aadb5c6636e1796ec016":[17,0,1,3,0,0,0,0,1],
 "namespacetaraxa.html#ace279b5bb50e6cdeb99932ac0a0f3416":[17,0,1,3,0,0,5,2,1],
-"namespacetaraxa.html#add2731f05401c618d926c2ddc218ba82":[17,0,1,4,0,0,8,0,1,1],
 "namespacetaraxa.html#add2731f05401c618d926c2ddc218ba82":[17,0,1,4,0,0,8,0,0,0,1],
+"namespacetaraxa.html#add2731f05401c618d926c2ddc218ba82":[17,0,1,4,0,0,8,0,1,1],
 "namespacetaraxa.html#adf04d5c498c76dd7cd8ec1e713dfb391":[17,0,1,4,0,0,8,0,0,3],
 "namespacetaraxa.html#af37c1e1391e90c597c50c5f1c2cc5f76":[17,0,1,3,0,0,4,1,0],
 "namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39":[17,0,1,3,0,0,0,0,3],
@@ -249,5 +247,7 @@ var NAVTREEINDEX21 =
 "peers__state_8cpp.html":[17,0,1,4,1,3,0,1,1],
 "peers__state_8hpp.html":[17,0,1,4,1,1,0,0,1,1],
 "peers__state_8hpp_source.html":[17,0,1,4,1,1,0,0,1,1],
-"period__data_8cpp.html":[17,0,1,7,1,1,2]
+"period__dag__blocks_8cpp.html":[17,0,1,4,3,1,0,2],
+"period__dag__blocks_8hpp.html":[17,0,1,4,3,0,0,0,3],
+"period__dag__blocks_8hpp_source.html":[17,0,1,4,3,0,0,0,3]
 };

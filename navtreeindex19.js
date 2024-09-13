@@ -1,7 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"libp2p_2_common_8cpp.html#a589741b97e4a4f06e2ff7c62d6fa7c41":[17,0,1,0,2,1,11],
-"libp2p_2_common_8cpp.html#a5c854b931de47ab08783c9ff9f8f7669":[17,0,1,0,2,1,7],
 "libp2p_2_common_8cpp.html#a77d2562ff65b650dd9cbdead15920ed4":[17,0,1,0,2,1,10],
 "libp2p_2_common_8cpp.html#a7e724ac9b0d0a40bb4d7ce3e7ff137a3":[17,0,1,0,2,1,9],
 "libp2p_2_common_8cpp.html#aaad69e49d041ffa98c6371093c139a17":[17,0,1,0,2,1,4],
@@ -249,5 +247,7 @@ var NAVTREEINDEX19 =
 "md_doc_coding_practices.html#autotoc_md114":[3,0,10],
 "md_doc_coding_practices.html#autotoc_md115":[44],
 "md_doc_coding_practices.html#autotoc_md116":[45],
-"md_doc_coding_practices.html#autotoc_md117":[46]
+"md_doc_coding_practices.html#autotoc_md117":[46],
+"md_doc_coding_practices.html#autotoc_md118":[3,0,11],
+"md_doc_coding_practices.html#autotoc_md119":[47]
 };

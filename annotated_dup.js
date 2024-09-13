@@ -269,10 +269,10 @@ var annotated_dup =
       ] ],
       [ "storage", "namespacetaraxa_1_1storage.html", [
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
-          [ "PeriodDataDagBlockMigration", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration.html", "classtaraxa_1_1storage_1_1migration_1_1_period_data_dag_block_migration" ],
           [ "FinalChainHeader", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header.html", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header" ],
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
           [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
+          [ "PeriodDagBlocks", "classtaraxa_1_1storage_1_1migration_1_1_period_dag_blocks.html", "classtaraxa_1_1storage_1_1migration_1_1_period_dag_blocks" ],
           [ "TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period" ],
           [ "OldHeader", "structtaraxa_1_1storage_1_1migration_1_1_old_header.html", null ]
         ] ]

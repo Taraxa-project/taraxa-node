@@ -1,7 +1,6 @@
 <map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="287,5,491,91"/>
-<area shape="rect" id="node2" href="$pbft__manager_8cpp.html" title=" " alt="" coords="5,146,152,202"/>
-<area shape="rect" id="node3" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="176,153,363,195"/>
-<area shape="rect" id="node4" href="$votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="387,139,632,209"/>
-<area shape="rect" id="node5" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="657,146,821,202"/>
+<area shape="rect" id="node1" title=" " alt="" coords="237,5,441,91"/>
+<area shape="rect" id="node2" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="5,153,192,195"/>
+<area shape="rect" id="node3" href="$votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="216,139,461,209"/>
+<area shape="rect" id="node4" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="486,146,650,202"/>
 </map>

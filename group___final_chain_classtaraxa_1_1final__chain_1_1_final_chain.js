@@ -24,6 +24,7 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
     [ "dposValidatorsTotalStakes", "group___final_chain.html#a6a9e7c7af62da997f5f6e8da7fb64735", null ],
     [ "dposValidatorsVoteCounts", "group___final_chain.html#a85e2a7799cbaf266290dc8e192980e8e", null ],
     [ "dposYield", "group___final_chain.html#a71930d087c35f0e5a1b02879f84b67af", null ],
+    [ "finalChainHash", "group___final_chain.html#adfc9b740ddbe9d0d07c914b1cddef0a5", null ],
     [ "finalize", "group___final_chain.html#a63fde800eb38d35f655e8fe9d608bf13", null ],
     [ "finalize_", "group___final_chain.html#a8875f061c93fe6aa0603fef629d41a8a", null ],
     [ "getAccount", "group___final_chain.html#a69397b0ef416d2eece785ee7e0cb0640", null ],
