@@ -1188,7 +1188,6 @@ TEST_F(NetworkTest, transaction_gossip_selection) {
   dev::p2p::NodeID node_id3(node_key3.pub());
   addr_t node_addr1(node_key1.address());
   addr_t node_addr2(node_key2.address());
-  addr_t node_addr3(node_key3.address());
 
   auto peers_state = std::make_shared<network::tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), FullNodeConfig());
   peers_state->addPendingPeer(node_id1, {});

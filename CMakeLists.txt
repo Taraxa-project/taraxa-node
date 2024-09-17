@@ -32,7 +32,8 @@ add_compile_options(-Wall
                     -Wextra-semi
                     -Wnull-dereference
                     -Wno-unknown-pragmas
-                    -Wno-overlength-strings)
+                    -Wno-overlength-strings
+                    -Wno-switch)
 # Set the position independent code property on all targets
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -216,9 +217,6 @@ find_package(MPFR)
 # use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)
-
-# rocksdb build
-include(${PROJECT_SOURCE_DIR}/CMakeModules/rocksdb.cmake)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)

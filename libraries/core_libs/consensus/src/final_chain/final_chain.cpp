@@ -322,7 +322,7 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_p
                                                      const TransactionReceipts& receipts) {
   dev::BytesMap trxs_trie, receipts_trie;
   dev::RLPStream rlp_strm;
-  auto trx_idx = 0;
+  size_t trx_idx = 0;
   for (; trx_idx < transactions.size(); ++trx_idx) {
     const auto& trx = transactions[trx_idx];
     auto i_rlp = util::rlp_enc(rlp_strm, trx_idx);

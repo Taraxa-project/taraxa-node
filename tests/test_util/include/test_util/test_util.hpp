@@ -192,8 +192,8 @@ std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, Pb
 std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>>& nodes);
 
 struct NodesTest : virtual WithDataDir {
-  virtual ~NodesTest() {}
   NodesTest();
+  virtual ~NodesTest() { CleanupDirs(); }
   NodesTest(const NodesTest&) = delete;
   NodesTest(NodesTest&&) = delete;
   NodesTest& operator=(const NodesTest&) = delete;
@@ -202,8 +202,6 @@ struct NodesTest : virtual WithDataDir {
   void overwriteFromJsons();
 
   void CleanupDirs();
-
-  void TearDown() override;
 
   std::vector<taraxa::FullNodeConfig> make_node_cfgs(size_t total_count, size_t validators_count = 1,
                                                      uint tests_speed = 1, bool enable_rpc_http = false,

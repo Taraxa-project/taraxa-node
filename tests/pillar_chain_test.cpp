@@ -21,16 +21,12 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   blk_hash_t previous_pillar_block_hash(789);
 
   std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> votes_count_changes;
-  const auto vote_count_change1 = votes_count_changes.emplace_back(addr_t(1), 1);
-  const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
       pillar_block_period, state_root, previous_pillar_block_hash, h256{}, 0, std::move(votes_count_changes));
 
   // Pillar block vote counts
   std::vector<state_api::ValidatorVoteCount> vote_counts;
-  const auto stake1 = votes_count_changes.emplace_back(addr_t(123), 123);
-  const auto stake2 = votes_count_changes.emplace_back(addr_t(456), 456);
 
   // Current pillar block data - block + vote counts
   pillar_chain::CurrentPillarBlockDataDb current_pillar_block_data{pillar_block, vote_counts};
@@ -400,12 +396,8 @@ TEST_F(PillarChainTest, pillar_block_solidity_rlp_encoding) {
   blk_hash_t previous_pillar_block_hash(789);
 
   std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> votes_count_changes;
-  const auto vote_count_change1 = votes_count_changes.emplace_back(addr_t(1), 1);
-  const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
-
-  auto vcc = votes_count_changes;
   const auto pillar_block = pillar_chain::PillarBlock(pillar_block_period, state_root, previous_pillar_block_hash,
-                                                      bridge_root, epoch, std::move(vcc));
+                                                      bridge_root, epoch, std::move(votes_count_changes));
 
   auto validateDecodedPillarBlock = [&](const pillar_chain::PillarBlock& pillar_block) {
     ASSERT_EQ(pillar_block.getPeriod(), pillar_block_period);

@@ -29,7 +29,7 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
   virtual std::vector<std::shared_ptr<PbftVote>> decodeVotesBundle(const dev::RLP& votes_bundle_rlp) const;
 
   void pbftSyncComplete();
-  void delayedPbftSync(int counter);
+  void delayedPbftSync(uint32_t counter);
 
   static constexpr uint32_t kDelayedPbftSyncDelayMs = 10;
 

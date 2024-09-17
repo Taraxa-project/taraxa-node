@@ -16,6 +16,7 @@ class Vote {
  public:
   Vote() = default;
   Vote(const blk_hash_t& block_hash);
+  virtual ~Vote() = default;
 
   /**
    * @brief Sign the vote

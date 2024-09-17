@@ -273,8 +273,6 @@ void NodesTest::CleanupDirs() {
   }
 }
 
-void NodesTest::TearDown() { CleanupDirs(); }
-
 std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count, size_t validators_count,
                                                               uint tests_speed, bool enable_rpc_http,
                                                               bool enable_rpc_ws) {

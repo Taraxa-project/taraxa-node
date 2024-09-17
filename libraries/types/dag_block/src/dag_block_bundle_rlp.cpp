@@ -61,7 +61,7 @@ std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp
   std::transform(blocks_bundle_rlp[0].begin(), blocks_bundle_rlp[0].end(), std::back_inserter(ordered_trx_hashes),
                  [](const auto& trx_hash_rlp) { return trx_hash_rlp.template toHash<trx_hash_t>(); });
 
-  for (const auto& idx_rlp : blocks_bundle_rlp[1]) {
+  for (const auto idx_rlp : blocks_bundle_rlp[1]) {
     std::vector<trx_hash_t> hashes;
     hashes.reserve(idx_rlp.itemCount());
     std::transform(idx_rlp.begin(), idx_rlp.end(), std::back_inserter(hashes),
