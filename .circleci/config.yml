@@ -273,7 +273,7 @@ commands:
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set node.indexer.enabled=true \
-                --set node.indexer.image.tag=v1.6.0
+                --set node.indexer.image.tag=v1.9.0
 
               helm upgrade -i explorer-<< parameters.pr-name >> taraxacharts/explorer-frontend --namespace blockchain-prnet --version 1.0.0-sha.4f38de4 \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa/explorer-frontend-develop \
@@ -772,21 +772,20 @@ jobs:
       - tag_builder
       - push_builder
 
-
   release-docker-image:
-      environment:
-        - IMAGE: taraxa-node
-        - CONAN_REVISIONS_ENABLED: 1
-      machine:
-        image: ubuntu-2204:2024.04.4
-        docker_layer_caching: true
-      resource_class: large
-      steps:
-        - checkout
-        - prepare
-        - build
-        - tag
-        - push_dockerhub
+    environment:
+      - IMAGE: taraxa-node
+      - CONAN_REVISIONS_ENABLED: 1
+    machine:
+      image: ubuntu-2204:2024.04.4
+      docker_layer_caching: true
+    resource_class: large
+    steps:
+      - checkout
+      - prepare
+      - build
+      - tag
+      - push_dockerhub
 
   create-and-push-builder:
     docker:
@@ -1035,24 +1034,24 @@ workflows:
             - GCR
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
       - build-linux:
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
           context:
             - TARAXA
             - GCR
       - build-mac:
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
           context:
             - TARAXA
             - GCR
@@ -1067,13 +1066,12 @@ workflows:
           path: release
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
           requires:
             - build-linux
             - build-mac
-
 
   # ### workflows for builder image ### #
   # run this workflow for specific branches 'builder/*'
@@ -1112,7 +1110,6 @@ workflows:
           context:
             - DOCKERHUB
   # ### workflows for builder image ### #
-
 
   # ### workflows for taraxa-node image ### #
   # run this workflow for all branches apart those reserved for chart
@@ -1163,7 +1160,6 @@ workflows:
             - GCR
             - DOCKERHUB
 
-
   # run this workflow for tags, like vX.Y.Z and vX.Y.Z-beta
   release-docker-image:
     jobs:
@@ -1171,8 +1167,8 @@ workflows:
           filters:
             tags:
               only:
-              - /^v?\d+\.\d+\.\d+$/
-              - /^v?\d+\.\d+\.\d+-beta$/
+                - /^v?\d+\.\d+\.\d+$/
+                - /^v?\d+\.\d+\.\d+-beta$/
             branches:
               ignore: /.*/
           context:
@@ -1204,10 +1200,10 @@ workflows:
           filters:
             branches:
               only:
-              - /^chart\/.*/
-              - /^chore\/chart-.*/
-              - /^fix\/chart-.*/
-              - /^feature\/chart-.*/
+                - /^chart\/.*/
+                - /^chore\/chart-.*/
+                - /^fix\/chart-.*/
+                - /^feature\/chart-.*/
 
   # run this workflow for tags, like chart-vX.Y.Z
   release-helm-chart:
