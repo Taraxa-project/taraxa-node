@@ -1,5 +1,7 @@
 #include "network/tarcap/packets_handlers/latest/get_pillar_votes_bundle_packet_handler.hpp"
 
+#include "network/tarcap/packets_handlers/latest/pillar_votes_bundle_packet_handler.hpp"
+
 namespace taraxa::network::tarcap {
 
 GetPillarVotesBundlePacketHandler::GetPillarVotesBundlePacketHandler(
@@ -42,19 +44,39 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
     LOG(log_dg_) << "No pillar votes for period " << period << "and pillar block hash " << pillar_block_hash;
     return;
   }
+  // Check if the votes size exceeds the maximum limit and split into multiple packets if needed
+  const size_t total_votes = votes.size();
+  size_t votes_sent = 0;
 
-  dev::RLPStream s(votes.size());
-  for (const auto &sig : votes) {
-    s.appendRaw(sig->rlp());
-  }
+  while (votes_sent < total_votes) {
+    // Determine the size of the current chunk
+    const size_t chunk_size =
+        std::min(PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp, total_votes - votes_sent);
 
-  if (sealAndSend(peer->getId(), SubprotocolPacketType::PillarVotesBundlePacket, std::move(s))) {
-    for (const auto &vote : votes) {
-      peer->markPillarVoteAsKnown(vote->getHash());
+    // Create a new RLPStream for the chunk
+    dev::RLPStream s(chunk_size);
+    for (size_t i = 0; i < chunk_size; ++i) {
+      const auto &sig = votes[votes_sent + i];
+      s.appendRaw(sig->rlp());
     }
 
-    LOG(log_nf_) << "Pillar votes bundle for period " << period << ", hash " << pillar_block_hash << " sent to "
-                 << peer->getId();
+    // Seal and send the chunk to the peer
+    if (sealAndSend(peer->getId(), SubprotocolPacketType::PillarVotesBundlePacket, std::move(s))) {
+      // Mark the votes in this chunk as known
+      for (size_t i = 0; i < chunk_size; ++i) {
+        peer->markPillarVoteAsKnown(votes[votes_sent + i]->getHash());
+      }
+
+      LOG(log_nf_) << "Pillar votes bundle for period " << period << ", hash " << pillar_block_hash << " sent to "
+                   << peer->getId() << " (Chunk "
+                   << (votes_sent / PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp) + 1 << "/"
+                   << (total_votes + PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp - 1) /
+                          PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp
+                   << ")";
+    }
+
+    // Update the votes_sent counter
+    votes_sent += chunk_size;
   }
 }
 
