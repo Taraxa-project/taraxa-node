@@ -18,10 +18,10 @@ namespace taraxa {
  */
 enum class TransactionStatus { Inserted = 0, InsertedNonProposable, Known, Overflow };
 
+struct FullNodeConfig;
 class DagBlock;
 class DagManager;
 class FullNode;
-class FullNodeConfig;
 
 /**
  * @brief TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving

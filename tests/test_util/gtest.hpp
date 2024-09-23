@@ -46,7 +46,7 @@ struct WithDataDir : virtual BaseTest {
     std::filesystem::remove_all(data_dir);
     std::filesystem::create_directories(data_dir);
   }
-  virtual ~WithDataDir() { std::filesystem::remove_all(data_dir); }
+  virtual ~WithDataDir() = default;  // { std::filesystem::remove_all(data_dir); }
 
   WithDataDir(const WithDataDir &) = delete;
   WithDataDir(WithDataDir &&) = delete;
