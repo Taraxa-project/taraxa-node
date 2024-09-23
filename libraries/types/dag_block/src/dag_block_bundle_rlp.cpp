@@ -12,16 +12,16 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
     return {};
   }
 
-  std::unordered_map<trx_hash_t, uint16_t> trx_hash_map;  // Map to store transaction hash and its index
+  std::unordered_map<trx_hash_t, uint32_t> trx_hash_map;  // Map to store transaction hash and its index
   std::vector<trx_hash_t> ordered_trx_hashes;
-  std::vector<std::vector<uint16_t>> indexes;
+  std::vector<std::vector<uint32_t>> indexes;
 
   for (const auto& block : blocks) {
-    std::vector<uint16_t> idx;
+    std::vector<uint32_t> idx;
     idx.reserve(block.getTrxs().size());
 
     for (const auto& trx : block.getTrxs()) {
-      if (const auto [_, ok] = trx_hash_map.try_emplace(trx, static_cast<uint16_t>(trx_hash_map.size())); ok) {
+      if (const auto [_, ok] = trx_hash_map.try_emplace(trx, static_cast<uint32_t>(trx_hash_map.size())); ok) {
         ordered_trx_hashes.push_back(trx);  // Track the insertion order
       }
       idx.push_back(trx_hash_map[trx]);
@@ -65,7 +65,7 @@ std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp
     std::vector<trx_hash_t> hashes;
     hashes.reserve(idx_rlp.itemCount());
     std::transform(idx_rlp.begin(), idx_rlp.end(), std::back_inserter(hashes),
-                   [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint16_t>()]; });
+                   [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint32_t>()]; });
 
     dags_trx_hashes.push_back(std::move(hashes));
   }
@@ -98,7 +98,7 @@ std::shared_ptr<DagBlock> decodeDAGBlockBundleRlp(uint64_t index, const dev::RLP
   std::vector<trx_hash_t> hashes;
   hashes.reserve(idx_rlp.itemCount());
   std::transform(idx_rlp.begin(), idx_rlp.end(), std::back_inserter(hashes),
-                 [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint16_t>()]; });
+                 [&ordered_trx_hashes](const auto& i) { return ordered_trx_hashes[i.template toInt<uint32_t>()]; });
   return std::make_shared<DagBlock>(blocks_bundle_rlp[2][index], std::move(hashes));
 }
 
