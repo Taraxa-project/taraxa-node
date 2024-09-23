@@ -2,6 +2,7 @@ var group___vote_classtaraxa_1_1_vote =
 [
     [ "Vote", "group___vote.html#af16925e0a68bfccde86e30377906ee16", null ],
     [ "Vote", "group___vote.html#a004cbf74471be9a60023bd9d3e81e4f5", null ],
+    [ "~Vote", "group___vote.html#ad32e70b331d386018aa8a8617171001b", null ],
     [ "getBlockHash", "group___vote.html#a9d7fda53be204548308b4daedd447a1f", null ],
     [ "getHash", "group___vote.html#a35deb0fbe91dd3cff8aba4755ed637b7", null ],
     [ "getVoter", "group___vote.html#a860470d0f37ed86ca1158df017a587c6", null ],

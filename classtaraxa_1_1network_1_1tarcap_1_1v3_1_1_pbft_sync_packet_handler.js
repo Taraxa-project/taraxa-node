@@ -3,7 +3,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler =
     [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a22a9109a71904d7030e4865c1b607fe4", null ],
     [ "decodePeriodData", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a804bc4da579c52c70a794bd8daf2320e", null ],
     [ "decodeVotesBundle", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a9a9077ad4afd316eada517ffc08dd6f4", null ],
-    [ "delayedPbftSync", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a1cb1d177fdc78ed14dad1eb102c7f8c0", null ],
+    [ "delayedPbftSync", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#ade7c0ca0646752763ce22f7c3b7be1ad", null ],
     [ "handleMaliciousSyncPeer", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a4a5bf6b9cdfcab1f28e0129fc0ad4a28", null ],
     [ "pbftSyncComplete", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a01e09e77abba94435b07d43b60fa10ad", null ],
     [ "process", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#aeb82f60fc949cb4158160bbd392aaddf", null ],
