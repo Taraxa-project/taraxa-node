@@ -18,7 +18,7 @@ class PillarVotesBundlePacketHandler : public ExtPillarVotePacketHandler {
   virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
   virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
- protected:
+ public:
   constexpr static size_t kMaxPillarVotesInBundleRlp{250};
 };
 
