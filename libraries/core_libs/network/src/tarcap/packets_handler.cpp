@@ -2,7 +2,7 @@
 
 namespace taraxa::network::tarcap {
 
-const std::shared_ptr<PacketHandler>& PacketsHandler::getSpecificHandler(SubprotocolPacketType packet_type) const {
+const std::shared_ptr<BasePacketHandler>& PacketsHandler::getSpecificHandler(SubprotocolPacketType packet_type) const {
   auto selected_handler = packets_handlers_.find(packet_type);
 
   if (selected_handler == packets_handlers_.end()) {

@@ -17,13 +17,13 @@ PacketData::PacketData(SubprotocolPacketType type, const dev::p2p::NodeID& from_
  * @return PacketPriority <high/mid/low> based om packet_type
  */
 PacketData::PacketPriority PacketData::getPacketPriority(SubprotocolPacketType packet_type) {
-  if (packet_type > SubprotocolPacketType::HighPriorityPackets &&
-      packet_type < SubprotocolPacketType::MidPriorityPackets) {
+  if (packet_type > SubprotocolPacketType::kHighPriorityPackets &&
+      packet_type < SubprotocolPacketType::kMidPriorityPackets) {
     return PacketPriority::High;
-  } else if (packet_type > SubprotocolPacketType::MidPriorityPackets &&
-             packet_type < SubprotocolPacketType::LowPriorityPackets) {
+  } else if (packet_type > SubprotocolPacketType::kMidPriorityPackets &&
+             packet_type < SubprotocolPacketType::kLowPriorityPackets) {
     return PacketPriority::Mid;
-  } else if (packet_type > SubprotocolPacketType::LowPriorityPackets) {
+  } else if (packet_type > SubprotocolPacketType::kLowPriorityPackets) {
     return PacketPriority::Low;
   }
 

@@ -1,10 +1,11 @@
 #pragma once
 
 #include "common/ext_votes_packet_handler.hpp"
+#include "network/tarcap/packets/vote_packet.hpp"
 
 namespace taraxa::network::tarcap {
 
-class VotePacketHandler : public ExtVotesPacketHandler {
+class VotePacketHandler : public ExtVotesPacketHandler<VotePacket> {
  public:
   VotePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                     std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
@@ -25,11 +26,10 @@ class VotePacketHandler : public ExtVotesPacketHandler {
                     const std::shared_ptr<PbftBlock>& block);
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotePacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kVotePacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(VotePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
   const size_t kVotePacketSize{1};

@@ -11,29 +11,29 @@ namespace taraxa::network {
  */
 enum SubprotocolPacketType : uint32_t {
   // Consensus packets with high processing priority
-  HighPriorityPackets = 0,
-  VotePacket,  // Vote packer can contain (optional) also pbft block
-  GetNextVotesSyncPacket,
-  VotesBundlePacket,
+  kHighPriorityPackets = 0,
+  kVotePacket,  // Vote packer can contain (optional) also pbft block
+  kGetNextVotesSyncPacket,
+  kVotesBundlePacket,
 
   // Standard packets with mid processing priority
-  MidPriorityPackets,
-  DagBlockPacket,
+  kMidPriorityPackets,
+  kDagBlockPacket,
   // DagSyncPacket has mid priority as it is also used for ad-hoc syncing in case new dag blocks miss tips/pivot
-  DagSyncPacket,
-  TransactionPacket,
+  kDagSyncPacket,
+  kTransactionPacket,
 
   // Non critical packets with low processing priority
-  LowPriorityPackets,
-  StatusPacket,
-  GetPbftSyncPacket,
-  PbftSyncPacket,
-  GetDagSyncPacket,
-  PillarVotePacket,
-  GetPillarVotesBundlePacket,
-  PillarVotesBundlePacket,
+  kLowPriorityPackets,
+  kStatusPacket,
+  kGetPbftSyncPacket,
+  kPbftSyncPacket,
+  kGetDagSyncPacket,
+  kPillarVotePacket,
+  kGetPillarVotesBundlePacket,
+  kPillarVotesBundlePacket,
 
-  PacketCount
+  kPacketCount
 };
 
 /**
@@ -42,31 +42,31 @@ enum SubprotocolPacketType : uint32_t {
  */
 inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) {
   switch (packet_type) {
-    case StatusPacket:
+    case kStatusPacket:
       return "StatusPacket";
-    case DagBlockPacket:
+    case kDagBlockPacket:
       return "DagBlockPacket";
-    case GetDagSyncPacket:
+    case kGetDagSyncPacket:
       return "GetDagSyncPacket";
-    case DagSyncPacket:
+    case kDagSyncPacket:
       return "DagSyncPacket";
-    case TransactionPacket:
+    case kTransactionPacket:
       return "TransactionPacket";
-    case VotePacket:
+    case kVotePacket:
       return "VotePacket";
-    case GetNextVotesSyncPacket:
+    case kGetNextVotesSyncPacket:
       return "GetNextVotesSyncPacket";
-    case VotesBundlePacket:
+    case kVotesBundlePacket:
       return "VotesBundlePacket";
-    case GetPbftSyncPacket:
+    case kGetPbftSyncPacket:
       return "GetPbftSyncPacket";
-    case PbftSyncPacket:
+    case kPbftSyncPacket:
       return "PbftSyncPacket";
-    case PillarVotePacket:
+    case kPillarVotePacket:
       return "PillarVotePacket";
-    case GetPillarVotesBundlePacket:
+    case kGetPillarVotesBundlePacket:
       return "GetPillarVotesBundlePacket";
-    case PillarVotesBundlePacket:
+    case kPillarVotesBundlePacket:
       return "PillarVotesBundlePacket";
     default:
       break;
