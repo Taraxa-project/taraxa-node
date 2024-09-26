@@ -40,7 +40,7 @@ std::pair<std::shared_ptr<TaraxaPeer>, std::string> PeersState::getPacketSenderP
   // If peer is in pending_peers_, it means he has not yet sent us initial status packet and
   // we can receive/send only StatusPacket from/to him
   if (const auto it_peer = pending_peers_.find(node_id); it_peer != pending_peers_.end()) {
-    if (packet_type == SubprotocolPacketType::StatusPacket) {
+    if (packet_type == SubprotocolPacketType::kStatusPacket) {
       return {it_peer->second, ""};
     } else {
       std::ostringstream error;

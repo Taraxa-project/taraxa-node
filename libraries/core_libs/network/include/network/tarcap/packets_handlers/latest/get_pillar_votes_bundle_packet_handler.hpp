@@ -1,11 +1,12 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
+#include "network/tarcap/packets/get_pillar_votes_bundle_packet.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
-class GetPillarVotesBundlePacketHandler : public PacketHandler {
+class GetPillarVotesBundlePacketHandler : public PacketHandler<GetPillarVotesBundlePacket> {
  public:
   GetPillarVotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                     std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -16,11 +17,10 @@ class GetPillarVotesBundlePacketHandler : public PacketHandler {
                                 const std::shared_ptr<TaraxaPeer>& peer);
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPillarVotesBundlePacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kGetPillarVotesBundlePacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(GetPillarVotesBundlePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
   constexpr static size_t kGetPillarVotesBundlePacketSize{2};

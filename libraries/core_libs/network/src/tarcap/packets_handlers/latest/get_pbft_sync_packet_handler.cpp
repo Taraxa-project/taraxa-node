@@ -22,46 +22,38 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, s
       vote_mgr_(std::move(vote_mgr)),
       db_(std::move(db)) {}
 
-void GetPbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
-  if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
-  }
-}
-
-void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
-                                       const std::shared_ptr<TaraxaPeer> &peer) {
+void GetPbftSyncPacketHandler::process(GetPbftSyncPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 
-  const size_t height_to_sync = packet_data.rlp_[0].toInt();
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
   const size_t my_chain_size = pbft_chain_->getPbftChainSize();
-  if (height_to_sync > my_chain_size) {
+  if (packet.height_to_sync > my_chain_size) {
     // Node update peers PBFT chain size in status packet. Should not request syncing period bigger than pbft chain size
     std::ostringstream err_msg;
-    err_msg << "Peer " << packet_data.from_node_id_ << " request syncing period start at " << height_to_sync
+    err_msg << "Peer " << peer->getId() << " request syncing period start at " << packet.height_to_sync
             << ". That's bigger than own PBFT chain size " << my_chain_size;
     throw MaliciousPeerException(err_msg.str());
   }
 
-  if (kConf.is_light_node && height_to_sync + kConf.light_node_history <= my_chain_size) {
+  if (kConf.is_light_node && packet.height_to_sync + kConf.light_node_history <= my_chain_size) {
     std::ostringstream err_msg;
-    err_msg << "Peer " << packet_data.from_node_id_ << " request syncing period start at " << height_to_sync
+    err_msg << "Peer " << peer->getId() << " request syncing period start at " << packet.height_to_sync
             << ". Light node does not have the data " << my_chain_size;
     throw MaliciousPeerException(err_msg.str());
   }
 
   size_t blocks_to_transfer = 0;
   auto pbft_chain_synced = false;
-  const auto total_period_data_size = my_chain_size - height_to_sync + 1;
+  const auto total_period_data_size = my_chain_size - packet.height_to_sync + 1;
   if (total_period_data_size <= kConf.network.sync_level_size) {
     blocks_to_transfer = total_period_data_size;
     pbft_chain_synced = true;
   } else {
     blocks_to_transfer = kConf.network.sync_level_size;
   }
-  LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << packet_data.from_node_id_;
+  LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << peer->getId();
 
-  sendPbftBlocks(peer, height_to_sync, blocks_to_transfer, pbft_chain_synced);
+  sendPbftBlocks(peer, packet.height_to_sync, blocks_to_transfer, pbft_chain_synced);
 }
 
 // api for pbft syncing
@@ -104,7 +96,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
     }
 
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
-    sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
+    sealAndSend(peer_id, SubprotocolPacketType::kPbftSyncPacket, std::move(s));
     if (pbft_chain_synced && last_block) {
       peer->syncing_ = false;
     }
