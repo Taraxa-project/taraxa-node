@@ -20,70 +20,33 @@ DagSyncPacketHandler::DagSyncPacketHandler(const FullNodeConfig& conf, std::shar
                               logs_prefix + "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
-void DagSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData& packet_data) const {
-  if (constexpr size_t required_size = 4; packet_data.rlp_.itemCount() != required_size) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
-  }
-}
-
-void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
-  auto it = packet_data.rlp_.begin();
-  const auto request_period = (*it++).toInt<PbftPeriod>();
-  const auto response_period = (*it++).toInt<PbftPeriod>();
-
+void DagSyncPacketHandler::process(DagSyncPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) {
   // If the periods did not match restart syncing
-  if (response_period > request_period) {
-    LOG(log_dg_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
-                 << " from " << packet_data.from_node_id_.abridged();
-    if (peer->pbft_chain_size_ < response_period) {
-      peer->pbft_chain_size_ = response_period;
+  if (packet.response_period > packet.request_period) {
+    LOG(log_dg_) << "Received DagSyncPacket with mismatching periods: " << packet.response_period << " "
+                 << packet.request_period << " from " << peer->getId();
+    if (peer->pbft_chain_size_ < packet.response_period) {
+      peer->pbft_chain_size_ = packet.response_period;
     }
     peer->peer_dag_syncing_ = false;
     // We might be behind, restart pbft sync if needed
     startSyncingPbft();
     return;
-  } else if (response_period < request_period) {
+  } else if (packet.response_period < packet.request_period) {
     // This should not be possible for honest node
     std::ostringstream err_msg;
-    err_msg << "Received DagSyncPacket with mismatching periods: response_period(" << response_period
-            << ") != request_period(" << request_period << ")";
+    err_msg << "Received DagSyncPacket with mismatching periods: response_period(" << packet.response_period
+            << ") != request_period(" << packet.request_period << ")";
 
     throw MaliciousPeerException(err_msg.str());
   }
 
   std::vector<trx_hash_t> transactions_to_log;
-  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions;
-  const auto trx_count = (*it).itemCount();
-  transactions.reserve(trx_count);
-  transactions_to_log.reserve(trx_count);
-
-  for (const auto tx_rlp : (*it++)) {
-    try {
-      auto trx = std::make_shared<Transaction>(tx_rlp);
-      peer->markTransactionAsKnown(trx->getHash());
-      transactions.emplace(trx->getHash(), std::move(trx));
-    } catch (const Transaction::InvalidTransaction& e) {
-      throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
-    }
-  }
-
-  std::vector<DagBlock> dag_blocks;
-  std::vector<blk_hash_t> dag_blocks_to_log;
-  dag_blocks.reserve((*it).itemCount());
-  dag_blocks_to_log.reserve((*it).itemCount());
-
-  for (const auto block_rlp : *it) {
-    DagBlock block(block_rlp);
-    peer->markDagBlockAsKnown(block.getHash());
-    if (dag_mgr_->isDagBlockKnown(block.getHash())) {
-      LOG(log_tr_) << "Received known DagBlock " << block.getHash() << "from: " << peer->getId();
-      continue;
-    }
-    dag_blocks.emplace_back(std::move(block));
-  }
-
-  for (auto& trx : transactions) {
+  transactions_to_log.reserve(packet.transactions.size());
+  for (auto& trx : packet.transactions) {
+    peer->markTransactionAsKnown(trx.first);
     transactions_to_log.push_back(trx.first);
+
     if (trx_mgr_->isTransactionKnown(trx.first)) {
       continue;
     }
@@ -96,10 +59,18 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
     }
   }
 
-  for (auto& block : dag_blocks) {
+  std::vector<blk_hash_t> dag_blocks_to_log;
+  dag_blocks_to_log.reserve(packet.dag_blocks.size());
+  for (auto& block : packet.dag_blocks) {
     dag_blocks_to_log.push_back(block.getHash());
+    peer->markDagBlockAsKnown(block.getHash());
 
-    auto verified = dag_mgr_->verifyBlock(block, transactions);
+    if (dag_mgr_->isDagBlockKnown(block.getHash())) {
+      LOG(log_tr_) << "Received known DagBlock " << block.getHash() << "from: " << peer->getId();
+      continue;
+    }
+
+    auto verified = dag_mgr_->verifyBlock(block, packet.transactions);
     if (verified.first != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
       err_msg << "DagBlock " << block.getHash() << " failed verification with error code "
@@ -126,7 +97,7 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
   peer->peer_dag_syncing_ = false;
 
   LOG(log_dg_) << "Received DagSyncPacket with blocks: " << dag_blocks_to_log
-               << " Transactions: " << transactions_to_log << " from " << packet_data.from_node_id_;
+               << " Transactions: " << transactions_to_log << " from " << peer->getId();
 }
 
 }  // namespace taraxa::network::tarcap
