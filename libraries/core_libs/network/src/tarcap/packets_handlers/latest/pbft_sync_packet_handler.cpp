@@ -258,7 +258,7 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
   }
 }
 
-void PbftSyncPacketHandler::delayedPbftSync(int counter) {
+void PbftSyncPacketHandler::delayedPbftSync(uint32_t counter) {
   const uint32_t max_delayed_pbft_sync_count = 60000 / kDelayedPbftSyncDelayMs;
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (counter > max_delayed_pbft_sync_count) {

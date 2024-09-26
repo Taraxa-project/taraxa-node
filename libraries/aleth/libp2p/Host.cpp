@@ -4,24 +4,15 @@
 
 #include "Host.h"
 
-#include <libdevcore/Assertions.h>
-#include <libdevcore/Common.h>
-#include <libdevcore/CommonIO.h>
-#include <libdevcore/Exceptions.h>
-
-#include <boost/algorithm/string.hpp>
 #include <chrono>
 #include <fstream>
 #include <memory>
-#include <mutex>
 #include <set>
-#include <thread>
 
 #include "Capability.h"
 #include "Common.h"
 #include "RLPxHandshake.h"
 #include "Session.h"
-#include "UPnP.h"
 
 using namespace std;
 using namespace dev;

@@ -50,6 +50,7 @@ class DagBlock {
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
+  explicit DagBlock(dev::RLP const &_rlp, vec_trx_t &&trxs);
   explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}
 
   /**
@@ -102,7 +103,7 @@ class DagBlock {
   bool verifySig() const;
   void verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash, const vrf_wrapper::vrf_pk_t &pk,
                  uint64_t vote_count, uint64_t total_vote_count) const;
-  bytes rlp(bool include_sig) const;
+  bytes rlp(bool include_sig, bool include_trxs = true) const;
 
   /**
    * @brief Returns dag block data rlp stream
@@ -110,7 +111,7 @@ class DagBlock {
    * @param include_sig
    * @return dev::RLPStream
    */
-  dev::RLPStream streamRLP(bool include_sig) const;
+  dev::RLPStream streamRLP(bool include_sig, bool include_trxs = true) const;
 
  private:
   blk_hash_t sha3(bool include_sig) const;

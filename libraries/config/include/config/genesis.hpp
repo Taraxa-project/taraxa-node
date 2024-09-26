@@ -2,19 +2,12 @@
 
 #include <json/json.h>
 
-#include <functional>
-#include <unordered_map>
-
-#include "common/lazy.hpp"
 #include "config/dag_config.hpp"
 #include "config/pbft_config.hpp"
 #include "config/state_config.hpp"
 #include "dag/dag_block.hpp"
 
 namespace taraxa {
-using std::string;
-using std::unordered_map;
-using ::taraxa::util::lazy::LazyVal;
 
 struct GasPriceConfig {
   uint64_t percentile = 60;

@@ -11,11 +11,8 @@
 #include <libdevcore/SHA3.h>
 #include <lz4.h>
 
-#include "RLPXPacket.h"
 #include "RLPxHandshake.h"
 
-using namespace std;
-using namespace dev;
 using namespace dev::p2p;
 
 RLPXFrameInfo::RLPXFrameInfo(bytesConstRef _header)
@@ -231,16 +228,16 @@ bool RLPXFrameCoder::authAndDecryptFrame(bytesRef io) {
   return true;
 }
 
-h128 RLPXFrameCoder::egressDigest() {
+dev::h128 RLPXFrameCoder::egressDigest() {
   CryptoPP::Keccak_256 h(m_impl->egressMac);
-  h128 digest;
+  dev::h128 digest;
   h.TruncatedFinal(digest.data(), h128::size);
   return digest;
 }
 
-h128 RLPXFrameCoder::ingressDigest() {
+dev::h128 RLPXFrameCoder::ingressDigest() {
   CryptoPP::Keccak_256 h(m_impl->ingressMac);
-  h128 digest;
+  dev::h128 digest;
   h.TruncatedFinal(digest.data(), h128::size);
   return digest;
 }

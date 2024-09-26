@@ -4,6 +4,9 @@
 
 #include <iostream>
 
+#include "common/encoding_rlp.hpp"
+#include "common/util.hpp"
+
 namespace taraxa {
 
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
@@ -12,11 +15,11 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
   if (rlp.itemCount() == 9) {
     dev::bytes extra_data_bytes;
     util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
-                    prev_state_root_hash_, period_, timestamp_, reward_votes_, extra_data_bytes, signature_);
+                    final_chain_hash_, period_, timestamp_, reward_votes_, extra_data_bytes, signature_);
     extra_data_ = PbftBlockExtraData::fromBytes(extra_data_bytes);
   } else {
     util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
-                    prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
+                    final_chain_hash_, period_, timestamp_, reward_votes_, signature_);
   }
 
   calculateHash_();
@@ -24,13 +27,13 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
 }
 
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
-                     const blk_hash_t& order_hash, const blk_hash_t& prev_state_root, PbftPeriod period,
+                     const blk_hash_t& order_hash, const blk_hash_t& final_chain_hash, PbftPeriod period,
                      const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes,
                      const std::optional<PbftBlockExtraData>& extra_data)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       order_hash_(order_hash),
-      prev_state_root_hash_(prev_state_root),
+      final_chain_hash_(final_chain_hash),
       period_(period),
       beneficiary_(beneficiary),
       reward_votes_(reward_votes),
@@ -56,7 +59,7 @@ void PbftBlock::calculateHash_() {
   if (!block_hash_) {
     block_hash_ = dev::sha3(rlp(true));
   } else {
-    // Hash sould only be calculated once
+    // Hash should only be calculated once
     assert(false);
   }
   auto p = dev::recover(signature_, sha3(false));
@@ -84,7 +87,7 @@ Json::Value PbftBlock::getJson() const {
   json["prev_block_hash"] = prev_block_hash_.toString();
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
   json["order_hash"] = order_hash_.toString();
-  json["prev_state_root_hash"] = prev_state_root_hash_.toString();
+  json["final_chain_hash"] = final_chain_hash_.toString();
   json["period"] = (Json::Value::UInt64)period_;
   json["timestamp"] = (Json::Value::UInt64)timestamp_;
   json["block_hash"] = block_hash_.toString();
@@ -107,7 +110,7 @@ void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
   strm << order_hash_;
-  strm << prev_state_root_hash_;
+  strm << final_chain_hash_;
   strm << period_;
   strm << timestamp_;
   strm.appendVector(reward_votes_);

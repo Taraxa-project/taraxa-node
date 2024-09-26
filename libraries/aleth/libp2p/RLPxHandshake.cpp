@@ -4,13 +4,9 @@
 
 #include "RLPxHandshake.h"
 
-#include "Host.h"
-#include "Peer.h"
-#include "Session.h"
-using namespace std;
-using namespace dev;
+#include <libdevcore/SHA3.h>
+
 using namespace dev::p2p;
-using namespace dev::crypto;
 
 constexpr std::chrono::milliseconds RLPXHandshake::c_timeout;
 
@@ -20,10 +16,10 @@ constexpr size_t c_ackCipherSizeBytes = 210;
 constexpr size_t c_authCipherSizeBytes = 307;
 }  // namespace
 
-RLPXHandshake::RLPXHandshake(shared_ptr<HostContext const> ctx, std::shared_ptr<RLPXSocket> const& _socket)
+RLPXHandshake::RLPXHandshake(std::shared_ptr<HostContext const> ctx, std::shared_ptr<RLPXSocket> const& _socket)
     : RLPXHandshake(std::move(ctx), _socket, {}) {}
 
-RLPXHandshake::RLPXHandshake(shared_ptr<HostContext const> ctx, std::shared_ptr<RLPXSocket> const& _socket,
+RLPXHandshake::RLPXHandshake(std::shared_ptr<HostContext const> ctx, std::shared_ptr<RLPXSocket> const& _socket,
                              NodeID _remote)
     : host_ctx_(std::move(ctx)),
       m_remote(_remote),
@@ -35,7 +31,7 @@ RLPXHandshake::RLPXHandshake(shared_ptr<HostContext const> ctx, std::shared_ptr<
   m_logger.add_attribute("Prefix", prefixAttr);
   m_errorLogger.add_attribute("Prefix", prefixAttr);
 
-  stringstream remoteInfoStream;
+  std::stringstream remoteInfoStream;
   remoteInfoStream << "(" << _remote;
   if (remoteSocketConnected()) remoteInfoStream << "@" << m_socket->remoteEndpoint();
   remoteInfoStream << ")";
@@ -97,7 +93,7 @@ void RLPXHandshake::writeAckEIP8() {
   m_ack.resize(m_ack.size() + padAmount, 0);
 
   bytes prefix(2);
-  toBigEndian<uint16_t>(m_ack.size() + c_eciesOverhead, prefix);
+  toBigEndian<uint16_t>(m_ack.size() + crypto::c_eciesOverhead, prefix);
   encryptECIES(m_remote, bytesConstRef(&prefix), &m_ack, m_ackCipher);
   m_ackCipher.insert(m_ackCipher.begin(), prefix.begin(), prefix.end());
 
@@ -219,7 +215,7 @@ void RLPXHandshake::cancel() {
 void RLPXHandshake::error(boost::system::error_code _ech) {
   host_ctx_->on_failure(m_remote, m_failureReason);
 
-  stringstream errorStream;
+  std::stringstream errorStream;
   errorStream << "Handshake failed";
   if (_ech) errorStream << " (I/O error: " << _ech.message() << ")";
   if (remoteSocketConnected())

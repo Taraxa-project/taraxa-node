@@ -1,11 +1,14 @@
 #pragma once
 
 #include <boost/circular_buffer.hpp>
+#include <shared_mutex>
 
 #include "config/genesis.hpp"
-#include "final_chain/final_chain.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa {
+
+class DbStorage;
 
 /** @addtogroup Transaction
  * @{

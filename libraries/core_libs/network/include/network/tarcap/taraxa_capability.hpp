@@ -59,6 +59,9 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
    */
   static const InitPacketsHandlers kInitLatestVersionHandlers;
 
+  // TODO: remove this once we pass HF
+  static const InitPacketsHandlers kInitV3Handlers;
+
  public:
   TaraxaCapability(TarcapVersion version, const FullNodeConfig &conf, const h256 &genesis_hash,
                    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
@@ -93,6 +96,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
 
  private:
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
+  void handlePacketQueueOverLimit(std::shared_ptr<dev::p2p::Host> host, dev::p2p::NodeID node_id, size_t tp_queue_size);
 
  private:
   // Capability version
@@ -115,6 +119,12 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
 
   // Main Threadpool for processing packets
   std::shared_ptr<threadpool::PacketsThreadPool> thread_pool_;
+
+  // Last disconnect time and number of peers
+  std::chrono::system_clock::time_point last_ddos_disconnect_time_ = {};
+  std::chrono::system_clock::time_point queue_over_limit_start_time_ = {};
+  bool queue_over_limit_ = false;
+  uint32_t last_disconnect_number_of_peers_ = 0;
 
   LOG_OBJECTS_DEFINE
 };

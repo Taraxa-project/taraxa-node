@@ -7,14 +7,7 @@
 #include <libdevcore/Guards.h>
 #include <libdevcore/RLP.h>
 
-#include <array>
-#include <deque>
-#include <memory>
-#include <vector>
-
 #include "Common.h"
-namespace ba = boost::asio;
-namespace bi = ba::ip;
 
 namespace dev {
 namespace p2p {

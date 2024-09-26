@@ -2,9 +2,7 @@
 
 #include <libp2p/Common.h>
 
-#include <atomic>
 #include <map>
-#include <shared_mutex>
 
 #include "network/tarcap/packet_types.hpp"
 #include "network/threadpool/packet_data.hpp"

@@ -1,8 +1,17 @@
 #include "vote/pbft_vote.hpp"
 
+#include <assert.h>
 #include <libdevcore/CommonJS.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
+
+#include <boost/exception/info.hpp>
+#include <utility>
+#include <vector>
 
 #include "common/encoding_rlp.hpp"
+#include "vote/vote.hpp"
+#include "vote/vrf_sortition.hpp"
 
 namespace taraxa {
 

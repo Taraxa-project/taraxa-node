@@ -5,7 +5,6 @@
 #include <memory>
 #include <string_view>
 
-#include "common/thread_pool.hpp"
 #include "exceptions.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packet_types.hpp"
