@@ -11,6 +11,9 @@ class PillarVotesBundlePacketHandler : public ExtPillarVotePacketHandler {
                                  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
                                  const addr_t& node_addr, const std::string& logs_prefix);
 
+  void requestPillarVotesBundle(PbftPeriod period, const blk_hash_t& pillar_block_hash,
+                                const std::shared_ptr<TaraxaPeer>& peer);
+
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PillarVotesBundlePacket;
 
@@ -20,6 +23,7 @@ class PillarVotesBundlePacketHandler : public ExtPillarVotePacketHandler {
 
  public:
   constexpr static size_t kMaxPillarVotesInBundleRlp{250};
+  std::atomic<dev::p2p::NodeID> votes_requested_node_id_;
 };
 
 }  // namespace taraxa::network::tarcap
