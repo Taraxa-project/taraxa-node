@@ -257,7 +257,6 @@ std::vector<blk_hash_t> PivotTree::getGhostPath(const blk_hash_t &vertex) const 
         next = *s;
       } else if (w == heavist) {
         if (index_map[*s] < index_map[next]) {
-          heavist = w;
           next = *s;
         }
       }

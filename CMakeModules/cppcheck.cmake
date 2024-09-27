@@ -10,6 +10,7 @@ else ()
             COMMAND ${CPP_CHECK_EXE}
             --error-exitcode=1
             --enable=all
+            --check-level=exhaustive
             --suppress=missingInclude
             --suppress=missingIncludeSystem
             # find_if - useless here

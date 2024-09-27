@@ -14,7 +14,7 @@ class TaraxaConan(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.86.0")
-        self.requires("cppcheck/2.12") #TODO(2.14.1)
+        self.requires("cppcheck/2.15.0")
         self.requires("openssl/3.3.2")
         self.requires("cryptopp/8.9.0")
         self.requires("gtest/1.15.0")
