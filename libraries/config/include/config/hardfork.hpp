@@ -5,6 +5,7 @@
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 
+namespace taraxa {
 struct Redelegation {
   taraxa::addr_t validator;
   taraxa::addr_t delegator;
@@ -129,8 +130,14 @@ struct HardforksConfig {
   // Ficus hardfork: implementation of pillar chain
   FicusHardforkConfig ficus_hf;
 
+  // Cornus hf - support multiple undelegations from the same validator at the same time
+  uint64_t cornus_hf_block_num{0};
+
+  bool isCornusHardfork(uint64_t block_number) const { return block_number >= cornus_hf_block_num; }
+
   HAS_RLP_FIELDS
 };
 
 Json::Value enc_json(const HardforksConfig& obj);
 void dec_json(const Json::Value& json, HardforksConfig& obj);
+}  // namespace taraxa

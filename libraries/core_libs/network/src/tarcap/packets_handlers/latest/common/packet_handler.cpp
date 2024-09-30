@@ -1,5 +1,6 @@
 #include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
 
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
 
 namespace taraxa::network::tarcap {

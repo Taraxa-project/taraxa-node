@@ -1,10 +1,12 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
-#include "common/config_exception.hpp"
-#include "common/types.hpp"
-#include "common/util.hpp"
+namespace Json {
+class Value;
+}  // namespace Json
 
 namespace taraxa {
 std::string getConfigErr(const std::vector<std::string> &path);

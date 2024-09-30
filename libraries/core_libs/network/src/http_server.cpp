@@ -101,7 +101,7 @@ void HttpConnection::read() {
           response_ = server_->request_processor_->process(request_);
           boost::beast::http::async_write(
               socket_, response_,
-              [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transfered*/) { this_sp->stop(); });
+              [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transferred*/) { this_sp->stop(); });
         }
       });
 }

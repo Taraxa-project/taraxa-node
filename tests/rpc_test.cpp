@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
-#include <libdevcore/Address.h>
 #include <libdevcore/Common.h>
 #include <libdevcore/CommonJS.h>
 
 #include "network/rpc/eth/Eth.h"
-#include "test_util/gtest.hpp"
 #include "test_util/samples.hpp"
 
 namespace taraxa::core_tests {
@@ -76,8 +74,8 @@ TEST_F(RPCTest, eth_call) {
   eth_rpc_params.final_chain = final_chain;
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
-  const auto last_block_num = final_chain->last_block_number();
-  const u256 total_eligible = final_chain->dpos_eligible_total_vote_count(last_block_num);
+  const auto last_block_num = final_chain->lastBlockNumber();
+  const u256 total_eligible = final_chain->dposEligibleTotalVoteCount(last_block_num);
   const auto total_eligible_str = dev::toHexPrefixed(dev::toBigEndian(total_eligible));
 
   const auto empty_address = dev::KeyPair::create().address().toString();
@@ -227,7 +225,7 @@ TEST_F(RPCTest, eth_getBlock) {
   eth_rpc_params.final_chain = nodes.front()->getFinalChain();
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
-  wait({10s, 500ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, 5, nodes[0]->getFinalChain()->last_block_number()); });
+  wait({10s, 500ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, 5, nodes[0]->getFinalChain()->lastBlockNumber()); });
   auto block = eth_json_rpc->eth_getBlockByNumber("0x4", false);
 
   EXPECT_EQ(4, dev::jsToU256(block["number"].asString()));
@@ -250,7 +248,7 @@ TEST_F(RPCTest, eip_1898) {
   EXPECT_EQ(eth_json_rpc->eth_getBalance(from, "0x0"), eth_json_rpc->eth_getBalance(from, zero_block));
 
   Json::Value genesis_block(Json::objectValue);
-  genesis_block["blockHash"] = dev::toJS(*nodes.front()->getFinalChain()->block_hash(0));
+  genesis_block["blockHash"] = dev::toJS(*nodes.front()->getFinalChain()->blockHash(0));
   EXPECT_EQ(eth_json_rpc->eth_getBalance(from, "0x0"), eth_json_rpc->eth_getBalance(from, genesis_block));
 }
 

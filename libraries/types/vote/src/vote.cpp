@@ -2,8 +2,6 @@
 
 #include <libdevcore/CommonJS.h>
 
-#include "common/encoding_rlp.hpp"
-
 namespace taraxa {
 
 Vote::Vote(const blk_hash_t& block_hash) : block_hash_(block_hash) {}
@@ -35,7 +33,7 @@ const blk_hash_t& Vote::getBlockHash() const { return block_hash_; }
 
 bool Vote::verifyVote() const {
   auto pk = getVoter();
-  return !pk.isZero();  // recoverd public key means that it was verified
+  return !pk.isZero();  // recovered public key means that it was verified
 }
 
 }  // namespace taraxa

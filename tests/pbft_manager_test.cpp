@@ -518,7 +518,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
   generateAndApplyInitialDag();
 
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->getAccount(node->getAddress())->nonce, nonce);
   });
 
   auto nonce_before = nonce;
@@ -531,7 +531,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
   EXPECT_EQ(nonce, nonce_before + tx_count);
 
   EXPECT_HAPPENS({60s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->getAccount(node->getAddress())->nonce, nonce);
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
   });
 }
@@ -606,7 +606,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   EXPECT_HAPPENS({10s, 500ms},
                  [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
 
-  auto starting_block_number = node->getFinalChain()->last_block_number();
+  auto starting_block_number = node->getFinalChain()->lastBlockNumber();
   auto trx_in_block = 5;
   insertBlocks(generateDagBlocks(20, 5, trx_in_block));
 
@@ -617,7 +617,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   });
 
   auto max_pbft_block_capacity = node_cfgs.front().genesis.pbft.gas_limit / (trxEstimation() * 5);
-  for (size_t i = starting_block_number; i < node->getFinalChain()->last_block_number(); ++i) {
+  for (size_t i = starting_block_number; i < node->getFinalChain()->lastBlockNumber(); ++i) {
     const auto &blk_hash = node->getDB()->getPeriodBlockHash(i);
     ASSERT_TRUE(blk_hash != kNullBlockHash);
     const auto &pbft_block = node->getPbftChain()->getPbftBlockInChain(blk_hash);
@@ -641,13 +641,13 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   EXPECT_HAPPENS({10s, 500ms},
                  [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trx_count, node->getDB()->getNumTransactionExecuted()); });
 
-  auto starting_block_number = node->getFinalChain()->last_block_number();
+  auto starting_block_number = node->getFinalChain()->lastBlockNumber();
   const auto trx_in_block = dag_gas_limit / trxEstimation() + 2;
   insertBlocks(generateDagBlocks(1, 5, trx_in_block));
 
   // We need to move one block forward when we will start applying those generated DAGs and transactions
   EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 1);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->lastBlockNumber(), starting_block_number + 1);
   });
   // check that new created transaction wasn't executed in that previous block
   ASSERT_EQ(trx_count, node->getDB()->getNumTransactionExecuted());
@@ -658,11 +658,11 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
     // all transactions should be included in 2 blocks
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trx_count);
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 2);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->lastBlockNumber(), starting_block_number + 2);
   });
 
   // verify that last block is overweighted, but it is in chain
-  const auto period = node->getFinalChain()->last_block_number();
+  const auto period = node->getFinalChain()->lastBlockNumber();
   auto period_raw = node->getDB()->getPeriodDataRaw(period);
   ASSERT_FALSE(period_raw.empty());
   PeriodData period_data(period_raw);
@@ -674,14 +674,19 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   ProposedBlocks proposed_blocks(db);
 
   std::map<blk_hash_t, std::shared_ptr<PbftBlock>> blocks;
-  const uint32_t block_count = 100;
   // Create blocks
-  for (uint32_t i = 1; i <= block_count; i++) {
-    std::vector<vote_hash_t> reward_votes_hashes;
-    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash, 2, addr_t(),
-                                             dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
-    blocks.insert({block->getBlockHash(), block});
+  const auto max_period = 3;
+  const auto blocks_per_period = 40;
+  for (PbftPeriod period = 1; period <= max_period; period++) {
+    for (uint32_t i = 1; i <= blocks_per_period; i++) {
+      std::vector<vote_hash_t> reward_votes_hashes;
+      auto block =
+          std::make_shared<PbftBlock>(blk_hash_t(i), kNullBlockHash, kNullBlockHash, kNullBlockHash, period, addr_t(),
+                                      dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+      blocks.insert({block->getBlockHash(), block});
+    }
   }
+  const uint32_t block_count = blocks.size();
   auto now = std::chrono::steady_clock::now();
   for (auto b : blocks) {
     proposed_blocks.pushProposedPbftBlock(b.second);
@@ -695,7 +700,7 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
     EXPECT_TRUE(blocks.find(b->getBlockHash()) != blocks.end());
   }
   now = std::chrono::steady_clock::now();
-  proposed_blocks.cleanupProposedPbftBlocksByPeriod(3);
+  proposed_blocks.cleanupProposedPbftBlocksByPeriod(4);
   std::cout << "Time to erase " << block_count
             << " blocks: " << duration_cast<microseconds>(std::chrono::steady_clock::now() - now).count()
             << " microseconds" << std::endl;
@@ -721,21 +726,16 @@ TEST_F(PbftManagerWithDagCreation, state_root_hash) {
   }
 
   EXPECT_HAPPENS({5s, 500ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->getAccount(node->getAddress())->nonce, nonce);
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
   });
 
-  const auto &state_root_delay = node_cfgs.front().genesis.state.dpos.delegation_delay;
   const auto &head_hash = node->getPbftChain()->getLastPbftBlockHash();
   auto pbft_block = node->getPbftChain()->getPbftBlockInChain(head_hash);
   // Check that all produced blocks have correct state_root_hashes
   while (pbft_block.getPeriod() != 1) {
     auto period = pbft_block.getPeriod();
-    h256 state_root;
-    if (period > state_root_delay) {
-      state_root = node->getFinalChain()->block_header(period - state_root_delay)->state_root;
-    }
-    EXPECT_EQ(pbft_block.getPrevStateRoot(), state_root);
+    EXPECT_EQ(pbft_block.getFinalChainHash(), node->getFinalChain()->finalChainHash(period));
 
     pbft_block = node->getPbftChain()->getPbftBlockInChain(pbft_block.getPrevBlockHash());
   }

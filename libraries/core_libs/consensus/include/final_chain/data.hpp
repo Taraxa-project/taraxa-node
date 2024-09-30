@@ -5,12 +5,8 @@
 #include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 
-#include <algorithm>
-
-#include "common/constants.hpp"
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "final_chain/state_api_data.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -27,32 +23,43 @@ using LogBloom = dev::h2048;
 using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
 
-struct BlockHeader {
-  h256 hash;
+struct BlockHeaderData {
   h256 parent_hash;
   h256 state_root;
   h256 transactions_root;
   h256 receipts_root;
   LogBloom log_bloom;
-  EthBlockNumber number = 0;
-  uint64_t gas_limit = 0;
   uint64_t gas_used = 0;
-  bytes extra_data;
-  uint64_t timestamp = 0;
-  Address author;
   u256 total_reward;
 
-  HAS_RLP_FIELDS
+  dev::bytes serializeForDB() const;
 
-  static h256 const& uncles_hash();
+  HAS_RLP_FIELDS
+};
+
+struct BlockHeader : BlockHeaderData {
+  BlockHeader() = default;
+  BlockHeader(std::string&& raw_header_data);
+  BlockHeader(std::string&& raw_header_data, const PbftBlock& pbft, uint64_t gas_limit);
+
+  void setFromPbft(const PbftBlock& pbft);
+
+  static h256 const& unclesHash();
 
   static Nonce const& nonce();
 
   static u256 const& difficulty();
 
-  static h256 const& mix_hash();
+  static h256 const& mixHash();
 
-  void ethereum_rlp(dev::RLPStream& encoding) const;
+  dev::bytes ethereumRlp() const;
+
+  h256 hash;
+  Address author;
+  uint64_t gas_limit = 0;
+  uint64_t timestamp = 0;
+  EthBlockNumber number = 0;
+  bytes extra_data;
 };
 
 static constexpr auto c_bloomIndexSize = 16;

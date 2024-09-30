@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/config_exception.hpp"
-#include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/genesis.hpp"
 #include "config/network.hpp"
@@ -70,7 +68,7 @@ struct FullNodeConfig {
   auto net_file_path() const { return data_path / "net"; }
 
   /**
-   * @brief Validates config values, throws configexception if validation failes
+   * @brief Validates config values, throws configexception if validation fails
    * @return
    */
   void validate() const;

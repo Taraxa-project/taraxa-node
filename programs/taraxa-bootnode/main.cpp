@@ -12,12 +12,12 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
-#include <thread>
 
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
 #include "common/jsoncpp.hpp"
 #include "common/thread_pool.hpp"
+#include "common/util.hpp"
 #include "config/version.hpp"
 
 namespace po = boost::program_options;

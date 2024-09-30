@@ -3,10 +3,6 @@
 #include <libdevcore/RLP.h>
 
 #include <optional>
-#include <unordered_map>
-#include <vector>
-
-#include "common/util.hpp"
 
 namespace taraxa::util {
 using dev::RLP;
@@ -41,7 +37,7 @@ inline auto rlp(RLPEncoderRef encoding, T const& target) -> decltype(target.rlp(
 
 inline auto rlp(RLPEncoderRef encoding, std::string const& target) { encoding.append(target); }
 
-inline auto rlp(RLPEncoderRef encoding, bytes const& target) { encoding.append(target); }
+inline auto rlp(RLPEncoderRef encoding, dev::bytes const& target) { encoding.append(target); }
 
 template <typename Param>
 void rlp(RLPEncoderRef encoding, std::optional<Param> const& target) {
@@ -106,7 +102,7 @@ void rlp(RLPDecoderRef encoding, dev::FixedHash<N>& target) {
 
 inline auto rlp(RLPDecoderRef encoding, std::string& target) { target = encoding.value.toString(encoding.strictness); }
 
-inline auto rlp(RLPDecoderRef encoding, bytes& target) { target = encoding.value.toBytes(encoding.strictness); }
+inline auto rlp(RLPDecoderRef encoding, dev::bytes& target) { target = encoding.value.toBytes(encoding.strictness); }
 
 template <typename Param>
 void rlp(RLPDecoderRef encoding, std::optional<Param>& target) {
@@ -194,14 +190,14 @@ T rlp_dec(RLPDecoderRef encoding) {
 }
 
 template <typename T>
-bytes const& rlp_enc(RLPEncoderRef encoder_to_reuse, T const& obj) {
+dev::bytes const& rlp_enc(RLPEncoderRef encoder_to_reuse, T const& obj) {
   encoder_to_reuse.clear();
   rlp(encoder_to_reuse, obj);
   return encoder_to_reuse.out();
 }
 
 template <typename T>
-bytes rlp_enc(T const& obj) {
+dev::bytes rlp_enc(T const& obj) {
   dev::RLPStream s;
   rlp(s, obj);
   return std::move(s.invalidate());

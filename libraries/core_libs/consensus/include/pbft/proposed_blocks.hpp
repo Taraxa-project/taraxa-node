@@ -66,6 +66,14 @@ class ProposedBlocks {
    */
   void cleanupProposedPbftBlocksByPeriod(PbftPeriod period);
 
+  /**
+   * @brief Check if there are any old proposed blocks that were supposed to be deleted
+   * @param current_period
+   *
+   * @return err msg in case there are some old blocks, otherwise empty optional
+   */
+  std::optional<std::string> checkOldBlocksPresence(PbftPeriod current_period) const;
+
  private:
   // <PBFT period, <block hash, [block, is_valid_flag]>>
   std::map<PbftPeriod, std::unordered_map<blk_hash_t, std::pair<std::shared_ptr<PbftBlock>, bool>>> proposed_blocks_;

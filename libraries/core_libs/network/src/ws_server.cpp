@@ -7,9 +7,7 @@
 #include <boost/beast/websocket/rfc6455.hpp>
 
 #include "common/jsoncpp.hpp"
-#include "common/util.hpp"
-#include "config/config.hpp"
-#include "network/rpc/eth/Eth.h"
+#include "network/rpc/eth/data.hpp"
 
 namespace taraxa::net {
 

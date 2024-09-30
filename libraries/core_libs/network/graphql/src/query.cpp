@@ -37,17 +37,17 @@ std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& 
   std::optional<::taraxa::EthBlockNumber> block_number;
   if (number) {
     block_number = number->get<int>();
-    if (const auto last_block_number = final_chain_->last_block_number(); last_block_number < block_number) {
+    if (const auto last_block_number = final_chain_->lastBlockNumber(); last_block_number < block_number) {
       return nullptr;
     }
   }
   if (hash) {
-    block_number = final_chain_->block_number(dev::h256(hash->get<std::string>()));
+    block_number = final_chain_->blockNumber(dev::h256(hash->get<std::string>()));
     if (!block_number) {
       return nullptr;
     }
   }
-  auto block_header = final_chain_->block_header(block_number);
+  auto block_header = final_chain_->blockHeader(block_number);
   if (!block_header) {
     return nullptr;
   }
@@ -85,7 +85,7 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
     end_block_num = start_block_num + Query::kMaxPropagationLimit;
   }
 
-  const int last_block_number = final_chain_->last_block_number();
+  const int last_block_number = final_chain_->lastBlockNumber();
   if (start_block_num > last_block_number) {
     return blocks;
   } else if (end_block_num > last_block_number) {
@@ -156,7 +156,7 @@ std::vector<std::shared_ptr<object::DagBlock>> Query::getPeriodDagBlocks(
   if (periodArg) {
     period = periodArg->get<int>();
   } else {
-    period = final_chain_->last_block_number();
+    period = final_chain_->lastBlockNumber();
   }
   auto dag_blocks = db_->getFinalizedDagBlockByPeriod(period);
   if (dag_blocks.size()) {

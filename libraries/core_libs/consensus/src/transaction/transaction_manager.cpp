@@ -4,13 +4,13 @@
 #include <unordered_set>
 #include <utility>
 
-#include "dag/dag.hpp"
+#include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
-TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
-                                       std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
+TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db,
+                                       std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr)
     : kConf(conf),
       transactions_pool_(final_chain, kConf.transactions_pool_size),
       kDagBlockGasLimit(kConf.genesis.dag.gas_limit),
@@ -121,27 +121,34 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
     return TransactionStatus::Known;
   }
 
-  const auto account = final_chain_->get_account(tx->getSender()).value_or(taraxa::state_api::ZeroAccount);
+  const auto account = final_chain_->getAccount(tx->getSender());
   bool proposable = true;
 
-  // Ensure the transaction adheres to nonce ordering
-  if (account.nonce > tx->getNonce()) {
+  if (account.has_value()) {
+    // Ensure the transaction adheres to nonce ordering
+    if (account->nonce > tx->getNonce()) {
+      if (!insert_non_proposable) {
+        return TransactionStatus::Known;
+      }
+      proposable = false;
+    }
+
+    // Transactor should have enough funds to cover the costs
+    // cost == V + GP * GL
+    if (account->balance < tx->getCost()) {
+      if (!insert_non_proposable) {
+        return TransactionStatus::Known;
+      }
+      proposable = false;
+    }
+  } else {
     if (!insert_non_proposable) {
       return TransactionStatus::Known;
     }
     proposable = false;
   }
 
-  // Transactor should have enough funds to cover the costs
-  // cost == V + GP * GL
-  if (account.balance < tx->getCost()) {
-    if (!insert_non_proposable) {
-      return TransactionStatus::Known;
-    }
-    proposable = false;
-  }
-
-  const auto last_block_number = final_chain_->last_block_number();
+  const auto last_block_number = final_chain_->lastBlockNumber();
   LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
   return transactions_pool_.insert(std::move(tx), proposable, last_block_number);
 }
@@ -189,10 +196,10 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     std::unique_lock transactions_lock(transactions_mutex_);
 
     for (auto t : trxs) {
-      const auto account = final_chain_->get_account(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
+      const auto account = final_chain_->getAccount(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
       const auto tx_hash = t->getHash();
 
-      // Cheacking nonce in cheaper than checking db, verify with nonce if possible
+      // Checking nonce in cheaper than checking db, verify with nonce if possible
       bool trx_not_executed = account.nonce < t->getNonce() || !db_->transactionFinalized(tx_hash);
 
       if (trx_not_executed) {
@@ -235,7 +242,7 @@ void TransactionManager::recoverNonfinalizedTransactions() {
       // line can be removed or replaced with an assert
       db_->removeTransactionToBatch(trx_hash, write_batch);
     } else {
-      // Cache sender now by caling getSender since getting sender later on proposing blocks can affect performance
+      // Cache sender now by calling getSender since getting sender later on proposing blocks can affect performance
       trxs[i]->getSender();
       nonfinalized_transactions_in_dag_.emplace(trx_hash, std::move(trxs[i]));
     }
@@ -253,9 +260,9 @@ bool TransactionManager::nonProposableTransactionsOverTheLimit() const {
   return transactions_pool_.nonProposableTransactionsOverTheLimit();
 }
 
-bool TransactionManager::isTransactionPoolFull(size_t precentage) const {
+bool TransactionManager::isTransactionPoolFull(size_t percentage) const {
   std::shared_lock transactions_lock(transactions_mutex_);
-  return transactions_pool_.size() >= (kConf.transactions_pool_size * precentage / 100);
+  return transactions_pool_.size() >= (kConf.transactions_pool_size * percentage / 100);
 }
 
 size_t TransactionManager::getNonfinalizedTrxSize() const {
@@ -336,7 +343,7 @@ void TransactionManager::initializeRecentlyFinalizedTransactions(const PeriodDat
 void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &period_data) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
   const auto recently_finalized_transactions_periods =
-      kRecentlyFinalizedTransactionsFactor * final_chain_->delegation_delay();
+      kRecentlyFinalizedTransactionsFactor * final_chain_->delegationDelay();
   if (period_data.transactions.size() > 0) {
     // Delete transactions older than recently_finalized_transactions_periods
     if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
@@ -419,7 +426,7 @@ SharedTransactions TransactionManager::getTransactions(const vec_trx_t &trxs_has
 
   for (auto trx : finalizedTransactions) {
     // Only include transactions with valid nonce at proposal period
-    auto acc = final_chain_->get_account(trx->getSender(), proposal_period);
+    auto acc = final_chain_->getAccount(trx->getSender(), proposal_period);
     if (acc.has_value() && acc->nonce > trx->getNonce()) {
       LOG(log_er_) << "Old transaction: " << trx->getHash();
     } else {

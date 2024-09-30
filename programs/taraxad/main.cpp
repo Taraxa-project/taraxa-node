@@ -2,12 +2,11 @@
 #include <condition_variable>
 
 #include "cli/config.hpp"
+#include "common/config_exception.hpp"
 #include "common/static_init.hpp"
 #include "node/node.hpp"
 
 using namespace taraxa;
-
-namespace bpo = boost::program_options;
 
 int main(int argc, const char* argv[]) {
   static_init();

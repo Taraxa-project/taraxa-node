@@ -856,7 +856,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   node2->getPbftManager()->setPbftRound(2);
 
   // Node 1 broadcast his votes
-  node1_pbft_mgr->testBroadcatVotesFunctionality();
+  node1_pbft_mgr->testBroadcastVotesFunctionality();
   // Node 2 should receive votes from node 1, node 1 has its own 2 votes
   EXPECT_EQ(node1_vote_mgr->getVerifiedVotesSize(), 2);
   EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, node2_vote_mgr->getVerifiedVotesSize(), 3) });
@@ -1165,7 +1165,7 @@ TEST_F(NetworkTest, transaction_gossip_selection) {
   class TestTransactionPacketHandler : public network::tarcap::TransactionPacketHandler {
    public:
     TestTransactionPacketHandler(std::shared_ptr<network::tarcap::PeersState> peers_state)
-        : TransactionPacketHandler({}, peers_state, {}, {}, {}, true) {}
+        : TransactionPacketHandler({}, peers_state, {}, {}, {}) {}
     std::vector<
         std::pair<std::shared_ptr<network::tarcap::TaraxaPeer>, std::pair<SharedTransactions, std::vector<trx_hash_t>>>>
     public_transactionsToSendToPeers(std::vector<SharedTransactions> transactions) {
@@ -1188,7 +1188,6 @@ TEST_F(NetworkTest, transaction_gossip_selection) {
   dev::p2p::NodeID node_id3(node_key3.pub());
   addr_t node_addr1(node_key1.address());
   addr_t node_addr2(node_key2.address());
-  addr_t node_addr3(node_key3.address());
 
   auto peers_state = std::make_shared<network::tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), FullNodeConfig());
   peers_state->addPendingPeer(node_id1, {});
