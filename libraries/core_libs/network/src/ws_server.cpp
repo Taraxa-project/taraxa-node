@@ -57,6 +57,8 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 }
 
 void WsSession::processAsync() {
+  if (closed_) return;
+
   std::string request(static_cast<char *>(read_buffer_.data().data()), read_buffer_.size());
   read_buffer_.consume(read_buffer_.size());
   LOG(log_tr_) << "processAsync " << request;
@@ -73,6 +75,8 @@ void WsSession::processAsync() {
 }
 
 void WsSession::writeAsync(std::string &&message) {
+  if (closed_) return;
+
   LOG(log_tr_) << "WS WRITE " << message.c_str();
   auto executor = ws_.get_executor();
   if (!executor) {
