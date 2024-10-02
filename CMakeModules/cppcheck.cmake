@@ -20,7 +20,6 @@ else ()
             # false positive
             --suppress=uninitMemberVar:${PROJECT_SOURCE_DIR}/*/UPnP.cpp
             # This is only enabled because of test functions and false positives
-            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Eth.cpp
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Common.cpp
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Base64.cpp
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/util.cpp
@@ -28,6 +27,13 @@ else ()
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/UPnP.cpp
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/logger.cpp
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/state_api.cpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/watches.hpp
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/vector_ref.h
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/RLP.h
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/FixedHash.h
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/CommonData.h
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Common.h
+            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/Log.h
             # TODO remove this when we solve correct exit of programs
             --suppress=localMutex:${PROJECT_SOURCE_DIR}/*/main.cpp
             # Just style warning
@@ -39,6 +45,7 @@ else ()
             --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/Common.h
             --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/vector_ref.h
             --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/Common.h
+            --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/transaction.cpp
             # not an issue here
             --suppress=virtualCallInConstructor:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
             # just a warning
