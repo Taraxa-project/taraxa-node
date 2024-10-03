@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
+#include "network/tarcap/packets/get_pbft_sync_packet.hpp"
 
 namespace taraxa {
 class PbftChain;
@@ -12,7 +13,7 @@ namespace taraxa::network::tarcap {
 
 class PbftSyncingState;
 
-class GetPbftSyncPacketHandler : public PacketHandler {
+class GetPbftSyncPacketHandler : public PacketHandler<GetPbftSyncPacket> {
  public:
   GetPbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -21,11 +22,10 @@ class GetPbftSyncPacketHandler : public PacketHandler {
                            const addr_t& node_addr, const std::string& logs_prefix = "GET_PBFT_SYNC_PH");
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kGetPbftSyncPacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(GetPbftSyncPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   virtual void sendPbftBlocks(const std::shared_ptr<TaraxaPeer>& peer, PbftPeriod from_period,
                               size_t blocks_to_transfer, bool pbft_chain_synced);

@@ -146,11 +146,11 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
 bool PriorityQueue::isNonBlockingPacket(SubprotocolPacketType packet_type) const {
   // Note: any packet type that is not in this switch should be processed in updateDependencies
   switch (packet_type) {
-    case SubprotocolPacketType::VotePacket:
-    case SubprotocolPacketType::GetNextVotesSyncPacket:
-    case SubprotocolPacketType::VotesBundlePacket:
-    case SubprotocolPacketType::StatusPacket:
-    case SubprotocolPacketType::PillarVotePacket:
+    case SubprotocolPacketType::kVotePacket:
+    case SubprotocolPacketType::kGetNextVotesSyncPacket:
+    case SubprotocolPacketType::kVotesBundlePacket:
+    case SubprotocolPacketType::kStatusPacket:
+    case SubprotocolPacketType::kPillarVotePacket:
       return true;
   }
 
@@ -166,11 +166,11 @@ bool PriorityQueue::updateBlockingDependencies(const PacketData& packet, bool un
     //  GetPillarVotesBundlePacket -> serve pillar votes syncing data to only 1 node at the time
     //  PillarVotesBundlePacket -> process only 1 packet at a time. TODO[2744]: remove after protection mechanism is
     //  implemented PbftSyncPacket -> process sync pbft blocks synchronously
-    case SubprotocolPacketType::GetDagSyncPacket:
-    case SubprotocolPacketType::GetPbftSyncPacket:
-    case SubprotocolPacketType::GetPillarVotesBundlePacket:
-    case SubprotocolPacketType::PillarVotesBundlePacket:  // TODO[2744]: remove
-    case SubprotocolPacketType::PbftSyncPacket: {
+    case SubprotocolPacketType::kGetDagSyncPacket:
+    case SubprotocolPacketType::kGetPbftSyncPacket:
+    case SubprotocolPacketType::kGetPillarVotesBundlePacket:
+    case SubprotocolPacketType::kPillarVotesBundlePacket:  // TODO[2744]: remove
+    case SubprotocolPacketType::kPbftSyncPacket: {
       if (!unblock_processing) {
         blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       } else {
@@ -182,13 +182,13 @@ bool PriorityQueue::updateBlockingDependencies(const PacketData& packet, bool un
     //  When syncing dag blocks, process only 1 packet at a time:
     //  DagSyncPacket -> process sync dag blocks synchronously
     //  DagBlockPacket -> wait with processing of new dag blocks until old blocks are synced
-    case SubprotocolPacketType::DagSyncPacket: {
+    case SubprotocolPacketType::kDagSyncPacket: {
       if (!unblock_processing) {
         blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
-        blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
+        blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::kDagBlockPacket);
       } else {
         blocked_packets_mask_.markPacketAsHardUnblocked(packet, packet.type_);
-        blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+        blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::kDagBlockPacket);
       }
       break;
     }
@@ -196,16 +196,16 @@ bool PriorityQueue::updateBlockingDependencies(const PacketData& packet, bool un
     // When processing TransactionPacket, processing of all dag block packets that were received after that (from the
     // same peer). No need to block processing of dag blocks packets received before as it should not be possible to
     // send dag block before sending txs it contains...
-    case SubprotocolPacketType::TransactionPacket: {
+    case SubprotocolPacketType::kTransactionPacket: {
       if (!unblock_processing) {
-        blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::DagBlockPacket);
+        blocked_packets_mask_.markPacketAsPeerOrderBlocked(packet, SubprotocolPacketType::kDagBlockPacket);
       } else {
-        blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::DagBlockPacket);
+        blocked_packets_mask_.markPacketAsPeerOrderUnblocked(packet, SubprotocolPacketType::kDagBlockPacket);
       }
       break;
     }
 
-    case SubprotocolPacketType::DagBlockPacket: {
+    case SubprotocolPacketType::kDagBlockPacket: {
       if (!unblock_processing) {
         blocked_packets_mask_.setDagBlockLevelBeingProcessed(packet);
         blocked_packets_mask_.setDagBlockBeingProcessed(packet);

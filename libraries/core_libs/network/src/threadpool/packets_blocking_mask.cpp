@@ -207,7 +207,7 @@ bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
 
   // Custom blocks for specific packet types...
   // Check if DagBlockPacket is blocked by processing some dag blocks with <= dag level
-  if (packet_data.type_ == SubprotocolPacketType::DagBlockPacket &&
+  if (packet_data.type_ == SubprotocolPacketType::kDagBlockPacket &&
       (isDagBlockPacketBlockedByLevel(packet_data) || isDagBlockPacketBlockedBySameDagBlock(packet_data))) {
     return true;
   }

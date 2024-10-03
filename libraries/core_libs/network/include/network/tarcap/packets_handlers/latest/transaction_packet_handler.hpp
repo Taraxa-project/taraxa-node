@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
+#include "network/tarcap/packets/transaction_packet.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -10,9 +11,7 @@ enum class TransactionStatus;
 
 namespace taraxa::network::tarcap {
 
-class TestState;
-
-class TransactionPacketHandler : public PacketHandler {
+class TransactionPacketHandler : public PacketHandler<TransactionPacket> {
  public:
   TransactionPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -38,14 +37,13 @@ class TransactionPacketHandler : public PacketHandler {
   void periodicSendTransactions(std::vector<SharedTransactions>&& transactions);
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::TransactionPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kTransactionPacket;
 
   // 2 items: hashes and transactions
   static constexpr uint32_t kTransactionPacketItemCount = 2;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(TransactionPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
   /**

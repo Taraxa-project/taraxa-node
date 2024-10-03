@@ -59,9 +59,6 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
    */
   static const InitPacketsHandlers kInitLatestVersionHandlers;
 
-  // TODO: remove this once we pass HF
-  static const InitPacketsHandlers kInitV3Handlers;
-
  public:
   TaraxaCapability(TarcapVersion version, const FullNodeConfig &conf, const h256 &genesis_hash,
                    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,

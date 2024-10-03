@@ -14,25 +14,16 @@ GetNextVotesBundlePacketHandler::GetNextVotesBundlePacketHandler(
                             std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
                             logs_prefix + "GET_NEXT_VOTES_BUNDLE_PH") {}
 
-void GetNextVotesBundlePacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
-  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
-  }
-}
-
-void GetNextVotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
+void GetNextVotesBundlePacketHandler::process(GetNextVotesBundlePacket &&packet,
                                               const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "Received GetNextVotesSyncPacket request";
-
-  const PbftPeriod peer_pbft_period = packet_data.rlp_[0].toInt<PbftPeriod>();
-  const PbftRound peer_pbft_round = packet_data.rlp_[1].toInt<PbftRound>();
   const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   // Send votes only for current_period == peer_period && current_period >= peer_round
-  if (pbft_period != peer_pbft_period || pbft_round == 1 || pbft_round < peer_pbft_round) {
+  if (pbft_period != packet.peer_pbft_period || pbft_round == 1 || pbft_round < packet.peer_pbft_round) {
     LOG(log_nf_) << "No previous round next votes sync packet will be sent. pbft_period " << pbft_period
-                 << ", peer_pbft_period " << peer_pbft_period << ", pbft_round " << pbft_round << ", peer_pbft_round "
-                 << peer_pbft_round;
+                 << ", peer_pbft_period " << packet.peer_pbft_period << ", pbft_round " << pbft_round
+                 << ", peer_pbft_round " << packet.peer_pbft_round;
     return;
   }
 
