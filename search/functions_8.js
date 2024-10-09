@@ -33,5 +33,5 @@ var searchData=
   ['host_5512',['Host',['../structdev_1_1p2p_1_1_host.html#a3a67cb085cf2787e50abbeb15dd35cc1',1,'dev::p2p::Host']]],
   ['hostenr_5513',['hostENR',['../classdev_1_1p2p_1_1_node_table.html#abb4a04a3067a97ed62e00b208894e0a4',1,'dev::p2p::NodeTable']]],
   ['httpconnection_5514',['HttpConnection',['../classtaraxa_1_1net_1_1_http_connection.html#a4a9d0be7fedc6352e38a8bc88a2e7173',1,'taraxa::net::HttpConnection']]],
-  ['httpserver_5515',['HttpServer',['../classtaraxa_1_1net_1_1_http_server.html#a81df8c9232a970148cc8d97512e38468',1,'taraxa::net::HttpServer']]]
+  ['httpserver_5515',['HttpServer',['../classtaraxa_1_1net_1_1_http_server.html#af3b15d65cde8515afc1e1d808f669834',1,'taraxa::net::HttpServer']]]
 ];

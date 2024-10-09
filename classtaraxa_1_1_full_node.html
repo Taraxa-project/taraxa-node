@@ -209,10 +209,10 @@ Private Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a934126a5a59c1f4061d7b7829ae7273e"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a934126a5a59c1f4061d7b7829ae7273e">rpc_thread_pool_</a></td></tr>
-<tr class="separator:a934126a5a59c1f4061d7b7829ae7273e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa9be7d833ab947cf35d93d197d243169"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#aa9be7d833ab947cf35d93d197d243169">graphql_thread_pool_</a></td></tr>
-<tr class="separator:aa9be7d833ab947cf35d93d197d243169"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3aa77dce434fd68cd0c803bb66432ca2"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a3aa77dce434fd68cd0c803bb66432ca2">rpc_thread_pool_</a></td></tr>
+<tr class="separator:a3aa77dce434fd68cd0c803bb66432ca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38484449ae95b709492322cd2ddc7ca4"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a38484449ae95b709492322cd2ddc7ca4">graphql_thread_pool_</a></td></tr>
+<tr class="separator:a38484449ae95b709492322cd2ddc7ca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d4364249663e0bba6eabe62f3063c7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a9d4364249663e0bba6eabe62f3063c7a">subscription_pool_</a></td></tr>
 <tr class="separator:a9d4364249663e0bba6eabe62f3063c7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46ac9d4da6feca8bfb18e371e948844a"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a46ac9d4da6feca8bfb18e371e948844a">stopped_</a> = true</td></tr>
@@ -1117,8 +1117,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aa9be7d833ab947cf35d93d197d243169"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9be7d833ab947cf35d93d197d243169">&#9670;&nbsp;</a></span>graphql_thread_pool_</h2>
+<a id="a38484449ae95b709492322cd2ddc7ca4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38484449ae95b709492322cd2ddc7ca4">&#9670;&nbsp;</a></span>graphql_thread_pool_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1127,7 +1127,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unique_ptr&lt;<a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&gt; taraxa::FullNode::graphql_thread_pool_</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&gt; taraxa::FullNode::graphql_thread_pool_</td>
         </tr>
       </table>
   </td>
@@ -1403,8 +1403,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a934126a5a59c1f4061d7b7829ae7273e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a934126a5a59c1f4061d7b7829ae7273e">&#9670;&nbsp;</a></span>rpc_thread_pool_</h2>
+<a id="a3aa77dce434fd68cd0c803bb66432ca2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3aa77dce434fd68cd0c803bb66432ca2">&#9670;&nbsp;</a></span>rpc_thread_pool_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1413,7 +1413,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unique_ptr&lt;<a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&gt; taraxa::FullNode::rpc_thread_pool_</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&gt; taraxa::FullNode::rpc_thread_pool_</td>
         </tr>
       </table>
   </td>

@@ -105,8 +105,8 @@ Collaboration diagram for taraxa::net::HttpServer:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a81df8c9232a970148cc8d97512e38468"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a81df8c9232a970148cc8d97512e38468">HttpServer</a> (boost::asio::io_context &amp;io, boost::asio::ip::tcp::endpoint ep, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr, const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_processor.html">HttpProcessor</a> &gt; &amp;request_processor)</td></tr>
-<tr class="separator:a81df8c9232a970148cc8d97512e38468"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3b15d65cde8515afc1e1d808f669834"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#af3b15d65cde8515afc1e1d808f669834">HttpServer</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt; thread_pool, boost::asio::ip::tcp::endpoint ep, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr, const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_processor.html">HttpProcessor</a> &gt; &amp;request_processor, uint32_t max_pending_tasks)</td></tr>
+<tr class="separator:af3b15d65cde8515afc1e1d808f669834"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abdd748d62f5aabadc68699952bfbcf53"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#abdd748d62f5aabadc68699952bfbcf53">~HttpServer</a> ()</td></tr>
 <tr class="separator:abdd748d62f5aabadc68699952bfbcf53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40b77060c29848a581bee39055e94ac7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a40b77060c29848a581bee39055e94ac7">start</a> ()</td></tr>
@@ -115,6 +115,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a505511b21dd3e262abae55be046592f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac741c2471b2c323ab9237e84926e1fac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#ac741c2471b2c323ab9237e84926e1fac">accept</a> ()</td></tr>
 <tr class="separator:ac741c2471b2c323ab9237e84926e1fac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c3c89359049b55e2db28a538834d3fc"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a7c3c89359049b55e2db28a538834d3fc">numberOfPendingTasks</a> () const</td></tr>
+<tr class="separator:a7c3c89359049b55e2db28a538834d3fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a692b81eac315368805ae080f5861d07e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a692b81eac315368805ae080f5861d07e">pendingTasksOverLimit</a> () const</td></tr>
+<tr class="separator:a692b81eac315368805ae080f5861d07e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af40503c9a1706d4c3d509283285a27f5"><td class="memItemLeft" align="right" valign="top">boost::asio::io_context &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#af40503c9a1706d4c3d509283285a27f5">getIoContext</a> ()</td></tr>
 <tr class="separator:af40503c9a1706d4c3d509283285a27f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f04e576d497b83d75f9edd9c0fe17dc"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_server.html">HttpServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a8f04e576d497b83d75f9edd9c0fe17dc">getShared</a> ()</td></tr>
@@ -144,10 +148,14 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a8e1768eda1f34334670ac74d28659457"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3828a62d43e15f89403f53ce75240bd7"><td class="memItemLeft" align="right" valign="top">boost::asio::ip::tcp::endpoint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a3828a62d43e15f89403f53ce75240bd7">ep_</a></td></tr>
 <tr class="separator:a3828a62d43e15f89403f53ce75240bd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66fd2bafe1c408e63815cff2d6779835"><td class="memItemLeft" align="right" valign="top">std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a66fd2bafe1c408e63815cff2d6779835">thread_pool_</a></td></tr>
+<tr class="separator:a66fd2bafe1c408e63815cff2d6779835"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64b97637a8164b3cafd75a3b07079723"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a64b97637a8164b3cafd75a3b07079723">kMaxPendingTasks</a></td></tr>
+<tr class="separator:a64b97637a8164b3cafd75a3b07079723"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a81df8c9232a970148cc8d97512e38468"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a81df8c9232a970148cc8d97512e38468">&#9670;&nbsp;</a></span>HttpServer()</h2>
+<a id="af3b15d65cde8515afc1e1d808f669834"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3b15d65cde8515afc1e1d808f669834">&#9670;&nbsp;</a></span>HttpServer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -155,8 +163,8 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="memname">taraxa::net::HttpServer::HttpServer </td>
           <td>(</td>
-          <td class="paramtype">boost::asio::io_context &amp;&#160;</td>
-          <td class="paramname"><em>io</em>, </td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td>
+          <td class="paramname"><em>thread_pool</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -174,7 +182,13 @@ Private Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_processor.html">HttpProcessor</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>request_processor</em>&#160;</td>
+          <td class="paramname"><em>request_processor</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>max_pending_tasks</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -284,6 +298,48 @@ Private Attributes</h2></td></tr>
           <td></td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7c3c89359049b55e2db28a538834d3fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c3c89359049b55e2db28a538834d3fc">&#9670;&nbsp;</a></span>numberOfPendingTasks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t taraxa::net::HttpServer::numberOfPendingTasks </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a692b81eac315368805ae080f5861d07e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a692b81eac315368805ae080f5861d07e">&#9670;&nbsp;</a></span>pendingTasksOverLimit()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::net::HttpServer::pendingTasksOverLimit </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
@@ -417,6 +473,28 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a64b97637a8164b3cafd75a3b07079723"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64b97637a8164b3cafd75a3b07079723">&#9670;&nbsp;</a></span>kMaxPendingTasks</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint32_t taraxa::net::HttpServer::kMaxPendingTasks</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a49533d5ca4f5dfc77f2ade23044c0051"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a49533d5ca4f5dfc77f2ade23044c0051">&#9670;&nbsp;</a></span>request_processor_</h2>
 
@@ -450,6 +528,28 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::atomic&lt;bool&gt; taraxa::net::HttpServer::stopped_ = true</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a66fd2bafe1c408e63815cff2d6779835"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66fd2bafe1c408e63815cff2d6779835">&#9670;&nbsp;</a></span>thread_pool_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::weak_ptr&lt;<a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&gt; taraxa::net::HttpServer::thread_pool_</td>
         </tr>
       </table>
   </td>

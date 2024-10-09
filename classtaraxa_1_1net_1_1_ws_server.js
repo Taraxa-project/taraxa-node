@@ -1,6 +1,6 @@
 var classtaraxa_1_1net_1_1_ws_server =
 [
-    [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#a0ef954af5bdce171d58bacd19bbcec06", null ],
+    [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#a6854fc6f35ce0450519c02629973ec96", null ],
     [ "~WsServer", "classtaraxa_1_1net_1_1_ws_server.html#a0f7595a0385a6692be8d7604332a9a78", null ],
     [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#a6c2d5adc14099229bbfdcbd51724d808", null ],
     [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#af725d56484b76ff7c1f99689ad9cd2f0", null ],
@@ -12,17 +12,21 @@ var classtaraxa_1_1net_1_1_ws_server =
     [ "newPbftBlockExecuted", "classtaraxa_1_1net_1_1_ws_server.html#a8e904b54c82e17f52b79548e48728e06", null ],
     [ "newPendingTransaction", "classtaraxa_1_1net_1_1_ws_server.html#ab277fe8bf79d7a6e0906ad3fcfbdb480", null ],
     [ "newPillarBlockData", "classtaraxa_1_1net_1_1_ws_server.html#a873f68ea99e53010675f8f71413a2657", null ],
+    [ "numberOfPendingTasks", "classtaraxa_1_1net_1_1_ws_server.html#a9151d2592132cd5a651a493fa924e411", null ],
     [ "numberOfSessions", "classtaraxa_1_1net_1_1_ws_server.html#a660322a9964654ef6f6feb613305edba", null ],
     [ "on_accept", "classtaraxa_1_1net_1_1_ws_server.html#a04c841545c5df25f425cad23de2c075b", null ],
     [ "operator=", "classtaraxa_1_1net_1_1_ws_server.html#a329e616926aaff1bc826f8c43b652973", null ],
     [ "operator=", "classtaraxa_1_1net_1_1_ws_server.html#acbbc7dbe11f44da4a5916e68d4d3f7a2", null ],
+    [ "pendingTasksOverLimit", "classtaraxa_1_1net_1_1_ws_server.html#a608fb4215829219a670b687c75f531a5", null ],
     [ "run", "classtaraxa_1_1net_1_1_ws_server.html#ae8d4779b3956aa5023682b70181c2293", null ],
     [ "StartListening", "classtaraxa_1_1net_1_1_ws_server.html#a4e4f4189d191b2bac25eaa985593c308", null ],
     [ "StopListening", "classtaraxa_1_1net_1_1_ws_server.html#a41d10e1caef6632f3c6acc269314fba4", null ],
     [ "acceptor_", "classtaraxa_1_1net_1_1_ws_server.html#acac9a394c6b6c13da0b2ac0b21831955", null ],
     [ "ioc_", "classtaraxa_1_1net_1_1_ws_server.html#ac32da50e60f8daf8714beb8dd9ff95d6", null ],
+    [ "kMaxPendingTasks", "classtaraxa_1_1net_1_1_ws_server.html#ab07e6b8f496f370c7f29613fd896a596", null ],
     [ "node_addr_", "classtaraxa_1_1net_1_1_ws_server.html#a33ae5c7a9f40a1315212e12e52875b54", null ],
     [ "sessions", "classtaraxa_1_1net_1_1_ws_server.html#afb7956ac95ba0c7660bf955c1f0680f4", null ],
     [ "sessions_mtx_", "classtaraxa_1_1net_1_1_ws_server.html#a4dc59c273b111e6d71fc95ee706ff24c", null ],
-    [ "stopped_", "classtaraxa_1_1net_1_1_ws_server.html#ae2fa1c3aebdb9d0d0973d545bf430136", null ]
+    [ "stopped_", "classtaraxa_1_1net_1_1_ws_server.html#ae2fa1c3aebdb9d0d0973d545bf430136", null ],
+    [ "thread_pool_", "classtaraxa_1_1net_1_1_ws_server.html#a22701939b194b0dd1825eff2ba03ba37", null ]
 ];
