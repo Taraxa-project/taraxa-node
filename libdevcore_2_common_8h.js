@@ -38,12 +38,8 @@ var libdevcore_2_common_8h =
     [ "u256Set", "libdevcore_2_common_8h.html#a40d5bae9a00432d2451238029af7c8c8", null ],
     [ "u512", "libdevcore_2_common_8h.html#abf4bb6315355a8af74bebe1be5187095", null ],
     [ "u64", "libdevcore_2_common_8h.html#aa39a1b58fdbfa6fd67afa2a965f0bd27", null ],
-    [ "diff", "libdevcore_2_common_8h.html#ae706766323baacdbdbe9ddb221e0cd92", null ],
     [ "exp10", "libdevcore_2_common_8h.html#aaa0b3b33e41c3a8aad65a07acd88a897", null ],
     [ "exp10< 0 >", "libdevcore_2_common_8h.html#a1bfc3ff8d33037e21295aa768a0232bf", null ],
-    [ "s2u", "libdevcore_2_common_8h.html#ae7f7baf09aabec43e7a80a3efcad63ce", null ],
-    [ "toLog2", "libdevcore_2_common_8h.html#add0c0cc00db257cf07bc81c86b95b8fa", null ],
-    [ "u2s", "libdevcore_2_common_8h.html#a77de08c93fd79ea2417149185651bf48", null ],
     [ "utcTime", "libdevcore_2_common_8h.html#a9ec0fad72b75dc7e13ea0aebd51e3b0f", null ],
     [ "c_steadyClockMin", "libdevcore_2_common_8h.html#af046732b9eabd8a277a5c99f3104dc0d", null ],
     [ "Version", "libdevcore_2_common_8h.html#a0b8b7ae6678082075edbad2fc862cbab", null ]

@@ -378,14 +378,14 @@ var NAVTREEINDEX =
 "group___p_b_f_t.html#a15c8d823e9eb09891952583759285a1e",
 "group___p_i_l_l_a_r___c_h_a_i_n.html#a5b6f1f5045b43b096b7dbb35f896520d",
 "group___vote.html#addee0ac66d5bdf1299881e6c5d10b89c",
-"libdevcrypto_2_exceptions_8h_source.html",
-"md_doc_coding_practices.html#autotoc_md112",
-"namespacemembers_func_a.html",
-"pbft__vote_8hpp.html",
-"structdev_1_1p2p_1_1_e_n_r_response.html#a1001d86d7da7d7e86c127214c3939504",
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4b0e936deed37aaf1d2e93f946816c44",
-"structtaraxa_1_1_network_config.html#aecd55fa8d7ebec1b3bc00e97cf74119c",
-"tools_8hpp.html#a5cf3679b47b0444cbed32a840dbc583b"
+"libp2p_2_common_8cpp.html#a3249666b0f83401070e0e46ee42b958e",
+"md_doc_coding_practices.html#autotoc_md116",
+"namespacemembers_func_e.html",
+"peers__state_8hpp_source.html",
+"structdev_1_1p2p_1_1_e_n_r_response.html#a692c90947ce33dd43490820974b9aac8",
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a5dd0e6b4dc0a2b5c7d7f95c059077ccf",
+"structtaraxa_1_1_pbft_config.html#a792770036e194ad883a8d5150f43d87e",
+"tools_8hpp.html#a793f65ff5116126682096812693b0b7d"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

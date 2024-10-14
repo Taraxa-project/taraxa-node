@@ -1,9 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"pbft__vote_8hpp.html":[17,0,1,7,3,0,0,0],
-"pbft__vote_8hpp_source.html":[17,0,1,7,3,0,0,0],
-"peers__state_8cpp.html":[17,0,1,4,1,3,0,1,1],
-"peers__state_8hpp.html":[17,0,1,4,1,1,0,0,1,1],
 "peers__state_8hpp_source.html":[17,0,1,4,1,1,0,0,1,1],
 "period__dag__blocks_8cpp.html":[17,0,1,4,3,1,0,2],
 "period__dag__blocks_8hpp.html":[17,0,1,4,3,0,0,0,3],
@@ -249,5 +245,9 @@ var NAVTREEINDEX22 =
 "structdev_1_1p2p_1_1_e_n_r_request.html#a8ef3ec3f78e539f49c51c0a2f5cfa06a":[16,0,0,1,24,1],
 "structdev_1_1p2p_1_1_e_n_r_request.html#ab6d419b2199de5e7f93c6b4ce90872c4":[16,0,0,1,24,5],
 "structdev_1_1p2p_1_1_e_n_r_response.html":[16,0,0,1,25],
-"structdev_1_1p2p_1_1_e_n_r_response.html#a0e610cd22bdd8fb31d9675eafe704df1":[16,0,0,1,25,7]
+"structdev_1_1p2p_1_1_e_n_r_response.html#a0e610cd22bdd8fb31d9675eafe704df1":[16,0,0,1,25,7],
+"structdev_1_1p2p_1_1_e_n_r_response.html#a1001d86d7da7d7e86c127214c3939504":[16,0,0,1,25,1],
+"structdev_1_1p2p_1_1_e_n_r_response.html#a28bc0920237296fcc94cfbbc6c37b042":[16,0,0,1,25,0],
+"structdev_1_1p2p_1_1_e_n_r_response.html#a373a02078410d60bf222c6e81210d923":[16,0,0,1,25,4],
+"structdev_1_1p2p_1_1_e_n_r_response.html#a5004a7db495c0ffecc709b7eec21ef29":[16,0,0,1,25,2]
 };

@@ -1,9 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"libdevcrypto_2_exceptions_8h_source.html":[17,0,1,0,1,6],
-"libp2p_2_common_8cpp.html":[17,0,1,0,2,1],
-"libp2p_2_common_8cpp.html#a0331fd836972ccd099d8fb5c0387d931":[17,0,1,0,2,1,6],
-"libp2p_2_common_8cpp.html#a1698a60f493abd1c225e84e54a7ae498":[17,0,1,0,2,1,8],
 "libp2p_2_common_8cpp.html#a3249666b0f83401070e0e46ee42b958e":[17,0,1,0,2,1,5],
 "libp2p_2_common_8cpp.html#a55baff2596321cec4b4485e259644f96":[17,0,1,0,2,1,2],
 "libp2p_2_common_8cpp.html#a589741b97e4a4f06e2ff7c62d6fa7c41":[17,0,1,0,2,1,11],
@@ -249,5 +245,9 @@ var NAVTREEINDEX19 =
 "md_doc_coding_practices.html#autotoc_md108":[39],
 "md_doc_coding_practices.html#autotoc_md109":[3,0,9],
 "md_doc_coding_practices.html#autotoc_md110":[40],
-"md_doc_coding_practices.html#autotoc_md111":[41]
+"md_doc_coding_practices.html#autotoc_md111":[41],
+"md_doc_coding_practices.html#autotoc_md112":[42],
+"md_doc_coding_practices.html#autotoc_md113":[43],
+"md_doc_coding_practices.html#autotoc_md114":[3,0,10],
+"md_doc_coding_practices.html#autotoc_md115":[44]
 };
