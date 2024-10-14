@@ -14,7 +14,7 @@ std::string getConfigErr(const std::vector<std::string> &path);
 Json::Value getConfigData(Json::Value root, const std::vector<std::string> &path, bool optional = false);
 
 std::string getConfigDataAsString(const Json::Value &root, const std::vector<std::string> &path, bool optional = false,
-                                  std::string value = {});
+                                  const std::string &value = {});
 
 uint32_t getConfigDataAsUInt(const Json::Value &root, const std::vector<std::string> &path, bool optional = false,
                              uint32_t value = 0);
