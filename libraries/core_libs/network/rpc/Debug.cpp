@@ -3,12 +3,9 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
-#include <exception>
-
 #include "common/jsoncpp.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "network/rpc/eth/data.hpp"
-#include "pbft/pbft_manager.hpp"
 
 using namespace std;
 using namespace dev;
@@ -17,10 +14,6 @@ using namespace taraxa;
 
 namespace taraxa::net {
 
-inline EthBlockNumber get_ctx_block_num(EthBlockNumber block_number) {
-  return (block_number >= 1) ? block_number - 1 : 0;
-}
-
 Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
   auto [trx, loc] = get_transaction_with_location(transaction_hash);
@@ -28,8 +21,7 @@ Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
     throw std::runtime_error("Transaction not found");
   }
   if (auto node = full_node_.lock()) {
-    return util::readJsonFromString(
-        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->period)));
+    return util::readJsonFromString(node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, loc->period));
   }
   return res;
 }
@@ -65,7 +57,7 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
   }
   if (auto node = full_node_.lock()) {
     return util::readJsonFromString(
-        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->period), std::move(params)));
+        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, loc->period, std::move(params)));
   }
   return res;
 }
@@ -83,8 +75,7 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
     trxs.reserve(transactions->size());
     std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
                    [this](auto t) { return to_eth_trx(std::move(t)); });
-    return util::readJsonFromString(
-        node->getFinalChain()->trace(std::move(trxs), get_ctx_block_num(block), std::move(params)));
+    return util::readJsonFromString(node->getFinalChain()->trace(std::move(trxs), block, std::move(params)));
   }
   return res;
 }
