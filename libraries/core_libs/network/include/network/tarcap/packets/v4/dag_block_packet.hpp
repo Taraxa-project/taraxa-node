@@ -1,11 +1,11 @@
 #pragma once
 
 #include "dag/dag_block.hpp"
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "transaction/system_transaction.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap::v4 {
 
-// TODO: create new version of this packet without manual parsing
 struct DagBlockPacket {
   DagBlockPacket(const dev::RLP& packet_rlp) {
     constexpr size_t required_size = 2;
@@ -37,11 +37,8 @@ struct DagBlockPacket {
     dag_block = DagBlock(dag_rlp);
   };
 
-  // TODO: make this a vector for automatic encoding/decoding...
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions;
   DagBlock dag_block;
-
-  // RLP_FIELDS_DEFINE_INPLACE(transactions, dag_block)
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4

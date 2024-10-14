@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/ext_votes_packet_handler.hpp"
-#include "network/tarcap/packets/votes_bundle_packet.hpp"
+#include "network/tarcap/packets/latest/votes_bundle_packet.hpp"
 
 namespace taraxa::network::tarcap {
 

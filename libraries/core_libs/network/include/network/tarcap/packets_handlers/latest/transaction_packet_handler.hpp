@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
-#include "network/tarcap/packets/transaction_packet.hpp"
+#include "network/tarcap/packets/latest/transaction_packet.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -38,9 +38,6 @@ class TransactionPacketHandler : public PacketHandler<TransactionPacket> {
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kTransactionPacket;
-
-  // 2 items: hashes and transactions
-  static constexpr uint32_t kTransactionPacketItemCount = 2;
 
  private:
   virtual void process(TransactionPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;

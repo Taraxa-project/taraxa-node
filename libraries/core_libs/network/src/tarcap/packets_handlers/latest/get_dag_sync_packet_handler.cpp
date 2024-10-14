@@ -1,6 +1,7 @@
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
 
 #include "dag/dag_manager.hpp"
+#include "network/tarcap/packets/latest/dag_sync_packet.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -29,15 +30,18 @@ void GetDagSyncPacketHandler::process(GetDagSyncPacket &&packet,
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
+  std::unordered_set<blk_hash_t> blocks_hashes_set;
   std::string blocks_hashes_to_log;
   blocks_hashes_to_log.reserve(packet.blocks_hashes.size());
   for (const auto &hash : packet.blocks_hashes) {
-    blocks_hashes_to_log += hash.abridged();
+    if (blocks_hashes_set.insert(hash).second) {
+      blocks_hashes_to_log += hash.abridged();
+    }
   }
 
   LOG(log_dg_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();
 
-  auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(packet.blocks_hashes);
+  auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes_set);
   if (packet.peer_period == period) {
     peer->syncing_ = false;
     peer->peer_requested_dag_syncing_ = true;
@@ -58,21 +62,8 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
-  dev::RLPStream s(4);
-  s.append(request_period);
-  s.append(period);
-
-  s.appendList(transactions.size());
-  for (const auto &tx : transactions) {
-    s.appendRaw(tx->rlp());
-  }
-
-  s.appendList(blocks.size());
-  for (const auto &block : blocks) {
-    s.appendRaw(block->rlp(true));
-  }
-
-  sealAndSend(peer_id, SubprotocolPacketType::kDagSyncPacket, std::move(s));
+  DagSyncPacket dag_sync_packet(request_period, period, std::move(transactions), std::move(blocks));
+  sealAndSend(peer_id, SubprotocolPacketType::kDagSyncPacket, dag_sync_packet.encodeRlp());
 }
 
 }  // namespace taraxa::network::tarcap

@@ -2,7 +2,7 @@
 
 #include "common/encoding_rlp.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap {
 
 struct GetPbftSyncPacket {
   GetPbftSyncPacket() = default;
@@ -12,11 +12,11 @@ struct GetPbftSyncPacket {
   GetPbftSyncPacket& operator=(GetPbftSyncPacket&&) = default;
 
   GetPbftSyncPacket(const dev::RLP& packet_rlp) { *this = util::rlp_dec<GetPbftSyncPacket>(packet_rlp); }
-  dev::bytes encode() { return util::rlp_enc(*this); }
+  dev::bytes encodeRlp() { return util::rlp_enc(*this); }
 
   size_t height_to_sync;
 
   RLP_FIELDS_DEFINE_INPLACE(height_to_sync)
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap

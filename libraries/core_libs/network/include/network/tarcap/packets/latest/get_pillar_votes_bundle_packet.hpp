@@ -2,7 +2,7 @@
 
 #include "common/encoding_rlp.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap {
 
 struct GetPillarVotesBundlePacket {
   GetPillarVotesBundlePacket() = default;
@@ -10,12 +10,13 @@ struct GetPillarVotesBundlePacket {
   GetPillarVotesBundlePacket(GetPillarVotesBundlePacket&&) = default;
   GetPillarVotesBundlePacket& operator=(const GetPillarVotesBundlePacket&) = default;
   GetPillarVotesBundlePacket& operator=(GetPillarVotesBundlePacket&&) = default;
-
+  GetPillarVotesBundlePacket(PbftPeriod period, blk_hash_t pillar_block_hash)
+      : period(period), pillar_block_hash(pillar_block_hash) {}
   GetPillarVotesBundlePacket(const dev::RLP& packet_rlp) {
     *this = util::rlp_dec<GetPillarVotesBundlePacket>(packet_rlp);
   }
 
-  dev::bytes encode() { return util::rlp_enc(*this); }
+  dev::bytes encodeRlp() { return util::rlp_enc(*this); }
 
   PbftPeriod period;
   blk_hash_t pillar_block_hash;
@@ -23,4 +24,4 @@ struct GetPillarVotesBundlePacket {
   RLP_FIELDS_DEFINE_INPLACE(period, pillar_block_hash)
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap

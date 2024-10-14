@@ -23,7 +23,7 @@ void DagBlockPacketHandler::process(DagBlockPacket &&packet, const std::shared_p
   blk_hash_t const hash = packet.dag_block.getHash();
 
   for (const auto &tx : packet.transactions) {
-    peer->markTransactionAsKnown(tx.first);
+    peer->markTransactionAsKnown(tx->getHash());
   }
   peer->markDagBlockAsKnown(hash);
 
@@ -37,7 +37,13 @@ void DagBlockPacketHandler::process(DagBlockPacket &&packet, const std::shared_p
     return;
   }
 
-  onNewBlockReceived(std::move(packet.dag_block), peer, packet.transactions);
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> txs_map;
+  txs_map.reserve(packet.transactions.size());
+  for (const auto &tx : packet.transactions) {
+    txs_map.emplace(tx->getHash(), tx);
+  }
+
+  onNewBlockReceived(std::move(packet.dag_block), peer, txs_map);
 }
 
 void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
@@ -48,23 +54,12 @@ void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &pe
     return;
   }
 
-  dev::RLPStream s(2);
-
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
-  taraxa::bytes trx_bytes;
-  for (uint32_t i = 0; i < trxs.size(); i++) {
-    auto trx_data = trxs[i]->rlp();
-    trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
-  }
+  DagBlockPacket dag_block_packet(trxs, block);
 
-  s.appendList(trxs.size());
-  s.appendRaw(trx_bytes, trxs.size());
-
-  s.appendRaw(block.rlp(true));
-
-  if (!sealAndSend(peer_id, SubprotocolPacketType::kDagBlockPacket, std::move(s))) {
+  if (!sealAndSend(peer_id, SubprotocolPacketType::kDagBlockPacket, dag_block_packet.encodeRlp())) {
     LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed to " << peer_id;
     return;
   }

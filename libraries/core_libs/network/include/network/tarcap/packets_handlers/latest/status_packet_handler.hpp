@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/ext_syncing_packet_handler.hpp"
-#include "network/tarcap/packets/status_packet.hpp"
+#include "network/tarcap/packets/latest/status_packet.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -24,9 +24,6 @@ class StatusPacketHandler : public ExtSyncingPacketHandler<StatusPacket> {
   virtual void process(StatusPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
-  static constexpr uint16_t kInitialStatusPacketItemsCount = 11;
-  static constexpr uint16_t kStandardStatusPacketItemsCount = 4;
-
   const h256 kGenesisHash;
 };
 

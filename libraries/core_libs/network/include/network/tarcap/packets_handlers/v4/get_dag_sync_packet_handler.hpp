@@ -1,0 +1,38 @@
+#pragma once
+
+#include "network/tarcap/packets/v4/get_dag_sync_packet.hpp"
+#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
+#include "transaction/transaction.hpp"
+
+namespace taraxa {
+class DagManager;
+class DbStorage;
+class TransactionManager;
+}  // namespace taraxa
+
+namespace taraxa::network::tarcap::v4 {
+
+class GetDagSyncPacketHandler : public PacketHandler<v4::GetDagSyncPacket> {
+ public:
+  GetDagSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
+                          std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagManager> dag_mgr,
+                          std::shared_ptr<DbStorage> db, const addr_t& node_addr,
+                          const std::string& logs_prefix = "GET_DAG_SYNC_PH");
+
+  void sendBlocks(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<DagBlock>>&& blocks,
+                  SharedTransactions&& transactions, PbftPeriod request_period, PbftPeriod period);
+
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kGetDagSyncPacket;
+
+ private:
+  virtual void process(GetDagSyncPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
+
+ protected:
+  std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<DagManager> dag_mgr_;
+  std::shared_ptr<DbStorage> db_;
+};
+
+}  // namespace taraxa::network::tarcap::v4

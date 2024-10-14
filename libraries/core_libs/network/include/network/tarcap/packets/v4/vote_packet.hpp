@@ -1,11 +1,11 @@
 #pragma once
 
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "pbft/pbft_block.hpp"
 #include "vote/pbft_vote.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap::v4 {
 
-// TODO: create new version of this packet without manual parsing
 struct VotePacket {
   VotePacket(const dev::RLP& packet_rlp) {
     auto items = packet_rlp.itemCount();
@@ -29,10 +29,8 @@ struct VotePacket {
   std::shared_ptr<PbftBlock> pbft_block;
   std::optional<uint64_t> peer_chain_size;
 
-  const size_t kVotePacketSize{1};
-  const size_t kExtendedVotePacketSize{3};
-
-  // RLP_FIELDS_DEFINE_INPLACE(transactions, dag_block)
+  static constexpr size_t kVotePacketSize{1};
+  static constexpr size_t kExtendedVotePacketSize{3};
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
-#include "network/tarcap/packets/get_pillar_votes_bundle_packet.hpp"
+#include "network/tarcap/packets/latest/get_pillar_votes_bundle_packet.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -23,8 +23,6 @@ class GetPillarVotesBundlePacketHandler : public PacketHandler<GetPillarVotesBun
   virtual void process(GetPillarVotesBundlePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
-  constexpr static size_t kGetPillarVotesBundlePacketSize{2};
-
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager_;
 };
 

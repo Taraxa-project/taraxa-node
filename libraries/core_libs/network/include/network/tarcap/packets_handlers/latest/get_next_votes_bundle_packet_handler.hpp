@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/ext_votes_packet_handler.hpp"
-#include "network/tarcap/packets/get_next_votes_bundle_packet.hpp"
+#include "network/tarcap/packets/latest/get_next_votes_bundle_packet.hpp"
 
 namespace taraxa {
 class PbftManager;
