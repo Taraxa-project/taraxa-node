@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
-#include "network/tarcap/packets/get_dag_sync_packet.hpp"
+#include "network/tarcap/packets/latest/get_dag_sync_packet.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {

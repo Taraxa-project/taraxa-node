@@ -1,6 +1,6 @@
 #pragma once
 
-#include "network/tarcap/packets/pillar_vote_packet.hpp"
+#include "network/tarcap/packets/latest/pillar_vote_packet.hpp"
 #include "network/tarcap/packets_handlers/latest/common/ext_pillar_vote_packet_handler.hpp"
 
 namespace taraxa::network::tarcap {

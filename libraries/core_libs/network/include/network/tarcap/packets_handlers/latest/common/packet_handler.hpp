@@ -143,7 +143,12 @@ class PacketHandler : public BasePacketHandler {
     }
   }
 
+  // TODO[2865]: remove
   bool sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type, dev::RLPStream&& rlp) {
+    return sealAndSend(node_id, packet_type, rlp.invalidate());
+  }
+
+  bool sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type, dev::bytes&& rlp_bytes) {
     auto host = peers_state_->host_.lock();
     if (!host) {
       LOG(log_er_) << "sealAndSend failed to obtain host";
@@ -157,9 +162,9 @@ class PacketHandler : public BasePacketHandler {
     }
 
     const auto begin = std::chrono::steady_clock::now();
-    const size_t packet_size = rlp.out().size();
+    const size_t packet_size = rlp_bytes.size();
 
-    host->send(node_id, TARAXA_CAPABILITY_NAME, packet_type, rlp.invalidate(),
+    host->send(node_id, TARAXA_CAPABILITY_NAME, packet_type, std::move(rlp_bytes),
                [begin, node_id, packet_size, packet_type, this]() {
                  if (!kConf.network.ddos_protection.log_packets_stats) {
                    return;

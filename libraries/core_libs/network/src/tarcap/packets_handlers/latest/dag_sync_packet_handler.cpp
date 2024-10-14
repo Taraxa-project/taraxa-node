@@ -42,19 +42,23 @@ void DagSyncPacketHandler::process(DagSyncPacket&& packet, const std::shared_ptr
   }
 
   std::vector<trx_hash_t> transactions_to_log;
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions_map;
   transactions_to_log.reserve(packet.transactions.size());
+  transactions_map.reserve(packet.transactions.size());
   for (auto& trx : packet.transactions) {
-    peer->markTransactionAsKnown(trx.first);
-    transactions_to_log.push_back(trx.first);
+    const auto tx_hash = trx->getHash();
+    peer->markTransactionAsKnown(tx_hash);
+    transactions_to_log.push_back(tx_hash);
+    transactions_map.emplace(tx_hash, trx);
 
-    if (trx_mgr_->isTransactionKnown(trx.first)) {
+    if (trx_mgr_->isTransactionKnown(tx_hash)) {
       continue;
     }
 
-    auto [verified, reason] = trx_mgr_->verifyTransaction(trx.second);
+    auto [verified, reason] = trx_mgr_->verifyTransaction(trx);
     if (!verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock transaction " << trx.first << " validation failed: " << reason;
+      err_msg << "DagBlock transaction " << tx_hash << " validation failed: " << reason;
       throw MaliciousPeerException(err_msg.str());
     }
   }
@@ -62,31 +66,32 @@ void DagSyncPacketHandler::process(DagSyncPacket&& packet, const std::shared_ptr
   std::vector<blk_hash_t> dag_blocks_to_log;
   dag_blocks_to_log.reserve(packet.dag_blocks.size());
   for (auto& block : packet.dag_blocks) {
-    dag_blocks_to_log.push_back(block.getHash());
-    peer->markDagBlockAsKnown(block.getHash());
+    dag_blocks_to_log.push_back(block->getHash());
+    peer->markDagBlockAsKnown(block->getHash());
 
-    if (dag_mgr_->isDagBlockKnown(block.getHash())) {
-      LOG(log_tr_) << "Received known DagBlock " << block.getHash() << "from: " << peer->getId();
+    if (dag_mgr_->isDagBlockKnown(block->getHash())) {
+      LOG(log_tr_) << "Received known DagBlock " << block->getHash() << "from: " << peer->getId();
       continue;
     }
 
-    auto verified = dag_mgr_->verifyBlock(block, packet.transactions);
+    auto verified = dag_mgr_->verifyBlock(*block, transactions_map);
     if (verified.first != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock " << block.getHash() << " failed verification with error code "
+      err_msg << "DagBlock " << block->getHash() << " failed verification with error code "
               << static_cast<uint32_t>(verified.first);
       throw MaliciousPeerException(err_msg.str());
     }
 
-    if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
+    if (block->getLevel() > peer->dag_level_) peer->dag_level_ = block->getLevel();
 
-    auto status = dag_mgr_->addDagBlock(std::move(block), std::move(verified.second));
+    // TODO[2869]: fix dag blocks usage - shared_ptr vs object type on different places...
+    auto status = dag_mgr_->addDagBlock(std::move(*block), std::move(verified.second));
     if (!status.first) {
       std::ostringstream err_msg;
       if (status.second.size() > 0)
-        err_msg << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second;
+        err_msg << "DagBlock" << block->getHash() << " has missing pivot or/and tips " << status.second;
       else
-        err_msg << "DagBlock" << block.getHash() << " could not be added to DAG";
+        err_msg << "DagBlock" << block->getHash() << " could not be added to DAG";
       throw MaliciousPeerException(err_msg.str());
     }
   }

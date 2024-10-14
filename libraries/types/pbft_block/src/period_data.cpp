@@ -132,6 +132,13 @@ bytes PeriodData::ToOldPeriodData(const bytes& rlp) {
   return s.invalidate();
 }
 
+void PeriodData::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PeriodData(encoding.value); }
+
+void PeriodData::rlp(::taraxa::util::RLPEncoderRef encoding) const {
+  encoding.appendList(1);
+  encoding.appendRaw(rlp());
+}
+
 std::ostream& operator<<(std::ostream& strm, PeriodData const& b) {
   strm << "[PeriodData] : " << b.pbft_blk << " , num of votes " << b.previous_block_cert_votes.size() << std::endl;
   return strm;

@@ -1,8 +1,10 @@
 #pragma once
 
-namespace taraxa::network {
+#include "common/types.hpp"
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 
-// TODO: create new version of this packet without manual parsing
+namespace taraxa::network::tarcap::v4 {
+
 struct StatusPacket {
   StatusPacket(const dev::RLP& packet_rlp) {
     if (const auto items_count = packet_rlp.itemCount();
@@ -45,10 +47,8 @@ struct StatusPacket {
   std::optional<bool> is_light_node;
   std::optional<PbftPeriod> node_history;
 
-  const uint16_t kInitialStatusPacketItemsCount = 11;
-  const uint16_t kStandardStatusPacketItemsCount = 4;
-
-  // RLP_FIELDS_DEFINE_INPLACE(transactions, dag_block)
+  static constexpr uint16_t kInitialStatusPacketItemsCount = 11;
+  static constexpr uint16_t kStandardStatusPacketItemsCount = 4;
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
-#include "network/tarcap/packets/get_pbft_sync_packet.hpp"
+#include "network/tarcap/packets/latest/get_pbft_sync_packet.hpp"
 
 namespace taraxa {
 class PbftChain;

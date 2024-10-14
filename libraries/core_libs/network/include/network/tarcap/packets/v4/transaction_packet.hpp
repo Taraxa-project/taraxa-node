@@ -1,10 +1,10 @@
 #pragma once
 
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "transaction/transaction.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap::v4 {
 
-// TODO: create new version of this packet without manual parsing
 struct TransactionPacket {
   TransactionPacket(const dev::RLP& packet_rlp) {
     auto items = packet_rlp.itemCount();
@@ -45,11 +45,9 @@ struct TransactionPacket {
 
   std::vector<std::shared_ptr<Transaction>> transactions;
 
-  const uint32_t kTransactionPacketItemCount = 2;
-  const uint32_t kMaxTransactionsInPacket{500};
-  const uint32_t kMaxHashesInPacket{5000};
-
-  // RLP_FIELDS_DEFINE_INPLACE(transactions, dag_block)
+  static constexpr uint32_t kTransactionPacketItemCount = 2;
+  static constexpr uint32_t kMaxTransactionsInPacket{500};
+  static constexpr uint32_t kMaxHashesInPacket{5000};
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4

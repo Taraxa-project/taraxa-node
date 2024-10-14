@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "network/tarcap/packets/v4/transaction_packet.hpp"
 #include "transaction/transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -129,6 +130,7 @@ TransactionPacketHandler::transactionsToSendToPeers(std::vector<SharedTransactio
 }
 
 void TransactionPacketHandler::periodicSendTransactions(std::vector<SharedTransactions> &&transactions) {
+  // TODO[2871]: do not process hashes
   auto peers_with_transactions_to_send = transactionsToSendToPeers(std::move(transactions));
   const auto peers_to_send_count = peers_with_transactions_to_send.size();
   if (peers_to_send_count > 0) {
@@ -141,32 +143,17 @@ void TransactionPacketHandler::periodicSendTransactions(std::vector<SharedTransa
   }
 }
 
+// TODO[2871]: do not process hashes
 void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer,
                                                 std::pair<SharedTransactions, std::vector<trx_hash_t>> &&transactions) {
   if (!peer) return;
   const auto peer_id = peer->getId();
   const auto transactions_size = transactions.first.size();
-  const auto hashes_size = transactions.second.size();
 
   LOG(log_tr_) << "sendTransactions " << transactions.first.size() << " to " << peer_id;
 
-  dev::RLPStream s(kTransactionPacketItemCount);
-  s.appendList(transactions_size + hashes_size);
-  for (const auto &trx : transactions.first) {
-    s << trx->getHash();
-  }
-
-  for (const auto &trx_hash : transactions.second) {
-    s << trx_hash;
-  }
-
-  s.appendList(transactions_size);
-
-  for (const auto &trx : transactions.first) {
-    s.appendRaw(trx->rlp());
-  }
-
-  if (sealAndSend(peer_id, SubprotocolPacketType::kTransactionPacket, std::move(s))) {
+  if (sealAndSend(peer_id, SubprotocolPacketType::kTransactionPacket,
+                  TransactionPacket(transactions.first).encodeRlp())) {
     for (const auto &trx : transactions.first) {
       peer->markTransactionAsKnown(trx->getHash());
     }

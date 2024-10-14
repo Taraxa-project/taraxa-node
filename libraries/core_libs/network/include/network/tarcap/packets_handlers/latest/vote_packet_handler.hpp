@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/ext_votes_packet_handler.hpp"
-#include "network/tarcap/packets/vote_packet.hpp"
+#include "network/tarcap/packets/latest/vote_packet.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -30,10 +30,6 @@ class VotePacketHandler : public ExtVotesPacketHandler<VotePacket> {
 
  private:
   virtual void process(VotePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
-
- protected:
-  const size_t kVotePacketSize{1};
-  const size_t kExtendedVotePacketSize{3};
 };
 
 }  // namespace taraxa::network::tarcap

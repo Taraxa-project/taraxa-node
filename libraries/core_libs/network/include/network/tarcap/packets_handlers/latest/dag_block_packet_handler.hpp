@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/ext_syncing_packet_handler.hpp"
-#include "network/tarcap/packets/dag_block_packet.hpp"
+#include "network/tarcap/packets/latest/dag_block_packet.hpp"
 
 namespace taraxa {
 class TransactionManager;

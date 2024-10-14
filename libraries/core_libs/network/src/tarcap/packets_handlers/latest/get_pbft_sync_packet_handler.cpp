@@ -1,5 +1,6 @@
 #include "network/tarcap/packets_handlers/latest/get_pbft_sync_packet_handler.hpp"
 
+#include "network/tarcap/packets/latest/pbft_sync_packet.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
@@ -73,30 +74,27 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       return;
     }
 
-    dev::RLPStream s;
+    PeriodData period_data(std::move(data));
+    std::shared_ptr<PbftSyncPacket> pbft_sync_packet;
+
     if (pbft_chain_synced && last_block) {
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      const auto reward_votes = vote_mgr_->getRewardVotes();
+      auto reward_votes = vote_mgr_->getRewardVotes();
       assert(!reward_votes.empty());
       // It is possible that the node pushed another block to the chain in the meantime
       if (reward_votes[0]->getPeriod() == block_period) {
-        s.appendList(3);
-        s << last_block;
-        s.appendRaw(data);
-        s.appendRaw(encodePbftVotesBundleRlp(reward_votes));
+        // TODO[2870]: use custom votes bundle class instead of vector
+        pbft_sync_packet =
+            std::make_shared<PbftSyncPacket>(last_block, std::move(period_data), std::move(reward_votes));
       } else {
-        s.appendList(2);
-        s << last_block;
-        s.appendRaw(data);
+        pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(period_data));
       }
     } else {
-      s.appendList(2);
-      s << last_block;
-      s.appendRaw(data);
+      pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(period_data));
     }
 
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
-    sealAndSend(peer_id, SubprotocolPacketType::kPbftSyncPacket, std::move(s));
+    sealAndSend(peer_id, SubprotocolPacketType::kPbftSyncPacket, pbft_sync_packet->encodeRlp());
     if (pbft_chain_synced && last_block) {
       peer->syncing_ = false;
     }

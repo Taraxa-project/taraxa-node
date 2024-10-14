@@ -1,10 +1,11 @@
 #pragma once
 
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "vote/pbft_vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap::v4 {
 
-// TODO: create new version of this packet without manual parsing
 struct VotesBundlePacket {
   VotesBundlePacket(const dev::RLP& packet_rlp) {
     auto items = packet_rlp.itemCount();
@@ -36,10 +37,6 @@ struct VotesBundlePacket {
   std::vector<std::shared_ptr<PbftVote>> votes;
 
   const size_t kMaxVotesInBundleRlp{1000};
-
-  // TODO: votes size must be <1, limit>
-  // RLP_FIELDS_DEFINE_INPLACE(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
-  // votes_bundle_votes_step, votes)
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4

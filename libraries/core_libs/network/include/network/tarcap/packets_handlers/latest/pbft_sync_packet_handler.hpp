@@ -2,7 +2,7 @@
 
 #include "common/ext_syncing_packet_handler.hpp"
 #include "common/thread_pool.hpp"
-#include "network/tarcap/packets/pbft_sync_packet.hpp"
+#include "network/tarcap/packets/latest/pbft_sync_packet.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -35,9 +35,6 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler<PbftSyncPacket> {
 
   std::shared_ptr<VoteManager> vote_mgr_;
   util::ThreadPool periodic_events_tp_;
-
-  static constexpr size_t kStandardPacketSize = 2;
-  static constexpr size_t kChainSyncedPacketSize = 3;
 };
 
 }  // namespace taraxa::network::tarcap

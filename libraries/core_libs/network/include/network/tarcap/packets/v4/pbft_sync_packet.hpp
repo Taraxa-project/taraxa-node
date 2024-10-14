@@ -1,12 +1,12 @@
 #pragma once
 
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "pbft/period_data.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap::v4 {
 
-// TODO: create new version of this packet without manual parsing
 struct PbftSyncPacket {
   PbftSyncPacket(const dev::RLP& packet_rlp) {
     if (packet_rlp.itemCount() != kStandardPacketSize && packet_rlp.itemCount() != kChainSyncedPacketSize) {
@@ -42,8 +42,6 @@ struct PbftSyncPacket {
 
   const size_t kStandardPacketSize = 2;
   const size_t kChainSyncedPacketSize = 3;
-
-  // RLP_FIELDS_DEFINE_INPLACE(transactions, dag_block)
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4

@@ -174,4 +174,11 @@ Json::Value Transaction::toJSON() const {
   return res;
 }
 
+void Transaction::rlp(::taraxa::util::RLPDecoderRef encoding) { fromRLP(encoding.value, false, {}); }
+
+void Transaction::rlp(::taraxa::util::RLPEncoderRef encoding) const {
+  encoding.appendList(1);
+  encoding.appendRaw(rlp());
+}
+
 }  // namespace taraxa

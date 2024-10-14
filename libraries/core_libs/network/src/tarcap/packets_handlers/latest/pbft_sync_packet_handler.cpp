@@ -40,7 +40,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
 
   // Process received pbft blocks
   // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
-  const bool pbft_chain_synced = !packet.current_block_cert_votes.empty();
+  const bool pbft_chain_synced = packet.current_block_cert_votes.size() > 0;
   const auto pbft_blk_hash = packet.period_data.pbft_blk->getBlockHash();
 
   std::string received_dag_blocks_str;  // This is just log related stuff

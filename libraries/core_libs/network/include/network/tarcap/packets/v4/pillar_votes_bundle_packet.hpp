@@ -4,7 +4,7 @@
 #include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "vote/pillar_vote.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap::v4 {
 
 struct PillarVotesBundlePacket {
   PillarVotesBundlePacket() = default;
@@ -12,9 +12,6 @@ struct PillarVotesBundlePacket {
   PillarVotesBundlePacket(PillarVotesBundlePacket&&) = default;
   PillarVotesBundlePacket& operator=(const PillarVotesBundlePacket&) = default;
   PillarVotesBundlePacket& operator=(PillarVotesBundlePacket&&) = default;
-
-  //  PillarVotesBundlePacket(const dev::RLP& packet_rlp) { *this = util::rlp_dec<PillarVotesBundlePacket>(packet_rlp);
-  //  } dev::bytes encode() { return util::rlp_enc(*this); }
 
   PillarVotesBundlePacket(const dev::RLP& packet_rlp) {
     auto items = packet_rlp.itemCount();
@@ -27,12 +24,9 @@ struct PillarVotesBundlePacket {
     }
   }
 
-  // TODO: will shared_ptr work ?
   std::vector<std::shared_ptr<PillarVote>> pillar_votes;
 
   constexpr static size_t kMaxPillarVotesInBundleRlp{250};
-
-  // RLP_FIELDS_DEFINE_INPLACE(pillar_votes)
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4

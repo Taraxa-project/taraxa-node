@@ -1,11 +1,11 @@
 #pragma once
 
 #include "dag/dag_block.hpp"
+#include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "transaction/system_transaction.hpp"
 
-namespace taraxa::network {
+namespace taraxa::network::tarcap::v4 {
 
-// TODO: create new version of this packet without manual parsing
 struct GetDagSyncPacket {
   GetDagSyncPacket(const dev::RLP& packet_rlp) {
     if (constexpr size_t required_size = 2; packet_rlp.itemCount() != required_size) {
@@ -22,8 +22,6 @@ struct GetDagSyncPacket {
 
   PbftPeriod peer_period;
   std::unordered_set<blk_hash_t> blocks_hashes;
-
-  // RLP_FIELDS_DEFINE_INPLACE(transactions, dag_block)
 };
 
-}  // namespace taraxa::network
+}  // namespace taraxa::network::tarcap::v4
