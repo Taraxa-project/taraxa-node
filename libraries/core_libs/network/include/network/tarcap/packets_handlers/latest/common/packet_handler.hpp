@@ -58,7 +58,7 @@ class PacketHandler : public BasePacketHandler {
         return;
       }
 
-      // TODO: can be removed after taraxa net version is completely switched to 5
+      // TODO[2865]: can be removed after taraxa net version is completely switched to 5
       checkPacketRlpIsList(packet_data);
 
       // Main processing function

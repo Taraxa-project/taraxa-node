@@ -22,9 +22,7 @@ struct TransactionPacket {
 
   std::vector<std::shared_ptr<Transaction>> transactions;
 
-  constexpr static uint32_t kTransactionPacketItemCount = 2;
   constexpr static uint32_t kMaxTransactionsInPacket{500};
-  constexpr static uint32_t kMaxHashesInPacket{5000};
 
   RLP_FIELDS_DEFINE_INPLACE(transactions)
 };

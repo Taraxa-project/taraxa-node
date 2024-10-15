@@ -148,7 +148,6 @@ void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer
                                                 std::pair<SharedTransactions, std::vector<trx_hash_t>> &&transactions) {
   if (!peer) return;
   const auto peer_id = peer->getId();
-  const auto transactions_size = transactions.first.size();
 
   LOG(log_tr_) << "sendTransactions " << transactions.first.size() << " to " << peer_id;
 

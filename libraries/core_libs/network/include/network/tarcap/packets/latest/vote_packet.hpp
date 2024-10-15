@@ -18,7 +18,6 @@ struct VotePacket {
   dev::bytes encodeRlp() { return util::rlp_enc(*this); }
 
   std::shared_ptr<PbftVote> vote;
-  // TODO: Should it be also optional ?
   std::shared_ptr<PbftBlock> pbft_block;
   std::optional<uint64_t> peer_chain_size;
 
