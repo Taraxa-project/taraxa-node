@@ -2,12 +2,12 @@
 
 #include "common/thread_pool.hpp"
 #include "network/tarcap/packets/v4/pbft_sync_packet.hpp"
-#include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_syncing_packet_handler.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap::v4 {
 
-class PbftSyncPacketHandler : public ExtSyncingPacketHandler<v4::PbftSyncPacket> {
+class PbftSyncPacketHandler : public v4::ExtSyncingPacketHandler<v4::PbftSyncPacket> {
  public:
   PbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                         std::shared_ptr<TimePeriodPacketsStats> packets_stats,

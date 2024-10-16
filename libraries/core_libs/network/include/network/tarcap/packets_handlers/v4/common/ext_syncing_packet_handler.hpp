@@ -1,14 +1,12 @@
 #pragma once
 
 #include "dag/dag_manager.hpp"
-#include "network/tarcap/packets/latest/get_dag_sync_packet.hpp"
-#include "network/tarcap/packets/latest/get_pbft_sync_packet.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v4 {
 
 /**
  * @brief ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in packet
@@ -99,12 +97,16 @@ class ExtSyncingPacketHandler : public PacketHandler<PacketType> {
     LOG(this->log_nf_) << "Send GetPbftSyncPacket with period " << request_period << " to node "
                        << syncing_peer->getId();
     return this->sealAndSend(syncing_peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
-                             GetPbftSyncPacket{request_period}.encodeRlp());
+                             std::move(dev::RLPStream(1) << request_period));
   }
 
-  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> &&blocks, PbftPeriod period) {
-    this->sealAndSend(_nodeID, SubprotocolPacketType::kGetDagSyncPacket,
-                      GetDagSyncPacket{period, std::move(blocks)}.encodeRlp());
+  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
+                        PbftPeriod period) {
+    dev::RLPStream s(2);  // Period + blocks list
+    s.append(period);
+    s.append(blocks);
+
+    this->sealAndSend(_nodeID, SubprotocolPacketType::kGetDagSyncPacket, std::move(s));
   }
 
   void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr) {
@@ -141,15 +143,15 @@ class ExtSyncingPacketHandler : public PacketHandler<PacketType> {
         return;
       }
       LOG(this->log_nf_) << "Request pending blocks from peer " << peer->getId();
-      std::vector<blk_hash_t> known_non_finalized_blocks;
+      std::unordered_set<blk_hash_t> known_non_finalized_blocks;
       auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
       for (auto &level_blocks : blocks) {
         for (auto &block : level_blocks.second) {
-          known_non_finalized_blocks.emplace_back(block);
+          known_non_finalized_blocks.insert(block);
         }
       }
 
-      requestDagBlocks(peer->getId(), std::move(known_non_finalized_blocks), period);
+      requestDagBlocks(peer->getId(), known_non_finalized_blocks, period);
     }
   }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "network/tarcap/packets/v4/dag_block_packet.hpp"
-#include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_syncing_packet_handler.hpp"
 
 namespace taraxa {
 class TransactionManager;
@@ -9,7 +9,7 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap::v4 {
 
-class DagBlockPacketHandler : public ExtSyncingPacketHandler<v4::DagBlockPacket> {
+class DagBlockPacketHandler : public v4::ExtSyncingPacketHandler<v4::DagBlockPacket> {
  public:
   DagBlockPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                         std::shared_ptr<TimePeriodPacketsStats> packets_stats,
