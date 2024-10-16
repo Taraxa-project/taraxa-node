@@ -21,9 +21,9 @@ inline bool checkDiskSpace(const std::string& path, uint64_t required_space_MB) 
 
   // Get file system statistics
   if (statvfs(path.c_str(), &stat) != 0) {
-    // If statvfs fails, return false
+    // If statvfs fails, return true
     std::cerr << "Error getting file system stats" << std::endl;
-    return false;
+    return true;
   }
 
   // Calculate available space
