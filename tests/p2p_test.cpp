@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "test_util/samples.hpp"

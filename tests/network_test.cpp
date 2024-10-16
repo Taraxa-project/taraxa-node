@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/lazy.hpp"
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "config/config.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
