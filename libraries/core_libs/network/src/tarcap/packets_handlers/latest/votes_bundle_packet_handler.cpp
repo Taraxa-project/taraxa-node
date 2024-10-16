@@ -27,7 +27,7 @@ void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::sh
   // vote is irrelevant, all of them are
   if (!isPbftRelevantVote(packet.votes[0])) {
     LOG(log_wr_) << "Drop votes sync bundle as it is irrelevant for current pbft state. Votes (period, round, step) = ("
-                 << packet.votes_bundle_pbft_period << ", " << packet.votes_bundle_pbft_round << ", "
+                 << reference_vote->getPeriod() << ", " << reference_vote->getRound() << ", "
                  << reference_vote->getStep() << "). Current PBFT (period, round, step) = (" << current_pbft_period
                  << ", " << current_pbft_round << ", " << pbft_mgr_->getPbftStep() << ")";
     return;
@@ -69,7 +69,7 @@ void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::sh
 
   LOG(log_nf_) << "Received " << packet.votes.size() << " (processed " << processed_votes_count
                << " ) sync votes from peer " << peer->getId() << " node current round " << current_pbft_round
-               << ", peer pbft round " << packet.votes_bundle_pbft_round;
+               << ", peer pbft round " << reference_vote->getRound();
 
   onNewPbftVotesBundle(packet.votes, false, peer->getId());
 }

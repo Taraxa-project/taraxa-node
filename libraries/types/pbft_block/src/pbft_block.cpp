@@ -131,10 +131,7 @@ bytes PbftBlock::rlp(bool include_sig) const {
 
 void PbftBlock::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PbftBlock(encoding.value); }
 
-void PbftBlock::rlp(::taraxa::util::RLPEncoderRef encoding) const {
-  encoding.appendList(1);
-  encoding.appendRaw(rlp(true));
-}
+void PbftBlock::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp(true)); }
 
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk) {
   strm << pbft_blk.getJsonStr();

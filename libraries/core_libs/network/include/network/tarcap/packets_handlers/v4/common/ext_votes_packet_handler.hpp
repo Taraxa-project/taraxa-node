@@ -1,15 +1,13 @@
 #pragma once
 
-#include "network/tarcap/packets/latest/get_pbft_sync_packet.hpp"
-#include "network/tarcap/packets/latest/votes_bundle_packet.hpp"
 #include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
-#include "packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v4 {
 
 /**
  * @brief ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet
@@ -120,10 +118,16 @@ class ExtVotesPacketHandler : public PacketHandler<PacketType> {
     }
 
     auto sendVotes = [this, &peer](std::vector<std::shared_ptr<PbftVote>>&& votes) {
-      // TODO[2868]: optimize this
-      auto votes_copy = votes;
-      if (this->sealAndSend(peer->getId(), SubprotocolPacketType::kVotesBundlePacket,
-                            VotesBundlePacket{std::move(votes_copy)}.encodeRlp())) {
+      auto votes_bytes = encodePbftVotesBundleRlp(std::move(votes));
+      if (votes_bytes.empty()) {
+        LOG(this->log_er_) << "Unable to send VotesBundle rlp";
+        return;
+      }
+
+      dev::RLPStream votes_rlp_stream;
+      votes_rlp_stream.appendRaw(votes_bytes);
+
+      if (this->sealAndSend(peer->getId(), SubprotocolPacketType::kVotesBundlePacket, std::move(votes_rlp_stream))) {
         LOG(this->log_dg_) << " Votes bundle with " << votes.size() << " votes sent to " << peer->getId();
         for (const auto& vote : votes) {
           peer->markPbftVoteAsKnown(vote->getHash());
@@ -192,7 +196,7 @@ class ExtVotesPacketHandler : public PacketHandler<PacketType> {
         // request PBFT chain sync from this node
         this->sealAndSend(
             peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
-            GetPbftSyncPacket{std::max(vote->getPeriod() - 1, peer->pbft_chain_size_.load())}.encodeRlp());
+            std::move(dev::RLPStream(1) << std::max(vote->getPeriod() - 1, peer->pbft_chain_size_.load())));
         last_pbft_block_sync_request_time_ = std::chrono::system_clock::now();
       }
 

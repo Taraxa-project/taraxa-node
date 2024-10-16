@@ -127,9 +127,6 @@ vote_hash_t PbftVote::sha3(bool inc_sig) const { return dev::sha3(rlp(inc_sig));
 
 void PbftVote::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PbftVote(encoding.value); }
 
-void PbftVote::rlp(::taraxa::util::RLPEncoderRef encoding) const {
-  encoding.appendList(1);
-  encoding.appendRaw(rlp());
-}
+void PbftVote::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
 
 }  // namespace taraxa

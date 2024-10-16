@@ -1,11 +1,11 @@
 #pragma once
 
 #include "network/tarcap/packets/v4/votes_bundle_packet.hpp"
-#include "network/tarcap/packets_handlers/latest/common/ext_votes_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_votes_packet_handler.hpp"
 
 namespace taraxa::network::tarcap::v4 {
 
-class VotesBundlePacketHandler : public ExtVotesPacketHandler<v4::VotesBundlePacket> {
+class VotesBundlePacketHandler : public v4::ExtVotesPacketHandler<v4::VotesBundlePacket> {
  public:
   VotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
