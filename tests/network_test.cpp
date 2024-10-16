@@ -6,8 +6,8 @@
 #include <iostream>
 #include <vector>
 
-#include "common/lazy.hpp"
 #include "common/init.hpp"
+#include "common/lazy.hpp"
 #include "config/config.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"

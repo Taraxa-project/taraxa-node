@@ -4,8 +4,8 @@
 
 #include <filesystem>
 
-#include "common/lazy.hpp"
 #include "common/init.hpp"
+#include "common/lazy.hpp"
 #include "config/config.hpp"
 
 namespace fs = std::filesystem;
