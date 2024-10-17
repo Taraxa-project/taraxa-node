@@ -26,7 +26,6 @@ using std::filesystem::recursive_directory_iterator;
 using std::filesystem::remove_all;
 using namespace std::chrono;
 using expected_balances_map_t = std::map<addr_t, u256>;
-using shared_nodes_t = std::vector<std::shared_ptr<FullNode>>;
 
 const uint64_t TEST_TX_GAS_LIMIT = 500000;
 const uint64_t TEST_BLOCK_GAS_LIMIT = ((uint64_t)1 << 53) - 1;
@@ -209,11 +208,11 @@ struct NodesTest : virtual WithDataDir {
 
   bool wait_connect(const std::vector<std::shared_ptr<taraxa::FullNode>>& nodes);
 
-  shared_nodes_t create_nodes(uint count, bool start = false);
+  std::vector<std::shared_ptr<FullNode>> create_nodes(uint count, bool start = false);
 
-  shared_nodes_t create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start = false);
+  std::vector<std::shared_ptr<FullNode>> create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start = false);
 
-  shared_nodes_t launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs);
+  std::vector<std::shared_ptr<FullNode>> launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs);
 
   std::vector<taraxa::FullNodeConfig> node_cfgs;
 };

@@ -107,7 +107,7 @@ std::vector<NodeDagCreationFixture::DagBlockWithTxs> NodeDagCreationFixture::gen
     uint16_t levels, uint16_t blocks_per_level, uint16_t trx_per_block) {
   std::vector<DagBlockWithTxs> result;
   auto start_level = node->getDagManager()->getMaxLevel() + 1;
-  auto &db = node->getDB();
+  auto db = node->getDB();
   auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
   SortitionConfig vdf_config(node->getConfig().genesis.sortition);
 

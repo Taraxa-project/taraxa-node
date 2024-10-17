@@ -21,7 +21,7 @@ namespace taraxa::net {
 
 Json::Value Test::get_sortition_change(const Json::Value &param1) {
   Json::Value res;
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     uint64_t period = param1["period"].asUInt64();
     auto params_change = node->getDB()->getParamsChangeForPeriod(period);
     res["interval_efficiency"] = params_change->interval_efficiency;
@@ -34,7 +34,7 @@ Json::Value Test::get_sortition_change(const Json::Value &param1) {
 
 Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   Json::Value res;
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     secret_t sk = secret_t(param1["secret"].asString());
     uint64_t nonce = 0;
     if (!param1["nonce"]) {
@@ -60,7 +60,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
 Json::Value Test::send_coin_transactions(const Json::Value &param1) {
   Json::Value res;
   uint32_t inserted = 0;
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     secret_t sk = secret_t(param1["secret"].asString());
     auto nonce = param1["nonce"].asUInt64();
     val_t value = val_t(param1["value"].asString());
@@ -89,7 +89,7 @@ Json::Value Test::send_coin_transactions(const Json::Value &param1) {
 
 Json::Value Test::get_account_address() {
   Json::Value res;
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     addr_t addr = node->getAddress();
     res["value"] = addr.toString();
   }
@@ -98,7 +98,7 @@ Json::Value Test::get_account_address() {
 
 Json::Value Test::get_peer_count() {
   Json::Value res;
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     auto peer = node->getNetwork()->getPeerCount();
     res["value"] = Json::UInt64(peer);
   }
@@ -107,7 +107,7 @@ Json::Value Test::get_peer_count() {
 
 Json::Value Test::get_node_status() {
   Json::Value res;
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     const auto chain_size = node->getPbftChain()->getPbftChainSize();
     const auto dpos_total_votes_opt = node->getPbftManager()->getCurrentDposTotalVotesCount();
     const auto dpos_node_votes_opt = node->getPbftManager()->getCurrentNodeVotesCount();
@@ -139,7 +139,7 @@ Json::Value Test::get_node_status() {
 Json::Value Test::get_all_nodes() {
   Json::Value res;
 
-  if (auto full_node = full_node_.lock()) {
+  if (auto full_node = app_.lock()) {
     auto nodes = full_node->getNetwork()->getAllNodes();
     res["nodes_count"] = Json::UInt64(nodes.size());
     res["nodes"] = Json::Value(Json::arrayValue);

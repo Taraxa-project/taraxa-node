@@ -6,5 +6,6 @@ add_subdirectory(core_libs)
 add_subdirectory(types)
 add_subdirectory(vdf)
 add_subdirectory(metrics)
+add_subdirectory(app)
 
 add_subdirectory(aleth)
