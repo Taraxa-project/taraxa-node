@@ -19,7 +19,7 @@ Json::Value Debug::debug_traceCall(const Json::Value& call_params, const std::st
   Json::Value res;
   const auto block = parse_blk_num(blk_num);
   auto trx = to_eth_trx(call_params, block);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(node->getFinalChain()->trace({}, {std::move(trx)}, block));
   }
   return res;
@@ -30,7 +30,7 @@ Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value&
   Json::Value res;
   const auto block = parse_blk_num(blk_num);
   auto params = parse_tracking_parms(trace_params);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(
         node->getFinalChain()->trace({}, {to_eth_trx(call_params, block)}, block, std::move(params)));
   }
@@ -58,7 +58,7 @@ Debug::get_transaction_with_state(const std::string& transaction_hash) {
 Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
   auto [state_trxs, trx, period] = get_transaction_with_state(transaction_hash);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(node->getFinalChain()->trace({}, {trx}, period));
   }
   return res;
@@ -68,7 +68,7 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
   Json::Value res;
   auto params = parse_tracking_parms(trace_params);
   auto [state_trxs, trx, period] = get_transaction_with_state(transaction_hash);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(node->getFinalChain()->trace(state_trxs, {trx}, period, params));
   }
   return res;
@@ -78,7 +78,7 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
   Json::Value res;
   const auto block = parse_blk_num(block_num);
   auto params = parse_tracking_parms(trace_params);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     auto transactions = node->getDB()->getPeriodTransactions(block);
     if (!transactions.has_value() || transactions->empty()) {
       return Json::Value(Json::arrayValue);
@@ -123,7 +123,7 @@ Json::Value mergeJsons(Json::Value&& o1, Json::Value&& o2) {
 
 Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -154,7 +154,7 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
 
 Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -174,7 +174,7 @@ Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
 
 Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -205,7 +205,7 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
 
 Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -232,7 +232,7 @@ Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
 
 Json::Value Debug::debug_dposTotalAmountDelegated(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -316,7 +316,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
   if (!json["nonce"].empty()) {
     trx.nonce = jsToU256(json["nonce"].asString());
   } else {
-    if (auto node = full_node_.lock()) {
+    if (auto node = app_.lock()) {
       trx.nonce = node->getFinalChain()->getAccount(trx.from, blk_num).value_or(state_api::ZeroAccount).nonce;
     }
   }
@@ -326,7 +326,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
 
 EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
   if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str.empty()) {
-    if (auto node = full_node_.lock()) {
+    if (auto node = app_.lock()) {
       return node->getFinalChain()->lastBlockNumber();
     }
   } else if (blk_num_str == "earliest") {

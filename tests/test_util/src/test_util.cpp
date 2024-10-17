@@ -152,7 +152,8 @@ std::vector<blk_hash_t> getOrderedDagBlocks(const std::shared_ptr<DbStorage>& db
   return res;
 }
 
-void wait_for_balances(const shared_nodes_t& nodes, const expected_balances_map_t& balances, wait_opts to_wait) {
+void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& nodes, const expected_balances_map_t& balances,
+                       wait_opts to_wait) {
   wait(to_wait, [&](auto& ctx) {
     for (const auto& node : nodes) {
       for (const auto& b : balances) {
@@ -369,11 +370,11 @@ bool NodesTest::wait_connect(const std::vector<std::shared_ptr<taraxa::FullNode>
   });
 }
 
-shared_nodes_t NodesTest::create_nodes(uint count, bool start) {
+std::vector<std::shared_ptr<FullNode>> NodesTest::create_nodes(uint count, bool start) {
   auto cfgs = make_node_cfgs(count);
   // TODO: call create_nodes(cfgs) instead of this...
   auto node_count = cfgs.size();
-  shared_nodes_t nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (uint j = 0; j < node_count; ++j) {
     if (j > 0) {
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -384,9 +385,9 @@ shared_nodes_t NodesTest::create_nodes(uint count, bool start) {
   return nodes;
 }
 
-shared_nodes_t NodesTest::create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start) {
+std::vector<std::shared_ptr<FullNode>> NodesTest::create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start) {
   auto node_count = cfgs.size();
-  shared_nodes_t nodes;
+  std::vector<std::shared_ptr<FullNode>> nodes;
   for (uint j = 0; j < node_count; ++j) {
     if (j > 0) {
       std::this_thread::sleep_for(500ms);
@@ -400,7 +401,7 @@ shared_nodes_t NodesTest::create_nodes(const std::vector<FullNodeConfig>& cfgs, 
   return nodes;
 }
 
-shared_nodes_t NodesTest::launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs) {
+std::vector<std::shared_ptr<FullNode>> NodesTest::launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs) {
   constexpr auto RETRY_COUNT = 4;
   auto node_count = cfgs.size();
   for (auto i = RETRY_COUNT;; --i) {

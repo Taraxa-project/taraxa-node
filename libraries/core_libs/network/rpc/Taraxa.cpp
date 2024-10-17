@@ -19,7 +19,7 @@ using namespace ::taraxa::final_chain;
 
 namespace taraxa::net {
 
-Taraxa::Taraxa(const std::shared_ptr<FullNode>& _full_node) : full_node_(_full_node) {
+Taraxa::Taraxa(std::shared_ptr<AppFace> app) : app_(app) {
   Json::CharReaderBuilder builder;
   auto reader = std::unique_ptr<Json::CharReader>(builder.newCharReader());
 
@@ -33,8 +33,8 @@ Json::Value Taraxa::taraxa_getVersion() { return version; }
 
 string Taraxa::taraxa_dagBlockLevel() {
   try {
-    auto node = tryGetNode();
-    return toJS(node->getDagManager()->getMaxLevel());
+    auto app = tryGetApp();
+    return toJS(app->getDagManager()->getMaxLevel());
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
@@ -42,27 +42,27 @@ string Taraxa::taraxa_dagBlockLevel() {
 
 string Taraxa::taraxa_dagBlockPeriod() {
   try {
-    auto node = tryGetNode();
-    return toJS(node->getDagManager()->getLatestPeriod());
+    auto app = tryGetApp();
+    return toJS(app->getDagManager()->getLatestPeriod());
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
 }
 
-Taraxa::NodePtr Taraxa::tryGetNode() {
-  if (auto full_node = full_node_.lock()) {
-    return full_node;
+std::shared_ptr<AppFace> Taraxa::tryGetApp() {
+  if (auto app = app_.lock()) {
+    return app;
   }
   BOOST_THROW_EXCEPTION(jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
 Json::Value Taraxa::taraxa_getDagBlockByHash(const string& _blockHash, bool _includeTransactions) {
   try {
-    auto node = tryGetNode();
-    auto block = node->getDagManager()->getDagBlock(blk_hash_t(_blockHash));
+    auto app = tryGetApp();
+    auto block = app->getDagManager()->getDagBlock(blk_hash_t(_blockHash));
     if (block) {
       auto block_json = block->getJson();
-      auto period = node->getPbftManager()->getDagBlockPeriod(block->getHash());
+      auto period = app->getPbftManager()->getDagBlockPeriod(block->getHash());
       if (period.first) {
         block_json["period"] = toJS(period.second);
       } else {
@@ -71,7 +71,7 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(const string& _blockHash, bool _inc
       if (_includeTransactions) {
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : block->getTrxs()) {
-          block_json["transactions"].append(node->getTransactionManager()->getTransaction(t)->toJSON());
+          block_json["transactions"].append(app->getTransactionManager()->getTransaction(t)->toJSON());
         }
       }
       return block_json;
@@ -84,8 +84,8 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(const string& _blockHash, bool _inc
 
 std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
   try {
-    auto node = tryGetNode();
-    auto db = node->getDB();
+    auto app = tryGetApp();
+    auto db = app->getDB();
     auto blk = db->getPbftBlock(dev::jsToInt(_period));
     if (!blk.has_value()) {
       return {};
@@ -98,9 +98,9 @@ std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
 
 Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(const std::string& _period) {
   try {
+    auto app = tryGetApp();
     auto period = dev::jsToInt(_period);
-    auto node = tryGetNode();
-    auto db = node->getDB();
+    auto db = app->getDB();
     auto blk = db->getPbftBlock(period);
     if (!blk.has_value()) {
       return Json::Value();
@@ -113,10 +113,9 @@ Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(const std::string& _period) 
 
 Json::Value Taraxa::taraxa_getNodeVersions() {
   try {
-    Json::Value res;
-    auto node = tryGetNode();
-    auto db = node->getDB();
-    auto period = node->getFinalChain()->lastBlockNumber();
+    auto app = tryGetApp();
+    auto db = app->getDB();
+    auto period = app->getFinalChain()->lastBlockNumber();
     const uint64_t max_blocks_to_process = 6000;
     std::map<addr_t, std::string> node_version_map;
     std::multimap<std::string, std::pair<addr_t, uint64_t>> version_node_map;
@@ -133,14 +132,15 @@ Json::Value Taraxa::taraxa_getNodeVersions() {
       }
     }
 
-    auto total_vote_count = node->getFinalChain()->dposEligibleTotalVoteCount(period);
+    auto total_vote_count = app->getFinalChain()->dposEligibleTotalVoteCount(period);
     for (auto nv : node_version_map) {
-      auto vote_count = node->getFinalChain()->dposEligibleVoteCount(period, nv.first);
+      auto vote_count = app->getFinalChain()->dposEligibleVoteCount(period, nv.first);
       version_node_map.insert({nv.second, {nv.first, vote_count}});
       version_count[nv.second].first++;
       version_count[nv.second].second += vote_count;
     }
 
+    Json::Value res;
     res["nodes"] = Json::Value(Json::arrayValue);
     for (auto vn : version_node_map) {
       Json::Value node_json;
@@ -165,12 +165,12 @@ Json::Value Taraxa::taraxa_getNodeVersions() {
 
 Json::Value Taraxa::taraxa_getDagBlockByLevel(const string& _blockLevel, bool _includeTransactions) {
   try {
-    auto node = tryGetNode();
-    auto blocks = node->getDB()->getDagBlocksAtLevel(dev::jsToInt(_blockLevel), 1);
+    auto app = tryGetApp();
+    auto blocks = app->getDB()->getDagBlocksAtLevel(dev::jsToInt(_blockLevel), 1);
     auto res = Json::Value(Json::arrayValue);
     for (auto const& b : blocks) {
       auto block_json = b->getJson();
-      auto period = node->getPbftManager()->getDagBlockPeriod(b->getHash());
+      auto period = app->getPbftManager()->getDagBlockPeriod(b->getHash());
       if (period.first) {
         block_json["period"] = toJS(period.second);
       } else {
@@ -179,7 +179,7 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(const string& _blockLevel, bool _i
       if (_includeTransactions) {
         block_json["transactions"] = Json::Value(Json::arrayValue);
         for (auto const& t : b->getTrxs()) {
-          block_json["transactions"].append(node->getTransactionManager()->getTransaction(t)->toJSON());
+          block_json["transactions"].append(app->getTransactionManager()->getTransaction(t)->toJSON());
         }
       }
       res.append(block_json);
@@ -190,14 +190,14 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(const string& _blockLevel, bool _i
   }
 }
 
-Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetNode()->getConfig().genesis); }
+Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetApp()->getConfig().genesis); }
 
 Json::Value Taraxa::taraxa_getChainStats() {
   Json::Value res;
-  if (auto node = full_node_.lock()) {
-    res["pbft_period"] = Json::UInt64(node->getFinalChain()->lastBlockNumber());
-    res["dag_blocks_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
-    res["transactions_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
+  if (auto app = app_.lock()) {
+    res["pbft_period"] = Json::UInt64(app->getFinalChain()->lastBlockNumber());
+    res["dag_blocks_executed"] = Json::UInt64(app->getDB()->getNumBlockExecuted());
+    res["transactions_executed"] = Json::UInt64(app->getDB()->getNumTransactionExecuted());
   }
 
   return res;
@@ -205,13 +205,13 @@ Json::Value Taraxa::taraxa_getChainStats() {
 
 std::string Taraxa::taraxa_yield(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
-    if (!node) {
+    auto app = app_.lock();
+    if (!app) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
 
     auto period = dev::jsToInt(_period);
-    return toJS(node->getFinalChain()->dposYield(period));
+    return toJS(app->getFinalChain()->dposYield(period));
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
@@ -219,13 +219,13 @@ std::string Taraxa::taraxa_yield(const std::string& _period) {
 
 std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
-    if (!node) {
+    auto app = app_.lock();
+    if (!app) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
 
     auto period = dev::jsToInt(_period);
-    return toJS(node->getFinalChain()->dposTotalSupply(period));
+    return toJS(app->getFinalChain()->dposTotalSupply(period));
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
@@ -233,22 +233,22 @@ std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
 
 Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_period, bool include_signatures) {
   try {
-    auto node = full_node_.lock();
-    if (!node) {
+    auto app = app_.lock();
+    if (!app) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
 
     const auto pbft_period = dev::jsToInt(pillar_block_period);
-    if (!node->getConfig().genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(pbft_period)) {
+    if (!app->getConfig().genesis.state.hardforks.ficus_hf.isPillarBlockPeriod(pbft_period)) {
       return {};
     }
 
-    const auto pillar_block = node->getDB()->getPillarBlock(pbft_period);
+    const auto pillar_block = app->getDB()->getPillarBlock(pbft_period);
     if (!pillar_block) {
       return {};
     }
 
-    const auto& pillar_votes = node->getDB()->getPeriodPillarVotes(pbft_period + 1);
+    const auto& pillar_votes = app->getDB()->getPeriodPillarVotes(pbft_period + 1);
     if (pillar_votes.empty()) {
       return {};
     }
