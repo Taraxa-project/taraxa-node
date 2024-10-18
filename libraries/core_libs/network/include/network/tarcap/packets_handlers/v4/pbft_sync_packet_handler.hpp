@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../latest/common/ext_syncing_packet_handler.hpp"
+#include "common/ext_syncing_packet_handler.hpp"
 #include "common/thread_pool.hpp"
 #include "vote_manager/vote_manager.hpp"
 
-namespace taraxa::network::tarcap::v3 {
+namespace taraxa::network::tarcap::v4 {
 
 class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
  public:
@@ -18,7 +18,7 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
   void handleMaliciousSyncPeer(const dev::p2p::NodeID& id);
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PbftSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kPbftSyncPacket;
 
  private:
   virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
@@ -40,4 +40,4 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
   static constexpr size_t kChainSyncedPacketSize = 3;
 };
 
-}  // namespace taraxa::network::tarcap::v3
+}  // namespace taraxa::network::tarcap::v4

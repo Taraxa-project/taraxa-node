@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../latest/common/packet_handler.hpp"
+#include "common/packet_handler.hpp"
 
 namespace taraxa {
 class PbftChain;
@@ -12,17 +12,18 @@ namespace taraxa::network::tarcap {
 class PbftSyncingState;
 }
 
-namespace taraxa::network::tarcap::v3 {
+namespace taraxa::network::tarcap::v4 {
+
 class GetPbftSyncPacketHandler : public PacketHandler {
  public:
-  GetPbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<taraxa::network::tarcap::PeersState> peers_state,
-                           std::shared_ptr<taraxa::network::tarcap::TimePeriodPacketsStats> packets_stats,
+  GetPbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
+                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                            std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                            std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
                            const addr_t& node_addr, const std::string& logs_prefix = "GET_PBFT_SYNC_PH");
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kGetPbftSyncPacket;
 
  private:
   virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
@@ -38,4 +39,4 @@ class GetPbftSyncPacketHandler : public PacketHandler {
   std::shared_ptr<DbStorage> db_;
 };
 
-}  // namespace taraxa::network::tarcap::v3
+}  // namespace taraxa::network::tarcap::v4

@@ -2,6 +2,7 @@
 
 #include <json/value.h>
 
+#include "common/encoding_rlp.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "vote.hpp"
 #include "vrf_sortition.hpp"
@@ -127,6 +128,8 @@ class PbftVote : public Vote {
    * @return vote JSON
    */
   Json::Value toJSON() const;
+
+  HAS_RLP_FIELDS
 
  private:
   /**

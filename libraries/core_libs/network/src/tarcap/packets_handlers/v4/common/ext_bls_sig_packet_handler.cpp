@@ -1,7 +1,7 @@
-#include "network/tarcap/packets_handlers/latest/common/ext_pillar_vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_pillar_vote_packet_handler.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v4 {
 
 ExtPillarVotePacketHandler::ExtPillarVotePacketHandler(
     const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
@@ -34,4 +34,4 @@ bool ExtPillarVotePacketHandler::processPillarVote(const std::shared_ptr<PillarV
   return true;
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::tarcap::v4

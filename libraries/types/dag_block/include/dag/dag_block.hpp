@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/default_construct_copyable_movable.hpp"
+#include "common/encoding_rlp.hpp"
 #include "vdf/sortition.hpp"
 
 namespace taraxa {
@@ -112,6 +113,8 @@ class DagBlock {
    * @return dev::RLPStream
    */
   dev::RLPStream streamRLP(bool include_sig, bool include_trxs = true) const;
+
+  HAS_RLP_FIELDS
 
  private:
   blk_hash_t sha3(bool include_sig) const;

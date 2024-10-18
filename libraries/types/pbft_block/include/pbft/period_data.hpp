@@ -5,6 +5,7 @@
 
 #include <vector>
 
+#include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
 #include "transaction/transaction.hpp"
@@ -59,6 +60,8 @@ class PeriodData {
    * @brief Clear PBFT block, certify votes, DAG blocks, and transactions
    */
   void clear();
+
+  HAS_RLP_FIELDS
 };
 std::ostream& operator<<(std::ostream& strm, PeriodData const& b);
 

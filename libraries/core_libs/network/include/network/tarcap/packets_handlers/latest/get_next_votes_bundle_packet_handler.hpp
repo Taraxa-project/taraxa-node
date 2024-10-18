@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/ext_votes_packet_handler.hpp"
+#include "network/tarcap/packets/latest/get_next_votes_bundle_packet.hpp"
 
 namespace taraxa {
 class PbftManager;
@@ -9,7 +10,7 @@ class VoteManager;
 
 namespace taraxa::network::tarcap {
 
-class GetNextVotesBundlePacketHandler : public ExtVotesPacketHandler {
+class GetNextVotesBundlePacketHandler : public ExtVotesPacketHandler<GetNextVotesBundlePacket> {
  public:
   GetNextVotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -19,11 +20,10 @@ class GetNextVotesBundlePacketHandler : public ExtVotesPacketHandler {
                                   const std::string& logs_prefix = "GET_NEXT_VOTES_BUNDLE_PH");
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetNextVotesSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kGetNextVotesSyncPacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(GetNextVotesBundlePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 };
 
 }  // namespace taraxa::network::tarcap

@@ -1,10 +1,11 @@
 #pragma once
 
 #include "common/ext_votes_packet_handler.hpp"
+#include "network/tarcap/packets/latest/votes_bundle_packet.hpp"
 
 namespace taraxa::network::tarcap {
 
-class VotesBundlePacketHandler : public ExtVotesPacketHandler {
+class VotesBundlePacketHandler : public ExtVotesPacketHandler<VotesBundlePacket> {
  public:
   VotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
@@ -23,11 +24,10 @@ class VotesBundlePacketHandler : public ExtVotesPacketHandler {
                             const std::optional<dev::p2p::NodeID>& exclude_node = {});
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotesBundlePacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kVotesBundlePacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(VotesBundlePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 };
 
 }  // namespace taraxa::network::tarcap

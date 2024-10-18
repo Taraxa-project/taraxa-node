@@ -4,6 +4,7 @@
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 
+#include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 
 namespace taraxa {
@@ -75,6 +76,8 @@ struct Transaction {
   const bytes &rlp() const;
 
   Json::Value toJSON() const;
+
+  HAS_RLP_FIELDS
 };
 
 using SharedTransaction = std::shared_ptr<Transaction>;
