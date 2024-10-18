@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "test_util/node_dag_creation_fixture.hpp"

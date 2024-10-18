@@ -11,7 +11,7 @@
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
 #include "common/constants.hpp"
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"
 #include "graphql/mutation.hpp"

@@ -6,7 +6,7 @@
 #include <thread>
 #include <vector>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "config/genesis.hpp"
 #include "final_chain/final_chain.hpp"
 #include "final_chain/trie_common.hpp"

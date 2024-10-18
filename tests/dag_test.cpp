@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "common/types.hpp"
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
