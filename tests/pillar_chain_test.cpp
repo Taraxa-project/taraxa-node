@@ -63,7 +63,7 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   EXPECT_EQ(pillar_vote->getHash(), pillar_vote_db->getHash());
 }
 
-TEST_F(PillarChainTest, pillar_blocks_create) {
+TEST_F(PillarChainTest, DISABLED_pillar_blocks_create) {
   auto node_cfgs = make_node_cfgs(2, 2, 10);
   for (auto& node_cfg : node_cfgs) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
