@@ -57,9 +57,10 @@ void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &pe
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
-  DagBlockPacket dag_block_packet(trxs, block);
+  // TODO[2868]: optimize args, use move semantics
+  DagBlockPacket dag_block_packet{.transactions = trxs, .dag_block = block};
 
-  if (!sealAndSend(peer_id, SubprotocolPacketType::kDagBlockPacket, dag_block_packet.encodeRlp())) {
+  if (!sealAndSend(peer_id, SubprotocolPacketType::kDagBlockPacket, encodePacketRlp(dag_block_packet))) {
     LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed to " << peer_id;
     return;
   }

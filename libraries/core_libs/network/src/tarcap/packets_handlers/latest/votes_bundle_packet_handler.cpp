@@ -18,6 +18,10 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, s
                             logs_prefix + "VOTES_BUNDLE_PH") {}
 
 void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+  if (packet.votes.size() == 0 || packet.votes.size() > kMaxVotesInBundleRlp) {
+    throw InvalidRlpItemsCountException("VotesBundlePacket", packet.votes.size(), kMaxVotesInBundleRlp);
+  }
+
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   const auto &reference_vote = packet.votes.front();

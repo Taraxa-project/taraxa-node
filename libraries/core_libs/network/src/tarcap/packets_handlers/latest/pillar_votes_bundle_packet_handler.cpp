@@ -14,6 +14,11 @@ PillarVotesBundlePacketHandler::PillarVotesBundlePacketHandler(
 
 void PillarVotesBundlePacketHandler::process(PillarVotesBundlePacket &&packet,
                                              const std::shared_ptr<TaraxaPeer> &peer) {
+  if (packet.pillar_votes.size() == 0 || packet.pillar_votes.size() > kMaxPillarVotesInBundleRlp) {
+    throw InvalidRlpItemsCountException("PillarVotesBundlePacket", packet.pillar_votes.size(),
+                                        kMaxPillarVotesInBundleRlp);
+  }
+
   // TODO[2744]: there could be the same protection as in pbft syncing that only requested bundle packet is accepted
   LOG(log_dg_) << "PillarVotesBundlePacket received from peer " << peer->getId();
 

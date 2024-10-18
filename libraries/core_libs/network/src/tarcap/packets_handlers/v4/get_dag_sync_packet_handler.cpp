@@ -15,13 +15,19 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(const FullNodeConfig &conf, std
       dag_mgr_(std::move(dag_mgr)),
       db_(std::move(db)) {}
 
-void GetDagSyncPacketHandler::process(GetDagSyncPacket &&packet,
+void GetDagSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
+  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
+  }
+}
+
+void GetDagSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   if (!peer->requestDagSyncingAllowed()) {
     // This should not be possible for honest node
     // Each node should perform dag syncing only when allowed
     std::ostringstream err_msg;
-    err_msg << "Received multiple GetDagSyncPackets from " << peer->getId().abridged();
+    err_msg << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged();
 
     throw MaliciousPeerException(err_msg.str());
   }
@@ -29,19 +35,21 @@ void GetDagSyncPacketHandler::process(GetDagSyncPacket &&packet,
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
-  std::unordered_set<blk_hash_t> blocks_hashes_set;
+  std::unordered_set<blk_hash_t> blocks_hashes;
+  auto it = packet_data.rlp_.begin();
+  const auto peer_period = (*it++).toInt<PbftPeriod>();
+
   std::string blocks_hashes_to_log;
-  blocks_hashes_to_log.reserve(packet.blocks_hashes.size());
-  for (const auto &hash : packet.blocks_hashes) {
-    if (blocks_hashes_set.insert(hash).second) {
-      blocks_hashes_to_log += hash.abridged();
-    }
+  for (const auto block_hash_rlp : *it) {
+    blk_hash_t hash = block_hash_rlp.toHash<blk_hash_t>();
+    blocks_hashes_to_log += hash.abridged();
+    blocks_hashes.emplace(hash);
   }
 
   LOG(log_dg_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();
 
-  auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes_set);
-  if (packet.peer_period == period) {
+  auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes);
+  if (peer_period == period) {
     peer->syncing_ = false;
     peer->peer_requested_dag_syncing_ = true;
     peer->peer_requested_dag_syncing_time_ =
@@ -51,7 +59,7 @@ void GetDagSyncPacketHandler::process(GetDagSyncPacket &&packet,
     blocks.clear();
     transactions.clear();
   }
-  sendBlocks(peer->getId(), std::move(blocks), std::move(transactions), packet.peer_period, period);
+  sendBlocks(packet_data.from_node_id_, std::move(blocks), std::move(transactions), peer_period, period);
 }
 
 void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,

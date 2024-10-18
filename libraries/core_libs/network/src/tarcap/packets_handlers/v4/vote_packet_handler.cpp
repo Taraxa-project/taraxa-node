@@ -15,26 +15,44 @@ VotePacketHandler::VotePacketHandler(const FullNodeConfig &conf, std::shared_ptr
                             std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
                             logs_prefix + "PBFT_VOTE_PH") {}
 
-void VotePacketHandler::process(VotePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const threadpool::PacketData &packet_data) const {
+  auto items = packet_data.rlp_.itemCount();
+  // Vote packet can contain either just a vote or vote + block + peer_chain_size
+  if (items != kVotePacketSize && items != kExtendedVotePacketSize) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kExtendedVotePacketSize);
+  }
+}
+
+void VotePacketHandler::process(const threadpool::PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  if (packet.pbft_block) {
-    LOG(log_dg_) << "Received PBFT vote " << packet.vote->getHash() << " with PBFT block "
-                 << packet.pbft_block->getBlockHash();
+  // Optional packet items
+  std::shared_ptr<PbftBlock> pbft_block{nullptr};
+  std::optional<uint64_t> peer_chain_size{};
+
+  std::shared_ptr<PbftVote> vote = std::make_shared<PbftVote>(packet_data.rlp_[0]);
+  if (const size_t item_count = packet_data.rlp_.itemCount(); item_count == kExtendedVotePacketSize) {
+    try {
+      pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[1]);
+    } catch (const std::exception &e) {
+      throw MaliciousPeerException(e.what());
+    }
+    peer_chain_size = packet_data.rlp_[2].toInt();
+    LOG(log_dg_) << "Received PBFT vote " << vote->getHash() << " with PBFT block " << pbft_block->getBlockHash();
   } else {
-    LOG(log_dg_) << "Received PBFT vote " << packet.vote->getHash();
+    LOG(log_dg_) << "Received PBFT vote " << vote->getHash();
   }
 
   // Update peer's max chain size
-  if (packet.peer_chain_size.has_value() && *packet.peer_chain_size > peer->pbft_chain_size_) {
-    peer->pbft_chain_size_ = *packet.peer_chain_size;
+  if (peer_chain_size.has_value() && *peer_chain_size > peer->pbft_chain_size_) {
+    peer->pbft_chain_size_ = *peer_chain_size;
   }
 
-  const auto vote_hash = packet.vote->getHash();
+  const auto vote_hash = vote->getHash();
 
-  if (!isPbftRelevantVote(packet.vote)) {
+  if (!isPbftRelevantVote(vote)) {
     LOG(log_dg_) << "Drop irrelevant vote " << vote_hash << " for current pbft state. Vote (period, round, step) = ("
-                 << packet.vote->getPeriod() << ", " << packet.vote->getRound() << ", " << packet.vote->getStep()
+                 << vote->getPeriod() << ", " << vote->getRound() << ", " << vote->getStep()
                  << "). Current PBFT (period, round, step) = (" << current_pbft_period << ", " << current_pbft_round
                  << ", " << pbft_mgr_->getPbftStep() << ")";
     return;
@@ -46,26 +64,25 @@ void VotePacketHandler::process(VotePacket &&packet, const std::shared_ptr<Tarax
     return;
   }
 
-  if (packet.pbft_block) {
-    if (packet.pbft_block->getBlockHash() != packet.vote->getBlockHash()) {
+  if (pbft_block) {
+    if (pbft_block->getBlockHash() != vote->getBlockHash()) {
       std::ostringstream err_msg;
-      err_msg << "Vote " << packet.vote->getHash().abridged() << " voted block "
-              << packet.vote->getBlockHash().abridged() << " != actual block "
-              << packet.pbft_block->getBlockHash().abridged();
+      err_msg << "Vote " << vote->getHash().abridged() << " voted block " << vote->getBlockHash().abridged()
+              << " != actual block " << pbft_block->getBlockHash().abridged();
       throw MaliciousPeerException(err_msg.str());
     }
 
-    peer->markPbftBlockAsKnown(packet.pbft_block->getBlockHash());
+    peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
   }
 
-  if (!processVote(packet.vote, packet.pbft_block, peer, true)) {
+  if (!processVote(vote, pbft_block, peer, true)) {
     return;
   }
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markPbftVoteAsKnown(vote_hash);
 
-  pbft_mgr_->gossipVote(packet.vote, packet.pbft_block);
+  pbft_mgr_->gossipVote(vote, pbft_block);
 }
 
 void VotePacketHandler::onNewPbftVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
@@ -100,14 +117,12 @@ void VotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, co
   dev::RLPStream s;
 
   if (block) {
-    // TODO[2865]: use packet class to automatically create rlp
-    s = dev::RLPStream(v4::VotePacket::kExtendedVotePacketSize);
+    s = dev::RLPStream(kExtendedVotePacketSize);
     s.appendRaw(vote->rlp(true, false));
     s.appendRaw(block->rlp(true));
     s.append(pbft_chain_->getPbftChainSize());
   } else {
-    // TODO[2865]: use packet class to automatically create rlp
-    s = dev::RLPStream(v4::VotePacket::kVotePacketSize);
+    s = dev::RLPStream(kVotePacketSize);
     s.appendRaw(vote->rlp(true, false));
   }
 

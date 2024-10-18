@@ -22,38 +22,66 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(const FullNodeConfig &conf, std::sh
       vote_mgr_(std::move(vote_mgr)),
       periodic_events_tp_(1, true) {}
 
-void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+void PbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
+  if (packet_data.rlp_.itemCount() != kStandardPacketSize && packet_data.rlp_.itemCount() != kChainSyncedPacketSize) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), kStandardPacketSize);
+  }
+
+  // PeriodData rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
+  // checked here manually
+  if (packet_data.rlp_[1].itemCount() != PeriodData::kBaseRlpItemCount &&
+      packet_data.rlp_[1].itemCount() != PeriodData::kExtendedRlpItemCount) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_ + ":PeriodData", packet_data.rlp_[1].itemCount(),
+                                        PeriodData::kBaseRlpItemCount);
+  }
+}
+
+void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
+                                    const std::shared_ptr<TaraxaPeer> &peer) {
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
   if (!syncing_peer) {
-    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << peer->getId().abridged()
+    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
                  << " but there is no current syncing peer set";
     return;
   }
 
-  if (syncing_peer->getId() != peer->getId()) {
-    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << peer->getId().abridged()
+  if (syncing_peer->getId() != packet_data.from_node_id_) {
+    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
                  << " current syncing peer " << syncing_peer->getId().abridged();
     return;
   }
 
   // Process received pbft blocks
   // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
-  const bool pbft_chain_synced = !packet.current_block_cert_votes.empty();
-  const auto pbft_blk_hash = packet.period_data.pbft_blk->getBlockHash();
+  const bool pbft_chain_synced = packet_data.rlp_.itemCount() == kChainSyncedPacketSize;
+  // last_block is the flag to indicate this is the last block in each syncing round, doesn't mean PBFT chain has synced
+  const bool last_block = packet_data.rlp_[0].toInt<bool>();
+  PeriodData period_data;
+  try {
+    period_data = decodePeriodData(packet_data.rlp_[1]);
+  } catch (const std::runtime_error &e) {
+    throw MaliciousPeerException("Unable to parse PeriodData: " + std::string(e.what()));
+  }
+
+  std::vector<std::shared_ptr<PbftVote>> current_block_cert_votes;
+  if (pbft_chain_synced) {
+    current_block_cert_votes = decodeVotesBundle(packet_data.rlp_[2]);
+  }
+  const auto pbft_blk_hash = period_data.pbft_blk->getBlockHash();
 
   std::string received_dag_blocks_str;  // This is just log related stuff
-  for (auto const &block : packet.period_data.dag_blocks) {
+  for (auto const &block : period_data.dag_blocks) {
     received_dag_blocks_str += block.getHash().toString() + " ";
     if (peer->dag_level_ < block.getLevel()) {
       peer->dag_level_ = block.getLevel();
     }
   }
 
-  const auto pbft_block_period = packet.period_data.pbft_blk->getPeriod();
+  const auto pbft_block_period = period_data.pbft_blk->getPeriod();
   LOG(log_dg_) << "PbftSyncPacket received. Period: " << pbft_block_period
-               << ", dag Blocks: " << received_dag_blocks_str << " from " << peer->getId();
+               << ", dag Blocks: " << received_dag_blocks_str << " from " << packet_data.from_node_id_;
 
   peer->markPbftBlockAsKnown(pbft_blk_hash);
   // Update peer's pbft period if outdated
@@ -64,8 +92,8 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
   LOG(log_tr_) << "Processing pbft block: " << pbft_blk_hash;
 
   if (pbft_chain_->findPbftBlockInChain(pbft_blk_hash)) {
-    LOG(log_wr_) << "PBFT block " << pbft_blk_hash << ", period: " << packet.period_data.pbft_blk->getPeriod()
-                 << " from " << peer->getId() << " already present in chain";
+    LOG(log_wr_) << "PBFT block " << pbft_blk_hash << ", period: " << period_data.pbft_blk->getPeriod() << " from "
+                 << packet_data.from_node_id_ << " already present in chain";
   } else {
     if (pbft_block_period != pbft_mgr_->pbftSyncingPeriod() + 1) {
       // This can happen if we just got synced and block was cert voted
@@ -81,11 +109,11 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
 
     // Check cert vote matches if final synced block
     if (pbft_chain_synced) {
-      for (auto const &vote : packet.current_block_cert_votes) {
+      for (auto const &vote : current_block_cert_votes) {
         if (vote->getBlockHash() != pbft_blk_hash) {
           LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_blk_hash
-                       << " from peer " << peer->getId().abridged() << " received, stop syncing.";
-          handleMaliciousSyncPeer(peer->getId());
+                       << " from peer " << packet_data.from_node_id_.abridged() << " received, stop syncing.";
+          handleMaliciousSyncPeer(packet_data.from_node_id_);
           return;
         }
       }
@@ -94,50 +122,52 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
     // Check votes match the hash of previous block in the queue
     auto last_pbft_block_hash = pbft_mgr_->lastPbftBlockHashFromQueueOrChain();
     // Check cert vote matches
-    for (auto const &vote : packet.period_data.previous_block_cert_votes) {
+    for (auto const &vote : period_data.previous_block_cert_votes) {
       if (vote->getBlockHash() != last_pbft_block_hash) {
         LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of "
-                     << last_pbft_block_hash << " from peer " << peer->getId().abridged() << " received, stop syncing.";
-        handleMaliciousSyncPeer(peer->getId());
+                     << last_pbft_block_hash << " from peer " << packet_data.from_node_id_.abridged()
+                     << " received, stop syncing.";
+        handleMaliciousSyncPeer(packet_data.from_node_id_);
         return;
       }
     }
 
-    if (!pbft_mgr_->validatePillarDataInPeriodData(packet.period_data)) {
-      handleMaliciousSyncPeer(peer->getId());
+    if (!pbft_mgr_->validatePillarDataInPeriodData(period_data)) {
+      handleMaliciousSyncPeer(packet_data.from_node_id_);
       return;
     }
 
-    auto order_hash = PbftManager::calculateOrderHash(packet.period_data.dag_blocks);
-    if (order_hash != packet.period_data.pbft_blk->getOrderHash()) {
+    auto order_hash = PbftManager::calculateOrderHash(period_data.dag_blocks);
+    if (order_hash != period_data.pbft_blk->getOrderHash()) {
       {  // This is just log related stuff
         std::vector<trx_hash_t> trx_order;
-        trx_order.reserve(packet.period_data.transactions.size());
+        trx_order.reserve(period_data.transactions.size());
         std::vector<blk_hash_t> blk_order;
-        blk_order.reserve(packet.period_data.dag_blocks.size());
-        for (auto t : packet.period_data.transactions) {
+        blk_order.reserve(period_data.dag_blocks.size());
+        for (auto t : period_data.transactions) {
           trx_order.push_back(t->getHash());
         }
-        for (auto b : packet.period_data.dag_blocks) {
+        for (auto b : period_data.dag_blocks) {
           blk_order.push_back(b.getHash());
         }
         LOG(log_er_) << "Order hash incorrect in period data " << pbft_blk_hash << " expected: " << order_hash
-                     << " received " << packet.period_data.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
-                     << "; Trx order: " << trx_order << "; from " << peer->getId().abridged() << ", stop syncing.";
+                     << " received " << period_data.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
+                     << "; Trx order: " << trx_order << "; from " << packet_data.from_node_id_.abridged()
+                     << ", stop syncing.";
       }
-      handleMaliciousSyncPeer(peer->getId());
+      handleMaliciousSyncPeer(packet_data.from_node_id_);
       return;
     }
 
     // This is special case when queue is empty and we can not say for sure that all votes that are part of this block
     // have been verified before
     if (pbft_mgr_->periodDataQueueEmpty()) {
-      for (const auto &v : packet.period_data.previous_block_cert_votes) {
+      for (const auto &v : period_data.previous_block_cert_votes) {
         if (auto vote_is_valid = vote_mgr_->validateVote(v); vote_is_valid.first == false) {
-          LOG(log_er_) << "Invalid reward votes in block " << packet.period_data.pbft_blk->getBlockHash()
-                       << " from peer " << peer->getId().abridged()
+          LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " from peer "
+                       << packet_data.from_node_id_.abridged()
                        << " received, stop syncing. Validation failed. Err: " << vote_is_valid.second;
-          handleMaliciousSyncPeer(peer->getId());
+          handleMaliciousSyncPeer(packet_data.from_node_id_);
           return;
         }
 
@@ -145,8 +175,8 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
       }
 
       // And now we need to replace it with verified votes
-      if (auto votes = vote_mgr_->checkRewardVotes(packet.period_data.pbft_blk, true); votes.first) {
-        packet.period_data.previous_block_cert_votes = std::move(votes.second);
+      if (auto votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true); votes.first) {
+        period_data.previous_block_cert_votes = std::move(votes.second);
       } else {
         // checkRewardVotes could fail because we just cert voted this block and moved to next period,
         // in that case we are probably fully synced
@@ -155,18 +185,18 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
           return;
         }
 
-        LOG(log_er_) << "Invalid reward votes in block " << packet.period_data.pbft_blk->getBlockHash() << " from peer "
-                     << peer->getId().abridged() << " received, stop syncing.";
-        handleMaliciousSyncPeer(peer->getId());
+        LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " from peer "
+                     << packet_data.from_node_id_.abridged() << " received, stop syncing.";
+        handleMaliciousSyncPeer(packet_data.from_node_id_);
         return;
       }
     }
 
     LOG(log_tr_) << "Synced PBFT block hash " << pbft_blk_hash << " with "
-                 << packet.period_data.previous_block_cert_votes.size() << " cert votes";
-    LOG(log_tr_) << "Synced PBFT block " << packet.period_data;
-    pbft_mgr_->periodDataQueuePush(std::move(packet.period_data), peer->getId(),
-                                   std::move(packet.current_block_cert_votes));
+                 << period_data.previous_block_cert_votes.size() << " cert votes";
+    LOG(log_tr_) << "Synced PBFT block " << period_data;
+    pbft_mgr_->periodDataQueuePush(std::move(period_data), packet_data.from_node_id_,
+                                   std::move(current_block_cert_votes));
   }
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
@@ -179,7 +209,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
     return;
   }
 
-  if (packet.last_block) {
+  if (last_block) {
     // If current sync period is actually bigger than the block we just received we are probably synced
     if (pbft_sync_period > pbft_block_period) {
       pbft_syncing_state_->setPbftSyncing(false);

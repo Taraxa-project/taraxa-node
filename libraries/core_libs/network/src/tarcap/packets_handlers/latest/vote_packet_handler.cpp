@@ -1,6 +1,6 @@
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 
-#include "network/tarcap/packets/v4/vote_packet.hpp"
+#include "network/tarcap/packets/latest/vote_packet.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -106,7 +106,7 @@ void VotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, co
   }
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::kVotePacket,
-                  VotePacket(vote, std::move(optional_packet_data)).encodeRlp())) {
+                  encodePacketRlp(VotePacket(vote, std::move(optional_packet_data))))) {
     peer->markPbftVoteAsKnown(vote->getHash());
     if (block) {
       peer->markPbftBlockAsKnown(block->getBlockHash());

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "network/tarcap/packets/v4/pillar_vote_packet.hpp"
-#include "network/tarcap/packets_handlers/latest/common/ext_pillar_vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_pillar_vote_packet_handler.hpp"
 
 namespace taraxa::network::tarcap::v4 {
 
-class PillarVotePacketHandler : public ExtPillarVotePacketHandler<v4::PillarVotePacket> {
+class PillarVotePacketHandler : public ExtPillarVotePacketHandler {
  public:
   PillarVotePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -19,7 +18,8 @@ class PillarVotePacketHandler : public ExtPillarVotePacketHandler<v4::PillarVote
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kPillarVotePacket;
 
  private:
-  virtual void process(PillarVotePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 };
 
 }  // namespace taraxa::network::tarcap::v4

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "network/tarcap/packets/v4/transaction_packet.hpp"
-#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
+#include "common/packet_handler.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -11,7 +10,9 @@ enum class TransactionStatus;
 
 namespace taraxa::network::tarcap::v4 {
 
-class TransactionPacketHandler : public PacketHandler<v4::TransactionPacket> {
+class TestState;
+
+class TransactionPacketHandler : public PacketHandler {
  public:
   TransactionPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -43,7 +44,8 @@ class TransactionPacketHandler : public PacketHandler<v4::TransactionPacket> {
   static constexpr uint32_t kTransactionPacketItemCount = 2;
 
  private:
-  virtual void process(TransactionPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
   /**

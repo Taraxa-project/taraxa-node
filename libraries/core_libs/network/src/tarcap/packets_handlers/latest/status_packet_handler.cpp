@@ -2,7 +2,7 @@
 
 #include "config/version.hpp"
 #include "dag/dag.hpp"
-#include "network/tarcap/packets/v4/status_packet.hpp"
+#include "network/tarcap/packets/latest/status_packet.hpp"
 #include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -146,17 +146,16 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
   const auto pbft_round = pbft_mgr_->getPbftRound();
 
   if (initial) {
-    success =
-        sealAndSend(node_id, SubprotocolPacketType::kStatusPacket,
-                    StatusPacket(pbft_chain_size, pbft_round, dag_max_level, pbft_syncing_state_->isPbftSyncing(),
-                                 StatusPacket::InitialData{kConf.genesis.chain_id, kGenesisHash, TARAXA_MAJOR_VERSION,
-                                                           TARAXA_MINOR_VERSION, TARAXA_PATCH_VERSION,
-                                                           kConf.is_light_node, kConf.light_node_history})
-                        .encodeRlp());
-  } else {
     success = sealAndSend(
         node_id, SubprotocolPacketType::kStatusPacket,
-        StatusPacket(pbft_chain_size, pbft_round, dag_max_level, pbft_syncing_state_->isDeepPbftSyncing()).encodeRlp());
+        encodePacketRlp(StatusPacket(
+            pbft_chain_size, pbft_round, dag_max_level, pbft_syncing_state_->isPbftSyncing(),
+            StatusPacket::InitialData{kConf.genesis.chain_id, kGenesisHash, TARAXA_MAJOR_VERSION, TARAXA_MINOR_VERSION,
+                                      TARAXA_PATCH_VERSION, kConf.is_light_node, kConf.light_node_history})));
+  } else {
+    success = sealAndSend(node_id, SubprotocolPacketType::kStatusPacket,
+                          encodePacketRlp(StatusPacket(pbft_chain_size, pbft_round, dag_max_level,
+                                                       pbft_syncing_state_->isDeepPbftSyncing())));
   }
 
   return success;

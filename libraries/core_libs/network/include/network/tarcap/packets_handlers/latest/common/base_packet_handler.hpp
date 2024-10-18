@@ -4,6 +4,9 @@
 
 namespace taraxa::network::tarcap {
 
+// Taraxa capability name
+constexpr char TARAXA_CAPABILITY_NAME[] = "taraxa";
+
 /**
  * @brief Base Packet handler base class that consists processPacket function
  */

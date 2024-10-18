@@ -19,6 +19,9 @@
 #include "network/tarcap/packets_handlers/v4/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/v4/dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/v4/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/get_next_votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/get_pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/get_pillar_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/v4/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/v4/pillar_vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/v4/pillar_votes_bundle_packet_handler.hpp"
@@ -313,7 +316,8 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitV4Handlers =
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<v4::VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
                                                                vote_mgr, slashing_manager, node_addr, logs_prefix);
-      packets_handlers->registerHandler<GetNextVotesBundlePacketHandler>(
+      packets_handlers->registerHandler<v4::GetNextVotesBundlePacketHandler>(
+
           config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
       packets_handlers->registerHandler<v4::VotesBundlePacketHandler>(
           config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
@@ -337,7 +341,7 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitV4Handlers =
                                                                   pbft_syncing_state, pbft_chain, pbft_mgr, dag_mgr,
                                                                   trx_mgr, db, node_addr, logs_prefix);
 
-      packets_handlers->registerHandler<GetPbftSyncPacketHandler>(
+      packets_handlers->registerHandler<v4::GetPbftSyncPacketHandler>(
           config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, vote_mgr, db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<v4::PbftSyncPacketHandler>(config, peers_state, packets_stats,
@@ -345,8 +349,8 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitV4Handlers =
                                                                    vote_mgr, db, node_addr, logs_prefix);
       packets_handlers->registerHandler<v4::PillarVotePacketHandler>(config, peers_state, packets_stats,
                                                                      pillar_chain_mgr, node_addr, logs_prefix);
-      packets_handlers->registerHandler<GetPillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
-                                                                           pillar_chain_mgr, node_addr, logs_prefix);
+      packets_handlers->registerHandler<v4::GetPillarVotesBundlePacketHandler>(
+          config, peers_state, packets_stats, pillar_chain_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<v4::PillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
                                                                             pillar_chain_mgr, node_addr, logs_prefix);
 

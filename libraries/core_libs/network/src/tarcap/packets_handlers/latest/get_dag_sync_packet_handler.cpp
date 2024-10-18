@@ -63,7 +63,7 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
   if (!peer) return;
 
   DagSyncPacket dag_sync_packet(request_period, period, std::move(transactions), std::move(blocks));
-  sealAndSend(peer_id, SubprotocolPacketType::kDagSyncPacket, dag_sync_packet.encodeRlp());
+  sealAndSend(peer_id, SubprotocolPacketType::kDagSyncPacket, encodePacketRlp(dag_sync_packet));
 }
 
 }  // namespace taraxa::network::tarcap
