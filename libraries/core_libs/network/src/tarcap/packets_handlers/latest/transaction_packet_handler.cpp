@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "network/tarcap/packets/v4/transaction_packet.hpp"
+#include "network/tarcap/packets/latest/transaction_packet.hpp"
 #include "transaction/transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -16,6 +16,10 @@ TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, s
       trx_mgr_(std::move(trx_mgr)) {}
 
 inline void TransactionPacketHandler::process(TransactionPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+  if (packet.transactions.size() > kMaxTransactionsInPacket) {
+    throw InvalidRlpItemsCountException("TransactionPacket", packet.transactions.size(), kMaxTransactionsInPacket);
+  }
+
   size_t unseen_txs_count = 0;
   for (auto &transaction : packet.transactions) {
     // Skip any transactions that are already known to the trx mgr
@@ -152,7 +156,7 @@ void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer
   LOG(log_tr_) << "sendTransactions " << transactions.first.size() << " to " << peer_id;
 
   if (sealAndSend(peer_id, SubprotocolPacketType::kTransactionPacket,
-                  TransactionPacket(transactions.first).encodeRlp())) {
+                  encodePacketRlp(TransactionPacket(transactions.first)))) {
     for (const auto &trx : transactions.first) {
       peer->markTransactionAsKnown(trx->getHash());
     }

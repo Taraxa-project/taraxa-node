@@ -2,7 +2,7 @@
 
 #include "config/version.hpp"
 #include "dag/dag.hpp"
-#include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -21,82 +21,105 @@ StatusPacketHandler::StatusPacketHandler(const FullNodeConfig& conf, std::shared
                               logs_prefix + "STATUS_PH"),
       kGenesisHash(genesis_hash) {}
 
-void StatusPacketHandler::process(StatusPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) {
+void StatusPacketHandler::validatePacketRlpFormat(const threadpool::PacketData& packet_data) const {
+  if (const auto items_count = packet_data.rlp_.itemCount();
+      items_count != kInitialStatusPacketItemsCount && items_count != kStandardStatusPacketItemsCount) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(),
+                                        kStandardStatusPacketItemsCount);
+  }
+}
+
+void StatusPacketHandler::process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
   const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Initial status packet
-  if (packet.isInitialStatusPacket()) {
+  if (packet_data.rlp_.itemCount() == kInitialStatusPacketItemsCount) {
     if (!selected_peer) {
-      selected_peer = peers_state_->getPendingPeer(peer->getId());
+      selected_peer = peers_state_->getPendingPeer(packet_data.from_node_id_);
       if (!selected_peer) {
-        LOG(log_wr_) << "Peer " << peer->getId().abridged()
+        LOG(log_wr_) << "Peer " << packet_data.from_node_id_.abridged()
                      << " missing in both peers and pending peers map - will be disconnected.";
-        disconnect(peer->getId(), dev::p2p::UserReason);
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }
     }
 
-    if (*packet.peer_chain_id != kConf.genesis.chain_id) {
+    auto it = packet_data.rlp_.begin();
+    auto const peer_chain_id = (*it++).toInt<uint64_t>();
+    auto const peer_dag_level = (*it++).toInt<uint64_t>();
+    auto const genesis_hash = (*it++).toHash<blk_hash_t>();
+    auto const peer_pbft_chain_size = (*it++).toInt<PbftPeriod>();
+    auto const peer_syncing = (*it++).toInt();
+    auto const peer_pbft_round = (*it++).toInt<PbftRound>();
+    auto const node_major_version = (*it++).toInt<unsigned>();
+    auto const node_minor_version = (*it++).toInt<unsigned>();
+    auto const node_patch_version = (*it++).toInt<unsigned>();
+    auto const is_light_node = (*it++).toInt();
+    auto const node_history = (*it++).toInt<PbftPeriod>();
+
+    if (peer_chain_id != kConf.genesis.chain_id) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
-          << "Incorrect network id " << *packet.peer_chain_id << ", host " << peer->getId().abridged()
+          << "Incorrect network id " << peer_chain_id << ", host " << packet_data.from_node_id_.abridged()
           << " will be disconnected";
-      disconnect(peer->getId(), dev::p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
-    if (*packet.genesis_hash != kGenesisHash) {
+    if (genesis_hash != kGenesisHash) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
-          << "Incorrect genesis hash " << *packet.genesis_hash << ", host " << peer->getId().abridged()
+          << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
           << " will be disconnected";
-      disconnect(peer->getId(), dev::p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
     // If this is a light node and it cannot serve our sync request disconnect from it
-    if (*packet.is_light_node) {
+    if (is_light_node) {
       selected_peer->peer_light_node = true;
-      selected_peer->peer_light_node_history = *packet.node_history;
-      if (pbft_synced_period + *packet.node_history < packet.peer_pbft_chain_size) {
+      selected_peer->peer_light_node_history = node_history;
+      if (pbft_synced_period + node_history < peer_pbft_chain_size) {
         LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
-            << "Light node " << peer->getId().abridged() << " would not be able to serve our syncing request. "
-            << "Current synced period " << pbft_synced_period << ", peer synced period " << packet.peer_pbft_chain_size
-            << ", peer light node history " << *packet.node_history << ". Peer will be disconnected";
-        disconnect(peer->getId(), dev::p2p::UserReason);
+            << "Light node " << packet_data.from_node_id_.abridged()
+            << " would not be able to serve our syncing request. "
+            << "Current synced period " << pbft_synced_period << ", peer synced period " << peer_pbft_chain_size
+            << ", peer light node history " << node_history << ". Peer will be disconnected";
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }
     }
 
-    selected_peer->dag_level_ = packet.peer_dag_level;
-    selected_peer->pbft_chain_size_ = packet.peer_pbft_chain_size;
-    selected_peer->syncing_ = packet.peer_syncing;
-    selected_peer->pbft_period_ = packet.peer_pbft_chain_size + 1;
-    selected_peer->pbft_round_ = packet.peer_pbft_round;
+    selected_peer->dag_level_ = peer_dag_level;
+    selected_peer->pbft_chain_size_ = peer_pbft_chain_size;
+    selected_peer->syncing_ = peer_syncing;
+    selected_peer->pbft_period_ = peer_pbft_chain_size + 1;
+    selected_peer->pbft_round_ = peer_pbft_round;
 
-    peers_state_->setPeerAsReadyToSendMessages(peer->getId(), selected_peer);
+    peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
-    LOG(log_dg_) << "Received initial status message from " << peer->getId() << ", network id " << *packet.peer_chain_id
-                 << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis " << *packet.genesis_hash
-                 << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha
-                 << selected_peer->syncing_ << ", peer pbft period " << selected_peer->pbft_period_
-                 << ", peer pbft round " << selected_peer->pbft_round_ << ", node major version"
-                 << *packet.node_major_version << ", node minor version" << *packet.node_minor_version
-                 << ", node patch version" << *packet.node_patch_version;
+    LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
+                 << peer_chain_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
+                 << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
+                 << std::boolalpha << selected_peer->syncing_ << ", peer pbft period " << selected_peer->pbft_period_
+                 << ", peer pbft round " << selected_peer->pbft_round_ << ", node major version" << node_major_version
+                 << ", node minor version" << node_minor_version << ", node patch version" << node_patch_version;
 
   } else {  // Standard status packet
+    // TODO: initial and standard status packet could be separated...
     if (!selected_peer) {
-      LOG(log_er_) << "Received standard status packet from " << peer->getId().abridged()
+      LOG(log_er_) << "Received standard status packet from " << packet_data.from_node_id_.abridged()
                    << ", without previously received initial status packet. Will be disconnected";
-      disconnect(peer->getId(), dev::p2p::UserReason);
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
-    selected_peer->dag_level_ = packet.peer_dag_level;
-    selected_peer->pbft_chain_size_ = packet.peer_pbft_chain_size;
+    auto it = packet_data.rlp_.begin();
+    selected_peer->dag_level_ = (*it++).toInt<uint64_t>();
+    selected_peer->pbft_chain_size_ = (*it++).toInt<PbftPeriod>();
     selected_peer->pbft_period_ = selected_peer->pbft_chain_size_ + 1;
-    selected_peer->syncing_ = packet.peer_syncing;
-    selected_peer->pbft_round_ = packet.peer_pbft_round;
+    selected_peer->syncing_ = (*it++).toInt();
+    selected_peer->pbft_round_ = (*it++).toInt<PbftRound>();
 
     // TODO: Address malicious status
     if (!pbft_syncing_state_->isPbftSyncing()) {
@@ -124,7 +147,7 @@ void StatusPacketHandler::process(StatusPacket&& packet, const std::shared_ptr<T
     }
     selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
 
-    LOG(log_dg_) << "Received status message from " << peer->getId() << ", peer DAG max level "
+    LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
                  << selected_peer->dag_level_ << ", peer pbft chain size " << selected_peer->pbft_chain_size_
                  << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
                  << selected_peer->pbft_round_;
@@ -146,16 +169,14 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
   if (initial) {
     success = sealAndSend(
         node_id, SubprotocolPacketType::kStatusPacket,
-        // TODO[2865]: use packet class to automatically create rlp
-        std::move(dev::RLPStream(v4::StatusPacket::kInitialStatusPacketItemsCount)
+        std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
                   << kConf.genesis.chain_id << dag_max_level << kGenesisHash << pbft_chain_size
                   << pbft_syncing_state_->isPbftSyncing() << pbft_round << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
                   << TARAXA_PATCH_VERSION << kConf.is_light_node << kConf.light_node_history));
   } else {
     success = sealAndSend(
         node_id, SubprotocolPacketType::kStatusPacket,
-        // TODO[2865]: use packet class to automatically create rlp
-        std::move(dev::RLPStream(v4::StatusPacket::kStandardStatusPacketItemsCount)
+        std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
                   << dag_max_level << pbft_chain_size << pbft_syncing_state_->isDeepPbftSyncing() << pbft_round));
   }
 

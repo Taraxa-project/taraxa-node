@@ -8,6 +8,7 @@
 #include "exceptions.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packet_types.hpp"
+#include "network/tarcap/packets/latest/get_next_votes_bundle_packet.hpp"
 #include "network/tarcap/packets_handlers/latest/common/base_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
@@ -17,8 +18,15 @@
 
 namespace taraxa::network::tarcap {
 
-// Taraxa capability name
-constexpr char TARAXA_CAPABILITY_NAME[] = "taraxa";
+template <class PacketType>
+PacketType decodePacketRlp(const dev::RLP& packet_rlp) {
+  return util::rlp_dec<PacketType>(packet_rlp);
+}
+
+template <class PacketType>
+dev::bytes encodePacketRlp(PacketType packet) {
+  return util::rlp_enc(packet);
+}
 
 /**
  * @brief Packet handler base class that consists of shared state and some commonly used functions
@@ -58,11 +66,11 @@ class PacketHandler : public BasePacketHandler {
         return;
       }
 
-      // TODO[2865]: can be removed after taraxa net version is completely switched to 5
-      checkPacketRlpIsList(packet_data);
+      // Decode packet rlp into packet object
+      auto packet = decodePacketRlp<PacketType>(packet_data.rlp_);
 
       // Main processing function
-      process(PacketType{packet_data.rlp_}, peer.first);
+      process(std::move(packet), peer.first);
 
       auto processing_duration =
           std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
@@ -104,9 +112,8 @@ class PacketHandler : public BasePacketHandler {
   // TODO: probbaly should not be here but in specific packet class ???
   void requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, PbftPeriod pbft_period, PbftRound pbft_round) {
     LOG(log_dg_) << "Sending GetNextVotesSyncPacket with period:" << pbft_period << ", round:" << pbft_round;
-    // TODO: use packet class instead of manually creating rlp
-    sealAndSend(peerID, SubprotocolPacketType::kGetNextVotesSyncPacket,
-                std::move(dev::RLPStream(2) << pbft_period << pbft_round));
+    const auto packet = GetNextVotesBundlePacket{.peer_pbft_period = pbft_period, .peer_pbft_round = pbft_round};
+    sealAndSend(peerID, SubprotocolPacketType::kGetNextVotesSyncPacket, encodePacketRlp(packet));
   }
 
  private:
@@ -131,23 +138,6 @@ class PacketHandler : public BasePacketHandler {
   virtual void process(PacketType&& packet, const std::shared_ptr<TaraxaPeer>& peer) = 0;
 
  protected:
-  /**
-   * @brief Checks if packet rlp is a list, if not it throws InvalidRlpItemsCountException
-   *
-   * @param packet_data
-   * @throws InvalidRlpItemsCountException exception
-   */
-  void checkPacketRlpIsList(const threadpool::PacketData& packet_data) const {
-    if (!packet_data.rlp_.isList()) {
-      throw InvalidRlpItemsCountException(packet_data.type_str_ + " RLP must be a list. ", 0, 1);
-    }
-  }
-
-  // TODO[2865]: remove
-  bool sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type, dev::RLPStream&& rlp) {
-    return sealAndSend(node_id, packet_type, rlp.invalidate());
-  }
-
   bool sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type, dev::bytes&& rlp_bytes) {
     auto host = peers_state_->host_.lock();
     if (!host) {

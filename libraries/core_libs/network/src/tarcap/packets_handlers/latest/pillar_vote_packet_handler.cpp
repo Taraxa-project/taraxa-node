@@ -42,7 +42,7 @@ void PillarVotePacketHandler::onNewPillarVote(const std::shared_ptr<PillarVote> 
 
 void PillarVotePacketHandler::sendPillarVote(const std::shared_ptr<TaraxaPeer> &peer,
                                              const std::shared_ptr<PillarVote> &vote) {
-  if (sealAndSend(peer->getId(), SubprotocolPacketType::kPillarVotePacket, PillarVotePacket(vote).encodeRlp())) {
+  if (sealAndSend(peer->getId(), SubprotocolPacketType::kPillarVotePacket, encodePacketRlp(PillarVotePacket(vote)))) {
     peer->markPillarVoteAsKnown(vote->getHash());
     LOG(log_dg_) << "Pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << " sent to "
                  << peer->getId();

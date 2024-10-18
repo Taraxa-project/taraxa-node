@@ -123,7 +123,7 @@ class ExtVotesPacketHandler : public PacketHandler<PacketType> {
       // TODO[2868]: optimize this
       auto votes_copy = votes;
       if (this->sealAndSend(peer->getId(), SubprotocolPacketType::kVotesBundlePacket,
-                            VotesBundlePacket{std::move(votes_copy)}.encodeRlp())) {
+                            encodePacketRlp(VotesBundlePacket{std::move(votes_copy)}))) {
         LOG(this->log_dg_) << " Votes bundle with " << votes.size() << " votes sent to " << peer->getId();
         for (const auto& vote : votes) {
           peer->markPbftVoteAsKnown(vote->getHash());
@@ -192,7 +192,7 @@ class ExtVotesPacketHandler : public PacketHandler<PacketType> {
         // request PBFT chain sync from this node
         this->sealAndSend(
             peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
-            GetPbftSyncPacket{std::max(vote->getPeriod() - 1, peer->pbft_chain_size_.load())}.encodeRlp());
+            encodePacketRlp(GetPbftSyncPacket{std::max(vote->getPeriod() - 1, peer->pbft_chain_size_.load())}));
         last_pbft_block_sync_request_time_ = std::chrono::system_clock::now();
       }
 

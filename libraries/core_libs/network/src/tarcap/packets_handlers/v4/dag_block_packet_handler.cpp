@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/v4/dag_block_packet_handler.hpp"
 
 #include "dag/dag_manager.hpp"
-#include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/transaction_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -19,25 +19,49 @@ DagBlockPacketHandler::DagBlockPacketHandler(const FullNodeConfig &conf, std::sh
                               logs_prefix + "DAG_BLOCK_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
-void DagBlockPacketHandler::process(DagBlockPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
-  blk_hash_t const hash = packet.dag_block.getHash();
-
-  for (const auto &tx : packet.transactions) {
-    peer->markTransactionAsKnown(tx.first);
+void DagBlockPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
+  constexpr size_t required_size = 2;
+  // Only one dag block can be received
+  if (packet_data.rlp_.itemCount() != required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
+}
+
+void DagBlockPacketHandler::process(const threadpool::PacketData &packet_data,
+                                    const std::shared_ptr<TaraxaPeer> &peer) {
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions;
+  auto dag_rlp = packet_data.rlp_;
+  if (packet_data.rlp_.itemCount() == 2) {
+    const auto trx_count = packet_data.rlp_[0].itemCount();
+    transactions.reserve(trx_count);
+
+    for (const auto tx_rlp : packet_data.rlp_[0]) {
+      try {
+        auto trx = std::make_shared<Transaction>(tx_rlp);
+        peer->markTransactionAsKnown(trx->getHash());
+        transactions.emplace(trx->getHash(), std::move(trx));
+      } catch (const Transaction::InvalidTransaction &e) {
+        throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+      }
+    }
+    dag_rlp = packet_data.rlp_[1];
+  }
+  DagBlock block(dag_rlp);
+  blk_hash_t const hash = block.getHash();
+
   peer->markDagBlockAsKnown(hash);
 
-  if (packet.dag_block.getLevel() > peer->dag_level_) {
-    peer->dag_level_ = packet.dag_block.getLevel();
+  if (block.getLevel() > peer->dag_level_) {
+    peer->dag_level_ = block.getLevel();
   }
 
   // Do not process this block in case we already have it
-  if (dag_mgr_->isDagBlockKnown(packet.dag_block.getHash())) {
+  if (dag_mgr_->isDagBlockKnown(block.getHash())) {
     LOG(log_tr_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
     return;
   }
 
-  onNewBlockReceived(std::move(packet.dag_block), peer, packet.transactions);
+  onNewBlockReceived(std::move(block), peer, transactions);
 }
 
 void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "network/tarcap/packets/v4/get_dag_sync_packet.hpp"
-#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
+#include "common/packet_handler.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -12,7 +11,7 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap::v4 {
 
-class GetDagSyncPacketHandler : public PacketHandler<v4::GetDagSyncPacket> {
+class GetDagSyncPacketHandler : public PacketHandler {
  public:
   GetDagSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -27,7 +26,8 @@ class GetDagSyncPacketHandler : public PacketHandler<v4::GetDagSyncPacket> {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kGetDagSyncPacket;
 
  private:
-  virtual void process(GetDagSyncPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
   std::shared_ptr<TransactionManager> trx_mgr_;

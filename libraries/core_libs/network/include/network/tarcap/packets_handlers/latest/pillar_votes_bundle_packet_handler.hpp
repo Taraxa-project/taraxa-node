@@ -15,6 +15,8 @@ class PillarVotesBundlePacketHandler : public ExtPillarVotePacketHandler<PillarV
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kPillarVotesBundlePacket;
 
+  constexpr static size_t kMaxPillarVotesInBundleRlp{250};
+
  private:
   virtual void process(PillarVotesBundlePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 };

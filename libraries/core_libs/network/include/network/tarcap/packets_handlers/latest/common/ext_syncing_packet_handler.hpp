@@ -99,12 +99,12 @@ class ExtSyncingPacketHandler : public PacketHandler<PacketType> {
     LOG(this->log_nf_) << "Send GetPbftSyncPacket with period " << request_period << " to node "
                        << syncing_peer->getId();
     return this->sealAndSend(syncing_peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
-                             GetPbftSyncPacket{request_period}.encodeRlp());
+                             encodePacketRlp(GetPbftSyncPacket{request_period}));
   }
 
   void requestDagBlocks(const dev::p2p::NodeID &_nodeID, std::vector<blk_hash_t> &&blocks, PbftPeriod period) {
     this->sealAndSend(_nodeID, SubprotocolPacketType::kGetDagSyncPacket,
-                      GetDagSyncPacket{period, std::move(blocks)}.encodeRlp());
+                      encodePacketRlp(GetDagSyncPacket{period, std::move(blocks)}));
   }
 
   void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr) {
