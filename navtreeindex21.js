@@ -1,6 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"namespacemembers_func_e.html":[15,1,5],
 "namespacemembers_func_f.html":[15,1,6],
 "namespacemembers_func_g.html":[15,1,7],
 "namespacemembers_func_h.html":[15,1,8],
@@ -249,5 +248,6 @@ var NAVTREEINDEX21 =
 "pbft__vote_8hpp.html":[17,0,1,7,3,0,0,0],
 "pbft__vote_8hpp_source.html":[17,0,1,7,3,0,0,0],
 "peers__state_8cpp.html":[17,0,1,4,1,3,0,1,1],
-"peers__state_8hpp.html":[17,0,1,4,1,1,0,0,1,1]
+"peers__state_8hpp.html":[17,0,1,4,1,1,0,0,1,1],
+"peers__state_8hpp_source.html":[17,0,1,4,1,1,0,0,1,1]
 };

@@ -1,6 +1,5 @@
 var NAVTREEINDEX14 =
 {
-"functions_~.html":[16,3,0,25],
 "gas__pricer_8cpp.html":[17,0,1,4,0,1,7,0],
 "gas__pricer_8hpp.html":[17,0,1,4,0,0,7,0],
 "gas__pricer_8hpp_source.html":[17,0,1,4,0,0,7,0],
@@ -249,5 +248,6 @@ var NAVTREEINDEX14 =
 "group___final_chain.html#a0053d2c9e2c118c572681ca1055e500b":[14,1,8,22],
 "group___final_chain.html#a0216f26f70286d78113024f6f2679536":[14,1,7,68],
 "group___final_chain.html#a028fa18da2901ff915e8a6d2cf4f0c70":[14,1,0,7],
-"group___final_chain.html#a04a27839cd89baf8ffe24a67e9524f37":[14,1,14,2]
+"group___final_chain.html#a04a27839cd89baf8ffe24a67e9524f37":[14,1,14,2],
+"group___final_chain.html#a04e7b52cdec29bf6b23ad53abdd34651":[14,1,14,1]
 };
