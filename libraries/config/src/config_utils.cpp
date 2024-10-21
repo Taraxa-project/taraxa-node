@@ -28,7 +28,7 @@ Json::Value getConfigData(Json::Value root, const std::vector<std::string> &path
 }
 
 std::string getConfigDataAsString(const Json::Value &root, const std::vector<std::string> &path, bool optional,
-                                  std::string value) {
+                                  const std::string &value) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
     if (ret.isNull()) {

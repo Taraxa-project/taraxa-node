@@ -375,7 +375,8 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
       } else {
         db_->removeDagBlock(blk_hash);
         seen_blocks_.erase(blk_hash);
-        for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
+        const auto dag_trxs = dag_block->getTrxs();
+        std::copy(dag_trxs.begin(), dag_trxs.end(), std::back_inserter(expired_dag_blocks_transactions));
       }
     }
   }

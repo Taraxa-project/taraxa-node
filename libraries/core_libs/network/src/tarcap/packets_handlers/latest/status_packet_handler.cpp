@@ -68,7 +68,7 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
     }
 
     if (genesis_hash != kGenesisHash) {
-      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
+      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_wr_)
           << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
           << " will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
