@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "common/types.hpp"
 #include "common/util.hpp"
 #include "dag/dag.hpp"
