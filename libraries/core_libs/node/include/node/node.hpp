@@ -3,11 +3,10 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
-#include <atomic>
 #include <boost/asio.hpp>
 #include <memory>
 
-#include "common/app_face.hpp"
+#include "common/app_base.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "network/http_server.hpp"
@@ -41,7 +40,7 @@ class PbftManager;
 struct NetworkConfig;
 class KeyManager;
 
-class FullNode : public std::enable_shared_from_this<FullNode>, public AppFace {
+class FullNode : public std::enable_shared_from_this<FullNode>, public AppBase {
  public:
   explicit FullNode(FullNodeConfig const &conf);
   ~FullNode();
@@ -52,7 +51,6 @@ class FullNode : public std::enable_shared_from_this<FullNode>, public AppFace {
   FullNode &operator=(FullNode &&) = delete;
 
   void start();
-  bool isStarted() const { return started_; }
   const FullNodeConfig &getConfig() const { return conf_; }
   std::shared_ptr<Network> getNetwork() const { return network_; }
   std::shared_ptr<TransactionManager> getTransactionManager() const { return trx_mgr_; }
@@ -66,8 +64,6 @@ class FullNode : public std::enable_shared_from_this<FullNode>, public AppFace {
   std::shared_ptr<DagBlockProposer> getDagBlockProposer() const { return dag_block_proposer_; }
   std::shared_ptr<GasPricer> getGasPricer() const { return gas_pricer_; }
 
-  const dev::Address &getAddress() const { return kp_.address(); }
-  auto getSecretKey() const { return kp_.secret(); }
   auto getVrfSecretKey() const { return conf_.vrf_secret; }
 
   std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
@@ -86,12 +82,6 @@ class FullNode : public std::enable_shared_from_this<FullNode>, public AppFace {
 
   // In cae we will you config for this TP, it needs to be unique_ptr !!!
   util::ThreadPool subscription_pool_;
-
-  std::atomic<bool> stopped_ = true;
-  // configuration
-  FullNodeConfig conf_;
-  // Ethereum key pair
-  dev::KeyPair kp_;
 
   // components
   std::shared_ptr<DbStorage> db_;
@@ -116,8 +106,6 @@ class FullNode : public std::enable_shared_from_this<FullNode>, public AppFace {
 
   // logging
   LOG_OBJECTS_DEFINE
-
-  std::atomic_bool started_ = 0;
 
   void init();
   void close();

@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include "config/config.hpp"
+
 namespace taraxa {
 struct FullNodeConfig;
 class Network;
@@ -24,9 +26,11 @@ namespace pillar_chain {
 class PillarChainManager;
 }
 
-class AppFace {
+class AppBase {
  public:
-  virtual ~AppFace() = default;
+  AppBase() {}
+
+  virtual ~AppBase() = default;
 
   virtual const FullNodeConfig &getConfig() const = 0;
   virtual std::shared_ptr<Network> getNetwork() const = 0;
@@ -41,9 +45,21 @@ class AppFace {
   virtual std::shared_ptr<DagBlockProposer> getDagBlockProposer() const = 0;
   virtual std::shared_ptr<GasPricer> getGasPricer() const = 0;
 
-  virtual const dev::Address &getAddress() const = 0;
+  const dev::Address &getAddress() const { return kp_->address(); }
+  auto getSecretKey() const { return kp_->secret(); }
 
   virtual std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const = 0;
+
+  bool isStarted() const { return started_; }
+
+ protected:
+  // configuration
+  FullNodeConfig conf_;
+  // Ethereum key pair
+  std::shared_ptr<dev::KeyPair> kp_;
+
+  std::atomic_bool started_ = 0;
+  std::atomic_bool stopped_ = true;
 };
 
 }  // namespace taraxa

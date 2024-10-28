@@ -35,7 +35,6 @@ struct FullNodeConfig {
 
   void overwriteConfigFromJson(const Json::Value &config_json);
   std::vector<logger::Config> loadLoggingConfigs(const Json::Value &logging);
-  void scheduleLoggingConfigUpdate();
   void InitLogging(const addr_t &node_address);
 
   std::string json_file_name;

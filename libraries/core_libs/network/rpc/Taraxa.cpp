@@ -19,7 +19,7 @@ using namespace ::taraxa::final_chain;
 
 namespace taraxa::net {
 
-Taraxa::Taraxa(std::shared_ptr<AppFace> app) : app_(app) {
+Taraxa::Taraxa(std::shared_ptr<AppBase> app) : app_(app) {
   Json::CharReaderBuilder builder;
   auto reader = std::unique_ptr<Json::CharReader>(builder.newCharReader());
 
@@ -49,7 +49,7 @@ string Taraxa::taraxa_dagBlockPeriod() {
   }
 }
 
-std::shared_ptr<AppFace> Taraxa::tryGetApp() {
+std::shared_ptr<AppBase> Taraxa::tryGetApp() {
   if (auto app = app_.lock()) {
     return app;
   }

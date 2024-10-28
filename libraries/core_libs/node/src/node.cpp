@@ -34,7 +34,11 @@
 
 namespace taraxa {
 
-FullNode::FullNode(FullNodeConfig const &conf) : subscription_pool_(1), conf_(conf), kp_(conf_.node_secret) { init(); }
+FullNode::FullNode(FullNodeConfig const &conf) : subscription_pool_(1) {
+  conf_ = conf;
+  kp_ = std::make_shared<dev::KeyPair>(conf_.node_secret);
+  init();
+}
 
 FullNode::~FullNode() { close(); }
 
@@ -42,17 +46,15 @@ void FullNode::init() {
   fs::create_directories(conf_.db_path);
   fs::create_directories(conf_.log_path);
   // Initialize logging
-  auto const &node_addr = kp_.address();
+  const auto &node_addr = getAddress();
 
   for (auto &logging : conf_.log_configs) {
     logging.InitLogging(node_addr);
   }
 
-  conf_.scheduleLoggingConfigUpdate();
-
   LOG_OBJECTS_CREATE("FULLND");
 
-  LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString() << std::endl
+  LOG(log_si_) << "Node public key: " << EthGreen << kp_->pub().toString() << std::endl
                << EthReset << "Node address: " << EthRed << node_addr.toString() << std::endl
                << EthReset << "Node VRF public key: " << EthGreen
                << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString() << EthReset;
@@ -134,7 +136,7 @@ void FullNode::init() {
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(conf_, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_);
 
   network_ =
-      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
+      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), *kp_, db_, pbft_mgr_, pbft_chain_,
                                 vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
 }
 

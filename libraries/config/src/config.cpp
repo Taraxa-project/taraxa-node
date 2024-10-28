@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "common/config_exception.hpp"
-#include "common/thread_pool.hpp"
 #include "config/config_utils.hpp"
 
 namespace taraxa {
@@ -158,34 +157,6 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   // TODO configurable
   opts_final_chain.expected_max_trx_per_block = 1000;
   opts_final_chain.max_trie_full_node_levels_to_cache = 4;
-}
-
-void FullNodeConfig::scheduleLoggingConfigUpdate() {
-  // no file to check updates for (e.g. tests)
-  if (json_file_name.empty()) {
-    return;
-  }
-  static util::ThreadPool executor_{1};
-  static auto node_address = dev::KeyPair(node_secret).address();
-  executor_.post([&]() {
-    while (true) {
-      std::this_thread::sleep_for(std::chrono::minutes(1));
-      auto update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
-      if (last_json_update_time >= update_time) {
-        continue;
-      }
-      last_json_update_time = update_time;
-      try {
-        auto config = getJsonFromFileOrString(json_file_name);
-        log_configs = loadLoggingConfigs(config["logging"]);
-        InitLogging(node_address);
-      } catch (const ConfigException &e) {
-        std::cerr << "FullNodeConfig: Failed to update logging config: " << e.what() << std::endl;
-        continue;
-      }
-      std::cout << "FullNodeConfig: Updated logging config" << std::endl;
-    }
-  });
 }
 
 void FullNodeConfig::InitLogging(const addr_t &node_address) {

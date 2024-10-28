@@ -7,6 +7,8 @@
 #include <boost/filesystem.hpp>
 #include <stdexcept>
 
+#include "common/config_exception.hpp"
+#include "config/config_utils.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
 #include "dag/dag_block_proposer.hpp"
@@ -32,10 +34,19 @@
 #include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
-
 namespace taraxa {
 
-App::App(FullNodeConfig const &conf) : subscription_pool_(1), conf_(conf), kp_(conf_.node_secret) { init(); }
+App::App(int argc, const char *argv[]) : subscription_pool_(1), executor_(1) {
+  cli::Config cli_conf_;
+
+  cli_conf_.parseCommandLine(argc, argv);
+
+  // init options & plugins
+  node_configured_ = cli_conf_.nodeConfigured();
+  kp_ = std::make_shared<dev::KeyPair>(cli_conf_.getNodeConfiguration().node_secret);
+  conf_ = cli_conf_.getNodeConfiguration();
+  init();
+}
 
 App::~App() { close(); }
 
@@ -44,16 +55,14 @@ void App::init() {
   fs::create_directories(conf_.log_path);
 
   // Initialize logging
-  auto const &node_addr = kp_.address();
+  auto const &node_addr = kp_->address();
   for (auto &logging : conf_.log_configs) {
     logging.InitLogging(node_addr);
   }
 
-  conf_.scheduleLoggingConfigUpdate();
-
   LOG_OBJECTS_CREATE("FULLND");
 
-  LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString() << std::endl
+  LOG(log_si_) << "Node public key: " << EthGreen << kp_->pub().toString() << std::endl
                << EthReset << "Node address: " << EthRed << node_addr.toString() << std::endl
                << EthReset << "Node VRF public key: " << EthGreen
                << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString() << EthReset;
@@ -138,8 +147,41 @@ void App::init() {
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(conf_, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_);
 
   network_ =
-      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
+      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), *kp_, db_, pbft_mgr_, pbft_chain_,
                                 vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
+}
+
+void App::scheduleLoggingConfigUpdate() {
+  // no file to check updates for (e.g. tests)
+  if (conf_.json_file_name.empty()) {
+    return;
+  }
+
+  static auto node_address = dev::KeyPair(conf_.node_secret).address();
+  executor_.post([&]() {
+    while (started_ && !stopped_) {
+      auto path = std::filesystem::path(conf_.json_file_name);
+      if (path.empty()) {
+        std::cout << "FullNodeConfig: scheduleLoggingConfigUpdate: json_file_name is empty" << std::endl;
+        return;
+      }
+      auto update_time = std::filesystem::last_write_time(path);
+      if (conf_.last_json_update_time >= update_time) {
+        continue;
+      }
+      conf_.last_json_update_time = update_time;
+      try {
+        auto config = getJsonFromFileOrString(conf_.json_file_name);
+        conf_.log_configs = conf_.loadLoggingConfigs(config["logging"]);
+        conf_.InitLogging(node_address);
+      } catch (const ConfigException &e) {
+        std::cerr << "FullNodeConfig: Failed to update logging config: " << e.what() << std::endl;
+        continue;
+      }
+      std::cout << "FullNodeConfig: Updated logging config" << std::endl;
+      std::this_thread::sleep_for(std::chrono::minutes(1));
+    }
+  });
 }
 
 void App::setupMetricsUpdaters() {
@@ -171,6 +213,8 @@ void App::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
+
+  scheduleLoggingConfigUpdate();
 
   // Inits rpc related members
   if (conf_.network.rpc) {
@@ -206,37 +250,37 @@ void App::start() {
 
     auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
     std::shared_ptr<net::Test> test_json_rpc;
+    auto sthis = shared_from_this();
     // if (conf_.enable_test_rpc) {
     //  TODO Because this object refers to App, the lifecycle/dependency management is more complicated);
-    test_json_rpc = std::make_shared<net::Test>(shared_from_this());
+    test_json_rpc = std::make_shared<net::Test>(sthis);
     //}
 
     std::shared_ptr<net::Debug> debug_json_rpc;
     if (conf_.enable_debug) {
       // TODO Because this object refers to App, the lifecycle/dependency management is more complicated);
-      debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(), conf_.genesis.dag.gas_limit);
+      debug_json_rpc = std::make_shared<net::Debug>(sthis, conf_.genesis.dag.gas_limit);
     }
 
     jsonrpc_api_ = std::make_unique<JsonRpcServer>(
-        std::make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to App, the
-                                                            // lifecycle/dependency management is more complicated
-        std::make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to App, the
-                                                            // lifecycle/dependency management is more complicated
+        std::make_shared<net::Taraxa>(sthis),  // TODO Because this object refers to App, the
+                                               // lifecycle/dependency management is more complicated
+        std::make_shared<net::Net>(sthis),     // TODO Because this object refers to App, the
+                                               // lifecycle/dependency management is more complicated
         eth_json_rpc, test_json_rpc, debug_json_rpc);
 
     if (conf_.network.rpc->http_port) {
       auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
       jsonrpc_http_ = std::make_shared<net::HttpServer>(
-          rpc_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->http_port}, getAddress(),
-          json_rpc_processor);
+          rpc_thread_pool_, boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->http_port},
+          getAddress(), json_rpc_processor, conf_.network.rpc->max_pending_tasks);
       jsonrpc_api_->addConnector(json_rpc_processor);
       jsonrpc_http_->start();
     }
     if (conf_.network.rpc->ws_port) {
       jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
-          rpc_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->ws_port}, getAddress());
+          rpc_thread_pool_, boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->ws_port},
+          getAddress(), conf_.network.rpc->max_pending_tasks);
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
@@ -281,22 +325,23 @@ void App::start() {
         *rpc_thread_pool_);
   }
   if (conf_.network.graphql) {
-    graphql_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.network.graphql->threads_num);
+    graphql_thread_pool_ = std::make_shared<util::ThreadPool>(conf_.network.graphql->threads_num);
     if (conf_.network.graphql->ws_port) {
       graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
-          graphql_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->ws_port},
-          getAddress());
+          graphql_thread_pool_,
+          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->ws_port}, getAddress(),
+          conf_.network.rpc->max_pending_tasks);
       // graphql_ws_->run();
     }
 
     if (conf_.network.graphql->http_port) {
       graphql_http_ = std::make_shared<net::HttpServer>(
-          graphql_thread_pool_->unsafe_get_io_context(),
+          graphql_thread_pool_,
           boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->http_port},
           getAddress(),
           std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, gas_pricer_,
-                                                      as_weak(network_), conf_.genesis.chain_id));
+                                                      as_weak(network_), conf_.genesis.chain_id),
+          conf_.network.rpc->max_pending_tasks);
       graphql_http_->start();
     }
   }
