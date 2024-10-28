@@ -14,7 +14,7 @@ using namespace jsonrpc;
 
 namespace taraxa::net {
 
-Net::Net(std::shared_ptr<taraxa::AppFace> const& app) : app_(app) {}
+Net::Net(std::shared_ptr<taraxa::AppBase> const& app) : app_(app) {}
 
 std::string Net::net_version() {
   if (auto app = app_.lock()) {

@@ -1,6 +1,6 @@
 add_executable(taraxan main.cpp)
 target_link_libraries(taraxan PRIVATE
-    core_libs
+    app
 )
 
 if(TCMALLOC_LIB)

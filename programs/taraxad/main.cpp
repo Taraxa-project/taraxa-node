@@ -11,7 +11,8 @@ using namespace taraxa;
 int main(int argc, const char* argv[]) {
   static_init();
   try {
-    cli::Config cli_conf(argc, argv);
+    cli::Config cli_conf;
+    cli_conf.parseCommandLine(argc, argv);
 
     if (cli_conf.nodeConfigured()) {
       auto node = std::make_shared<FullNode>(cli_conf.getNodeConfiguration());

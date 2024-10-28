@@ -1,7 +1,11 @@
 #pragma once
 #include <libweb3jsonrpc/ModularServer.h>
 
-#include "common/app_face.hpp"
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
+
+#include "cli/config.hpp"
+#include "common/app_base.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "key_manager/key_manager.hpp"
@@ -22,17 +26,19 @@ namespace metrics {
 class MetricsService;
 }
 
-class App : public AppFace, std::enable_shared_from_this<App> {
+class Plugin;
+
+class App : public std::enable_shared_from_this<App>, public AppBase {
  public:
-  explicit App(FullNodeConfig const& conf);
+  explicit App(int argc, const char* argv[]);
   ~App();
 
   App(const App&) = delete;
   App(App&&) = delete;
   App& operator=(const App&) = delete;
   App& operator=(App&&) = delete;
+  void init();
   void start();
-  bool isStarted() const { return started_; }
   const FullNodeConfig& getConfig() const { return conf_; }
   std::shared_ptr<Network> getNetwork() const { return network_; }
   std::shared_ptr<TransactionManager> getTransactionManager() const { return trx_mgr_; }
@@ -47,73 +53,70 @@ class App : public AppFace, std::enable_shared_from_this<App> {
   std::shared_ptr<GasPricer> getGasPricer() const { return gas_pricer_; }
   std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
 
-  const dev::Address& getAddress() const { return kp_.address(); }
+  const dev::Address& getAddress() const { return kp_->address(); }
 
   // For Debug
   uint64_t getProposedBlocksCount() const;
 
   void rebuildDb();
 
-  void set_program_options(boost::program_options::options_description& command_line_options,
-                           boost::program_options::options_description& configuration_file_options) const;
-  void initialize(const fc::path& data_dir, std::shared_ptr<boost::program_options::variables_map> options) const;
+  void initialize(const std::filesystem::path& data_dir,
+                  std::shared_ptr<boost::program_options::variables_map> options) const;
   void startup();
 
   template <typename PluginType>
-  std::shared_ptr<PluginType> register_plugin(bool auto_load = false) {
+  std::shared_ptr<PluginType> registerPlugin(cli::Config& cli_conf, bool auto_load = false) {
     auto plug = std::make_shared<PluginType>(*this);
 
     string cli_plugin_desc = plug->plugin_name() + " plugin. " + plug->plugin_description() + "\nOptions";
     boost::program_options::options_description plugin_cli_options(cli_plugin_desc);
-    boost::program_options::options_description plugin_cfg_options;
-    plug->plugin_set_program_options(plugin_cli_options, plugin_cfg_options);
+    plug->addOptions(plugin_cli_options);
 
-    if (!plugin_cli_options.options().empty()) _cli_options.add(plugin_cli_options);
+    if (!plugin_cli_options.options().empty()) cli_conf.addCliOptions(plugin_cli_options);
 
-    if (!plugin_cfg_options.options().empty()) {
-      std::string header_name = "plugin-cfg-header-" + plug->plugin_name();
-      std::string header_desc = plug->plugin_name() + " plugin options";
-      _cfg_options.add_options()(header_name.c_str(), header_desc.c_str());
-      _cfg_options.add(plugin_cfg_options);
-    }
+    // if (!plugin_cfg_options.options().empty()) {
+    //   std::string header_name = "plugin-cfg-header-" + plug->plugin_name();
+    //   std::string header_desc = plug->plugin_name() + " plugin options";
+    //   cfg_options_.add_options()(header_name.c_str(), header_desc.c_str());
+    //   cfg_options_.add(plugin_cfg_options);
+    // }
 
-    add_available_plugin(plug);
+    addAvailablePlugin(plug);
 
-    if (auto_load) enable_plugin(plug->plugin_name());
+    if (auto_load) enablePlugin(plug->name());
 
     return plug;
   }
-  std::shared_ptr<Plugin> get_plugin(const string& name) const;
+  std::shared_ptr<Plugin> getPlugin(const string& name) const;
 
   template <typename PluginType>
-  std::shared_ptr<PluginType> get_plugin(const string& name) const {
-    std::shared_ptr<Plugin> abs_plugin = get_plugin(name);
+  std::shared_ptr<PluginType> getPlugin(const string& name) const {
+    std::shared_ptr<Plugin> abs_plugin = getPlugin(name);
     std::shared_ptr<PluginType> result = std::dynamic_pointer_cast<PluginType>(abs_plugin);
-    FC_ASSERT(result != std::shared_ptr<PluginType>(), "Unable to load plugin '${p}'", ("p", name));
+
     return result;
   }
 
-  void enable_plugin(const string& name) const;
+  void enablePlugin(const string& name) const;
 
-  bool is_plugin_enabled(const string& name) const;
+  bool isPluginEnabled(const string& name) const;
 
-  const string& get_node_info() const;
+  bool nodeConfigured() const { return node_configured_; }
+
+  void scheduleLoggingConfigUpdate();
 
  private:
   using JsonRpcServer = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace, net::DebugFace>;
 
+  bool node_configured_;
+
   // should be destroyed after all components, since they may depend on it through unsafe pointers
-  std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
-  std::unique_ptr<util::ThreadPool> graphql_thread_pool_;
+  std::shared_ptr<util::ThreadPool> rpc_thread_pool_;
+  std::shared_ptr<util::ThreadPool> graphql_thread_pool_;
 
   // In case we will you config for this TP, it needs to be unique_ptr !!!
   util::ThreadPool subscription_pool_;
-
-  std::atomic<bool> stopped_ = true;
-  // configuration
-  FullNodeConfig conf_;
-  // Ethereum key pair
-  dev::KeyPair kp_;
+  util::ThreadPool executor_{1};
 
   // components
   std::shared_ptr<DbStorage> db_;
@@ -136,15 +139,9 @@ class App : public AppFace, std::enable_shared_from_this<App> {
   std::unique_ptr<JsonRpcServer> jsonrpc_api_;
   std::unique_ptr<metrics::MetricsService> metrics_;
 
-  // logging
-  LOG_OBJECTS_DEFINE
-
-  std::atomic_bool started_ = 0;
-
   std::map<string, std::shared_ptr<Plugin>> _active_plugins;
   std::map<string, std::shared_ptr<Plugin>> _available_plugins;
 
-  void init();
   void close();
 
   /**
@@ -152,6 +149,9 @@ class App : public AppFace, std::enable_shared_from_this<App> {
    * So we don't need to pass metrics classes instances in other classes.
    */
   void setupMetricsUpdaters();
+
+  // logging
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa

@@ -7,14 +7,14 @@
 #include <memory>
 
 #include "TaraxaFace.h"
-#include "common/app_face.hpp"
+#include "common/app_base.hpp"
 #include "libweb3jsonrpc/ModularServer.h"
 
 namespace taraxa::net {
 
 class Taraxa : public TaraxaFace {
  public:
-  explicit Taraxa(std::shared_ptr<taraxa::AppFace> app);
+  explicit Taraxa(std::shared_ptr<taraxa::AppBase> app);
 
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"taraxa", "1.0"}}; }
 
@@ -35,12 +35,12 @@ class Taraxa : public TaraxaFace {
                                                 bool include_signatures) override;
 
  protected:
-  std::weak_ptr<taraxa::AppFace> app_;
+  std::weak_ptr<taraxa::AppBase> app_;
 
  private:
   Json::Value version;
 
-  std::shared_ptr<taraxa::AppFace> tryGetApp();
+  std::shared_ptr<taraxa::AppBase> tryGetApp();
 };
 
 }  // namespace taraxa::net

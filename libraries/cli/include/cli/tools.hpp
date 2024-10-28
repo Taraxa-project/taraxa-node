@@ -28,7 +28,7 @@ void generateVrf(const taraxa::vrf_wrapper::vrf_sk_t& sk, const taraxa::vrf_wrap
 void generateVrfFromKey(const std::string& key);
 
 // Generate default config and wallet files
-int getChainIdFromString(std::string& chain_str);
+int getChainIdFromString(std::string chain_str);
 void getConfig(const std::string& config, cli::Config::ChainIdType chain_id);
 Json::Value getConfig(Config::ChainIdType chain_id);
 Json::Value getGenesis(Config::ChainIdType chain_id);

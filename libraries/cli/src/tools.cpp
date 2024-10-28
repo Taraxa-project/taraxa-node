@@ -14,7 +14,7 @@ using namespace dev;
 
 namespace taraxa::cli::tools {
 
-int getChainIdFromString(std::string& chain_str) {
+int getChainIdFromString(std::string chain_str) {
   boost::algorithm::to_lower(chain_str);
   if (chain_str == "mainnet") {
     return static_cast<int>(Config::ChainIdType::Mainnet);
@@ -63,9 +63,11 @@ Json::Value getGenesis(Config::ChainIdType chain_id) {
   return genesis;
 }
 
-Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, const vector<string>& boot_nodes,
-                           const vector<string>& log_channels, const vector<string>& log_configurations,
-                           const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
+Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, const std::vector<std::string>& boot_nodes,
+                           const std::vector<std::string>& log_channels,
+                           const std::vector<std::string>& log_configurations,
+                           const std::vector<std::string>& boot_nodes_append,
+                           const std::vector<std::string>& log_channels_append) {
   if (data_dir.empty()) {
     if (conf["data_path"].asString().empty()) {
       conf["data_path"] = getTaraxaDataDefaultDir();
