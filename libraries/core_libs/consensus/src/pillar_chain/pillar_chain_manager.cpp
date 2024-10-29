@@ -106,14 +106,13 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
   return pillar_block;
 }
 
-void PillarChainManager::saveNewPillarBlock(std::shared_ptr<PillarBlock> pillar_block,
+void PillarChainManager::saveNewPillarBlock(const std::shared_ptr<PillarBlock>& pillar_block,
                                             std::vector<state_api::ValidatorVoteCount>&& new_vote_counts) {
-  CurrentPillarBlockDataDb data{std::move(pillar_block), std::move(new_vote_counts)};
-  db_->saveCurrentPillarBlockData(data);
+  db_->saveCurrentPillarBlockData({pillar_block, new_vote_counts});
 
   std::scoped_lock<std::shared_mutex> lock(mutex_);
-  current_pillar_block_ = std::move(data.pillar_block);
-  current_pillar_block_vote_counts_ = std::move(data.vote_counts);
+  current_pillar_block_ = pillar_block;
+  current_pillar_block_vote_counts_ = std::move(new_vote_counts);
 }
 
 std::shared_ptr<PillarVote> PillarChainManager::genAndPlacePillarVote(PbftPeriod period,
