@@ -41,7 +41,7 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
   auto addr = std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
   my_trx_shard_ = addr % bp_config_.shard;
 
-  LOG(log_nf_) << "Dag block proposer in " << my_trx_shard_ << " shard ...";
+  LOG(log_si_) << "Dag block proposer in " << my_trx_shard_ << " shard ..." << bp_config_.shard;
 }
 
 bool DagBlockProposer::proposeDagBlock() {
@@ -58,6 +58,11 @@ bool DagBlockProposer::proposeDagBlock() {
   LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
   const auto propose_level = getProposeLevel(frontier.pivot, frontier.tips) + 1;
+
+  auto anchor = dag_mgr_->getAnchors().second;
+  if (frontier.pivot != anchor && propose_level > 100) {
+    return false;
+  }
 
   const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
   if (!proposal_period.has_value()) {
@@ -157,6 +162,8 @@ bool DagBlockProposer::proposeDagBlock() {
   auto dag_block =
       createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
 
+  last_anchor_ = dag_mgr_->getAnchors().second;
+
   if (dag_mgr_->addDagBlock(std::move(dag_block), std::move(transactions), true).first) {
     LOG(log_nf_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
                  << " , txs num " << dag_block.getTrxs().size();
@@ -231,10 +238,10 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
   SharedTransactions sharded_trxs;
   std::vector<uint64_t> sharded_estimations;
   for (uint32_t i = 0; i < transactions.size(); i++) {
-    auto shard = std::stoull(transactions[i]->getHash().toString().substr(0, 10), NULL, 16);
+    auto shard = std::stoull(transactions[i]->getSender().toString().substr(0, 10), NULL, 16);
     if (shard % total_trx_shards_ == my_trx_shard_) {
       sharded_trxs.emplace_back(transactions[i]);
-      estimations.emplace_back(estimations[i]);
+      sharded_estimations.emplace_back(estimations[i]);
     }
   }
   if (sharded_trxs.empty()) {

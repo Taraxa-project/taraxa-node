@@ -241,15 +241,15 @@
   },
   "dag": {
     "block_proposer": {
-      "shard": 1
+      "shard": 2
     },
     "gas_limit": "0x1908B100"
   },
   "sortition": {
     "changes_count_for_average": 10,
     "dag_efficiency_targets": [
-      4900,
-      5100
+      7900,
+      8100
     ],
     "changing_interval": 200,
     "computation_interval": 50,

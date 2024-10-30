@@ -138,6 +138,8 @@ class DagBlockProposer {
   std::shared_ptr<std::thread> proposer_worker_;
   std::weak_ptr<Network> network_;
 
+  blk_hash_t last_anchor_;
+
   const addr_t node_addr_;
   const secret_t node_sk_;
   const vrf_wrapper::vrf_sk_t vrf_sk_;

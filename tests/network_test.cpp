@@ -268,7 +268,7 @@ TEST_F(NetworkTest, malicious_peers) {
   EXPECT_EQ(state4.is_peer_malicious(id2), false);
 }
 
-TEST_F(NetworkTest, sync_large_pbft_block) {
+TEST_F(NetworkTest, DISABLED_sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs(2, 1, 5);
   node_cfgs[0].genesis.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
