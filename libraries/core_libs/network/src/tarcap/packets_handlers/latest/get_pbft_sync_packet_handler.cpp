@@ -66,15 +66,13 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
 
   for (auto block_period = from_period; block_period < from_period + blocks_to_transfer; block_period++) {
     bool last_block = (block_period == from_period + blocks_to_transfer - 1);
-    auto data = db_->getPeriodDataRaw(block_period);
-
-    if (data.size() == 0) {
+    auto period_data = db_->getPeriodData(block_period);
+    if (!period_data.has_value()) {
       // This can happen when switching from light node to full node setting
       LOG(log_er_) << "DB corrupted. Cannot find period " << block_period << " PBFT block in db";
       return;
     }
 
-    PeriodData period_data(std::move(data));
     std::shared_ptr<PbftSyncPacket> pbft_sync_packet;
 
     if (pbft_chain_synced && last_block) {
@@ -84,13 +82,13 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       // It is possible that the node pushed another block to the chain in the meantime
       if (reward_votes[0]->getPeriod() == block_period) {
         // TODO[2870]: use custom votes bundle class instead of vector
-        pbft_sync_packet =
-            std::make_shared<PbftSyncPacket>(last_block, std::move(period_data), std::move(reward_votes));
+        pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(*period_data),
+                                                            OptimizedPbftVotesBundle{std::move(reward_votes)});
       } else {
-        pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(period_data));
+        pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(*period_data));
       }
     } else {
-      pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(period_data));
+      pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(*period_data));
     }
 
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;

@@ -18,18 +18,18 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, s
                             logs_prefix + "VOTES_BUNDLE_PH") {}
 
 void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
-  if (packet.votes.size() == 0 || packet.votes.size() > kMaxVotesInBundleRlp) {
-    throw InvalidRlpItemsCountException("VotesBundlePacket", packet.votes.size(), kMaxVotesInBundleRlp);
+  if (packet.votes_bundle.votes.size() == 0 || packet.votes_bundle.votes.size() > kMaxVotesInBundleRlp) {
+    throw InvalidRlpItemsCountException("VotesBundlePacket", packet.votes_bundle.votes.size(), kMaxVotesInBundleRlp);
   }
 
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  const auto &reference_vote = packet.votes.front();
+  const auto &reference_vote = packet.votes_bundle.votes.front();
   const auto votes_bundle_votes_type = reference_vote->getType();
 
   // Votes sync bundles are allowed to cotain only votes bundles of the same type, period, round and step so if first
   // vote is irrelevant, all of them are
-  if (!isPbftRelevantVote(packet.votes[0])) {
+  if (!isPbftRelevantVote(packet.votes_bundle.votes[0])) {
     LOG(log_wr_) << "Drop votes sync bundle as it is irrelevant for current pbft state. Votes (period, round, step) = ("
                  << reference_vote->getPeriod() << ", " << reference_vote->getRound() << ", "
                  << reference_vote->getStep() << "). Current PBFT (period, round, step) = (" << current_pbft_period
@@ -53,7 +53,7 @@ void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::sh
   }
 
   size_t processed_votes_count = 0;
-  for (const auto &vote : packet.votes) {
+  for (const auto &vote : packet.votes_bundle.votes) {
     peer->markPbftVoteAsKnown(vote->getHash());
 
     // Do not process vote that has already been validated
@@ -71,11 +71,11 @@ void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::sh
     processed_votes_count++;
   }
 
-  LOG(log_nf_) << "Received " << packet.votes.size() << " (processed " << processed_votes_count
+  LOG(log_nf_) << "Received " << packet.votes_bundle.votes.size() << " (processed " << processed_votes_count
                << " ) sync votes from peer " << peer->getId() << " node current round " << current_pbft_round
                << ", peer pbft round " << reference_vote->getRound();
 
-  onNewPbftVotesBundle(packet.votes, false, peer->getId());
+  onNewPbftVotesBundle(packet.votes_bundle.votes, false, peer->getId());
 }
 
 void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes,

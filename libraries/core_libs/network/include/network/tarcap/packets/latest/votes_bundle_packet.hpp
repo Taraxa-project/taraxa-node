@@ -7,10 +7,9 @@
 namespace taraxa::network::tarcap {
 
 struct VotesBundlePacket {
-  std::vector<std::shared_ptr<PbftVote>> votes;
+  OptimizedPbftVotesBundle votes_bundle;
 
-  void rlp(::taraxa::util::RLPDecoderRef encoding) { votes = decodePbftVotesBundleRlp(encoding.value); }
-  void rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(encodePbftVotesBundleRlp(votes)); }
+  RLP_FIELDS_DEFINE_INPLACE(votes_bundle)
 };
 
 }  // namespace taraxa::network::tarcap

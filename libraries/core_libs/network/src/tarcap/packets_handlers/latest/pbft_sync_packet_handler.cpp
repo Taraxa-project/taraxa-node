@@ -40,7 +40,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
 
   // Process received pbft blocks
   // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
-  const bool pbft_chain_synced = packet.current_block_cert_votes.size() > 0;
+  const bool pbft_chain_synced = packet.current_block_cert_votes_bundle.has_value();
   const auto pbft_blk_hash = packet.period_data.pbft_blk->getBlockHash();
 
   std::string received_dag_blocks_str;  // This is just log related stuff
@@ -81,7 +81,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
 
     // Check cert vote matches if final synced block
     if (pbft_chain_synced) {
-      for (auto const &vote : packet.current_block_cert_votes) {
+      for (auto const &vote : packet.current_block_cert_votes_bundle->votes) {
         if (vote->getBlockHash() != pbft_blk_hash) {
           LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_blk_hash
                        << " from peer " << peer->getId().abridged() << " received, stop syncing.";
@@ -165,8 +165,11 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
     LOG(log_tr_) << "Synced PBFT block hash " << pbft_blk_hash << " with "
                  << packet.period_data.previous_block_cert_votes.size() << " cert votes";
     LOG(log_tr_) << "Synced PBFT block " << packet.period_data;
-    pbft_mgr_->periodDataQueuePush(std::move(packet.period_data), peer->getId(),
-                                   std::move(packet.current_block_cert_votes));
+    std::vector<std::shared_ptr<PbftVote>> current_block_cert_votes;
+    if (pbft_chain_synced) {
+      current_block_cert_votes = std::move(packet.current_block_cert_votes_bundle->votes);
+    }
+    pbft_mgr_->periodDataQueuePush(std::move(packet.period_data), peer->getId(), std::move(current_block_cert_votes));
   }
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
