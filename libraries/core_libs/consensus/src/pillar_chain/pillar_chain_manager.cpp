@@ -108,9 +108,8 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
 
 void PillarChainManager::saveNewPillarBlock(const std::shared_ptr<PillarBlock>& pillar_block,
                                             std::vector<state_api::ValidatorVoteCount>&& new_vote_counts) {
-  db_->saveCurrentPillarBlockData({pillar_block, new_vote_counts});
-
   std::scoped_lock<std::shared_mutex> lock(mutex_);
+  db_->saveCurrentPillarBlockData({pillar_block, new_vote_counts});
   current_pillar_block_ = pillar_block;
   current_pillar_block_vote_counts_ = std::move(new_vote_counts);
 }
@@ -332,7 +331,6 @@ bool PillarChainManager::isValidPillarBlock(const std::shared_ptr<PillarBlock>& 
   }
 
   const auto last_finalized_pillar_block = getLastFinalizedPillarBlock();
-  std::shared_lock<std::shared_mutex> lock(mutex_);
   assert(last_finalized_pillar_block);
 
   // Check if some block was not skipped
