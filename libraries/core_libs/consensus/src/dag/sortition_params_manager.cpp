@@ -46,14 +46,16 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
   auto period = params_changes_.back().period + 1;
   ignored_efficiency_counter_ = 0;
   while (true) {
-    auto data = db_->getPeriodDataRaw(period);
-    if (data.size() == 0) break;
+    auto period_data = db_->getPeriodData(period);
+    if (!period_data.has_value()) {
+      break;
+    }
+
     period++;
-    PeriodData period_data(data);
-    if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
+    if (period_data->pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
       if (static_cast<int32_t>(ignored_efficiency_counter_) >=
           config_.changing_interval - config_.computation_interval) {
-        dag_efficiencies_.push_back(calculateDagEfficiency(period_data));
+        dag_efficiencies_.push_back(calculateDagEfficiency(*period_data));
       } else {
         ignored_efficiency_counter_++;
       }
