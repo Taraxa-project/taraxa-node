@@ -1036,9 +1036,9 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 <tr class="memitem:a5b6f1f5045b43b096b7dbb35f896520d"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html">PillarBlock::ValidatorVoteCountChange</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a5b6f1f5045b43b096b7dbb35f896520d">getOrderedValidatorsVoteCountsChanges</a> (const std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_vote_count">state_api::ValidatorVoteCount</a> &gt; &amp;current_vote_counts, const std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_vote_count">state_api::ValidatorVoteCount</a> &gt; &amp;previous_pillar_block_vote_counts)</td></tr>
 <tr class="memdesc:a5b6f1f5045b43b096b7dbb35f896520d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a vector of validators vote counts changes between the current and previous pillar block Changes are ordered based on validators addresses.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a5b6f1f5045b43b096b7dbb35f896520d">More...</a><br /></td></tr>
 <tr class="separator:a5b6f1f5045b43b096b7dbb35f896520d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a059e30a06e58979dc235404a18fb2475"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a059e30a06e58979dc235404a18fb2475">saveNewPillarBlock</a> (std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; pillar_block, std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_vote_count">state_api::ValidatorVoteCount</a> &gt; &amp;&amp;new_vote_counts)</td></tr>
-<tr class="memdesc:a059e30a06e58979dc235404a18fb2475"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save new pillar block into db &amp; class data members.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a059e30a06e58979dc235404a18fb2475">More...</a><br /></td></tr>
-<tr class="separator:a059e30a06e58979dc235404a18fb2475"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f14431f615211d3492ec34212e6fa5c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a7f14431f615211d3492ec34212e6fa5c">saveNewPillarBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; &amp;pillar_block, std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_vote_count">state_api::ValidatorVoteCount</a> &gt; &amp;&amp;new_vote_counts)</td></tr>
+<tr class="memdesc:a7f14431f615211d3492ec34212e6fa5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save new pillar block into db &amp; class data members.  <a href="group___p_i_l_l_a_r___c_h_a_i_n.html#a7f14431f615211d3492ec34212e6fa5c">More...</a><br /></td></tr>
+<tr class="separator:a7f14431f615211d3492ec34212e6fa5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
 <tr class="memitem:a492825a8a85d688587d2df474a9d55cf"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html">util::EventEmitter</a>&lt; const <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data">PillarBlockData</a> &amp; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a492825a8a85d688587d2df474a9d55cf">pillar_block_finalized_emitter_</a> {}</td></tr>
 <tr class="separator:a492825a8a85d688587d2df474a9d55cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1487,8 +1487,8 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
 
 </div>
 </div>
-<a id="a059e30a06e58979dc235404a18fb2475"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a059e30a06e58979dc235404a18fb2475">&#9670;&nbsp;</a></span>saveNewPillarBlock()</h2>
+<a id="a7f14431f615211d3492ec34212e6fa5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f14431f615211d3492ec34212e6fa5c">&#9670;&nbsp;</a></span>saveNewPillarBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1499,7 +1499,7 @@ Collaboration diagram for taraxa::pillar_chain::PillarChainManager:</div>
         <tr>
           <td class="memname">void taraxa::pillar_chain::PillarChainManager::saveNewPillarBlock </td>
           <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">PillarBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>pillar_block</em>, </td>
         </tr>
         <tr>

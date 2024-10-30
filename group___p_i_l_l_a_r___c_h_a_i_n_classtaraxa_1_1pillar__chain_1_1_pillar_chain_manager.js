@@ -13,7 +13,7 @@ var group___p_i_l_l_a_r___c_h_a_i_n_classtaraxa_1_1pillar__chain_1_1_pillar_chai
     [ "isPillarBlockLatestFinalized", "group___p_i_l_l_a_r___c_h_a_i_n.html#ad4f4ec7d51e9ec24b19ea056ec6bd59e", null ],
     [ "isRelevantPillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#a05b005d4c13c5a8047e13b05f099e2c6", null ],
     [ "isValidPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a3dc5b74e0fa9cae9867403bd3f1d76d9", null ],
-    [ "saveNewPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a059e30a06e58979dc235404a18fb2475", null ],
+    [ "saveNewPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a7f14431f615211d3492ec34212e6fa5c", null ],
     [ "setNetwork", "group___p_i_l_l_a_r___c_h_a_i_n.html#ac37f860134f96cfbce37b245c4c8505d", null ],
     [ "validatePillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#a2ad5ee748b8968f08f5022ab609db34f", null ],
     [ "current_pillar_block_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a267b9fb1fa113f26575cd57f4865da86", null ],
