@@ -164,7 +164,7 @@ class PillarChainManager {
    * @param pillar_block
    * @param new_vote_counts
    */
-  void saveNewPillarBlock(std::shared_ptr<PillarBlock> pillar_block,
+  void saveNewPillarBlock(const std::shared_ptr<PillarBlock>& pillar_block,
                           std::vector<state_api::ValidatorVoteCount>&& new_vote_counts);
 
  private:
