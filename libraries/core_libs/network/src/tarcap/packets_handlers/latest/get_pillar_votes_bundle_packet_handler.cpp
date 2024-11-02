@@ -52,7 +52,7 @@ void GetPillarVotesBundlePacketHandler::process(GetPillarVotesBundlePacket &&pac
     for (size_t i = 0; i < chunk_size; ++i) {
       pillar_votes.emplace_back(votes[votes_sent + i]);
     }
-    PillarVotesBundlePacket pillar_votes_bundle_packet(std::move(pillar_votes));
+    PillarVotesBundlePacket pillar_votes_bundle_packet(OptimizedPillarVotesBundle{std::move(pillar_votes)});
 
     // Seal and send the chunk to the peer
     if (sealAndSend(peer->getId(), SubprotocolPacketType::kPillarVotesBundlePacket,
