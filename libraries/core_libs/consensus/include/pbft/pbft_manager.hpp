@@ -212,7 +212,7 @@ class PbftManager {
    * @param dag_blocks DAG blocks
    * @return DAG blocks ordering hash
    */
-  static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks);
+  static blk_hash_t calculateOrderHash(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks);
 
   /**
    * @brief Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect
@@ -226,7 +226,7 @@ class PbftManager {
    * @param dag_blocks dag blocks
    * @return true if total weight of gas estimation is less or equal to gas limit. Otherwise return false
    */
-  bool checkBlockWeight(const std::vector<DagBlock> &dag_blocks) const;
+  bool checkBlockWeight(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks) const;
 
   blk_hash_t getLastPbftBlockHash();
 
@@ -564,7 +564,7 @@ class PbftManager {
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
   // dag block order for specific anchor
-  mutable std::unordered_map<blk_hash_t, std::vector<DagBlock>> anchor_dag_block_order_cache_;
+  mutable std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>> anchor_dag_block_order_cache_;
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;

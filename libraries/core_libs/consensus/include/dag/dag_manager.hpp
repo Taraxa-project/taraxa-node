@@ -79,14 +79,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @return verification result and all the transactions which are part of the block
    */
   std::pair<VerifyBlockReturnType, SharedTransactions> verifyBlock(
-      const DagBlock &blk, const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs = {});
+      const std::shared_ptr<DagBlock> &blk,
+      const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs = {});
 
   /**
    * @brief Checks if block pivot and tips are in DAG
    * @param blk Block to check
    * @return true if all pivot and tips are in the DAG, false if some is missing with the hash of missing tips/pivot
    */
-  std::pair<bool, std::vector<blk_hash_t>> pivotAndTipsAvailable(DagBlock const &blk);
+  std::pair<bool, std::vector<blk_hash_t>> pivotAndTipsAvailable(const std::shared_ptr<DagBlock> &blk);
 
   /**
    * @brief adds verified DAG block in the DAG
@@ -95,8 +96,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @param save if true save block and transactions to database
    * @return true if block added successfully, false with the hash of missing tips/pivot
    */
-  std::pair<bool, std::vector<blk_hash_t>> addDagBlock(DagBlock &&blk, SharedTransactions &&trxs = {},
-                                                       bool proposed = false,
+  std::pair<bool, std::vector<blk_hash_t>> addDagBlock(const std::shared_ptr<DagBlock> &blk,
+                                                       SharedTransactions &&trxs = {}, bool proposed = false,
                                                        bool save = true);  // insert to buffer if fail
 
   /**
@@ -186,7 +187,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   uint32_t getNonFinalizedBlocksMinDifficulty() const;
 
-  util::Event<DagManager, DagBlock> const block_verified_{};
+  util::Event<DagManager, std::shared_ptr<DagBlock>> const block_verified_{};
 
   /**
    * @brief Retrieves Dag Manager mutex, only to be used when finalizing pbft block
@@ -276,7 +277,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   const uint32_t cache_max_size_ = 10000;
   const uint32_t cache_delete_step_ = 100;
-  ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
+  ExpirationCacheMap<blk_hash_t, std::shared_ptr<DagBlock>> seen_blocks_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   const uint64_t kPbftGasLimit;
   const HardforksConfig kHardforks;

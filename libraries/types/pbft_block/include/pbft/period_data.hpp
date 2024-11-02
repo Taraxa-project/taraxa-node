@@ -38,7 +38,7 @@ class PeriodData {
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<std::shared_ptr<PbftVote>> previous_block_cert_votes;  // These votes are the cert votes of previous block
                                                                      // which match reward votes in current pbft block
-  std::vector<DagBlock> dag_blocks;
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   SharedTransactions transactions;
 
   // Pillar votes should be present only if pbft block contains also pillar block hash

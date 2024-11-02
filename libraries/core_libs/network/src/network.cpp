@@ -289,7 +289,7 @@ void Network::addBootNodes(bool initial) {
   }
 }
 
-void Network::gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs) {
+void Network::gossipDagBlock(const std::shared_ptr<DagBlock> &block, bool proposed, const SharedTransactions &trxs) {
   for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
                                                                                                     trxs);

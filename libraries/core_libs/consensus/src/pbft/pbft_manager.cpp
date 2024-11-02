@@ -1180,14 +1180,14 @@ blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_bl
   return dev::sha3(order_stream.out());
 }
 
-blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_blocks) {
+blk_hash_t PbftManager::calculateOrderHash(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks) {
   if (dag_blocks.empty()) {
     return kNullBlockHash;
   }
   dev::RLPStream order_stream(1);
   order_stream.appendList(dag_blocks.size());
   for (auto const &blk : dag_blocks) {
-    order_stream << blk.getHash();
+    order_stream << blk->getHash();
   }
   return dev::sha3(order_stream.out());
 }
@@ -1545,7 +1545,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
   for (auto const &dag_blk_hash : dag_blocks_order) {
     auto dag_block = dag_mgr_->getDagBlock(dag_blk_hash);
     assert(dag_block);
-    anchor_dag_block_order_cache_[anchor_hash].emplace_back(std::move(*dag_block));
+    anchor_dag_block_order_cache_[anchor_hash].emplace_back(std::move(dag_block));
   }
 
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
@@ -1575,7 +1575,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
     std::vector<trx_hash_t> transactions_to_query;
     period_data.dag_blocks.reserve(dag_order_it->second.size());
     for (const auto &dag_blk : dag_order_it->second) {
-      for (const auto &trx_hash : dag_blk.getTrxs()) {
+      for (const auto &trx_hash : dag_blk->getTrxs()) {
         if (trx_set.insert(trx_hash).second) {
           transactions_to_query.emplace_back(trx_hash);
         }
@@ -1746,7 +1746,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   vec_blk_t dag_blocks_order;
   dag_blocks_order.reserve(period_data.dag_blocks.size());
   std::transform(period_data.dag_blocks.begin(), period_data.dag_blocks.end(), std::back_inserter(dag_blocks_order),
-                 [](const DagBlock &dag_block) { return dag_block.getHash(); });
+                 [](const auto &dag_block) { return dag_block->getHash(); });
 
   // We need to reorder transactions before saving them
   reorderTransactions(period_data.transactions);
@@ -1930,7 +1930,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
   std::unordered_set<trx_hash_t> trx_set;
   std::vector<trx_hash_t> transactions_to_query;
   for (auto const &dag_block : period_data.dag_blocks) {
-    for (auto const &trx_hash : dag_block.getTrxs()) {
+    for (auto const &trx_hash : dag_block->getTrxs()) {
       if (trx_set.insert(trx_hash).second) {
         transactions_to_query.emplace_back(trx_hash);
       }
@@ -2155,10 +2155,10 @@ void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID
 
 size_t PbftManager::periodDataQueueSize() const { return sync_queue_.size(); }
 
-bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) const {
+bool PbftManager::checkBlockWeight(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks) const {
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
-                      [](u256 value, const auto &dag_block) { return value + dag_block.getGasEstimation(); });
+                      [](u256 value, const auto &dag_block) { return value + dag_block->getGasEstimation(); });
   if (total_weight > kGenesisConfig.pbft.gas_limit) {
     return false;
   }

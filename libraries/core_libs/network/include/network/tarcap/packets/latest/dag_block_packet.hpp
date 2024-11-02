@@ -7,7 +7,7 @@ namespace taraxa::network::tarcap {
 
 struct DagBlockPacket {
   std::vector<std::shared_ptr<Transaction>> transactions;
-  DagBlock dag_block;
+  std::shared_ptr<DagBlock> dag_block;
 
   RLP_FIELDS_DEFINE_INPLACE(transactions, dag_block)
 };

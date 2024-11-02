@@ -73,9 +73,9 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 
   std::string received_dag_blocks_str;  // This is just log related stuff
   for (auto const &block : period_data.dag_blocks) {
-    received_dag_blocks_str += block.getHash().toString() + " ";
-    if (peer->dag_level_ < block.getLevel()) {
-      peer->dag_level_ = block.getLevel();
+    received_dag_blocks_str += block->getHash().toString() + " ";
+    if (peer->dag_level_ < block->getLevel()) {
+      peer->dag_level_ = block->getLevel();
     }
   }
 
@@ -148,7 +148,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
           trx_order.push_back(t->getHash());
         }
         for (auto b : period_data.dag_blocks) {
-          blk_order.push_back(b.getHash());
+          blk_order.push_back(b->getHash());
         }
         LOG(log_er_) << "Order hash incorrect in period data " << pbft_blk_hash << " expected: " << order_hash
                      << " received " << period_data.pbft_blk->getOrderHash() << "; Dag order: " << blk_order

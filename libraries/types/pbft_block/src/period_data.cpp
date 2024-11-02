@@ -88,7 +88,7 @@ PeriodData PeriodData::FromOldPeriodData(const dev::RLP& rlp) {
   }
 
   for (auto const dag_block_rlp : *it++) {
-    period_data.dag_blocks.emplace_back(dag_block_rlp);
+    period_data.dag_blocks.emplace_back(std::make_shared<DagBlock>(dag_block_rlp));
   }
 
   for (auto const trx_rlp : *it++) {
@@ -116,7 +116,7 @@ bytes PeriodData::ToOldPeriodData(const bytes& rlp) {
 
   s.appendList(period_data.dag_blocks.size());
   for (auto const& b : period_data.dag_blocks) {
-    s.appendRaw(b.rlp(true));
+    s.appendRaw(b->rlp(true));
   }
 
   s.appendList(period_data.transactions.size());
