@@ -66,7 +66,8 @@ struct FinalChainTest : WithDataDir {
       trx_hashes.emplace_back(trx->getHash());
     }
 
-    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, dag_proposer_keys.secret());
+    auto dag_blk = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trx_hashes, 0, VdfSortition{},
+                                              dag_proposer_keys.secret());
     db->saveDagBlock(dag_blk);
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
@@ -87,7 +88,7 @@ struct FinalChainTest : WithDataDir {
     db->savePeriodData(period_data, batch);
     db->commitWriteBatch(batch);
 
-    auto result = SUT->finalize(std::move(period_data), {dag_blk.getHash()}).get();
+    auto result = SUT->finalize(std::move(period_data), {dag_blk->getHash()}).get();
     const auto& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->blockHeader(blk_h.number)));
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->blockHeader()));

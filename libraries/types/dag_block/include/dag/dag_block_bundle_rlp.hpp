@@ -21,7 +21,7 @@ constexpr static size_t kDAGBlocksBundleRlpSize{3};
  * @param blocks
  * @return blocks bundle rlp bytes
  */
-dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks);
+dev::bytes encodeDAGBlocksBundleRlp(const std::vector<std::shared_ptr<DagBlock>>& blocks);
 
 /**
  * @brief Decodes pbft blocks from optimized blocks bundle rlp
@@ -29,7 +29,7 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks);
  * @param blocks_bundle_rlp
  * @return blocks
  */
-std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp);
+std::vector<std::shared_ptr<DagBlock>> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp);
 
 /**
  * @brief Decodes single dag block from optimized blocks bundle rlp

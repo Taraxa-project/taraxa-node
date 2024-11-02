@@ -26,8 +26,6 @@ using namespace vdf_sortition;
 struct DagBlockTest : NodesTest {};
 struct DagBlockMgrTest : NodesTest {};
 
-auto g_blk_samples = samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
-
 auto g_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                             dev::Secret::ConstructFromStringType::FromHex);
 auto g_key_pair = dev::KeyPair(g_secret);
@@ -230,14 +228,16 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
 
   // transactions.size and estimations size is not equal
   {
-    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {}, vdf1, node->getSecretKey());
+    auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, vec_trx_t{trx->getHash()}, 0, vdf1,
+                                          node->getSecretKey());
     EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)).first,
               DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
 
   // wrong estimated tx
   {
-    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100, vdf1, node->getSecretKey());
+    auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, vec_trx_t{trx->getHash()}, 100, vdf1,
+                                          node->getSecretKey());
     EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)).first,
               DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
@@ -265,8 +265,9 @@ TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
     dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
     vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
-    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
-    dag_blocks_hashes.push_back(blk.getHash());
+    auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, vec_trx_t{trx->getHash()}, 100000,
+                                          vdf, node->getSecretKey());
+    dag_blocks_hashes.push_back(blk->getHash());
     EXPECT_EQ(node->getDagManager()->verifyBlock(blk).first, DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
@@ -275,21 +276,21 @@ TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
   vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
   // Verify block over the kDagBlockMaxTips is rejected
-  DagBlock blk_over_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
-                          node->getSecretKey());
+  auto blk_over_limit = std::make_shared<DagBlock>(dag_genesis, propose_level, dag_blocks_hashes,
+                                                   vec_trx_t{trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
   EXPECT_EQ(node->getDagManager()->verifyBlock(blk_over_limit).first,
             DagManager::VerifyBlockReturnType::FailedTipsVerification);
 
   // Verify block at kDagBlockMaxTips is accepted
   dag_blocks_hashes.resize(kDagBlockMaxTips);
-  DagBlock blk_at_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
-                        node->getSecretKey());
+  auto blk_at_limit = std::make_shared<DagBlock>(dag_genesis, propose_level, dag_blocks_hashes,
+                                                 vec_trx_t{trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
   EXPECT_EQ(node->getDagManager()->verifyBlock(blk_at_limit).first, DagManager::VerifyBlockReturnType::Verified);
 
   // Verify block below kDagBlockMaxTips is accepted
   dag_blocks_hashes.resize(kDagBlockMaxTips - 1);
-  DagBlock blk_under_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
-                           node->getSecretKey());
+  auto blk_under_limit = std::make_shared<DagBlock>(dag_genesis, propose_level, dag_blocks_hashes,
+                                                    vec_trx_t{trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
   EXPECT_EQ(node->getDagManager()->verifyBlock(blk_under_limit).first, DagManager::VerifyBlockReturnType::Verified);
 
   auto dag_blocks_hashes_with_duplicate_pivot = dag_blocks_hashes;
@@ -299,14 +300,16 @@ TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
   dag_blocks_hashes_with_duplicate_tip.push_back(dag_blocks_hashes[0]);
 
   // Verify block with duplicate pivot is rejected
-  DagBlock blk_with_duplicate_pivot(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_pivot,
-                                    {trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
+  auto blk_with_duplicate_pivot =
+      std::make_shared<DagBlock>(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_pivot,
+                                 vec_trx_t{trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
   EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_pivot).first,
             DagManager::VerifyBlockReturnType::FailedTipsVerification);
 
   // Verify block with duplicate tip is rejected
-  DagBlock blk_with_duplicate_tip(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_tip,
-                                  {trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
+  auto blk_with_duplicate_tip =
+      std::make_shared<DagBlock>(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_tip,
+                                 vec_trx_t{trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
   EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_tip).first,
             DagManager::VerifyBlockReturnType::FailedTipsVerification);
 }
@@ -334,8 +337,9 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
     dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
     vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
-    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, dag_block_gas, vdf, node->getSecretKey());
-    dag_blocks_hashes.push_back(blk.getHash());
+    auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, vec_trx_t{trx->getHash()},
+                                          dag_block_gas, vdf, node->getSecretKey());
+    dag_blocks_hashes.push_back(blk->getHash());
     EXPECT_EQ(node->getDagManager()->verifyBlock(blk).first, DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
@@ -366,8 +370,9 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
     dev::bytes vdf_msg = DagManager::getVdfMessage(dag_blocks_hashes[0], {trx});
     vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
-    DagBlock blk(dag_blocks_hashes[0], propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
-    dag_blocks_hashes.push_back(blk.getHash());
+    auto blk = std::make_shared<DagBlock>(dag_blocks_hashes[0], propose_level, vec_blk_t{}, vec_trx_t{trx->getHash()},
+                                          100000, vdf, node->getSecretKey());
+    dag_blocks_hashes.push_back(blk->getHash());
     EXPECT_EQ(node->getDagManager()->verifyBlock(blk).first, DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
@@ -387,8 +392,9 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
   vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
-  DagBlock blk(dag_genesis, propose_level, {}, {trxs[0]->getHash()}, 100000, vdf, node_cfgs[1].node_secret);
-  dag_blocks_hashes.push_back(blk.getHash());
+  auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, vec_trx_t{trxs[0]->getHash()}, 100000,
+                                        vdf, node_cfgs[1].node_secret);
+  dag_blocks_hashes.push_back(blk->getHash());
   EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trxs[0]}).first);
 
   selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
@@ -434,7 +440,8 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   vdf1.computeVdfSolution(vdf_config, vdf_msg, false);
 
   {
-    DagBlock blk(dag_genesis, propose_level, {}, hashes, estimations, vdf1, node->getSecretKey());
+    auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, hashes, estimations, vdf1,
+                                          node->getSecretKey());
     EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)).first, DagManager::VerifyBlockReturnType::BlockTooBig);
   }
 }

@@ -79,7 +79,7 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<PbftPer
 uint16_t SortitionParamsManager::calculateDagEfficiency(const PeriodData& block) const {
   size_t total_transactions_count = 0;
   for (const auto& dag_block : block.dag_blocks) {
-    const auto& trxs = dag_block.getTrxs();
+    const auto& trxs = dag_block->getTrxs();
     total_transactions_count += trxs.size();
   }
 
