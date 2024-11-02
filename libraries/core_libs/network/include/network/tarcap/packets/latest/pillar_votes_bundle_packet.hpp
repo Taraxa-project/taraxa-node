@@ -8,12 +8,9 @@
 namespace taraxa::network::tarcap {
 
 struct PillarVotesBundlePacket {
-  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
+  OptimizedPillarVotesBundle pillar_votes_bundle;
 
-  void rlp(::taraxa::util::RLPDecoderRef encoding) { pillar_votes = decodePillarVotesBundleRlp(encoding.value); }
-  void rlp(::taraxa::util::RLPEncoderRef encoding) const {
-    encoding.appendRaw(encodePillarVotesBundleRlp(pillar_votes));
-  }
+  RLP_FIELDS_DEFINE_INPLACE(pillar_votes_bundle)
 };
 
 }  // namespace taraxa::network::tarcap

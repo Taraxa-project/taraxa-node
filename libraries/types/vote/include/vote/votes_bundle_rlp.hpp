@@ -16,6 +16,7 @@ class PillarVote;
  * @{
  */
 
+// TOOD[2865]: move to cpp file
 constexpr static size_t kPbftVotesBundleRlpSize{5};
 
 /**
