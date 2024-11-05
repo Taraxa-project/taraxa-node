@@ -20,9 +20,6 @@
 namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 40;
-const unsigned NUM_BLK = 4;
-const unsigned BLK_TRX_LEN = 4;
-const unsigned BLK_TRX_OVERLAP = 1;
 auto g_secret = Lazy([] {
   return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                      dev::Secret::ConstructFromStringType::FromHex);
