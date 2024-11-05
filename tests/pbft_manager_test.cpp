@@ -663,10 +663,9 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
 
   // verify that last block is overweighted, but it is in chain
   const auto period = node->getFinalChain()->lastBlockNumber();
-  auto period_raw = node->getDB()->getPeriodDataRaw(period);
-  ASSERT_FALSE(period_raw.empty());
-  PeriodData period_data(period_raw);
-  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data.dag_blocks));
+  auto period_data = node->getDB()->getPeriodData(period);
+  ASSERT_TRUE(period_data.has_value());
+  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data->dag_blocks));
 }
 
 TEST_F(PbftManagerWithDagCreation, proposed_blocks) {

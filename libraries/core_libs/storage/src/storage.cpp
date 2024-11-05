@@ -706,6 +706,15 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
+std::optional<PeriodData> DbStorage::getPeriodData(PbftPeriod period) const {
+  auto period_data_bytes = getPeriodDataRaw(period);
+  if (period_data_bytes.empty()) {
+    return {};
+  }
+
+  return PeriodData{std::move(period_data_bytes)};
+}
+
 void DbStorage::savePillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& pillar_block) {
   insert(Columns::pillar_block, pillar_block->getPeriod(), pillar_block->getRlp());
 }

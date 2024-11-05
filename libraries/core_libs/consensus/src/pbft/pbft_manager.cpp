@@ -43,26 +43,25 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
 
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {
-    auto period_raw = db_->getPeriodDataRaw(period);
-    if (period_raw.size() == 0) {
+    auto period_data = db_->getPeriodData(period);
+    if (!period_data.has_value()) {
       LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
       assert(false);
     }
 
-    PeriodData period_data(period_raw);
-    if (period_data.pbft_blk->getPeriod() != period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << period_data.pbft_blk->getBlockHash()
-                   << " has different period " << period_data.pbft_blk->getPeriod()
+    if (period_data->pbft_blk->getPeriod() != period) {
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << period_data->pbft_blk->getBlockHash()
+                   << " has different period " << period_data->pbft_blk->getPeriod()
                    << " in block data than in block order db: " << period;
       assert(false);
     }
 
     // We need this section because votes need to be verified for reward distribution
-    for (const auto &v : period_data.previous_block_cert_votes) {
+    for (const auto &v : period_data->previous_block_cert_votes) {
       vote_mgr_->validateVote(v);
     }
 
-    finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
+    finalize_(std::move(*period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 
   PbftPeriod start_period = 1;
@@ -72,13 +71,12 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
     start_period = pbft_chain_->getPbftChainSize() - recently_finalized_transactions_periods;
   }
   for (PbftPeriod period = start_period; period <= pbft_chain_->getPbftChainSize(); period++) {
-    auto period_raw = db_->getPeriodDataRaw(period);
-    if (period_raw.size() == 0) {
+    auto period_data = db_->getPeriodData(period);
+    if (!period_data.has_value()) {
       LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
       assert(false);
     }
-    PeriodData period_data(period_raw);
-    trx_mgr_->initializeRecentlyFinalizedTransactions(period_data);
+    trx_mgr_->initializeRecentlyFinalizedTransactions(*period_data);
   }
 
   // Initialize PBFT status

@@ -57,13 +57,12 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
     if (*last_blk_num != state_db_descriptor.blk_num) [[unlikely]] {
       auto batch = db_->createWriteBatch();
       for (auto block_n = *last_blk_num; block_n != state_db_descriptor.blk_num; --block_n) {
-        auto raw_period_data = db_->getPeriodDataRaw(block_n);
-        assert(raw_period_data.size() > 0);
+        auto period_data = db_->getPeriodData(block_n);
+        assert(period_data.has_value());
 
-        const PeriodData period_data(std::move(raw_period_data));
-        if (period_data.transactions.size()) {
-          num_executed_dag_blk_ -= period_data.dag_blocks.size();
-          num_executed_trx_ -= period_data.transactions.size();
+        if (period_data->transactions.size()) {
+          num_executed_dag_blk_ -= period_data->dag_blocks.size();
+          num_executed_trx_ -= period_data->transactions.size();
         }
         auto period_system_transactions = db_->getPeriodSystemTransactionsHashes(block_n);
         num_executed_trx_ -= period_system_transactions.size();

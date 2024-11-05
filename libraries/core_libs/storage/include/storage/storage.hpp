@@ -224,8 +224,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
   void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
-  // TODO[2868]: return PeriodData instead of bytes
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
+  std::optional<PeriodData> getPeriodData(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
