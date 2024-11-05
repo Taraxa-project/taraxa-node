@@ -18,9 +18,6 @@
 #include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
-const unsigned NUM_BLK = 4;
-const unsigned BLK_TRX_LEN = 4;
-const unsigned BLK_TRX_OVERLAP = 1;
 using namespace vdf_sortition;
 
 struct DagBlockTest : NodesTest {};
