@@ -62,7 +62,7 @@ void dec_json(Json::Value const& json, GenesisConfig& obj) {
 }
 
 GenesisConfig::GenesisConfig() {
-  dag_genesis_block = DagBlock(string(R"({
+  dag_genesis_block = DagBlock(std::string(R"({
     "level": 0,
     "tips": [],
     "trxs": [],

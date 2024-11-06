@@ -1,32 +1,41 @@
 #include <boost/program_options.hpp>
-#include <condition_variable>
 
+#include "app/app.hpp"
 #include "cli/config.hpp"
 #include "common/config_exception.hpp"
 #include "common/static_init.hpp"
-#include "node/node.hpp"
+#include "plugin/rpc.hpp"
 
 using namespace taraxa;
 
 int main(int argc, const char* argv[]) {
   static_init();
   try {
-    cli::Config cli_conf;
-    cli_conf.parseCommandLine(argc, argv);
+    {
+      auto app = std::make_shared<App>();
 
-    if (cli_conf.nodeConfigured()) {
-      auto node = std::make_shared<FullNode>(cli_conf.getNodeConfiguration());
-      node->start();
+      cli::Config cli_conf;
+      app->registerPlugin<Rpc>(cli_conf);
 
-      if (node->isStarted()) {
+      cli_conf.parseCommandLine(argc, argv, app->registeredPlugins());
+
+      if (cli_conf.nodeConfigured()) {
+        for (const auto& plugin : cli_conf.getEnabledPlugins()) {
+          app->enablePlugin(plugin);
+        }
+        app->init(cli_conf);
+        app->start();
+      }
+
+      if (app->isStarted()) {
         std::cout << "Taraxa node started" << std::endl;
         // TODO graceful shutdown
         std::mutex mu;
         std::unique_lock l(mu);
         std::condition_variable().wait(l);
       }
-      std::cout << "Taraxa Node exited ..." << std::endl;
     }
+    std::cout << "Taraxa Node exited ..." << std::endl;
     return 0;
   } catch (taraxa::ConfigException const& e) {
     std::cerr << "Configuration exception: " << e.what() << std::endl;

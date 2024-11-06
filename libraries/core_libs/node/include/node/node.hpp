@@ -3,10 +3,10 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
-#include <atomic>
 #include <boost/asio.hpp>
 #include <memory>
 
+#include "common/app_base.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "network/http_server.hpp"
@@ -40,7 +40,7 @@ class PbftManager;
 struct NetworkConfig;
 class KeyManager;
 
-class FullNode : public std::enable_shared_from_this<FullNode> {
+class FullNode : public std::enable_shared_from_this<FullNode>, public AppBase {
  public:
   explicit FullNode(FullNodeConfig const &conf);
   ~FullNode();
@@ -51,23 +51,20 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   FullNode &operator=(FullNode &&) = delete;
 
   void start();
-  bool isStarted() const { return started_; }
-  auto const &getConfig() const { return conf_; }
-  auto const &getNetwork() const { return network_; }
-  auto const &getTransactionManager() const { return trx_mgr_; }
-  auto const &getDagManager() const { return dag_mgr_; }
-  auto const &getDB() const { return db_; }
-  auto const &getPbftManager() const { return pbft_mgr_; }
-  auto const &getVoteManager() const { return vote_mgr_; }
-  auto const &getPbftChain() const { return pbft_chain_; }
-  auto const &getFinalChain() const { return final_chain_; }
+  const FullNodeConfig &getConfig() const { return conf_; }
+  std::shared_ptr<Network> getNetwork() const { return network_; }
+  std::shared_ptr<TransactionManager> getTransactionManager() const { return trx_mgr_; }
+  std::shared_ptr<DagManager> getDagManager() const { return dag_mgr_; }
+  std::shared_ptr<DbStorage> getDB() const { return db_; }
+  std::shared_ptr<PbftManager> getPbftManager() const { return pbft_mgr_; }
+  std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
+  std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
+  std::shared_ptr<final_chain::FinalChain> getFinalChain() const { return final_chain_; }
   // used only in tests
-  auto &getDagBlockProposer() { return dag_block_proposer_; }
-  auto const &getGasPricer() const { return gas_pricer_; }
+  std::shared_ptr<DagBlockProposer> getDagBlockProposer() const { return dag_block_proposer_; }
+  std::shared_ptr<GasPricer> getGasPricer() const { return gas_pricer_; }
 
-  auto const &getAddress() const { return kp_.address(); }
-  auto const &getSecretKey() const { return kp_.secret(); }
-  auto const &getVrfSecretKey() const { return conf_.vrf_secret; }
+  auto getVrfSecretKey() const { return conf_.vrf_secret; }
 
   std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
 
@@ -85,12 +82,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // In cae we will you config for this TP, it needs to be unique_ptr !!!
   util::ThreadPool subscription_pool_;
-
-  std::atomic<bool> stopped_ = true;
-  // configuration
-  FullNodeConfig conf_;
-  // Ethereum key pair
-  dev::KeyPair kp_;
 
   // components
   std::shared_ptr<DbStorage> db_;
@@ -115,8 +106,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // logging
   LOG_OBJECTS_DEFINE
-
-  std::atomic_bool started_ = 0;
 
   void init();
   void close();

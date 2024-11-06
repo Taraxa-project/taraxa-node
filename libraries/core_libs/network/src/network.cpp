@@ -23,8 +23,8 @@
 
 namespace taraxa {
 
-Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::filesystem::path const &network_file_path,
-                 dev::KeyPair const &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const std::filesystem::path &network_file_path,
+                 const dev::KeyPair &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                  std::shared_ptr<SlashingManager> slashing_manager,
@@ -67,7 +67,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   taraxa_net_conf.chain_id = config.genesis.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
-  string net_version = "TaraxaNode";  // TODO maybe give a proper name?
+  std::string net_version = "TaraxaNode";  // TODO maybe give a proper name?
 
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {

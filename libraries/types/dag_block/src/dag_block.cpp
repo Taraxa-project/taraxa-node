@@ -45,7 +45,7 @@ DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_t
   sig_ = dev::sign(sk, sha3(false));
 }
 
-DagBlock::DagBlock(string const &json)
+DagBlock::DagBlock(std::string const &json)
     : DagBlock([&] {
         Json::Value doc;
         std::stringstream(json) >> doc;

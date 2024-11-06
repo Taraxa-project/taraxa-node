@@ -17,6 +17,7 @@ else ()
             --suppress=useStlAlgorithm:${PROJECT_SOURCE_DIR}/*/pbft_sync_packet_handler.cpp
             --suppress=noExplicitConstructor
             --suppress=unknownMacro
+            --suppress=checkersReport
             # false positive
             --suppress=uninitMemberVar:${PROJECT_SOURCE_DIR}/*/UPnP.cpp
             # This is only enabled because of test functions and false positives
