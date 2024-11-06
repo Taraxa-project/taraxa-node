@@ -11,17 +11,19 @@
 
 namespace taraxa::cli {
 
-Config::Config() : allowed_options_("Allowed options") {}
+Config::Config() : plugins_options_("PLUGINS") {}
 
-void Config::addCliOptions(const bpo::options_description& options) { allowed_options_.add(options); }
+void Config::addCliOptions(const bpo::options_description& options) { plugins_options_.add(options); }
 
-void Config::parseCommandLine(int argc, const char* argv[]) {
-  auto main_options = makeMainOptions();
+void Config::parseCommandLine(int argc, const char* argv[], const std::string& available_plugins) {
+  bpo::options_description allowed_options("");
+  auto main_options = makeMainOptions(available_plugins);
   auto node_command_options = makeNodeOptions();
-  allowed_options_.add(main_options);
-  allowed_options_.add(node_command_options);
+  allowed_options.add(main_options);
+  allowed_options.add(node_command_options);
+  allowed_options.add(plugins_options_);
 
-  auto parsed_line = bpo::parse_command_line(argc, argv, allowed_options_);
+  auto parsed_line = bpo::parse_command_line(argc, argv, allowed_options);
 
   bpo::store(parsed_line, cli_options_);
   bpo::notify(cli_options_);
@@ -30,8 +32,8 @@ void Config::parseCommandLine(int argc, const char* argv[]) {
                  "taraxad - Taraxa blockchain full node implementation\n"
                  "VERSION:\n  "
               << TARAXA_VERSION << "\nUSAGE:\n  taraxad [options]\n";
-    std::cout << main_options << std::endl;
-    std::cout << node_command_options << std::endl;
+    std::cout << allowed_options << std::endl;
+    // std::cout << node_command_options << std::endl;
     // If help message requested, ignore any additional commands
     return;
   }
@@ -39,6 +41,10 @@ void Config::parseCommandLine(int argc, const char* argv[]) {
     std::cout << kVersionJson << std::endl;
     return;
   }
+  if (cli_options_.count(PLUGINS)) {
+    plugins_ = cli_options_[PLUGINS].as<std::vector<std::string>>();
+  }
+
   std::vector<std::string> command;
   if (cli_options_.count(COMMAND)) {
     command = cli_options_[COMMAND].as<std::vector<std::string>>();
@@ -209,19 +215,22 @@ void Config::parseCommandLine(int argc, const char* argv[]) {
 
 bool Config::nodeConfigured() const { return node_configured_; }
 
-FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
+FullNodeConfig Config::getNodeConfiguration() const { return node_config_; }
 
 std::string Config::dirNameFromFile(const std::string& file) {
   size_t pos = file.find_last_of("\\/");
   return (std::string::npos == pos) ? "" : file.substr(0, pos);
 }
 
-bpo::options_description Config::makeMainOptions() {
+bpo::options_description Config::makeMainOptions(const std::string& available_plugins) {
   bpo::options_description main_options("OPTIONS");
 
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");
   main_options.add_options()(VERSION, "Print version of taraxad");
+
+  auto plugins_desc = "List of plugins to activate: " + available_plugins;
+  main_options.add_options()(PLUGINS, bpo::value<std::vector<std::string>>()->multitoken(), plugins_desc.c_str());
   main_options.add_options()(COMMAND, bpo::value<std::vector<std::string>>()->multitoken(),
                              "Command arg:"
                              "\nnode                  Runs the actual node (default)"

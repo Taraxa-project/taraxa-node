@@ -23,6 +23,7 @@ static constexpr const char* REVERT_TO_PERIOD = "revert-to-period";
 static constexpr const char* LIGHT = "light";
 static constexpr const char* HELP = "help";
 static constexpr const char* VERSION = "version";
+static constexpr const char* PLUGINS = "plugins";
 static constexpr const char* WALLET = "wallet";
 static constexpr const char* PRUNE_STATE_DB = "prune-state-db";
 
@@ -46,16 +47,18 @@ static constexpr const char* MIGRATE_ONLY = "migrate-only";
 class Config {
  public:
   Config();
-  void parseCommandLine(int argc, const char* argv[]);
+  void parseCommandLine(int argc, const char* argv[], const std::string& available_plugins = {});
 
   // Returns true if node configuration is loaded successfully and command is node
   bool nodeConfigured() const;
 
   // Retrieves loaded node configuration
-  FullNodeConfig getNodeConfiguration();
+  FullNodeConfig getNodeConfiguration() const;
 
   // Returns the parsed command line options
-  bpo::variables_map& getCliOptions() { return cli_options_; }
+  const bpo::variables_map& getCliOptions() const { return cli_options_; }
+
+  const std::vector<std::string>& getEnabledPlugins() const { return plugins_; }
 
   // Adding cli allowed options to the config
   void addCliOptions(const bpo::options_description& options);
@@ -63,12 +66,13 @@ class Config {
   static constexpr ChainIdType DEFAULT_CHAIN_ID = ChainIdType::Mainnet;
 
  protected:
-  bpo::options_description allowed_options_;
+  bpo::options_description plugins_options_;
   FullNodeConfig node_config_;
+  std::vector<std::string> plugins_;
   bool node_configured_ = false;
 
   std::string dirNameFromFile(const std::string& file);
-  bpo::options_description makeMainOptions();
+  bpo::options_description makeMainOptions(const std::string& available_plugins);
   bpo::options_description makeNodeOptions();
 
   bpo::variables_map cli_options_;

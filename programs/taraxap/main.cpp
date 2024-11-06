@@ -3,8 +3,8 @@
 #include "app/app.hpp"
 #include "cli/config.hpp"
 #include "common/config_exception.hpp"
-#include "common/static_init.hpp"
-// #include "node/node.hpp"
+#include "common/init.hpp"
+#include "plugin/rpc.hpp"
 
 using namespace taraxa;
 
@@ -12,9 +12,18 @@ int main(int argc, const char* argv[]) {
   static_init();
   try {
     {
-      auto app = std::make_shared<App>(argc, argv);
+      auto app = std::make_shared<App>();
 
-      if (app->nodeConfigured()) {
+      cli::Config cli_conf;
+      app->registerPlugin<Rpc>(cli_conf);
+
+      cli_conf.parseCommandLine(argc, argv, app->registeredPlugins());
+
+      if (cli_conf.nodeConfigured()) {
+        for (const auto& plugin : cli_conf.getEnabledPlugins()) {
+          app->enablePlugin(plugin);
+        }
+        app->init(cli_conf);
         app->start();
       }
 
