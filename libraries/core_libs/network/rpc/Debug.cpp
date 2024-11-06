@@ -308,7 +308,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
   return trx;
 }
 
-EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
+EthBlockNumber Debug::parse_blk_num(const std::string& blk_num_str) {
   if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str.empty()) {
     if (auto node = app_.lock()) {
       return node->getFinalChain()->lastBlockNumber();
@@ -319,7 +319,7 @@ EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
   return jsToInt(blk_num_str);
 }
 
-Address Debug::to_address(const string& s) const {
+Address Debug::to_address(const std::string& s) const {
   try {
     if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, WhenError::Throw); b.size() == Address::size) {
       return Address(b);

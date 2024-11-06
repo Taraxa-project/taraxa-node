@@ -7,5 +7,6 @@ add_subdirectory(types)
 add_subdirectory(vdf)
 add_subdirectory(metrics)
 add_subdirectory(app)
+add_subdirectory(plugin)
 
 add_subdirectory(aleth)

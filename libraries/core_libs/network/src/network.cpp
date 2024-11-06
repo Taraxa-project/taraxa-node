@@ -67,7 +67,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
   taraxa_net_conf.chain_id = config.genesis.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
-  string net_version = "TaraxaNode";  // TODO maybe give a proper name?
+  std::string net_version = "TaraxaNode";  // TODO maybe give a proper name?
 
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {

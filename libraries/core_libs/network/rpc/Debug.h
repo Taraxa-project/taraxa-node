@@ -46,9 +46,9 @@ class Debug : public DebugFace {
  private:
   state_api::EVMTransaction to_eth_trx(std::shared_ptr<Transaction> t) const;
   state_api::EVMTransaction to_eth_trx(const Json::Value& json, EthBlockNumber blk_num);
-  EthBlockNumber parse_blk_num(const string& blk_num_str);
+  EthBlockNumber parse_blk_num(const std::string& blk_num_str);
   state_api::Tracing parse_tracking_parms(const Json::Value& json) const;
-  Address to_address(const string& s) const;
+  Address to_address(const std::string& s) const;
   std::pair<std::shared_ptr<Transaction>, std::optional<final_chain::TransactionLocation>>
   get_transaction_with_location(const std::string& transaction_hash) const;
 

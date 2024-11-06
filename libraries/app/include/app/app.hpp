@@ -10,17 +10,9 @@
 #include "config/config.hpp"
 #include "key_manager/key_manager.hpp"
 #include "logger/logger.hpp"
-#include "network/http_server.hpp"
-#include "network/ws_server.hpp"
+#include "plugin/plugin.hpp"
 
 namespace taraxa {
-namespace net {
-class TaraxaFace;
-class NetFace;
-class EthFace;
-class TestFace;
-class DebugFace;
-}  // namespace net
 
 namespace metrics {
 class MetricsService;
@@ -30,14 +22,14 @@ class Plugin;
 
 class App : public std::enable_shared_from_this<App>, public AppBase {
  public:
-  explicit App(int argc, const char* argv[]);
+  explicit App();
   ~App();
 
   App(const App&) = delete;
   App(App&&) = delete;
   App& operator=(const App&) = delete;
   App& operator=(App&&) = delete;
-  void init();
+  void init(const cli::Config& cli_conf);
   void start();
   const FullNodeConfig& getConfig() const { return conf_; }
   std::shared_ptr<Network> getNetwork() const { return network_; }
@@ -62,58 +54,46 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
 
   void initialize(const std::filesystem::path& data_dir,
                   std::shared_ptr<boost::program_options::variables_map> options) const;
-  void startup();
 
   template <typename PluginType>
-  std::shared_ptr<PluginType> registerPlugin(cli::Config& cli_conf, bool auto_load = false) {
-    auto plug = std::make_shared<PluginType>(*this);
+  std::shared_ptr<PluginType> registerPlugin(cli::Config& cli_conf) {
+    auto plug = std::make_shared<PluginType>(shared_from_this());
 
-    string cli_plugin_desc = plug->plugin_name() + " plugin. " + plug->plugin_description() + "\nOptions";
+    std::string cli_plugin_desc = plug->name() + " plugin. " + plug->description() + "\nOptions";
     boost::program_options::options_description plugin_cli_options(cli_plugin_desc);
     plug->addOptions(plugin_cli_options);
-
-    if (!plugin_cli_options.options().empty()) cli_conf.addCliOptions(plugin_cli_options);
-
-    // if (!plugin_cfg_options.options().empty()) {
-    //   std::string header_name = "plugin-cfg-header-" + plug->plugin_name();
-    //   std::string header_desc = plug->plugin_name() + " plugin options";
-    //   cfg_options_.add_options()(header_name.c_str(), header_desc.c_str());
-    //   cfg_options_.add(plugin_cfg_options);
-    // }
+    if (!plugin_cli_options.options().empty()) {
+      cli_conf.addCliOptions(plugin_cli_options);
+    }
 
     addAvailablePlugin(plug);
 
-    if (auto_load) enablePlugin(plug->name());
-
     return plug;
   }
-  std::shared_ptr<Plugin> getPlugin(const string& name) const;
+
+  std::string registeredPlugins() const {
+    std::string plugins;
+    return std::accumulate(available_plugins_.begin(), available_plugins_.end(), std::string(),
+                           [](const auto& a, const auto& b) { return a.empty() ? b.first : a + " " + b.first; });
+  }
+  std::shared_ptr<Plugin> getPlugin(const std::string& name) const;
 
   template <typename PluginType>
-  std::shared_ptr<PluginType> getPlugin(const string& name) const {
+  std::shared_ptr<PluginType> getPlugin(const std::string& name) const {
     std::shared_ptr<Plugin> abs_plugin = getPlugin(name);
     std::shared_ptr<PluginType> result = std::dynamic_pointer_cast<PluginType>(abs_plugin);
 
     return result;
   }
+  void addAvailablePlugin(std::shared_ptr<Plugin> plugin);
 
-  void enablePlugin(const string& name) const;
+  void enablePlugin(const std::string& name);
 
-  bool isPluginEnabled(const string& name) const;
-
-  bool nodeConfigured() const { return node_configured_; }
+  bool isPluginEnabled(const std::string& name) const;
 
   void scheduleLoggingConfigUpdate();
 
  private:
-  using JsonRpcServer = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace, net::DebugFace>;
-
-  bool node_configured_;
-
-  // should be destroyed after all components, since they may depend on it through unsafe pointers
-  std::shared_ptr<util::ThreadPool> rpc_thread_pool_;
-  std::shared_ptr<util::ThreadPool> graphql_thread_pool_;
-
   // In case we will you config for this TP, it needs to be unique_ptr !!!
   util::ThreadPool subscription_pool_;
   util::ThreadPool executor_{1};
@@ -132,15 +112,10 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
-  std::shared_ptr<net::HttpServer> jsonrpc_http_;
-  std::shared_ptr<net::HttpServer> graphql_http_;
-  std::shared_ptr<net::WsServer> jsonrpc_ws_;
-  std::shared_ptr<net::WsServer> graphql_ws_;
-  std::unique_ptr<JsonRpcServer> jsonrpc_api_;
   std::unique_ptr<metrics::MetricsService> metrics_;
 
-  std::map<string, std::shared_ptr<Plugin>> _active_plugins;
-  std::map<string, std::shared_ptr<Plugin>> _available_plugins;
+  std::map<std::string, std::shared_ptr<Plugin>> active_plugins_;
+  std::map<std::string, std::shared_ptr<Plugin>> available_plugins_;
 
   void close();
 
