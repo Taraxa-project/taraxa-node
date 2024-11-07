@@ -1,15 +1,5 @@
 var searchData=
 [
-  ['lazy_2ehpp_4460',['lazy.hpp',['../lazy_8hpp.html',1,'']]],
-  ['libsnark_2ecpp_4461',['LibSnark.cpp',['../_lib_snark_8cpp.html',1,'']]],
-  ['libsnark_2eh_4462',['LibSnark.h',['../_lib_snark_8h.html',1,'']]],
-  ['log_2ecpp_4463',['log.cpp',['../log_8cpp.html',1,'']]],
-  ['log_2eh_4464',['Log.h',['../_log_8h.html',1,'']]],
-  ['log_2ehpp_4465',['log.hpp',['../log_8hpp.html',1,'']]],
-  ['logfilter_2ecpp_4466',['LogFilter.cpp',['../_log_filter_8cpp.html',1,'']]],
-  ['logfilter_2ehpp_4467',['LogFilter.hpp',['../_log_filter_8hpp.html',1,'']]],
-  ['logger_2ecpp_4468',['logger.cpp',['../logger_8cpp.html',1,'']]],
-  ['logger_2ehpp_4469',['logger.hpp',['../logger_8hpp.html',1,'']]],
-  ['logger_5fconfig_2ecpp_4470',['logger_config.cpp',['../logger__config_8cpp.html',1,'']]],
-  ['logger_5fconfig_2ehpp_4471',['logger_config.hpp',['../logger__config_8hpp.html',1,'']]]
+  ['key_5fmanager_2ecpp_4460',['key_manager.cpp',['../key__manager_8cpp.html',1,'']]],
+  ['key_5fmanager_2ehpp_4461',['key_manager.hpp',['../key__manager_8hpp.html',1,'']]]
 ];

@@ -19,9 +19,9 @@ var dir_c174be241c94b82ed8dd0b874729b252 =
     ] ],
     [ "functional.hpp", "functional_8hpp.html", "functional_8hpp" ],
     [ "global_const.hpp", "global__const_8hpp.html", "global__const_8hpp" ],
+    [ "init.hpp", "init_8hpp.html", "init_8hpp" ],
     [ "jsoncpp.hpp", "jsoncpp_8hpp.html", "jsoncpp_8hpp" ],
     [ "lazy.hpp", "lazy_8hpp.html", "lazy_8hpp" ],
-    [ "static_init.hpp", "static__init_8hpp.html", "static__init_8hpp" ],
     [ "thread_pool.hpp", "thread__pool_8hpp.html", [
       [ "ThreadPool", "classtaraxa_1_1util_1_1_thread_pool.html", "classtaraxa_1_1util_1_1_thread_pool" ],
       [ "Periodicity", "classtaraxa_1_1util_1_1_thread_pool.html#structtaraxa_1_1util_1_1_thread_pool_1_1_periodicity", [
