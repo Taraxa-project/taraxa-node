@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
