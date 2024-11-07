@@ -2802,6 +2802,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:acb2407e8a252a080510732b64195c1ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a847af2af7e5e6f9b2e09ad71d21e92ad"><td class="memItemLeft" align="right" valign="top">std::pair&lt; size_t, size_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a847af2af7e5e6f9b2e09ad71d21e92ad">getNonFinalizedBlocksSize</a> () const</td></tr>
 <tr class="separator:a847af2af7e5e6f9b2e09ad71d21e92ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae49a6f4eba5c28297d288c759a5d22c5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae49a6f4eba5c28297d288c759a5d22c5">getNonFinalizedBlocksMinDifficulty</a> () const</td></tr>
+<tr class="separator:ae49a6f4eba5c28297d288c759a5d22c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99789a24775424e2a83effd8e6b1b2c8"><td class="memItemLeft" align="right" valign="top">std::shared_mutex &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a99789a24775424e2a83effd8e6b1b2c8">getDagMutex</a> ()</td></tr>
 <tr class="memdesc:a99789a24775424e2a83effd8e6b1b2c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> Manager mutex, only to be used when finalizing pbft block.  <a href="group___d_a_g.html#a99789a24775424e2a83effd8e6b1b2c8">More...</a><br /></td></tr>
 <tr class="separator:a99789a24775424e2a83effd8e6b1b2c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2869,6 +2871,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:aad8c75d1639c45ed23ddb17da5401e03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b4105dc415f6f1169f537a9c662c914"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9b4105dc415f6f1169f537a9c662c914">non_finalized_blks_</a></td></tr>
 <tr class="separator:a9b4105dc415f6f1169f537a9c662c914"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca067f674506a6dcc267d86414ab728d"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aca067f674506a6dcc267d86414ab728d">non_finalized_blks_min_difficulty_</a> = UINT32_MAX</td></tr>
+<tr class="separator:aca067f674506a6dcc267d86414ab728d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa8ecef50260ac0b2b2da330f53fb42c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa8ecef50260ac0b2b2da330f53fb42c2">frontier_</a></td></tr>
 <tr class="separator:aa8ecef50260ac0b2b2da330f53fb42c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9642bf023edd7084fcd0d7353fb93f81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9642bf023edd7084fcd0d7353fb93f81">sortition_params_manager_</a></td></tr>
@@ -3601,6 +3605,23 @@ Collaboration diagram for taraxa::DagManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">const std::pair&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::map&lt; uint64_t, std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; &gt; taraxa::DagManager::getNonFinalizedBlocks </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae49a6f4eba5c28297d288c759a5d22c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae49a6f4eba5c28297d288c759a5d22c5">&#9670;&nbsp;</a></span>getNonFinalizedBlocksMinDifficulty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t taraxa::DagManager::getNonFinalizedBlocksMinDifficulty </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -4561,6 +4582,28 @@ Collaboration diagram for taraxa::DagManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">std::map&lt;uint64_t, std::unordered_set&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&gt; &gt; taraxa::DagManager::non_finalized_blks_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aca067f674506a6dcc267d86414ab728d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca067f674506a6dcc267d86414ab728d">&#9670;&nbsp;</a></span>non_finalized_blks_min_difficulty_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t taraxa::DagManager::non_finalized_blks_min_difficulty_ = UINT32_MAX</td>
         </tr>
       </table>
   </td>

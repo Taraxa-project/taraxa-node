@@ -1,5 +1,8 @@
 var NAVTREEINDEX18 =
 {
+"group___vote.html#adbd235247ab08fcb2c3bd93e214f1154":[14,5,2,0],
+"group___vote.html#add0a1c70fc728cdb3ef074330a129060":[14,5,0,22],
+"group___vote.html#addee0ac66d5bdf1299881e6c5d10b89c":[14,5,0,32],
 "group___vote.html#adee6dc66d6609de6651e54a073d087a2":[14,5,0,11],
 "group___vote.html#adf48ab63030131c5ea2666dc26c19a23":[14,5,0,12],
 "group___vote.html#ae02d0c331e26ccd85568ed2b7ecc13d2":[14,5,3,13],
@@ -75,8 +78,8 @@ var NAVTREEINDEX18 =
 "include_2network_2ws__server_8hpp.html":[17,0,1,4,1,1,0,4],
 "include_2network_2ws__server_8hpp.html#a87adc53071ba8ddc553c84e894a4accc":[17,0,1,4,1,1,0,4,2],
 "include_2network_2ws__server_8hpp_source.html":[17,0,1,4,1,1,0,4],
-"index.html":[],
 "index.html":[0],
+"index.html":[],
 "index.html#autotoc_md1":[0,0],
 "index.html#autotoc_md10":[0,5],
 "index.html#autotoc_md11":[0,6],
@@ -246,8 +249,5 @@ var NAVTREEINDEX18 =
 "libdevcrypto_2_exceptions_8h.html":[17,0,1,0,1,6],
 "libdevcrypto_2_exceptions_8h.html#af2a12478709295407ccc4d93a073bdfc":[17,0,1,0,1,6,0],
 "libdevcrypto_2_exceptions_8h_source.html":[17,0,1,0,1,6],
-"libp2p_2_common_8cpp.html":[17,0,1,0,2,1],
-"libp2p_2_common_8cpp.html#a0331fd836972ccd099d8fb5c0387d931":[17,0,1,0,2,1,6],
-"libp2p_2_common_8cpp.html#a1698a60f493abd1c225e84e54a7ae498":[17,0,1,0,2,1,8],
-"libp2p_2_common_8cpp.html#a3249666b0f83401070e0e46ee42b958e":[17,0,1,0,2,1,5]
+"libp2p_2_common_8cpp.html":[17,0,1,0,2,1]
 };
