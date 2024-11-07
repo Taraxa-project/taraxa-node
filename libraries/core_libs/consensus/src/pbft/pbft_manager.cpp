@@ -41,6 +41,17 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
   const auto &node_addr = node_addr_;
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
+  auto current_pbft_period = pbft_chain_->getPbftChainSize();
+  if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(current_pbft_period)) {
+    const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
+    // There is a race condition where pbt block could have been saved and node stopped before saving pillar block
+    if (current_pbft_period ==
+        current_pillar_block->getPeriod() + kGenesisConfig.state.hardforks.ficus_hf.pillar_blocks_interval)
+      LOG(log_er_) << "Pillar block was not processed before restart, current period: " << current_pbft_period
+                   << ", current pillar block period: " << current_pillar_block->getPeriod();
+    processPillarBlock(current_pbft_period);
+  }
+
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {
     auto period_raw = db_->getPeriodDataRaw(period);
@@ -1388,7 +1399,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
 }
 
 PbftStateRootValidation PbftManager::validateFinalChainHash(const std::shared_ptr<PbftBlock> &pbft_block) const {
-  auto period = pbft_block->getPeriod();
+  const auto period = pbft_block->getPeriod();
   const auto &pbft_block_hash = pbft_block->getBlockHash();
 
   auto prev_final_chain_hash = final_chain_->finalChainHash(period);
@@ -1397,8 +1408,8 @@ PbftStateRootValidation PbftManager::validateFinalChainHash(const std::shared_pt
     return PbftStateRootValidation::Missing;
   }
   if (pbft_block->getFinalChainHash() != prev_final_chain_hash) {
-    LOG(log_er_) << "Block " << pbft_block_hash << " state root " << pbft_block->getFinalChainHash()
-                 << " isn't matching actual " << prev_final_chain_hash.value();
+    LOG(log_er_) << "Block " << period << " hash " << pbft_block_hash << " state root "
+                 << pbft_block->getFinalChainHash() << " isn't matching actual " << prev_final_chain_hash.value();
     return PbftStateRootValidation::Invalid;
   }
 

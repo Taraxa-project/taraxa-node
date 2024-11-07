@@ -29,6 +29,7 @@ const uint64_t kMinTxGas{21000};
 constexpr uint32_t kMinTransactionPoolSize{30000};
 constexpr uint32_t kDefaultTransactionPoolSize{200000};
 constexpr uint32_t kMaxNonFinalizedTransactions{1000000};
+constexpr uint32_t kMaxNonFinalizedDagBlocks{100};
 
 const size_t kV3NetworkVersion = 3;
 

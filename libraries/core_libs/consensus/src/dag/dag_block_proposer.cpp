@@ -89,6 +89,17 @@ bool DagBlockProposer::proposeDagBlock() {
   vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), vote_count,
                                   max_vote_count);
+
+  auto anchor = dag_mgr_->getAnchors().second;
+  if (frontier.pivot != anchor) {
+    if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
+      return false;
+    }
+    if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty()) {
+      return false;
+    }
+  }
+
   if (vdf.isStale(sortition_params)) {
     if (last_propose_level_ == propose_level) {
       if (num_tries_ < max_num_tries_) {
