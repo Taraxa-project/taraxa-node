@@ -55,20 +55,23 @@ struct FullNodeTest : NodesTest {};
 TEST_F(FullNodeTest, db_test) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir);
   auto &db = *db_ptr;
-  DagBlock blk1(blk_hash_t(1), 1, {}, {trx_hash_t(1), trx_hash_t(2)}, sig_t(777), blk_hash_t(0xB1), addr_t(999));
-  DagBlock blk2(blk_hash_t(1), 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(777), blk_hash_t(0xB2), addr_t(999));
-  DagBlock blk3(blk_hash_t(0xB1), 2, {}, {trx_hash_t(5)}, sig_t(777), blk_hash_t(0xB6), addr_t(999));
+  auto blk1 = std::make_shared<DagBlock>(blk_hash_t(1), 1, vec_blk_t{}, vec_trx_t{trx_hash_t(1), trx_hash_t(2)},
+                                         sig_t(777), blk_hash_t(0xB1), addr_t(999));
+  auto blk2 = std::make_shared<DagBlock>(blk_hash_t(1), 1, vec_blk_t{}, vec_trx_t{trx_hash_t(3), trx_hash_t(4)},
+                                         sig_t(777), blk_hash_t(0xB2), addr_t(999));
+  auto blk3 = std::make_shared<DagBlock>(blk_hash_t(0xB1), 2, vec_blk_t{}, vec_trx_t{trx_hash_t(5)}, sig_t(777),
+                                         blk_hash_t(0xB6), addr_t(999));
   // DAG
   db.saveDagBlock(blk1);
   db.saveDagBlock(blk2);
   db.saveDagBlock(blk3);
-  EXPECT_EQ(blk1, *db.getDagBlock(blk1.getHash()));
-  EXPECT_EQ(blk2, *db.getDagBlock(blk2.getHash()));
-  EXPECT_EQ(blk3, *db.getDagBlock(blk3.getHash()));
+  EXPECT_EQ(*blk1, *db.getDagBlock(blk1->getHash()));
+  EXPECT_EQ(*blk2, *db.getDagBlock(blk2->getHash()));
+  EXPECT_EQ(*blk3, *db.getDagBlock(blk3->getHash()));
   std::set<blk_hash_t> s1, s2;
-  s1.emplace(blk1.getHash());
-  s1.emplace(blk2.getHash());
-  s2.emplace(blk3.getHash());
+  s1.emplace(blk1->getHash());
+  s1.emplace(blk2->getHash());
+  s2.emplace(blk3->getHash());
   EXPECT_EQ(db.getBlocksByLevel(1), s1);
   EXPECT_EQ(db.getBlocksByLevel(2), s2);
 
@@ -833,7 +836,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     taraxa::thisThreadSleepForMilliSeconds(100);
 
     for (size_t i = 0; i < num_blks; i++) {
-      EXPECT_EQ(true, node->getDagManager()->addDagBlock(DagBlock(mock_dags[i])).first);
+      EXPECT_EQ(true, node->getDagManager()->addDagBlock(mock_dags[i]).first);
     }
 
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -853,7 +856,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
     for (size_t i = 0; i < num_blks; i++) {
-      EXPECT_EQ(true, node->getDagManager()->addDagBlock(DagBlock(mock_dags[i])).first);
+      EXPECT_EQ(true, node->getDagManager()->addDagBlock(mock_dags[i]).first);
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;

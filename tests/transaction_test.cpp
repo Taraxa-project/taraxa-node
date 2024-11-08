@@ -20,16 +20,12 @@
 namespace taraxa::core_tests {
 
 const unsigned NUM_TRX = 40;
-const unsigned NUM_BLK = 4;
-const unsigned BLK_TRX_LEN = 4;
-const unsigned BLK_TRX_OVERLAP = 1;
 auto g_secret = Lazy([] {
   return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                      dev::Secret::ConstructFromStringType::FromHex);
 });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(1, NUM_TRX, g_secret); });
-auto g_blk_samples = Lazy([] { return samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP); });
 
 struct TransactionTest : NodesTest {};
 
@@ -203,7 +199,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   EXPECT_TRUE(trx_mgr.insertTransaction(trx_1).first);
   EXPECT_TRUE(trx_mgr.insertTransaction(trx_2).first);
   std::vector<trx_hash_t> trx_hashes{trx_1->getHash(), trx_2->getHash()};
-  DagBlock dag_blk({}, {}, {}, trx_hashes, secret_t::random());
+  auto dag_blk = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trx_hashes, secret_t::random());
   db->saveDagBlock(dag_blk);
   std::vector<vote_hash_t> reward_votes_hashes;
   auto pbft_block =
@@ -216,7 +212,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   auto batch = db->createWriteBatch();
   db->savePeriodData(period_data, batch);
   db->commitWriteBatch(batch);
-  final_chain->finalize(std::move(period_data), {dag_blk.getHash()}).get();
+  final_chain->finalize(std::move(period_data), {dag_blk->getHash()}).get();
 
   // Verify low nonce transaction is detected in verification
   auto low_nonce_trx = std::make_shared<Transaction>(1, 101, 0, 100000, dev::bytes(), g_secret, addr_t::random());

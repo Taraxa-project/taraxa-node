@@ -74,7 +74,7 @@ void DagSyncPacketHandler::process(DagSyncPacket&& packet, const std::shared_ptr
       continue;
     }
 
-    auto verified = dag_mgr_->verifyBlock(*block, transactions_map);
+    auto verified = dag_mgr_->verifyBlock(block, transactions_map);
     if (verified.first != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
       err_msg << "DagBlock " << block->getHash() << " failed verification with error code "
@@ -84,8 +84,7 @@ void DagSyncPacketHandler::process(DagSyncPacket&& packet, const std::shared_ptr
 
     if (block->getLevel() > peer->dag_level_) peer->dag_level_ = block->getLevel();
 
-    // TODO[2869]: fix dag blocks usage - shared_ptr vs object type on different places...
-    auto status = dag_mgr_->addDagBlock(std::move(*block), std::move(verified.second));
+    auto status = dag_mgr_->addDagBlock(block, std::move(verified.second));
     if (!status.first) {
       std::ostringstream err_msg;
       if (status.second.size() > 0)

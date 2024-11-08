@@ -67,16 +67,16 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
     }
   }
 
-  std::vector<DagBlock> dag_blocks;
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   std::vector<blk_hash_t> dag_blocks_to_log;
   dag_blocks.reserve((*it).itemCount());
   dag_blocks_to_log.reserve((*it).itemCount());
 
   for (const auto block_rlp : *it) {
-    DagBlock block(block_rlp);
-    peer->markDagBlockAsKnown(block.getHash());
-    if (dag_mgr_->isDagBlockKnown(block.getHash())) {
-      LOG(log_tr_) << "Received known DagBlock " << block.getHash() << "from: " << peer->getId();
+    auto block = std::make_shared<DagBlock>(block_rlp);
+    peer->markDagBlockAsKnown(block->getHash());
+    if (dag_mgr_->isDagBlockKnown(block->getHash())) {
+      LOG(log_tr_) << "Received known DagBlock " << block->getHash() << "from: " << peer->getId();
       continue;
     }
     dag_blocks.emplace_back(std::move(block));
@@ -97,25 +97,25 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
   }
 
   for (auto& block : dag_blocks) {
-    dag_blocks_to_log.push_back(block.getHash());
+    dag_blocks_to_log.push_back(block->getHash());
 
     auto verified = dag_mgr_->verifyBlock(block, transactions);
     if (verified.first != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock " << block.getHash() << " failed verification with error code "
+      err_msg << "DagBlock " << block->getHash() << " failed verification with error code "
               << static_cast<uint32_t>(verified.first);
       throw MaliciousPeerException(err_msg.str());
     }
 
-    if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
+    if (block->getLevel() > peer->dag_level_) peer->dag_level_ = block->getLevel();
 
     auto status = dag_mgr_->addDagBlock(std::move(block), std::move(verified.second));
     if (!status.first) {
       std::ostringstream err_msg;
       if (status.second.size() > 0)
-        err_msg << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second;
+        err_msg << "DagBlock" << block->getHash() << " has missing pivot or/and tips " << status.second;
       else
-        err_msg << "DagBlock" << block.getHash() << " could not be added to DAG";
+        err_msg << "DagBlock" << block->getHash() << " could not be added to DAG";
       throw MaliciousPeerException(err_msg.str());
     }
   }
