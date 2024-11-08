@@ -17,7 +17,19 @@ TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, s
 
 inline void TransactionPacketHandler::process(TransactionPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
   if (packet.transactions.size() > kMaxTransactionsInPacket) {
-    throw InvalidRlpItemsCountException("TransactionPacket", packet.transactions.size(), kMaxTransactionsInPacket);
+    throw InvalidRlpItemsCountException("TransactionPacket:transactions", packet.transactions.size(),
+                                        kMaxTransactionsInPacket);
+  }
+
+  if (packet.extra_transactions_hashes.size() > kMaxHashesInPacket) {
+    throw InvalidRlpItemsCountException("TransactionPacket:hashes", packet.extra_transactions_hashes.size(),
+                                        kMaxHashesInPacket);
+  }
+
+  // Extra hashes are hashes of transactions that were not sent as full transactions due to max limit, just mark them as
+  // known for sender
+  for (const auto &extra_tx_hash : packet.extra_transactions_hashes) {
+    peer->markTransactionAsKnown(extra_tx_hash);
   }
 
   size_t unseen_txs_count = 0;
@@ -134,7 +146,6 @@ TransactionPacketHandler::transactionsToSendToPeers(std::vector<SharedTransactio
 }
 
 void TransactionPacketHandler::periodicSendTransactions(std::vector<SharedTransactions> &&transactions) {
-  // TODO[2871]: do not process hashes
   auto peers_with_transactions_to_send = transactionsToSendToPeers(std::move(transactions));
   const auto peers_to_send_count = peers_with_transactions_to_send.size();
   if (peers_to_send_count > 0) {
@@ -147,18 +158,20 @@ void TransactionPacketHandler::periodicSendTransactions(std::vector<SharedTransa
   }
 }
 
-// TODO[2871]: do not process hashes
 void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer,
                                                 std::pair<SharedTransactions, std::vector<trx_hash_t>> &&transactions) {
   if (!peer) return;
   const auto peer_id = peer->getId();
 
   LOG(log_tr_) << "sendTransactions " << transactions.first.size() << " to " << peer_id;
-  TransactionPacket packet{.transactions = std::move(transactions.first)};
+  TransactionPacket packet{.transactions = std::move(transactions.first), .extra_transactions_hashes = std::move(transactions.second)};
 
   if (sealAndSend(peer_id, SubprotocolPacketType::kTransactionPacket, encodePacketRlp(packet))) {
     for (const auto &trx : packet.transactions) {
       peer->markTransactionAsKnown(trx->getHash());
+    }
+    for (const auto &trx_hash : packet.extra_transactions_hashes) {
+      peer->markTransactionAsKnown(trx_hash);
     }
   }
 }
