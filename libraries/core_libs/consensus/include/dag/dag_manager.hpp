@@ -184,6 +184,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    */
   std::pair<size_t, size_t> getNonFinalizedBlocksSize() const;
 
+  uint32_t getNonFinalizedBlocksMinDifficulty() const;
+
   util::Event<DagManager, DagBlock> const block_verified_{};
 
   /**
@@ -258,6 +260,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t old_anchor_;  // anchor of the second to last period
   PbftPeriod period_;      // last period
   std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
+  uint32_t non_finalized_blks_min_difficulty_ = UINT32_MAX;
   DagFrontier frontier_;
   SortitionParamsManager sortition_params_manager_;
   const DagConfig &dag_config_;

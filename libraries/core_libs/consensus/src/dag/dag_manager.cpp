@@ -170,6 +170,9 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
       max_level_ = std::max(current_max_level, blk.getLevel());
 
       addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
+      if (non_finalized_blks_min_difficulty_ > blk.getDifficulty()) {
+        non_finalized_blks_min_difficulty_ = blk.getDifficulty();
+      }
 
       updateFrontier();
     }
@@ -361,6 +364,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
   std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> expired_dag_blocks_to_remove;
   std::vector<trx_hash_t> expired_dag_blocks_transactions;
 
+  non_finalized_blks_min_difficulty_ = UINT32_MAX;
   for (auto &v : non_finalized_blocks) {
     for (auto &blk_hash : v.second) {
       if (dag_order_set.count(blk_hash) != 0) {
@@ -372,6 +376,9 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
 
       if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
         addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
+        if (non_finalized_blks_min_difficulty_ > dag_block->getDifficulty()) {
+          non_finalized_blks_min_difficulty_ = dag_block->getDifficulty();
+        }
       } else {
         db_->removeDagBlock(blk_hash);
         seen_blocks_.erase(blk_hash);
@@ -570,6 +577,11 @@ DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_h
   }
   auto trxs = trx_mgr_->getNonfinalizedTrx(trx_to_query);
   return {period_, std::move(dag_blocks), std::move(trxs)};
+}
+
+uint32_t DagManager::getNonFinalizedBlocksMinDifficulty() const {
+  std::shared_lock lock(mutex_);
+  return non_finalized_blks_min_difficulty_;
 }
 
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {

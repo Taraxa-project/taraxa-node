@@ -1,6 +1,6 @@
 set(HEADERS
     include/common/constants.hpp
-    include/common/static_init.hpp
+    include/common/init.hpp
     include/common/types.hpp
     include/common/config_exception.hpp
     include/common/vrf_wrapper.hpp

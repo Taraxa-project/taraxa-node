@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <libdevcore/SHA3.h>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"

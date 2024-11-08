@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "logger/logger.hpp"
 #include "test_util/gtest.hpp"

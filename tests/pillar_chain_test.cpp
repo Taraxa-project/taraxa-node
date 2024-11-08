@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common/encoding_solidity.hpp"
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
