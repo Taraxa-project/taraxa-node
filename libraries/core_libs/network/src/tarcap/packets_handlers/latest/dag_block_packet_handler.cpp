@@ -46,23 +46,15 @@ void DagBlockPacketHandler::process(DagBlockPacket &&packet, const std::shared_p
   onNewBlockReceived(std::move(packet.dag_block), peer, txs_map);
 }
 
-void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &peer_id,
+void DagBlockPacketHandler::sendBlockWithTransactions(const std::shared_ptr<TaraxaPeer> &peer,
                                                       const std::shared_ptr<DagBlock> &block,
-                                                      const SharedTransactions &trxs) {
-  std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
-  if (!peer) {
-    LOG(log_wr_) << "Send dag block " << block->getHash() << ". Failed to obtain peer " << peer_id;
-    return;
-  }
-
+                                                      SharedTransactions &&trxs) {
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
-  // TODO[2868]: optimize args, use move semantics
-  DagBlockPacket dag_block_packet{.transactions = trxs, .dag_block = block};
-
-  if (!sealAndSend(peer_id, SubprotocolPacketType::kDagBlockPacket, encodePacketRlp(dag_block_packet))) {
-    LOG(log_wr_) << "Sending DagBlock " << block->getHash() << " failed to " << peer_id;
+  DagBlockPacket dag_block_packet{.transactions = std::move(trxs), .dag_block = block};
+  if (!sealAndSend(peer->getId(), SubprotocolPacketType::kDagBlockPacket, encodePacketRlp(dag_block_packet))) {
+    LOG(log_wr_) << "Sending DagBlock " << block->getHash() << " failed to " << peer->getId();
     return;
   }
 
@@ -173,7 +165,7 @@ void DagBlockPacketHandler::onNewBlockVerified(const std::shared_ptr<DagBlock> &
   }
 
   const auto &block_hash = block->getHash();
-  LOG(log_tr_) << "Verified NewBlock " << block_hash.toString();
+  LOG(log_tr_) << "Verified dag block " << block_hash.toString();
 
   std::vector<dev::p2p::NodeID> peers_to_send;
   for (auto const &peer : peers_state_->getAllPeers()) {
@@ -182,45 +174,39 @@ void DagBlockPacketHandler::onNewBlockVerified(const std::shared_ptr<DagBlock> &
     }
   }
 
-  std::string peer_and_transactions_to_log;
   // Sending it in same order favours some peers over others, always start with a different position
   const auto peers_to_send_count = peers_to_send.size();
-  if (peers_to_send_count > 0) {
-    uint32_t start_with = rand() % peers_to_send_count;
-    for (uint32_t i = 0; i < peers_to_send_count; i++) {
-      auto peer_id = peers_to_send[(start_with + i) % peers_to_send_count];
-      dev::RLPStream ts;
-      auto peer = peers_state_->getPeer(peer_id);
-      if (peer && !peer->syncing_) {
-        peer_and_transactions_to_log += " Peer: " + peer->getId().abridged() + " Trxs: ";
-
-        SharedTransactions transactions_to_send;
-        for (const auto &trx : trxs) {
-          const auto &trx_hash = trx->getHash();
-          if (peer->isTransactionKnown(trx_hash)) {
-            continue;
-          }
-          transactions_to_send.push_back(trx);
-          peer_and_transactions_to_log += trx_hash.abridged();
-        }
-
-        for (const auto &trx : trxs) {
-          assert(trx != nullptr);
-          const auto trx_hash = trx->getHash();
-          if (peer->isTransactionKnown(trx_hash)) {
-            continue;
-          }
-
-          transactions_to_send.push_back(trx);
-          peer_and_transactions_to_log += trx_hash.abridged();
-        }
-
-        sendBlockWithTransactions(peer_id, block, transactions_to_send);
-        peer->markDagBlockAsKnown(block_hash);
-      }
-    }
+  if (peers_to_send_count == 0) {
+    return;
   }
+
+  std::string peer_and_transactions_to_log;
+  uint32_t start_with = rand() % peers_to_send_count;
+  for (uint32_t i = 0; i < peers_to_send_count; i++) {
+    auto peer_id = peers_to_send[(start_with + i) % peers_to_send_count];
+    auto peer = peers_state_->getPeer(peer_id);
+    if (!peer || peer->syncing_) {
+      continue;
+    }
+
+    peer_and_transactions_to_log += " Peer: " + peer->getId().abridged() + " Trxs: ";
+
+    SharedTransactions transactions_to_send;
+    for (const auto &trx : trxs) {
+      assert(trx != nullptr);
+      const auto trx_hash = trx->getHash();
+      if (peer->isTransactionKnown(trx_hash)) {
+        continue;
+      }
+
+      transactions_to_send.push_back(trx);
+      peer_and_transactions_to_log += trx_hash.abridged();
+    }
+
+    sendBlockWithTransactions(peer, block, std::move(transactions_to_send));
+  }
+
   LOG(log_dg_) << "Send DagBlock " << block->getHash() << " to peers: " << peer_and_transactions_to_log;
-  if (!peers_to_send.empty()) LOG(log_tr_) << "Sent block to " << peers_to_send.size() << " peers";
+  LOG(log_tr_) << "Sent block to " << peers_to_send.size() << " peers";
 }
 }  // namespace taraxa::network::tarcap

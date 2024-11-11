@@ -154,10 +154,10 @@ void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer
   const auto peer_id = peer->getId();
 
   LOG(log_tr_) << "sendTransactions " << transactions.first.size() << " to " << peer_id;
+  TransactionPacket packet{.transactions = std::move(transactions.first)};
 
-  if (sealAndSend(peer_id, SubprotocolPacketType::kTransactionPacket,
-                  encodePacketRlp(TransactionPacket(transactions.first)))) {
-    for (const auto &trx : transactions.first) {
+  if (sealAndSend(peer_id, SubprotocolPacketType::kTransactionPacket, encodePacketRlp(packet))) {
+    for (const auto &trx : packet.transactions) {
       peer->markTransactionAsKnown(trx->getHash());
     }
   }
