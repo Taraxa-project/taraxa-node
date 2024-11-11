@@ -81,7 +81,6 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       assert(!reward_votes.empty());
       // It is possible that the node pushed another block to the chain in the meantime
       if (reward_votes[0]->getPeriod() == block_period) {
-        // TODO[2870]: use custom votes bundle class instead of vector
         pbft_sync_packet = std::make_shared<PbftSyncPacket>(last_block, std::move(*period_data),
                                                             OptimizedPbftVotesBundle{std::move(reward_votes)});
       } else {

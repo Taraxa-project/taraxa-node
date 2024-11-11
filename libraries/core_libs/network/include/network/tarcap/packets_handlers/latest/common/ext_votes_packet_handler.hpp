@@ -120,13 +120,11 @@ class ExtVotesPacketHandler : public PacketHandler<PacketType> {
     }
 
     auto sendVotes = [this, &peer](std::vector<std::shared_ptr<PbftVote>>&& votes) {
-      // TODO[2868]: optimize this
-      auto votes_copy = votes;
-      if (this->sealAndSend(
-              peer->getId(), SubprotocolPacketType::kVotesBundlePacket,
-              encodePacketRlp(VotesBundlePacket{OptimizedPbftVotesBundle{.votes = std::move(votes_copy)}}))) {
-        LOG(this->log_dg_) << " Votes bundle with " << votes.size() << " votes sent to " << peer->getId();
-        for (const auto& vote : votes) {
+      auto packet = VotesBundlePacket{OptimizedPbftVotesBundle{.votes = std::move(votes)}};
+      if (this->sealAndSend(peer->getId(), SubprotocolPacketType::kVotesBundlePacket, encodePacketRlp(packet))) {
+        LOG(this->log_dg_) << " Votes bundle with " << packet.votes_bundle.votes.size() << " votes sent to "
+                           << peer->getId();
+        for (const auto& vote : packet.votes_bundle.votes) {
           peer->markPbftVoteAsKnown(vote->getHash());
         }
       }
