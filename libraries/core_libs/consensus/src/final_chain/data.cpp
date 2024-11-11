@@ -2,16 +2,28 @@
 
 #include <libdevcore/CommonJS.h>
 
+#include "common/constants.hpp"
+
 namespace taraxa::final_chain {
 
-h256 const& BlockHeader::uncles_hash() { return EmptyRLPListSHA3(); }
+const h256& BlockHeader::uncles_hash() { return EmptyRLPListSHA3(); }
 
-Nonce const& BlockHeader::nonce() { return EmptyNonce(); }
+const Nonce& BlockHeader::nonce() { return EmptyNonce(); }
 
-u256 const& BlockHeader::difficulty() { return ZeroU256(); }
+const u256& BlockHeader::difficulty() { return ZeroU256(); }
 
-h256 const& BlockHeader::mix_hash() { return ZeroHash(); }
+const h256& BlockHeader::mix_hash() { return ZeroHash(); }
 
+std::shared_ptr<BlockHeader> BlockHeader::from_rlp(const dev::RLP& rlp) {
+  auto ret = std::make_shared<BlockHeader>();
+  ret->rlp(rlp);
+  dev::RLPStream encoding;
+  ret->ethereum_rlp(encoding);
+  ret->size = encoding.out().size();
+  return ret;
+}
+
+// TODO[2888]: remove hash field to not store it in the db
 RLP_FIELDS_DEFINE(BlockHeader, hash, parent_hash, author, state_root, transactions_root, receipts_root, log_bloom,
                   number, gas_limit, gas_used, timestamp, total_reward, extra_data)
 

@@ -5,12 +5,10 @@
 #include <libdevcore/Log.h>
 #include <libdevcore/SHA3.h>
 
-#include <algorithm>
+#include <memory>
 
-#include "common/constants.hpp"
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "final_chain/state_api_data.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -41,16 +39,19 @@ struct BlockHeader {
   uint64_t timestamp = 0;
   Address author;
   u256 total_reward;
+  uint64_t size = 0;
 
   HAS_RLP_FIELDS
 
-  static h256 const& uncles_hash();
+  static const h256& uncles_hash();
 
-  static Nonce const& nonce();
+  static const Nonce& nonce();
 
-  static u256 const& difficulty();
+  static const u256& difficulty();
 
-  static h256 const& mix_hash();
+  static const h256& mix_hash();
+
+  static std::shared_ptr<BlockHeader> from_rlp(const dev::RLP& rlp);
 
   void ethereum_rlp(dev::RLPStream& encoding) const;
 };

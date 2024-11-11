@@ -525,9 +525,7 @@ const SharedTransactions FinalChainImpl::get_transactions(std::optional<EthBlock
 
 std::shared_ptr<const BlockHeader> FinalChainImpl::get_block_header(EthBlockNumber n) const {
   if (auto raw = db_->lookup(n, DB::Columns::final_chain_blk_by_number); !raw.empty()) {
-    auto ret = std::make_shared<BlockHeader>();
-    ret->rlp(dev::RLP(raw));
-    return ret;
+    return BlockHeader::from_rlp(dev::RLP(raw));
   }
   return {};
 }
