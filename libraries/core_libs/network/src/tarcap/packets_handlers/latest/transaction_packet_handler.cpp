@@ -34,8 +34,11 @@ inline void TransactionPacketHandler::process(TransactionPacket &&packet, const 
 
   size_t unseen_txs_count = 0;
   for (auto &transaction : packet.transactions) {
+    const auto tx_hash = transaction->getHash();
+    peer->markTransactionAsKnown(tx_hash);
+
     // Skip any transactions that are already known to the trx mgr
-    if (trx_mgr_->isTransactionKnown(transaction->getHash())) {
+    if (trx_mgr_->isTransactionKnown(tx_hash)) {
       continue;
     }
 
@@ -44,12 +47,12 @@ inline void TransactionPacketHandler::process(TransactionPacket &&packet, const 
     const auto [verified, reason] = trx_mgr_->verifyTransaction(transaction);
     if (!verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
+      err_msg << "DagBlock transaction " << tx_hash << " validation failed: " << reason;
       throw MaliciousPeerException(err_msg.str());
     }
 
     received_trx_count_++;
-    const auto tx_hash = transaction->getHash();
+
     const auto status = trx_mgr_->insertValidatedTransaction(std::move(transaction));
     if (status == TransactionStatus::Inserted) {
       unique_received_trx_count_++;
