@@ -166,18 +166,18 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab28ae9dda4c128c0e90e086f72d823d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a135230d7b9166efe6d2c2da5c4cf7ddb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a135230d7b9166efe6d2c2da5c4cf7ddb">verifyVdf</a> (const <a class="el" href="structtaraxa_1_1_sortition_params.html">SortitionParams</a> &amp;vdf_config, const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;proposal_period_hash, const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> &amp;pk, uint64_t vote_count, uint64_t total_vote_count) const</td></tr>
 <tr class="separator:a135230d7b9166efe6d2c2da5c4cf7ddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13ac7bb6bba685d93ac3b7c3fea5e75b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a13ac7bb6bba685d93ac3b7c3fea5e75b">rlp</a> (bool include_sig, bool include_trxs=true) const</td></tr>
-<tr class="separator:a13ac7bb6bba685d93ac3b7c3fea5e75b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ce8f729ca9866750bc60877e6559dfd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a1ce8f729ca9866750bc60877e6559dfd">rlp</a> (bool include_sig, bool include_trxs=true) const</td></tr>
+<tr class="separator:a1ce8f729ca9866750bc60877e6559dfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fd62fefff7b4abfa5950da0d404f686"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a6fd62fefff7b4abfa5950da0d404f686">streamRLP</a> (bool include_sig, bool include_trxs=true) const</td></tr>
 <tr class="memdesc:a6fd62fefff7b4abfa5950da0d404f686"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns dag block data rlp stream.  <a href="classtaraxa_1_1_dag_block.html#a6fd62fefff7b4abfa5950da0d404f686">More...</a><br /></td></tr>
 <tr class="separator:a6fd62fefff7b4abfa5950da0d404f686"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a4dbf3ebcaff09990ade62f9c7945b470"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a4dbf3ebcaff09990ade62f9c7945b470">extract_dag_level_from_rlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="classtaraxa_1_1_dag_block.html#a13ac7bb6bba685d93ac3b7c3fea5e75b">rlp</a>)</td></tr>
+<tr class="memitem:a4dbf3ebcaff09990ade62f9c7945b470"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a4dbf3ebcaff09990ade62f9c7945b470">extract_dag_level_from_rlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="classtaraxa_1_1_dag_block.html#a1ce8f729ca9866750bc60877e6559dfd">rlp</a>)</td></tr>
 <tr class="memdesc:a4dbf3ebcaff09990ade62f9c7945b470"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts dag level from rlp representation.  <a href="classtaraxa_1_1_dag_block.html#a4dbf3ebcaff09990ade62f9c7945b470">More...</a><br /></td></tr>
 <tr class="separator:a4dbf3ebcaff09990ade62f9c7945b470"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3f897fa4553f5fcfb08c4973bcf91f5"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#ac413a96709236ee8b2a47c019f83ce37">sig_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#ae3f897fa4553f5fcfb08c4973bcf91f5">extract_signature_from_rlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="classtaraxa_1_1_dag_block.html#a13ac7bb6bba685d93ac3b7c3fea5e75b">rlp</a>)</td></tr>
+<tr class="memitem:ae3f897fa4553f5fcfb08c4973bcf91f5"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#ac413a96709236ee8b2a47c019f83ce37">sig_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#ae3f897fa4553f5fcfb08c4973bcf91f5">extract_signature_from_rlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="classtaraxa_1_1_dag_block.html#a1ce8f729ca9866750bc60877e6559dfd">rlp</a>)</td></tr>
 <tr class="memdesc:ae3f897fa4553f5fcfb08c4973bcf91f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts signature from rlp representation.  <a href="classtaraxa_1_1_dag_block.html#ae3f897fa4553f5fcfb08c4973bcf91f5">More...</a><br /></td></tr>
 <tr class="separator:ae3f897fa4553f5fcfb08c4973bcf91f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -987,14 +987,14 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a13ac7bb6bba685d93ac3b7c3fea5e75b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13ac7bb6bba685d93ac3b7c3fea5e75b">&#9670;&nbsp;</a></span>rlp()</h2>
+<a id="a1ce8f729ca9866750bc60877e6559dfd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ce8f729ca9866750bc60877e6559dfd">&#9670;&nbsp;</a></span>rlp()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> taraxa::DagBlock::rlp </td>
+          <td class="memname">void taraxa::DagBlock::rlp </td>
           <td>(</td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>include_sig</em>, </td>

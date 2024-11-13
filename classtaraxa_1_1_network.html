@@ -170,8 +170,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6bd999923abfc08d54c1fbb573d0daae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af42c6f99348955b2beb1461abbd6d729"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_network.html#af42c6f99348955b2beb1461abbd6d729">setSyncStatePeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:af42c6f99348955b2beb1461abbd6d729"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b53485799795edd98ed42d29e1dda99"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_network.html#a5b53485799795edd98ed42d29e1dda99">gossipDagBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;block, bool proposed, const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;trxs)</td></tr>
-<tr class="separator:a5b53485799795edd98ed42d29e1dda99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b0aaac13204091e21d0cc36b00efcdd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_network.html#a5b0aaac13204091e21d0cc36b00efcdd">gossipDagBlock</a> (const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;block, bool proposed, const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;trxs)</td></tr>
+<tr class="separator:a5b0aaac13204091e21d0cc36b00efcdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4e232ede6047f9e6c8b1c083db0a11b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_network.html#ac4e232ede6047f9e6c8b1c083db0a11b">gossipVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;block, bool rebroadcast=false)</td></tr>
 <tr class="separator:ac4e232ede6047f9e6c8b1c083db0a11b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85a9fce55feca7f4dc6e2efa71c61090"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_network.html#a85a9fce55feca7f4dc6e2efa71c61090">gossipVotesBundle</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;&gt; &amp;votes, bool rebroadcast=false)</td></tr>
@@ -553,8 +553,8 @@ template&lt;typename PacketHandlerType &gt; </div>
 
 </div>
 </div>
-<a id="a5b53485799795edd98ed42d29e1dda99"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b53485799795edd98ed42d29e1dda99">&#9670;&nbsp;</a></span>gossipDagBlock()</h2>
+<a id="a5b0aaac13204091e21d0cc36b00efcdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b0aaac13204091e21d0cc36b00efcdd">&#9670;&nbsp;</a></span>gossipDagBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -562,7 +562,7 @@ template&lt;typename PacketHandlerType &gt; </div>
         <tr>
           <td class="memname">void taraxa::Network::gossipDagBlock </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>block</em>, </td>
         </tr>
         <tr>

@@ -1,10 +1,19 @@
 var searchData=
 [
-  ['mainnet_7894',['Mainnet',['../classtaraxa_1_1cli_1_1_config.html#abae7b6b0870424c869316e2e105eb3b5a953c0a0c67e864d0f080b5e705f45a81',1,'taraxa::cli::Config']]],
-  ['maxdatagramsize_7895',['maxDatagramSize',['../classdev_1_1p2p_1_1_u_d_p_socket.html#a6337557a43cf2988dc66d493beb10330a4b0f0deb93b290d70dd027bf20bdeff8',1,'dev::p2p::UDPSocket']]],
-  ['mid_7896',['Mid',['../classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0af7a3762fd7f3c23b7ed1817448e052ec',1,'taraxa::network::threadpool::PacketData']]],
-  ['midprioritypackets_7897',['MidPriorityPackets',['../namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9a85723194ba7cc082a3279c1be932283e',1,'taraxa::network']]],
-  ['missing_7898',['Missing',['../group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba2aee0be2678ee90fd327cc186826438e',1,'taraxa']]],
-  ['missingtip_7899',['MissingTip',['../group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484acd9ea5e61108c6f8d0592a48ffae5f36',1,'taraxa::DagManager']]],
-  ['missingtransaction_7900',['MissingTransaction',['../group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6650939da54b7c46c8dd6642277e0a6e',1,'taraxa::DagManager']]]
+  ['new_8076',['New',['../structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a708429ef7a5ed14e8ceee7ac8dfa3fcdad8b1c3cdf0b8b5e93000634d3ef76abc',1,'dev::p2p::RLPXHandshake']]],
+  ['new_5fblocks_8077',['new_blocks',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#aeb19a0c91d9b3f39936dcbb097ccd138a52423efbc71c06fa6f327a19224da1b8',1,'taraxa::net::rpc::eth']]],
+  ['new_5ftransactions_8078',['new_transactions',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#aeb19a0c91d9b3f39936dcbb097ccd138a18cee09970290edbc002a5f3f4e24400',1,'taraxa::net::rpc::eth']]],
+  ['next_5fvote_8079',['next_vote',['../group___vote.html#gga8a0770e242b649865f15f20a405507cca95aebab4b899f9fad597abfc4d9be96b',1,'taraxa']]],
+  ['nextvotedblock_8080',['NextVotedBlock',['../namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfa32c5b142b23830e9dd140911a2612f48',1,'taraxa']]],
+  ['nextvotednullblock_8081',['NextVotedNullBlock',['../namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfa023cc79bc259f282c3b059929ea64fbe',1,'taraxa']]],
+  ['nextvotednullblockhash_8082',['NextVotedNullBlockHash',['../namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8ea3bf690f31dab9e5d4906ca934adbee6c',1,'taraxa']]],
+  ['nextvotedsoftvalue_8083',['NextVotedSoftValue',['../namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8eab4a0efd597ecd89350bff9384a8998e6',1,'taraxa']]],
+  ['nodeentryadded_8084',['NodeEntryAdded',['../namespacedev_1_1p2p.html#ad922460547e7c7fea21b60dbfae9f8dca5a452fcac90c53a368e7c92342920e09',1,'dev::p2p']]],
+  ['nodeentrydropped_8085',['NodeEntryDropped',['../namespacedev_1_1p2p.html#ad922460547e7c7fea21b60dbfae9f8dcae081f19e2ec4dec1716755f0551f787b',1,'dev::p2p']]],
+  ['nodeentryscheduledforeviction_8086',['NodeEntryScheduledForEviction',['../namespacedev_1_1p2p.html#ad922460547e7c7fea21b60dbfae9f8dcaaaef79d3342f622cebd80dda52f2112f',1,'dev::p2p']]],
+  ['nodisconnect_8087',['NoDisconnect',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276a106cf37d6797890ed0955c70c4a21a6e',1,'dev::p2p']]],
+  ['nofailure_8088',['NoFailure',['../namespacedev_1_1p2p.html#a1a6ed6078a9c0a52b98d376eb09397bea072061af36673f57cb51df5502bce08d',1,'dev::p2p']]],
+  ['normal_8089',['Normal',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#a799d44bbb3840ed20e05c3f0d0f3bf95a960b44c579bc2f6818d2daaf9e4c16f0',1,'dev::p2p::RLPXFrameCoder']]],
+  ['noteligible_8090',['NotEligible',['../group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a916ec32bed391fc1def53a8e263ec400',1,'taraxa::DagManager']]],
+  ['nullidentity_8091',['NullIdentity',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276aa9015cad9d517dea503ab2cba36ae584',1,'dev::p2p']]]
 ];

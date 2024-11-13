@@ -13,7 +13,7 @@ var classtaraxa_1_1_network =
     [ "getPeerCount", "classtaraxa_1_1_network.html#a259bd66c2688338ead9f2a48f5851790", null ],
     [ "getSpecificHandler", "classtaraxa_1_1_network.html#a35dc353c28031b64a7a826c477cb55fd", null ],
     [ "getStatus", "classtaraxa_1_1_network.html#acec9949d2bf39b966ead6e30b02d343f", null ],
-    [ "gossipDagBlock", "classtaraxa_1_1_network.html#a5b53485799795edd98ed42d29e1dda99", null ],
+    [ "gossipDagBlock", "classtaraxa_1_1_network.html#a5b0aaac13204091e21d0cc36b00efcdd", null ],
     [ "gossipPillarBlockVote", "classtaraxa_1_1_network.html#a8852f1a3ed39d1659cdc4dac65bb8b58", null ],
     [ "gossipVote", "classtaraxa_1_1_network.html#ac4e232ede6047f9e6c8b1c083db0a11b", null ],
     [ "gossipVotesBundle", "classtaraxa_1_1_network.html#a85a9fce55feca7f4dc6e2efa71c61090", null ],

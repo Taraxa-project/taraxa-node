@@ -79,7 +79,7 @@ var group___vote =
       [ "getWeight", "group___vote.html#a89b4983e2357f851973e7def2d614121", null ],
       [ "operator==", "group___vote.html#ab4fadfbac95a959aa49bdcefc15a4970", null ],
       [ "optimizedRlp", "group___vote.html#a405d0698d4b0feb1f1f948ca5f291579", null ],
-      [ "rlp", "group___vote.html#a299329722f113f1f0d7f6f144043eef6", null ],
+      [ "rlp", "group___vote.html#a35304b5be8c4d485637815ff1728e46d", null ],
       [ "sha3", "group___vote.html#a424d4d6ce930d31755a20c1b4d5fad55", null ],
       [ "toJSON", "group___vote.html#a442303caeec4de50c06194d50e2b2d03", null ],
       [ "verifyVrfSortition", "group___vote.html#a31853775f489173a499af7cf08503710", null ],
@@ -119,6 +119,12 @@ var group___vote =
       [ "cached_voter_addr_", "group___vote.html#ae02d0c331e26ccd85568ed2b7ecc13d2", null ],
       [ "vote_hash_", "group___vote.html#ac62f2f618205d20b430c4609c8c73373", null ],
       [ "vote_signature_", "group___vote.html#aeaa1d4836ba3a2ce8243b4dc939e3028", null ]
+    ] ],
+    [ "OptimizedPbftVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle", [
+      [ "votes", "group___vote.html#a4b42b8e8f8e3265f906f527678d52a1d", null ]
+    ] ],
+    [ "OptimizedPillarVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle", [
+      [ "pillar_votes", "group___vote.html#a42cd2d1dfc1cc009431c5dd732a71a61", null ]
     ] ],
     [ "VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", [
       [ "VrfPbftMsg", "group___vote.html#adb609ddffdb2ee906e405a7e141bc16a", null ],

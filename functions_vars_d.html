@@ -93,6 +93,9 @@ $(document).ready(function(){initNavTree('functions_vars_d.html',''); initResiza
 <li>dag_blk_hashes
 : <a class="el" href="group___final_chain.html#ad360623c4773be2ccbc2074479a5699e">taraxa::final_chain::NewBlock</a>
 </li>
+<li>dag_block
+: <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#afbd5c2a8c0e0d1b3e6855de4f856b1d2">taraxa::network::tarcap::DagBlockPacket</a>
+</li>
 <li>dag_block_
 : <a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a9a80c8e4a5bca224e6cb4888f725170e">graphql::taraxa::DagBlock</a>
 </li>
@@ -103,7 +106,8 @@ $(document).ready(function(){initNavTree('functions_vars_d.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1_full_node.html#ace4a885b3a59850d5133fb23eca3bd6b">taraxa::FullNode</a>
 </li>
 <li>dag_blocks
-: <a class="el" href="group___p_b_f_t.html#a544fd1d4f13335c23f2febe112855a1f">taraxa::PeriodData</a>
+: <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#aede659d8ec46ff8a608d99369dec7b53">taraxa::network::tarcap::DagSyncPacket</a>
+, <a class="el" href="group___p_b_f_t.html#a7c3307d44a3088ae8eca4f3bf318e23f">taraxa::PeriodData</a>
 </li>
 <li>dag_blocks_count_
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6">taraxa::DbStorage</a>
@@ -152,9 +156,11 @@ $(document).ready(function(){initNavTree('functions_vars_d.html',''); initResiza
 <li>dag_mgr_
 : <a class="el" href="group___d_a_g.html#afa3f18cf3f73a439e0e1f023f7948973">taraxa::DagBlockProposer</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#af336b43e37cc96080c62f10de5682886">taraxa::FullNode</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a58e81f75ec08f404888a9df3df972aee">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#add71e821c12042ed03f30c953255b79c">taraxa::network::tarcap::ExtSyncingPacketHandler&lt; PacketType &gt;</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a400c64b100835afae1884bd462b9830c">taraxa::network::tarcap::GetDagSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a178b3edbfb69bbc60a7f009d66abbf7c">taraxa::network::tarcap::NodeStats</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_syncing_packet_handler.html#ad69f06c4a3c591bdae5011a2ebd65d9e">taraxa::network::tarcap::v4::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_dag_sync_packet_handler.html#a9df609f4c82ffd076c9fc56685db1446">taraxa::network::tarcap::v4::GetDagSyncPacketHandler</a>
 , <a class="el" href="group___p_b_f_t.html#a5c07848027fb2b186ddb512e9e5b9cd8">taraxa::PbftManager</a>
 </li>
 <li>dag_proposers_reward
@@ -192,10 +198,12 @@ $(document).ready(function(){initNavTree('functions_vars_d.html',''); initResiza
 , <a class="el" href="classtaraxa_1_1_db_storage.html#a4d892dd07605cbedaf998abd5765a26b">taraxa::DbStorage</a>
 , <a class="el" href="group___final_chain.html#a0eb719aac5c1b695f828cd740169118f">taraxa::final_chain::FinalChain</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#a39df5579e354f4b4a7402600c320ed5a">taraxa::FullNode</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a00cb8c9c2a85e25458c00ee4a0b7ea74">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a9f96f8f4640914356be3069c955ceb39">taraxa::network::tarcap::ExtSyncingPacketHandler&lt; PacketType &gt;</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#acbf5e3be4a8bff032f757845621f47d8">taraxa::network::tarcap::GetDagSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a66bc045d5383a67bd29581789a4a989e">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pbft_sync_packet_handler.html#ae3bbdfadb7cd812d2ec57610aa80febf">taraxa::network::tarcap::v3::GetPbftSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_syncing_packet_handler.html#a7d3e565b77277630527390a4dec95bcf">taraxa::network::tarcap::v4::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_dag_sync_packet_handler.html#ab71ca721615f4055a055809ee434a606">taraxa::network::tarcap::v4::GetDagSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler.html#a8ac2a9b1d79614cda0e60a3b8b2acbb9">taraxa::network::tarcap::v4::GetPbftSyncPacketHandler</a>
 , <a class="el" href="group___p_b_f_t.html#a54320bf3e4e774ee45eda5e56aa9440c">taraxa::PbftChain</a>
 , <a class="el" href="group___p_b_f_t.html#afe4427d4c3cf84e1bc69322057167721">taraxa::PbftManager</a>
 , <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a37ca0cec62f3ebe1fa9cf1bb089a1ca8">taraxa::pillar_chain::PillarChainManager</a>

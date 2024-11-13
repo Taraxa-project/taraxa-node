@@ -105,6 +105,10 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_vote"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vote">taraxa::Vote</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_vote"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vote" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,...">Vote</a> class is a vote class that includes vote hash, vote on PBFT block hash, vote signature, VRF sortition, voter public key, voter address, and vote weight.  <a href="group___vote.html#classtaraxa_1_1_vote">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_vote"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1_optimized_pbft_votes_bundle"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle">taraxa::OptimizedPbftVotesBundle</a></td></tr>
+<tr class="separator:structtaraxa_1_1_optimized_pbft_votes_bundle"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1_optimized_pillar_votes_bundle"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle">taraxa::OptimizedPillarVotesBundle</a></td></tr>
+<tr class="separator:structtaraxa_1_1_optimized_pillar_votes_bundle"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_vrf_pbft_msg"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg">taraxa::VrfPbftMsg</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_vrf_pbft_msg"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg class uses PBFT period, round and step to generate a message for doing VRF sortition.">VrfPbftMsg</a> class uses PBFT period, round and step to generate a message for doing VRF sortition.  <a href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_vrf_pbft_msg"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2057,11 +2061,11 @@ Collaboration diagram for taraxa::PbftVote:</div>
 <tr class="separator:aa1a60910d3b39c494b6b3173b287f86d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1aac24c594d9b74dcad3b186b388abbd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a1aac24c594d9b74dcad3b186b388abbd">PbftVote</a> (<a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> const &amp;node_sk, <a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_sortition">VrfPbftSortition</a> vrf_sortition, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;block_hash)</td></tr>
 <tr class="separator:a1aac24c594d9b74dcad3b186b388abbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63cdd75cbb1aa4c61dd3bc708b753e18"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a63cdd75cbb1aa4c61dd3bc708b753e18">PbftVote</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> step, <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> const &amp;<a class="el" href="group___vote.html#a299329722f113f1f0d7f6f144043eef6">rlp</a>)</td></tr>
+<tr class="memitem:a63cdd75cbb1aa4c61dd3bc708b753e18"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a63cdd75cbb1aa4c61dd3bc708b753e18">PbftVote</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> step, <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> const &amp;<a class="el" href="group___vote.html#a35304b5be8c4d485637815ff1728e46d">rlp</a>)</td></tr>
 <tr class="separator:a63cdd75cbb1aa4c61dd3bc708b753e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b6304285f9e6fd6478c18f35d45d23f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a0b6304285f9e6fd6478c18f35d45d23f">PbftVote</a> (<a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> const &amp;<a class="el" href="group___vote.html#a299329722f113f1f0d7f6f144043eef6">rlp</a>)</td></tr>
+<tr class="memitem:a0b6304285f9e6fd6478c18f35d45d23f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a0b6304285f9e6fd6478c18f35d45d23f">PbftVote</a> (<a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> const &amp;<a class="el" href="group___vote.html#a35304b5be8c4d485637815ff1728e46d">rlp</a>)</td></tr>
 <tr class="separator:a0b6304285f9e6fd6478c18f35d45d23f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9ccb26a732a4d9535e1de71e829d9e7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ac9ccb26a732a4d9535e1de71e829d9e7">PbftVote</a> (<a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> const &amp;<a class="el" href="group___vote.html#a299329722f113f1f0d7f6f144043eef6">rlp</a>)</td></tr>
+<tr class="memitem:ac9ccb26a732a4d9535e1de71e829d9e7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ac9ccb26a732a4d9535e1de71e829d9e7">PbftVote</a> (<a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> const &amp;<a class="el" href="group___vote.html#a35304b5be8c4d485637815ff1728e46d">rlp</a>)</td></tr>
 <tr class="separator:ac9ccb26a732a4d9535e1de71e829d9e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4fadfbac95a959aa49bdcefc15a4970"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ab4fadfbac95a959aa49bdcefc15a4970">operator==</a> (const <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &amp;other) const</td></tr>
 <tr class="separator:ab4fadfbac95a959aa49bdcefc15a4970"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2089,9 +2093,9 @@ Collaboration diagram for taraxa::PbftVote:</div>
 <tr class="memitem:a6b01941d68dbccd6a2832e8fc7786fff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a6b01941d68dbccd6a2832e8fc7786fff">getStep</a> () const</td></tr>
 <tr class="memdesc:a6b01941d68dbccd6a2832e8fc7786fff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get vote PBFT step.  <a href="group___vote.html#a6b01941d68dbccd6a2832e8fc7786fff">More...</a><br /></td></tr>
 <tr class="separator:a6b01941d68dbccd6a2832e8fc7786fff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a299329722f113f1f0d7f6f144043eef6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a299329722f113f1f0d7f6f144043eef6">rlp</a> (bool inc_sig=true, bool inc_weight=false) const</td></tr>
-<tr class="memdesc:a299329722f113f1f0d7f6f144043eef6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursive Length Prefix.  <a href="group___vote.html#a299329722f113f1f0d7f6f144043eef6">More...</a><br /></td></tr>
-<tr class="separator:a299329722f113f1f0d7f6f144043eef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35304b5be8c4d485637815ff1728e46d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a35304b5be8c4d485637815ff1728e46d">rlp</a> (bool inc_sig=true, bool inc_weight=false) const</td></tr>
+<tr class="memdesc:a35304b5be8c4d485637815ff1728e46d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursive Length Prefix.  <a href="group___vote.html#a35304b5be8c4d485637815ff1728e46d">More...</a><br /></td></tr>
+<tr class="separator:a35304b5be8c4d485637815ff1728e46d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a405d0698d4b0feb1f1f948ca5f291579"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a405d0698d4b0feb1f1f948ca5f291579">optimizedRlp</a> () const</td></tr>
 <tr class="memdesc:a405d0698d4b0feb1f1f948ca5f291579"><td class="mdescLeft">&#160;</td><td class="mdescRight">Optimized Recursive Length Prefix.  <a href="group___vote.html#a405d0698d4b0feb1f1f948ca5f291579">More...</a><br /></td></tr>
 <tr class="separator:a405d0698d4b0feb1f1f948ca5f291579"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2585,14 +2589,14 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a299329722f113f1f0d7f6f144043eef6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a299329722f113f1f0d7f6f144043eef6">&#9670;&nbsp;</a></span>rlp()</h2>
+<a id="a35304b5be8c4d485637815ff1728e46d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35304b5be8c4d485637815ff1728e46d">&#9670;&nbsp;</a></span>rlp()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> taraxa::PbftVote::rlp </td>
+          <td class="memname">void taraxa::PbftVote::rlp </td>
           <td>(</td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>inc_sig</em> = <code>true</code>, </td>
@@ -3673,6 +3677,52 @@ Collaboration diagram for taraxa::Vote:</div>
 
 </div>
 </div>
+
+</div>
+</div>
+<a name="structtaraxa_1_1_optimized_pbft_votes_bundle" id="structtaraxa_1_1_optimized_pbft_votes_bundle"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_optimized_pbft_votes_bundle">&#9670;&nbsp;</a></span>taraxa::OptimizedPbftVotesBundle</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct taraxa::OptimizedPbftVotesBundle</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="a4b42b8e8f8e3265f906f527678d52a1d"></a>vector&lt; shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt;</td>
+<td class="fieldname">
+votes</td>
+<td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a name="structtaraxa_1_1_optimized_pillar_votes_bundle" id="structtaraxa_1_1_optimized_pillar_votes_bundle"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_optimized_pillar_votes_bundle">&#9670;&nbsp;</a></span>taraxa::OptimizedPillarVotesBundle</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct taraxa::OptimizedPillarVotesBundle</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="a42cd2d1dfc1cc009431c5dd732a71a61"></a>vector&lt; shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt;</td>
+<td class="fieldname">
+pillar_votes</td>
+<td class="fielddoc">
+</td></tr>
+</table>
 
 </div>
 </div>

@@ -96,6 +96,9 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 <li>dag_blk_hashes
 : <a class="el" href="group___final_chain.html#ad360623c4773be2ccbc2074479a5699e">taraxa::final_chain::NewBlock</a>
 </li>
+<li>dag_block
+: <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#afbd5c2a8c0e0d1b3e6855de4f856b1d2">taraxa::network::tarcap::DagBlockPacket</a>
+</li>
 <li>dag_block_
 : <a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a9a80c8e4a5bca224e6cb4888f725170e">graphql::taraxa::DagBlock</a>
 </li>
@@ -106,7 +109,8 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1_full_node.html#ace4a885b3a59850d5133fb23eca3bd6b">taraxa::FullNode</a>
 </li>
 <li>dag_blocks
-: <a class="el" href="group___p_b_f_t.html#a544fd1d4f13335c23f2febe112855a1f">taraxa::PeriodData</a>
+: <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#aede659d8ec46ff8a608d99369dec7b53">taraxa::network::tarcap::DagSyncPacket</a>
+, <a class="el" href="group___p_b_f_t.html#a7c3307d44a3088ae8eca4f3bf318e23f">taraxa::PeriodData</a>
 </li>
 <li>dag_blocks_count_
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6">taraxa::DbStorage</a>
@@ -155,9 +159,11 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 <li>dag_mgr_
 : <a class="el" href="group___d_a_g.html#afa3f18cf3f73a439e0e1f023f7948973">taraxa::DagBlockProposer</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#af336b43e37cc96080c62f10de5682886">taraxa::FullNode</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a58e81f75ec08f404888a9df3df972aee">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#add71e821c12042ed03f30c953255b79c">taraxa::network::tarcap::ExtSyncingPacketHandler&lt; PacketType &gt;</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a400c64b100835afae1884bd462b9830c">taraxa::network::tarcap::GetDagSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a178b3edbfb69bbc60a7f009d66abbf7c">taraxa::network::tarcap::NodeStats</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_syncing_packet_handler.html#ad69f06c4a3c591bdae5011a2ebd65d9e">taraxa::network::tarcap::v4::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_dag_sync_packet_handler.html#a9df609f4c82ffd076c9fc56685db1446">taraxa::network::tarcap::v4::GetDagSyncPacketHandler</a>
 , <a class="el" href="group___p_b_f_t.html#a5c07848027fb2b186ddb512e9e5b9cd8">taraxa::PbftManager</a>
 </li>
 <li>dag_proposers_reward
@@ -175,6 +181,7 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 </li>
 <li>DagBlockPacketHandler()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#aac1dddbad8a6ff8a8d8c6538f26e396d">taraxa::network::tarcap::DagBlockPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_dag_block_packet_handler.html#a38f88dac46b52dff6e596a4332c8581e">taraxa::network::tarcap::v4::DagBlockPacketHandler</a>
 </li>
 <li>DagBlockProposer()
 : <a class="el" href="group___d_a_g.html#ad5a7d03ac99f49210e6338e2f53e45c5">taraxa::DagBlockProposer</a>
@@ -184,7 +191,7 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 </li>
 <li>DagManager
 : <a class="el" href="group___d_a_g.html#a39d3bee9060aaa7149e6d979f1df125e">taraxa::Dag</a>
-, <a class="el" href="group___d_a_g.html#a6edff6db0901a776497428e7e9e10836">taraxa::DagManager</a>
+, <a class="el" href="group___d_a_g.html#a1a957529304d407e997ca611b4530ab7">taraxa::DagManager</a>
 , <a class="el" href="group___d_a_g.html#ae5eb5a9b1d9593d3dbd75328cbe64ea8">taraxa::PivotTree</a>
 </li>
 <li>dagSyncingAllowed()
@@ -192,9 +199,10 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 </li>
 <li>DagSyncPacketHandler()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html#aea6e16e423cfc67def901372855f1254">taraxa::network::tarcap::DagSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_dag_sync_packet_handler.html#ac7e67832d76adeacdf1d4ba89c340a42">taraxa::network::tarcap::v4::DagSyncPacketHandler</a>
 </li>
 <li>data()
-: <a class="el" href="classdev_1_1_fixed_hash.html#a7aa90cb5b66e28cf93b841af6da80c6a">dev::FixedHash&lt; N &gt;</a>
+: <a class="el" href="classdev_1_1_fixed_hash.html#a49662c17a82b8cdeb1a81d2244c61e13">dev::FixedHash&lt; N &gt;</a>
 , <a class="el" href="structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#a2b027d34e0abe63e3c7e52acdef843f0">dev::p2p::RLPXFrameInfo</a>
 , <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_packet.html#a42dfeb2ea6d5911070d732806697f9a4">dev::p2p::RLPXPacket</a>
 , <a class="el" href="classdev_1_1p2p_1_1_u_d_p_datagram.html#a09acc144dae4b4d3f519d13ce469bb91">dev::p2p::UDPDatagram</a>
@@ -230,10 +238,12 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 , <a class="el" href="classtaraxa_1_1_db_storage.html#a4d892dd07605cbedaf998abd5765a26b">taraxa::DbStorage</a>
 , <a class="el" href="group___final_chain.html#a0eb719aac5c1b695f828cd740169118f">taraxa::final_chain::FinalChain</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#a39df5579e354f4b4a7402600c320ed5a">taraxa::FullNode</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a00cb8c9c2a85e25458c00ee4a0b7ea74">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a9f96f8f4640914356be3069c955ceb39">taraxa::network::tarcap::ExtSyncingPacketHandler&lt; PacketType &gt;</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#acbf5e3be4a8bff032f757845621f47d8">taraxa::network::tarcap::GetDagSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a66bc045d5383a67bd29581789a4a989e">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pbft_sync_packet_handler.html#ae3bbdfadb7cd812d2ec57610aa80febf">taraxa::network::tarcap::v3::GetPbftSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_syncing_packet_handler.html#a7d3e565b77277630527390a4dec95bcf">taraxa::network::tarcap::v4::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_dag_sync_packet_handler.html#ab71ca721615f4055a055809ee434a606">taraxa::network::tarcap::v4::GetDagSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler.html#a8ac2a9b1d79614cda0e60a3b8b2acbb9">taraxa::network::tarcap::v4::GetPbftSyncPacketHandler</a>
 , <a class="el" href="group___p_b_f_t.html#a54320bf3e4e774ee45eda5e56aa9440c">taraxa::PbftChain</a>
 , <a class="el" href="group___p_b_f_t.html#afe4427d4c3cf84e1bc69322057167721">taraxa::PbftManager</a>
 , <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a37ca0cec62f3ebe1fa9cf1bb089a1ca8">taraxa::pillar_chain::PillarChainManager</a>
@@ -353,7 +363,7 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 </li>
 <li>decodePeriodData()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#ad1ca071b6524c90757e1c70635a4e1a1">taraxa::network::tarcap::PbftSyncPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a804bc4da579c52c70a794bd8daf2320e">taraxa::network::tarcap::v3::PbftSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pbft_sync_packet_handler.html#a07ff7b3dac46664c7ac627ab33b7efd0">taraxa::network::tarcap::v4::PbftSyncPacketHandler</a>
 </li>
 <li>decodeSolidity()
 : <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#a238fc28d306b6b02a95c1ae1d1d42634">taraxa::pillar_chain::PillarBlock</a>
@@ -361,7 +371,7 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 </li>
 <li>decodeVotesBundle()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a421a2d55bd12dae380cfef81dda8d444">taraxa::network::tarcap::PbftSyncPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#a9a9077ad4afd316eada517ffc08dd6f4">taraxa::network::tarcap::v3::PbftSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pbft_sync_packet_handler.html#ad41c7727288f2a64d284ed14d7501240">taraxa::network::tarcap::v4::PbftSyncPacketHandler</a>
 </li>
 <li>decompressFrame()
 : <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#a477edddcaebca0ee2d9a39f9ea6d6c15">dev::p2p::RLPXFrameCoder</a>
@@ -385,7 +395,7 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1cli_1_1_config.html#a2ca7d9d2c7c4f6250799199e06c15301">taraxa::cli::Config</a>
 </li>
 <li>DefaultConstructCopyableMovable()
-: <a class="el" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a855a78293e92333fe5609f47714a79b5">taraxa::util::DefaultConstructCopyableMovable&lt; T &gt;</a>
+: <a class="el" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a11e4826e5170008b2efe4c5ac309c4c1">taraxa::util::DefaultConstructCopyableMovable&lt; T &gt;</a>
 </li>
 <li>DeinitLogging()
 : <a class="el" href="classtaraxa_1_1logger_1_1_config.html#a652c68185a2b83da8df8fb2aff877050">taraxa::logger::Config</a>
@@ -395,7 +405,7 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 </li>
 <li>delayedPbftSync()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a67e934b4b1daf764cb2fc1f3fe49a604">taraxa::network::tarcap::PbftSyncPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html#ade7c0ca0646752763ce22f7c3b7be1ad">taraxa::network::tarcap::v3::PbftSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pbft_sync_packet_handler.html#ae412deb438ec99dff9e05eba00a9506e">taraxa::network::tarcap::v4::PbftSyncPacketHandler</a>
 </li>
 <li>delegation_delay
 : <a class="el" href="namespacetaraxa_1_1state__api.html#a675ca6539814532483aef9cb91caf8a1">taraxa::state_api::DPOSConfig</a>
@@ -482,7 +492,8 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 , <a class="el" href="structdev_1_1p2p_1_1_session.html#afc4ab254ddf7e74c2b814a1697ebcce2">dev::p2p::Session</a>
 , <a class="el" href="classdev_1_1p2p_1_1_u_d_p_socket.html#af8ee5b2d1ec1ccb9c6e51a057b103f5b">dev::p2p::UDPSocket&lt; Handler, MaxDatagramSize &gt;</a>
 , <a class="el" href="structdev_1_1p2p_1_1_u_d_p_socket_face.html#ac35c32537a1f553fae7690aec96df087">dev::p2p::UDPSocketFace</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a60a25f09bb4858e081bdfcde7a1361a0">taraxa::network::tarcap::PacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aa2f15134067ecb2dd40308c1ec8a7f18">taraxa::network::tarcap::PacketHandler&lt; PacketType &gt;</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_packet_handler.html#a3ecf06a2f947082c80a6e85cdabd47d8">taraxa::network::tarcap::v4::PacketHandler</a>
 </li>
 <li>disconnect_()
 : <a class="el" href="structdev_1_1p2p_1_1_session.html#ad7df2f6c683c28fcdee77b9d695cecce">dev::p2p::Session</a>
@@ -498,7 +509,7 @@ $(document).ready(function(){initNavTree('functions_d.html',''); initResizable()
 </li>
 <li>DiscoveryDatagram()
 : <a class="el" href="structdev_1_1p2p_1_1_discovery_datagram.html#aaf5f09106022dafba70fb4226881bf9c">dev::p2p::DiscoveryDatagram</a>
-, <a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a896187cbb24b61ba1d23ef98da134a88">dev::p2p::PingNode</a>
+, <a class="el" href="structdev_1_1p2p_1_1_ping_node.html#aaf5f09106022dafba70fb4226881bf9c">dev::p2p::PingNode</a>
 </li>
 <li>distance
 : <a class="el" href="structdev_1_1p2p_1_1_node_entry.html#a958bace3743f6137e57817750dd8d37d">dev::p2p::NodeEntry</a>

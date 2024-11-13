@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="5,27,156,69"/>
+<area shape="rect" id="node2" href="$group___vote.html#classtaraxa_1_1_vrf_pbft_sortition" title="VrfPbftSortition class used for doing VRF sortition to place a vote or to propose a new PBFT block." alt="" coords="204,5,375,32"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="212,57,367,98"/>
+</map>

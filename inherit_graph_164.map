@@ -1,3 +1,50 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html" title="MAx stats data holder class." alt="" coords="5,5,180,47"/>
+<area shape="rect" id="node1" href="$classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html" title="Base Packet handler base class that consists processPacket function." alt="" coords="5,210,180,251"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title=" " alt="" coords="250,5,481,61"/>
+<area shape="rect" id="node4" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title=" " alt="" coords="259,85,471,141"/>
+<area shape="rect" id="node6" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title=" " alt="" coords="257,165,474,221"/>
+<area shape="rect" id="node8" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title=" " alt="" coords="228,246,503,287"/>
+<area shape="rect" id="node10" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="253,703,478,745"/>
+<area shape="rect" id="node32" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="278,1525,453,1566"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html" title=" " alt="" coords="563,5,772,61"/>
+<area shape="rect" id="node5" href="$classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html" title=" " alt="" coords="569,93,766,134"/>
+<area shape="rect" id="node7" href="$classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html" title=" " alt="" coords="566,165,769,206"/>
+<area shape="rect" id="node9" href="$classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html" title=" " alt="" coords="566,230,769,271"/>
+<area shape="rect" id="node11" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html" title=" " alt="" coords="563,296,771,352"/>
+<area shape="rect" id="node13" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html" title=" " alt="" coords="564,376,771,432"/>
+<area shape="rect" id="node15" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title=" " alt="" coords="570,456,765,512"/>
+<area shape="rect" id="node17" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title=" " alt="" coords="570,536,765,592"/>
+<area shape="rect" id="node19" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title=" " alt="" coords="570,616,765,672"/>
+<area shape="rect" id="node21" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title=" " alt="" coords="570,696,765,752"/>
+<area shape="rect" id="node23" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title=" " alt="" coords="553,776,782,832"/>
+<area shape="rect" id="node25" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title=" " alt="" coords="577,856,757,912"/>
+<area shape="rect" id="node27" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title=" " alt="" coords="577,936,757,992"/>
+<area shape="rect" id="node29" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html" title=" " alt="" coords="564,1016,771,1072"/>
+<area shape="rect" id="node30" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title="ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in pack..." alt="" coords="570,1096,765,1152"/>
+<area shape="rect" id="node31" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title="ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet..." alt="" coords="577,1176,757,1232"/>
+<area shape="rect" id="node12" href="$classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler.html" title=" " alt="" coords="843,303,1080,345"/>
+<area shape="rect" id="node14" href="$classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html" title=" " alt="" coords="869,383,1054,425"/>
+<area shape="rect" id="node16" href="$classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html" title=" " alt="" coords="871,463,1051,505"/>
+<area shape="rect" id="node18" href="$classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html" title=" " alt="" coords="872,543,1051,585"/>
+<area shape="rect" id="node20" href="$classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html" title=" " alt="" coords="874,623,1049,665"/>
+<area shape="rect" id="node22" href="$classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html" title=" " alt="" coords="869,703,1054,745"/>
+<area shape="rect" id="node24" href="$classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html" title=" " alt="" coords="832,783,1091,825"/>
+<area shape="rect" id="node26" href="$classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html" title=" " alt="" coords="859,863,1063,905"/>
+<area shape="rect" id="node28" href="$classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html" title=" " alt="" coords="874,943,1049,985"/>
+<area shape="rect" id="node33" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_pillar_vote_packet_handler.html" title=" " alt="" coords="552,1257,783,1298"/>
+<area shape="rect" id="node36" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_syncing_packet_handler.html" title="ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in pack..." alt="" coords="558,1391,777,1433"/>
+<area shape="rect" id="node41" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_votes_packet_handler.html" title="ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet..." alt="" coords="565,1493,769,1534"/>
+<area shape="rect" id="node45" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_dag_sync_packet_handler.html" title=" " alt="" coords="554,1558,781,1599"/>
+<area shape="rect" id="node46" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler.html" title=" " alt="" coords="554,1623,781,1665"/>
+<area shape="rect" id="node47" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pillar_votes_bundle_packet_handler.html" title=" " alt="" coords="551,1689,784,1745"/>
+<area shape="rect" id="node48" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_transaction_packet_handler.html" title=" " alt="" coords="557,1770,778,1811"/>
+<area shape="rect" id="node34" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pillar_vote_packet_handler.html" title=" " alt="" coords="857,1114,1066,1155"/>
+<area shape="rect" id="node35" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pillar_votes_bundle_packet_handler.html" title=" " alt="" coords="856,1180,1067,1236"/>
+<area shape="rect" id="node37" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_dag_block_packet_handler.html" title=" " alt="" coords="857,1261,1066,1302"/>
+<area shape="rect" id="node38" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_dag_sync_packet_handler.html" title=" " alt="" coords="859,1326,1063,1367"/>
+<area shape="rect" id="node39" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pbft_sync_packet_handler.html" title=" " alt="" coords="860,1391,1063,1433"/>
+<area shape="rect" id="node40" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_status_packet_handler.html" title=" " alt="" coords="867,1457,1055,1498"/>
+<area shape="rect" id="node42" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_next_votes_bundle_packet_handler.html" title=" " alt="" coords="846,1523,1077,1579"/>
+<area shape="rect" id="node43" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_vote_packet_handler.html" title=" " alt="" coords="873,1603,1049,1645"/>
+<area shape="rect" id="node44" href="$classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_votes_bundle_packet_handler.html" title=" " alt="" coords="847,1669,1075,1710"/>
 </map>

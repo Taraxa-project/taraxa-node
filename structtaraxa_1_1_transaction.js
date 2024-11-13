@@ -24,7 +24,7 @@ var structtaraxa_1_1_transaction =
     [ "hash_for_signature", "structtaraxa_1_1_transaction.html#af492cd79a6fcf8ff4403062401e10ae2", null ],
     [ "isZero", "structtaraxa_1_1_transaction.html#ac01847a061aae8c94391cc9a0a50333e", null ],
     [ "operator==", "structtaraxa_1_1_transaction.html#a183f04919111318aa9732a40f849718e", null ],
-    [ "rlp", "structtaraxa_1_1_transaction.html#a2f1197d218527ec86a7265df9b77e2f2", null ],
+    [ "rlp", "structtaraxa_1_1_transaction.html#ab1d1cf3ac836c41e86babfc6c59a0fb3", null ],
     [ "streamRLP", "structtaraxa_1_1_transaction.html#a6fed21beea0ad2b15676109e40c4ab3a", null ],
     [ "toJSON", "structtaraxa_1_1_transaction.html#a5becd18abbf7c55be3380009e310c7a6", null ],
     [ "cached_rlp_", "structtaraxa_1_1_transaction.html#a3db68b2a188096b3096823819b036b64", null ],

@@ -6,7 +6,7 @@ var classtaraxa_1_1net_1_1_ws_server =
     [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#af725d56484b76ff7c1f99689ad9cd2f0", null ],
     [ "createSession", "classtaraxa_1_1net_1_1_ws_server.html#a88b90f53f9b7fb10206a210f6899970d", null ],
     [ "do_accept", "classtaraxa_1_1net_1_1_ws_server.html#aad26dbf80dab4ef48a5fd9321b168dc9", null ],
-    [ "newDagBlock", "classtaraxa_1_1net_1_1_ws_server.html#a4cd76a33cecd562db14c50bff066e929", null ],
+    [ "newDagBlock", "classtaraxa_1_1net_1_1_ws_server.html#a4f078ae0025d3b709e6c05594af77a33", null ],
     [ "newDagBlockFinalized", "classtaraxa_1_1net_1_1_ws_server.html#a32fe46d862ddcfdaa581a9927ad39097", null ],
     [ "newEthBlock", "classtaraxa_1_1net_1_1_ws_server.html#a322346eb144b9474d339a11289d714f3", null ],
     [ "newPbftBlockExecuted", "classtaraxa_1_1net_1_1_ws_server.html#a8e904b54c82e17f52b79548e48728e06", null ],

@@ -1,5 +1,6 @@
 var group___p_b_f_t_classtaraxa_1_1_pbft_block =
 [
+    [ "PbftBlock", "group___p_b_f_t.html#a28075635ed83446a5a94553f4021e9c4", null ],
     [ "PbftBlock", "group___p_b_f_t.html#a575d4828e37856ff98c98b1621691b01", null ],
     [ "PbftBlock", "group___p_b_f_t.html#a548e429fa4831c3f0c7f30c4f625f946", null ],
     [ "PbftBlock", "group___p_b_f_t.html#a358cde250e7fd9b8bffc6be6a1259b39", null ],
@@ -18,7 +19,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_block =
     [ "getPrevBlockHash", "group___p_b_f_t.html#af52113f6af425d31ad748fb285a295fd", null ],
     [ "getRewardVotes", "group___p_b_f_t.html#a3495e3adf8b3ea6c3d9b8a60960c2124", null ],
     [ "getTimestamp", "group___p_b_f_t.html#a22eee336df7fc15a4fc28879d96a56fa", null ],
-    [ "rlp", "group___p_b_f_t.html#a1b7708eb909c07d3c0a98013acfcbb46", null ],
+    [ "rlp", "group___p_b_f_t.html#ad9ce0317a7c0cda7c86e7372231b2f07", null ],
     [ "sha3", "group___p_b_f_t.html#ae942808470cc3b06077fd9b1524c975e", null ],
     [ "streamRLP", "group___p_b_f_t.html#ad2722a9c3f6c75cc75a13314f934dc32", null ],
     [ "toJson", "group___p_b_f_t.html#aaaa9dc52bffddcf47e1cc08b7ac9c539", null ],

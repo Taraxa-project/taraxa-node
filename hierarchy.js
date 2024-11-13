@@ -15,6 +15,73 @@ var hierarchy =
       [ "taraxa::storage::migration::PeriodDagBlocks", "classtaraxa_1_1storage_1_1migration_1_1_period_dag_blocks.html", null ],
       [ "taraxa::storage::migration::TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", null ]
     ] ],
+    [ "taraxa::network::tarcap::BasePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html", [
+      [ "taraxa::network::tarcap::PacketHandler< GetPillarVotesBundlePacket >", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", [
+        [ "taraxa::network::tarcap::GetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html", null ]
+      ] ],
+      [ "taraxa::network::tarcap::PacketHandler< TransactionPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", [
+        [ "taraxa::network::tarcap::TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html", null ]
+      ] ],
+      [ "taraxa::network::tarcap::PacketHandler< GetPbftSyncPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", [
+        [ "taraxa::network::tarcap::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", null ]
+      ] ],
+      [ "taraxa::network::tarcap::PacketHandler< GetDagSyncPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", [
+        [ "taraxa::network::tarcap::GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html", null ]
+      ] ],
+      [ "taraxa::network::tarcap::PacketHandler< PacketType >", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", [
+        [ "taraxa::network::tarcap::ExtPillarVotePacketHandler< PillarVotesBundlePacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html", [
+          [ "taraxa::network::tarcap::PillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtPillarVotePacketHandler< PillarVotePacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html", [
+          [ "taraxa::network::tarcap::PillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtSyncingPacketHandler< DagSyncPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", [
+          [ "taraxa::network::tarcap::DagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtSyncingPacketHandler< PbftSyncPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", [
+          [ "taraxa::network::tarcap::PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtSyncingPacketHandler< StatusPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", [
+          [ "taraxa::network::tarcap::StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtSyncingPacketHandler< DagBlockPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", [
+          [ "taraxa::network::tarcap::DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtVotesPacketHandler< GetNextVotesBundlePacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", [
+          [ "taraxa::network::tarcap::GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtVotesPacketHandler< VotesBundlePacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", [
+          [ "taraxa::network::tarcap::VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtVotesPacketHandler< VotePacket >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", [
+          [ "taraxa::network::tarcap::VotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::ExtPillarVotePacketHandler< PacketType >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html", null ],
+        [ "taraxa::network::tarcap::ExtSyncingPacketHandler< PacketType >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", null ],
+        [ "taraxa::network::tarcap::ExtVotesPacketHandler< PacketType >", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", null ]
+      ] ],
+      [ "taraxa::network::tarcap::v4::PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_packet_handler.html", [
+        [ "taraxa::network::tarcap::v4::ExtPillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_pillar_vote_packet_handler.html", [
+          [ "taraxa::network::tarcap::v4::PillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pillar_vote_packet_handler.html", null ],
+          [ "taraxa::network::tarcap::v4::PillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pillar_votes_bundle_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::v4::ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_syncing_packet_handler.html", [
+          [ "taraxa::network::tarcap::v4::DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_dag_block_packet_handler.html", null ],
+          [ "taraxa::network::tarcap::v4::DagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_dag_sync_packet_handler.html", null ],
+          [ "taraxa::network::tarcap::v4::PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_pbft_sync_packet_handler.html", null ],
+          [ "taraxa::network::tarcap::v4::StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_status_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::v4::ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_ext_votes_packet_handler.html", [
+          [ "taraxa::network::tarcap::v4::GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_next_votes_bundle_packet_handler.html", null ],
+          [ "taraxa::network::tarcap::v4::VotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_vote_packet_handler.html", null ],
+          [ "taraxa::network::tarcap::v4::VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_votes_bundle_packet_handler.html", null ]
+        ] ],
+        [ "taraxa::network::tarcap::v4::GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_dag_sync_packet_handler.html", null ],
+        [ "taraxa::network::tarcap::v4::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler.html", null ],
+        [ "taraxa::network::tarcap::v4::GetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pillar_votes_bundle_packet_handler.html", null ],
+        [ "taraxa::network::tarcap::v4::TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_transaction_packet_handler.html", null ]
+      ] ]
+    ] ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
     [ "taraxa::final_chain::BlockHeaderData", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data", [
       [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", [
@@ -70,10 +137,12 @@ var hierarchy =
     ] ],
     [ "graphql::taraxa::DagBlock", "classgraphql_1_1taraxa_1_1_dag_block.html", null ],
     [ "taraxa::DagBlock", "classtaraxa_1_1_dag_block.html", null ],
+    [ "taraxa::network::tarcap::DagBlockPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet", null ],
     [ "taraxa::DagBlockProposer", "group___d_a_g.html#classtaraxa_1_1_dag_block_proposer", null ],
     [ "taraxa::DagBlockProposerConfig", "structtaraxa_1_1_dag_block_proposer_config.html", null ],
     [ "taraxa::DagConfig", "structtaraxa_1_1_dag_config.html", null ],
     [ "taraxa::DagFrontier", "structtaraxa_1_1_dag_frontier.html", null ],
+    [ "taraxa::network::tarcap::DagSyncPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet", null ],
     [ "taraxa::DBConfig", "namespacetaraxa.html#structtaraxa_1_1_d_b_config", null ],
     [ "taraxa::DdosProtectionConfig", "structtaraxa_1_1_ddos_protection_config.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< T >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
@@ -110,14 +179,14 @@ var hierarchy =
     ] ],
     [ "taraxa::util::event::EventSubscriber< Payload >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", [
       [ "taraxa::util::event::Event< taraxa::TransactionManager, dev::FixedHash >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
-      [ "taraxa::util::event::Event< taraxa::DagManager, taraxa::DagBlock >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
+      [ "taraxa::util::event::Event< taraxa::DagManager, std::shared_ptr< taraxa::DagBlock > >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
       [ "taraxa::util::event::EventEmitter< const taraxa::pillar_chain::PillarBlockData & >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
       [ "taraxa::util::event::EventEmitter< std::shared_ptr< taraxa::final_chain::FinalizationResult > >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
       [ "taraxa::util::event::EventEmitter< uint64_t >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
       [ "taraxa::util::event::Event< Owner, Payload >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
       [ "taraxa::util::event::EventEmitter< Payload >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", [
         [ "taraxa::util::event::Event< taraxa::TransactionManager, dev::FixedHash >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
-        [ "taraxa::util::event::Event< taraxa::DagManager, taraxa::DagBlock >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
+        [ "taraxa::util::event::Event< taraxa::DagManager, std::shared_ptr< taraxa::DagBlock > >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
         [ "taraxa::util::event::Event< Owner, Payload >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ]
       ] ]
     ] ],
@@ -150,7 +219,7 @@ var hierarchy =
       [ "ExpirationBlockNumberCache< dev::FixedHash >", "class_expiration_block_number_cache.html", null ]
     ] ],
     [ "ExpirationCacheMap< Key, Value >", "class_expiration_cache_map.html", null ],
-    [ "ExpirationCacheMap< dev::FixedHash, taraxa::DagBlock >", "class_expiration_cache_map.html", null ],
+    [ "ExpirationCacheMap< dev::FixedHash, std::shared_ptr< taraxa::DagBlock > >", "class_expiration_cache_map.html", null ],
     [ "taraxa::FicusHardforkConfig", "structtaraxa_1_1_ficus_hardfork_config.html", null ],
     [ "taraxa::final_chain::FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", null ],
     [ "dev::FixedHash< N >", "classdev_1_1_fixed_hash.html", null ],
@@ -170,6 +239,10 @@ var hierarchy =
     [ "dev::GenericUnguardBool< MutexType >", "structdev_1_1_generic_unguard_bool.html", null ],
     [ "dev::GenericUnguardSharedBool< MutexType >", "structdev_1_1_generic_unguard_shared_bool.html", null ],
     [ "taraxa::GenesisConfig", "structtaraxa_1_1_genesis_config.html", null ],
+    [ "taraxa::network::tarcap::GetDagSyncPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet", null ],
+    [ "taraxa::network::tarcap::GetNextVotesBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet", null ],
+    [ "taraxa::network::tarcap::GetPbftSyncPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet", null ],
+    [ "taraxa::network::tarcap::GetPillarVotesBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet", null ],
     [ "GuardType", null, [
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],
@@ -193,6 +266,7 @@ var hierarchy =
       [ "taraxa::net::JsonRpcHttpProcessor", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html", null ]
     ] ],
     [ "dev::p2p::IdentitySchemeV4", "classdev_1_1p2p_1_1_identity_scheme_v4.html", null ],
+    [ "taraxa::network::tarcap::StatusPacket::InitialData", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data", null ],
     [ "dev::intTraits< _T >", "structdev_1_1int_traits.html", null ],
     [ "dev::intTraits< bigint >", "structdev_1_1int_traits_3_01bigint_01_4.html", null ],
     [ "dev::intTraits< u160 >", "structdev_1_1int_traits_3_01u160_01_4.html", null ],
@@ -253,33 +327,13 @@ var hierarchy =
       [ "taraxa::network::tarcap::TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html", null ]
     ] ],
     [ "dev::Notified< N >", "classdev_1_1_notified.html", null ],
+    [ "taraxa::OptimizedPbftVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle", null ],
+    [ "taraxa::OptimizedPillarVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle", null ],
+    [ "taraxa::network::tarcap::VotePacket::OptionalData", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet_1_1_optional_data", null ],
     [ "taraxa::state_api::Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", null ],
     [ "taraxa::state_api::OptsDB", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b", null ],
     [ "taraxa::logger::Config::OutputConfig", "structtaraxa_1_1logger_1_1_config_1_1_output_config.html", null ],
     [ "taraxa::network::threadpool::PacketData", "classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html", null ],
-    [ "taraxa::network::tarcap::PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", [
-      [ "taraxa::network::tarcap::ExtPillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html", [
-        [ "taraxa::network::tarcap::PillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::PillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler.html", null ]
-      ] ],
-      [ "taraxa::network::tarcap::ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", [
-        [ "taraxa::network::tarcap::DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::DagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::v3::PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html", null ]
-      ] ],
-      [ "taraxa::network::tarcap::ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", [
-        [ "taraxa::network::tarcap::GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::VotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html", null ]
-      ] ],
-      [ "taraxa::network::tarcap::GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html", null ],
-      [ "taraxa::network::tarcap::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", null ],
-      [ "taraxa::network::tarcap::GetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html", null ],
-      [ "taraxa::network::tarcap::TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html", null ],
-      [ "taraxa::network::tarcap::v3::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pbft_sync_packet_handler.html", null ]
-    ] ],
     [ "taraxa::network::threadpool::PacketsBlockingMask", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html", null ],
     [ "taraxa::network::tarcap::PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", null ],
     [ "taraxa::network::threadpool::PacketsQueue", "classtaraxa_1_1network_1_1threadpool_1_1_packets_queue.html", null ],
@@ -292,6 +346,7 @@ var hierarchy =
     [ "taraxa::PbftConfig", "structtaraxa_1_1_pbft_config.html", null ],
     [ "taraxa::PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", null ],
     [ "taraxa::network::tarcap::PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", null ],
+    [ "taraxa::network::tarcap::PbftSyncPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet", null ],
     [ "dev::p2p::PeerSessionInfo", "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info", null ],
     [ "taraxa::network::tarcap::PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", null ],
     [ "taraxa::PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", null ],
@@ -302,7 +357,9 @@ var hierarchy =
     [ "taraxa::pillar_chain::PillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block", null ],
     [ "taraxa::pillar_chain::PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data", null ],
     [ "taraxa::pillar_chain::PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager", null ],
+    [ "taraxa::network::tarcap::PillarVotePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet", null ],
     [ "taraxa::pillar_chain::PillarVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html", null ],
+    [ "taraxa::network::tarcap::PillarVotesBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet", null ],
     [ "taraxa::net::rpc::eth::placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
     [ "taraxa::network::threadpool::PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html", null ],
     [ "taraxa::PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", null ],
@@ -382,6 +439,7 @@ var hierarchy =
     [ "dev::StaticLog2< N >", "structdev_1_1_static_log2.html", null ],
     [ "dev::StaticLog2< 1 >", "structdev_1_1_static_log2_3_011_01_4.html", null ],
     [ "taraxa::rewards::Stats", "classtaraxa_1_1rewards_1_1_stats.html", null ],
+    [ "taraxa::network::tarcap::StatusPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet", null ],
     [ "taraxa::StatusTable< K, V >", "classtaraxa_1_1_status_table.html", null ],
     [ "taraxa::VerifiedVotes::StepVotes", "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes", null ],
     [ "dev::StreamOut< T >", "structdev_1_1_stream_out.html", null ],
@@ -405,6 +463,7 @@ var hierarchy =
         [ "taraxa::net::rpc::eth::ExtendedTransactionLocation", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html", null ]
       ] ]
     ] ],
+    [ "taraxa::network::tarcap::TransactionPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_transaction_packet", null ],
     [ "taraxa::TransactionQueue", "group___transaction.html#classtaraxa_1_1_transaction_queue", null ],
     [ "taraxa::final_chain::TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", null ],
     [ "taraxa::state_api::TransactionsExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result", null ],
@@ -450,6 +509,8 @@ var hierarchy =
       [ "taraxa::PillarVote", "group___vote.html#classtaraxa_1_1_pillar_vote", null ]
     ] ],
     [ "taraxa::VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", null ],
+    [ "taraxa::network::tarcap::VotePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet", null ],
+    [ "taraxa::network::tarcap::VotesBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet", null ],
     [ "taraxa::VrfParams", "structtaraxa_1_1_vrf_params.html", null ],
     [ "taraxa::VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", null ],
     [ "taraxa::vrf_wrapper::VrfSortitionBase", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html", [

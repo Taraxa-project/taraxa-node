@@ -261,6 +261,10 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_vote"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_vote"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vote" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,...">Vote</a> class is a vote class that includes vote hash, vote on PBFT block hash, vote signature, VRF sortition, voter public key, voter address, and vote weight.  <a href="group___vote.html#classtaraxa_1_1_vote">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_vote"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1_optimized_pbft_votes_bundle"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle">OptimizedPbftVotesBundle</a></td></tr>
+<tr class="separator:structtaraxa_1_1_optimized_pbft_votes_bundle"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1_optimized_pillar_votes_bundle"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle">OptimizedPillarVotesBundle</a></td></tr>
+<tr class="separator:structtaraxa_1_1_optimized_pillar_votes_bundle"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_vrf_pbft_msg"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg">VrfPbftMsg</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_vrf_pbft_msg"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg class uses PBFT period, round and step to generate a message for doing VRF sortition.">VrfPbftMsg</a> class uses PBFT period, round and step to generate a message for doing VRF sortition.  <a href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_vrf_pbft_msg"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -553,12 +557,12 @@ Functions</h2></td></tr>
 <tr class="memitem:aced41bb0204474f3fd03a0aac32a126c"><td class="memTemplParams" colspan="2">template&lt;class T &gt; </td></tr>
 <tr class="memitem:aced41bb0204474f3fd03a0aac32a126c"><td class="memTemplItemLeft" align="right" valign="top">const rocksdb::Comparator *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aced41bb0204474f3fd03a0aac32a126c">getIntComparator</a> ()</td></tr>
 <tr class="separator:aced41bb0204474f3fd03a0aac32a126c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">encodeDAGBlocksBundleRlp</a> (const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;blocks)</td></tr>
-<tr class="memdesc:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encodes pbft blocks into optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">More...</a><br /></td></tr>
-<tr class="separator:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">decodeDAGBlocksBundleRlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
-<tr class="memdesc:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes pbft blocks from optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">More...</a><br /></td></tr>
-<tr class="separator:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa2049751692b48a36491d11e62183ff5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaa2049751692b48a36491d11e62183ff5">encodeDAGBlocksBundleRlp</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;blocks)</td></tr>
+<tr class="memdesc:gaa2049751692b48a36491d11e62183ff5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encodes pbft blocks into optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaa2049751692b48a36491d11e62183ff5">More...</a><br /></td></tr>
+<tr class="separator:gaa2049751692b48a36491d11e62183ff5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8682bb5d2ce17022a8f72d21b195c4e4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga8682bb5d2ce17022a8f72d21b195c4e4">decodeDAGBlocksBundleRlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
+<tr class="memdesc:ga8682bb5d2ce17022a8f72d21b195c4e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes pbft blocks from optimized blocks bundle rlp.  <a href="group___d_a_g.html#ga8682bb5d2ce17022a8f72d21b195c4e4">More...</a><br /></td></tr>
+<tr class="separator:ga8682bb5d2ce17022a8f72d21b195c4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga91f496e181660542c01639bf624a40e0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">decodeDAGBlockBundleRlp</a> (uint64_t index, const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
 <tr class="memdesc:ga91f496e181660542c01639bf624a40e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes single dag block from optimized blocks bundle rlp.  <a href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">More...</a><br /></td></tr>
 <tr class="separator:ga91f496e181660542c01639bf624a40e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -632,8 +636,8 @@ Variables</h2></td></tr>
 <tr class="separator:a362de53960470ae77608995191b6d53d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28123a29b1fa339b2202fbef0ae1db77"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a28123a29b1fa339b2202fbef0ae1db77">kMaxNonFinalizedDagBlocks</a> {100}</td></tr>
 <tr class="separator:a28123a29b1fa339b2202fbef0ae1db77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa05ef1169875a95c1f2c76038cd546f1"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa05ef1169875a95c1f2c76038cd546f1">kV3NetworkVersion</a> = 3</td></tr>
-<tr class="separator:aa05ef1169875a95c1f2c76038cd546f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4bf745969073dd11f923013800d92e3b"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a4bf745969073dd11f923013800d92e3b">kV4NetworkVersion</a> = 4</td></tr>
+<tr class="separator:a4bf745969073dd11f923013800d92e3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a017ff573490da91468122ecd635edb96"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a017ff573490da91468122ecd635edb96">kRecentlyFinalizedTransactionsFactor</a> = 2</td></tr>
 <tr class="separator:a017ff573490da91468122ecd635edb96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af37c840bbc7870c8fb9f5c878ac55582"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#af37c840bbc7870c8fb9f5c878ac55582">kOneTara</a> = <a class="el" href="namespacedev.html#aaa0b3b33e41c3a8aad65a07acd88a897">dev::exp10</a>&lt;18&gt;()</td></tr>
@@ -3905,14 +3909,14 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="aa05ef1169875a95c1f2c76038cd546f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa05ef1169875a95c1f2c76038cd546f1">&#9670;&nbsp;</a></span>kV3NetworkVersion</h2>
+<a id="a4bf745969073dd11f923013800d92e3b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4bf745969073dd11f923013800d92e3b">&#9670;&nbsp;</a></span>kV4NetworkVersion</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const size_t taraxa::kV3NetworkVersion = 3</td>
+          <td class="memname">const size_t taraxa::kV4NetworkVersion = 4</td>
         </tr>
       </table>
 </div><div class="memdoc">

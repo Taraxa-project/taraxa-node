@@ -17,7 +17,7 @@ var group___vote_classtaraxa_1_1_pbft_vote =
     [ "getWeight", "group___vote.html#a89b4983e2357f851973e7def2d614121", null ],
     [ "operator==", "group___vote.html#ab4fadfbac95a959aa49bdcefc15a4970", null ],
     [ "optimizedRlp", "group___vote.html#a405d0698d4b0feb1f1f948ca5f291579", null ],
-    [ "rlp", "group___vote.html#a299329722f113f1f0d7f6f144043eef6", null ],
+    [ "rlp", "group___vote.html#a35304b5be8c4d485637815ff1728e46d", null ],
     [ "sha3", "group___vote.html#a424d4d6ce930d31755a20c1b4d5fad55", null ],
     [ "toJSON", "group___vote.html#a442303caeec4de50c06194d50e2b2d03", null ],
     [ "verifyVrfSortition", "group___vote.html#a31853775f489173a499af7cf08503710", null ],

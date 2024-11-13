@@ -5,7 +5,7 @@ var classtaraxa_1_1net_1_1_ws_session =
     [ "do_read", "classtaraxa_1_1net_1_1_ws_session.html#a72434d357dad6f1b9446f46110afe6bf", null ],
     [ "is_closed", "classtaraxa_1_1net_1_1_ws_session.html#a5621bdc44b6ed090bc4c8e19c7042837", null ],
     [ "is_normal", "classtaraxa_1_1net_1_1_ws_session.html#a0ac5a482061fe062756b2fc12f710a4e", null ],
-    [ "newDagBlock", "classtaraxa_1_1net_1_1_ws_session.html#a6e2a05b96a82177b2d4cb0a5650e56cd", null ],
+    [ "newDagBlock", "classtaraxa_1_1net_1_1_ws_session.html#a0dcb81935f963701e811cb82f4e8012d", null ],
     [ "newDagBlockFinalized", "classtaraxa_1_1net_1_1_ws_session.html#a5c855ee20232cae37ab70dff0e9deeb9", null ],
     [ "newEthBlock", "classtaraxa_1_1net_1_1_ws_session.html#a230431c6d2476181d58493f0c6e35aa6", null ],
     [ "newPbftBlockExecuted", "classtaraxa_1_1net_1_1_ws_session.html#ab686f1cee9e3f3ee453a8a9e76b01860", null ],

@@ -116,12 +116,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">taraxa::encodeDAGBlocksBundleRlp</a> (const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;blocks)</td></tr>
-<tr class="memdesc:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encodes pbft blocks into optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">More...</a><br /></td></tr>
-<tr class="separator:gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">taraxa::decodeDAGBlocksBundleRlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
-<tr class="memdesc:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes pbft blocks from optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaa96b4d465129a3edd0fbb85a2f3a3de1">More...</a><br /></td></tr>
-<tr class="separator:gaa96b4d465129a3edd0fbb85a2f3a3de1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa2049751692b48a36491d11e62183ff5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#gaa2049751692b48a36491d11e62183ff5">taraxa::encodeDAGBlocksBundleRlp</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;blocks)</td></tr>
+<tr class="memdesc:gaa2049751692b48a36491d11e62183ff5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encodes pbft blocks into optimized blocks bundle rlp.  <a href="group___d_a_g.html#gaa2049751692b48a36491d11e62183ff5">More...</a><br /></td></tr>
+<tr class="separator:gaa2049751692b48a36491d11e62183ff5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8682bb5d2ce17022a8f72d21b195c4e4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga8682bb5d2ce17022a8f72d21b195c4e4">taraxa::decodeDAGBlocksBundleRlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
+<tr class="memdesc:ga8682bb5d2ce17022a8f72d21b195c4e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes pbft blocks from optimized blocks bundle rlp.  <a href="group___d_a_g.html#ga8682bb5d2ce17022a8f72d21b195c4e4">More...</a><br /></td></tr>
+<tr class="separator:ga8682bb5d2ce17022a8f72d21b195c4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga91f496e181660542c01639bf624a40e0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">taraxa::decodeDAGBlockBundleRlp</a> (uint64_t index, const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;blocks_bundle_rlp)</td></tr>
 <tr class="memdesc:ga91f496e181660542c01639bf624a40e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decodes single dag block from optimized blocks bundle rlp.  <a href="group___d_a_g.html#ga91f496e181660542c01639bf624a40e0">More...</a><br /></td></tr>
 <tr class="separator:ga91f496e181660542c01639bf624a40e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1553,9 +1553,9 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 <tr class="memdesc:acba115ac997fdb3f018151956965a51f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Select tips for <a class="el" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b...">DagBlock</a> proposal up to max allowed.  <a href="group___d_a_g.html#acba115ac997fdb3f018151956965a51f">More...</a><br /></td></tr>
 <tr class="separator:acba115ac997fdb3f018151956965a51f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
-<tr class="memitem:a4ecfec97096f3121935880335571db78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4ecfec97096f3121935880335571db78">createDagBlock</a> (<a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a> &amp;&amp;frontier, <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a> level, const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;trxs, std::vector&lt; uint64_t &gt; &amp;&amp;estimations, <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">VdfSortition</a> &amp;&amp;vdf) const</td></tr>
-<tr class="memdesc:a4ecfec97096f3121935880335571db78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new block with provided data.  <a href="group___d_a_g.html#a4ecfec97096f3121935880335571db78">More...</a><br /></td></tr>
-<tr class="separator:a4ecfec97096f3121935880335571db78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62ddc9b2edce48ff2bfea2108ef58b97"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a62ddc9b2edce48ff2bfea2108ef58b97">createDagBlock</a> (<a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a> &amp;&amp;frontier, <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a> level, const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;trxs, std::vector&lt; uint64_t &gt; &amp;&amp;estimations, <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">VdfSortition</a> &amp;&amp;vdf) const</td></tr>
+<tr class="memdesc:a62ddc9b2edce48ff2bfea2108ef58b97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new block with provided data.  <a href="group___d_a_g.html#a62ddc9b2edce48ff2bfea2108ef58b97">More...</a><br /></td></tr>
+<tr class="separator:a62ddc9b2edce48ff2bfea2108ef58b97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2120333b1505684141edfb6f488ffb2b"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a>, std::vector&lt; uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2120333b1505684141edfb6f488ffb2b">getShardedTrxs</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> proposal_period, uint64_t weight_limit) const</td></tr>
 <tr class="memdesc:a2120333b1505684141edfb6f488ffb2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets transactions to include in the block - sharding not supported yet.  <a href="group___d_a_g.html#a2120333b1505684141edfb6f488ffb2b">More...</a><br /></td></tr>
 <tr class="separator:a2120333b1505684141edfb6f488ffb2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1746,8 +1746,8 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
-<a id="a4ecfec97096f3121935880335571db78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ecfec97096f3121935880335571db78">&#9670;&nbsp;</a></span>createDagBlock()</h2>
+<a id="a62ddc9b2edce48ff2bfea2108ef58b97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62ddc9b2edce48ff2bfea2108ef58b97">&#9670;&nbsp;</a></span>createDagBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1756,7 +1756,7 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> taraxa::DagBlockProposer::createDagBlock </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; taraxa::DagBlockProposer::createDagBlock </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>frontier</em>, </td>
@@ -2689,26 +2689,26 @@ Collaboration diagram for taraxa::DagManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_dag_manager__coll__graph.png" border="0" usemap="#ataraxa_1_1_dag_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1_dag_manager_coll__map" id="ataraxa_1_1_dag_manager_coll__map">
-<area shape="rect" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="1593,242,1748,269"/>
+<area shape="rect" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="1593,311,1748,338"/>
 <area shape="rect" title=" " alt="" coords="1141,5,1345,47"/>
-<area shape="rect" href="class_expiration_cache_map.html" title=" " alt="" coords="1150,71,1335,127"/>
-<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="1133,151,1352,207"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="731,103,927,144"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,139,516,180"/>
-<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,131,207,187"/>
-<area shape="rect" href="structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="1154,313,1331,339"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="745,378,914,405"/>
-<area shape="rect" href="structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="728,327,931,354"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="328,327,488,354"/>
-<area shape="rect" href="structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="955,425,1103,451"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="735,277,924,303"/>
-<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title="SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments." alt="" coords="1127,438,1359,465"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="745,479,913,506"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="321,479,495,506"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="35,505,177,531"/>
-<area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="37,454,175,481"/>
-<area shape="rect" href="structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1173,511,1312,538"/>
-<area shape="rect" href="structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="734,531,925,572"/>
+<area shape="rect" href="class_expiration_cache_map.html" title=" " alt="" coords="1161,71,1325,141"/>
+<area shape="rect" href="structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="1154,273,1331,299"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="745,318,914,345"/>
+<area shape="rect" href="structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="728,267,931,294"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="328,267,488,294"/>
+<area shape="rect" href="structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="955,365,1103,391"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="735,217,924,243"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="1133,405,1352,476"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="731,420,927,461"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,447,516,488"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,439,207,495"/>
+<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title="SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments." alt="" coords="1127,521,1359,547"/>
+<area shape="rect" href="structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="745,537,913,563"/>
+<area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="321,537,495,563"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="35,581,177,607"/>
+<area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="37,530,175,557"/>
+<area shape="rect" href="structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1173,583,1312,610"/>
+<area shape="rect" href="structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="734,588,925,629"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -2751,15 +2751,15 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="memitem:abce853c7b3f9c2ad1d7f8f645573254a"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#abce853c7b3f9c2ad1d7f8f645573254a">getDagBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash) const</td></tr>
 <tr class="memdesc:abce853c7b3f9c2ad1d7f8f645573254a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets dag block from either local memory cache or db.  <a href="group___d_a_g.html#abce853c7b3f9c2ad1d7f8f645573254a">More...</a><br /></td></tr>
 <tr class="separator:abce853c7b3f9c2ad1d7f8f645573254a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2762e392fd4d8533e72f1049e0e0124b"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">VerifyBlockReturnType</a>, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2762e392fd4d8533e72f1049e0e0124b">verifyBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk, const std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&gt; &amp;trxs={})</td></tr>
-<tr class="memdesc:a2762e392fd4d8533e72f1049e0e0124b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies new DAG block.  <a href="group___d_a_g.html#a2762e392fd4d8533e72f1049e0e0124b">More...</a><br /></td></tr>
-<tr class="separator:a2762e392fd4d8533e72f1049e0e0124b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd43873f7de88687241db2e74a431966"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#afd43873f7de88687241db2e74a431966">pivotAndTipsAvailable</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
-<tr class="memdesc:afd43873f7de88687241db2e74a431966"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if block pivot and tips are in DAG.  <a href="group___d_a_g.html#afd43873f7de88687241db2e74a431966">More...</a><br /></td></tr>
-<tr class="separator:afd43873f7de88687241db2e74a431966"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af03ed62a5da2149160bf80318f94fc17"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17">addDagBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;blk, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;&amp;trxs={}, bool proposed=false, bool save=true)</td></tr>
-<tr class="memdesc:af03ed62a5da2149160bf80318f94fc17"><td class="mdescLeft">&#160;</td><td class="mdescRight">adds verified DAG block in the DAG  <a href="group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17">More...</a><br /></td></tr>
-<tr class="separator:af03ed62a5da2149160bf80318f94fc17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7988096583a74fe91b176256adf50c97"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">VerifyBlockReturnType</a>, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a7988096583a74fe91b176256adf50c97">verifyBlock</a> (const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;blk, const std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&gt; &amp;trxs={})</td></tr>
+<tr class="memdesc:a7988096583a74fe91b176256adf50c97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies new DAG block.  <a href="group___d_a_g.html#a7988096583a74fe91b176256adf50c97">More...</a><br /></td></tr>
+<tr class="separator:a7988096583a74fe91b176256adf50c97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb7f95ccfaa95fed3c520673f744cb98"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aeb7f95ccfaa95fed3c520673f744cb98">pivotAndTipsAvailable</a> (const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;blk)</td></tr>
+<tr class="memdesc:aeb7f95ccfaa95fed3c520673f744cb98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if block pivot and tips are in DAG.  <a href="group___d_a_g.html#aeb7f95ccfaa95fed3c520673f744cb98">More...</a><br /></td></tr>
+<tr class="separator:aeb7f95ccfaa95fed3c520673f744cb98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1d9ec62d99134024e9be37fc55f1f53"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad1d9ec62d99134024e9be37fc55f1f53">addDagBlock</a> (const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;blk, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;&amp;trxs={}, bool proposed=false, bool save=true)</td></tr>
+<tr class="memdesc:ad1d9ec62d99134024e9be37fc55f1f53"><td class="mdescLeft">&#160;</td><td class="mdescRight">adds verified DAG block in the DAG  <a href="group___d_a_g.html#ad1d9ec62d99134024e9be37fc55f1f53">More...</a><br /></td></tr>
+<tr class="separator:ad1d9ec62d99134024e9be37fc55f1f53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae097c5c6e1c0a4c9aca61c59e6b8e289"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae097c5c6e1c0a4c9aca61c59e6b8e289">getDagBlockOrder</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="memdesc:ae097c5c6e1c0a4c9aca61c59e6b8e289"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves DAG block order for specified anchor. Order should always be the same for the same anchor in the same period.  <a href="group___d_a_g.html#ae097c5c6e1c0a4c9aca61c59e6b8e289">More...</a><br /></td></tr>
 <tr class="separator:ae097c5c6e1c0a4c9aca61c59e6b8e289"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2827,8 +2827,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="memdesc:acbbdcb25746648ebadbd104631c11113"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves VDF message from block hash and transactions.  <a href="group___d_a_g.html#acbbdcb25746648ebadbd104631c11113">More...</a><br /></td></tr>
 <tr class="separator:acbbdcb25746648ebadbd104631c11113"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
-<tr class="memitem:a757e9bf84df5cd479f8ddcf9ab12cc47"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a757e9bf84df5cd479f8ddcf9ab12cc47">block_verified_</a> {}</td></tr>
-<tr class="separator:a757e9bf84df5cd479f8ddcf9ab12cc47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfe06b73d0f814f571065861e5e74180"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#adfe06b73d0f814f571065861e5e74180">block_verified_</a> {}</td></tr>
+<tr class="separator:adfe06b73d0f814f571065861e5e74180"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
 <tr class="memitem:add5a435648a429250f1ce54dc8b0ec63"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#add5a435648a429250f1ce54dc8b0ec63">recoverDag</a> ()</td></tr>
 <tr class="separator:add5a435648a429250f1ce54dc8b0ec63"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2891,8 +2891,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:add633db15e04c6e237cdefdea21cd465"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a5501aae6db9f6a2e22ab2d12a7e962"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8a5501aae6db9f6a2e22ab2d12a7e962">cache_delete_step_</a> = 100</td></tr>
 <tr class="separator:a8a5501aae6db9f6a2e22ab2d12a7e962"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9882c7cb659923bc340e19ec1031eae6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9882c7cb659923bc340e19ec1031eae6">seen_blocks_</a></td></tr>
-<tr class="separator:a9882c7cb659923bc340e19ec1031eae6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd089ac6e206821b9bcaff9f6da503d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#acd089ac6e206821b9bcaff9f6da503d1">seen_blocks_</a></td></tr>
+<tr class="separator:acd089ac6e206821b9bcaff9f6da503d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad3d7297d99a08b09d60d6eab697d58b6"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">final_chain::FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad3d7297d99a08b09d60d6eab697d58b6">final_chain_</a></td></tr>
 <tr class="separator:ad3d7297d99a08b09d60d6eab697d58b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97b3d149f23d11279211f66cfd609324"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a97b3d149f23d11279211f66cfd609324">kPbftGasLimit</a></td></tr>
@@ -3060,8 +3060,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
-<a id="af03ed62a5da2149160bf80318f94fc17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af03ed62a5da2149160bf80318f94fc17">&#9670;&nbsp;</a></span>addDagBlock()</h2>
+<a id="ad1d9ec62d99134024e9be37fc55f1f53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1d9ec62d99134024e9be37fc55f1f53">&#9670;&nbsp;</a></span>addDagBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3069,7 +3069,7 @@ Collaboration diagram for taraxa::DagManager:</div>
         <tr>
           <td class="memname">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; taraxa::DagManager::addDagBlock </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>blk</em>, </td>
         </tr>
         <tr>
@@ -3908,8 +3908,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="afd43873f7de88687241db2e74a431966"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afd43873f7de88687241db2e74a431966">&#9670;&nbsp;</a></span>pivotAndTipsAvailable()</h2>
+<a id="aeb7f95ccfaa95fed3c520673f744cb98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb7f95ccfaa95fed3c520673f744cb98">&#9670;&nbsp;</a></span>pivotAndTipsAvailable()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3917,7 +3917,7 @@ Collaboration diagram for taraxa::DagManager:</div>
         <tr>
           <td class="memname">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; taraxa::DagManager::pivotAndTipsAvailable </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>blk</em></td><td>)</td>
           <td></td>
         </tr>
@@ -4120,8 +4120,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a2762e392fd4d8533e72f1049e0e0124b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2762e392fd4d8533e72f1049e0e0124b">&#9670;&nbsp;</a></span>verifyBlock()</h2>
+<a id="a7988096583a74fe91b176256adf50c97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7988096583a74fe91b176256adf50c97">&#9670;&nbsp;</a></span>verifyBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4129,7 +4129,7 @@ Collaboration diagram for taraxa::DagManager:</div>
         <tr>
           <td class="memname">std::pair&lt; <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">DagManager::VerifyBlockReturnType</a>, <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &gt; taraxa::DagManager::verifyBlock </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>blk</em>, </td>
         </tr>
         <tr>
@@ -4181,14 +4181,14 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a757e9bf84df5cd479f8ddcf9ab12cc47"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a757e9bf84df5cd479f8ddcf9ab12cc47">&#9670;&nbsp;</a></span>block_verified_</h2>
+<a id="adfe06b73d0f814f571065861e5e74180"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfe06b73d0f814f571065861e5e74180">&#9670;&nbsp;</a></span>block_verified_</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt;<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; const taraxa::DagManager::block_verified_ {}</td>
+          <td class="memname"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt;<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a>, std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; &gt; const taraxa::DagManager::block_verified_ {}</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4725,8 +4725,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a9882c7cb659923bc340e19ec1031eae6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9882c7cb659923bc340e19ec1031eae6">&#9670;&nbsp;</a></span>seen_blocks_</h2>
+<a id="acd089ac6e206821b9bcaff9f6da503d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd089ac6e206821b9bcaff9f6da503d1">&#9670;&nbsp;</a></span>seen_blocks_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4735,7 +4735,7 @@ Collaboration diagram for taraxa::DagManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; taraxa::DagManager::seen_blocks_</td>
+          <td class="memname"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; &gt; taraxa::DagManager::seen_blocks_</td>
         </tr>
       </table>
   </td>
@@ -5496,14 +5496,14 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
-<a id="gaa96b4d465129a3edd0fbb85a2f3a3de1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa96b4d465129a3edd0fbb85a2f3a3de1">&#9670;&nbsp;</a></span>decodeDAGBlocksBundleRlp()</h2>
+<a id="ga8682bb5d2ce17022a8f72d21b195c4e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8682bb5d2ce17022a8f72d21b195c4e4">&#9670;&nbsp;</a></span>decodeDAGBlocksBundleRlp()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; taraxa::decodeDAGBlocksBundleRlp </td>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; taraxa::decodeDAGBlocksBundleRlp </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;&#160;</td>
           <td class="paramname"><em>blocks_bundle_rlp</em></td><td>)</td>
@@ -5523,8 +5523,8 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
-<a id="gaf2d63014cd63f6f3c7eeb7fe73c2f0ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf2d63014cd63f6f3c7eeb7fe73c2f0ca">&#9670;&nbsp;</a></span>encodeDAGBlocksBundleRlp()</h2>
+<a id="gaa2049751692b48a36491d11e62183ff5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa2049751692b48a36491d11e62183ff5">&#9670;&nbsp;</a></span>encodeDAGBlocksBundleRlp()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5532,7 +5532,7 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
         <tr>
           <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> taraxa::encodeDAGBlocksBundleRlp </td>
           <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;&#160;</td>
           <td class="paramname"><em>blocks</em></td><td>)</td>
           <td></td>
         </tr>
