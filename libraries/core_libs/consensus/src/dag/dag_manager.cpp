@@ -170,8 +170,8 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(const std::shar
       max_level_ = std::max(current_max_level, blk->getLevel());
 
       addToDag(blk_hash, pivot_hash, tips, blk->getLevel());
-      if (non_finalized_blks_min_difficulty_ > blk.getDifficulty()) {
-        non_finalized_blks_min_difficulty_ = blk.getDifficulty();
+      if (non_finalized_blks_min_difficulty_ > blk->getDifficulty()) {
+        non_finalized_blks_min_difficulty_ = blk->getDifficulty();
       }
 
       updateFrontier();
