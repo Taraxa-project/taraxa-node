@@ -225,6 +225,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
   void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
+  std::optional<PeriodData> getPeriodData(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
@@ -241,14 +242,14 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<pillar_chain::CurrentPillarBlockDataDb> getCurrentPillarBlockData() const;
 
   // DAG
-  void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
+  void saveDagBlock(const std::shared_ptr<DagBlock>& blk, Batch* write_batch_p = nullptr);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   bool dagBlockInDb(blk_hash_t const& hash);
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
   level_t getLastBlocksLevel() const;
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
-  void updateDagBlockCounters(std::vector<DagBlock> blks);
-  std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
+  void updateDagBlockCounters(std::vector<std::shared_ptr<DagBlock>> blks);
+  std::map<level_t, std::vector<std::shared_ptr<DagBlock>>> getNonfinalizedDagBlocks();
   void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
   void removeDagBlock(blk_hash_t const& hash);
   // Sortition params

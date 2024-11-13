@@ -207,7 +207,8 @@ TEST_F(RewardsStatsTest, feeRewards) {
   auto trx = std::make_shared<Transaction>(nonce++, 0, 1, trx_gas_fee, dev::fromHex(samples::greeter_contract_code),
                                            pbft_proposer.secret());
 
-  DagBlock dag_blk({}, {}, {}, {trx->getHash()}, {}, {}, dag_proposer.secret());
+  auto dag_blk = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, vec_trx_t{trx->getHash()}, 0,
+                                            VdfSortition{}, dag_proposer.secret());
   db->saveDagBlock(dag_blk);
   std::vector<vote_hash_t> reward_votes_hashes;
   auto pbft_block =
@@ -266,35 +267,40 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
 
   vdf_sortition::VdfSortition vdf1(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(1)), 1, 1);
-  DagBlock dag_blk1({}, {}, {}, {trxs[0]->getHash()}, 0, vdf1, dag_key1.secret());
+  auto dag_blk1 = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, vec_trx_t{trxs[0]->getHash()}, 0,
+                                             vdf1, dag_key1.secret());
   block.dag_blocks.push_back(dag_blk1);
 
   vdf_sortition::VdfSortition vdf2(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(2)), 1, 1);
-  DagBlock dag_blk2({}, {}, {}, {trxs[1]->getHash()}, 0, vdf2, dag_key2.secret());
+  auto dag_blk2 = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, vec_trx_t{trxs[1]->getHash()}, 0,
+                                             vdf2, dag_key2.secret());
   block.dag_blocks.push_back(dag_blk2);
 
   vdf_sortition::VdfSortition vdf3(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(3)), 1, 1);
-  DagBlock dag_blk3({}, {}, {}, {trxs[0]->getHash()}, 0, vdf3, dag_key3.secret());
+  auto dag_blk3 = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, vec_trx_t{trxs[0]->getHash()}, 0,
+                                             vdf3, dag_key3.secret());
   block.dag_blocks.push_back(dag_blk3);
 
   vdf_sortition::VdfSortition vdf4(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(4)), 1, 1);
-  DagBlock dag_blk4({}, {}, {}, {trxs[1]->getHash()}, 0, vdf4, dag_key4.secret());
+  auto dag_blk4 = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, vec_trx_t{trxs[1]->getHash()}, 0,
+                                             vdf4, dag_key4.secret());
   block.dag_blocks.push_back(dag_blk4);
 
   vdf_sortition::VdfSortition vdf5(sortition_params, vrfs,
                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(1, blk_hash_t(5)), 1, 1);
-  DagBlock dag_blk5({}, {}, {}, {trxs[2]->getHash()}, 0, vdf5, dag_key5.secret());
+  auto dag_blk5 = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, vec_trx_t{trxs[2]->getHash()}, 0,
+                                             vdf5, dag_key5.secret());
   block.dag_blocks.push_back(dag_blk5);
   block.transactions = trxs;
 
-  ASSERT_EQ(dag_blk1.getDifficulty(), 17);
-  ASSERT_EQ(dag_blk2.getDifficulty(), 17);
-  ASSERT_EQ(dag_blk3.getDifficulty(), 16);
-  ASSERT_EQ(dag_blk4.getDifficulty(), 17);
-  ASSERT_EQ(dag_blk5.getDifficulty(), 16);
+  ASSERT_EQ(dag_blk1->getDifficulty(), 17);
+  ASSERT_EQ(dag_blk2->getDifficulty(), 17);
+  ASSERT_EQ(dag_blk3->getDifficulty(), 16);
+  ASSERT_EQ(dag_blk4->getDifficulty(), 17);
+  ASSERT_EQ(dag_blk5->getDifficulty(), 16);
 
   std::vector<gas_t> gas_used{10, 20, 30};
 

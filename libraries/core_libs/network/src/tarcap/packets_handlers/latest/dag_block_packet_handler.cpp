@@ -19,88 +19,53 @@ DagBlockPacketHandler::DagBlockPacketHandler(const FullNodeConfig &conf, std::sh
                               logs_prefix + "DAG_BLOCK_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
-void DagBlockPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
-  constexpr size_t required_size = 2;
-  // Only one dag block can be received
-  if (packet_data.rlp_.itemCount() != required_size) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
+void DagBlockPacketHandler::process(DagBlockPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+  blk_hash_t const hash = packet.dag_block->getHash();
+
+  for (const auto &tx : packet.transactions) {
+    peer->markTransactionAsKnown(tx->getHash());
   }
-}
-
-void DagBlockPacketHandler::process(const threadpool::PacketData &packet_data,
-                                    const std::shared_ptr<TaraxaPeer> &peer) {
-  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> transactions;
-  auto dag_rlp = packet_data.rlp_;
-  if (packet_data.rlp_.itemCount() == 2) {
-    const auto trx_count = packet_data.rlp_[0].itemCount();
-    transactions.reserve(trx_count);
-
-    for (const auto tx_rlp : packet_data.rlp_[0]) {
-      try {
-        auto trx = std::make_shared<Transaction>(tx_rlp);
-        peer->markTransactionAsKnown(trx->getHash());
-        transactions.emplace(trx->getHash(), std::move(trx));
-      } catch (const Transaction::InvalidTransaction &e) {
-        throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
-      }
-    }
-    dag_rlp = packet_data.rlp_[1];
-  }
-  DagBlock block(dag_rlp);
-  blk_hash_t const hash = block.getHash();
-
   peer->markDagBlockAsKnown(hash);
 
-  if (block.getLevel() > peer->dag_level_) {
-    peer->dag_level_ = block.getLevel();
+  if (packet.dag_block->getLevel() > peer->dag_level_) {
+    peer->dag_level_ = packet.dag_block->getLevel();
   }
 
   // Do not process this block in case we already have it
-  if (dag_mgr_->isDagBlockKnown(block.getHash())) {
+  if (dag_mgr_->isDagBlockKnown(packet.dag_block->getHash())) {
     LOG(log_tr_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
     return;
   }
 
-  onNewBlockReceived(std::move(block), peer, transactions);
-}
-
-void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
-                                                      const SharedTransactions &trxs) {
-  std::shared_ptr<TaraxaPeer> peer = peers_state_->getPeer(peer_id);
-  if (!peer) {
-    LOG(log_wr_) << "Send dag block " << block.getHash() << ". Failed to obtain peer " << peer_id;
-    return;
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> txs_map;
+  txs_map.reserve(packet.transactions.size());
+  for (const auto &tx : packet.transactions) {
+    txs_map.emplace(tx->getHash(), tx);
   }
 
-  dev::RLPStream s(2);
+  onNewBlockReceived(std::move(packet.dag_block), peer, txs_map);
+}
 
+void DagBlockPacketHandler::sendBlockWithTransactions(const std::shared_ptr<TaraxaPeer> &peer,
+                                                      const std::shared_ptr<DagBlock> &block,
+                                                      SharedTransactions &&trxs) {
   // This lock prevents race condition between syncing and gossiping dag blocks
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
-  taraxa::bytes trx_bytes;
-  for (uint32_t i = 0; i < trxs.size(); i++) {
-    auto trx_data = trxs[i]->rlp();
-    trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
-  }
-
-  s.appendList(trxs.size());
-  s.appendRaw(trx_bytes, trxs.size());
-
-  s.appendRaw(block.rlp(true));
-
-  if (!sealAndSend(peer_id, DagBlockPacket, std::move(s))) {
-    LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed to " << peer_id;
+  DagBlockPacket dag_block_packet{.transactions = std::move(trxs), .dag_block = block};
+  if (!sealAndSend(peer->getId(), SubprotocolPacketType::kDagBlockPacket, encodePacketRlp(dag_block_packet))) {
+    LOG(log_wr_) << "Sending DagBlock " << block->getHash() << " failed to " << peer->getId();
     return;
   }
 
   // Mark data as known if sending was successful
-  peer->markDagBlockAsKnown(block.getHash());
+  peer->markDagBlockAsKnown(block->getHash());
 }
 
 void DagBlockPacketHandler::onNewBlockReceived(
-    DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer,
+    std::shared_ptr<DagBlock> &&block, const std::shared_ptr<TaraxaPeer> &peer,
     const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs) {
-  const auto block_hash = block.getHash();
+  const auto block_hash = block->getHash();
   auto verified = dag_mgr_->verifyBlock(block, trxs);
   switch (verified.first) {
     case DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation:
@@ -163,7 +128,7 @@ void DagBlockPacketHandler::onNewBlockReceived(
       }
       break;
     case DagManager::VerifyBlockReturnType::Verified: {
-      auto status = dag_mgr_->addDagBlock(std::move(block), std::move(verified.second));
+      auto status = dag_mgr_->addDagBlock(block, std::move(verified.second));
       if (!status.first) {
         LOG(log_dg_) << "Received DagBlockPacket " << block_hash << "from: " << peer->getId();
         // Ignore new block packets when pbft syncing
@@ -175,9 +140,9 @@ void DagBlockPacketHandler::onNewBlockReceived(
           if (peer->peer_dag_synced_) {
             std::ostringstream err_msg;
             if (status.second.size() > 0)
-              err_msg << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second;
+              err_msg << "DagBlock" << block->getHash() << " has missing pivot or/and tips " << status.second;
             else
-              err_msg << "DagBlock" << block.getHash() << " could not be added to DAG";
+              err_msg << "DagBlock" << block->getHash() << " could not be added to DAG";
             throw MaliciousPeerException(err_msg.str());
           } else {
             // peer_dag_synced_ flag ensures that this can only be performed once for a peer
@@ -191,15 +156,16 @@ void DagBlockPacketHandler::onNewBlockReceived(
   }
 }
 
-void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool proposed, const SharedTransactions &trxs) {
+void DagBlockPacketHandler::onNewBlockVerified(const std::shared_ptr<DagBlock> &block, bool proposed,
+                                               const SharedTransactions &trxs) {
   // If node is pbft syncing and block is not proposed by us, this is an old block that has been verified - no block
   // gossip is needed
   if (!proposed && pbft_syncing_state_->isDeepPbftSyncing()) {
     return;
   }
 
-  const auto &block_hash = block.getHash();
-  LOG(log_tr_) << "Verified NewBlock " << block_hash.toString();
+  const auto &block_hash = block->getHash();
+  LOG(log_tr_) << "Verified dag block " << block_hash.toString();
 
   std::vector<dev::p2p::NodeID> peers_to_send;
   for (auto const &peer : peers_state_->getAllPeers()) {
@@ -208,45 +174,39 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
     }
   }
 
-  std::string peer_and_transactions_to_log;
   // Sending it in same order favours some peers over others, always start with a different position
   const auto peers_to_send_count = peers_to_send.size();
-  if (peers_to_send_count > 0) {
-    uint32_t start_with = rand() % peers_to_send_count;
-    for (uint32_t i = 0; i < peers_to_send_count; i++) {
-      auto peer_id = peers_to_send[(start_with + i) % peers_to_send_count];
-      dev::RLPStream ts;
-      auto peer = peers_state_->getPeer(peer_id);
-      if (peer && !peer->syncing_) {
-        peer_and_transactions_to_log += " Peer: " + peer->getId().abridged() + " Trxs: ";
-
-        SharedTransactions transactions_to_send;
-        for (const auto &trx : trxs) {
-          const auto &trx_hash = trx->getHash();
-          if (peer->isTransactionKnown(trx_hash)) {
-            continue;
-          }
-          transactions_to_send.push_back(trx);
-          peer_and_transactions_to_log += trx_hash.abridged();
-        }
-
-        for (const auto &trx : trxs) {
-          assert(trx != nullptr);
-          const auto trx_hash = trx->getHash();
-          if (peer->isTransactionKnown(trx_hash)) {
-            continue;
-          }
-
-          transactions_to_send.push_back(trx);
-          peer_and_transactions_to_log += trx_hash.abridged();
-        }
-
-        sendBlockWithTransactions(peer_id, block, transactions_to_send);
-        peer->markDagBlockAsKnown(block_hash);
-      }
-    }
+  if (peers_to_send_count == 0) {
+    return;
   }
-  LOG(log_dg_) << "Send DagBlock " << block.getHash() << " to peers: " << peer_and_transactions_to_log;
-  if (!peers_to_send.empty()) LOG(log_tr_) << "Sent block to " << peers_to_send.size() << " peers";
+
+  std::string peer_and_transactions_to_log;
+  uint32_t start_with = rand() % peers_to_send_count;
+  for (uint32_t i = 0; i < peers_to_send_count; i++) {
+    auto peer_id = peers_to_send[(start_with + i) % peers_to_send_count];
+    auto peer = peers_state_->getPeer(peer_id);
+    if (!peer || peer->syncing_) {
+      continue;
+    }
+
+    peer_and_transactions_to_log += " Peer: " + peer->getId().abridged() + " Trxs: ";
+
+    SharedTransactions transactions_to_send;
+    for (const auto &trx : trxs) {
+      assert(trx != nullptr);
+      const auto trx_hash = trx->getHash();
+      if (peer->isTransactionKnown(trx_hash)) {
+        continue;
+      }
+
+      transactions_to_send.push_back(trx);
+      peer_and_transactions_to_log += trx_hash.abridged();
+    }
+
+    sendBlockWithTransactions(peer, block, std::move(transactions_to_send));
+  }
+
+  LOG(log_dg_) << "Send DagBlock " << block->getHash() << " to peers: " << peer_and_transactions_to_log;
+  LOG(log_tr_) << "Sent block to " << peers_to_send.size() << " peers";
 }
 }  // namespace taraxa::network::tarcap

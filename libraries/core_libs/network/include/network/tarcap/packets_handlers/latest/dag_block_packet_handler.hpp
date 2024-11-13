@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/ext_syncing_packet_handler.hpp"
+#include "network/tarcap/packets/latest/dag_block_packet.hpp"
 
 namespace taraxa {
 class TransactionManager;
@@ -8,9 +9,7 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap {
 
-class TestState;
-
-class DagBlockPacketHandler : public ExtSyncingPacketHandler {
+class DagBlockPacketHandler : public ExtSyncingPacketHandler<DagBlockPacket> {
  public:
   DagBlockPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                         std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -19,17 +18,17 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
                         const addr_t &node_addr, const std::string &logs_prefix = "");
 
-  void sendBlockWithTransactions(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
-  void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr,
+  void sendBlockWithTransactions(const std::shared_ptr<TaraxaPeer> &peer, const std::shared_ptr<DagBlock> &block,
+                                 SharedTransactions &&trxs);
+  void onNewBlockReceived(std::shared_ptr<DagBlock> &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr,
                           const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs = {});
-  void onNewBlockVerified(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
+  void onNewBlockVerified(const std::shared_ptr<DagBlock> &block, bool proposed, const SharedTransactions &trxs);
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagBlockPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kDagBlockPacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData &packet_data) const override;
-  virtual void process(const threadpool::PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
+  virtual void process(DagBlockPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) override;
 
  protected:
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};

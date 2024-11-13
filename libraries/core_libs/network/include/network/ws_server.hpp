@@ -51,7 +51,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   virtual std::string processRequest(const std::string_view& request) = 0;
 
   void newEthBlock(const ::taraxa::final_chain::BlockHeader& payload, const TransactionHashes& trx_hashes);
-  void newDagBlock(const DagBlock& blk);
+  void newDagBlock(const std::shared_ptr<DagBlock>& blk);
   void newDagBlockFinalized(const blk_hash_t& blk, uint64_t period);
   void newPbftBlockExecuted(const Json::Value& payload);
   void newPendingTransaction(const trx_hash_t& trx_hash);
@@ -97,7 +97,7 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   // Start accepting incoming connections
   void run();
   void newEthBlock(const ::taraxa::final_chain::BlockHeader& payload, const TransactionHashes& trx_hashes);
-  void newDagBlock(const DagBlock& blk);
+  void newDagBlock(const std::shared_ptr<DagBlock>& blk);
   void newDagBlockFinalized(const blk_hash_t& blk, uint64_t period);
   void newPbftBlockExecuted(const PbftBlock& sche_blk, const std::vector<blk_hash_t>& finalized_dag_blk_hashes);
   void newPendingTransaction(const trx_hash_t& trx_hash);

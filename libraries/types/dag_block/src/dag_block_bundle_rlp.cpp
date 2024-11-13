@@ -7,7 +7,7 @@
 
 namespace taraxa {
 
-dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
+dev::bytes encodeDAGBlocksBundleRlp(const std::vector<std::shared_ptr<DagBlock>>& blocks) {
   if (blocks.empty()) {
     return {};
   }
@@ -18,9 +18,9 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
 
   for (const auto& block : blocks) {
     std::vector<uint32_t> idx;
-    idx.reserve(block.getTrxs().size());
+    idx.reserve(block->getTrxs().size());
 
-    for (const auto& trx : block.getTrxs()) {
+    for (const auto& trx : block->getTrxs()) {
       if (const auto [_, ok] = trx_hash_map.try_emplace(trx, static_cast<uint32_t>(trx_hash_map.size())); ok) {
         ordered_trx_hashes.push_back(trx);  // Track the insertion order
       }
@@ -43,12 +43,12 @@ dev::bytes encodeDAGBlocksBundleRlp(const std::vector<DagBlock>& blocks) {
   }
   blocks_bundle_rlp.appendList(blocks.size());
   for (const auto& block : blocks) {
-    blocks_bundle_rlp.appendRaw(block.rlp(true, false));
+    blocks_bundle_rlp.appendRaw(block->rlp(true, false));
   }
   return blocks_bundle_rlp.invalidate();
 }
 
-std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp) {
+std::vector<std::shared_ptr<DagBlock>> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp) {
   if (blocks_bundle_rlp.itemCount() != kDAGBlocksBundleRlpSize) {
     return {};
   }
@@ -70,11 +70,11 @@ std::vector<DagBlock> decodeDAGBlocksBundleRlp(const dev::RLP& blocks_bundle_rlp
     dags_trx_hashes.push_back(std::move(hashes));
   }
 
-  std::vector<DagBlock> blocks;
+  std::vector<std::shared_ptr<DagBlock>> blocks;
   blocks.reserve(blocks_bundle_rlp[2].itemCount());
 
   for (size_t i = 0; i < blocks_bundle_rlp[2].itemCount(); i++) {
-    auto block = DagBlock(blocks_bundle_rlp[2][i], std::move(dags_trx_hashes[i]));
+    auto block = std::make_shared<DagBlock>(blocks_bundle_rlp[2][i], std::move(dags_trx_hashes[i]));
     blocks.push_back(std::move(block));
   }
 

@@ -168,12 +168,12 @@ bool DagBlockProposer::proposeDagBlock() {
   auto dag_block =
       createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
 
-  if (dag_mgr_->addDagBlock(std::move(dag_block), std::move(transactions), true).first) {
-    LOG(log_nf_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
-                 << " , txs num " << dag_block.getTrxs().size();
+  if (dag_mgr_->addDagBlock(dag_block, std::move(transactions), true).first) {
+    LOG(log_nf_) << "Proposed new DAG block " << dag_block->getHash() << ", pivot " << dag_block->getPivot()
+                 << " , txs num " << dag_block->getTrxs().size();
     proposed_blocks_count_ += 1;
   } else {
-    LOG(log_er_) << "Failed to add newly proposed dag block " << dag_block.getHash() << " into dag";
+    LOG(log_er_) << "Failed to add newly proposed dag block " << dag_block->getHash() << " into dag";
   }
 
   last_propose_level_ = propose_level;
@@ -331,8 +331,10 @@ vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips, u
   return tips;
 }
 
-DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
-                                          std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const {
+std::shared_ptr<DagBlock> DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
+                                                           const SharedTransactions& trxs,
+                                                           std::vector<uint64_t>&& estimations,
+                                                           VdfSortition&& vdf) const {
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   vec_trx_t trx_hashes;
@@ -347,10 +349,8 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
     frontier.tips = selectDagBlockTips(frontier.tips, kPbftGasLimit - block_estimation);
   }
 
-  DagBlock block(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), block_estimation,
-                 std::move(vdf), node_sk_);
-
-  return block;
+  return std::make_shared<DagBlock>(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
+                                    block_estimation, std::move(vdf), node_sk_);
 }
 
 bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period) const {

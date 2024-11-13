@@ -1,10 +1,10 @@
-#include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_syncing_packet_handler.hpp"
 
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v4 {
 
 ExtSyncingPacketHandler::ExtSyncingPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -72,7 +72,7 @@ bool ExtSyncingPacketHandler::syncPeerPbft(PbftPeriod request_period) {
   }
 
   LOG(log_nf_) << "Send GetPbftSyncPacket with period " << request_period << " to node " << syncing_peer->getId();
-  return sealAndSend(syncing_peer->getId(), SubprotocolPacketType::GetPbftSyncPacket,
+  return sealAndSend(syncing_peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
                      std::move(dev::RLPStream(1) << request_period));
 }
 
@@ -161,7 +161,7 @@ void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
   s.append(period);
   s.append(blocks);
 
-  sealAndSend(_nodeID, SubprotocolPacketType::GetDagSyncPacket, std::move(s));
+  sealAndSend(_nodeID, SubprotocolPacketType::kGetDagSyncPacket, std::move(s));
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::tarcap::v4

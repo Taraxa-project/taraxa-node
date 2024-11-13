@@ -271,7 +271,7 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
     dag_mgr_->block_verified_.subscribe(
-        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &dag_block) {
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](const std::shared_ptr<DagBlock> &dag_block) {
           if (auto _ws = ws.lock()) {
             _ws->newDagBlock(dag_block);
           }

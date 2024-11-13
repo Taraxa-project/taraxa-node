@@ -199,4 +199,8 @@ bytes DagBlock::rlp(bool include_sig, bool include_trxs) const {
 
 blk_hash_t DagBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }
 
+void DagBlock::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = DagBlock(encoding.value); }
+
+void DagBlock::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp(true)); }
+
 }  // namespace taraxa

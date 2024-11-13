@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/v3/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/pbft_sync_packet_handler.hpp"
 
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -7,7 +7,7 @@
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
-namespace taraxa::network::tarcap::v3 {
+namespace taraxa::network::tarcap::v4 {
 
 PbftSyncPacketHandler::PbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -73,9 +73,9 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 
   std::string received_dag_blocks_str;  // This is just log related stuff
   for (auto const &block : period_data.dag_blocks) {
-    received_dag_blocks_str += block.getHash().toString() + " ";
-    if (peer->dag_level_ < block.getLevel()) {
-      peer->dag_level_ = block.getLevel();
+    received_dag_blocks_str += block->getHash().toString() + " ";
+    if (peer->dag_level_ < block->getLevel()) {
+      peer->dag_level_ = block->getLevel();
     }
   }
 
@@ -148,7 +148,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
           trx_order.push_back(t->getHash());
         }
         for (auto b : period_data.dag_blocks) {
-          blk_order.push_back(b.getHash());
+          blk_order.push_back(b->getHash());
         }
         LOG(log_er_) << "Order hash incorrect in period data " << pbft_blk_hash << " expected: " << order_hash
                      << " received " << period_data.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
@@ -231,7 +231,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 }
 
 PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_rlp) const {
-  return PeriodData::FromOldPeriodData(period_data_rlp);
+  return PeriodData(period_data_rlp);
 }
 
 std::vector<std::shared_ptr<PbftVote>> PbftSyncPacketHandler::decodeVotesBundle(
@@ -293,4 +293,4 @@ void PbftSyncPacketHandler::handleMaliciousSyncPeer(const dev::p2p::NodeID &id) 
   }
 }
 
-}  // namespace taraxa::network::tarcap::v3
+}  // namespace taraxa::network::tarcap::v4

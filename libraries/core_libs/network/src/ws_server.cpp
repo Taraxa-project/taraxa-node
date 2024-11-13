@@ -120,12 +120,12 @@ void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, c
     writeAsync(std::move(response));
   }
 }
-void WsSession::newDagBlock(DagBlock const &blk) {
+void WsSession::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
   if (new_dag_blocks_subscription_) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = blk.getJson();
+    params["result"] = blk->getJson();
     params["subscription"] = dev::toJS(new_dag_blocks_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
@@ -292,7 +292,7 @@ void WsServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (!stopped_) do_accept();
 }
 
-void WsServer::newDagBlock(DagBlock const &blk) {
+void WsServer::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newDagBlock(blk);

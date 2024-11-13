@@ -1,14 +1,13 @@
-#include "network/tarcap/packets_handlers/v3/get_pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/get_pbft_sync_packet_handler.hpp"
 
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
-#include "pbft/period_data.hpp"
 #include "storage/storage.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
-namespace taraxa::network::tarcap::v3 {
+namespace taraxa::network::tarcap::v4 {
 
 GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -82,8 +81,6 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       return;
     }
 
-    data = PeriodData::ToOldPeriodData(data);
-
     dev::RLPStream s;
     if (pbft_chain_synced && last_block) {
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
@@ -107,11 +104,11 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
     }
 
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
-    sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
+    sealAndSend(peer_id, SubprotocolPacketType::kPbftSyncPacket, std::move(s));
     if (pbft_chain_synced && last_block) {
       peer->syncing_ = false;
     }
   }
 }
 
-}  // namespace taraxa::network::tarcap::v3
+}  // namespace taraxa::network::tarcap::v4

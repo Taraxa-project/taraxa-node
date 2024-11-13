@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/latest/common/ext_votes_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/common/ext_votes_packet_handler.hpp"
 
 #include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -6,7 +6,7 @@
 #include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v4 {
 
 ExtVotesPacketHandler::ExtVotesPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -94,7 +94,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
     if (vote->getVoter() == peer->getId() &&
         std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
       // request PBFT chain sync from this node
-      sealAndSend(peer->getId(), SubprotocolPacketType::GetPbftSyncPacket,
+      sealAndSend(peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
                   std::move(dev::RLPStream(1) << std::max(vote->getPeriod() - 1, peer->pbft_chain_size_.load())));
       last_pbft_block_sync_request_time_ = std::chrono::system_clock::now();
     }
@@ -192,7 +192,7 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
     dev::RLPStream votes_rlp_stream;
     votes_rlp_stream.appendRaw(votes_bytes);
 
-    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(votes_rlp_stream))) {
+    if (sealAndSend(peer->getId(), SubprotocolPacketType::kVotesBundlePacket, std::move(votes_rlp_stream))) {
       LOG(log_dg_) << " Votes bundle with " << votes.size() << " votes sent to " << peer->getId();
       for (const auto &vote : votes) {
         peer->markPbftVoteAsKnown(vote->getHash());
@@ -222,4 +222,4 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
   }
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::tarcap::v4
