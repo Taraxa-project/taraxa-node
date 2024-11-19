@@ -385,7 +385,7 @@ void FullNode::rebuildDb() {
 
   // Read pbft blocks one by one
   PbftPeriod period = 1;
-  std::shared_ptr<PeriodData> period_data, next_period_data;
+  PeriodData period_data, next_period_data;
   std::atomic_bool stop_async = false;
 
   std::future<void> fut = std::async(std::launch::async, [this, &stop_async]() {
@@ -398,34 +398,36 @@ void FullNode::rebuildDb() {
 
   while (true) {
     std::vector<std::shared_ptr<PbftVote>> cert_votes;
-    if (next_period_data != nullptr) {
-      period_data = next_period_data;
+    if (period != 1) {
+      period_data = std::move(next_period_data);
     } else {
       auto data = old_db_->getPeriodDataRaw(period);
       if (data.size() == 0) break;
-      period_data = std::make_shared<PeriodData>(std::move(data));
+      PeriodData current_data(data);
+      period_data = std::move(current_data);
     }
     auto data = old_db_->getPeriodDataRaw(period + 1);
     if (data.size() == 0) {
-      next_period_data = nullptr;
+      next_period_data = {};
       // Latest finalized block cert votes are saved in db as 2t+1 cert votes
       auto votes = old_db_->getAllTwoTPlusOneVotes();
       for (auto v : votes) {
         if (v->getType() == PbftVoteTypes::cert_vote) cert_votes.push_back(v);
       }
     } else {
-      next_period_data = std::make_shared<PeriodData>(std::move(data));
+      PeriodData current_data(data);
+      next_period_data = std::move(current_data);
       // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that pushes
       // blocks to chain
-      for (auto &t : next_period_data->transactions) t->getSender();
-      cert_votes = next_period_data->previous_block_cert_votes;
+      for (auto &t : next_period_data.transactions) t->getSender();
+      cert_votes = next_period_data.previous_block_cert_votes;
     }
 
-    LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
+    LOG(log_nf_) << "Adding PBFT block " << period_data.pbft_blk->getBlockHash().toString()
                  << " from old DB into syncing queue for processing, final chain size: "
                  << final_chain_->last_block_number();
 
-    pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
+    pbft_mgr_->periodDataQueuePush(std::move(period_data), dev::p2p::NodeID(), std::move(cert_votes));
     pbft_mgr_->waitForPeriodFinalization();
     period++;
     if (period % 100 == 0) {
