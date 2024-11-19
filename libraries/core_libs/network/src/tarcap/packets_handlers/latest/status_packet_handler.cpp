@@ -75,6 +75,13 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
       return;
     }
 
+    if (node_major_version < 1 || (node_major_version == 1 && node_minor_version < 12) ||
+        (node_major_version == 1 && node_minor_version == 12 && node_patch_version < 1)) {
+      LOG(log_er_) << "Disconnect node which is not at least 1.12.1";
+      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+      return;
+    }
+
     // If this is a light node and it cannot serve our sync request disconnect from it
     if (is_light_node) {
       selected_peer->peer_light_node = true;
