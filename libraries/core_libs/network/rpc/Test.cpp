@@ -87,6 +87,104 @@ Json::Value Test::send_coin_transactions(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::tps_test() {
+  Json::Value res;
+  new std::thread([this]() {
+    auto node = full_node_.lock();
+
+    // Test parameters:
+    // Total number of transactions:
+    uint64_t trx_count = 400000;
+    // Nonce manually increased for every test - it should be max nonce of all of the account below
+    static std::atomic<uint64_t> nonce = 1000000;
+    // Transactions per second to send transactions
+    uint32_t tps = 1000;
+    // Maximum size of transaction pool, if it goes over this number sending transactions are paused
+    uint32_t max_pool_size = 80000;
+
+    // To initially found the 10 account below use:
+    /*curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "2","receiver":"0x3d8432060ea8216aa5d9f22991c1622a6fc68349","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "3","receiver":"0x80946cb9cf31d54f02e242f2ddec5155ff650bca","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "4","receiver":"0x07d784cab6a4d6712d38b8526dd0454baf1766ed","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "5","receiver":"0x0fcd9ef355c4ac9e9ed0aadf0cb1d80615f54691","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "6","receiver":"0xc4a41d5b7eb9bae765f3df6f68b70d378074dfcb","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "7","receiver":"0x0e183139741de724a9c90d0341cf816aa85b5798","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "8","receiver":"0x068b9c19ef242c51fe41949565517a90b5e6a0ff","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "9","receiver":"0xc8142e6bd6200425b401cf1ff58bf5d0d08525bd","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "10","receiver":"0x033df3ebc6de21f46b60373a8ad047c86491b84d","chain_id":"34B"}]}' 0.0.0.0:7777
+      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "11","receiver":"0xde68e530adc067b82abb683e4fa2ead6bd93e0ff","chain_id":"34B"}]}' 0.0.0.0:7777
+    */
+
+    std::vector<dev::KeyPair> keys;
+    keys.push_back(dev::KeyPair(dev::Secret("35b6f98b34bbb40d2fe3cbf622da87f50dd868264a32bba798948d22f79781fc",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("e993cbf280e99deb7754f3c191447e29fb3e0e023204e64bf1f5aefec7ad3a39",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("3047c6855e4707dc1ff04a40d6df3e3b4441e76daa521273c833a48118352f2b",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("0cbef99d879ba20444a0fdc2961a5eeed28aa9a8c906dbe0cf106624a9a23543",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("45263bcb4ad4aa7e2f4b99dff9dba6ac3e2683bd2c09ef41a9b6bd4b83964dab",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("225d99c169b0804af481c262d01e8cd430101e9cf41df024a8011979050e8c5e",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("740244d38f1504f2ae428d318f3631314a96cf56e5e6a2b5acddabaef9f591cc",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("88d4a3d8e5ab8b4c2f67dc8cc362c66f1a24820f119ab2f5396a588879433133",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("122cf87326b4637c7c519d02d2faaeec2b903f2d93d4b8c420b1b22c835c3648",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+    keys.push_back(dev::KeyPair(dev::Secret("7bfb6597df1742d9f47872ed899c58fc742ef78b55c7a88cf7774e1c0be38911",
+                                            dev::Secret::ConstructFromStringType::FromHex)));
+
+    std::vector<std::shared_ptr<Transaction>> trxs;
+    for (uint64_t i = 0; i < trx_count; i++) {
+      trxs.emplace_back(std::make_shared<Transaction>(++nonce, 10, 1, 21000, bytes(), keys[(i % keys.size())].secret(),
+                                                      addr_t(100000000l + (i % 2000)), 843));
+      if (i % 10000 == 0) {
+        std::cout << "Transactions created: " << i << std::endl;
+      }
+    }
+
+    auto inexe = node->getDB()->getNumTransactionExecuted();
+    auto now = std::chrono::steady_clock::now();
+    uint64_t ee = 0;
+    for (uint64_t i = 0; i < trx_count; i++) {
+      if (i % 100 == 0)
+        ee = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - now).count();
+
+      if (i < trx_count - 1) {
+        auto res = node->getTransactionManager()->insertTransaction(trxs[i]);
+        if (!res.first) std::cout << res.second << std::endl;
+        // Sleep if transactions are created faster than tps or if pool size os over max
+        while (ee * tps < i || node->getTransactionManager()->getTransactionPoolSize() > max_pool_size) {
+          thisThreadSleepForMilliSeconds(1);
+          ee = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - now).count();
+        }
+      } else {
+        i--;
+        thisThreadSleepForMilliSeconds(1000);
+      }
+
+      if (i % 10000 == 0 || i == trx_count - 2) {
+        auto elapsed_time_in_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count();
+
+        if (elapsed_time_in_ms) {
+          std::cout << "Node: "
+                    << ". Transactions inserted: " << i
+                    << " Transactions executed: " << node->getDB()->getNumTransactionExecuted() - inexe
+                    << " Transactions in DAG: " << node->getDB()->getNumTransactionInDag()
+                    << " Transactions executed per second: "
+                    << (node->getDB()->getNumTransactionExecuted() - inexe) * 1000 / elapsed_time_in_ms << std::endl;
+        }
+      }
+    }
+  });
+
+  return res;
+}
+
 Json::Value Test::get_account_address() {
   Json::Value res;
   if (auto node = app_.lock()) {
