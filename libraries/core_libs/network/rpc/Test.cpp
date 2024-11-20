@@ -103,16 +103,36 @@ Json::Value Test::tps_test() {
     uint32_t max_pool_size = 80000;
 
     // To initially found the 10 account below use:
-    /*curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "2","receiver":"0x3d8432060ea8216aa5d9f22991c1622a6fc68349","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "3","receiver":"0x80946cb9cf31d54f02e242f2ddec5155ff650bca","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "4","receiver":"0x07d784cab6a4d6712d38b8526dd0454baf1766ed","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "5","receiver":"0x0fcd9ef355c4ac9e9ed0aadf0cb1d80615f54691","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "6","receiver":"0xc4a41d5b7eb9bae765f3df6f68b70d378074dfcb","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "7","receiver":"0x0e183139741de724a9c90d0341cf816aa85b5798","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "8","receiver":"0x068b9c19ef242c51fe41949565517a90b5e6a0ff","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "9","receiver":"0xc8142e6bd6200425b401cf1ff58bf5d0d08525bd","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "10","receiver":"0x033df3ebc6de21f46b60373a8ad047c86491b84d","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "11","receiver":"0xde68e530adc067b82abb683e4fa2ead6bd93e0ff","chain_id":"34B"}]}' 0.0.0.0:7777
+    /*curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret":
+      "","value": "22000000000","gas_price": "1","gas": "21000","nonce":
+      "2","receiver":"0x3d8432060ea8216aa5d9f22991c1622a6fc68349","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "3","receiver":"0x80946cb9cf31d54f02e242f2ddec5155ff650bca","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "4","receiver":"0x07d784cab6a4d6712d38b8526dd0454baf1766ed","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "5","receiver":"0x0fcd9ef355c4ac9e9ed0aadf0cb1d80615f54691","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "6","receiver":"0xc4a41d5b7eb9bae765f3df6f68b70d378074dfcb","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "7","receiver":"0x0e183139741de724a9c90d0341cf816aa85b5798","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "8","receiver":"0x068b9c19ef242c51fe41949565517a90b5e6a0ff","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "9","receiver":"0xc8142e6bd6200425b401cf1ff58bf5d0d08525bd","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "10","receiver":"0x033df3ebc6de21f46b60373a8ad047c86491b84d","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "11","receiver":"0xde68e530adc067b82abb683e4fa2ead6bd93e0ff","chain_id":"34B"}]}' 0.0.0.0:7777
     */
 
     std::vector<dev::KeyPair> keys;
