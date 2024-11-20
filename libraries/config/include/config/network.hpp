@@ -5,6 +5,7 @@
 #include <string>
 
 #include "common/types.hpp"
+#include "libp2p/Common.h"
 
 namespace taraxa {
 
@@ -82,6 +83,7 @@ struct NetworkConfig {
   bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
   DdosProtectionConfig ddos_protection;
+  std::unordered_set<dev::p2p::NodeID> priority_nodes;
 
   std::optional<ConnectionConfig> rpc;
   std::optional<ConnectionConfig> graphql;

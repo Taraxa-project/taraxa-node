@@ -10,6 +10,7 @@ struct TaraxaNetworkConfig {
   bool is_boot_node = false;
   unsigned chain_id = 0;
   uint expected_parallelism = 1;
+
   std::chrono::seconds peer_healthcheck_interval{30};
   std::chrono::seconds peer_healthcheck_timeout{1};
   std::chrono::milliseconds main_loop_interval{100};

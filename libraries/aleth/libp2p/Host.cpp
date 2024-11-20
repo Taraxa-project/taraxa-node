@@ -287,7 +287,8 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
       }
     }
   }
-  if (!disconnect_reason && !peerSlotsAvailable()) {
+  auto is_priority_node = m_netConfig.priority_nodes.contains(peer->address());
+  if (!disconnect_reason && (!peerSlotsAvailable() && !is_priority_node)) {
     cnetdetails << "Too many peers, can't connect. peer count: " << peer_count_()
                 << " pending peers: " << m_pendingPeerConns.size();
     disconnect_reason = TooManyPeers;
