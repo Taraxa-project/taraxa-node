@@ -123,7 +123,7 @@ spec:
             - -blockchain_ws 
             - 'ws://localhost:8777'
             - -sync_queue_limit
-            - 1
+            - '1'
           volumeMounts:
             - name: indexer-data
               mountPath: /data
