@@ -45,6 +45,9 @@ struct NetworkConfig {
   std::string listenIPAddress;
   uint16_t listenPort = c_defaultListenPort;
 
+  /// Trusted Nodes
+  std::unordered_set<dev::p2p::NodeID> trustedNodes;
+
   /// Preferences
 
   bool traverseNAT = true;

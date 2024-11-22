@@ -133,6 +133,12 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   network.listen_port = getConfigDataAsUInt(json, {"listen_port"});
   network.transaction_interval_ms = getConfigDataAsUInt(json, {"transaction_interval_ms"});
   network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
+  Json::Value priority_nodes = json["priority_nodes"];
+  if (!priority_nodes.isNull()) {
+    for (const auto &item : priority_nodes) {
+      network.trusted_nodes.insert(dev::p2p::NodeID(item.asString()));
+    }
+  }
   network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
   network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
   network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});
