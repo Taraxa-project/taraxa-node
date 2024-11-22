@@ -132,7 +132,7 @@ bool PillarVotes::addVerifiedVote(const std::shared_ptr<PillarVote>& vote, uint6
 
 void PillarVotes::initializePeriodData(PbftPeriod period, uint64_t threshold) {
   std::scoped_lock<std::shared_mutex> lock(mutex_);
-  votes_.insert({period, PeriodVotes{.threshold = threshold}});
+  votes_.insert({period, PeriodVotes{{}, {}, threshold}});
 }
 
 void PillarVotes::eraseVotes(PbftPeriod min_period) {

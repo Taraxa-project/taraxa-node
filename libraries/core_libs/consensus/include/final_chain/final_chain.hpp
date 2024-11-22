@@ -186,8 +186,8 @@ class FinalChain {
    * @param blk_n EthBlockNumber number of block we are getting state from
    * @return std::string
    */
-  std::string trace(std::vector<state_api::EVMTransaction> trx, EthBlockNumber blk_n,
-                    std::optional<state_api::Tracing> params = {}) const;
+  std::string trace(std::vector<state_api::EVMTransaction> state_trxs, std::vector<state_api::EVMTransaction> trxs,
+                    EthBlockNumber blk_n, std::optional<state_api::Tracing> params = {}) const;
 
   /**
    * @brief total count of eligible votes are in DPOS precompiled contract
@@ -271,9 +271,10 @@ class FinalChain {
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor);
 
+  const SharedTransactions getTransactions(std::optional<EthBlockNumber> n = {}) const;
+
  private:
   std::shared_ptr<TransactionHashes> getTransactionHashes(std::optional<EthBlockNumber> n = {}) const;
-  const SharedTransactions getTransactions(std::optional<EthBlockNumber> n = {}) const;
   std::shared_ptr<const BlockHeader> getBlockHeader(EthBlockNumber n) const;
   std::optional<h256> getBlockHash(EthBlockNumber n) const;
   EthBlockNumber lastIfAbsent(const std::optional<EthBlockNumber>& client_blk_n) const;

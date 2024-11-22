@@ -2,6 +2,7 @@
 
 #include "common/encoding_solidity.hpp"
 #include "common/util.hpp"
+#include "final_chain/state_api_data.hpp"
 #include "final_chain/trie_common.hpp"
 #include "pbft/pbft_block.hpp"
 #include "transaction/system_transaction.hpp"
@@ -447,7 +448,8 @@ state_api::ExecutionResult FinalChain::call(const state_api::EVMTransaction& trx
                                         trx);
 }
 
-std::string FinalChain::trace(std::vector<state_api::EVMTransaction> trxs, EthBlockNumber blk_n,
+std::string FinalChain::trace(std::vector<state_api::EVMTransaction> state_trxs,
+                              std::vector<state_api::EVMTransaction> trxs, EthBlockNumber blk_n,
                               std::optional<state_api::Tracing> params) const {
   const auto blk_header = blockHeader(lastIfAbsent(blk_n));
   if (!blk_header) {
@@ -460,7 +462,7 @@ std::string FinalChain::trace(std::vector<state_api::EVMTransaction> trxs, EthBl
                                             blk_header->timestamp,
                                             BlockHeader::difficulty(),
                                         },
-                                        trxs, params));
+                                        state_trxs, trxs, params));
 }
 
 uint64_t FinalChain::dposEligibleTotalVoteCount(EthBlockNumber blk_num) const {
