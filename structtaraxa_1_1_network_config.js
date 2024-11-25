@@ -19,5 +19,6 @@ var structtaraxa_1_1_network_config =
     [ "public_ip", "structtaraxa_1_1_network_config.html#a85cb06d2c30472248db88950cdfe120c", null ],
     [ "rpc", "structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697", null ],
     [ "sync_level_size", "structtaraxa_1_1_network_config.html#aacf1424b93ac3b5698fbf919a4f2e55c", null ],
-    [ "transaction_interval_ms", "structtaraxa_1_1_network_config.html#a7ec9d38a0edc06c79d979ba9a1439049", null ]
+    [ "transaction_interval_ms", "structtaraxa_1_1_network_config.html#a7ec9d38a0edc06c79d979ba9a1439049", null ],
+    [ "trusted_nodes", "structtaraxa_1_1_network_config.html#aa214bbbbc6fd0dfd70ec12e6d569329c", null ]
 ];

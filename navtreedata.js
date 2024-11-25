@@ -386,8 +386,8 @@ var NAVTREEINDEX =
 "period__data_8hpp.html#ga4eb5ae28c1fec5d7a7695d4545961ea0",
 "structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737",
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a75b2258fceb7c76476e6c48e57f875a4",
-"structtaraxa_1_1_sortition_params.html",
-"tools_8hpp.html#af0044276a518251783f0ae2eb6906929"
+"structtaraxa_1_1_sortition_config.html#af1a6900d2e7b470611b2f050d073eea0",
+"tools_8hpp.html#ae2962f7552a601c30092849e514653be"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

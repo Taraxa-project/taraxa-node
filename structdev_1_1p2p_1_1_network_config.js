@@ -9,5 +9,6 @@ var structdev_1_1p2p_1_1_network_config =
     [ "listenPort", "structdev_1_1p2p_1_1_network_config.html#a657f549c84a1226b041959ea034ba785", null ],
     [ "pin", "structdev_1_1p2p_1_1_network_config.html#a095a706068fb34fdfb47b09dd30c1c1b", null ],
     [ "publicIPAddress", "structdev_1_1p2p_1_1_network_config.html#a307da441278a1eeaa417d47809fca66c", null ],
-    [ "traverseNAT", "structdev_1_1p2p_1_1_network_config.html#ad76d6321b88903878e08c07a3bed748a", null ]
+    [ "traverseNAT", "structdev_1_1p2p_1_1_network_config.html#ad76d6321b88903878e08c07a3bed748a", null ],
+    [ "trustedNodes", "structdev_1_1p2p_1_1_network_config.html#a7a7615b77fd6af152e9787f091b7971e", null ]
 ];
