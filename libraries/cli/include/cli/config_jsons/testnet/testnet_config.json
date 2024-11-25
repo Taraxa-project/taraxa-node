@@ -30,7 +30,7 @@
     "listen_port": 10002,
     "transaction_interval_ms": 100,
     "ideal_peer_count": 10,
-    "max_peer_count": 50,
+    "max_peer_count": 20,
     "sync_level_size": 10,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
