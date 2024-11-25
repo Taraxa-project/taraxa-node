@@ -182,8 +182,10 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   // Send new transactions
   auto sendTxs = [this, trx_mgr = trx_mgr]() {
     for (auto &tarcap : tarcaps_) {
-      auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
-      tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
+      if (!tarcap.second->isQueueOverTheLimit()) {
+        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
+        tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
+      }
     }
   };
   periodic_events_tp_.post_loop({kConf.network.transaction_interval_ms}, sendTxs);
@@ -291,8 +293,10 @@ void Network::addBootNodes(bool initial) {
 
 void Network::gossipDagBlock(const std::shared_ptr<DagBlock> &block, bool proposed, const SharedTransactions &trxs) {
   for (const auto &tarcap : tarcaps_) {
-    tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
-                                                                                                    trxs);
+    if (!tarcap.second->isQueueOverTheLimit()) {
+      tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
+                                                                                                      trxs);
+    }
   }
 }
 

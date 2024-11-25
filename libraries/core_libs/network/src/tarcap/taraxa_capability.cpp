@@ -124,6 +124,8 @@ std::string TaraxaCapability::packetTypeToString(unsigned _packetType) const {
   return convertPacketTypeToString(static_cast<SubprotocolPacketType>(_packetType));
 }
 
+bool TaraxaCapability::isQueueOverTheLimit() const { return queue_over_limit_extended_.load(); }
+
 void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id,
                                                  dev::RLP const &_r) {
   const auto session_p = session.lock();
@@ -190,6 +192,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     handlePacketQueueOverLimit(host, node_id, tp_queue_size);
   } else {
     queue_over_limit_ = false;
+    queue_over_limit_extended_ = false;
     last_disconnect_number_of_peers_ = 0;
   }
 
@@ -208,6 +211,7 @@ void TaraxaCapability::handlePacketQueueOverLimit(std::shared_ptr<dev::p2p::Host
   // Check if Queue is over the limit for queue_limit_time
   if ((std::chrono::system_clock::now() - queue_over_limit_start_time_) >
       kConf.network.ddos_protection.queue_limit_time) {
+    queue_over_limit_extended_ = true;
     // Only disconnect if there is more than peer_disconnect_interval since last disconnect
     if ((std::chrono::system_clock::now() - last_ddos_disconnect_time_) >
         kConf.network.ddos_protection.peer_disconnect_interval) {

@@ -94,6 +94,8 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 
+  bool isQueueOverTheLimit() const;
+
  private:
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
   void handlePacketQueueOverLimit(std::shared_ptr<dev::p2p::Host> host, dev::p2p::NodeID node_id, size_t tp_queue_size);
@@ -124,6 +126,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
   std::chrono::system_clock::time_point last_ddos_disconnect_time_ = {};
   std::chrono::system_clock::time_point queue_over_limit_start_time_ = {};
   bool queue_over_limit_ = false;
+  std::atomic_bool queue_over_limit_extended_ = false;
   uint32_t last_disconnect_number_of_peers_ = 0;
 
   LOG_OBJECTS_DEFINE
