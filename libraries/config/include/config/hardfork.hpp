@@ -90,6 +90,15 @@ void dec_json(const Json::Value& json, FicusHardforkConfig& obj);
 // Json::Value enc_json(const BambooHardfork& obj);
 // void dec_json(const Json::Value& json, BambooHardfork& obj);
 
+struct SequoiaHardforkConfig {
+  uint64_t block_num = -1;
+  uint32_t delegation_locking_period = 5;  // number of blocks
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const SequoiaHardforkConfig& obj);
+void dec_json(const Json::Value& json, SequoiaHardforkConfig& obj);
+
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
@@ -132,6 +141,9 @@ struct HardforksConfig {
 
   // Cornus hf - support multiple undelegations from the same validator at the same time
   uint64_t cornus_hf_block_num{0};
+
+  // Sequoia hardfork: change of delegation locking period
+  SequoiaHardforkConfig sequoia_hf;
 
   bool isCornusHardfork(uint64_t block_number) const { return block_number >= cornus_hf_block_num; }
 
