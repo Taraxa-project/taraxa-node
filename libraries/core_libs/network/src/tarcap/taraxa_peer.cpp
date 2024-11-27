@@ -3,16 +3,16 @@
 namespace taraxa::network::tarcap {
 
 TaraxaPeer::TaraxaPeer()
-    : known_dag_blocks_(10000, 1000, 10),
-      known_transactions_(100000, 10000, 10),
+    : known_dag_blocks_(10000, 1000, 100),
+      known_transactions_(100000, 10000, 100),
       known_pbft_blocks_(10000, 1000, 10),
       known_votes_(10000, 1000, 10) {}
 
 TaraxaPeer::TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size, std::string address)
     : address_(address),
       id_(id),
-      known_dag_blocks_(10000, 1000, 10),
-      known_transactions_(transaction_pool_size * 1.2, transaction_pool_size / 10, 10),
+      known_dag_blocks_(10000, 1000, 100),
+      known_transactions_(transaction_pool_size * 1.2, transaction_pool_size / 10, 100),
       known_pbft_blocks_(10000, 1000, 10),
       known_votes_(10000, 1000, 10) {}
 

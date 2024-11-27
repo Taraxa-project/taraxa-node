@@ -95,6 +95,9 @@ void DagBlockPacketHandler::sendBlockWithTransactions(dev::p2p::NodeID const &pe
 
   // Mark data as known if sending was successful
   peer->markDagBlockAsKnown(block.getHash());
+  for (auto t : trxs) {
+    peer->markTransactionAsKnown(t->getHash());
+  }
 }
 
 void DagBlockPacketHandler::onNewBlockReceived(

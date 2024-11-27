@@ -33,7 +33,7 @@ constexpr uint32_t kMaxNonFinalizedDagBlocks{100};
 
 const size_t kV3NetworkVersion = 3;
 
-const uint32_t kRecentlyFinalizedTransactionsFactor = 2;
+const uint32_t kRecentlyFinalizedTransactionsFactor = 20;
 
 // The various denominations; here for ease of use where needed within code.
 static const u256 kOneTara = dev::exp10<18>();

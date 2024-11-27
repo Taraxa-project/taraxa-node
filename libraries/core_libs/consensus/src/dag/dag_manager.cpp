@@ -601,6 +601,7 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   vec_trx_t trx_hashes_to_query;
   SharedTransactions all_block_trxs;
+  SharedTransactions all_block_trxs_non_finalized;
 
   // Verify tips/pivot count and uniqueness
   std::unordered_set<blk_hash_t> unique_tips_pivot;
@@ -633,6 +634,7 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
       auto trx_it = trxs.find(tx_hash);
       if (trx_it != trxs.end()) {
         all_block_trxs.emplace_back(trx_it->second);
+        all_block_trxs_non_finalized.emplace_back(trx_it->second);
       } else {
         trx_hashes_to_query.emplace_back(tx_hash);
       }
@@ -642,7 +644,8 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   }
 
   // Verify transactions
-  auto transactions = trx_mgr_->getTransactions(trx_hashes_to_query, *propose_period);
+  auto [transactions, non_finalized_transactions] =
+      trx_mgr_->getTransactionsWithNonFinalized(trx_hashes_to_query, *propose_period);
 
   if (transactions.size() < trx_hashes_to_query.size()) {
     LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
@@ -653,6 +656,10 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
 
   for (auto t : transactions) {
     all_block_trxs.emplace_back(std::move(t));
+  }
+
+  for (auto t : non_finalized_transactions) {
+    all_block_trxs_non_finalized.emplace_back(std::move(t));
   }
 
   if (blk.getLevel() < dag_expiry_level_) {
@@ -742,7 +749,7 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
 
   LOG(log_dg_) << "Verified DAG block " << blk.getHash();
 
-  return {VerifyBlockReturnType::Verified, std::move(all_block_trxs)};
+  return {VerifyBlockReturnType::Verified, std::move(all_block_trxs_non_finalized)};
 }
 
 bool DagManager::isDagBlockKnown(const blk_hash_t &hash) const {
