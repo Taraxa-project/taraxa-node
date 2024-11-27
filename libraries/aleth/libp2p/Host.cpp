@@ -412,7 +412,10 @@ void Host::runAcceptor() {
           return;
         }
         auto socket = make_shared<RLPXSocket>(std::move(_socket));
-        if (peer_count_() > peerSlots(Ingress)) {
+
+        // Since a connecting peer might be a trusted node which should always connect allow up to max number of trusted
+        // nodes above the limit
+        if (peer_count_() > (peerSlots(Ingress) + m_netConfig.priority_nodes.size())) {
           cnetdetails << "Dropping incoming connect due to maximum peer count (" << Ingress
                       << " * ideal peer count): " << socket->remoteEndpoint();
           socket->close();
