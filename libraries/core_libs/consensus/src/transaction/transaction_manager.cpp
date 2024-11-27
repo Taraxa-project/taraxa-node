@@ -436,6 +436,49 @@ SharedTransactions TransactionManager::getTransactions(const vec_trx_t &trxs_has
   return transactions;
 }
 
+std::pair<SharedTransactions, SharedTransactions> TransactionManager::getTransactionsWithNonFinalized(
+    const vec_trx_t &trxs_hashes, PbftPeriod proposal_period) {
+  vec_trx_t finalized_trx_hashes;
+  SharedTransactions transactions;
+  SharedTransactions non_finalized_transactions;
+  transactions.reserve(trxs_hashes.size());
+  for (auto const &tx_hash : trxs_hashes) {
+    std::shared_lock transactions_lock(transactions_mutex_);
+    auto trx = transactions_pool_.get(tx_hash);
+    if (trx != nullptr) {
+      transactions.emplace_back(trx);
+      non_finalized_transactions.emplace_back(trx);
+    } else {
+      auto trx_it = nonfinalized_transactions_in_dag_.find(tx_hash);
+      if (trx_it != nonfinalized_transactions_in_dag_.end()) {
+        transactions.emplace_back(trx_it->second);
+        non_finalized_transactions.emplace_back(trx_it->second);
+      } else {
+        trx_it = recently_finalized_transactions_.find(tx_hash);
+        if (trx_it != recently_finalized_transactions_.end()) {
+          transactions.emplace_back(trx_it->second);
+        } else {
+          finalized_trx_hashes.emplace_back(tx_hash);
+        }
+      }
+    }
+  }
+
+  // This should be an extremely rare case since transactions should be found in the caches
+  auto finalizedTransactions = db_->getFinalizedTransactions(finalized_trx_hashes);
+
+  for (auto trx : finalizedTransactions) {
+    // Only include transactions with valid nonce at proposal period
+    auto acc = final_chain_->getAccount(trx->getSender(), proposal_period);
+    if (acc.has_value() && acc->nonce > trx->getNonce()) {
+      LOG(log_er_) << "Old transaction: " << trx->getHash();
+    } else {
+      transactions.emplace_back(std::move(trx));
+    }
+  }
+  return {transactions, non_finalized_transactions};
+}
+
 void TransactionManager::blockFinalized(EthBlockNumber block_number) {
   std::unique_lock transactions_lock(transactions_mutex_);
   transactions_pool_.blockFinalized(block_number);

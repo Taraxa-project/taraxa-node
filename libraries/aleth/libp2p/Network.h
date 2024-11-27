@@ -39,6 +39,9 @@ struct NetworkConfig {
     if (!publicIPAddress.empty() && !isPublicAddress(publicIPAddress)) BOOST_THROW_EXCEPTION(InvalidPublicIPAddress());
   }
 
+  /// Priority Nodes
+  std::unordered_set<dev::p2p::NodeID> priority_nodes;
+
   /// Addressing
 
   std::string publicIPAddress;

@@ -166,6 +166,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    */
   SharedTransactions getTransactions(const vec_trx_t &trxs_hashes, PbftPeriod proposal_period);
 
+  std::pair<SharedTransactions, SharedTransactions> getTransactionsWithNonFinalized(const vec_trx_t &trxs_hashes,
+                                                                                    PbftPeriod proposal_period);
+
   /**
    * @brief Updates the status of transactions to finalized
    * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but
