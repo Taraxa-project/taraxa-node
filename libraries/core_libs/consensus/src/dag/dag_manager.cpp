@@ -35,8 +35,7 @@ DagManager::DagManager(const FullNodeConfig &config, addr_t node_addr, std::shar
       dag_expiry_limit_(config.dag_expiry_limit),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       final_chain_(std::move(final_chain)),
-      kPbftGasLimit(config.genesis.pbft.gas_limit),
-      kHardforks(config.genesis.state.hardforks),
+      kGenesis(config.genesis),
       kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
                         config.genesis.state.dpos.vote_eligibility_balance_step) {
   LOG_OBJECTS_CREATE("DAGMGR");
@@ -512,7 +511,7 @@ void DagManager::recoverDag() {
         try {
           uint64_t max_vote_count = 0;
           const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk->getSender());
-          if (*propose_period < kHardforks.magnolia_hf.block_num) {
+          if (*propose_period < kGenesis.state.hardforks.magnolia_hf.block_num) {
             max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
           } else {
             max_vote_count = kValidatorMaxVote;
@@ -673,7 +672,7 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
     const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
     uint64_t max_vote_count = 0;
     const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk->getSender());
-    if (*propose_period < kHardforks.magnolia_hf.block_num) {
+    if (*propose_period < kGenesis.state.hardforks.magnolia_hf.block_num) {
       max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
     } else {
       max_vote_count = kValidatorMaxVote;
@@ -715,14 +714,16 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
       return {VerifyBlockReturnType::IncorrectTransactionsEstimation, {}};
     }
 
-    if (total_block_weight > getDagConfig().gas_limit) {
-      LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " gas_limit: " << getDagConfig().gas_limit
+    const auto [dag_gas_limit, pbft_gas_limit] = kGenesis.getGasLimits(*propose_period);
+
+    if (total_block_weight > dag_gas_limit) {
+      LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " gas_limit: " << dag_gas_limit
                    << " total_block_weight " << total_block_weight << " current period "
                    << final_chain_->lastBlockNumber();
       return {VerifyBlockReturnType::BlockTooBig, {}};
     }
 
-    if ((blk->getTips().size() + 1) > kPbftGasLimit / getDagConfig().gas_limit) {
+    if ((blk->getTips().size() + 1) > pbft_gas_limit / dag_gas_limit) {
       for (const auto &t : blk->getTips()) {
         const auto tip_blk = getDagBlock(t);
         if (tip_blk == nullptr) {
@@ -731,8 +732,8 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
         }
         block_gas_estimation += tip_blk->getGasEstimation();
       }
-      if (block_gas_estimation > kPbftGasLimit) {
-        LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " with tips has limit: " << kPbftGasLimit
+      if (block_gas_estimation > pbft_gas_limit) {
+        LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " with tips has limit: " << pbft_gas_limit
                      << " block_gas_estimation " << block_gas_estimation << " current period "
                      << final_chain_->lastBlockNumber();
         return {VerifyBlockReturnType::BlockTooBig, {}};

@@ -539,6 +539,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
 TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
+  node_cfgs.front().propose_dag_gas_limit = 500000;
   makeNodeFromConfig(node_cfgs);
   deployContract();
 
@@ -596,6 +597,8 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
   node_cfgs.front().genesis.pbft.gas_limit = 1100000;
+  node_cfgs.front().propose_dag_gas_limit = 500000;
+  node_cfgs.front().propose_pbft_gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -631,6 +634,8 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   auto dag_gas_limit = node_cfgs.front().genesis.dag.gas_limit = 500000;
   node_cfgs.front().genesis.pbft.gas_limit = 1100000;
+  node_cfgs.front().propose_dag_gas_limit = 500000;
+  node_cfgs.front().propose_pbft_gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -665,7 +670,7 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   const auto period = node->getFinalChain()->lastBlockNumber();
   auto period_data = node->getDB()->getPeriodData(period);
   ASSERT_TRUE(period_data.has_value());
-  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data->dag_blocks));
+  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data->dag_blocks, period));
 }
 
 TEST_F(PbftManagerWithDagCreation, proposed_blocks) {

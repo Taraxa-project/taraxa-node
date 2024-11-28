@@ -86,10 +86,10 @@ GenesisConfig::GenesisConfig() {
   pbft.committee_size = 5;
   pbft.dag_blocks_size = 100;
   pbft.ghost_path_move_back = 1;
-  pbft.gas_limit = 60000000;
+  pbft.gas_limit = 315000000;
 
   // DAG config
-  dag.gas_limit = 10000000;
+  dag.gas_limit = 315000000;
 
   // DPOS config
   auto& dpos = state.dpos;
@@ -128,5 +128,12 @@ bytes GenesisConfig::rlp() const {
 }
 
 blk_hash_t GenesisConfig::genesisHash() const { return dev::sha3(rlp()); }
+
+std::pair<uint64_t, uint64_t> GenesisConfig::getGasLimits(uint64_t block_number) const {
+  if (state.hardforks.isOnCornusHardfork(block_number)) {
+    return {state.hardforks.cornus_hf.dag_gas_limit, state.hardforks.cornus_hf.pbft_gas_limit};
+  }
+  return {dag.gas_limit, pbft.gas_limit};
+}
 
 }  // namespace taraxa

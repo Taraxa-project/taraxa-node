@@ -34,6 +34,7 @@ struct GenesisConfig {
   bytes rlp() const;
   blk_hash_t genesisHash() const;
   void updateBlocksPerYear();
+  std::pair<uint64_t, uint64_t> getGasLimits(uint64_t block_number) const;
 };
 
 Json::Value enc_json(GenesisConfig const& obj);
