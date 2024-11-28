@@ -59,7 +59,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
    */
   static const InitPacketsHandlers kInitLatestVersionHandlers;
 
-  // TODO: remove this once we pass next hf after cornus hf
+  // TODO: remove this once we pass cornus hf
   static const InitPacketsHandlers kInitV4Handlers;
 
  public:

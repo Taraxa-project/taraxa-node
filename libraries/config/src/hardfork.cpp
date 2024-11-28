@@ -138,19 +138,19 @@ RLP_FIELDS_DEFINE(FicusHardforkConfig, block_num, pillar_blocks_interval, bridge
 // }
 // RLP_FIELDS_DEFINE(BambooHardfork, block_num, redelegations)
 
-Json::Value enc_json(const SequoiaHardforkConfig& obj) {
+Json::Value enc_json(const CornusHardforkConfig& obj) {
   Json::Value json(Json::objectValue);
   json["block_num"] = dev::toJS(obj.block_num);
   json["delegation_locking_period"] = dev::toJS(obj.delegation_locking_period);
   return json;
 }
 
-void dec_json(const Json::Value& json, SequoiaHardforkConfig& obj) {
+void dec_json(const Json::Value& json, CornusHardforkConfig& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
   obj.delegation_locking_period = dev::getUInt(json["delegation_locking_period"]);
 }
 
-RLP_FIELDS_DEFINE(SequoiaHardforkConfig, block_num, delegation_locking_period)
+RLP_FIELDS_DEFINE(CornusHardforkConfig, block_num, delegation_locking_period)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
@@ -172,8 +172,7 @@ Json::Value enc_json(const HardforksConfig& obj) {
   json["aspen_hf"] = enc_json(obj.aspen_hf);
   json["ficus_hf"] = enc_json(obj.ficus_hf);
   // json["bamboo_hf"] = enc_json(obj.bamboo_hf);
-  json["cornus_hf_block_num"] = dev::toJS(obj.cornus_hf_block_num);
-  json["sequoia_hf"] = enc_json(obj.sequoia_hf);
+  json["cornus_hf"] = enc_json(obj.cornus_hf);
 
   return json;
 }
@@ -205,12 +204,9 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   dec_json(json["aspen_hf"], obj.aspen_hf);
   dec_json(json["ficus_hf"], obj.ficus_hf);
   // dec_json(json["bamboo_hf"], obj.bamboo_hf);
-  obj.cornus_hf_block_num =
-      json["cornus_hf_block_num"].isUInt64() ? dev::getUInt(json["cornus_hf_block_num"]) : uint64_t(-1);
-  dec_json(json["sequoia_hf"], obj.sequoia_hf);
+  dec_json(json["cornus_hf"], obj.cornus_hf);
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
-                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf_block_num,
-                  sequoia_hf)
+                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf)
 }  // namespace taraxa
