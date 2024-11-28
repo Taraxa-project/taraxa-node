@@ -166,14 +166,16 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a9c0c389487a4e3607f9ce55a00523bb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af06c2d30414942b7f6764127bdb518a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug.html#af06c2d30414942b7f6764127bdb518a8">to_eth_trx</a> (const Json::Value &amp;json, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num)</td></tr>
 <tr class="separator:af06c2d30414942b7f6764127bdb518a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6313fcf1881e7596d2e7e6a1cf644b0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug.html#af6313fcf1881e7596d2e7e6a1cf644b0">to_eth_trxs</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&gt; &amp;trxs)</td></tr>
+<tr class="separator:af6313fcf1881e7596d2e7e6a1cf644b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc9988bca6904385bb969578634f8d9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug.html#acc9988bca6904385bb969578634f8d9d">parse_blk_num</a> (const string &amp;blk_num_str)</td></tr>
 <tr class="separator:acc9988bca6904385bb969578634f8d9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd8123f7453cb7a38689e43a8cb23a1a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">state_api::Tracing</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug.html#abd8123f7453cb7a38689e43a8cb23a1a">parse_tracking_parms</a> (const Json::Value &amp;json) const</td></tr>
 <tr class="separator:abd8123f7453cb7a38689e43a8cb23a1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b5b74af4afa0c0d654cb91845fe54f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a5f580c536d395535c524e770e9871ebe">Address</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug.html#a0b5b74af4afa0c0d654cb91845fe54f0">to_address</a> (const string &amp;s) const</td></tr>
 <tr class="separator:a0b5b74af4afa0c0d654cb91845fe54f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a360d4b66ba85efd523268f8b3daf1cde"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location">final_chain::TransactionLocation</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug.html#a360d4b66ba85efd523268f8b3daf1cde">get_transaction_with_location</a> (const std::string &amp;transaction_hash) const</td></tr>
-<tr class="separator:a360d4b66ba85efd523268f8b3daf1cde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a266f22bfdf51f944bcf31f1db1b84dc6"><td class="memItemLeft" align="right" valign="top">std::tuple&lt; std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt;, <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a>, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug.html#a266f22bfdf51f944bcf31f1db1b84dc6">get_transaction_with_state</a> (const std::string &amp;transaction_hash)</td></tr>
+<tr class="separator:a266f22bfdf51f944bcf31f1db1b84dc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -449,8 +451,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a360d4b66ba85efd523268f8b3daf1cde"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a360d4b66ba85efd523268f8b3daf1cde">&#9670;&nbsp;</a></span>get_transaction_with_location()</h2>
+<a id="a266f22bfdf51f944bcf31f1db1b84dc6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a266f22bfdf51f944bcf31f1db1b84dc6">&#9670;&nbsp;</a></span>get_transaction_with_state()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -459,11 +461,11 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location">final_chain::TransactionLocation</a> &gt; &gt; taraxa::net::Debug::get_transaction_with_location </td>
+          <td class="memname">std::tuple&lt; std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt;, <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a>, uint64_t &gt; taraxa::net::Debug::get_transaction_with_state </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>transaction_hash</em></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -632,6 +634,32 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td>
           <td class="paramname"><em>t</em></td><td>)</td>
           <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af6313fcf1881e7596d2e7e6a1cf644b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6313fcf1881e7596d2e7e6a1cf644b0">&#9670;&nbsp;</a></span>to_eth_trxs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt; taraxa::net::Debug::to_eth_trxs </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>trxs</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>

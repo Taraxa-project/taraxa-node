@@ -1,5 +1,6 @@
 var NAVTREEINDEX15 =
 {
+"group___d_a_g.html#a5a36c04f481e9c1dd344fd2af990a3cc":[15,0,4,22],
 "group___d_a_g.html#a5fc04132e8cc865da3029ea1abfd26d2":[15,0,4,35],
 "group___d_a_g.html#a6266d656a7eba53bac6fa8dc7e7eb5da":[15,0,0,17],
 "group___d_a_g.html#a62ddc9b2edce48ff2bfea2108ef58b97":[15,0,4,4],
@@ -127,6 +128,7 @@ var NAVTREEINDEX15 =
 "group___d_a_g.html#structtaraxa_1_1_sortition_params_change":[15,0,6],
 "group___final_chain.html":[15,1],
 "group___final_chain.html#a0053d2c9e2c118c572681ca1055e500b":[15,1,8,22],
+"group___final_chain.html#a0141080dc98cd85adbf34219a3f5a14a":[15,1,7,48],
 "group___final_chain.html#a0216f26f70286d78113024f6f2679536":[15,1,7,68],
 "group___final_chain.html#a028fa18da2901ff915e8a6d2cf4f0c70":[15,1,0,7],
 "group___final_chain.html#a04a27839cd89baf8ffe24a67e9524f37":[15,1,14,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX15 =
 "group___final_chain.html#a7eed2102093747a65dae61eecd794f40":[15,1,7,58],
 "group___final_chain.html#a80acb20cfd3c4b7b4c293657167e849e":[15,1,8,27],
 "group___final_chain.html#a80fe2bc044b4903a67e119baf6ccfc8c":[15,1,8,11],
-"group___final_chain.html#a8257b5e6e37302b0f98446c6d8928259":[15,1,7,7],
-"group___final_chain.html#a8282315f5c977d8f3902363d305e158e":[15,1,7,36],
-"group___final_chain.html#a85e2a7799cbaf266290dc8e192980e8e":[15,1,7,21]
+"group___final_chain.html#a8257b5e6e37302b0f98446c6d8928259":[15,1,7,7]
 };

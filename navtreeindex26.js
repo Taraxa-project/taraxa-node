@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"structtaraxa_1_1_sortition_config.html#aeca7d919b3af86702956c766c8a19be6":[17,0,3,78,0],
 "structtaraxa_1_1_sortition_config.html#af1a6900d2e7b470611b2f050d073eea0":[17,0,3,78,3],
 "structtaraxa_1_1_sortition_config.html#af70ade9835d1a270ed6ad46a7c4d7acb":[17,0,3,78,2],
 "structtaraxa_1_1_sortition_params.html":[17,0,3,77],
@@ -248,6 +249,5 @@ var NAVTREEINDEX26 =
 "tools_8hpp.html#aa38cfac2244220437fc1da23ab6a367a":[18,0,1,1,0,0,2,21],
 "tools_8hpp.html#ab83c68c2cb7227a13df9aa226e597d6f":[18,0,1,1,0,0,2,23],
 "tools_8hpp.html#ac63923dda84ae51b467406b3531435bf":[18,0,1,1,0,0,2,11],
-"tools_8hpp.html#ace1e8f38d69b882446a5ed77edef6049":[18,0,1,1,0,0,2,3],
-"tools_8hpp.html#ad371a9212bbd71daca16a2683eca248d":[18,0,1,1,0,0,2,19]
+"tools_8hpp.html#ace1e8f38d69b882446a5ed77edef6049":[18,0,1,1,0,0,2,3]
 };
