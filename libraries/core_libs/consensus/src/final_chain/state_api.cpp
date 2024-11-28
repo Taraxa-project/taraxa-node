@@ -164,10 +164,10 @@ ExecutionResult StateAPI::dry_run_transaction(EthBlockNumber blk_num, const EVMB
                                                                                                 trx);
 }
 
-bytes StateAPI::trace(EthBlockNumber blk_num, const EVMBlock& blk, const std::vector<EVMTransaction> trxs,
-                      std::optional<Tracing> params) const {
-  return c_method_args_rlp<bytes, from_rlp, taraxa_evm_state_api_trace_transactions>(this_c_, blk_num, blk, trxs,
-                                                                                     params);
+bytes StateAPI::trace(EthBlockNumber blk_num, const EVMBlock& blk, const std::vector<EVMTransaction>& state_trxs,
+                      const std::vector<EVMTransaction>& trxs, std::optional<Tracing> params) const {
+  return c_method_args_rlp<bytes, from_rlp, taraxa_evm_state_api_trace_transactions>(this_c_, blk_num, blk, state_trxs,
+                                                                                     trxs, params);
 }
 
 StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
