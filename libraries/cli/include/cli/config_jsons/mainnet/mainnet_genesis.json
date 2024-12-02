@@ -1656,7 +1656,9 @@
     },
     "cornus_hf": {
       "block_num": -1,
-      "delegation_locking_period": 163459
+      "delegation_locking_period": 163459,
+      "dag_gas_limit": "0x1908B100",
+      "pbft_gas_limit": "0x7d2b7500"
     }
   }
 }

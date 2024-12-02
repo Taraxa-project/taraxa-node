@@ -142,15 +142,19 @@ Json::Value enc_json(const CornusHardforkConfig& obj) {
   Json::Value json(Json::objectValue);
   json["block_num"] = dev::toJS(obj.block_num);
   json["delegation_locking_period"] = dev::toJS(obj.delegation_locking_period);
+  json["dag_gas_limit"] = dev::toJS(obj.dag_gas_limit);
+  json["pbft_gas_limit"] = dev::toJS(obj.pbft_gas_limit);
   return json;
 }
 
 void dec_json(const Json::Value& json, CornusHardforkConfig& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
   obj.delegation_locking_period = dev::getUInt(json["delegation_locking_period"]);
+  obj.dag_gas_limit = dev::getUInt(json["dag_gas_limit"]);
+  obj.pbft_gas_limit = dev::getUInt(json["pbft_gas_limit"]);
 }
 
-RLP_FIELDS_DEFINE(CornusHardforkConfig, block_num, delegation_locking_period)
+RLP_FIELDS_DEFINE(CornusHardforkConfig, block_num, delegation_locking_period, dag_gas_limit, pbft_gas_limit)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);

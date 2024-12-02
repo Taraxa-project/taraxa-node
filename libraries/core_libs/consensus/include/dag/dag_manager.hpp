@@ -279,8 +279,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   const uint32_t cache_delete_step_ = 100;
   ExpirationCacheMap<blk_hash_t, std::shared_ptr<DagBlock>> seen_blocks_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
-  const uint64_t kPbftGasLimit;
-  const HardforksConfig kHardforks;
+  const GenesisConfig kGenesis;
   const uint64_t kValidatorMaxVote;
 
   LOG_OBJECTS_DEFINE

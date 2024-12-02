@@ -588,7 +588,7 @@ std::optional<h256> FinalChain::finalChainHash(EthBlockNumber n) const {
     return {};
   }
 
-  if (kConfig.genesis.state.hardforks.isCornusHardfork(n)) {
+  if (kConfig.genesis.state.hardforks.isOnCornusHardfork(n)) {
     return header->hash;
   }
   return header->state_root;

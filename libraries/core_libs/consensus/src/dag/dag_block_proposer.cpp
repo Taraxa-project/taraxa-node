@@ -26,8 +26,8 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
       node_sk_(config.node_secret),
       vrf_sk_(config.vrf_secret),
       vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk_)),
-      kPbftGasLimit(config.genesis.pbft.gas_limit),
-      kDagGasLimit(config.genesis.dag.gas_limit),
+      kPbftGasLimit(config.propose_pbft_gas_limit),
+      kDagGasLimit(config.propose_dag_gas_limit),
       kHardforks(config.genesis.state.hardforks),
       kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
                         config.genesis.state.dpos.vote_eligibility_balance_step) {
@@ -117,7 +117,7 @@ bool DagBlockProposer::proposeDagBlock() {
     }
   }
 
-  auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
+  auto [transactions, estimations] = getShardedTrxs(*proposal_period, kDagGasLimit);
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
     num_tries_ = 0;
