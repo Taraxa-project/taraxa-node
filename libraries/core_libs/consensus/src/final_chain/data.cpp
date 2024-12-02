@@ -32,19 +32,36 @@ void BlockHeader::setFromPbft(const PbftBlock& pbft) {
 
 h256 const& BlockHeader::unclesHash() { return EmptyRLPListSHA3(); }
 
-Nonce const& BlockHeader::nonce() { return EmptyNonce(); }
+const Nonce& BlockHeader::nonce() { return EmptyNonce(); }
 
-u256 const& BlockHeader::difficulty() { return ZeroU256(); }
+const u256& BlockHeader::difficulty() { return ZeroU256(); }
 
-h256 const& BlockHeader::mixHash() { return ZeroHash(); }
+const h256& BlockHeader::mixHash() { return ZeroHash(); }
 
-dev::bytes BlockHeader::ethereumRlp() const {
-  dev::RLPStream rlp_strm;
-  util::rlp_tuple(rlp_strm, parent_hash, BlockHeader::unclesHash(), author, state_root, transactions_root,
+std::shared_ptr<BlockHeader> BlockHeader::fromRLP(const dev::RLP& rlp) {
+  auto ret = std::make_shared<BlockHeader>();
+  ret->rlp(rlp);
+  dev::RLPStream encoding;
+  ret->ethereumRlp(encoding);
+  ret->size = encoding.out().size();
+  return ret;
+}
+
+void BlockHeader::ethereumRlp(dev::RLPStream& encoding) const {
+  util::rlp_tuple(encoding, parent_hash, BlockHeader::unclesHash(), author, state_root, transactions_root,
                   receipts_root, log_bloom, BlockHeader::difficulty(), number, gas_limit, gas_used, timestamp,
                   extra_data, BlockHeader::mixHash(), BlockHeader::nonce());
-  return rlp_strm.invalidate();
 }
+
+dev::bytes BlockHeader::ethereumRlp() const {
+  dev::RLPStream encoding;
+  ethereumRlp(encoding);
+  return encoding.invalidate();
+}
+
+// TODO[2888]: remove hash field to not store it in the db
+RLP_FIELDS_DEFINE(BlockHeader, hash, parent_hash, author, state_root, transactions_root, receipts_root, log_bloom,
+                  number, gas_limit, gas_used, timestamp, total_reward, extra_data)
 
 RLP_FIELDS_DEFINE(LogEntry, address, topics, data)
 

@@ -20,6 +20,8 @@ config:
   # 100 for default helm test
   network: "100"
   extraArgs: []
+  snapshots:
+    enabled: true
   
   # Default keys, VRFs and address for kube testing
   node:

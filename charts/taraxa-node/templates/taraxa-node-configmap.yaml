@@ -154,6 +154,12 @@ data:
     {{- end }}
     {{- end }}
 
+    {{ if .Values.config.snapshots.enabled }}
+    cat $CONFIG_PATH | jq '.db_config.db_max_snapshots = 1' | jq '.db_config.db_snapshot_each_n_pbft_block = 10000' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    {{- else }}
+    cat $CONFIG_PATH | jq '.db_config.db_max_snapshots = 0' | jq '.db_config.db_snapshot_each_n_pbft_block = 0' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    {{- end }}
+
     echo "***** $CONFIG_PATH *****"
     cat $CONFIG_PATH
     echo "***** $CONFIG_PATH *****"
