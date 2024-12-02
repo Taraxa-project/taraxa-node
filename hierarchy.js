@@ -130,6 +130,7 @@ var hierarchy =
     [ "dev::Converter< uint32_t >", "structdev_1_1_converter_3_01uint32__t_01_4.html", null ],
     [ "dev::Converter< uint64_t >", "structdev_1_1_converter_3_01uint64__t_01_4.html", null ],
     [ "dev::Converter< uint8_t >", "structdev_1_1_converter_3_01uint8__t_01_4.html", null ],
+    [ "taraxa::CornusHardforkConfig", "namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config", null ],
     [ "taraxa::pillar_chain::CurrentPillarBlockDataDb", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db", null ],
     [ "graphql::taraxa::CurrentState", "classgraphql_1_1taraxa_1_1_current_state.html", null ],
     [ "taraxa::Dag", "group___d_a_g.html#classtaraxa_1_1_dag", [

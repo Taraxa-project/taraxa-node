@@ -1,5 +1,9 @@
 var NAVTREEINDEX19 =
 {
+"jsonrpc__ws__server_8cpp.html":[18,0,1,4,1,2,9],
+"jsonrpc__ws__server_8hpp.html":[18,0,1,4,1,2,10],
+"jsonrpc__ws__server_8hpp_source.html":[18,0,1,4,1,2,10],
+"key__manager_8cpp.html":[18,0,1,4,0,1,2,0],
 "key__manager_8cpp.html#a10105b152578aaf566cb89722b17385b":[18,0,1,4,0,1,2,0,0],
 "key__manager_8hpp.html":[18,0,1,4,0,0,2,0],
 "key__manager_8hpp_source.html":[18,0,1,4,0,0,2,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX19 =
 "libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7":[18,0,1,0,2,2,19],
 "libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a1580e34777771d97114e26e969da12b4":[18,0,1,0,2,2,19,4],
 "libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a2d122190369b9e5bdf4e3f1e58e4ed3b":[18,0,1,0,2,2,19,3],
-"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a63188ccd09406e3dfdbce38905fa0c10":[18,0,1,0,2,2,19,2],
-"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a6c88dafb542cdaeed44bf29e90d96a07":[18,0,1,0,2,2,19,1],
-"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7ab20ea711706aab720b7e438030ef8ead":[18,0,1,0,2,2,19,0],
-"libp2p_2_common_8h.html#adee410722fa45feb4acbab36d7704bb5":[18,0,1,0,2,2,21],
-"libp2p_2_common_8h.html#ae2efc7abea1ff6a4b3f66b5deeb7b863":[18,0,1,0,2,2,20]
+"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a63188ccd09406e3dfdbce38905fa0c10":[18,0,1,0,2,2,19,2]
 };

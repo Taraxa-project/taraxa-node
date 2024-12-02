@@ -26,6 +26,7 @@ var searchData=
   ['converter_3c_20uint32_5ft_20_3e_4050',['Converter&lt; uint32_t &gt;',['../structdev_1_1_converter_3_01uint32__t_01_4.html',1,'dev']]],
   ['converter_3c_20uint64_5ft_20_3e_4051',['Converter&lt; uint64_t &gt;',['../structdev_1_1_converter_3_01uint64__t_01_4.html',1,'dev']]],
   ['converter_3c_20uint8_5ft_20_3e_4052',['Converter&lt; uint8_t &gt;',['../structdev_1_1_converter_3_01uint8__t_01_4.html',1,'dev']]],
-  ['currentpillarblockdatadb_4053',['CurrentPillarBlockDataDb',['../group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db',1,'taraxa::pillar_chain']]],
-  ['currentstate_4054',['CurrentState',['../classgraphql_1_1taraxa_1_1_current_state.html',1,'graphql::taraxa']]]
+  ['cornushardforkconfig_4053',['CornusHardforkConfig',['../namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config',1,'taraxa']]],
+  ['currentpillarblockdatadb_4054',['CurrentPillarBlockDataDb',['../group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db',1,'taraxa::pillar_chain']]],
+  ['currentstate_4055',['CurrentState',['../classgraphql_1_1taraxa_1_1_current_state.html',1,'graphql::taraxa']]]
 ];

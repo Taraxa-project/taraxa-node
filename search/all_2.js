@@ -37,7 +37,7 @@ var searchData=
   ['block_5fhashes_5fcache_5f_165',['block_hashes_cache_',['../group___final_chain.html#a94b19f26b79fad1f74e542bdd369d865',1,'taraxa::final_chain::FinalChain']]],
   ['block_5fheader_5f_166',['block_header_',['../classgraphql_1_1taraxa_1_1_block.html#a60cb36444c98a04faa0392c2fac3212b',1,'graphql::taraxa::Block']]],
   ['block_5fheaders_5fcache_5f_167',['block_headers_cache_',['../group___final_chain.html#a0a482761c5cba3b9dc5bedd8ca803059',1,'taraxa::final_chain::FinalChain']]],
-  ['block_5fnum_168',['block_num',['../structtaraxa_1_1_ficus_hardfork_config.html#ab28d57dfd5f32dc8f112c23c0e567a7a',1,'taraxa::FicusHardforkConfig::block_num()'],['../namespacetaraxa.html#af37c1e1391e90c597c50c5f1c2cc5f76',1,'taraxa::MagnoliaHardfork::block_num()']]],
+  ['block_5fnum_168',['block_num',['../namespacetaraxa.html#a746fa8cd47a15fcec929d487ae8e2b00',1,'taraxa::CornusHardforkConfig::block_num()'],['../structtaraxa_1_1_ficus_hardfork_config.html#ab28d57dfd5f32dc8f112c23c0e567a7a',1,'taraxa::FicusHardforkConfig::block_num()'],['../namespacetaraxa.html#af37c1e1391e90c597c50c5f1c2cc5f76',1,'taraxa::MagnoliaHardfork::block_num()']]],
   ['block_5fnum_5fpart_5fone_169',['block_num_part_one',['../namespacetaraxa.html#a0b5c4fada097c26d331e1ff213521a10',1,'taraxa::AspenHardfork']]],
   ['block_5fnum_5fpart_5ftwo_170',['block_num_part_two',['../namespacetaraxa.html#a5e6210f43fe3b734e14cb2beaeb244d3',1,'taraxa::AspenHardfork']]],
   ['block_5fproposer_171',['block_proposer',['../structtaraxa_1_1_dag_config.html#ad63cfec01934e4995121c34ddf1819cb',1,'taraxa::DagConfig']]],

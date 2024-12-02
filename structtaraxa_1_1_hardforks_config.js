@@ -4,7 +4,7 @@ var structtaraxa_1_1_hardforks_config =
     [ "isAspenHardforkPartOne", "structtaraxa_1_1_hardforks_config.html#af2847d7cfce5d2deb2e89934cbb93e09", null ],
     [ "isCornusHardfork", "structtaraxa_1_1_hardforks_config.html#a7bdd5441c306fa33319ea8637f868a7f", null ],
     [ "aspen_hf", "structtaraxa_1_1_hardforks_config.html#a4ce176bdcae032aa306d73dc2a826489", null ],
-    [ "cornus_hf_block_num", "structtaraxa_1_1_hardforks_config.html#ab2fd297deaf661e77fdb89cf273eb09b", null ],
+    [ "cornus_hf", "structtaraxa_1_1_hardforks_config.html#add6685fedcf60aa525aa0026273da092", null ],
     [ "ficus_hf", "structtaraxa_1_1_hardforks_config.html#aaaa932e728f84fa7908dac53a354d190", null ],
     [ "fix_claim_all_block_num", "structtaraxa_1_1_hardforks_config.html#aa39d325640fc1d0b7512bb55c4fb3b5d", null ],
     [ "fix_redelegate_block_num", "structtaraxa_1_1_hardforks_config.html#a3c48c7d686ea65b4c35ec5443708cfe3", null ],

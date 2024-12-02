@@ -1,7 +1,8 @@
 <map id="taraxa::HardforksConfig" name="taraxa::HardforksConfig">
-<area shape="rect" id="node1" title=" " alt="" coords="212,184,389,211"/>
-<area shape="rect" id="node2" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="5,95,175,121"/>
-<area shape="rect" id="node3" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="199,95,402,121"/>
-<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="221,5,381,32"/>
-<area shape="rect" id="node5" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="426,95,615,121"/>
+<area shape="rect" id="node1" title=" " alt="" coords="725,79,903,105"/>
+<area shape="rect" id="node2" href="$namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="377,5,592,32"/>
+<area shape="rect" id="node3" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="400,56,569,83"/>
+<area shape="rect" id="node4" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="383,107,586,133"/>
+<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,107,165,133"/>
+<area shape="rect" id="node6" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="390,157,579,184"/>
 </map>

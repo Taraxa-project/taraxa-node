@@ -339,6 +339,7 @@ var annotated_dup =
       [ "MagnoliaHardfork", "namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork", "namespacetaraxa_structtaraxa_1_1_magnolia_hardfork_dup" ],
       [ "AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", "namespacetaraxa_structtaraxa_1_1_aspen_hardfork_dup" ],
       [ "FicusHardforkConfig", "structtaraxa_1_1_ficus_hardfork_config.html", "structtaraxa_1_1_ficus_hardfork_config" ],
+      [ "CornusHardforkConfig", "namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config", "namespacetaraxa_structtaraxa_1_1_cornus_hardfork_config_dup" ],
       [ "HardforksConfig", "structtaraxa_1_1_hardforks_config.html", "structtaraxa_1_1_hardforks_config" ],
       [ "PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", "namespacetaraxa_structtaraxa_1_1_prometheus_config_dup" ],
       [ "ConnectionConfig", "structtaraxa_1_1_connection_config.html", "structtaraxa_1_1_connection_config" ],

@@ -379,15 +379,16 @@ var NAVTREEINDEX =
 "group___final_chain.html#a8282315f5c977d8f3902363d305e158e",
 "group___p_b_f_t.html#a99f177271d5c785a7fdfd27ec46868c8",
 "group___transaction.html#adf177856ba34c82fb84138cdc3ae13f6",
-"key__manager_8cpp.html#a10105b152578aaf566cb89722b17385b",
-"libp2p_2_common_8h.html#ae2efc7abea1ff6a4b3f66b5deeb7b863ab651efdb98a5d6bd2b3935d0c3f4a5e2",
-"md_doc_coding_practices.html#autotoc_md185",
-"namespacetaraxa.html#af37c1e1391e90c597c50c5f1c2cc5f76",
-"period__data_8hpp.html",
-"structdev_1_1p2p_1_1_host.html",
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a727121cb1a0f3c56f94e5d1ec39a8e56",
-"structtaraxa_1_1_sortition_config.html#aeca7d919b3af86702956c766c8a19be6",
-"tools_8hpp.html#ad371a9212bbd71daca16a2683eca248d"
+"jsonrpc__ws__server_8cpp.html",
+"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a6c88dafb542cdaeed44bf29e90d96a07",
+"md_doc_coding_practices.html#autotoc_md181",
+"namespacetaraxa.html#ac844af3765833743b765ce695265d486",
+"peers__state_8hpp.html",
+"structdev_1_1p2p_1_1_find_node.html#a5f35d1b503e360859c3acf2f21262e68",
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a708429ef7a5ed14e8ceee7ac8dfa3fcda0783c8e09053b40f4719c31b4413e043",
+"structtaraxa_1_1_pbft_config.html#a8d281d1afa5d0b87650194c0660f0b72",
+"tools_8hpp.html#a89c2e7fd58f992c177c988f393f17f1d",
+"watches_8hpp.html#aeb19a0c91d9b3f39936dcbb097ccd138a18cee09970290edbc002a5f3f4e24400"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
