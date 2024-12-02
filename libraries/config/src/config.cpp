@@ -108,6 +108,9 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
     genesis = GenesisConfig();
   }
 
+  propose_dag_gas_limit = getConfigDataAsUInt(root, {"propose_dag_gas_limit"}, true, propose_dag_gas_limit);
+  propose_pbft_gas_limit = getConfigDataAsUInt(root, {"propose_pbft_gas_limit"}, true, propose_pbft_gas_limit);
+
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
   light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
@@ -197,6 +200,22 @@ void FullNodeConfig::validate() const {
 
   if (transactions_pool_size < kMinTransactionPoolSize) {
     throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize));
+  }
+
+  if (genesis.pbft.gas_limit < propose_pbft_gas_limit ||
+      (genesis.state.hardforks.cornus_hf.block_num != uint64_t(-1) &&
+       genesis.state.hardforks.cornus_hf.pbft_gas_limit < propose_pbft_gas_limit)) {
+    throw ConfigException("Propose pbft gas limit:" + std::to_string(propose_pbft_gas_limit) +
+                          " greater than max allowed pbft gas limit:" + std::to_string(genesis.pbft.gas_limit) + ":" +
+                          std::to_string(genesis.state.hardforks.cornus_hf.pbft_gas_limit));
+  }
+
+  if (genesis.dag.gas_limit < propose_dag_gas_limit ||
+      (genesis.state.hardforks.cornus_hf.block_num != uint64_t(-1) &&
+       genesis.state.hardforks.cornus_hf.dag_gas_limit < propose_dag_gas_limit)) {
+    throw ConfigException("Propose dag gas limit:" + std::to_string(propose_pbft_gas_limit) +
+                          " greater than max allowed pbft gas limit:" + std::to_string(genesis.pbft.gas_limit) + ":" +
+                          std::to_string(genesis.state.hardforks.cornus_hf.pbft_gas_limit));
   }
 
   // TODO: add validation of other config values

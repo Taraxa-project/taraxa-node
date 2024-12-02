@@ -409,6 +409,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   // make config
   auto node_cfgs = make_node_cfgs(1, 1, 20);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
+  node_cfgs.front().propose_dag_gas_limit = 500000;
 
   auto node = create_nodes(node_cfgs).front();
   auto db = node->getDB();

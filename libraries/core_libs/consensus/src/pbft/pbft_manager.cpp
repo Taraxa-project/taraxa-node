@@ -1287,7 +1287,8 @@ PbftManager::proposePbftBlock() {
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
 
-    if (total_weight + dag_block_weight > kGenesisConfig.pbft.gas_limit) {
+    const auto [dag_gas_limit, pbft_gas_limit] = kGenesisConfig.getGasLimits(current_pbft_period);
+    if (total_weight + dag_block_weight > pbft_gas_limit) {
       break;
     }
     total_weight += dag_block_weight;
@@ -1553,7 +1554,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
     auto ghost = dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash());
     if (ghost.size() > 1 && anchor_hash != ghost[1]) {
-      if (!checkBlockWeight(anchor_dag_block_order_cache_[anchor_hash])) {
+      if (!checkBlockWeight(anchor_dag_block_order_cache_[anchor_hash], block_period)) {
         LOG(log_er_) << "PBFT block " << pbft_block_hash << " weight exceeded max limit";
         anchor_dag_block_order_cache_.erase(anchor_hash);
         return false;
@@ -2155,11 +2156,14 @@ void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID
 
 size_t PbftManager::periodDataQueueSize() const { return sync_queue_.size(); }
 
-bool PbftManager::checkBlockWeight(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks) const {
+bool PbftManager::checkBlockWeight(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks, PbftPeriod period) const {
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
                       [](u256 value, const auto &dag_block) { return value + dag_block->getGasEstimation(); });
-  if (total_weight > kGenesisConfig.pbft.gas_limit) {
+  auto pbft_gas_limit = kGenesisConfig.state.hardforks.isOnCornusHardfork(period)
+                            ? kGenesisConfig.state.hardforks.cornus_hf.pbft_gas_limit
+                            : kGenesisConfig.pbft.gas_limit;
+  if (total_weight > pbft_gas_limit) {
     return false;
   }
   return true;
