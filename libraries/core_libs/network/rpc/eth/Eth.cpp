@@ -68,6 +68,7 @@ Json::Value toJson(const BlockHeader& obj) {
   res["difficulty"] = "0x0";
   res["totalDifficulty"] = "0x0";
   res["totalReward"] = toJS(obj.total_reward);
+  res["size"] = toJS(obj.size);
   return res;
 }
 

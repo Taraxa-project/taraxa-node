@@ -31,6 +31,7 @@ struct BlockHeaderData {
   LogBloom log_bloom;
   uint64_t gas_used = 0;
   u256 total_reward;
+  uint64_t size = 0;
 
   dev::bytes serializeForDB() const;
 
@@ -46,12 +47,15 @@ struct BlockHeader : BlockHeaderData {
 
   static h256 const& unclesHash();
 
-  static Nonce const& nonce();
+  static const Nonce& nonce();
 
-  static u256 const& difficulty();
+  static const u256& difficulty();
 
   static h256 const& mixHash();
 
+  static std::shared_ptr<BlockHeader> fromRLP(const dev::RLP& rlp);
+
+  void ethereumRlp(dev::RLPStream& encoding) const;
   dev::bytes ethereumRlp() const;
 
   h256 hash;
@@ -60,6 +64,8 @@ struct BlockHeader : BlockHeaderData {
   uint64_t timestamp = 0;
   EthBlockNumber number = 0;
   bytes extra_data;
+
+  HAS_RLP_FIELDS
 };
 
 static constexpr auto c_bloomIndexSize = 16;
