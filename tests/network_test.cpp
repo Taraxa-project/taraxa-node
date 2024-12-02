@@ -134,8 +134,9 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto node1_period = node1->getPbftChain()->getPbftChainSize();
   const auto node2_period = node2->getPbftChain()->getPbftChainSize();
   std::cout << "node1 period " << node1_period << ", node2 period " << node2_period << std::endl;
-  nw1->getSpecificHandler<network::tarcap::GetDagSyncPacketHandler>()->sendBlocks(
-      nw2->getNodeId(), std::move(dag_blocks), std::move(trxs), node2_period, node1_period);
+  nw2->getSpecificHandler<network::tarcap::IDagBlockPacketHandler>(network::SubprotocolPacketType::kDagBlockPacket)
+      ->requestDagBlocks(nw2->getPeer(nw1->getNodeId()));
+
   std::cout << "Waiting Sync ..." << std::endl;
   wait({120s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
@@ -220,7 +221,8 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node2_id = nw2->getNodeId();
 
   EXPECT_NE(nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size);
-  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
+  nw1->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
+      ->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
   EXPECT_HAPPENS({5s, 100ms},
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size) });
 }
@@ -375,8 +377,9 @@ TEST_F(NetworkTest, transfer_transaction) {
   std::pair<SharedTransactions, std::vector<trx_hash_t>> transactions;
   transactions.first.push_back(g_signed_trx_samples[0]);
 
-  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
-                                                                                         std::move(transactions));
+  nw2->getSpecificHandler<network::tarcap::ITransactionPacketHandler>(
+         network::SubprotocolPacketType::kTransactionPacket)
+      ->sendTransactions(peer1, std::move(transactions));
   const auto tx_mgr1 = node1->getTransactionManager();
   EXPECT_HAPPENS({2s, 200ms},
                  [&](auto& ctx) { WAIT_EXPECT_TRUE(ctx, tx_mgr1->getTransaction(g_signed_trx_samples[0]->getHash())) });
