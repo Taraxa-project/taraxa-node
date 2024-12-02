@@ -1654,6 +1654,9 @@
       "pillar_blocks_interval": 4000,
       "bridge_contract_address": "0xe126E0BaeAE904b8Cfd619Be1A8667A173b763a1"
     },
-    "cornus_hf_block_num": -1
+    "cornus_hf": {
+      "block_num": -1,
+      "delegation_locking_period": 163459
+    }
   }
 }
