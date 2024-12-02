@@ -1,6 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"md_doc_coding_practices.html#autotoc_md181":[4,0,22],
 "md_doc_coding_practices.html#autotoc_md182":[98],
 "md_doc_coding_practices.html#autotoc_md183":[99],
 "md_doc_coding_practices.html#autotoc_md184":[100],
@@ -231,8 +230,9 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[18,0,1,3,0,0,0,0,2],
 "namespacetaraxa.html#a274099357513e9346beed7aefafb5a71":[18,0,1,3,0,0,0,0,5],
 "namespacetaraxa.html#a3747de5ec38a001ef934c2764b539ef3":[18,0,1,4,0,0,8,0,0,2],
+"namespacetaraxa.html#a398d27da1b07592bd4410acc1fb7035f":[18,0,1,3,0,0,4,4,1],
 "namespacetaraxa.html#a449318e401ad9282a857638b8c440054":[18,0,1,3,0,0,4,0,2],
-"namespacetaraxa.html#a4693d5cf76e5a705f41247b599bb5dcb":[18,0,1,3,0,0,4,4,1],
+"namespacetaraxa.html#a4693d5cf76e5a705f41247b599bb5dcb":[18,0,1,3,0,0,4,4,2],
 "namespacetaraxa.html#a4f70ee014a414993cc75c52fb9c8c4cd":[18,0,1,3,0,0,0,0,4],
 "namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc":[18,0,1,3,0,0,5,2,0],
 "namespacetaraxa.html#a56719afc725ec7ee443f3bf028fb3218":[18,0,1,3,0,0,4,0,1],
@@ -249,5 +249,5 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#aae336b6b543c9febf3efb2a8065d0a06":[18,0,1,8,0,0,0,1,1],
 "namespacetaraxa.html#abdd62bbac265c8653d3c403952b8175d":[18,0,1,3,0,0,0,0,6],
 "namespacetaraxa.html#abe73b7f0480b66b1d6f4e9b7b31ac2e1":[18,0,1,3,0,0,0,0,8],
-"namespacetaraxa.html#ac263baa798723f50c287f8cb87ad0bf9":[18,0,1,3,0,0,4,2,2]
+"namespacetaraxa.html#ac05c2aa222b9fff4b24d95e3f9e68ecc":[18,0,1,3,0,0,4,4,3]
 };

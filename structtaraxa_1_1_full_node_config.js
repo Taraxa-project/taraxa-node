@@ -27,6 +27,8 @@ var structtaraxa_1_1_full_node_config =
     [ "network", "structtaraxa_1_1_full_node_config.html#aa92cfdd3c9bc4f4b6411ef9d4a735668", null ],
     [ "node_secret", "structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1", null ],
     [ "opts_final_chain", "structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155", null ],
+    [ "propose_dag_gas_limit", "structtaraxa_1_1_full_node_config.html#a720430b9f01e3623b29608be6864d1b9", null ],
+    [ "propose_pbft_gas_limit", "structtaraxa_1_1_full_node_config.html#a3fce2190545b92e1fa22491f9c8b2843", null ],
     [ "report_malicious_behaviour", "structtaraxa_1_1_full_node_config.html#a4082ce47b5cd4c4950118c96a0286ef0", null ],
     [ "transactions_pool_size", "structtaraxa_1_1_full_node_config.html#a183825e3e024b1bf609c24325f01c437", null ],
     [ "vrf_secret", "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe", null ]

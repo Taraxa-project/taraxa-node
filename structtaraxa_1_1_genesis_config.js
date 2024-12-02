@@ -2,6 +2,7 @@ var structtaraxa_1_1_genesis_config =
 [
     [ "GenesisConfig", "structtaraxa_1_1_genesis_config.html#ab48032aee1430428211bcc46162ccd36", null ],
     [ "genesisHash", "structtaraxa_1_1_genesis_config.html#acf37577b43e158052a1f8cc83f5868fd", null ],
+    [ "getGasLimits", "structtaraxa_1_1_genesis_config.html#abe8b98e1a98bff338771033b064263ae", null ],
     [ "rlp", "structtaraxa_1_1_genesis_config.html#a4525d348b52e310710c511f8d94b9a0f", null ],
     [ "updateBlocksPerYear", "structtaraxa_1_1_genesis_config.html#a32e94ae16346d9dfcfeeb96e892e66fd", null ],
     [ "validate", "structtaraxa_1_1_genesis_config.html#af2cc361d1e79be7911430329958a209e", null ],

@@ -34,7 +34,7 @@ var group___p_b_f_t =
       [ "calculateOrderHash", "group___p_b_f_t.html#a49e56ca0dd61f5dfa107284024294d24", null ],
       [ "canParticipateInConsensus", "group___p_b_f_t.html#a8b1a0d071e100db610d62f3216999711", null ],
       [ "certifyBlock_", "group___p_b_f_t.html#ab7288559b1eac7a493ad1009a2095baa", null ],
-      [ "checkBlockWeight", "group___p_b_f_t.html#accf09e3d357945a6c2e117b2d6ae84e7", null ],
+      [ "checkBlockWeight", "group___p_b_f_t.html#a77a24138af93f043348890a621c7d454", null ],
       [ "createPbftBlockExtraData", "group___p_b_f_t.html#ab3ab336fa26a34a5bcaa90481557d5d3", null ],
       [ "elapsedTimeInMs", "group___p_b_f_t.html#a99f177271d5c785a7fdfd27ec46868c8", null ],
       [ "finalize_", "group___p_b_f_t.html#ac1d71b10c49fd1e56ec7348377040b64", null ],

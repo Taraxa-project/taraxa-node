@@ -831,9 +831,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a2dec2b28f3c4bc7ee10f1b163852aeb5"><td class="memItemLeft" align="right" valign="top">std::chrono::milliseconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2dec2b28f3c4bc7ee10f1b163852aeb5">getPbftInitialLambda</a> () const</td></tr>
 <tr class="memdesc:a2dec2b28f3c4bc7ee10f1b163852aeb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PBFT lambda. PBFT lambda is a timer clock.  <a href="group___p_b_f_t.html#a2dec2b28f3c4bc7ee10f1b163852aeb5">More...</a><br /></td></tr>
 <tr class="separator:a2dec2b28f3c4bc7ee10f1b163852aeb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:accf09e3d357945a6c2e117b2d6ae84e7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#accf09e3d357945a6c2e117b2d6ae84e7">checkBlockWeight</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;dag_blocks) const</td></tr>
-<tr class="memdesc:accf09e3d357945a6c2e117b2d6ae84e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a block weight of gas estimation.  <a href="group___p_b_f_t.html#accf09e3d357945a6c2e117b2d6ae84e7">More...</a><br /></td></tr>
-<tr class="separator:accf09e3d357945a6c2e117b2d6ae84e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77a24138af93f043348890a621c7d454"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a77a24138af93f043348890a621c7d454">checkBlockWeight</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;dag_blocks, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
+<tr class="memdesc:a77a24138af93f043348890a621c7d454"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a block weight of gas estimation.  <a href="group___p_b_f_t.html#a77a24138af93f043348890a621c7d454">More...</a><br /></td></tr>
+<tr class="separator:a77a24138af93f043348890a621c7d454"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a965dd8823ed10769e8818bee978b5a38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a965dd8823ed10769e8818bee978b5a38">getLastPbftBlockHash</a> ()</td></tr>
 <tr class="separator:a965dd8823ed10769e8818bee978b5a38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc805cc65238c405d4bc497f38860a59"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#acc805cc65238c405d4bc497f38860a59">processProposedBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;proposed_block, const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;propose_vote)</td></tr>
@@ -1441,8 +1441,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="accf09e3d357945a6c2e117b2d6ae84e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#accf09e3d357945a6c2e117b2d6ae84e7">&#9670;&nbsp;</a></span>checkBlockWeight()</h2>
+<a id="a77a24138af93f043348890a621c7d454"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77a24138af93f043348890a621c7d454">&#9670;&nbsp;</a></span>checkBlockWeight()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1451,8 +1451,18 @@ Collaboration diagram for taraxa::PbftManager:</div>
           <td class="memname">bool taraxa::PbftManager::checkBlockWeight </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;&#160;</td>
-          <td class="paramname"><em>dag_blocks</em></td><td>)</td>
-          <td> const</td>
+          <td class="paramname"><em>dag_blocks</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1461,6 +1471,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">dag_blocks</td><td>dag blocks </td></tr>
+    <tr><td class="paramname">period</td><td>period </td></tr>
   </table>
   </dd>
 </dl>

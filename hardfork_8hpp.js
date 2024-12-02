@@ -18,7 +18,9 @@ var hardfork_8hpp =
     [ "FicusHardforkConfig", "structtaraxa_1_1_ficus_hardfork_config.html", "structtaraxa_1_1_ficus_hardfork_config" ],
     [ "CornusHardforkConfig", "namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config", [
       [ "block_num", "namespacetaraxa.html#a746fa8cd47a15fcec929d487ae8e2b00", null ],
-      [ "delegation_locking_period", "namespacetaraxa.html#a4693d5cf76e5a705f41247b599bb5dcb", null ]
+      [ "dag_gas_limit", "namespacetaraxa.html#a398d27da1b07592bd4410acc1fb7035f", null ],
+      [ "delegation_locking_period", "namespacetaraxa.html#a4693d5cf76e5a705f41247b599bb5dcb", null ],
+      [ "pbft_gas_limit", "namespacetaraxa.html#ac05c2aa222b9fff4b24d95e3f9e68ecc", null ]
     ] ],
     [ "HardforksConfig", "structtaraxa_1_1_hardforks_config.html", "structtaraxa_1_1_hardforks_config" ],
     [ "dec_json", "hardfork_8hpp.html#a14157ba246d30ca958cb600e23b4620b", null ],
