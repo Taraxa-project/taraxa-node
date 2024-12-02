@@ -16,7 +16,12 @@ namespace taraxa {
  * @{
  */
 
+namespace pillar_chain {
+class PillarChainManager;
+}
+
 class FullNode;
+class VoteManager;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 enum class PbftStateRootValidation { Valid = 0, Missing, Invalid };

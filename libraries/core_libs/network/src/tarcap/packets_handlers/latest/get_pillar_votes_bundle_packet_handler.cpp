@@ -10,12 +10,15 @@ GetPillarVotesBundlePacketHandler::GetPillarVotesBundlePacketHandler(
     std::shared_ptr<TimePeriodPacketsStats> packets_stats,
     std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const addr_t &node_addr,
     const std::string &logs_prefix)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
-                    logs_prefix + "GET_PILLAR_VOTES_BUNDLE_PH"),
+    : IGetPillarVotesBundlePacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
+                                         logs_prefix + "GET_PILLAR_VOTES_BUNDLE_PH"),
       pillar_chain_manager_(std::move(pillar_chain_manager)) {}
 
-void GetPillarVotesBundlePacketHandler::process(GetPillarVotesBundlePacket &&packet,
+void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                                 const std::shared_ptr<TaraxaPeer> &peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<GetPillarVotesBundlePacket>(packet_data.rlp_);
+
   LOG(log_dg_) << "GetPillarVotesBundlePacketHandler received from peer " << peer->getId();
 
   if (!kConf.genesis.state.hardforks.ficus_hf.isFicusHardfork(packet.period)) {
