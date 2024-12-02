@@ -572,7 +572,7 @@ std::shared_ptr<const BlockHeader> FinalChain::getBlockHeader(EthBlockNumber n) 
     if (!pbft) {
       return {};
     }
-    return BlockHeader::fromRLP(dev::RLP(raw));
+    return std::make_shared<BlockHeader>(std::move(raw), *pbft, kBlockGasLimit);
   }
   return {};
 }
