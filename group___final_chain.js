@@ -6,6 +6,7 @@ var group___final_chain =
       [ "log_bloom", "group___final_chain.html#adb876110627de99837efb692077c227e", null ],
       [ "parent_hash", "group___final_chain.html#ab1eae3914213aea2192bc38becaaeba2", null ],
       [ "receipts_root", "group___final_chain.html#aba2e760e1754c4998c9eecfc32056a35", null ],
+      [ "size", "group___final_chain.html#a975d51beaf858779f6e7b9df1f9c1552", null ],
       [ "state_root", "group___final_chain.html#a1a0885dfcc255e5a53fd13f89d0d1b84", null ],
       [ "total_reward", "group___final_chain.html#a967d4c115aeb10b41180c7f62955e780", null ],
       [ "transactions_root", "group___final_chain.html#a028fa18da2901ff915e8a6d2cf4f0c70", null ]
@@ -14,10 +15,12 @@ var group___final_chain =
       [ "BlockHeader", "group___final_chain.html#a4fda266a8b6a2399b6f9c8d441e132f9", null ],
       [ "BlockHeader", "group___final_chain.html#a3608aafb975fdfcfbbd8ed75bf953426", null ],
       [ "BlockHeader", "group___final_chain.html#a700e8591a4e80e77717271f3d01f4d27", null ],
-      [ "difficulty", "group___final_chain.html#a992dc52632834c876af8ba07aa474028", null ],
+      [ "difficulty", "group___final_chain.html#a35fb5e5176a389b97729f64cc749594f", null ],
       [ "ethereumRlp", "group___final_chain.html#a760a02431751bfe3a9c1825ebf72cef1", null ],
-      [ "mixHash", "group___final_chain.html#a48824cc608bb5e701635edc8fa0c3746", null ],
-      [ "nonce", "group___final_chain.html#a39e0181dc461b55c6a329146170d0760", null ],
+      [ "ethereumRlp", "group___final_chain.html#a85b5cd3d5365b74df0e7b6c81fd32183", null ],
+      [ "fromRLP", "group___final_chain.html#a3245cfa9c3d89d9be8b1c5024fbcb213", null ],
+      [ "mixHash", "group___final_chain.html#a26a51a08153acc6d8d3dd18a1b5f2c47", null ],
+      [ "nonce", "group___final_chain.html#a0f68c5cf4b077d1c6f78668a1e7b5c13", null ],
       [ "setFromPbft", "group___final_chain.html#a7ac9ba2b0fb370ab980479e242684ab6", null ],
       [ "unclesHash", "group___final_chain.html#a3dd1006e38415238cb572b3c8117ee92", null ],
       [ "author", "group___final_chain.html#ab5a06871a68dbf272adee45dfe15e985", null ],
@@ -28,13 +31,13 @@ var group___final_chain =
       [ "timestamp", "group___final_chain.html#a20e929aebe9b03aa67fcffeb2874cccc", null ]
     ] ],
     [ "LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", [
-      [ "bloom", "group___final_chain.html#a86821d4841b46a039be1e7b71a54e89e", null ],
+      [ "bloom", "group___final_chain.html#aff8665e430d6b7e0201bc4e19f611168", null ],
       [ "address", "group___final_chain.html#a4063796bd3a87794411f6cfdc3b4655a", null ],
       [ "data", "group___final_chain.html#a8fc725e0f668a0d0bd698da7b9199b4f", null ],
       [ "topics", "group___final_chain.html#a1d8ca5785c8af2536b1790f68b89b76b", null ]
     ] ],
     [ "TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", [
-      [ "bloom", "group___final_chain.html#a2f26020632ef8a3aba6dd91554abd4f9", null ],
+      [ "bloom", "group___final_chain.html#abc0de504b2054bd57ae6eaf43298fed0", null ],
       [ "cumulative_gas_used", "group___final_chain.html#abb89719649d4299b268bf6614d70d0e6", null ],
       [ "gas_used", "group___final_chain.html#a87dd70441e9227e6961829bacfd220cf", null ],
       [ "logs", "group___final_chain.html#a2af8c575511f01b9254f45021a135657", null ],

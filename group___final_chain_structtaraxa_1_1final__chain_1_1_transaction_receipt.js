@@ -1,6 +1,6 @@
 var group___final_chain_structtaraxa_1_1final__chain_1_1_transaction_receipt =
 [
-    [ "bloom", "group___final_chain.html#a2f26020632ef8a3aba6dd91554abd4f9", null ],
+    [ "bloom", "group___final_chain.html#abc0de504b2054bd57ae6eaf43298fed0", null ],
     [ "cumulative_gas_used", "group___final_chain.html#abb89719649d4299b268bf6614d70d0e6", null ],
     [ "gas_used", "group___final_chain.html#a87dd70441e9227e6961829bacfd220cf", null ],
     [ "logs", "group___final_chain.html#a2af8c575511f01b9254f45021a135657", null ],

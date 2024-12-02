@@ -1,5 +1,8 @@
 var NAVTREEINDEX18 =
 {
+"group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec":[15,4,1,29],
+"group___transaction.html#adca26d8bc46adafaaa9611911735d41a":[15,4,0,12],
+"group___transaction.html#adf177856ba34c82fb84138cdc3ae13f6":[15,4,2,18],
 "group___transaction.html#ae1e584cde38667d050293b51af85553d":[15,4,1,25],
 "group___transaction.html#aec44e28210d47f379b6f01532b77945b":[15,4,2,4],
 "group___transaction.html#af14c7d11cc715eb2f9ff782d48f04c97":[15,4,2,3],
@@ -246,8 +249,5 @@ var NAVTREEINDEX18 =
 "jsoncpp_8hpp.html#aa0cf9b786ac9c80e9ef79fb2c667d63b":[18,0,1,2,0,0,9,2],
 "jsoncpp_8hpp.html#aae0d1a2af185914f61e3152821947037":[18,0,1,2,0,0,9,1],
 "jsoncpp_8hpp_source.html":[18,0,1,2,0,0,9],
-"jsonrpc__http__processor_8cpp.html":[18,0,1,4,1,2,7],
-"jsonrpc__http__processor_8hpp.html":[18,0,1,4,1,2,8],
-"jsonrpc__http__processor_8hpp_source.html":[18,0,1,4,1,2,8],
-"jsonrpc__ws__server_8cpp.html":[18,0,1,4,1,2,9]
+"jsonrpc__http__processor_8cpp.html":[18,0,1,4,1,2,7]
 };
