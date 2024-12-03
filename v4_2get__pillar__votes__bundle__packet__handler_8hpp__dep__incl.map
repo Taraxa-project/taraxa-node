@@ -1,5 +1,6 @@
 <map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/v4/get_pillar_votes_bundle_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/v4/get_pillar_votes_bundle_packet_handler.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="94,5,295,91"/>
-<area shape="rect" id="node2" href="$v4_2get__pillar__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="5,139,187,224"/>
-<area shape="rect" id="node3" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="211,153,375,209"/>
+<area shape="rect" id="node1" title=" " alt="" coords="206,5,407,91"/>
+<area shape="rect" id="node2" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="5,161,192,202"/>
+<area shape="rect" id="node3" href="$v4_2get__pillar__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="216,139,397,224"/>
+<area shape="rect" id="node4" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="422,153,586,209"/>
 </map>
