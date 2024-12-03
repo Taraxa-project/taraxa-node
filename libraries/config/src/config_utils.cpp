@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "common/config_exception.hpp"
+#include "libdevcore/CommonJS.h"
 
 namespace taraxa {
 
@@ -44,27 +45,19 @@ std::string getConfigDataAsString(const Json::Value &root, const std::vector<std
   }
 }
 
-uint32_t getConfigDataAsUInt(const Json::Value &root, const std::vector<std::string> &path, bool optional,
+uint64_t getConfigDataAsUInt(const Json::Value &root, const std::vector<std::string> &path, bool optional,
                              uint32_t value) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
     if (ret.isNull()) {
       return value;
     } else {
-      return ret.asUInt();
+      return dev::getUInt(ret);
     }
   } catch (Json::Exception &e) {
     if (optional) {
       return value;
     }
-    throw ConfigException(getConfigErr(path) + e.what());
-  }
-}
-
-uint64_t getConfigDataAsUInt64(const Json::Value &root, const std::vector<std::string> &path) {
-  try {
-    return getConfigData(root, path).asUInt64();
-  } catch (Json::Exception &e) {
     throw ConfigException(getConfigErr(path) + e.what());
   }
 }
