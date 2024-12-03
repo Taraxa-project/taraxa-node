@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "config/version.hpp"
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
@@ -100,8 +101,14 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
   peers_state_->addPendingPeer(node_id, session_p->info().host + ":" + std::to_string(session_p->info().port));
   LOG(log_nf_) << "Node " << node_id << " connected";
 
-  auto status_packet_handler = packets_handlers_->getSpecificHandler<StatusPacketHandler>();
-  status_packet_handler->sendStatus(node_id, true);
+  // TODO[2905]: refactor
+  if (version_ == TARAXA_NET_VERSION) {
+    auto status_packet_handler = packets_handlers_->getSpecificHandler<StatusPacketHandler>();
+    status_packet_handler->sendStatus(node_id, true);
+  } else {
+    auto status_packet_handler = packets_handlers_->getSpecificHandler<v4::StatusPacketHandler>();
+    status_packet_handler->sendStatus(node_id, true);
+  }
 }
 
 void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
@@ -113,7 +120,13 @@ void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
     pbft_syncing_state_->setPbftSyncing(false);
     if (peers_state_->getPeersCount() > 0) {
       LOG(log_dg_) << "Restart PBFT/DAG syncing due to syncing peer disconnect.";
-      packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->startSyncingPbft();
+      // TODO[2905]: refactor
+      if (version_ == TARAXA_NET_VERSION) {
+        packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->startSyncingPbft();
+      } else {
+        packets_handlers_->getSpecificHandler<v4::PbftSyncPacketHandler>()->startSyncingPbft();
+      }
+
     } else {
       LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
     }
