@@ -54,8 +54,8 @@ std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value
             output.target = log_path;
             output.file_name = (log_path / getConfigDataAsString(o, {"file_name"})).string();
             output.format = getConfigDataAsString(o, {"format"});
-            output.max_size = getConfigDataAsUInt64(o, {"max_size"});
-            output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
+            output.max_size = getConfigDataAsUInt(o, {"max_size"});
+            output.rotation_size = getConfigDataAsUInt(o, {"rotation_size"});
             output.time_based_rotation = getConfigDataAsString(o, {"time_based_rotation"});
           }
           logging.outputs.push_back(output);
@@ -200,22 +200,6 @@ void FullNodeConfig::validate() const {
 
   if (transactions_pool_size < kMinTransactionPoolSize) {
     throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize));
-  }
-
-  if (genesis.pbft.gas_limit < propose_pbft_gas_limit ||
-      (genesis.state.hardforks.cornus_hf.block_num != uint64_t(-1) &&
-       genesis.state.hardforks.cornus_hf.pbft_gas_limit < propose_pbft_gas_limit)) {
-    throw ConfigException("Propose pbft gas limit:" + std::to_string(propose_pbft_gas_limit) +
-                          " greater than max allowed pbft gas limit:" + std::to_string(genesis.pbft.gas_limit) + ":" +
-                          std::to_string(genesis.state.hardforks.cornus_hf.pbft_gas_limit));
-  }
-
-  if (genesis.dag.gas_limit < propose_dag_gas_limit ||
-      (genesis.state.hardforks.cornus_hf.block_num != uint64_t(-1) &&
-       genesis.state.hardforks.cornus_hf.dag_gas_limit < propose_dag_gas_limit)) {
-    throw ConfigException("Propose dag gas limit:" + std::to_string(propose_pbft_gas_limit) +
-                          " greater than max allowed pbft gas limit:" + std::to_string(genesis.pbft.gas_limit) + ":" +
-                          std::to_string(genesis.state.hardforks.cornus_hf.pbft_gas_limit));
   }
 
   // TODO: add validation of other config values

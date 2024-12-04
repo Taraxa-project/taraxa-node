@@ -16,10 +16,8 @@ Json::Value getConfigData(Json::Value root, const std::vector<std::string> &path
 std::string getConfigDataAsString(const Json::Value &root, const std::vector<std::string> &path, bool optional = false,
                                   const std::string &value = {});
 
-uint32_t getConfigDataAsUInt(const Json::Value &root, const std::vector<std::string> &path, bool optional = false,
+uint64_t getConfigDataAsUInt(const Json::Value &root, const std::vector<std::string> &path, bool optional = false,
                              uint32_t value = 0);
-
-uint64_t getConfigDataAsUInt64(const Json::Value &root, const std::vector<std::string> &path);
 
 bool getConfigDataAsBoolean(const Json::Value &root, const std::vector<std::string> &path, bool optional = false,
                             bool value = false);
