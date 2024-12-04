@@ -237,13 +237,13 @@
     "dag_blocks_size": "0x32",
     "ghost_path_move_back": "0x0",
     "lambda_ms": "0x5DC",
-    "gas_limit": "0x7d2b7500"
+    "gas_limit": "0x12C684C0"
   },
   "dag": {
     "block_proposer": {
       "shard": 1
     },
-    "gas_limit": "0x1908B100"
+    "gas_limit": "0x1E0A6E0"
   },
   "sortition": {
     "changes_count_for_average": 10,
@@ -286,7 +286,7 @@
       "bridge_contract_address": "0xcAF2b453FE8382a4B8110356DF0508f6d71F22BF"
     },
     "cornus_hf": {
-      "block_num": 0,
+      "block_num": 1000,
       "delegation_locking_period": 5,
       "dag_gas_limit": "0x1908B100",
       "pbft_gas_limit": "0x7d2b7500"
