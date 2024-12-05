@@ -122,7 +122,7 @@
     "changing_interval": 200,
     "computation_interval": 50,
     "vrf": {
-      "threshold_upper": "0x2710"
+      "threshold_upper": "0x4e20"
     },
     "vdf": {
       "difficulty_max": 21,
