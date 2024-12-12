@@ -196,24 +196,18 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     std::unique_lock transactions_lock(transactions_mutex_);
 
     for (auto t : trxs) {
-      const auto account = final_chain_->getAccount(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
       const auto tx_hash = t->getHash();
 
-      // Checking nonce in cheaper than checking db, verify with nonce if possible
-      bool trx_not_executed = account.nonce < t->getNonce() || !db_->transactionFinalized(tx_hash);
-
-      if (trx_not_executed) {
-        if (!recently_finalized_transactions_.contains(tx_hash) &&
-            !nonfinalized_transactions_in_dag_.contains(tx_hash)) {
-          db_->addTransactionToBatch(*t, write_batch);
-          nonfinalized_transactions_in_dag_.emplace(tx_hash, t);
-          if (transactions_pool_.erase(tx_hash)) {
-            LOG(log_dg_) << "Transaction " << tx_hash << " removed from trx pool ";
-            // Transactions are counted when included in DAG
-            accepted_transactions.emplace_back(tx_hash);
-          }
-          trx_count_++;
+      if (!recently_finalized_transactions_.contains(tx_hash) && !nonfinalized_transactions_in_dag_.contains(tx_hash) &&
+          !db_->transactionFinalized(tx_hash)) {
+        db_->addTransactionToBatch(*t, write_batch);
+        nonfinalized_transactions_in_dag_.emplace(tx_hash, t);
+        if (transactions_pool_.erase(tx_hash)) {
+          LOG(log_dg_) << "Transaction " << tx_hash << " removed from trx pool ";
+          // Transactions are counted when included in DAG
+          accepted_transactions.emplace_back(tx_hash);
         }
+        trx_count_++;
       }
     }
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
