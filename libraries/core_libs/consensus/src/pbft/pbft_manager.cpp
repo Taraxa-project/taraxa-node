@@ -1939,15 +1939,25 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
   }
   auto non_finalized_transactions = trx_mgr_->excludeFinalizedTransactions(transactions_to_query);
 
-  if (non_finalized_transactions.size() != period_data.transactions.size()) {
+  if (non_finalized_transactions.size() > period_data.transactions.size()) {
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transactions count " << period_data.transactions.size()
                  << " incorrect, expected: " << non_finalized_transactions.size();
+
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
   for (uint32_t i = 0; i < period_data.transactions.size(); i++) {
     if (!non_finalized_transactions.contains(period_data.transactions[i]->getHash())) {
+      const auto account =
+          final_chain_->getAccount(period_data.transactions[i]->getSender()).value_or(taraxa::state_api::ZeroAccount);
+
+      // Check for transaction already included but without an increase in nonce
+      if (account.nonce < period_data.transactions[i]->getNonce()) {
+        LOG(log_nf_) << "Skipping duplicate";
+        continue;
+      }
+
       LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has incorrect transaction "
                    << period_data.transactions[i]->getHash();
       sync_queue_.clear();
