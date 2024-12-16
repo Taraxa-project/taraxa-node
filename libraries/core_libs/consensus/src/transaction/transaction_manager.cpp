@@ -196,13 +196,10 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     std::unique_lock transactions_lock(transactions_mutex_);
 
     for (auto t : trxs) {
-      const auto account = final_chain_->getAccount(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
       const auto tx_hash = t->getHash();
 
-      // Checking nonce in cheaper than checking db, verify with nonce if possible
-      bool trx_not_executed = account.nonce < t->getNonce() || !db_->transactionFinalized(tx_hash);
-
-      if (trx_not_executed) {
+      if (!recently_finalized_transactions_.contains(tx_hash) && !nonfinalized_transactions_in_dag_.contains(tx_hash) &&
+          !db_->transactionFinalized(tx_hash)) {
         if (!recently_finalized_transactions_.contains(tx_hash) &&
             !nonfinalized_transactions_in_dag_.contains(tx_hash)) {
           db_->addTransactionToBatch(*t, write_batch);
