@@ -47,7 +47,7 @@ will build out of the box without further effort:
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    git clone https://github.com/Taraxa-project/taraxa-node.git
     cd taraxa-node
     git submodule update --init --recursive
 
@@ -82,7 +82,7 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    git clone https://github.com/Taraxa-project/taraxa-node.git
     cd taraxa-node
     git submodule update --init --recursive
 
@@ -151,7 +151,7 @@ You should be able to build project following default MacOS building process. Bu
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    git clone https://github.com/Taraxa-project/taraxa-node.git
     cd taraxa-node
     git submodule update --init --recursive
 
