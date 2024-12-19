@@ -20,12 +20,12 @@ will build out of the box without further effort:
         autoconf \
         ccache \
         cmake \
+        clang \
         clang-format-17 \
         clang-tidy-17 \
         llvm-17 \
         golang-go \
         python3-full \
-        # this libs are required for arm build by go part. you can skip it for amd64 build
         libzstd-dev \
         libsnappy-dev \
         rapidjson-dev \
@@ -62,8 +62,7 @@ will build out of the box without further effort:
     && conan profile update settings.compiler.libcxx=libstdc++11 clang \
     && conan profile update settings.build_type=RelWithDebInfo clang \
     && conan profile update env.CC=clang-17 clang  \
-    && conan profile update env.CXX=clang++-17 clang  \
-    && conan install --build missing -pr=clang .
+    && conan profile update env.CXX=clang++-17 clang
 
     # Compile project using cmake
     mkdir cmake-build
