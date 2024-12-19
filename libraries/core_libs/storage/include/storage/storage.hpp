@@ -7,7 +7,7 @@
 
 #include <filesystem>
 #include <functional>
-#include <string_view>
+#include <regex>
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
@@ -16,7 +16,6 @@
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
-#include "transaction/system_transaction.hpp"
 #include "transaction/transaction.hpp"
 #include "vote/pillar_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -53,6 +52,8 @@ enum PbftMgrStatus : uint8_t {
   NextVotedNullBlockHash,
 };
 
+enum class DBMetaKeys { LAST_NUMBER = 1 };
+
 class DbException : public std::exception {
  public:
   explicit DbException(const std::string& desc) : desc_(desc) {}
@@ -69,12 +70,12 @@ class DbException : public std::exception {
   const std::string desc_;
 };
 
+using Batch = rocksdb::WriteBatch;
+using Slice = rocksdb::Slice;
+using OnEntry = std::function<void(Slice const&, Slice const&)>;
+
 class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
-  using Slice = rocksdb::Slice;
-  using Batch = rocksdb::WriteBatch;
-  using OnEntry = std::function<void(Slice const&, Slice const&)>;
-
   class Column {
     string const name_;
 
@@ -224,6 +225,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
   void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
+  std::optional<PeriodData> getPeriodData(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
@@ -240,18 +242,18 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<pillar_chain::CurrentPillarBlockDataDb> getCurrentPillarBlockData() const;
 
   // DAG
-  void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
+  void saveDagBlock(const std::shared_ptr<DagBlock>& blk, Batch* write_batch_p = nullptr);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   bool dagBlockInDb(blk_hash_t const& hash);
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
   level_t getLastBlocksLevel() const;
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
-  void updateDagBlockCounters(std::vector<DagBlock> blks);
-  std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
+  void updateDagBlockCounters(std::vector<std::shared_ptr<DagBlock>> blks);
+  std::map<level_t, std::vector<std::shared_ptr<DagBlock>>> getNonfinalizedDagBlocks();
   void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
   void removeDagBlock(blk_hash_t const& hash);
   // Sortition params
-  void saveSortitionParamsChange(PbftPeriod period, const SortitionParamsChange& params, DbStorage::Batch& batch);
+  void saveSortitionParamsChange(PbftPeriod period, const SortitionParamsChange& params, Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(PbftPeriod period);
 
@@ -350,7 +352,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(PbftPeriod period);
   std::vector<std::shared_ptr<DagBlock>> getFinalizedDagBlockByPeriod(PbftPeriod period);
-  std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>> getLastPbftblockHashAndFinalizedDagBlockByPeriod(
+  std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>> getLastPbftBlockHashAndFinalizedDagBlockByPeriod(
       PbftPeriod period);
 
   // DPOS level to proposal period map
@@ -457,6 +459,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     checkStatus(batch.Put(handle(col), toSlice(k), toSlice(v)));
   }
 
+  template <typename K, typename V>
+  void insert(Batch& batch, rocksdb::ColumnFamilyHandle* col, K const& k, V const& v) {
+    checkStatus(batch.Put(col, toSlice(k), toSlice(v)));
+  }
+
   template <typename K>
   void remove(Column const& col, K const& k) {
     checkStatus(db_->Delete(write_options_, handle(col), toSlice(k)));
@@ -469,7 +476,5 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   void forEach(Column const& col, OnEntry const& f);
 };
-
-using DB = DbStorage;
 
 }  // namespace taraxa

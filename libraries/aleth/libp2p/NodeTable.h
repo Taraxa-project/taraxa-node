@@ -10,7 +10,6 @@
 #include <boost/integer/static_log2.hpp>
 #include <cstdint>
 
-#include "Common.h"
 #include "ENR.h"
 #include "EndpointTracker.h"
 

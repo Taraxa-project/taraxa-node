@@ -10,8 +10,6 @@
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <iosfwd>
-#include <list>
-#include <map>
 #include <set>
 #include <sstream>
 #include <string>

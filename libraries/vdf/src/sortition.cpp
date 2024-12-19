@@ -3,9 +3,11 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
-#include <memory>
-
+#include "ProverWesolowski.h"
+#include "common/encoding_rlp.hpp"
+#include "common/util.hpp"
 namespace taraxa::vdf_sortition {
+using namespace vdf;
 
 VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, const bytes& vrf_input,
                            uint64_t vote_count, uint64_t total_vote_count)

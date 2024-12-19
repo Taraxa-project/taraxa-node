@@ -3,7 +3,6 @@
 #include <execinfo.h>
 #include <json/json.h>
 #include <libdevcore/RLP.h>
-#include <signal.h>
 
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
@@ -11,17 +10,12 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/thread.hpp>
-#include <fstream>
 #include <iostream>
 #include <list>
-#include <optional>
-#include <regex>
 #include <shared_mutex>
 #include <streambuf>
 #include <string>
 #include <unordered_set>
-
-#include "common/types.hpp"
 
 namespace taraxa {
 

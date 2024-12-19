@@ -50,6 +50,13 @@ std::vector<std::shared_ptr<PbftVote>> decodePbftVotesBundleRlp(const dev::RLP& 
   return votes;
 }
 
+void OptimizedPbftVotesBundle::rlp(::taraxa::util::RLPDecoderRef encoding) {
+  votes = decodePbftVotesBundleRlp(encoding.value);
+}
+void OptimizedPbftVotesBundle::rlp(::taraxa::util::RLPEncoderRef encoding) const {
+  encoding.appendRaw(encodePbftVotesBundleRlp(votes));
+}
+
 dev::bytes encodePillarVotesBundleRlp(const std::vector<std::shared_ptr<PillarVote>>& votes) {
   if (votes.empty()) {
     assert(false);
@@ -87,6 +94,13 @@ std::vector<std::shared_ptr<PillarVote>> decodePillarVotesBundleRlp(const dev::R
   }
 
   return votes;
+}
+
+void OptimizedPillarVotesBundle::rlp(::taraxa::util::RLPDecoderRef encoding) {
+  pillar_votes = decodePillarVotesBundleRlp(encoding.value);
+}
+void OptimizedPillarVotesBundle::rlp(::taraxa::util::RLPEncoderRef encoding) const {
+  encoding.appendRaw(encodePillarVotesBundleRlp(pillar_votes));
 }
 
 }  // namespace taraxa

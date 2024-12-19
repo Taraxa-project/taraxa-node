@@ -117,8 +117,8 @@ Config::Config(int argc, const char* argv[]) {
       "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
   node_command_options.add_options()(LOG_CONFIGURATIONS,
                                      bpo::value<std::vector<std::string>>(&log_configurations)->multitoken(),
-                                     "Log confifugrations to use: [configuration_name, ....]");
-  node_command_options.add_options()(NODE_SECRET, bpo::value<std::string>(&node_secret), "Nose secret key to use");
+                                     "Log configurations to use: [configuration_name, ....]");
+  node_command_options.add_options()(NODE_SECRET, bpo::value<std::string>(&node_secret), "Node secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<std::string>(&vrf_secret), "Vrf secret key to use");
 

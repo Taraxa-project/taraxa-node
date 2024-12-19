@@ -86,9 +86,9 @@ void BlockStats::processStats(const PeriodData& block, const bool aspen_dag_rewa
 void BlockStats::processDagBlocks(const PeriodData& block) {
   auto block_transactions_hashes_ = toTrxHashesSet(block.transactions);
   for (const auto& dag_block : block.dag_blocks) {
-    const addr_t& dag_block_author = dag_block.getSender();
+    const addr_t& dag_block_author = dag_block->getSender();
     bool has_unique_transactions = false;
-    for (const auto& tx_hash : dag_block.getTrxs()) {
+    for (const auto& tx_hash : dag_block->getTrxs()) {
       // we should also check that we have transactions in pbft block(period data). Because in dag blocks could be
       // included transaction that was finalized in previous blocks
       if (!block_transactions_hashes_.contains(tx_hash)) {
@@ -110,17 +110,17 @@ void BlockStats::processDagBlocks(const PeriodData& block) {
 void BlockStats::processDagBlocksAspen(const PeriodData& block) {
   uint16_t min_difficulty = UINT16_MAX;
   for (const auto& dag_block : block.dag_blocks) {
-    if (dag_block.getDifficulty() < min_difficulty) {
-      min_difficulty = dag_block.getDifficulty();
+    if (dag_block->getDifficulty() < min_difficulty) {
+      min_difficulty = dag_block->getDifficulty();
     }
   }
   for (const auto& dag_block : block.dag_blocks) {
-    const addr_t& dag_block_author = dag_block.getSender();
-    if (dag_block.getDifficulty() == min_difficulty) {
+    const addr_t& dag_block_author = dag_block->getSender();
+    if (dag_block->getDifficulty() == min_difficulty) {
       validators_stats_[dag_block_author].dag_blocks_count_ += 1;
       total_dag_blocks_count_ += 1;
     }
-    for (const auto& tx_hash : dag_block.getTrxs()) {
+    for (const auto& tx_hash : dag_block->getTrxs()) {
       addTransaction(tx_hash, dag_block_author);
     }
   }

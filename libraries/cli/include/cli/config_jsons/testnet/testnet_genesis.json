@@ -4,7 +4,7 @@
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-    "timestamp": "0x669f7f20",
+    "timestamp": "0x6750605A",
     "tips": [],
     "transactions": []
   },
@@ -105,13 +105,13 @@
     "dag_blocks_size": "0x32",
     "ghost_path_move_back": "0x0",
     "lambda_ms": "0x5DC",
-    "gas_limit": "0x7d2b7500"
+    "gas_limit": "0x12C684C0"
   },
   "dag": {
     "block_proposer": {
       "shard": 1
     },
-    "gas_limit": "0x1908B100"
+    "gas_limit": "0x1E0A6E0"
   },
   "sortition": {
     "changes_count_for_average": 10,
@@ -153,6 +153,12 @@
       "block_num": 1000,
       "pillar_blocks_interval": 1000,
       "bridge_contract_address": "0xcAF2b453FE8382a4B8110356DF0508f6d71F22BF"
+    },
+    "cornus_hf": {
+      "block_num": 1000,
+      "delegation_locking_period": 5,
+      "dag_gas_limit": "0x1908B100",
+      "pbft_gas_limit": "0x7d2b7500"
     }
   }
 }

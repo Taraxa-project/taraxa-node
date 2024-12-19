@@ -6,7 +6,6 @@
 #include <utility>
 
 #include "logger/logger.hpp"
-#include "network/tarcap/packet_types.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/packets_blocking_mask.hpp"
 #include "packets_queue.hpp"
@@ -56,6 +55,20 @@ class PriorityQueue {
    * @return size_t
    */
   size_t getPrirotityQueueSize(PacketData::PacketPriority priority) const;
+
+  /**
+   * @param packet_type
+   * @return true for non-blocking packet types, otherwise false
+   */
+  bool isNonBlockingPacket(SubprotocolPacketType packet_type) const;
+
+  /**
+   * @brief Updates packet blocking dependency
+   * @param packet
+   * @param unblock_processing if true, unblock packet processing, otherwise block processing
+   * @return true if blocking dependency for provided packet was updated, otherwise false
+   */
+  bool updateBlockingDependencies(const PacketData& packet, bool unblock_processing = false);
 
  private:
   /**

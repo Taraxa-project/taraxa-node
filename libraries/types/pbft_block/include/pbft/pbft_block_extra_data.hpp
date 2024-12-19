@@ -1,13 +1,12 @@
 #pragma once
 
+#include <json/value.h>
 #include <libdevcore/Common.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
 #include "common/types.hpp"
-#include "dag/dag_block.hpp"
-#include "vote/vote.hpp"
 
 namespace taraxa {
 

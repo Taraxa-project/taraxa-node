@@ -1,11 +1,9 @@
 #pragma once
 
-#include <boost/thread/shared_mutex.hpp>
 #include <iostream>
+#include <shared_mutex>
 #include <string>
-#include <vector>
 
-#include "config/pbft_config.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 

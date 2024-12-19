@@ -18,7 +18,7 @@ struct NodeDagCreationFixture : NodesTest {
   NodeDagCreationFixture() : NodesTest() {}
   ~NodeDagCreationFixture() = default;
   struct DagBlockWithTxs {
-    DagBlock blk;
+    std::shared_ptr<DagBlock> blk;
     SharedTransactions trxs;
   };
   void modifyConfig(FullNodeConfig &cfg);

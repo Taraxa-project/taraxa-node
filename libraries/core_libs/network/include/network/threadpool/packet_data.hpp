@@ -1,10 +1,10 @@
 #pragma once
 
+#include <json/value.h>
 #include <libp2p/Common.h>
 
 #include <chrono>
 
-#include "json/value.h"
 #include "network/tarcap/packet_types.hpp"
 
 namespace taraxa::network::threadpool {
@@ -40,6 +40,7 @@ class PacketData {
   PacketId id_{0};  // Unique packet id (counter)
   std::chrono::steady_clock::time_point receive_time_;
   SubprotocolPacketType type_;
+  // TODO: might not need anymore ???
   std::string type_str_;
   PacketPriority priority_;
   dev::p2p::NodeID from_node_id_;

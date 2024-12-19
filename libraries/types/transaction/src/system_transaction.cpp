@@ -40,7 +40,7 @@ SystemTransaction::SystemTransaction(const dev::RLP &_rlp, bool verify_strict, c
 
 const addr_t &SystemTransaction::getSender() const { return sender_; }
 
-void SystemTransaction::streamRLP(dev::RLPStream &s, bool for_signature) const {
+void SystemTransaction::streamRLP(dev::RLPStream &s, bool) const {
   // always serialize as for the signature
   s.appendList(9);
   s << nonce_ << gas_price_ << gas_;

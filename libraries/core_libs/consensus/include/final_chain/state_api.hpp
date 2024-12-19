@@ -6,9 +6,12 @@
 
 #include "final_chain/state_api_data.hpp"
 #include "rewards/block_stats.hpp"
-#include "storage/storage.hpp"
 
 namespace taraxa::state_api {
+
+struct Config;
+struct Opts;
+struct OptsDB;
 
 /** @addtogroup FinalChain
  * @{
@@ -39,8 +42,8 @@ class StateAPI {
   h256 get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const;
   bytes get_code_by_address(EthBlockNumber blk_num, const addr_t& addr) const;
   ExecutionResult dry_run_transaction(EthBlockNumber blk_num, const EVMBlock& blk, const EVMTransaction& trx) const;
-  bytes trace(EthBlockNumber blk_num, const EVMBlock& blk, const std::vector<EVMTransaction> trx,
-              std::optional<Tracing> params = {}) const;
+  bytes trace(EthBlockNumber blk_num, const EVMBlock& blk, const std::vector<EVMTransaction>& state_trxs,
+              const std::vector<EVMTransaction>& trxs, std::optional<Tracing> params = {}) const;
   StateDescriptor get_last_committed_state_descriptor() const;
 
   const TransactionsExecutionResult& execute_transactions(const EVMBlock& block,

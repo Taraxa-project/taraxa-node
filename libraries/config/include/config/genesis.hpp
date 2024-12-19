@@ -2,19 +2,12 @@
 
 #include <json/json.h>
 
-#include <functional>
-#include <unordered_map>
-
-#include "common/lazy.hpp"
 #include "config/dag_config.hpp"
 #include "config/pbft_config.hpp"
 #include "config/state_config.hpp"
 #include "dag/dag_block.hpp"
 
 namespace taraxa {
-using std::string;
-using std::unordered_map;
-using ::taraxa::util::lazy::LazyVal;
 
 struct GasPriceConfig {
   uint64_t percentile = 60;
@@ -41,6 +34,7 @@ struct GenesisConfig {
   bytes rlp() const;
   blk_hash_t genesisHash() const;
   void updateBlocksPerYear();
+  std::pair<uint64_t, uint64_t> getGasLimits(uint64_t block_number) const;
 };
 
 Json::Value enc_json(GenesisConfig const& obj);

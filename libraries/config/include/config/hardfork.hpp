@@ -5,6 +5,7 @@
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 
+namespace taraxa {
 struct Redelegation {
   taraxa::addr_t validator;
   taraxa::addr_t delegator;
@@ -71,6 +72,17 @@ struct FicusHardforkConfig {
 Json::Value enc_json(const FicusHardforkConfig& obj);
 void dec_json(const Json::Value& json, FicusHardforkConfig& obj);
 
+struct CornusHardforkConfig {
+  uint64_t block_num = -1;
+  uint32_t delegation_locking_period = 5;  // number of blocks
+  uint64_t dag_gas_limit = 0;
+  uint64_t pbft_gas_limit = 0;
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const CornusHardforkConfig& obj);
+void dec_json(const Json::Value& json, CornusHardforkConfig& obj);
+
 // Keeping it for next HF
 // struct BambooRedelegation {
 //   taraxa::addr_t validator;
@@ -129,8 +141,16 @@ struct HardforksConfig {
   // Ficus hardfork: implementation of pillar chain
   FicusHardforkConfig ficus_hf;
 
+  // Cornus hf - support multiple undelegations from the same validator at the same time
+  //           - change of delegation locking period
+  //           - change gas limit
+  CornusHardforkConfig cornus_hf;
+
+  bool isOnCornusHardfork(uint64_t block_number) const { return block_number >= cornus_hf.block_num; }
+
   HAS_RLP_FIELDS
 };
 
 Json::Value enc_json(const HardforksConfig& obj);
 void dec_json(const Json::Value& json, HardforksConfig& obj);
+}  // namespace taraxa

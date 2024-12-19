@@ -3,16 +3,17 @@
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/utility/setup/file.hpp>
-#include <map>
+#include <filesystem>
 #include <string>
-#include <vector>
 
 #include "common/types.hpp"
+
+namespace fs = std::filesystem;
 
 namespace taraxa::logger {
 
 // Logger verbosity
-// this enum must match enum in aleth logs to corectly support aleths library
+// this enum must match enum in aleth logs to correctly support aleth's library
 enum Verbosity {
   Silent = -1,
   Error = 0,

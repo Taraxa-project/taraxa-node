@@ -43,7 +43,7 @@ PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks
 
   for (size_t i = 0; i < dag_blocks_count; ++i) {
     vec_trx_t trxs{trx_hashes.begin() + i * trx_per_block, trx_hashes.begin() + (i + 1) * trx_per_block};
-    b.dag_blocks.push_back({{}, {}, {}, trxs, {}});
+    b.dag_blocks.push_back(std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trxs, secret_t{}));
   };
 
   size_t issued_overlap_count = 0;
@@ -51,7 +51,7 @@ PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks
     size_t overlap = std::min(kTrxCount - effective_transactions - issued_overlap_count, trx_hashes.size());
     issued_overlap_count += overlap;
     vec_trx_t trxs{trx_hashes.begin(), trx_hashes.begin() + overlap};
-    b.dag_blocks.push_back({{}, {}, {}, trxs, {}});
+    b.dag_blocks.push_back(std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trxs, secret_t{}));
   }
   return b;
 }

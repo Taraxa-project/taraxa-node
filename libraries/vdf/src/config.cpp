@@ -2,6 +2,8 @@
 
 #include <libdevcore/CommonJS.h>
 
+#include "libdevcore/RLP.h"
+
 namespace taraxa {
 
 int32_t fixFromOverflow(uint16_t value, int32_t change, uint16_t limit) {

@@ -3,7 +3,6 @@
 #include <json/json.h>
 
 #include "common/constants.hpp"
-#include "common/encoding_rlp.hpp"
 
 namespace taraxa {
 

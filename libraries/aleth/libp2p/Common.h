@@ -25,8 +25,9 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <chrono>
+
 namespace ba = boost::asio;
-namespace bi = boost::asio::ip;
+namespace bi = ba::ip;
 
 namespace dev {
 

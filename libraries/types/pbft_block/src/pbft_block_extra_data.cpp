@@ -1,5 +1,7 @@
 #include "pbft/pbft_block_extra_data.hpp"
 
+#include "common/encoding_rlp.hpp"
+
 namespace taraxa {
 
 PbftBlockExtraData::PbftBlockExtraData(const uint16_t major_version, const uint16_t minor_version,

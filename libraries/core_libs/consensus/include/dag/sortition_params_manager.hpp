@@ -55,7 +55,7 @@ class SortitionParamsManager {
    * @param batch DB batch in which all changes  will be added
    * @param non_empty_pbft_chain_size PBFT chain size excluding pbft blocks with null anchor
    */
-  void pbftBlockPushed(const PeriodData& block, DbStorage::Batch& batch, PbftPeriod non_empty_pbft_chain_size);
+  void pbftBlockPushed(const PeriodData& block, Batch& batch, PbftPeriod non_empty_pbft_chain_size);
 
   /**
    * Calculate average DAG efficiency from dag_efficiencies_. Used at the end of interval.

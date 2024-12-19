@@ -11,6 +11,7 @@
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
+
 namespace taraxa::network::tarcap {
 
 NodeStats::NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,

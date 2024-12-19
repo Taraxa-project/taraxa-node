@@ -8,7 +8,6 @@
 namespace taraxa {
 
 GLOBAL_CONST(h256, ZeroHash);
-GLOBAL_CONST(h256, EmptySHA3);
 GLOBAL_CONST(h256, EmptyRLPListSHA3);
 GLOBAL_CONST(h64, EmptyNonce);
 GLOBAL_CONST(u256, ZeroU256);
@@ -29,8 +28,10 @@ const uint64_t kMinTxGas{21000};
 
 constexpr uint32_t kMinTransactionPoolSize{30000};
 constexpr uint32_t kDefaultTransactionPoolSize{200000};
+constexpr uint32_t kMaxNonFinalizedTransactions{1000000};
+constexpr uint32_t kMaxNonFinalizedDagBlocks{100};
 
-const size_t kV2NetworkVersion = 2;
+const size_t kV3NetworkVersion = 3;
 
 const uint32_t kRecentlyFinalizedTransactionsFactor = 2;
 

@@ -7,14 +7,7 @@
 #include <libdevcore/Guards.h>
 #include <libdevcore/RLP.h>
 
-#include <array>
-#include <deque>
-#include <memory>
-#include <vector>
-
 #include "Common.h"
-namespace ba = boost::asio;
-namespace bi = ba::ip;
 
 namespace dev {
 namespace p2p {
@@ -51,6 +44,9 @@ struct NetworkConfig {
   std::string publicIPAddress;
   std::string listenIPAddress;
   uint16_t listenPort = c_defaultListenPort;
+
+  /// Trusted Nodes
+  std::unordered_set<dev::p2p::NodeID> trustedNodes;
 
   /// Preferences
 

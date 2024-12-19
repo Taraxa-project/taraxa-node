@@ -4,7 +4,6 @@
 
 #include "Common.h"
 
-#include "Exceptions.h"
 #include "Log.h"
 
 #if defined(_WIN32)

@@ -7,11 +7,13 @@
 #include <regex>
 
 #include "config/version.hpp"
+#include "dag/dag_block_bundle_rlp.hpp"
 #include "dag/sortition_params_manager.hpp"
-#include "final_chain/final_chain.hpp"
+#include "final_chain/data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
+#include "transaction/system_transaction.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
@@ -149,7 +151,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
     return nullptr;
   }
 
-  rocksdb::Checkpoint* checkpoint_raw;
+  rocksdb::Checkpoint* checkpoint_raw = nullptr;
   auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint_raw);
   std::unique_ptr<rocksdb::Checkpoint> checkpoint(checkpoint_raw);
   checkStatus(status);
@@ -160,7 +162,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   // Export dir should not exist before exporting the column family
   fs::remove_all(export_dir);
 
-  rocksdb::ExportImportFilesMetaData* metadata_raw;
+  rocksdb::ExportImportFilesMetaData* metadata_raw = nullptr;
   status = checkpoint->ExportColumnFamily(orig_column, export_dir, &metadata_raw);
   std::unique_ptr<rocksdb::ExportImportFilesMetaData> metadata(metadata_raw);
   checkStatus(status);
@@ -174,7 +176,7 @@ std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::Colu
   rocksdb::ImportColumnFamilyOptions import_options;
   import_options.move_files = move_data;
 
-  rocksdb::ColumnFamilyHandle* copied_column_raw;
+  rocksdb::ColumnFamilyHandle* copied_column_raw = nullptr;
   status = db_->CreateColumnFamilyWithImport(options, new_col_name, import_options, *metadata, &copied_column_raw);
   std::unique_ptr<rocksdb::ColumnFamilyHandle> copied_column(copied_column_raw);
   checkStatus(status);
@@ -306,7 +308,7 @@ bool DbStorage::createSnapshot(PbftPeriod period) {
 
   LOG(log_nf_) << "Creating DB snapshot on period: " << period;
 
-  // Create rocskd checkpoint/snapshot
+  // Create rocksdb checkpoint/snapshot
   rocksdb::Checkpoint* checkpoint;
   auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint);
   // Scope is to delete checkpoint object as soon as we don't need it anymore
@@ -398,7 +400,9 @@ std::optional<h256> DbStorage::getGenesisHash() {
 
 DbStorage::~DbStorage() {
   for (auto cf : handles_) {
-    checkStatus(db_->DestroyColumnFamilyHandle(cf));
+    if (cf->GetName() != "default") {
+      checkStatus(db_->DestroyColumnFamilyHandle(cf));
+    }
   }
   checkStatus(db_->Close());
 }
@@ -419,7 +423,7 @@ void DbStorage::checkStatus(rocksdb::Status const& status) {
                     " SubCode: " + std::to_string(status.subcode()) + " Message:" + status.ToString());
 }
 
-DbStorage::Batch DbStorage::createWriteBatch() { return DbStorage::Batch(); }
+Batch DbStorage::createWriteBatch() { return Batch(); }
 
 void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts) {
   auto status = db_->Write(opts, write_batch.GetWriteBatch());
@@ -438,7 +442,7 @@ std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
     if (period_data.size() > 0) {
       auto period_data_rlp = dev::RLP(period_data);
       auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-      return std::make_shared<DagBlock>(dag_blocks_data[data->second]);
+      return decodeDAGBlockBundleRlp(data->second, dag_blocks_data);
     }
   }
   return nullptr;
@@ -483,12 +487,12 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t le
   return res;
 }
 
-std::map<level_t, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
-  std::map<level_t, std::vector<DagBlock>> res;
+std::map<level_t, std::vector<std::shared_ptr<DagBlock>>> DbStorage::getNonfinalizedDagBlocks() {
+  std::map<level_t, std::vector<std::shared_ptr<DagBlock>>> res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    DagBlock block(asBytes(i->value().ToString()));
-    res[block.getLevel()].emplace_back(std::move(block));
+    auto block = std::make_shared<DagBlock>(asBytes(i->value().ToString()));
+    res[block->getLevel()].emplace_back(std::move(block));
   }
   return res;
 }
@@ -508,39 +512,39 @@ void DbStorage::removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash) 
 
 void DbStorage::removeDagBlock(blk_hash_t const& hash) { remove(Columns::dag_blocks, toSlice(hash)); }
 
-void DbStorage::updateDagBlockCounters(std::vector<DagBlock> blks) {
+void DbStorage::updateDagBlockCounters(std::vector<std::shared_ptr<DagBlock>> blks) {
   // Lock is needed since we are editing some fields
   std::lock_guard<std::mutex> u_lock(dag_blocks_mutex_);
   auto write_batch = createWriteBatch();
   for (auto const& blk : blks) {
-    auto level = blk.getLevel();
+    auto level = blk->getLevel();
     auto block_hashes = getBlocksByLevel(level);
-    block_hashes.emplace(blk.getHash());
+    block_hashes.emplace(blk->getHash());
     dev::RLPStream blocks_stream(block_hashes.size());
     for (auto const& hash : block_hashes) {
       blocks_stream << hash;
     }
     insert(write_batch, Columns::dag_blocks_level, toSlice(level), toSlice(blocks_stream.out()));
     dag_blocks_count_.fetch_add(1);
-    dag_edge_count_.fetch_add(blk.getTips().size() + 1);
+    dag_edge_count_.fetch_add(blk->getTips().size() + 1);
   }
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
   commitWriteBatch(write_batch);
 }
 
-void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
+void DbStorage::saveDagBlock(const std::shared_ptr<DagBlock>& blk, Batch* write_batch_p) {
   // Lock is needed since we are editing some fields
   std::lock_guard<std::mutex> u_lock(dag_blocks_mutex_);
   auto write_batch_up = write_batch_p ? std::unique_ptr<Batch>() : std::make_unique<Batch>();
   auto commit = !write_batch_p;
   auto& write_batch = write_batch_p ? *write_batch_p : *write_batch_up;
-  auto block_bytes = blk.rlp(true);
-  auto block_hash = blk.getHash();
+  auto block_bytes = blk->rlp(true);
+  auto block_hash = blk->getHash();
   insert(write_batch, Columns::dag_blocks, toSlice(block_hash.asBytes()), toSlice(block_bytes));
-  auto level = blk.getLevel();
+  auto level = blk->getLevel();
   auto block_hashes = getBlocksByLevel(level);
-  block_hashes.emplace(blk.getHash());
+  block_hashes.emplace(blk->getHash());
   dev::RLPStream blocks_stream(block_hashes.size());
   for (auto const& hash : block_hashes) {
     blocks_stream << hash;
@@ -548,7 +552,7 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   insert(write_batch, Columns::dag_blocks_level, toSlice(level), toSlice(blocks_stream.out()));
 
   dag_blocks_count_.fetch_add(1);
-  dag_edge_count_.fetch_add(blk.getTips().size() + 1);
+  dag_edge_count_.fetch_add(blk->getTips().size() + 1);
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
   if (commit) {
@@ -615,7 +619,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     for (auto period = start_period; period < end_period; period++) {
       // Find transactions included in the old blocks and delete data related to these transactions to free
       // disk space
-      const auto& [pbft_block_hash, dag_blocks] = getLastPbftblockHashAndFinalizedDagBlockByPeriod(period);
+      const auto& [pbft_block_hash, dag_blocks] = getLastPbftBlockHashAndFinalizedDagBlockByPeriod(period);
 
       for (const auto& dag_block : dag_blocks) {
         for (const auto& trx_hash : dag_block->getTrxs()) {
@@ -682,8 +686,8 @@ void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch
   // Remove dag blocks from non finalized column in db and add dag_block_period in DB
   uint32_t block_pos = 0;
   for (auto const& block : period_data.dag_blocks) {
-    removeDagBlockBatch(write_batch, block.getHash());
-    addDagBlockPeriodToBatch(block.getHash(), period, block_pos, write_batch);
+    removeDagBlockBatch(write_batch, block->getHash());
+    addDagBlockPeriodToBatch(block->getHash(), period, block_pos, write_batch);
     block_pos++;
   }
 
@@ -700,6 +704,15 @@ void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch
 
 dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
+}
+
+std::optional<PeriodData> DbStorage::getPeriodData(PbftPeriod period) const {
+  auto period_data_bytes = getPeriodDataRaw(period);
+  if (period_data_bytes.empty()) {
+    return {};
+  }
+
+  return PeriodData{std::move(period_data_bytes)};
 }
 
 void DbStorage::savePillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& pillar_block) {
@@ -1246,41 +1259,38 @@ std::vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(PbftPeriod
   std::vector<blk_hash_t> ret;
   if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
     auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    std::transform(dag_blocks_data.begin(), dag_blocks_data.end(), std::back_inserter(ret),
-                   [](const auto& dag_block) { return DagBlock(dag_block).getHash(); });
+    const auto dag_blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+    ret.reserve(dag_blocks.size());
+    std::transform(dag_blocks.begin(), dag_blocks.end(), std::back_inserter(ret),
+                   [](const auto& dag_block) { return dag_block->getHash(); });
   }
 
   return ret;
 }
 
 std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(PbftPeriod period) {
-  std::vector<std::shared_ptr<DagBlock>> ret;
-  if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
-    auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
-    }
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.empty()) {
+    return {};
   }
-  return ret;
+
+  auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
+  return decodeDAGBlocksBundleRlp(dag_blocks_data);
 }
 
 std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>>
-DbStorage::getLastPbftblockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
-  std::vector<std::shared_ptr<DagBlock>> ret;
-  blk_hash_t last_pbft_block_hash;
-  if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
-    auto const period_data_rlp = dev::RLP(period_data);
-    auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
-    ret.reserve(dag_blocks_data.size());
-    for (auto const block : dag_blocks_data) {
-      ret.emplace_back(std::make_shared<DagBlock>(block));
-    }
-    last_pbft_block_hash =
-        period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA][PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK].toHash<blk_hash_t>();
+DbStorage::getLastPbftBlockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.empty()) {
+    return {};
   }
-  return {last_pbft_block_hash, ret};
+
+  const auto period_data_rlp = dev::RLP(period_data);
+  auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
+  auto blocks = decodeDAGBlocksBundleRlp(dag_blocks_data);
+  auto last_pbft_block_hash =
+      period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA][PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK].toHash<blk_hash_t>();
+  return {last_pbft_block_hash, std::move(blocks)};
 }
 
 std::optional<PbftPeriod> DbStorage::getProposalPeriodForDagLevel(uint64_t level) {

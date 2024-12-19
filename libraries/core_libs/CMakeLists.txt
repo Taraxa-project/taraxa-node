@@ -56,7 +56,7 @@ target_link_libraries(core_libs PUBLIC
   p2p
   metrics
   Jsonrpccpp
-  rocksdb
+  CONAN_PKG::rocksdb
 
   # GraphQL
   cppgraphqlgen::graphqlservice

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <type_traits>
-
 #define GLOBAL_CONST(_type_, _name_) _type_ const &_name_()
 
 #define GLOBAL_CONST_DEF(_name_, _init_)                               \

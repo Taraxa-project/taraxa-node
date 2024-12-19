@@ -7,8 +7,6 @@
 #pragma once
 
 #include <array>
-#include <exception>
-#include <iomanip>
 #include <iosfwd>
 #include <type_traits>
 #include <vector>

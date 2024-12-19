@@ -1,8 +1,17 @@
 #include "vote/pbft_vote.hpp"
 
+#include <assert.h>
 #include <libdevcore/CommonJS.h>
+#include <libdevcore/RLP.h>
+#include <libdevcore/SHA3.h>
+
+#include <boost/exception/info.hpp>
+#include <utility>
+#include <vector>
 
 #include "common/encoding_rlp.hpp"
+#include "vote/vote.hpp"
+#include "vote/vrf_sortition.hpp"
 
 namespace taraxa {
 
@@ -44,6 +53,7 @@ PbftVote::PbftVote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_
 
 bool PbftVote::operator==(const PbftVote& other) const { return rlp() == other.rlp(); }
 
+// TODO: rename to something else
 bytes PbftVote::rlp(bool inc_sig, bool inc_weight) const {
   dev::RLPStream s;
   uint32_t number_of_items = 2;
@@ -114,5 +124,9 @@ PbftRound PbftVote::getRound() const { return vrf_sortition_.pbft_msg_.round_; }
 PbftStep PbftVote::getStep() const { return vrf_sortition_.pbft_msg_.step_; }
 
 vote_hash_t PbftVote::sha3(bool inc_sig) const { return dev::sha3(rlp(inc_sig)); }
+
+void PbftVote::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PbftVote(encoding.value); }
+
+void PbftVote::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
 
 }  // namespace taraxa

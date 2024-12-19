@@ -4,14 +4,13 @@
 #include <pwd.h>
 
 #include <boost/algorithm/string.hpp>
-#include <filesystem>
 
 #include "cli/config.hpp"
+#include "cli/configs.hpp"
 #include "common/jsoncpp.hpp"
 
 using namespace std;
 using namespace dev;
-namespace fs = std::filesystem;
 
 namespace taraxa::cli::tools {
 

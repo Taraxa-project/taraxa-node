@@ -77,7 +77,7 @@ response::Value Block::getTimestamp() const noexcept {
 
 response::Value Block::getLogsBloom() const noexcept { return response::Value(block_header_->log_bloom.toString()); }
 
-response::Value Block::getMixHash() const noexcept { return response::Value(block_header_->mix_hash().toString()); }
+response::Value Block::getMixHash() const noexcept { return response::Value(block_header_->mixHash().toString()); }
 
 response::Value Block::getDifficulty() const noexcept { return response::Value(block_header_->difficulty().str()); }
 
@@ -91,9 +91,7 @@ std::optional<std::vector<std::shared_ptr<object::Block>>> Block::getOmmers() co
 
 std::shared_ptr<object::Block> Block::getOmmerAt(int&&) const noexcept { return nullptr; }
 
-response::Value Block::getOmmerHash() const noexcept {
-  return response::Value(block_header_->uncles_hash().toString());
-}
+response::Value Block::getOmmerHash() const noexcept { return response::Value(block_header_->unclesHash().toString()); }
 
 std::optional<std::vector<std::shared_ptr<object::Transaction>>> Block::getTransactions() const noexcept {
   std::vector<std::shared_ptr<object::Transaction>> ret;

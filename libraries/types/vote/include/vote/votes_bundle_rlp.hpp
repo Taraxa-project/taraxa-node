@@ -5,6 +5,8 @@
 
 #include <vector>
 
+#include "common/encoding_rlp.hpp"
+
 namespace taraxa {
 
 class PbftVote;
@@ -14,6 +16,7 @@ class PillarVote;
  * @{
  */
 
+// TOOD[2865]: move to cpp file
 constexpr static size_t kPbftVotesBundleRlpSize{5};
 
 /**
@@ -32,6 +35,12 @@ dev::bytes encodePbftVotesBundleRlp(const std::vector<std::shared_ptr<PbftVote>>
  */
 std::vector<std::shared_ptr<PbftVote>> decodePbftVotesBundleRlp(const dev::RLP& votes_bundle_rlp);
 
+struct OptimizedPbftVotesBundle {
+  std::vector<std::shared_ptr<PbftVote>> votes;
+
+  HAS_RLP_FIELDS
+};
+
 constexpr static size_t kPillarVotesBundleRlpSize{3};
 
 /**
@@ -49,6 +58,12 @@ dev::bytes encodePillarVotesBundleRlp(const std::vector<std::shared_ptr<PillarVo
  * @return votes
  */
 std::vector<std::shared_ptr<PillarVote>> decodePillarVotesBundleRlp(const dev::RLP& votes_bundle_rlp);
+
+struct OptimizedPillarVotesBundle {
+  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
+
+  HAS_RLP_FIELDS
+};
 
 /** @}*/
 

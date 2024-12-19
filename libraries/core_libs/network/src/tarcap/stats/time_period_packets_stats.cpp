@@ -1,8 +1,9 @@
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
 
+#include <json/writer.h>
+
 #include "common/util.hpp"
-#include "json/writer.h"
-#include "network/tarcap/shared_states/peers_state.hpp"
+#include "network/tarcap/taraxa_peer.hpp"
 
 namespace taraxa::network::tarcap {
 

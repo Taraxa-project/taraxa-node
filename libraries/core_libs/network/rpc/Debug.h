@@ -47,11 +47,12 @@ class Debug : public DebugFace {
  private:
   state_api::EVMTransaction to_eth_trx(std::shared_ptr<Transaction> t) const;
   state_api::EVMTransaction to_eth_trx(const Json::Value& json, EthBlockNumber blk_num);
+  std::vector<state_api::EVMTransaction> to_eth_trxs(const std::vector<std::shared_ptr<Transaction>>& trxs);
   EthBlockNumber parse_blk_num(const string& blk_num_str);
   state_api::Tracing parse_tracking_parms(const Json::Value& json) const;
   Address to_address(const string& s) const;
-  std::pair<std::shared_ptr<Transaction>, std::optional<final_chain::TransactionLocation>>
-  get_transaction_with_location(const std::string& transaction_hash) const;
+  std::tuple<std::vector<state_api::EVMTransaction>, state_api::EVMTransaction, uint64_t> get_transaction_with_state(
+      const std::string& transaction_hash);
 
   std::weak_ptr<taraxa::FullNode> full_node_;
   const uint64_t kGasLimit = ((uint64_t)1 << 53) - 1;

@@ -1,18 +1,12 @@
 #pragma once
 
-#include <algorithm>
-
-#include "ProverWesolowski.h"
 #include "common/types.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "libdevcore/CommonData.h"
-#include "logger/logger.hpp"
-#include "openssl/bn.h"
 #include "vdf/config.hpp"
 
 namespace taraxa::vdf_sortition {
 
-using namespace vdf;
 using namespace vrf_wrapper;
 
 // It includes a vrf for difficulty adjustment

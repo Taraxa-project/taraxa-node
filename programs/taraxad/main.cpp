@@ -2,18 +2,23 @@
 #include <condition_variable>
 
 #include "cli/config.hpp"
-#include "common/static_init.hpp"
+#include "cli/tools.hpp"
+#include "common/config_exception.hpp"
+#include "common/init.hpp"
 #include "node/node.hpp"
 
 using namespace taraxa;
 
-namespace bpo = boost::program_options;
-
 int main(int argc, const char* argv[]) {
   static_init();
+
+  if (!checkDiskSpace(cli::tools::getTaraxaDefaultConfigFile(), 10)) {
+    std::cerr << "Insufficient disk space" << std::endl;
+    return 1;
+  }
+
   try {
     cli::Config cli_conf(argc, argv);
-
     if (cli_conf.nodeConfigured()) {
       auto node = std::make_shared<FullNode>(cli_conf.getNodeConfiguration());
       node->start();

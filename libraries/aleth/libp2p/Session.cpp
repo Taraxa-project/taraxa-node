@@ -5,21 +5,18 @@
 #include "Session.h"
 
 #include <libdevcore/Common.h>
-#include <libdevcore/CommonIO.h>
 #include <libdevcore/Exceptions.h>
+#include <libp2p/Capability.h>
 
 #include <chrono>
 
-#include "Host.h"
 #include "RLPXFrameCoder.h"
 
-using namespace std;
-using namespace dev;
 using namespace dev::p2p;
 
 static constexpr uint32_t MIN_COMPRESSION_SIZE = 500;
 
-Session::Session(SessionCapabilities caps, unique_ptr<RLPXFrameCoder> _io, std::shared_ptr<RLPXSocket> _s,
+Session::Session(SessionCapabilities caps, std::unique_ptr<RLPXFrameCoder> _io, std::shared_ptr<RLPXSocket> _s,
                  std::shared_ptr<Peer> _n, PeerSessionInfo _info,
                  std::optional<DisconnectReason> immediate_disconnect_reason)
     : m_capabilities(std::move(caps)),
@@ -27,9 +24,9 @@ Session::Session(SessionCapabilities caps, unique_ptr<RLPXFrameCoder> _io, std::
       m_socket(std::move(_s)),
       m_peer(std::move(_n)),
       m_info(std::move(_info)),
-      m_ping(chrono::steady_clock::time_point::max()),
+      m_ping(std::chrono::steady_clock::time_point::max()),
       immediate_disconnect_reason_(immediate_disconnect_reason) {
-  stringstream remoteInfoStream;
+  std::stringstream remoteInfoStream;
   remoteInfoStream << "(" << m_info.id << "@" << m_socket->remoteEndpoint() << ")";
   m_logSuffix = remoteInfoStream.str();
   auto const attr = boost::log::attributes::constant<std::string>{remoteInfoStream.str()};
@@ -45,8 +42,8 @@ Session::Session(SessionCapabilities caps, unique_ptr<RLPXFrameCoder> _io, std::
 std::shared_ptr<Session> Session::make(SessionCapabilities caps, std::unique_ptr<RLPXFrameCoder> _io,
                                        std::shared_ptr<RLPXSocket> _s, std::shared_ptr<Peer> _n, PeerSessionInfo _info,
                                        std::optional<DisconnectReason> immediate_disconnect_reason) {
-  shared_ptr<Session> ret(new Session(std::move(caps), std::move(_io), std::move(_s), std::move(_n), std::move(_info),
-                                      immediate_disconnect_reason));
+  std::shared_ptr<Session> ret(new Session(std::move(caps), std::move(_io), std::move(_s), std::move(_n),
+                                           std::move(_info), immediate_disconnect_reason));
   if (immediate_disconnect_reason) {
     ret->disconnect_(*immediate_disconnect_reason);
     return ret;
@@ -64,7 +61,7 @@ std::shared_ptr<Session> Session::make(SessionCapabilities caps, std::unique_ptr
 
 Session::~Session() {
   cnetlog << "Closing peer session with " << m_logSuffix;
-  m_peer->m_lastConnected = m_peer->m_lastAttempted.load() - chrono::seconds(1);
+  m_peer->m_lastConnected = m_peer->m_lastAttempted.load() - std::chrono::seconds(1);
   drop(ClientQuit);
 }
 
@@ -76,7 +73,7 @@ void Session::readPacket(unsigned _packetType, RLP const& _r) {
   auto packet_type_str = capabilityPacketTypeToString(cap, _packetType);
   LOG(m_netLoggerDetail) << "Received " << packet_type_str << " (" << _packetType << ") from";
   if (_packetType < UserPacket) {
-    string err_msg;
+    std::string err_msg;
     try {
       interpretP2pPacket(static_cast<P2pPacketType>(_packetType), _r);
     } catch (RLPException const& e) {
@@ -103,7 +100,7 @@ void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
   LOG(m_capLoggerDetail) << p2pPacketTypeToString(_t) << " from";
   switch (_t) {
     case DisconnectPacket: {
-      string reason = "Unspecified";
+      std::string reason = "Unspecified";
       auto r = (DisconnectReason)_r[0].toInt<int>();
       if (!_r[0].isInt())
         drop(BadProtocol);
@@ -123,12 +120,12 @@ void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
     case PongPacket: {
       std::unique_lock l(x_info);
       m_info.lastPing = std::chrono::steady_clock::now() - m_ping;
-      LOG(m_capLoggerDetail) << "Ping latency: " << chrono::duration_cast<chrono::milliseconds>(m_info.lastPing).count()
-                             << " ms";
+      LOG(m_capLoggerDetail) << "Ping latency: "
+                             << std::chrono::duration_cast<std::chrono::milliseconds>(m_info.lastPing).count() << " ms";
       break;
     }
     default:
-      stringstream ss;
+      std::stringstream ss;
       ss << "Unknown p2p packet type: " << _t;
       throw UnknownP2PPacketType(ss.str());
   }
@@ -141,7 +138,7 @@ void Session::ping_() {
   m_ping = std::chrono::steady_clock::now();
 }
 
-RLPStream& Session::prep(RLPStream& _s, P2pPacketType _id, unsigned _args) {
+dev::RLPStream& Session::prep(RLPStream& _s, P2pPacketType _id, unsigned _args) {
   return _s.append((unsigned)_id).appendList(_args);
 }
 
@@ -355,7 +352,7 @@ void Session::doRead() {
                                      << packetType << " (" << packet_type_str << "). Frame Size: " << frame.size()
                                      << ". Size encoded in RLP: "
                                      << RLP(frame.cropped(1), RLP::LaissezFaire).actualSize()
-                                     << ". Message: " << toHex(frame) << endl;
+                                     << ". Message: " << toHex(frame) << std::endl;
                     disconnect_(BadProtocol);
                     return;
                   }
@@ -372,7 +369,7 @@ void Session::doRead() {
                                       "corrupted): "
                                    << packetType << " (" << packet_type_str << "). Frame Size: " << frame.size()
                                    << ". Size encoded in RLP: " << RLP(frame.cropped(1), RLP::LaissezFaire).actualSize()
-                                   << ". Message: " << toHex(frame) << endl;
+                                   << ". Message: " << toHex(frame) << std::endl;
                   disconnect_(BadProtocol);
                   return;
                 }

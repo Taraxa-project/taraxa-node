@@ -20,12 +20,12 @@ will build out of the box without further effort:
         autoconf \
         ccache \
         cmake \
+        clang \
         clang-format-17 \
         clang-tidy-17 \
         llvm-17 \
         golang-go \
         python3-full \
-        # this libs are required for arm build by go part. you can skip it for amd64 build
         libzstd-dev \
         libsnappy-dev \
         rapidjson-dev \
@@ -47,7 +47,7 @@ will build out of the box without further effort:
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    git clone https://github.com/Taraxa-project/taraxa-node.git
     cd taraxa-node
     git submodule update --init --recursive
 
@@ -62,180 +62,26 @@ will build out of the box without further effort:
     && conan profile update settings.compiler.libcxx=libstdc++11 clang \
     && conan profile update settings.build_type=RelWithDebInfo clang \
     && conan profile update env.CC=clang-17 clang  \
-    && conan profile update env.CXX=clang++-17 clang  \
-    && conan install --build missing -pr=clang .
+    && conan profile update env.CXX=clang++-17 clang
 
     # Compile project using cmake
     mkdir cmake-build
     cd cmake-build
     cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
     make -j$(nproc)
-
-## Building on Ubuntu 22.04
-For Ubuntu 22.04 users, after installing the right packages with `apt` taraxa-node
-will build out of the box without further effort:
-
-### Install taraxa-node dependencies:
-
-    # Required packages
-    sudo apt-get install -y \
-        libtool \
-        autoconf \
-        ccache \
-        cmake \
-        clang-format-14 \
-        clang-tidy-14 \
-        golang-go \
-        python3-pip \
-        # this libs are required for arm build by go part. you can skip it for amd64 build
-        libzstd-dev \
-        libsnappy-dev \
-        rapidjson-dev \
-        libgmp-dev \
-        libmpfr-dev \
-        libmicrohttpd-dev
-
-    # Optional. Needed to run py_test. This won't install on arm64 OS because package is missing in apt
-    sudo add-apt-repository ppa:ethereum/ethereum
-    sudo apt-get update
-    sudo apt install solc
-
-    # Install conan package manager
-    sudo python3 -m pip install conan==1.64.1
-
-    # Setup clang as default compiler either in your IDE or by env. variables"
-    export CC="clang-14"
-    export CXX="clang++-14"
-
-### Clone the Repository
-
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
-    cd taraxa-node
-    git submodule update --init --recursive
-
-### Compile
-
-    # Optional - one time action
-    # Create clang profile
-    # It is recommended to use clang because on other compilers you could face some errors
-    conan profile new clang --detect && \
-    conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=14 clang && \
-    conan profile update settings.compiler.libcxx=libstdc++11 clang && \
-    conan profile update env.CC=clang-14 clang && \
-    conan profile update env.CXX=clang++-14 clang
-
-    # Export needed var for conan
-    export CONAN_REVISIONS_ENABLED=1
-
-    # Compile project using cmake
-    mkdir cmake-build
-    cd cmake-build
-    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
-    make -j$(nproc)
-
-## Building on Ubuntu 20.04
-For Ubuntu 20.04 users, after installing the right packages with `apt` taraxa-node
-will build out of the box without further effort:
-
-### Install taraxa-node dependencies:
-
-    # Required packages
-    sudo apt-get install -y \
-        libtool \
-        autoconf \
-        ccache cmake gcc g++ clang-format clang-tidy cppcheck \
-        libgflags-dev\
-        libjsoncpp-dev \
-        libjsonrpccpp-dev \
-        python3-pip \
-        rapidjson-dev \
-        libgmp-dev \
-        libmpfr-dev \
-        libmicrohttpd-dev
-
-
-    # Install conan package manager
-    # >= 1.36.0 version is required to work properly with clang-14
-    sudo python3 -m pip install conan==1.60.0
-
-    # Install cmake
-    # >= 3.20 version is required for JSON subcommand
-    # Setup your IDE accordingly to use this version
-    sudo python3 -m pip install cmake
-
-    # Go (required)
-    curl -LO https://go.dev/dl/go1.22.2.linux-amd64.tar.gz
-    sudo tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
-    rm -rf go1.22.2.linux-amd64.tar.gz
-
-    # Add go to PATH
-    # Add these env. variables to the ~/.profile to persist go settings even after restart
-    export GOROOT=/usr/local/go
-    export GOPATH=$HOME/.go
-    export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
-
-    # Optional
-    # We are using clang from llvm toolchain as default compiler as well as clang-format and clang-tidy
-    # It is possible to build taraxa-node also with other C++ compilers but to contribute to the official repo,
-    # changes must pass clang-format/clang-tidy checks for which we internally use llvm version=13
-    # To install llvm:
-    sudo su
-
-    curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
-    chmod +x llvm.sh && \
-    ./llvm.sh 14 && \
-    apt-get install -y clang-format-14 clang-tidy-14 && \
-    rm -f llvm.sh
-
-    # Setup clang as default compiler either in your IDE or by env. variables"
-    export CC="clang-14"
-    export CXX="clang++-14"
-
-### Clone the Repository
-
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
-    cd taraxa-node
-    git submodule update --init --recursive
-
-### Compile
-
-    # Optional - one time action
-    # Create clang profile
-    # It is recommended to use clang because on other compilers you could face some errors
-    conan profile new clang --detect && \
-    conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=14 clang && \
-    conan profile update settings.compiler.libcxx=libstdc++11 clang && \
-    conan profile update env.CC=clang-14 clang && \
-    conan profile update env.CXX=clang++-14 clang
-
-    # Export needed var for conan
-    export CONAN_REVISIONS_ENABLED=1
-
-    # Compile project using cmake
-    mkdir cmake-build
-    cd cmake-build
-    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
-    make -j$(nproc)
-
-And optional:
-
-    # optional
-    make install  # defaults to /usr/local
 
 ## Building on MacOS
 
 ### Install taraxa-node dependencies:
 
-First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Clang-14 is used for compilation.
+First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Clang-17 is used for compilation.
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
+    brew install coreutils go autoconf automake gflags git libtool llvm@17 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    git clone https://github.com/Taraxa-project/taraxa-node.git
     cd taraxa-node
     git submodule update --init --recursive
 
@@ -245,8 +91,8 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
     # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=14 clang && \
-    conan profile update settings.compiler.compiler.cppstd=14
+    conan profile update settings.compiler.version=17 clang && \
+    conan profile update settings.compiler.compiler.cppstd=17
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=clang clang && \
     conan profile update env.CXX=clang++ clang
@@ -304,7 +150,7 @@ You should be able to build project following default MacOS building process. Bu
 
 ### Clone the Repository
 
-    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    git clone https://github.com/Taraxa-project/taraxa-node.git
     cd taraxa-node
     git submodule update --init --recursive
 
@@ -316,7 +162,7 @@ You should be able to build project following default MacOS building process. Bu
     # It output should be equal to `i386`
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=14 clang && \
+    conan profile update settings.compiler.version=17 clang && \
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
     conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang

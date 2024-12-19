@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <queue>
 #include <stack>
 #include <tuple>
 #include <unordered_set>
@@ -12,10 +11,6 @@
 #include <vector>
 
 #include "dag/dag.hpp"
-#include "key_manager/key_manager.hpp"
-#include "network/network.hpp"
-#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
-#include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
 
@@ -53,7 +48,7 @@ bool Dag::addVEEs(blk_hash_t const &new_vertex, blk_hash_t const &pivot, std::ve
 
   // Note: add edges,
   // *** important
-  // Add a new block, edges are pointing from pivot to new_veretx
+  // Add a new block, edges are pointing from pivot to new_vertex
   if (!pivot.isZero()) {
     if (hasVertex(pivot)) {
       std::tie(edge, res) = boost::add_edge_by_label(pivot, new_vertex, graph_);
@@ -153,7 +148,7 @@ bool Dag::computeOrder(const blk_hash_t &anchor, std::vector<blk_hash_t> &ordere
       dfs.push({cur.first, true});
       std::vector<std::pair<blk_hash_t, vertex_t>> neighbors;
       // iterate through neighbors
-      for (std::tie(adj_s, adj_e) = adjacenct_vertices(cur.first, graph_); adj_s != adj_e; adj_s++) {
+      for (std::tie(adj_s, adj_e) = boost::adjacent_vertices(cur.first, graph_); adj_s != adj_e; adj_s++) {
         if (epfriend.find(index_map[*adj_s]) == epfriend.end()) {  // not in this epoch
           continue;
         }
@@ -188,7 +183,7 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
     vertex_t t = st.top();
     st.pop();
     vertex_adj_iter_t s, e;
-    for (std::tie(s, e) = adjacenct_vertices(t, graph_); s != e; ++s) {
+    for (std::tie(s, e) = boost::adjacent_vertices(t, graph_); s != e; ++s) {
       if (visited.count(*s)) continue;
       if (*s == target) return true;
       visited.insert(*s);
@@ -226,7 +221,7 @@ std::vector<blk_hash_t> PivotTree::getGhostPath(const blk_hash_t &vertex) const 
     cur = st.top();
     st.pop();
     post_order.emplace_back(cur);
-    for (std::tie(s, e) = adjacenct_vertices(cur, graph_); s != e; s++) {
+    for (std::tie(s, e) = boost::adjacent_vertices(cur, graph_); s != e; s++) {
       st.emplace(*s);
     }
   }
@@ -237,7 +232,7 @@ std::vector<blk_hash_t> PivotTree::getGhostPath(const blk_hash_t &vertex) const 
   for (auto const &n : post_order) {
     auto total_w = 0;
     // get childrens
-    for (std::tie(s, e) = adjacenct_vertices(n, graph_); s != e; s++) {
+    for (std::tie(s, e) = boost::adjacent_vertices(n, graph_); s != e; s++) {
       if (weight_map.count(*s)) {  // bigger timestamp
         total_w += weight_map[*s];
       }
@@ -253,7 +248,7 @@ std::vector<blk_hash_t> PivotTree::getGhostPath(const blk_hash_t &vertex) const 
     size_t heavist = 0;
     vertex_t next = root;
 
-    for (std::tie(s, e) = adjacenct_vertices(root, graph_); s != e; s++) {
+    for (std::tie(s, e) = boost::adjacent_vertices(root, graph_); s != e; s++) {
       if (!weight_map.count(*s)) continue;  // bigger timestamp
       size_t w = weight_map[*s];
       assert(w > 0);
@@ -262,7 +257,6 @@ std::vector<blk_hash_t> PivotTree::getGhostPath(const blk_hash_t &vertex) const 
         next = *s;
       } else if (w == heavist) {
         if (index_map[*s] < index_map[next]) {
-          heavist = w;
           next = *s;
         }
       }

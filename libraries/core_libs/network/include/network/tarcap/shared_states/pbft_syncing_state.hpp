@@ -1,9 +1,10 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
+#include <shared_mutex>
 
-#include "common/util.hpp"
-#include "libp2p/Common.h"
+#include "common/types.hpp"
 
 namespace taraxa::network::tarcap {
 

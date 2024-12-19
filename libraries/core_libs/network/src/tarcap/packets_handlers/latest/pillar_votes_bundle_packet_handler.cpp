@@ -12,20 +12,18 @@ PillarVotesBundlePacketHandler::PillarVotesBundlePacketHandler(
     : ExtPillarVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats),
                                  std::move(pillar_chain_manager), node_addr, logs_prefix + "PILLAR_VOTES_BUNDLE_PH") {}
 
-void PillarVotesBundlePacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
-  auto items = packet_data.rlp_.itemCount();
-  if (items == 0 || items > kMaxPillarVotesInBundleRlp) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxPillarVotesInBundleRlp);
-  }
-}
-
-void PillarVotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
+void PillarVotesBundlePacketHandler::process(PillarVotesBundlePacket &&packet,
                                              const std::shared_ptr<TaraxaPeer> &peer) {
+  if (packet.pillar_votes_bundle.pillar_votes.size() == 0 ||
+      packet.pillar_votes_bundle.pillar_votes.size() > kMaxPillarVotesInBundleRlp) {
+    throw InvalidRlpItemsCountException("PillarVotesBundlePacket", packet.pillar_votes_bundle.pillar_votes.size(),
+                                        kMaxPillarVotesInBundleRlp);
+  }
+
   // TODO[2744]: there could be the same protection as in pbft syncing that only requested bundle packet is accepted
   LOG(log_dg_) << "PillarVotesBundlePacket received from peer " << peer->getId();
 
-  for (const auto vote_rlp : packet_data.rlp_) {
-    const auto pillar_vote = std::make_shared<PillarVote>(vote_rlp);
+  for (const auto &pillar_vote : packet.pillar_votes_bundle.pillar_votes) {
     if (!kConf.genesis.state.hardforks.ficus_hf.isFicusHardfork(pillar_vote->getPeriod())) {
       std::ostringstream err_msg;
       err_msg << "Synced pillar vote " << pillar_vote->getHash() << ", period " << pillar_vote->getPeriod()

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "common/types.hpp"
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
@@ -135,27 +135,37 @@ TEST_F(DagTest, compute_epoch) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
-                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
-                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
+  node_cfgs[0].genesis.pbft.gas_limit = 100000;
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
-  DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
-  DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
-  DagBlock blkC(blk_hash_t(2), 2, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
-  DagBlock blkD(blk_hash_t(2), 2, {}, {}, sig_t(1), blk_hash_t(5), addr_t(1));
-  DagBlock blkE(blk_hash_t(4), 3, {blk_hash_t(5), blk_hash_t(7)}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
-  DagBlock blkF(blk_hash_t(3), 2, {}, {}, sig_t(1), blk_hash_t(7), addr_t(1));
-  DagBlock blkG(blk_hash_t(2), 2, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(8), addr_t(1));
-  DagBlock blkH(blk_hash_t(6), 5, {blk_hash_t(8), blk_hash_t(10)}, {}, sig_t(1), blk_hash_t(9), addr_t(1));
-  DagBlock blkI(blk_hash_t(11), 4, {blk_hash_t(4)}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
-  DagBlock blkJ(blk_hash_t(7), 3, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
-  DagBlock blkK(blk_hash_t(9), 6, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
+  auto blkA =
+      std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  auto blkB = std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
+                                         blk_hash_t(3), addr_t(1));
+  auto blkC = std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{blk_hash_t(3)}, vec_trx_t{}, sig_t(1),
+                                         blk_hash_t(4), addr_t(1));
+  auto blkD =
+      std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(5), addr_t(1));
+  auto blkE = std::make_shared<DagBlock>(blk_hash_t(4), 3, vec_blk_t{blk_hash_t(5), blk_hash_t(7)}, vec_trx_t{},
+                                         sig_t(1), blk_hash_t(6), addr_t(1));
+  auto blkF =
+      std::make_shared<DagBlock>(blk_hash_t(3), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(7), addr_t(1));
+  auto blkG = std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{}, vec_trx_t{trx_hash_t(4)}, sig_t(1),
+                                         blk_hash_t(8), addr_t(1));
+  auto blkH = std::make_shared<DagBlock>(blk_hash_t(6), 5, vec_blk_t{blk_hash_t(8), blk_hash_t(10)}, vec_trx_t{},
+                                         sig_t(1), blk_hash_t(9), addr_t(1));
+  auto blkI = std::make_shared<DagBlock>(blk_hash_t(11), 4, vec_blk_t{blk_hash_t(4)}, vec_trx_t{}, sig_t(1),
+                                         blk_hash_t(10), addr_t(1));
+  auto blkJ =
+      std::make_shared<DagBlock>(blk_hash_t(7), 3, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(11), addr_t(1));
+  auto blkK =
+      std::make_shared<DagBlock>(blk_hash_t(9), 6, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(12), addr_t(1));
 
-  const auto blkA_hash = blkA.getHash();
-  const auto blkC_hash = blkC.getHash();
-  const auto blkE_hash = blkE.getHash();
-  const auto blkH_hash = blkH.getHash();
-  const auto blkK_hash = blkK.getHash();
+  const auto blkA_hash = blkA->getHash();
+  const auto blkC_hash = blkC->getHash();
+  const auto blkE_hash = blkE->getHash();
+  const auto blkH_hash = blkH->getHash();
+  const auto blkK_hash = blkK->getHash();
 
   EXPECT_TRUE(mgr->addDagBlock(std::move(blkA)).first);
   EXPECT_TRUE(mgr->addDagBlock(std::move(blkB)).first);
@@ -228,23 +238,35 @@ TEST_F(DagTest, dag_expiry) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr = std::make_shared<DagManager>(
-      node_cfgs[0].genesis.dag_genesis_block, addr_t(), node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag,
-      trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state, false, 0, 3, EXPIRY_LIMIT);
+  node_cfgs[0].max_levels_per_period = 3;
+  node_cfgs[0].dag_expiry_limit = EXPIRY_LIMIT;
+  node_cfgs[0].genesis.pbft.gas_limit = 100000;
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
-  DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
-  DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
-  DagBlock blkC(blk_hash_t(2), 2, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
-  DagBlock blkD(blk_hash_t(2), 2, {}, {}, sig_t(1), blk_hash_t(5), addr_t(1));
-  DagBlock blkE(blk_hash_t(4), 3, {blk_hash_t(5), blk_hash_t(7)}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
-  DagBlock blkF(blk_hash_t(3), 2, {}, {}, sig_t(1), blk_hash_t(7), addr_t(1));
-  DagBlock blkG(blk_hash_t(2), 2, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(8), addr_t(1));
-  DagBlock blkH(blk_hash_t(6), 5, {blk_hash_t(8), blk_hash_t(10)}, {}, sig_t(1), blk_hash_t(9), addr_t(1));
-  DagBlock blkI(blk_hash_t(11), 4, {blk_hash_t(4)}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
-  DagBlock blkJ(blk_hash_t(7), 3, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
-  DagBlock blkK(blk_hash_t(9), 6, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
+  auto blkA =
+      std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  auto blkB = std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
+                                         blk_hash_t(3), addr_t(1));
+  auto blkC = std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{blk_hash_t(3)}, vec_trx_t{}, sig_t(1),
+                                         blk_hash_t(4), addr_t(1));
+  auto blkD =
+      std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(5), addr_t(1));
+  auto blkE = std::make_shared<DagBlock>(blk_hash_t(4), 3, vec_blk_t{blk_hash_t(5), blk_hash_t(7)}, vec_trx_t{},
+                                         sig_t(1), blk_hash_t(6), addr_t(1));
+  auto blkF =
+      std::make_shared<DagBlock>(blk_hash_t(3), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(7), addr_t(1));
+  auto blkG = std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{}, vec_trx_t{trx_hash_t(4)}, sig_t(1),
+                                         blk_hash_t(8), addr_t(1));
+  auto blkH = std::make_shared<DagBlock>(blk_hash_t(6), 5, vec_blk_t{blk_hash_t(8), blk_hash_t(10)}, vec_trx_t{},
+                                         sig_t(1), blk_hash_t(9), addr_t(1));
+  auto blkI = std::make_shared<DagBlock>(blk_hash_t(11), 4, vec_blk_t{blk_hash_t(4)}, vec_trx_t{}, sig_t(1),
+                                         blk_hash_t(10), addr_t(1));
+  auto blkJ =
+      std::make_shared<DagBlock>(blk_hash_t(7), 3, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(11), addr_t(1));
+  auto blkK =
+      std::make_shared<DagBlock>(blk_hash_t(9), 6, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(12), addr_t(1));
 
-  const auto blkK_hash = blkK.getHash();
+  const auto blkK_hash = blkK->getHash();
 
   mgr->addDagBlock(std::move(blkA));
   mgr->addDagBlock(std::move(blkB));
@@ -270,33 +292,35 @@ TEST_F(DagTest, dag_expiry) {
   mgr->setDagBlockOrder(blkK_hash, 1, orders);
 
   // Verify expiry level
-  EXPECT_EQ(mgr->getDagExpiryLevel(), blkK.getLevel() - EXPIRY_LIMIT);
+  EXPECT_EQ(mgr->getDagExpiryLevel(), blkK->getLevel() - EXPIRY_LIMIT);
 
-  DagBlock blk_under_limit(blk_hash_t(2), blkK.getLevel() - EXPIRY_LIMIT - 1, {}, {}, sig_t(1), blk_hash_t(13),
-                           addr_t(1));
-  DagBlock blk_at_limit(blk_hash_t(4), blkK.getLevel() - EXPIRY_LIMIT, {}, {}, sig_t(1), blk_hash_t(14), addr_t(1));
-  DagBlock blk_over_limit(blk_hash_t(11), blkK.getLevel() - EXPIRY_LIMIT + 1, {}, {}, sig_t(1), blk_hash_t(15),
-                          addr_t(1));
+  auto blk_under_limit = std::make_shared<DagBlock>(blk_hash_t(2), blkK->getLevel() - EXPIRY_LIMIT - 1, vec_blk_t{},
+                                                    vec_trx_t{}, sig_t(1), blk_hash_t(13), addr_t(1));
+  auto blk_at_limit = std::make_shared<DagBlock>(blk_hash_t(4), blkK->getLevel() - EXPIRY_LIMIT, vec_blk_t{},
+                                                 vec_trx_t{}, sig_t(1), blk_hash_t(14), addr_t(1));
+  auto blk_over_limit = std::make_shared<DagBlock>(blk_hash_t(11), blkK->getLevel() - EXPIRY_LIMIT + 1, vec_blk_t{},
+                                                   vec_trx_t{}, sig_t(1), blk_hash_t(15), addr_t(1));
 
   // Block under limit is not accepted to DAG since it is expired
   EXPECT_FALSE(mgr->addDagBlock(std::move(blk_under_limit)).first);
   EXPECT_TRUE(mgr->addDagBlock(std::move(blk_at_limit)).first);
   EXPECT_TRUE(mgr->addDagBlock(std::move(blk_over_limit)).first);
-  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_under_limit.getHash()));
-  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_at_limit.getHash()));
-  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_over_limit.getHash()));
+  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_under_limit->getHash()));
+  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_at_limit->getHash()));
+  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_over_limit->getHash()));
 
-  DagBlock blk_new_anchor(blk_hash_t(12), 7, {}, {}, sig_t(1), blk_hash_t(16), addr_t(1));
+  auto blk_new_anchor =
+      std::make_shared<DagBlock>(blk_hash_t(12), 7, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(16), addr_t(1));
   EXPECT_TRUE(mgr->addDagBlock(std::move(blk_new_anchor)).first);
 
-  orders = mgr->getDagBlockOrder(blk_new_anchor.getHash(), 2);
-  mgr->setDagBlockOrder(blk_new_anchor.getHash(), 2, orders);
+  orders = mgr->getDagBlockOrder(blk_new_anchor->getHash(), 2);
+  mgr->setDagBlockOrder(blk_new_anchor->getHash(), 2, orders);
 
   // Verify that the block blk_at_limit which was initially part of the DAG became expired once new anchor moved the
   // limit
-  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_under_limit.getHash()));
-  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_at_limit.getHash()));
-  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_over_limit.getHash()));
+  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_under_limit->getHash()));
+  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_at_limit->getHash()));
+  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_over_limit->getHash()));
 }
 
 TEST_F(DagTest, receive_block_in_order) {
@@ -304,13 +328,14 @@ TEST_F(DagTest, receive_block_in_order) {
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
-                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
-                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
+  node_cfgs[0].genesis.pbft.gas_limit = 100000;
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
-  DagBlock blk1(GENESIS, 1, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
-  DagBlock blk2(blk_hash_t(1), 2, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
-  DagBlock blk3(GENESIS, 3, {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777), blk_hash_t(3), addr_t(15));
+  auto blk1 = std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{}, sig_t(777), blk_hash_t(1), addr_t(15));
+  auto blk2 =
+      std::make_shared<DagBlock>(blk_hash_t(1), 2, vec_blk_t{}, vec_trx_t{}, sig_t(777), blk_hash_t(2), addr_t(15));
+  auto blk3 = std::make_shared<DagBlock>(GENESIS, 3, vec_blk_t{blk_hash_t(1), blk_hash_t(2)}, vec_trx_t{}, sig_t(777),
+                                         blk_hash_t(3), addr_t(15));
 
   mgr->addDagBlock(std::move(blk1));
   mgr->addDagBlock(std::move(blk2));
@@ -336,27 +361,37 @@ TEST_F(DagTest, compute_epoch_2) {
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
-                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
-                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
+  node_cfgs[0].genesis.pbft.gas_limit = 100000;
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
-  DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
-  DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
-  DagBlock blkC(blk_hash_t(2), 2, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
-  DagBlock blkD(blk_hash_t(2), 2, {}, {}, sig_t(1), blk_hash_t(5), addr_t(1));
-  DagBlock blkE(blk_hash_t(4), 3, {blk_hash_t(5), blk_hash_t(7)}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
-  DagBlock blkF(blk_hash_t(3), 2, {}, {}, sig_t(1), blk_hash_t(7), addr_t(1));
-  DagBlock blkG(blk_hash_t(2), 2, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(8), addr_t(1));
-  DagBlock blkH(blk_hash_t(6), 5, {blk_hash_t(8), blk_hash_t(10)}, {}, sig_t(1), blk_hash_t(9), addr_t(1));
-  DagBlock blkI(blk_hash_t(11), 4, {blk_hash_t(4)}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
-  DagBlock blkJ(blk_hash_t(7), 3, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
-  DagBlock blkK(blk_hash_t(10), 5, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
+  auto blkA =
+      std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  auto blkB = std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{trx_hash_t(3), trx_hash_t(4)}, sig_t(1),
+                                         blk_hash_t(3), addr_t(1));
+  auto blkC = std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{blk_hash_t(3)}, vec_trx_t{}, sig_t(1),
+                                         blk_hash_t(4), addr_t(1));
+  auto blkD =
+      std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(5), addr_t(1));
+  auto blkE = std::make_shared<DagBlock>(blk_hash_t(4), 3, vec_blk_t{blk_hash_t(5), blk_hash_t(7)}, vec_trx_t{},
+                                         sig_t(1), blk_hash_t(6), addr_t(1));
+  auto blkF =
+      std::make_shared<DagBlock>(blk_hash_t(3), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(7), addr_t(1));
+  auto blkG = std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{}, vec_trx_t{trx_hash_t(4)}, sig_t(1),
+                                         blk_hash_t(8), addr_t(1));
+  auto blkH = std::make_shared<DagBlock>(blk_hash_t(6), 5, vec_blk_t{blk_hash_t(8), blk_hash_t(10)}, vec_trx_t{},
+                                         sig_t(1), blk_hash_t(9), addr_t(1));
+  auto blkI = std::make_shared<DagBlock>(blk_hash_t(11), 4, vec_blk_t{blk_hash_t(4)}, vec_trx_t{}, sig_t(1),
+                                         blk_hash_t(10), addr_t(1));
+  auto blkJ =
+      std::make_shared<DagBlock>(blk_hash_t(7), 3, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(11), addr_t(1));
+  auto blkK =
+      std::make_shared<DagBlock>(blk_hash_t(10), 5, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(12), addr_t(1));
 
-  const auto blkA_hash = blkA.getHash();
-  const auto blkC_hash = blkC.getHash();
-  const auto blkE_hash = blkE.getHash();
-  const auto blkH_hash = blkH.getHash();
-  const auto blkK_hash = blkK.getHash();
+  const auto blkA_hash = blkA->getHash();
+  const auto blkC_hash = blkC->getHash();
+  const auto blkE_hash = blkE->getHash();
+  const auto blkH_hash = blkH->getHash();
+  const auto blkK_hash = blkK->getHash();
 
   mgr->addDagBlock(std::move(blkA));
   mgr->addDagBlock(std::move(blkB));
@@ -419,15 +454,17 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
-                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
-                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
+  node_cfgs[0].genesis.pbft.gas_limit = 100000;
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
-  DagBlock blk2(GENESIS, 1, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
-  DagBlock blk3(blk_hash_t(2), 2, {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
-  DagBlock blk4(GENESIS, 1, {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
-  DagBlock blk5(blk_hash_t(4), 2, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
-  DagBlock blk6(blk_hash_t(2), 3, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6), addr_t(15));
+  auto blk2 = std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(2), addr_t(15));
+  auto blk3 =
+      std::make_shared<DagBlock>(blk_hash_t(2), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(3), addr_t(15));
+  auto blk4 = std::make_shared<DagBlock>(GENESIS, 1, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(4), addr_t(15));
+  auto blk5 =
+      std::make_shared<DagBlock>(blk_hash_t(4), 2, vec_blk_t{}, vec_trx_t{}, sig_t(1), blk_hash_t(5), addr_t(15));
+  auto blk6 = std::make_shared<DagBlock>(blk_hash_t(2), 3, vec_blk_t{blk_hash_t(5)}, vec_trx_t{}, sig_t(1),
+                                         blk_hash_t(6), addr_t(15));
   mgr->addDagBlock(std::move(blk2));
   mgr->addDagBlock(std::move(blk3));
   mgr->addDagBlock(std::move(blk4));
@@ -446,9 +483,8 @@ TEST_F(DagTest, initial_pivot) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
-  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
-                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
-                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
+  node_cfgs[0].genesis.pbft.gas_limit = 100000;
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
   auto pt = mgr->getLatestPivotAndTips();
 
@@ -458,7 +494,7 @@ TEST_F(DagTest, initial_pivot) {
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   static_init();
   auto logging = logger::createDefaultLoggingConfig();
   logging.verbosity = logger::Verbosity::Error;

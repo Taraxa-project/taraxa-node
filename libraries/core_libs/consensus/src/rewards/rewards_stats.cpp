@@ -5,7 +5,7 @@
 #include "storage/storage.hpp"
 
 namespace taraxa::rewards {
-Stats::Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::shared_ptr<DB> db,
+Stats::Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::shared_ptr<DbStorage> db,
              std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count, EthBlockNumber last_blk_num)
     : kCommitteeSize(committee_size),
       kHardforksConfig(hardforks),
@@ -19,7 +19,7 @@ void Stats::recoverFromDb(EthBlockNumber lastBlockNumber) {
     clear(lastBlockNumber);
   }
 
-  auto iterator = db_->getColumnIterator(DB::Columns::block_rewards_stats);
+  auto iterator = db_->getColumnIterator(DbStorage::Columns::block_rewards_stats);
   for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
     PbftPeriod period;
     memcpy(&period, iterator->key().data(), sizeof(PbftPeriod));
@@ -27,10 +27,10 @@ void Stats::recoverFromDb(EthBlockNumber lastBlockNumber) {
   }
 }
 
-void Stats::saveBlockStats(uint64_t period, const BlockStats& stats, DbStorage::Batch& write_batch) {
+void Stats::saveBlockStats(uint64_t period, const BlockStats& stats, Batch& write_batch) {
   dev::RLPStream encoding;
   stats.rlp(encoding);
-  db_->insert(write_batch, DB::Columns::block_rewards_stats, period, encoding.out());
+  db_->insert(write_batch, DbStorage::Columns::block_rewards_stats, period, encoding.out());
 }
 
 uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
@@ -47,7 +47,7 @@ void Stats::clear(uint64_t current_period) {
   if (frequency > 1 && current_period % frequency == 0) {
     // clear need to be called on vector because it was moved before
     blocks_stats_.clear();
-    db_->deleteColumnData(DB::Columns::block_rewards_stats);
+    db_->deleteColumnData(DbStorage::Columns::block_rewards_stats);
   }
 }
 
@@ -67,7 +67,7 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
 }
 
 std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
-                                            DbStorage::Batch& write_batch) {
+                                            Batch& write_batch) {
   const auto current_period = current_blk.pbft_blk->getPeriod();
   const auto frequency = getCurrentDistributionFrequency(current_period);
   auto block_stats = getBlockStats(current_blk, trxs_gas_used);

@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 
+#include "common/thread_pool.hpp"
 #include "common/types.hpp"
 #include "logger/logger.hpp"
 
@@ -22,8 +23,8 @@ class HttpHandler;
 
 class HttpServer : public std::enable_shared_from_this<HttpServer> {
  public:
-  HttpServer(boost::asio::io_context& io, boost::asio::ip::tcp::endpoint ep, const addr_t& node_addr,
-             const std::shared_ptr<HttpProcessor>& request_processor);
+  HttpServer(std::shared_ptr<util::ThreadPool> thread_pool, boost::asio::ip::tcp::endpoint ep, const addr_t& node_addr,
+             const std::shared_ptr<HttpProcessor>& request_processor, uint32_t max_pending_tasks);
 
   virtual ~HttpServer() { HttpServer::stop(); }
 
@@ -31,6 +32,8 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
   bool stop();
 
   void accept();
+  uint32_t numberOfPendingTasks() const;
+  bool pendingTasksOverLimit() const { return numberOfPendingTasks() > kMaxPendingTasks; }
   boost::asio::io_context& getIoContext() { return io_context_; }
   std::shared_ptr<HttpServer> getShared();
   std::shared_ptr<HttpConnection> createConnection();
@@ -45,6 +48,8 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
   boost::asio::io_context& io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::endpoint ep_;
+  std::weak_ptr<util::ThreadPool> thread_pool_;
+  const uint32_t kMaxPendingTasks;
   LOG_OBJECTS_DEFINE
 };
 // QQ:

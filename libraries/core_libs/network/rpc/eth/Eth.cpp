@@ -49,7 +49,7 @@ Json::Value toJson(const LocalisedTransaction& lt) { return toJson(*lt.trx, lt.t
 Json::Value toJson(const BlockHeader& obj) {
   Json::Value res(Json::objectValue);
   res["parentHash"] = toJS(obj.parent_hash);
-  res["sha3Uncles"] = toJS(BlockHeader::uncles_hash());
+  res["sha3Uncles"] = toJS(BlockHeader::unclesHash());
   res["stateRoot"] = toJS(obj.state_root);
   res["transactionsRoot"] = toJS(obj.transactions_root);
   res["receiptsRoot"] = toJS(obj.receipts_root);
@@ -61,7 +61,7 @@ Json::Value toJson(const BlockHeader& obj) {
   res["timestamp"] = toJS(obj.timestamp);
   res["author"] = toJS(obj.author);
   res["miner"] = toJS(obj.author);
-  res["mixHash"] = toJS(BlockHeader::mix_hash());
+  res["mixHash"] = toJS(BlockHeader::mixHash());
   res["nonce"] = toJS(BlockHeader::nonce());
   res["uncles"] = Json::Value(Json::arrayValue);
   res["hash"] = toJS(obj.hash);
@@ -128,27 +128,27 @@ class EthImpl : public Eth, EthParams {
 
   Json::Value eth_accounts() override { return toJsonArray(vector{address}); }
 
-  string eth_blockNumber() override { return toJS(final_chain->last_block_number()); }
+  string eth_blockNumber() override { return toJS(final_chain->lastBlockNumber()); }
 
   string eth_getBalance(const string& _address, const Json::Value& _json) override {
     const auto block_number = get_block_number_from_json(_json);
-    return toJS(final_chain->get_account(toAddress(_address), block_number).value_or(ZeroAccount).balance);
+    return toJS(final_chain->getAccount(toAddress(_address), block_number).value_or(ZeroAccount).balance);
   }
 
   string eth_getStorageAt(const string& _address, const string& _position, const Json::Value& _json) override {
     const auto block_number = get_block_number_from_json(_json);
-    return toJS(final_chain->get_account_storage(toAddress(_address), jsToU256(_position), block_number));
+    return toJS(final_chain->getAccountStorage(toAddress(_address), jsToU256(_position), block_number));
   }
 
   string eth_getStorageRoot(const string& _address, const string& _blockNumber) override {
-    return toJS(final_chain->get_account(toAddress(_address), parse_blk_num(_blockNumber))
+    return toJS(final_chain->getAccount(toAddress(_address), parse_blk_num(_blockNumber))
                     .value_or(ZeroAccount)
                     .storage_root_eth());
   }
 
   string eth_getCode(const string& _address, const Json::Value& _json) override {
     const auto block_number = get_block_number_from_json(_json);
-    return toJS(final_chain->get_code(toAddress(_address), block_number));
+    return toJS(final_chain->getCode(toAddress(_address), block_number));
   }
 
   string eth_call(const Json::Value& _json, const Json::Value& _jsonBlock) override {
@@ -168,7 +168,7 @@ class EthImpl : public Eth, EthParams {
     if (!blockNumber.empty()) {
       blk_n = parse_blk_num(blockNumber);
     } else {
-      blk_n = final_chain->last_block_number();
+      blk_n = final_chain->lastBlockNumber();
     }
     prepare_transaction_for_call(t, blk_n);
 
@@ -230,7 +230,7 @@ class EthImpl : public Eth, EthParams {
   }
 
   Json::Value eth_getBlockByHash(const string& _blockHash, bool _includeTransactions) override {
-    if (auto blk_n = final_chain->block_number(jsToFixed<32>(_blockHash)); blk_n) {
+    if (auto blk_n = final_chain->blockNumber(jsToFixed<32>(_blockHash)); blk_n) {
       return get_block_by_number(*blk_n, _includeTransactions);
     }
     return Json::Value();
@@ -314,7 +314,7 @@ class EthImpl : public Eth, EthParams {
   void note_pending_transaction(const h256& trx_hash) override { watches_.new_transactions_.process_update(trx_hash); }
 
   Json::Value get_block_by_number(EthBlockNumber blk_n, bool include_transactions) {
-    auto blk_header = final_chain->block_header(blk_n);
+    auto blk_header = final_chain->blockHeader(blk_n);
     if (!blk_header) {
       return Json::Value();
     }
@@ -329,7 +329,7 @@ class EthImpl : public Eth, EthParams {
         ++loc.position;
       }
     } else {
-      auto hashes = final_chain->transaction_hashes(blk_n);
+      auto hashes = final_chain->transactionHashes(blk_n);
       trxs_json = toJsonArray(*hashes);
     }
     return ret;
@@ -340,12 +340,12 @@ class EthImpl : public Eth, EthParams {
     if (!trx) {
       return {};
     }
-    auto loc = final_chain->transaction_location(h);
+    auto loc = final_chain->transactionLocation(h);
     return LocalisedTransaction{
         trx,
         TransactionLocationWithBlockHash{
             *loc,
-            *final_chain->block_hash(loc->period),
+            *final_chain->blockHash(loc->period),
         },
     };
   }
@@ -359,18 +359,18 @@ class EthImpl : public Eth, EthParams {
         trxs[trx_pos],
         TransactionLocationWithBlockHash{
             {blk_n, trx_pos},
-            *final_chain->block_hash(blk_n),
+            *final_chain->blockHash(blk_n),
         },
     };
   }
 
   optional<LocalisedTransaction> get_transaction(const h256& blk_h, uint64_t _i) const {
-    auto blk_n = final_chain->block_number(blk_h);
+    auto blk_n = final_chain->blockNumber(blk_h);
     return blk_n ? get_transaction(_i, *blk_n) : nullopt;
   }
 
   optional<LocalisedTransactionReceipt> get_transaction_receipt(const h256& trx_h) const {
-    auto r = final_chain->transaction_receipt(trx_h);
+    auto r = final_chain->transactionReceipt(trx_h);
     if (!r) {
       return {};
     }
@@ -385,12 +385,12 @@ class EthImpl : public Eth, EthParams {
   }
 
   uint64_t transactionCount(const h256& block_hash) const {
-    auto n = final_chain->block_number(block_hash);
+    auto n = final_chain->blockNumber(block_hash);
     return n ? final_chain->transactionCount(n) : 0;
   }
 
   trx_nonce_t transaction_count(EthBlockNumber n, const Address& addr) {
-    return final_chain->get_account(addr, n).value_or(ZeroAccount).nonce;
+    return final_chain->getAccount(addr, n).value_or(ZeroAccount).nonce;
   }
 
   state_api::ExecutionResult call(EthBlockNumber blk_n, const TransactionSkeleton& trx) {
@@ -479,7 +479,7 @@ class EthImpl : public Eth, EthParams {
 
   EthBlockNumber parse_blk_num(const string& blk_num_str) {
     auto ret = parse_blk_num_specific(blk_num_str);
-    return ret ? *ret : final_chain->last_block_number();
+    return ret ? *ret : final_chain->lastBlockNumber();
   }
 
   EthBlockNumber get_block_number_from_json(const Json::Value& json) {
@@ -488,7 +488,7 @@ class EthImpl : public Eth, EthParams {
         return parse_blk_num(json["blockNumber"].asString());
       }
       if (!json["blockHash"].empty()) {
-        if (auto ret = final_chain->block_number(jsToFixed<32>(json["blockHash"].asString()))) {
+        if (auto ret = final_chain->blockNumber(jsToFixed<32>(json["blockHash"].asString()))) {
           return *ret;
         }
         throw std::runtime_error("Resource not found");
@@ -505,7 +505,7 @@ class EthImpl : public Eth, EthParams {
     if (const auto& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
       from_block = parse_blk_num(fromBlock.asString());
     } else {
-      from_block = final_chain->last_block_number();
+      from_block = final_chain->lastBlockNumber();
     }
     if (const auto& toBlock = json["toBlock"]; !toBlock.empty()) {
       to_block = parse_blk_num_specific(toBlock.asString());
