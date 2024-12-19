@@ -103,12 +103,6 @@ spec:
             value: {{ .Values.slack.channel }}
           - name: K8S_CLUSTER
             value: {{ .Values.slack.k8s_cluster }}
-        {{ if .Values.consensusnode.nodePort.enabled }}
-        {{- range $key, $value := .Values.consensusnode.nodePort.ports }}
-          - name: ADVERTISED_PORT_{{ $key }}
-            value: "{{ $value }}"
-        {{- end }}
-        {{- end }}
           command: ["/bin/bash", "-c", "--"]
           args: [ "pip install -r /app/requirements.txt && python /app/status.py" ]
           volumeMounts:
@@ -141,6 +135,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+          {{ if .Values.consensusnode.nodePort.enabled }}
+          {{- range $key, $value := .Values.consensusnode.nodePort.ports }}
+            - name: ADVERTISED_PORT_{{ $key }}
+              value: "{{ $value }}"
+          {{- end }}
+          {{- end }}
           {{- if not .Values.consensusnode.probes.enabled }}
             - name: TARAXA_SLEEP_DIAGNOSE
               value: "true"
