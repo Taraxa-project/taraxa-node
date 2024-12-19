@@ -1,4 +1,5 @@
 {{ if .Values.consensusnode.enabled }}
+
 {{- if .Values.consensusnode.service.ports  }}
 # Note: This is a headless service
 apiVersion: v1
@@ -28,4 +29,32 @@ spec:
       {{- end }}
   {{- end }}
 {{- end }}
+
+{{ if .Values.consensusnode.nodePort.enabled }}
+{{- range $key, $value := .Values.consensusnode.nodePort.ports }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Release.Name }}-taraxa-consensusnode-discovery-{{ $key }}
+  labels:
+    name: {{ $.Release.Name }}-taraxa-consensusnode-discovery-{{ $key }}
+spec:
+  type: NodePort
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ $.Release.Name }}-consensus-node-{{ $key }}
+  ports:
+    - name: udp-listen-port
+      port: {{ $value }}
+      targetPort: {{ $value }}
+      nodePort: {{ $value }}
+      protocol: UDP
+    - name: tcp-listen-port
+      port: {{ $value }}
+      targetPort: {{ $value }}
+      nodePort: {{ $value }}
+      protocol: TCP
+{{- end }}
+{{- end }}
+
 {{- end }}

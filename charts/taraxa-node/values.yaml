@@ -238,6 +238,9 @@ consensusnode:
   enabled: true
   image: {}
   replicaCount: 1
+  nodePort:
+    enabled: false
+    ports: []
   probes:
     enabled: true
   debug: 0
