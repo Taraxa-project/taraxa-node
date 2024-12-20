@@ -4,24 +4,15 @@
 
 #include "Host.h"
 
-#include <libdevcore/Assertions.h>
-#include <libdevcore/Common.h>
-#include <libdevcore/CommonIO.h>
-#include <libdevcore/Exceptions.h>
-
-#include <boost/algorithm/string.hpp>
 #include <chrono>
 #include <fstream>
 #include <memory>
-#include <mutex>
 #include <set>
-#include <thread>
 
 #include "Capability.h"
 #include "Common.h"
 #include "RLPxHandshake.h"
 #include "Session.h"
-#include "UPnP.h"
 
 using namespace std;
 using namespace dev;
@@ -296,7 +287,8 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
       }
     }
   }
-  if (!disconnect_reason && !peerSlotsAvailable()) {
+  auto is_trusted_node = m_netConfig.trustedNodes.contains(peer->address());
+  if (!disconnect_reason && (!peerSlotsAvailable() && !is_trusted_node)) {
     cnetdetails << "Too many peers, can't connect. peer count: " << peer_count_()
                 << " pending peers: " << m_pendingPeerConns.size();
     disconnect_reason = TooManyPeers;
@@ -420,7 +412,9 @@ void Host::runAcceptor() {
           return;
         }
         auto socket = make_shared<RLPXSocket>(std::move(_socket));
-        if (peer_count_() > peerSlots(Ingress)) {
+        // Since a connecting peer might be a trusted node which should always connect allow up to max number of trusted
+        // nodes above the limit
+        if (peer_count_() > (peerSlots(Ingress) + m_netConfig.trustedNodes.size())) {
           cnetdetails << "Dropping incoming connect due to maximum peer count (" << Ingress
                       << " * ideal peer count): " << socket->remoteEndpoint();
           socket->close();

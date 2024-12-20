@@ -1,6 +1,9 @@
 #pragma once
 
+#include <json/value.h>
 #include <libdevcore/RLP.h>
+
+#include <shared_mutex>
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"

@@ -16,6 +16,7 @@
 #include <thread>
 #include <vector>
 
+#include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "final_chain/data.hpp"
@@ -50,7 +51,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   virtual std::string processRequest(const std::string_view& request) = 0;
 
   void newEthBlock(const ::taraxa::final_chain::BlockHeader& payload, const TransactionHashes& trx_hashes);
-  void newDagBlock(const DagBlock& blk);
+  void newDagBlock(const std::shared_ptr<DagBlock>& blk);
   void newDagBlockFinalized(const blk_hash_t& blk, uint64_t period);
   void newPbftBlockExecuted(const Json::Value& payload);
   void newPendingTransaction(const trx_hash_t& trx_hash);
@@ -84,7 +85,8 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
 // Accepts incoming connections and launches the sessions
 class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
+  WsServer(std::shared_ptr<util::ThreadPool> thread_pool, tcp::endpoint endpoint, addr_t node_addr,
+           uint32_t max_pending_tasks);
   virtual ~WsServer();
 
   WsServer(const WsServer&) = delete;
@@ -95,12 +97,14 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   // Start accepting incoming connections
   void run();
   void newEthBlock(const ::taraxa::final_chain::BlockHeader& payload, const TransactionHashes& trx_hashes);
-  void newDagBlock(const DagBlock& blk);
+  void newDagBlock(const std::shared_ptr<DagBlock>& blk);
   void newDagBlockFinalized(const blk_hash_t& blk, uint64_t period);
   void newPbftBlockExecuted(const PbftBlock& sche_blk, const std::vector<blk_hash_t>& finalized_dag_blk_hashes);
   void newPendingTransaction(const trx_hash_t& trx_hash);
   void newPillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
   uint32_t numberOfSessions();
+  uint32_t numberOfPendingTasks() const;
+  bool pendingTasksOverLimit() const { return numberOfPendingTasks() > kMaxPendingTasks; }
 
   virtual std::shared_ptr<WsSession> createSession(tcp::socket&& socket) = 0;
 
@@ -118,6 +122,8 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   boost::shared_mutex sessions_mtx_;
 
  protected:
+  std::weak_ptr<util::ThreadPool> thread_pool_;
+  uint32_t kMaxPendingTasks;
   const addr_t node_addr_;
 };
 

@@ -3,45 +3,41 @@
 #include <libdevcore/CommonIO.h>
 
 #include <algorithm>
-#include <fstream>
 #include <tuple>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
+#include "config/config.hpp"
 #include "dag/dag.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/network.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
-DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
-                       const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
-                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-                       std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
-                       const state_api::Config &state_config, bool is_light_node, uint64_t light_node_history,
-                       uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
+
+DagManager::DagManager(const FullNodeConfig &config, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
+                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
+                       std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager) try
     : max_level_(db->getLastBlocksLevel()),
-      pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block.getHash(), node_addr)),
-      total_dag_(std::make_shared<Dag>(dag_genesis_block.getHash(), node_addr)),
+      pivot_tree_(std::make_shared<PivotTree>(config.genesis.dag_genesis_block.getHash(), node_addr)),
+      total_dag_(std::make_shared<Dag>(config.genesis.dag_genesis_block.getHash(), node_addr)),
       trx_mgr_(std::move(trx_mgr)),
       pbft_chain_(std::move(pbft_chain)),
       db_(std::move(db)),
       key_manager_(std::move(key_manager)),
-      anchor_(dag_genesis_block.getHash()),
+      anchor_(config.genesis.dag_genesis_block.getHash()),
       period_(0),
-      sortition_params_manager_(node_addr, sortition_config, db_),
-      dag_config_(dag_config),
-      genesis_block_(std::make_shared<DagBlock>(dag_genesis_block)),
-      is_light_node_(is_light_node),
-      light_node_history_(light_node_history),
-      max_levels_per_period_(max_levels_per_period),
-      dag_expiry_limit_(dag_expiry_limit),
+      sortition_params_manager_(node_addr, config.genesis.sortition, db_),
+      dag_config_(config.genesis.dag),
+      genesis_block_(std::make_shared<DagBlock>(config.genesis.dag_genesis_block)),
+      max_levels_per_period_(config.max_levels_per_period),
+      dag_expiry_limit_(config.dag_expiry_limit),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       final_chain_(std::move(final_chain)),
-      kPbftGasLimit(pbft_gas_limit),
-      kHardforks(state_config.hardforks),
-      kValidatorMaxVote(state_config.dpos.validator_maximum_stake / state_config.dpos.vote_eligibility_balance_step) {
+      kGenesis(config.genesis),
+      kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
+                        config.genesis.state.dpos.vote_eligibility_balance_step) {
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;
@@ -50,13 +46,13 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
     }
   }
   // Set DAG level proposal period map
-  if (!db_->getProposalPeriodForDagLevel(max_levels_per_period)) {
+  if (!db_->getProposalPeriodForDagLevel(max_levels_per_period_)) {
     // Node start from scratch
-    db_->saveProposalPeriodDagLevelsMap(max_levels_per_period, 0);
+    db_->saveProposalPeriodDagLevelsMap(max_levels_per_period_, 0);
   }
   recoverDag();
-  if (is_light_node_) {
-    clearLightNodeHistory();
+  if (config.is_light_node) {
+    clearLightNodeHistory(config.light_node_history);
   }
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
@@ -91,9 +87,9 @@ void DagManager::drawPivotGraph(std::string const &str) const {
   pivot_tree_->drawGraph(str);
 }
 
-std::pair<bool, std::vector<blk_hash_t>> DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
-  auto dag_blk_hash = blk.getHash();
-  const auto pivot_hash = blk.getPivot();
+std::pair<bool, std::vector<blk_hash_t>> DagManager::pivotAndTipsAvailable(const std::shared_ptr<DagBlock> &blk) {
+  auto dag_blk_hash = blk->getHash();
+  const auto pivot_hash = blk->getPivot();
   const auto dag_blk_pivot = getDagBlock(pivot_hash);
   std::vector<blk_hash_t> missing_tips_or_pivot;
 
@@ -105,7 +101,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::pivotAndTipsAvailable(DagBl
     missing_tips_or_pivot.push_back(pivot_hash);
   }
 
-  for (auto const &tip : blk.getTips()) {
+  for (auto const &tip : blk->getTips()) {
     auto tip_block = getDagBlock(tip);
     if (tip_block) {
       expected_level = std::max(expected_level, tip_block->getLevel() + 1);
@@ -119,8 +115,8 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::pivotAndTipsAvailable(DagBl
     return {false, missing_tips_or_pivot};
   }
 
-  if (expected_level != blk.getLevel()) {
-    LOG(log_er_) << "DAG Block " << dag_blk_hash << " level " << blk.getLevel()
+  if (expected_level != blk->getLevel()) {
+    LOG(log_er_) << "DAG Block " << dag_blk_hash << " level " << blk->getLevel()
                  << ", expected level: " << expected_level;
     return {false, missing_tips_or_pivot};
   }
@@ -133,9 +129,9 @@ DagFrontier DagManager::getDagFrontier() {
   return frontier_;
 }
 
-std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs,
-                                                                 bool proposed, bool save) {
-  auto blk_hash = blk.getHash();
+std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(const std::shared_ptr<DagBlock> &blk,
+                                                                 SharedTransactions &&trxs, bool proposed, bool save) {
+  auto blk_hash = blk->getHash();
 
   {
     // One mutex protects the DagManager internal state, the other mutex ensures that dag blocks are gossiped in
@@ -145,14 +141,14 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
     {
       std::scoped_lock lock(mutex_);
       if (save) {
-        if (db_->dagBlockInDb(blk.getHash())) {
+        if (db_->dagBlockInDb(blk->getHash())) {
           // It is a valid scenario that two threads can receive same block from two peers and process at same time
           return {true, {}};
         }
 
-        if (blk.getLevel() < dag_expiry_level_) {
+        if (blk->getLevel() < dag_expiry_level_) {
           LOG(log_nf_) << "Dropping old block: " << blk_hash << ". Expiry level: " << dag_expiry_level_
-                       << ". Block level: " << blk.getLevel();
+                       << ". Block level: " << blk->getLevel();
           return {false, {}};
         }
 
@@ -165,20 +161,23 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
         // Save the dag block
         db_->saveDagBlock(blk);
       }
-      seen_blocks_.insert(blk.getHash(), blk);
-      auto pivot_hash = blk.getPivot();
+      seen_blocks_.insert(blk->getHash(), blk);
+      auto pivot_hash = blk->getPivot();
 
-      std::vector<blk_hash_t> tips = blk.getTips();
+      std::vector<blk_hash_t> tips = blk->getTips();
       level_t current_max_level = max_level_;
-      max_level_ = std::max(current_max_level, blk.getLevel());
+      max_level_ = std::max(current_max_level, blk->getLevel());
 
-      addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
+      addToDag(blk_hash, pivot_hash, tips, blk->getLevel());
+      if (non_finalized_blks_min_difficulty_ > blk->getDifficulty()) {
+        non_finalized_blks_min_difficulty_ = blk->getDifficulty();
+      }
 
       updateFrontier();
     }
     if (save) {
       block_verified_.emit(blk);
-      if (auto net = network_.lock()) {
+      if (std::shared_ptr<Network> net = network_.lock()) {
         net->gossipDagBlock(blk, proposed, trxs);
       }
     }
@@ -284,9 +283,9 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
   return blk_orders;
 }
 
-void DagManager::clearLightNodeHistory() {
+void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
   bool dag_expiry_level_condition = dag_expiry_level_ > max_levels_per_period_ + 1;
-  bool period_over_history_condition = period_ > light_node_history_;
+  bool period_over_history_condition = period_ > light_node_history;
   if (period_over_history_condition && dag_expiry_level_condition) {
     const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level_ - max_levels_per_period_ - 1);
     assert(proposal_period);
@@ -294,8 +293,8 @@ void DagManager::clearLightNodeHistory() {
     const uint64_t start = 0;
     // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired dag
     // blocks
-    const uint64_t end = std::min(period_ - light_node_history_, *proposal_period);
-    LOG(log_tr_) << "period_ - light_node_history_ " << period_ - light_node_history_;
+    const uint64_t end = std::min(period_ - light_node_history, *proposal_period);
+    LOG(log_tr_) << "period_ - light_node_history_ " << period_ - light_node_history;
     LOG(log_tr_) << "dag_expiry_level - max_levels_per_period_ - 1: " << dag_expiry_level_ - max_levels_per_period_ - 1
                  << " *proposal_period " << *proposal_period;
     LOG(log_tr_) << "Delete period history from: " << start << " to " << end;
@@ -335,11 +334,11 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
   }
   // Only update counter for blocks that are in the dag_order and not in memory DAG, this is only possible when pbft
   // syncing and processing period data
-  std::vector<DagBlock> dag_blocks_to_update_counters;
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks_to_update_counters;
   for (auto const &blk : dag_order) {
     if (non_finalized_blocks_set.count(blk) == 0) {
       auto dag_block = getDagBlock(blk);
-      dag_blocks_to_update_counters.push_back(*dag_block);
+      dag_blocks_to_update_counters.push_back(dag_block);
     }
   }
 
@@ -364,6 +363,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
   std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> expired_dag_blocks_to_remove;
   std::vector<trx_hash_t> expired_dag_blocks_transactions;
 
+  non_finalized_blks_min_difficulty_ = UINT32_MAX;
   for (auto &v : non_finalized_blocks) {
     for (auto &blk_hash : v.second) {
       if (dag_order_set.count(blk_hash) != 0) {
@@ -375,10 +375,14 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
 
       if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
         addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
+        if (non_finalized_blks_min_difficulty_ > dag_block->getDifficulty()) {
+          non_finalized_blks_min_difficulty_ = dag_block->getDifficulty();
+        }
       } else {
         db_->removeDagBlock(blk_hash);
         seen_blocks_.erase(blk_hash);
-        for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
+        const auto dag_trxs = dag_block->getTrxs();
+        std::copy(dag_trxs.begin(), dag_trxs.end(), std::back_inserter(expired_dag_blocks_transactions));
       }
     }
   }
@@ -485,38 +489,38 @@ void DagManager::recoverDag() {
     for (auto &blk : lvl.second) {
       // These are some sanity checks that difficulty is correct and block is truly non-finalized.
       // This is only done on startup
-      auto period = db_->getDagBlockPeriod(blk.getHash());
+      auto period = db_->getDagBlockPeriod(blk->getHash());
       if (period != nullptr) {
         LOG(log_er_) << "Nonfinalized Dag Block actually finalized in period " << period->first;
         break;
       } else {
-        auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
+        auto propose_period = db_->getProposalPeriodForDagLevel(blk->getLevel());
         if (!propose_period.has_value()) {
-          LOG(log_er_) << "No propose period for dag level " << blk.getLevel() << " found";
+          LOG(log_er_) << "No propose period for dag level " << blk->getLevel() << " found";
           assert(false);
           break;
         }
 
-        const auto pk = key_manager_->getVrfKey(*propose_period, blk.getSender());
+        const auto pk = key_manager_->getVrfKey(*propose_period, blk->getSender());
         if (!pk) {
-          LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
-                       << " level is missing VRF key for sender " << blk.getSender();
+          LOG(log_er_) << "DAG block " << blk->getHash() << " with " << blk->getLevel()
+                       << " level is missing VRF key for sender " << blk->getSender();
           break;
         }
         // Verify VDF solution
         try {
           uint64_t max_vote_count = 0;
-          const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
-          if (*propose_period < kHardforks.magnolia_hf.block_num) {
-            max_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+          const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk->getSender());
+          if (*propose_period < kGenesis.state.hardforks.magnolia_hf.block_num) {
+            max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
           } else {
             max_vote_count = kValidatorMaxVote;
           }
-          blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period),
-                        db_->getPeriodBlockHash(*propose_period), *pk, vote_count, max_vote_count);
+          blk->verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period),
+                         db_->getPeriodBlockHash(*propose_period), *pk, vote_count, max_vote_count);
         } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
-          LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
-                       << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
+          LOG(log_er_) << "DAG block " << blk->getHash() << " with " << blk->getLevel()
+                       << " level failed on VDF verification with pivot hash " << blk->getPivot() << " reason "
                        << e.what();
           break;
         }
@@ -525,14 +529,14 @@ void DagManager::recoverDag() {
       // In case an invalid block somehow ended in DAG db, remove it
       auto res = pivotAndTipsAvailable(blk);
       if (res.first) {
-        if (!addDagBlock(std::move(blk), {}, false, false).first) {
-          LOG(log_er_) << "DAG block " << blk.getHash() << " could not be added to DAG on startup, removing from db";
-          db_->removeDagBlock(blk.getHash());
+        if (!addDagBlock(blk, {}, false, false).first) {
+          LOG(log_er_) << "DAG block " << blk->getHash() << " could not be added to DAG on startup, removing from db";
+          db_->removeDagBlock(blk->getHash());
         }
       } else {
-        LOG(log_er_) << "DAG block " << blk.getHash()
+        LOG(log_er_) << "DAG block " << blk->getHash()
                      << " could not be added to DAG on startup since it has missing tip/pivot";
-        db_->removeDagBlock(blk.getHash());
+        db_->removeDagBlock(blk->getHash());
       }
     }
   }
@@ -574,6 +578,11 @@ DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_h
   return {period_, std::move(dag_blocks), std::move(trxs)};
 }
 
+uint32_t DagManager::getNonFinalizedBlocksMinDifficulty() const {
+  std::shared_lock lock(mutex_);
+  return non_finalized_blks_min_difficulty_;
+}
+
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
   std::shared_lock lock(mutex_);
 
@@ -586,34 +595,34 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
 }
 
 std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::verifyBlock(
-    const DagBlock &blk, const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs) {
-  const auto &block_hash = blk.getHash();
-  vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
+    const std::shared_ptr<DagBlock> &blk, const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs) {
+  const auto &block_hash = blk->getHash();
+  vec_trx_t const &all_block_trx_hashes = blk->getTrxs();
   vec_trx_t trx_hashes_to_query;
   SharedTransactions all_block_trxs;
 
   // Verify tips/pivot count and uniqueness
   std::unordered_set<blk_hash_t> unique_tips_pivot;
 
-  unique_tips_pivot.insert(blk.getPivot());
-  if (blk.getTips().size() > kDagBlockMaxTips) {
-    LOG(log_er_) << "DAG Block " << block_hash << " tips count " << blk.getTips().size() << " over the limit";
+  unique_tips_pivot.insert(blk->getPivot());
+  if (blk->getTips().size() > kDagBlockMaxTips) {
+    LOG(log_er_) << "DAG Block " << block_hash << " tips count " << blk->getTips().size() << " over the limit";
     return {VerifyBlockReturnType::FailedTipsVerification, {}};
   }
 
-  for (auto const &tip : blk.getTips()) {
+  for (auto const &tip : blk->getTips()) {
     if (!unique_tips_pivot.insert(tip).second) {
       LOG(log_er_) << "DAG Block " << block_hash << " tip " << tip << " duplicate";
       return {VerifyBlockReturnType::FailedTipsVerification, {}};
     }
   }
 
-  auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
+  auto propose_period = db_->getProposalPeriodForDagLevel(blk->getLevel());
 
   // Verify DPOS
   if (!propose_period.has_value()) {
     // Cannot find the proposal period in DB yet. The slow node gets an ahead block, remove from seen_blocks
-    LOG(log_nf_) << "Cannot find proposal period in DB for DAG block " << blk.getHash();
+    LOG(log_nf_) << "Cannot find proposal period in DB for DAG block " << blk->getHash();
     seen_blocks_.erase(block_hash);
     return {VerifyBlockReturnType::AheadBlock, {}};
   }
@@ -645,42 +654,42 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
     all_block_trxs.emplace_back(std::move(t));
   }
 
-  if (blk.getLevel() < dag_expiry_level_) {
-    LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Expiry level: " << dag_expiry_level_
-                 << ". Block level: " << blk.getLevel();
+  if (blk->getLevel() < dag_expiry_level_) {
+    LOG(log_nf_) << "Dropping old block: " << blk->getHash() << ". Expiry level: " << dag_expiry_level_
+                 << ". Block level: " << blk->getLevel();
     return {VerifyBlockReturnType::ExpiredBlock, {}};
   }
 
   // Verify VDF solution
-  const auto pk = key_manager_->getVrfKey(*propose_period, blk.getSender());
+  const auto pk = key_manager_->getVrfKey(*propose_period, blk->getSender());
   if (!pk) {
-    LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
-                 << " level is missing VRF key for sender " << blk.getSender();
+    LOG(log_er_) << "DAG block " << blk->getHash() << " with " << blk->getLevel()
+                 << " level is missing VRF key for sender " << blk->getSender();
     return {VerifyBlockReturnType::FailedVdfVerification, {}};
   }
 
   try {
     const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
     uint64_t max_vote_count = 0;
-    const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
-    if (*propose_period < kHardforks.magnolia_hf.block_num) {
-      max_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+    const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk->getSender());
+    if (*propose_period < kGenesis.state.hardforks.magnolia_hf.block_num) {
+      max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
     } else {
       max_vote_count = kValidatorMaxVote;
     }
-    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk, vote_count,
-                  max_vote_count);
+    blk->verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk, vote_count,
+                   max_vote_count);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
-    LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
-                 << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
+    LOG(log_er_) << "DAG block " << block_hash << " with " << blk->getLevel()
+                 << " level failed on VDF verification with pivot hash " << blk->getPivot() << " reason " << e.what();
     LOG(log_er_) << "period from map: " << *propose_period << " current: " << pbft_chain_->getPbftChainSize();
     return {VerifyBlockReturnType::FailedVdfVerification, {}};
   }
 
-  auto dag_block_sender = blk.getSender();
+  auto dag_block_sender = blk->getSender();
   bool dpos_qualified;
   try {
-    dpos_qualified = final_chain_->dpos_is_eligible(*propose_period, dag_block_sender);
+    dpos_qualified = final_chain_->dposIsEligible(*propose_period, dag_block_sender);
   } catch (state_api::ErrFutureBlock &c) {
     LOG(log_er_) << "Verify proposal period " << *propose_period << " is too far ahead of DPOS. " << c.what();
     return {VerifyBlockReturnType::FutureBlock, {}};
@@ -688,32 +697,34 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   if (!dpos_qualified) {
     LOG(log_er_) << "Invalid DAG block DPOS. DAG block " << blk << " is not eligible for DPOS at period "
                  << *propose_period << " for sender " << dag_block_sender.toString() << " current period "
-                 << final_chain_->last_block_number();
+                 << final_chain_->lastBlockNumber();
     return {VerifyBlockReturnType::NotEligible, {}};
   }
   {
     u256 total_block_weight = 0;
-    auto block_gas_estimation = blk.getGasEstimation();
+    auto block_gas_estimation = blk->getGasEstimation();
     for (const auto &trx : all_block_trxs) {
       total_block_weight += trx_mgr_->estimateTransactionGas(trx, propose_period);
     }
 
     if (total_block_weight != block_gas_estimation) {
-      LOG(log_er_) << "Invalid block_gas_estimation. DAG block " << blk.getHash()
+      LOG(log_er_) << "Invalid block_gas_estimation. DAG block " << blk->getHash()
                    << " block_gas_estimation: " << block_gas_estimation << " total_block_weight " << total_block_weight
-                   << " current period " << final_chain_->last_block_number();
+                   << " current period " << final_chain_->lastBlockNumber();
       return {VerifyBlockReturnType::IncorrectTransactionsEstimation, {}};
     }
 
-    if (total_block_weight > getDagConfig().gas_limit) {
-      LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " gas_limit: " << getDagConfig().gas_limit
+    const auto [dag_gas_limit, pbft_gas_limit] = kGenesis.getGasLimits(*propose_period);
+
+    if (total_block_weight > dag_gas_limit) {
+      LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " gas_limit: " << dag_gas_limit
                    << " total_block_weight " << total_block_weight << " current period "
-                   << final_chain_->last_block_number();
+                   << final_chain_->lastBlockNumber();
       return {VerifyBlockReturnType::BlockTooBig, {}};
     }
 
-    if ((blk.getTips().size() + 1) > kPbftGasLimit / getDagConfig().gas_limit) {
-      for (const auto &t : blk.getTips()) {
+    if ((blk->getTips().size() + 1) > pbft_gas_limit / dag_gas_limit) {
+      for (const auto &t : blk->getTips()) {
         const auto tip_blk = getDagBlock(t);
         if (tip_blk == nullptr) {
           LOG(log_er_) << "DAG Block " << block_hash << " tip " << t << " not present";
@@ -721,16 +732,16 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
         }
         block_gas_estimation += tip_blk->getGasEstimation();
       }
-      if (block_gas_estimation > kPbftGasLimit) {
-        LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " with tips has limit: " << kPbftGasLimit
+      if (block_gas_estimation > pbft_gas_limit) {
+        LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " with tips has limit: " << pbft_gas_limit
                      << " block_gas_estimation " << block_gas_estimation << " current period "
-                     << final_chain_->last_block_number();
+                     << final_chain_->lastBlockNumber();
         return {VerifyBlockReturnType::BlockTooBig, {}};
       }
     }
   }
 
-  LOG(log_dg_) << "Verified DAG block " << blk.getHash();
+  LOG(log_dg_) << "Verified DAG block " << blk->getHash();
 
   return {VerifyBlockReturnType::Verified, std::move(all_block_trxs)};
 }
@@ -746,7 +757,7 @@ bool DagManager::isDagBlockKnown(const blk_hash_t &hash) const {
 std::shared_ptr<DagBlock> DagManager::getDagBlock(const blk_hash_t &hash) const {
   auto blk = seen_blocks_.get(hash);
   if (blk.second) {
-    return std::make_shared<DagBlock>(blk.first);
+    return blk.first;
   }
   if (hash == genesis_block_->getHash()) {
     return genesis_block_;

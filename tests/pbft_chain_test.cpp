@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -51,11 +51,11 @@ TEST_F(PbftChainTest, pbft_db_test) {
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level), 1, 100);
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
-  DagBlock blk1(dag_genesis, 1, {}, {}, {}, vdf1, sk);
+  auto blk1 = std::make_shared<DagBlock>(dag_genesis, 1, vec_blk_t{}, vec_trx_t{}, 0, vdf1, sk);
 
   PbftPeriod period = 1;
   addr_t beneficiary(987);
-  PbftBlock pbft_block(prev_block_hash, blk1.getHash(), kNullBlockHash, kNullBlockHash, period, beneficiary,
+  PbftBlock pbft_block(prev_block_hash, blk1->getHash(), kNullBlockHash, kNullBlockHash, period, beneficiary,
                        node->getSecretKey(), {});
 
   // put into pbft chain and store into DB

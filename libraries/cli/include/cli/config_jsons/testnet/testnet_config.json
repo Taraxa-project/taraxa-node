@@ -24,13 +24,13 @@
       "packets_stats_time_period_ms": 60000,
       "peer_max_packets_processing_time_us": 0,
       "peer_max_packets_queue_size_limit": 0,
-      "max_packets_queue_size": 200000
+      "max_packets_queue_size": 100
     },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
     "transaction_interval_ms": 100,
     "ideal_peer_count": 10,
-    "max_peer_count": 50,
+    "max_peer_count": 20,
     "sync_level_size": 10,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,

@@ -4,7 +4,9 @@
 
 #include "CommonData.h"
 
-#include <random>
+#include <libdevcore/Common.h>
+
+#include <boost/throw_exception.hpp>
 
 #include "Exceptions.h"
 

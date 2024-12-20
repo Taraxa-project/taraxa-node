@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/common/base_packet_handler.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -18,9 +18,9 @@ class PacketsHandler {
    *       control the lifetime of the object or not.
    *
    * @param packet_type
-   * @return reference to std::shared_ptr<PacketsHandler>
+   * @return reference to std::shared_ptr<BasePacketHandler>
    */
-  const std::shared_ptr<PacketHandler>& getSpecificHandler(SubprotocolPacketType packet_type) const;
+  const std::shared_ptr<BasePacketHandler>& getSpecificHandler(SubprotocolPacketType packet_type) const;
 
   /**
    * @brief templated getSpecificHandler method for getting specific packet handler based on
@@ -44,7 +44,7 @@ class PacketsHandler {
 
  private:
   // Map of all packets handlers, factory method selects specific packet handler for processing based on packet type
-  std::unordered_map<SubprotocolPacketType, std::shared_ptr<PacketHandler>> packets_handlers_;
+  std::unordered_map<SubprotocolPacketType, std::shared_ptr<BasePacketHandler>> packets_handlers_;
 };
 
 template <typename PacketHandlerType>

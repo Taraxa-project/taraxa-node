@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common/config_exception.hpp"
-#include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/genesis.hpp"
 #include "config/network.hpp"
@@ -60,6 +58,8 @@ struct FullNodeConfig {
   bool enable_test_rpc = false;
   bool enable_debug = false;
   uint32_t final_chain_cache_in_blocks = 5;
+  uint64_t propose_dag_gas_limit = 0x1E0A6E0;
+  uint64_t propose_pbft_gas_limit = 0x12C684C0;
 
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
@@ -70,7 +70,7 @@ struct FullNodeConfig {
   auto net_file_path() const { return data_path / "net"; }
 
   /**
-   * @brief Validates config values, throws configexception if validation failes
+   * @brief Validates config values, throws configexception if validation fails
    * @return
    */
   void validate() const;

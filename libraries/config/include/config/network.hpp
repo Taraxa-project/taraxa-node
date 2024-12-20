@@ -5,6 +5,7 @@
 #include <string>
 
 #include "common/types.hpp"
+#include "libp2p/Common.h"
 
 namespace taraxa {
 
@@ -21,6 +22,8 @@ struct ConnectionConfig {
 
   // Number of threads dedicated to the rpc calls processing, default = 5
   uint16_t threads_num{5};
+
+  uint32_t max_pending_tasks{100};
 
   void validate() const;
 };
@@ -53,6 +56,12 @@ struct DdosProtectionConfig {
   // Max packets queue size, 0 means unlimited
   uint64_t max_packets_queue_size{0};
 
+  // Time of allowed queue over the limit
+  std::chrono::milliseconds queue_limit_time{5000};
+
+  // Time period between disconnecting peers
+  std::chrono::milliseconds peer_disconnect_interval{5000};
+
   void validate(uint32_t delegation_delay) const;
 };
 
@@ -74,6 +83,7 @@ struct NetworkConfig {
   bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
   DdosProtectionConfig ddos_protection;
+  std::unordered_set<dev::p2p::NodeID> trusted_nodes;
 
   std::optional<ConnectionConfig> rpc;
   std::optional<ConnectionConfig> graphql;

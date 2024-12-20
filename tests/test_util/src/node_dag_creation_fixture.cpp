@@ -46,14 +46,14 @@ void NodeDagCreationFixture::deployContract() {
     WAIT_EXPECT_TRUE(ctx, node->getDB()->transactionFinalized(trx->getHash()));
 
     if (!contract_addr) {
-      auto receipt = node->getFinalChain()->transaction_receipt(trx->getHash());
+      auto receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
       WAIT_EXPECT_TRUE(ctx, receipt.has_value());
       WAIT_EXPECT_TRUE(ctx, receipt->new_contract_address.has_value());
       contract_addr = receipt->new_contract_address;
     }
-    auto r = node->getFinalChain()->transaction_receipt(trx->getHash());
+    auto r = node->getFinalChain()->transactionReceipt(trx->getHash());
 
-    WAIT_EXPECT_TRUE(ctx, !node->getFinalChain()->get_code(contract_addr.value()).empty());
+    WAIT_EXPECT_TRUE(ctx, !node->getFinalChain()->getCode(contract_addr.value()).empty());
   });
   ASSERT_TRUE(contract_addr.has_value());
   std::cout << "Contract deployed: " << contract_addr.value() << std::endl;
@@ -139,8 +139,9 @@ std::vector<NodeDagCreationFixture::DagBlockWithTxs> NodeDagCreationFixture::gen
       std::vector<trx_hash_t> trx_hashes;
       std::transform(trx_itr, trx_itr_next, std::back_inserter(trx_hashes),
                      [](std::shared_ptr<Transaction> trx) { return trx->getHash(); });
-      DagBlock blk(pivot, level, tips, trx_hashes, trx_per_block * trx_estimation, vdf, node->getSecretKey());
-      this_level_blocks.push_back(blk.getHash());
+      auto blk = std::make_shared<DagBlock>(pivot, level, tips, trx_hashes, trx_per_block * trx_estimation, vdf,
+                                            node->getSecretKey());
+      this_level_blocks.push_back(blk->getHash());
       result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(trx_itr, trx_itr_next)});
       trx_itr = trx_itr_next;
     }
@@ -155,11 +156,11 @@ std::vector<NodeDagCreationFixture::DagBlockWithTxs> NodeDagCreationFixture::gen
   vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
                                   vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash), 1, 1);
   vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
-  DagBlock blk(pivot, level, tips, {transactions.rbegin()->get()->getHash()}, trx_per_block * trx_estimation, vdf,
-               node->getSecretKey());
+  auto blk = std::make_shared<DagBlock>(pivot, level, tips, vec_trx_t{transactions.rbegin()->get()->getHash()},
+                                        trx_per_block * trx_estimation, vdf, node->getSecretKey());
   result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(transactions.rbegin(), transactions.rbegin() + 1)});
-  pivot = blk.getHash();
-  tips = {blk.getHash()};
+  pivot = blk->getHash();
+  tips = {blk->getHash()};
 
   trx_itr_next++;
   EXPECT_EQ(trx_itr_next, transactions.end());

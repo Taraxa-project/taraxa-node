@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.20)
 
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
-set(TARAXA_MINOR_VERSION 11)
-set(TARAXA_PATCH_VERSION 4)
+set(TARAXA_MINOR_VERSION 12)
+set(TARAXA_PATCH_VERSION 1)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 3)
+set(TARAXA_NET_VERSION 4)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchain is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 1)
@@ -32,7 +32,8 @@ add_compile_options(-Wall
                     -Wextra-semi
                     -Wnull-dereference
                     -Wno-unknown-pragmas
-                    -Wno-overlength-strings)
+                    -Wno-overlength-strings
+                    -Wno-switch)
 # Set the position independent code property on all targets
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -216,9 +217,6 @@ find_package(MPFR)
 # use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)
-
-# rocksdb build
-include(${PROJECT_SOURCE_DIR}/CMakeModules/rocksdb.cmake)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)

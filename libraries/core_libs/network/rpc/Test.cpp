@@ -38,7 +38,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
     secret_t sk = secret_t(param1["secret"].asString());
     uint64_t nonce = 0;
     if (!param1["nonce"]) {
-      auto acc = node->getFinalChain()->get_account(toAddress(sk));
+      auto acc = node->getFinalChain()->getAccount(toAddress(sk));
       nonce = acc->nonce.convert_to<uint64_t>() + 1;
     } else {
       nonce = dev::jsToInt(param1["nonce"].asString());

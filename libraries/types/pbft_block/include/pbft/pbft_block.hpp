@@ -5,10 +5,9 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
+#include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "dag/dag_block.hpp"
 #include "pbft_block_extra_data.hpp"
-#include "vote/pbft_vote.hpp"
 
 namespace taraxa {
 
@@ -21,21 +20,10 @@ namespace taraxa {
  * hash, DAG blocks ordering hash, period number, timestamp, proposer address, and proposer signature.
  */
 class PbftBlock {
-  blk_hash_t block_hash_;
-  blk_hash_t prev_block_hash_;
-  blk_hash_t dag_block_hash_as_pivot_;
-  blk_hash_t order_hash_;
-  blk_hash_t prev_state_root_hash_;
-  PbftPeriod period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
-  uint64_t timestamp_;
-  addr_t beneficiary_;
-  sig_t signature_;
-  std::vector<vote_hash_t> reward_votes_;  // Cert votes in previous period
-  std::optional<PbftBlockExtraData> extra_data_;
-
  public:
+  PbftBlock() = default;
   PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot, const blk_hash_t& order_hash,
-            const blk_hash_t& prev_state_root, PbftPeriod period, const addr_t& beneficiary, const secret_t& sk,
+            const blk_hash_t& final_chain_hash, PbftPeriod period, const addr_t& beneficiary, const secret_t& sk,
             std::vector<vote_hash_t>&& reward_votes, const std::optional<PbftBlockExtraData>& extra_data = {});
   explicit PbftBlock(const dev::RLP& rlp);
   explicit PbftBlock(const bytes& RLP);
@@ -105,7 +93,11 @@ class PbftBlock {
    */
   const auto& getOrderHash() const { return order_hash_; }
 
-  const auto& getPrevStateRoot() const { return prev_state_root_hash_; }
+  /**
+   * @brief Get final chain hash to tie final chain to the PBFT chain
+   * @return final chain hash
+   */
+  const auto& getFinalChainHash() const { return final_chain_hash_; }
 
   /**
    * @brief Get period number
@@ -139,6 +131,8 @@ class PbftBlock {
 
   const auto& getRewardVotes() const { return reward_votes_; }
 
+  HAS_RLP_FIELDS
+
  private:
   /**
    * @brief Set PBFT block hash and block proposer address
@@ -150,6 +144,19 @@ class PbftBlock {
    *
    */
   void checkUniqueRewardVotes();
+
+ private:
+  blk_hash_t block_hash_;
+  blk_hash_t prev_block_hash_;
+  blk_hash_t dag_block_hash_as_pivot_;
+  blk_hash_t order_hash_;
+  blk_hash_t final_chain_hash_;
+  PbftPeriod period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
+  uint64_t timestamp_;
+  addr_t beneficiary_;
+  sig_t signature_;
+  std::vector<vote_hash_t> reward_votes_;  // Cert votes in previous period
+  std::optional<PbftBlockExtraData> extra_data_;
 };
 std::ostream& operator<<(std::ostream& strm, const PbftBlock& pbft_blk);
 

@@ -1,18 +1,15 @@
 #include <gtest/gtest.h>
 #include <libdevcrypto/Common.h>
+#include <libp2p/Capability.h>
 #include <libp2p/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
 
-#include <atomic>
 #include <vector>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
-#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
-#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
@@ -146,7 +143,7 @@ TEST_F(P2PTest, multiple_capabilities) {
   { test_tarcaps({1}, {1}); }
   { test_tarcaps({1, 2, 3}, {3, 4, 5}); }
 
-  // No common tarcapm version, connection should not be established
+  // No common tarcap version, connection should not be established
   {
     auto nodes = test_tarcaps({1, 2, 3}, {4, 5, 6}, false);
     // check that connection wasn't established

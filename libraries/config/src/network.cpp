@@ -1,5 +1,6 @@
 #include "config/network.hpp"
 
+#include "common/config_exception.hpp"
 #include "config/config_utils.hpp"
 
 namespace taraxa {
@@ -30,6 +31,11 @@ void dec_json(const Json::Value &json, ConnectionConfig &config) {
   // websocket port
   if (auto ws_port = getConfigData(json, {"ws_port"}, true); !ws_port.isNull()) {
     config.ws_port = ws_port.asUInt();
+  }
+
+  // max pending tasks
+  if (auto max_pending_tasks = getConfigData(json, {"max_pending_tasks"}, true); !max_pending_tasks.isNull()) {
+    config.max_pending_tasks = max_pending_tasks.asUInt();
   }
 
   // number of threads processing rpc calls
@@ -69,10 +75,9 @@ DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
   ddos_protection.packets_stats_time_period_ms =
       std::chrono::milliseconds{getConfigDataAsUInt(json, {"packets_stats_time_period_ms"})};
   ddos_protection.peer_max_packets_processing_time_us =
-      std::chrono::microseconds{getConfigDataAsUInt64(json, {"peer_max_packets_processing_time_us"})};
-  ddos_protection.peer_max_packets_queue_size_limit =
-      getConfigDataAsUInt64(json, {"peer_max_packets_queue_size_limit"});
-  ddos_protection.max_packets_queue_size = getConfigDataAsUInt64(json, {"max_packets_queue_size"});
+      std::chrono::microseconds{getConfigDataAsUInt(json, {"peer_max_packets_processing_time_us"})};
+  ddos_protection.peer_max_packets_queue_size_limit = getConfigDataAsUInt(json, {"peer_max_packets_queue_size_limit"});
+  ddos_protection.max_packets_queue_size = getConfigDataAsUInt(json, {"max_packets_queue_size"});
   return ddos_protection;
 }
 
@@ -127,6 +132,12 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   network.listen_port = getConfigDataAsUInt(json, {"listen_port"});
   network.transaction_interval_ms = getConfigDataAsUInt(json, {"transaction_interval_ms"});
   network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
+  Json::Value priority_nodes = json["priority_nodes"];
+  if (!priority_nodes.isNull()) {
+    for (const auto &item : priority_nodes) {
+      network.trusted_nodes.insert(dev::p2p::NodeID(item.asString()));
+    }
+  }
   network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
   network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
   network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});

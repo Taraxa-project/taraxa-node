@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-#include "common/jsoncpp.hpp"
+#include "common/config_exception.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config_utils.hpp"
 
@@ -54,8 +54,8 @@ std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value
             output.target = log_path;
             output.file_name = (log_path / getConfigDataAsString(o, {"file_name"})).string();
             output.format = getConfigDataAsString(o, {"format"});
-            output.max_size = getConfigDataAsUInt64(o, {"max_size"});
-            output.rotation_size = getConfigDataAsUInt64(o, {"rotation_size"});
+            output.max_size = getConfigDataAsUInt(o, {"max_size"});
+            output.rotation_size = getConfigDataAsUInt(o, {"rotation_size"});
             output.time_based_rotation = getConfigDataAsString(o, {"time_based_rotation"});
           }
           logging.outputs.push_back(output);
@@ -107,6 +107,9 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   } else {
     genesis = GenesisConfig();
   }
+
+  propose_dag_gas_limit = getConfigDataAsUInt(root, {"propose_dag_gas_limit"}, true, propose_dag_gas_limit);
+  propose_pbft_gas_limit = getConfigDataAsUInt(root, {"propose_pbft_gas_limit"}, true, propose_pbft_gas_limit);
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;

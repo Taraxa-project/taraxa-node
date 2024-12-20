@@ -1,5 +1,8 @@
 #pragma once
 
+#include <json/value.h>
+
+#include "common/encoding_rlp.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "vote.hpp"
 #include "vrf_sortition.hpp"
@@ -87,7 +90,7 @@ class PbftVote : public Vote {
   bytes rlp(bool inc_sig = true, bool inc_weight = false) const;
 
   /**
-   * @brief Optimed Recursive Length Prefix
+   * @brief Optimized Recursive Length Prefix
    * @note Encode only vote's signature and vrf proof into the rlp
    *
    * @return bytes of RLP stream
@@ -116,7 +119,7 @@ class PbftVote : public Vote {
     strm << "  vote_signature: " << vote.vote_signature_ << std::endl;
     strm << "  blockhash: " << vote.block_hash_ << std::endl;
     if (vote.weight_) strm << "  weight: " << vote.weight_.value() << std::endl;
-    strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
+    strm << "  vrf_sortition: " << vote.vrf_sortition_ << std::endl;
     return strm;
   }
 
@@ -125,6 +128,8 @@ class PbftVote : public Vote {
    * @return vote JSON
    */
   Json::Value toJSON() const;
+
+  HAS_RLP_FIELDS
 
  private:
   /**

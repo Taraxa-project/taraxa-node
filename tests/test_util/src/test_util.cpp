@@ -1,5 +1,8 @@
 #include "test_util/test_util.hpp"
 
+#include <fstream>
+
+#include "common/encoding_solidity.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -53,8 +56,8 @@ TransactionClient::Context TransactionClient::process(const std::shared_ptr<Tran
   ctx.stage = TransactionStage::inserted;
   auto trx_hash = ctx.trx->getHash();
   if (wait_executed) {
-    auto success = wait(wait_opts_,
-                        [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->transaction_location(trx_hash)); });
+    auto success =
+        wait(wait_opts_, [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->transactionLocation(trx_hash)); });
     if (success) {
       ctx.stage = TransactionStage::executed;
     }
@@ -89,6 +92,22 @@ SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const 
   const auto addr = dev::toAddress(sender_node_cfg.node_secret);
   const auto input = util::EncodingSolidity::packFunctionCall("delegate(address)", addr);
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+}
+
+SharedTransaction make_undelegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
+                                     const u256& gas_price) {
+  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto input = util::EncodingSolidity::packFunctionCall("undelegate(address,uint256)", addr, value);
+  return std::make_shared<Transaction>(nonce, 0, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+}
+
+SharedTransaction make_redelegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, const Address& to,
+                                     uint64_t nonce, const u256& gas_price) {
+  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto input = util::EncodingSolidity::packFunctionCall("reDelegate(address,address,uint256)", addr, to, value);
+  return std::make_shared<Transaction>(nonce, 0, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
 
@@ -253,8 +272,6 @@ void NodesTest::CleanupDirs() {
     remove_all(cfg.data_path);
   }
 }
-
-void NodesTest::TearDown() { CleanupDirs(); }
 
 std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count, size_t validators_count,
                                                               uint tests_speed, bool enable_rpc_http,

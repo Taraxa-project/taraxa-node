@@ -2,7 +2,8 @@
 
 #include <cstdint>
 
-#include "pbft/pbft_manager.hpp"
+#include "common/thread_pool.hpp"
+#include "common/util.hpp"
 
 namespace taraxa::storage::migration {
 
@@ -13,7 +14,7 @@ std::string TransactionPeriod::id() { return "TransactionPeriod"; }
 uint32_t TransactionPeriod::dbVersion() { return 1; }
 
 void TransactionPeriod::migrate(logger::Logger& log) {
-  auto it = db_->getColumnIterator(DB::Columns::period_data);
+  auto it = db_->getColumnIterator(DbStorage::Columns::period_data);
   it->SeekToFirst();
   if (!it->Valid()) {
     return;

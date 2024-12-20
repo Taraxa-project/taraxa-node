@@ -6,6 +6,7 @@
 #include "sortition_params_manager.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction_manager.hpp"
+
 namespace taraxa {
 
 /** @addtogroup DAG
@@ -15,6 +16,7 @@ class Network;
 class DagBuffer;
 class FullNode;
 class KeyManager;
+struct DagConfig;
 
 /**
  * @brief DagManager class contains in memory representation of part of the DAG that is not yet finalized in a pbft
@@ -44,13 +46,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     MissingTip
   };
 
-  explicit DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
-                      const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-                      std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
-                      const state_api::Config &state_config, bool is_light_node = false,
-                      uint64_t light_node_history = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
-                      uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
+  explicit DagManager(const FullNodeConfig &config, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
+                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
+                      std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager);
 
   DagManager(const DagManager &) = delete;
   DagManager(DagManager &&) = delete;
@@ -81,14 +79,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @return verification result and all the transactions which are part of the block
    */
   std::pair<VerifyBlockReturnType, SharedTransactions> verifyBlock(
-      const DagBlock &blk, const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs = {});
+      const std::shared_ptr<DagBlock> &blk,
+      const std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> &trxs = {});
 
   /**
    * @brief Checks if block pivot and tips are in DAG
    * @param blk Block to check
    * @return true if all pivot and tips are in the DAG, false if some is missing with the hash of missing tips/pivot
    */
-  std::pair<bool, std::vector<blk_hash_t>> pivotAndTipsAvailable(DagBlock const &blk);
+  std::pair<bool, std::vector<blk_hash_t>> pivotAndTipsAvailable(const std::shared_ptr<DagBlock> &blk);
 
   /**
    * @brief adds verified DAG block in the DAG
@@ -97,8 +96,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @param save if true save block and transactions to database
    * @return true if block added successfully, false with the hash of missing tips/pivot
    */
-  std::pair<bool, std::vector<blk_hash_t>> addDagBlock(DagBlock &&blk, SharedTransactions &&trxs = {},
-                                                       bool proposed = false,
+  std::pair<bool, std::vector<blk_hash_t>> addDagBlock(const std::shared_ptr<DagBlock> &blk,
+                                                       SharedTransactions &&trxs = {}, bool proposed = false,
                                                        bool save = true);  // insert to buffer if fail
 
   /**
@@ -122,9 +121,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @return number of dag blocks finalized
    */
   uint setDagBlockOrder(blk_hash_t const &anchor, PbftPeriod period, vec_blk_t const &dag_order);
-
-  uint64_t getLightNodeHistory() const { return light_node_history_; }
-  bool isLightNode() const { return is_light_node_; }
 
   std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
 
@@ -189,7 +185,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    */
   std::pair<size_t, size_t> getNonFinalizedBlocksSize() const;
 
-  util::Event<DagManager, DagBlock> const block_verified_{};
+  uint32_t getNonFinalizedBlocksMinDifficulty() const;
+
+  util::Event<DagManager, std::shared_ptr<DagBlock>> const block_verified_{};
 
   /**
    * @brief Retrieves Dag Manager mutex, only to be used when finalizing pbft block
@@ -237,7 +235,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @brief Clears light node history
    *
    */
-  void clearLightNodeHistory();
+  void clearLightNodeHistory(uint64_t light_node_history);
 
  private:
   void recoverDag();
@@ -263,12 +261,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t old_anchor_;  // anchor of the second to last period
   PbftPeriod period_;      // last period
   std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
+  uint32_t non_finalized_blks_min_difficulty_ = UINT32_MAX;
   DagFrontier frontier_;
   SortitionParamsManager sortition_params_manager_;
-  const DagConfig dag_config_;
+  const DagConfig &dag_config_;
   const std::shared_ptr<DagBlock> genesis_block_;
-  const bool is_light_node_ = false;
-  const uint64_t light_node_history_ = 0;
   const uint32_t max_levels_per_period_;
   const uint32_t dag_expiry_limit_;  // Any non finalized dag block with a level smaller by
   // dag_expiry_limit_ than the current period anchor level is considered
@@ -280,10 +277,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   const uint32_t cache_max_size_ = 10000;
   const uint32_t cache_delete_step_ = 100;
-  ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
-  std::shared_ptr<FinalChain> final_chain_;
-  const uint64_t kPbftGasLimit;
-  const HardforksConfig kHardforks;
+  ExpirationCacheMap<blk_hash_t, std::shared_ptr<DagBlock>> seen_blocks_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
+  const GenesisConfig kGenesis;
   const uint64_t kValidatorMaxVote;
 
   LOG_OBJECTS_DEFINE

@@ -1,11 +1,7 @@
 #include "pbft/period_data.hpp"
 
-#include <libdevcore/CommonJS.h>
-
-#include "dag/dag_block.hpp"
+#include "dag/dag_block_bundle_rlp.hpp"
 #include "pbft/pbft_block.hpp"
-#include "transaction/transaction.hpp"
-#include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
@@ -28,9 +24,8 @@ PeriodData::PeriodData(const dev::RLP& rlp) {
     previous_block_cert_votes = decodePbftVotesBundleRlp(votes_bundle_rlp);
   }
 
-  for (auto const dag_block_rlp : *it++) {
-    dag_blocks.emplace_back(dag_block_rlp);
-  }
+  const auto block_bundle_rlp = *it++;
+  dag_blocks = decodeDAGBlocksBundleRlp(block_bundle_rlp);
 
   for (auto const trx_rlp : *it++) {
     transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
@@ -55,9 +50,10 @@ bytes PeriodData::rlp() const {
     s.append("");
   }
 
-  s.appendList(dag_blocks.size());
-  for (auto const& b : dag_blocks) {
-    s.appendRaw(b.rlp(true));
+  if (dag_blocks.empty()) {
+    s.append("");
+  } else {
+    s.appendRaw(encodeDAGBlocksBundleRlp(dag_blocks));
   }
 
   s.appendList(transactions.size());
@@ -80,6 +76,65 @@ void PeriodData::clear() {
   previous_block_cert_votes.clear();
   pillar_votes_.reset();
 }
+
+PeriodData PeriodData::FromOldPeriodData(const dev::RLP& rlp) {
+  PeriodData period_data;
+  auto it = rlp.begin();
+  period_data.pbft_blk = std::make_shared<PbftBlock>(*it++);
+
+  const auto votes_bundle_rlp = *it++;
+  if (period_data.pbft_blk->getPeriod() > 1) [[likely]] {
+    period_data.previous_block_cert_votes = decodePbftVotesBundleRlp(votes_bundle_rlp);
+  }
+
+  for (auto const dag_block_rlp : *it++) {
+    period_data.dag_blocks.emplace_back(std::make_shared<DagBlock>(dag_block_rlp));
+  }
+
+  for (auto const trx_rlp : *it++) {
+    period_data.transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
+  }
+
+  // Pillar votes are optional data of period data since ficus hardfork
+  if (rlp.itemCount() == 5) {
+    period_data.pillar_votes_ = decodePillarVotesBundleRlp(*it);
+  }
+  return period_data;
+}
+
+bytes PeriodData::ToOldPeriodData(const bytes& rlp) {
+  PeriodData period_data(rlp);
+  const auto kRlpSize = period_data.pillar_votes_.has_value() ? kBaseRlpItemCount + 1 : kBaseRlpItemCount;
+  dev::RLPStream s(kRlpSize);
+  s.appendRaw(period_data.pbft_blk->rlp(true));
+
+  if (period_data.pbft_blk->getPeriod() > 1) [[likely]] {
+    s.appendRaw(encodePbftVotesBundleRlp(period_data.previous_block_cert_votes));
+  } else {
+    s.append("");
+  }
+
+  s.appendList(period_data.dag_blocks.size());
+  for (auto const& b : period_data.dag_blocks) {
+    s.appendRaw(b->rlp(true));
+  }
+
+  s.appendList(period_data.transactions.size());
+  for (auto const& t : period_data.transactions) {
+    s.appendRaw(t->rlp());
+  }
+
+  // Pillar votes are optional data of period data since ficus hardfork
+  if (period_data.pillar_votes_.has_value()) {
+    s.appendRaw(encodePillarVotesBundleRlp(*period_data.pillar_votes_));
+  }
+
+  return s.invalidate();
+}
+
+void PeriodData::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PeriodData(encoding.value); }
+
+void PeriodData::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
 
 std::ostream& operator<<(std::ostream& strm, PeriodData const& b) {
   strm << "[PeriodData] : " << b.pbft_blk << " , num of votes " << b.previous_block_cert_votes.size() << std::endl;

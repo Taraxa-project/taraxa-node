@@ -8,13 +8,12 @@
 #include <iostream>
 #include <string>
 
-#include "common/static_init.hpp"
+#include "common/init.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "test_util/gtest.hpp"
 #include "vdf/sortition.hpp"
-#include "vote/pbft_vote.hpp"
+#include "vote/vrf_sortition.hpp"
 
 namespace taraxa::core_tests {
 using namespace vdf;
@@ -66,7 +65,7 @@ TEST_F(CryptoTest, vrf_proof_verify) {
   EXPECT_TRUE(isValidVrfPublicKey(pk));
   EXPECT_TRUE(isValidVrfPublicKey(pk2));
 
-  auto msg = getRlpBytes("helloworld!");
+  auto msg = getRlpBytes("hello world!");
   auto proof = getVrfProof(sk, msg);
   EXPECT_TRUE(proof);
   auto output = getVrfOutput(pk, proof.value(), msg);
@@ -312,7 +311,7 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   level_t level = 1;
-  uint16_t threshold_upper = 0;  // diffculty == diffuclty_stale
+  uint16_t threshold_upper = 0;  // difficulty == difficulty_stale
   uint16_t difficulty_min = 0;
   uint16_t difficulty_max = 0;
   uint16_t lambda_bound = 100;

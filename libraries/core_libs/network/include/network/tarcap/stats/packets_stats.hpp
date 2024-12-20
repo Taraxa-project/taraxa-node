@@ -1,9 +1,9 @@
 #pragma once
 
-#include <optional>
+#include <json/json.h>
 
-#include "network/tarcap/stats/max_stats.hpp"
-#include "network/tarcap/stats/packets_stats.hpp"
+#include "max_stats.hpp"
+#include "packets_stats.hpp"
 
 namespace taraxa::network::tarcap {
 

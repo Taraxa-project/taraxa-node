@@ -3,7 +3,6 @@
 #include <boost/log/sources/severity_channel_logger.hpp>
 #include <string>
 
-#include "common/types.hpp"
 #include "logger/logger_config.hpp"
 
 namespace taraxa::logger {
@@ -66,14 +65,6 @@ void InitLogging(Config& logging_config, const addr_t& node_id);
   mutable taraxa::logger::Logger log_dg_; \
   mutable taraxa::logger::Logger log_tr_;
 
-#define LOG_OBJECTS_DEFINE_SUB(group)               \
-  mutable taraxa::logger::Logger log_si_##group##_; \
-  mutable taraxa::logger::Logger log_er_##group##_; \
-  mutable taraxa::logger::Logger log_wr_##group##_; \
-  mutable taraxa::logger::Logger log_nf_##group##_; \
-  mutable taraxa::logger::Logger log_dg_##group##_; \
-  mutable taraxa::logger::Logger log_tr_##group##_;
-
 #define LOG_OBJECTS_CREATE(channel)                                                               \
   log_si_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Silent, channel, node_addr);  \
   log_er_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Error, channel, node_addr);   \
@@ -81,11 +72,3 @@ void InitLogging(Config& logging_config, const addr_t& node_id);
   log_nf_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Info, channel, node_addr);    \
   log_tr_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Trace, channel, node_addr);   \
   log_dg_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Debug, channel, node_addr);
-
-#define LOG_OBJECTS_CREATE_SUB(channel, group)                                                              \
-  log_si_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Silent, channel, node_addr);  \
-  log_er_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Error, channel, node_addr);   \
-  log_wr_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Warning, channel, node_addr); \
-  log_nf_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Info, channel, node_addr);    \
-  log_tr_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Trace, channel, node_addr);   \
-  log_dg_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Debug, channel, node_addr);

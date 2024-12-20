@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <thread>
 
 #include "common/types.hpp"
@@ -55,11 +54,10 @@ class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
-  PbftManager(const GenesisConfig &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr, secret_t node_sk);
+  PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
+              std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -214,7 +212,7 @@ class PbftManager {
    * @param dag_blocks DAG blocks
    * @return DAG blocks ordering hash
    */
-  static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks);
+  static blk_hash_t calculateOrderHash(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks);
 
   /**
    * @brief Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect
@@ -226,9 +224,10 @@ class PbftManager {
   /**
    * @brief Check a block weight of gas estimation
    * @param dag_blocks dag blocks
+   * @param period period
    * @return true if total weight of gas estimation is less or equal to gas limit. Otherwise return false
    */
-  bool checkBlockWeight(const std::vector<DagBlock> &dag_blocks) const;
+  bool checkBlockWeight(const std::vector<std::shared_ptr<DagBlock>> &dag_blocks, PbftPeriod period) const;
 
   blk_hash_t getLastPbftBlockHash();
 
@@ -258,7 +257,7 @@ class PbftManager {
   /**
    * @brief Test/enforce broadcastVotes() to actually send votes
    */
-  void testBroadcatVotesFunctionality();
+  void testBroadcastVotesFunctionality();
 
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
@@ -280,6 +279,14 @@ class PbftManager {
    * @return true if valid, otherwise false
    */
   bool validatePillarDataInPeriodData(const PeriodData &period_data) const;
+
+  /**
+   * @brief Gossips vote to the other peers
+   *
+   * @param vote
+   * @param voted_block
+   */
+  void gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
  private:
   /**
@@ -306,7 +313,7 @@ class PbftManager {
 
   /**
    * @brief Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain
-   * @return true if new cert voted block was pushed into the chain, otheriwse false
+   * @return true if new cert voted block was pushed into the chain, otherwise false
    */
   bool tryPushCertVotesBlock();
 
@@ -413,7 +420,6 @@ class PbftManager {
    *
    * @param vote
    * @param voted_block
-   * @return true if successful, otherwise false
    */
   void gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
@@ -461,11 +467,11 @@ class PbftManager {
   bool validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
-   * @brief Validates pbft block state root.
+   * @brief Validates pbft block final chain hash.
    * @param pbft_block PBFT block
    * @return validation result
    */
-  PbftStateRootValidation validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
+  PbftStateRootValidation validateFinalChainHash(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
    * @brief Validates pbft block extra data presence:
@@ -530,7 +536,7 @@ class PbftManager {
                                   const std::vector<std::shared_ptr<PbftVote>> &cert_votes) const;
 
   /**
-   @brief Validates PBFT block [illar] votes
+   @brief Validates PBFT block pillar votes
    *
    * @param period_data
    * @return
@@ -559,7 +565,7 @@ class PbftManager {
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
   // dag block order for specific anchor
-  mutable std::unordered_map<blk_hash_t, std::vector<DagBlock>> anchor_dag_block_order_cache_;
+  mutable std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>> anchor_dag_block_order_cache_;
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
@@ -568,7 +574,7 @@ class PbftManager {
   std::shared_ptr<DagManager> dag_mgr_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
   const addr_t node_addr_;

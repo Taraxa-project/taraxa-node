@@ -6,6 +6,8 @@
 
 #include <ethash/keccak.hpp>
 
+#include "ethash/hash_types.hpp"
+
 namespace dev {
 
 bool sha3(bytesConstRef _input, bytesRef o_output) noexcept {

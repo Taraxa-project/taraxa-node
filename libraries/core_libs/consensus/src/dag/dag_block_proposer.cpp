@@ -1,7 +1,5 @@
 #include "dag/dag_block_proposer.hpp"
 
-#include <cmath>
-
 #include "common/util.hpp"
 #include "dag/dag_manager.hpp"
 #include "final_chain/final_chain.hpp"
@@ -13,27 +11,29 @@ namespace taraxa {
 
 using namespace vdf_sortition;
 
-DagBlockProposer::DagBlockProposer(const DagBlockProposerConfig& bp_config, std::shared_ptr<DagManager> dag_mgr,
+DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr<DagManager> dag_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr,
                                    std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<DbStorage> db,
-                                   std::shared_ptr<KeyManager> key_manager, addr_t node_addr, secret_t node_sk,
-                                   vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit,
-                                   const state_api::Config& state_config)
-    : bp_config_(bp_config),
+                                   std::shared_ptr<KeyManager> key_manager)
+    : bp_config_(config.genesis.dag.block_proposer),
       total_trx_shards_(std::max(bp_config_.shard, uint16_t(1))),
       dag_mgr_(std::move(dag_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
       key_manager_(std::move(key_manager)),
       db_(std::move(db)),
-      node_addr_(node_addr),
-      node_sk_(std::move(node_sk)),
-      vrf_sk_(std::move(vrf_sk)),
+      node_addr_(dev::toAddress(config.node_secret)),
+      node_sk_(config.node_secret),
+      vrf_sk_(config.vrf_secret),
       vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk_)),
-      kPbftGasLimit(pbft_gas_limit),
-      kDagGasLimit(dag_gas_limit),
-      kHardforks(state_config.hardforks),
-      kValidatorMaxVote(state_config.dpos.validator_maximum_stake / state_config.dpos.vote_eligibility_balance_step) {
+      kPbftGasLimit(
+          std::min(config.propose_pbft_gas_limit, config.genesis.getGasLimits(final_chain_->lastBlockNumber()).second)),
+      kDagGasLimit(
+          std::min(config.propose_dag_gas_limit, config.genesis.getGasLimits(final_chain_->lastBlockNumber()).first)),
+      kHardforks(config.genesis.state.hardforks),
+      kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
+                        config.genesis.state.dpos.vote_eligibility_balance_step) {
+  const auto& node_addr = node_addr_;
   LOG_OBJECTS_CREATE("DAG_PROPOSER");
 
   // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
@@ -48,6 +48,11 @@ DagBlockProposer::DagBlockProposer(const DagBlockProposerConfig& bp_config, std:
 
 bool DagBlockProposer::proposeDagBlock() {
   if (trx_mgr_->getTransactionPoolSize() == 0) {
+    return false;
+  }
+
+  // Do not propose dag blocks if number of non finalized transactions is over the limit
+  if (trx_mgr_->getNonfinalizedTrxSize() > kMaxNonFinalizedTransactions) {
     return false;
   }
 
@@ -73,9 +78,9 @@ bool DagBlockProposer::proposeDagBlock() {
   }
 
   uint64_t max_vote_count = 0;
-  const auto vote_count = final_chain_->dpos_eligible_vote_count(*proposal_period, node_addr_);
+  const auto vote_count = final_chain_->dposEligibleVoteCount(*proposal_period, node_addr_);
   if (*proposal_period < kHardforks.magnolia_hf.block_num) {
-    max_vote_count = final_chain_->dpos_eligible_total_vote_count(*proposal_period);
+    max_vote_count = final_chain_->dposEligibleTotalVoteCount(*proposal_period);
   } else {
     max_vote_count = kValidatorMaxVote;
   }
@@ -86,6 +91,17 @@ bool DagBlockProposer::proposeDagBlock() {
   vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), vote_count,
                                   max_vote_count);
+
+  auto anchor = dag_mgr_->getAnchors().second;
+  if (frontier.pivot != anchor) {
+    if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
+      return false;
+    }
+    if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty()) {
+      return false;
+    }
+  }
+
   if (vdf.isStale(sortition_params)) {
     if (last_propose_level_ == propose_level) {
       if (num_tries_ < max_num_tries_) {
@@ -103,7 +119,7 @@ bool DagBlockProposer::proposeDagBlock() {
     }
   }
 
-  auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
+  auto [transactions, estimations] = getShardedTrxs(*proposal_period, kDagGasLimit);
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
     num_tries_ = 0;
@@ -154,12 +170,12 @@ bool DagBlockProposer::proposeDagBlock() {
   auto dag_block =
       createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
 
-  if (dag_mgr_->addDagBlock(std::move(dag_block), std::move(transactions), true).first) {
-    LOG(log_nf_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
-                 << " , txs num " << dag_block.getTrxs().size();
+  if (dag_mgr_->addDagBlock(dag_block, std::move(transactions), true).first) {
+    LOG(log_nf_) << "Proposed new DAG block " << dag_block->getHash() << ", pivot " << dag_block->getPivot()
+                 << " , txs num " << dag_block->getTrxs().size();
     proposed_blocks_count_ += 1;
   } else {
-    LOG(log_er_) << "Failed to add newly proposed dag block " << dag_block.getHash() << " into dag";
+    LOG(log_er_) << "Failed to add newly proposed dag block " << dag_block->getHash() << " into dag";
   }
 
   last_propose_level_ = propose_level;
@@ -183,12 +199,14 @@ void DagBlockProposer::start() {
     while (!stopped_) {
       // Blocks are not proposed if we are behind the network and still syncing
       auto syncing = false;
+      auto packets_over_the_limit = false;
       if (auto net = network_.lock()) {
         syncing = net->pbft_syncing();
+        packets_over_the_limit = net->packetQueueOverLimit();
       }
-      // Only sleep if block was not proposed or if we are syncing, if block is proposed try to propose another block
-      // immediately
-      if (syncing || !proposeDagBlock()) {
+      // Only sleep if block was not proposed or if we are syncing or if packets queue is over the limit, if block is
+      // proposed try to propose another block immediately
+      if (syncing || packets_over_the_limit || !proposeDagBlock()) {
         thisThreadSleepForMilliSeconds(min_proposal_delay);
       }
     }
@@ -315,8 +333,10 @@ vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips, u
   return tips;
 }
 
-DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
-                                          std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const {
+std::shared_ptr<DagBlock> DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
+                                                           const SharedTransactions& trxs,
+                                                           std::vector<uint64_t>&& estimations,
+                                                           VdfSortition&& vdf) const {
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   vec_trx_t trx_hashes;
@@ -331,21 +351,19 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
     frontier.tips = selectDagBlockTips(frontier.tips, kPbftGasLimit - block_estimation);
   }
 
-  DagBlock block(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), block_estimation,
-                 std::move(vdf), node_sk_);
-
-  return block;
+  return std::make_shared<DagBlock>(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
+                                    block_estimation, std::move(vdf), node_sk_);
 }
 
 bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period) const {
-  if (final_chain_->last_block_number() < propose_period) {
-    LOG(log_wr_) << "Last finalized block period " << final_chain_->last_block_number() << " < propose_period "
+  if (final_chain_->lastBlockNumber() < propose_period) {
+    LOG(log_wr_) << "Last finalized block period " << final_chain_->lastBlockNumber() << " < propose_period "
                  << propose_period;
     return false;
   }
 
   try {
-    return final_chain_->dpos_is_eligible(propose_period, node_addr_);
+    return final_chain_->dposIsEligible(propose_period, node_addr_);
   } catch (state_api::ErrFutureBlock& c) {
     LOG(log_wr_) << "Proposal period " << propose_period << " is too far ahead of DPOS. " << c.what();
     return false;

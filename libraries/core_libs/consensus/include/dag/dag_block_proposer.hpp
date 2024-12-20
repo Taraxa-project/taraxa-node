@@ -1,12 +1,9 @@
 #pragma once
 
 #include <atomic>
-#include <random>
 #include <thread>
 #include <vector>
 
-#include "boost/thread.hpp"
-#include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
@@ -19,6 +16,7 @@ namespace taraxa {
 class TransactionManager;
 class KeyManager;
 class DagManager;
+struct FullNodeConfig;
 
 namespace final_chain {
 class FinalChain;
@@ -35,11 +33,9 @@ class FinalChain;
  */
 class DagBlockProposer {
  public:
-  DagBlockProposer(const DagBlockProposerConfig& bp_config, std::shared_ptr<DagManager> dag_mgr,
+  DagBlockProposer(const FullNodeConfig& config, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
-                   std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, addr_t node_addr,
-                   secret_t node_sk, vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit,
-                   const state_api::Config& state_config);
+                   std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager);
   ~DagBlockProposer() { stop(); }
   DagBlockProposer(const DagBlockProposer&) = delete;
   DagBlockProposer(DagBlockProposer&&) = delete;
@@ -94,8 +90,8 @@ class DagBlockProposer {
    * @param estimations transactions gas estimation
    * @param vdf vdf with correct difficulty calculation
    */
-  DagBlock createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
-                          std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const;
+  std::shared_ptr<DagBlock> createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
+                                           std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const;
 
   /**
    * @brief Gets transactions to include in the block - sharding not supported yet

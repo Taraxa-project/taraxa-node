@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
-#include "dag/dag_block.hpp"
+#include "network/tarcap/packets/latest/transaction_packet.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -11,13 +11,11 @@ enum class TransactionStatus;
 
 namespace taraxa::network::tarcap {
 
-class TestState;
-
-class TransactionPacketHandler : public PacketHandler {
+class TransactionPacketHandler : public PacketHandler<TransactionPacket> {
  public:
   TransactionPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                           std::shared_ptr<TransactionManager> trx_mgr, const addr_t& node_addr, bool hash_gossip,
+                           std::shared_ptr<TransactionManager> trx_mgr, const addr_t& node_addr,
                            const std::string& logs_prefix = "TRANSACTION_PH");
 
   /**
@@ -39,25 +37,12 @@ class TransactionPacketHandler : public PacketHandler {
   void periodicSendTransactions(std::vector<SharedTransactions>&& transactions);
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::TransactionPacket;
-
-  // 2 items: hashes and transactions
-  static constexpr uint32_t kTransactionPacketItemCount = 2;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kTransactionPacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(TransactionPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
-  /**
-   * @brief Sends batch of transactions to all connected peers
-   * @note Support of the old V2 version, remove once most of the network is updated or after a hardfork. This method is
-   * used as periodic event to broadcast transactions to the other peers in network
-   *
-   * @param transactions to be sent
-   */
-  void periodicSendTransactionsWithoutHashGossip(std::vector<SharedTransactions>&& transactions);
-
   /**
    * @brief select which transactions and hashes to send to which connected peer
    *
@@ -83,7 +68,6 @@ class TransactionPacketHandler : public PacketHandler {
 
   std::atomic<uint64_t> received_trx_count_{0};
   std::atomic<uint64_t> unique_received_trx_count_{0};
-  const bool kHashGossip = true;
 };
 
 }  // namespace taraxa::network::tarcap

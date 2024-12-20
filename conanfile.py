@@ -13,13 +13,14 @@ class TaraxaConan(ConanFile):
     generators = "cmake"
 
     def requirements(self):
-        self.requires("boost/1.85.0")
-        self.requires("cppcheck/2.12") #TODO(2.14.1)
-        self.requires("openssl/3.2.1")
+        self.requires("boost/1.86.0")
+        self.requires("cppcheck/2.15.0")
+        self.requires("openssl/3.3.2")
         self.requires("cryptopp/8.9.0")
-        self.requires("gtest/1.14.0")
-        self.requires("lz4/1.9.4")
-        self.requires("prometheus-cpp/1.1.0")
+        self.requires("gtest/1.15.0")
+        self.requires("lz4/1.10.0")
+        self.requires("rocksdb/9.2.1")
+        self.requires("prometheus-cpp/1.2.4")
         self.requires("jsoncpp/1.9.5")
 
     def _configure_boost_libs(self):
@@ -60,6 +61,8 @@ class TaraxaConan(ConanFile):
         self.options["gtest"].build_gmock = False
         # this links cppcheck to prce library
         self.options["cppcheck"].have_rules = False
+        self.options["rocksdb"].use_rtti = True
+        self.options["rocksdb"].with_lz4 = True
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
 

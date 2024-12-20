@@ -1,10 +1,10 @@
 #pragma once
 
-#include <json/json.h>
+#include <json/value.h>
 #include <libdevcore/RLP.h>
 #include <libdevcore/SHA3.h>
 
-#include "common/default_construct_copyable_movable.hpp"
+#include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 
 namespace taraxa {
@@ -55,6 +55,7 @@ struct Transaction {
               const secret_t &sk, const std::optional<addr_t> &receiver = std::nullopt, uint64_t chain_id = 0);
   explicit Transaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {});
   explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {});
+  virtual ~Transaction() = default;
 
   auto isZero() const { return is_zero_; }
   const trx_hash_t &getHash() const;
@@ -75,6 +76,8 @@ struct Transaction {
   const bytes &rlp() const;
 
   Json::Value toJSON() const;
+
+  HAS_RLP_FIELDS
 };
 
 using SharedTransaction = std::shared_ptr<Transaction>;

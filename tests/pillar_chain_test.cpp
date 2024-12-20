@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <iostream>
-
-#include "common/static_init.hpp"
+#include "common/encoding_solidity.hpp"
+#include "common/init.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
@@ -22,16 +21,12 @@ TEST_F(PillarChainTest, pillar_chain_db) {
   blk_hash_t previous_pillar_block_hash(789);
 
   std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> votes_count_changes;
-  const auto vote_count_change1 = votes_count_changes.emplace_back(addr_t(1), 1);
-  const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
 
   const auto pillar_block = std::make_shared<pillar_chain::PillarBlock>(
       pillar_block_period, state_root, previous_pillar_block_hash, h256{}, 0, std::move(votes_count_changes));
 
   // Pillar block vote counts
   std::vector<state_api::ValidatorVoteCount> vote_counts;
-  const auto stake1 = votes_count_changes.emplace_back(addr_t(123), 123);
-  const auto stake2 = votes_count_changes.emplace_back(addr_t(456), 456);
 
   // Current pillar block data - block + vote counts
   pillar_chain::CurrentPillarBlockDataDb current_pillar_block_data{pillar_block, vote_counts};
@@ -100,7 +95,7 @@ TEST_F(PillarChainTest, pillar_blocks_create) {
 }
 
 TEST_F(PillarChainTest, votes_count_changes) {
-  const auto validators_count = 3;
+  const auto validators_count = 5;
   auto node_cfgs = make_node_cfgs(validators_count, validators_count, 10);
 
   for (auto& node_cfg : node_cfgs) {
@@ -108,17 +103,59 @@ TEST_F(PillarChainTest, votes_count_changes) {
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
   }
+  auto nodes = launch_nodes(node_cfgs);
 
-  std::vector<dev::s256> validators_vote_counts;
-  validators_vote_counts.reserve(node_cfgs.size());
+  auto wait_for_next_pillar_block = [&](size_t txs_count) -> PbftPeriod {
+    EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
+      for (auto& node : nodes) {
+        if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != txs_count)) {
+          return;
+        }
+      }
+    });
+    auto chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
+
+    // Wait until new pillar block with changed validators vote_counts is created
+    auto new_pillar_block_period = chain_size -
+                                   chain_size % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
+                                   node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
+    EXPECT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+      for (const auto& node : nodes) {
+        if (ctx.fail_if(node->getPbftChain()->getPbftChainSize() < new_pillar_block_period + 1)) {
+          return;
+        }
+      }
+    });
+
+    return new_pillar_block_period;
+  };
+
+  auto checkPillarBlockData = [&](size_t pillar_block_period,
+                                  std::unordered_map<addr_t, dev::s256> expected_validators_vote_counts_changes) {
+    // Check if vote_counts changes in new pillar block changed according to new delegations
+    for (auto& node : nodes) {
+      // Check if right amount of pillar blocks were created
+      const auto new_pillar_block = node->getDB()->getPillarBlock(pillar_block_period);
+      ASSERT_TRUE(new_pillar_block);
+      ASSERT_EQ(new_pillar_block->getPeriod(), pillar_block_period);
+      ASSERT_EQ(new_pillar_block->getValidatorsVoteCountsChanges().size(),
+                expected_validators_vote_counts_changes.size());
+      for (const auto& vote_count_change : new_pillar_block->getValidatorsVoteCountsChanges()) {
+        EXPECT_TRUE(expected_validators_vote_counts_changes.contains(vote_count_change.addr_));
+        ASSERT_EQ(vote_count_change.vote_count_change_,
+                  expected_validators_vote_counts_changes[vote_count_change.addr_]);
+      }
+    }
+  };
+
+  // Initial stakes of all validators
+  std::unordered_map<addr_t, dev::s256> expected_validators_vote_counts_changes;
   for (const auto& validator : node_cfgs[0].genesis.state.dpos.initial_validators) {
-    auto& vote_count = validators_vote_counts.emplace_back(0);
+    auto& vote_count = expected_validators_vote_counts_changes[validator.address];
     for (const auto& delegation : validator.delegations) {
       vote_count += delegation.second / node_cfgs[0].genesis.state.dpos.vote_eligibility_balance_step;
     }
   }
-
-  auto nodes = launch_nodes(node_cfgs);
 
   // Wait until nodes create first pillar block
   const auto first_pillar_block_period = node_cfgs[0].genesis.state.hardforks.ficus_hf.firstPillarBlockPeriod();
@@ -128,61 +165,52 @@ TEST_F(PillarChainTest, votes_count_changes) {
     }
   });
 
-  // Check if vote_counts changes in first pillar block == initial validators vote_counts
-  for (auto& node : nodes) {
-    // Check if right amount of pillar blocks were created
-    const auto first_pillar_block = node->getDB()->getPillarBlock(first_pillar_block_period);
-    ASSERT_TRUE(first_pillar_block);
+  checkPillarBlockData(first_pillar_block_period, expected_validators_vote_counts_changes);
 
-    ASSERT_EQ(first_pillar_block->getPeriod(), first_pillar_block_period);
-    ASSERT_EQ(first_pillar_block->getValidatorsVoteCountsChanges().size(), validators_count);
-    size_t idx = 0;
-    for (const auto& vote_count_change : first_pillar_block->getValidatorsVoteCountsChanges()) {
-      ASSERT_EQ(vote_count_change.vote_count_change_, validators_vote_counts[idx]);
-      idx++;
-    }
-  }
-
-  // Change validators delegation
-  const auto delegation_value = 2 * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
+  // Delegate to validators
+  expected_validators_vote_counts_changes.clear();
+  size_t txs_count = 0;
   for (size_t i = 0; i < validators_count; i++) {
+    const auto delegation_value = (i + 1) * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
+    expected_validators_vote_counts_changes[toAddress(node_cfgs[i].node_secret)] = i + 1;
     const auto trx = make_delegate_tx(node_cfgs[i], delegation_value, 1, 1000);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
+    txs_count++;
   }
 
-  EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
-    for (auto& node : nodes) {
-      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != validators_count)) {
-        return;
-      }
-    }
-  });
-  const auto chain_size = nodes[0]->getPbftChain()->getPbftChainSize();
+  auto new_pillar_block_period = wait_for_next_pillar_block(txs_count);
+  checkPillarBlockData(new_pillar_block_period, expected_validators_vote_counts_changes);
 
-  // Wait until new pillar block with changed validators vote_counts is created
-  const auto new_pillar_block_period =
-      chain_size - chain_size % node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval +
-      node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
-  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    for (const auto& node : nodes) {
-      WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), new_pillar_block_period + 1)
-    }
-  });
-
-  // Check if vote_counts changes in new pillar block changed according to new delegations
-  for (auto& node : nodes) {
-    // Check if right amount of pillar blocks were created
-    const auto new_pillar_block = node->getDB()->getPillarBlock(new_pillar_block_period);
-    ASSERT_TRUE(new_pillar_block);
-    ASSERT_EQ(new_pillar_block->getPeriod(), new_pillar_block_period);
-    ASSERT_EQ(new_pillar_block->getValidatorsVoteCountsChanges().size(), validators_count);
-    size_t idx = 0;
-    for (const auto& vote_count_change : new_pillar_block->getValidatorsVoteCountsChanges()) {
-      ASSERT_EQ(vote_count_change.vote_count_change_,
-                delegation_value / node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold);
-      idx++;
-    }
+  // Undelegate from validators
+  expected_validators_vote_counts_changes.clear();
+  for (size_t i = 0; i < validators_count - 1; i++) {
+    const auto undelegation_value = (i + 1) * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
+    expected_validators_vote_counts_changes[toAddress(node_cfgs[i].node_secret)] = dev::s256(i + 1) * -1;
+    const auto trx = make_undelegate_tx(node_cfgs[i], undelegation_value, 2, 1000);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
+    txs_count++;
   }
+
+  new_pillar_block_period = wait_for_next_pillar_block(txs_count);
+  checkPillarBlockData(new_pillar_block_period, expected_validators_vote_counts_changes);
+
+  // Redelegate
+  const auto redelegate_to_addr = toAddress(node_cfgs[node_cfgs.size() - 1].node_secret);
+  expected_validators_vote_counts_changes.clear();
+  expected_validators_vote_counts_changes[redelegate_to_addr] = 0;
+  for (size_t i = 0; i < validators_count - 3; i++) {
+    const auto node_addr = toAddress(node_cfgs[i].node_secret);
+    const auto node_vote_count = nodes[0]->getFinalChain()->dposEligibleVoteCount(new_pillar_block_period, node_addr);
+    const auto redelegation_value = node_vote_count * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
+    expected_validators_vote_counts_changes[node_addr] = dev::s256(node_vote_count) * -1;
+    expected_validators_vote_counts_changes[redelegate_to_addr] += dev::s256(node_vote_count);
+    const auto trx = make_redelegate_tx(node_cfgs[i], redelegation_value, redelegate_to_addr, 3, 1000);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
+    txs_count++;
+  }
+
+  new_pillar_block_period = wait_for_next_pillar_block(txs_count);
+  checkPillarBlockData(new_pillar_block_period, expected_validators_vote_counts_changes);
 }
 
 TEST_F(PillarChainTest, pillar_chain_syncing) {
@@ -200,7 +228,7 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   // Wait until node1 creates at least 3 pillar blocks
   const auto pillar_blocks_count = 3;
   ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getFinalChain()->last_block_number(),
+    WAIT_EXPECT_EQ(ctx, node1->getFinalChain()->lastBlockNumber(),
                    pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval)
   });
   node1->getPbftManager()->stop();
@@ -209,7 +237,7 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
   auto node2 = launch_nodes({node_cfgs[1]})[0];
   // Wait until node2 syncs pbft chain with node1
   ASSERT_HAPPENS({20s, 200ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node2->getFinalChain()->last_block_number(), node1->getFinalChain()->last_block_number())
+    WAIT_EXPECT_EQ(ctx, node2->getFinalChain()->lastBlockNumber(), node1->getFinalChain()->lastBlockNumber())
   });
   node2->getPbftManager()->stop();
 
@@ -246,7 +274,7 @@ TEST_F(PillarChainTest, pillar_chain_syncing) {
     ASSERT_EQ(pillar_vote->getPeriod() - 1, node2_current_pillar_block->getPeriod());
     ASSERT_EQ(pillar_vote->getBlockHash(), node2_current_pillar_block->getHash());
     votes_count +=
-        node2->getFinalChain()->dpos_eligible_vote_count(pillar_vote->getPeriod() - 1, pillar_vote->getVoterAddr());
+        node2->getFinalChain()->dposEligibleVoteCount(pillar_vote->getPeriod() - 1, pillar_vote->getVoterAddr());
   }
   ASSERT_GE(votes_count, threshold);
 }
@@ -368,12 +396,8 @@ TEST_F(PillarChainTest, pillar_block_solidity_rlp_encoding) {
   blk_hash_t previous_pillar_block_hash(789);
 
   std::vector<pillar_chain::PillarBlock::ValidatorVoteCountChange> votes_count_changes;
-  const auto vote_count_change1 = votes_count_changes.emplace_back(addr_t(1), 1);
-  const auto vote_count_change2 = votes_count_changes.emplace_back(addr_t(2), 2);
-
-  auto vcc = votes_count_changes;
   const auto pillar_block = pillar_chain::PillarBlock(pillar_block_period, state_root, previous_pillar_block_hash,
-                                                      bridge_root, epoch, std::move(vcc));
+                                                      bridge_root, epoch, std::move(votes_count_changes));
 
   auto validateDecodedPillarBlock = [&](const pillar_chain::PillarBlock& pillar_block) {
     ASSERT_EQ(pillar_block.getPeriod(), pillar_block_period);
@@ -524,7 +548,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         ASSERT_EQ(trx->getSender(), kTaraxaSystemAccount);
         ASSERT_EQ(trx->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         // check that correct hash is returned
-        auto hashes = node->getFinalChain()->transaction_hashes(period - 1);
+        auto hashes = node->getFinalChain()->transactionHashes(period - 1);
         ASSERT_EQ(hashes->size(), 1);
         ASSERT_EQ(hashes->at(0), trx->getHash());
         // check that location by hash exists and is_system set to true
@@ -540,7 +564,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         ASSERT_EQ(trx_by_hash->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         ASSERT_EQ(trx_by_hash->getSender(), kTaraxaSystemAccount);
         // check that receipt exists
-        const auto& trx_receipt = node->getFinalChain()->transaction_receipt(trx->getHash());
+        const auto& trx_receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
         ASSERT_TRUE(trx_receipt.has_value());
         ASSERT_EQ(trx_receipt->status_code, 1);
       }

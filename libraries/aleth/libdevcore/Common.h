@@ -12,7 +12,6 @@
 #include <set>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 #pragma warning(push)
 #pragma GCC diagnostic push
@@ -128,33 +127,6 @@ using strings = std::vector<std::string>;
 // Null/Invalid values for convenience.
 extern bytes const NullBytes;
 
-/// Interprets @a _u as a two's complement signed number and returns the
-/// resulting s256.
-inline s256 u2s(u256 _u) {
-  static const bigint c_end = bigint(1) << 256;
-  if (boost::multiprecision::bit_test(_u, 255))
-    return s256(-(c_end - _u));
-  else
-    return s256(_u);
-}
-
-/// @returns the two's complement signed representation of the signed number _u.
-inline u256 s2u(s256 _u) {
-  static const bigint c_end = bigint(1) << 256;
-  if (_u >= 0)
-    return u256(_u);
-  else
-    return u256(c_end + _u);
-}
-
-/// @returns the smallest n >= 0 such that (1 << n) >= _x
-inline unsigned int toLog2(u256 _x) {
-  unsigned ret;
-  for (ret = 0; _x >>= 1; ++ret) {
-  }
-  return ret;
-}
-
 template <size_t n>
 inline u256 exp10() {
   return exp10<n - 1>() * u256(10);
@@ -163,12 +135,6 @@ inline u256 exp10() {
 template <>
 inline u256 exp10<0>() {
   return u256(1);
-}
-
-/// @returns the absolute distance between _a and _b.
-template <class N>
-inline N diff(N const& _a, N const& _b) {
-  return std::max(_a, _b) - std::min(_a, _b);
 }
 
 /// RAII utility class whose destructor calls a given function.

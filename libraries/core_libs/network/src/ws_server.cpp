@@ -7,9 +7,7 @@
 #include <boost/beast/websocket/rfc6455.hpp>
 
 #include "common/jsoncpp.hpp"
-#include "common/util.hpp"
-#include "config/config.hpp"
-#include "network/rpc/eth/Eth.h"
+#include "network/rpc/eth/data.hpp"
 
 namespace taraxa::net {
 
@@ -51,14 +49,21 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     return close(is_normal(ec));
   }
 
-  LOG(log_tr_) << "WS READ " << (static_cast<char *>(read_buffer_.data().data()));
+  auto ws_server = ws_server_.lock();
+  if (ws_server && ws_server->pendingTasksOverLimit()) {
+    LOG(log_er_) << "WS closed - pending tasks over the limit " << ws_server->numberOfPendingTasks();
+    return close(true);
+  }
 
+  LOG(log_tr_) << "WS READ " << (static_cast<char *>(read_buffer_.data().data()));
   processAsync();
   // Do another read
   do_read();
 }
 
 void WsSession::processAsync() {
+  if (closed_) return;
+
   std::string request(static_cast<char *>(read_buffer_.data().data()), read_buffer_.size());
   read_buffer_.consume(read_buffer_.size());
   LOG(log_tr_) << "processAsync " << request;
@@ -75,6 +80,8 @@ void WsSession::processAsync() {
 }
 
 void WsSession::writeAsync(std::string &&message) {
+  if (closed_) return;
+
   LOG(log_tr_) << "WS WRITE " << message.c_str();
   auto executor = ws_.get_executor();
   if (!executor) {
@@ -113,12 +120,12 @@ void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, c
     writeAsync(std::move(response));
   }
 }
-void WsSession::newDagBlock(DagBlock const &blk) {
+void WsSession::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
   if (new_dag_blocks_subscription_) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
-    params["result"] = blk.getJson();
+    params["result"] = blk->getJson();
     params["subscription"] = dev::toJS(new_dag_blocks_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
@@ -200,8 +207,13 @@ bool WsSession::is_normal(const beast::error_code &ec) const {
   return false;
 }
 
-WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
-    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)) {
+WsServer::WsServer(std::shared_ptr<util::ThreadPool> thread_pool, tcp::endpoint endpoint, addr_t node_addr,
+                   uint32_t max_pending_tasks)
+    : ioc_(thread_pool->unsafe_get_io_context()),
+      acceptor_(thread_pool->unsafe_get_io_context()),
+      thread_pool_(thread_pool),
+      kMaxPendingTasks(max_pending_tasks),
+      node_addr_(std::move(node_addr)) {
   LOG_OBJECTS_CREATE("WS_SERVER");
   beast::error_code ec;
 
@@ -280,7 +292,7 @@ void WsServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (!stopped_) do_accept();
 }
 
-void WsServer::newDagBlock(DagBlock const &blk) {
+void WsServer::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
     if (!session->is_closed()) session->newDagBlock(blk);
@@ -327,6 +339,14 @@ void WsServer::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_bl
 uint32_t WsServer::numberOfSessions() {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   return sessions.size();
+}
+
+uint32_t WsServer::numberOfPendingTasks() const {
+  auto thread_pool = thread_pool_.lock();
+  if (thread_pool) {
+    return thread_pool->num_pending_tasks();
+  }
+  return 0;
 }
 
 }  // namespace taraxa::net
