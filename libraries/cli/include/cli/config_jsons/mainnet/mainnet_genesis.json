@@ -1655,7 +1655,7 @@
       "bridge_contract_address": "0xe126E0BaeAE904b8Cfd619Be1A8667A173b763a1"
     },
     "cornus_hf": {
-      "block_num": 15276000,
+      "block_num": -1,
       "delegation_locking_period": 163459,
       "dag_gas_limit": "0x1908B100",
       "pbft_gas_limit": "0x7d2b7500"
