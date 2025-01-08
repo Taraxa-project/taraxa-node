@@ -14,12 +14,12 @@ class TaraxaConan(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.86.0")
-        self.requires("cppcheck/2.15.0")
+        self.requires("cppcheck/2.16.0")
         self.requires("openssl/3.3.2")
         self.requires("cryptopp/8.9.0")
         self.requires("gtest/1.15.0")
         self.requires("lz4/1.10.0")
-        self.requires("rocksdb/9.2.1")
+        self.requires("rocksdb/9.7.3")
         self.requires("prometheus-cpp/1.2.4")
         self.requires("jsoncpp/1.9.5")
 
