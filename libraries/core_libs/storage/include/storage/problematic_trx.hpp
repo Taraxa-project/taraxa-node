@@ -22,5 +22,7 @@ namespace taraxa {
 // "v":"0x1",
 // "value":"0x0"
 //}
-const static auto kProblematicTrx = std::make_shared<Transaction>(dev::jsToBytes("0xf85f80018094973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b080808206b6a0b48d8b4b64040e4bd585bf638a74a355be589251dc7458c0e5e563e7fe0d630aa057726ccf2fd4e97b297a212ed1f82beedd3c7b7326d07e12e50c87b331c60500"));
+const static auto kProblematicTrx = std::make_shared<Transaction>(dev::jsToBytes(
+    "0xf85f80018094973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b080808206b6a0b48d8b4b64040e4bd585bf638a74a355be589251dc7458c0"
+    "e5e563e7fe0d630aa057726ccf2fd4e97b297a212ed1f82beedd3c7b7326d07e12e50c87b331c60500"));
 }  // namespace taraxa

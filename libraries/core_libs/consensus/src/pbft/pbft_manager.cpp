@@ -12,6 +12,7 @@
 #include "final_chain/final_chain.hpp"
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
+#include "storage/problematic_trx.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
@@ -1938,6 +1939,16 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     }
   }
   auto non_finalized_transactions = trx_mgr_->excludeFinalizedTransactions(transactions_to_query);
+
+  if (non_finalized_transactions.size() == period_data.transactions.size() - 1) {
+    SharedTransactions replace_period_data_transactions;
+    for (auto trx : period_data.transactions) {
+      if (trx->getHash() != kProblematicTrx->getHash()) {
+        replace_period_data_transactions.emplace_back(trx);
+      }
+    }
+    period_data.transactions = std::move(replace_period_data_transactions);
+  }
 
   if (non_finalized_transactions.size() != period_data.transactions.size()) {
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transactions count " << period_data.transactions.size()
