@@ -120,6 +120,14 @@ bool DagBlockProposer::proposeDagBlock() {
   }
 
   auto [transactions, estimations] = getShardedTrxs(*proposal_period, kDagGasLimit);
+
+  const auto account = final_chain_->getAccount(node_addr_);
+  const auto gas = 0;
+  auto trx = std::make_shared<Transaction>(account->nonce, 0, 1, gas, bytes(), node_sk_, node_addr_, 841);
+  trx_mgr_->insertTransaction(trx);
+  transactions.push_back(trx);
+  estimations.push_back(gas);
+
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
     num_tries_ = 0;
