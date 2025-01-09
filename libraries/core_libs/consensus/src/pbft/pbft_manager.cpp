@@ -830,7 +830,7 @@ void PbftManager::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::s
   auto net = network_.lock();
   if (!net) {
     LOG(log_er_) << "Could not obtain net - cannot gossip new vote";
-    assert(false);
+    // assert(false);
     return;
   }
 

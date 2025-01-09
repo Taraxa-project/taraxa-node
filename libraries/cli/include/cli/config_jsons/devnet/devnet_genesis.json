@@ -247,10 +247,7 @@
   },
   "sortition": {
     "changes_count_for_average": 10,
-    "dag_efficiency_targets": [
-      4900,
-      5100
-    ],
+    "dag_efficiency_targets": [4900, 5100],
     "changing_interval": 200,
     "computation_interval": 50,
     "vrf": {
@@ -286,7 +283,7 @@
       "bridge_contract_address": "0xcAF2b453FE8382a4B8110356DF0508f6d71F22BF"
     },
     "cornus_hf": {
-      "block_num": 0,
+      "block_num": 1000,
       "delegation_locking_period": 5,
       "dag_gas_limit": "0x1908B100",
       "pbft_gas_limit": "0x7d2b7500"
