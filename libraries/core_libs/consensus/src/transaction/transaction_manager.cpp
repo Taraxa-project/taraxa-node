@@ -63,10 +63,10 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   if (kConf.genesis.state.hardforks.isOnCornusHardfork(this->final_chain_->lastBlockNumber())) {
-      if (!trx->intrinsicGasCovered()) {
-        return {false, "intrinsic gas too low"};
-      }
+    if (!trx->intrinsicGasCovered()) {
+      return {false, "intrinsic gas too low"};
     }
+  }
 
   try {
     trx->getSender();
@@ -78,7 +78,6 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
     return {false, "gas_price too low"};
   }
-
 
   return {true, ""};
 }
