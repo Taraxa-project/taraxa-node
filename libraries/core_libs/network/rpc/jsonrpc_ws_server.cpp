@@ -84,6 +84,8 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
       if (params.size() == 2 && params[1].asString() == "includeSignatures") {
         include_pillar_block_signatures = true;
       }
+    } else {
+      throw std::runtime_error("Invalid subscription type");
     }
   }
 

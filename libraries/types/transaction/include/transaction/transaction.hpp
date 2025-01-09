@@ -57,6 +57,7 @@ struct Transaction {
   explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {});
   virtual ~Transaction() = default;
 
+  bool intrinsicGasCovered() const;
   auto isZero() const { return is_zero_; }
   const trx_hash_t &getHash() const;
   auto getNonce() const { return nonce_; }
@@ -85,6 +86,7 @@ using Transactions = std::vector<Transaction>;
 using SharedTransactions = std::vector<SharedTransaction>;
 using TransactionHashes = std::vector<trx_hash_t>;
 
+uint64_t IntrinsicGas(const std::vector<uint8_t> &data, bool is_contract_creation);
 TransactionHashes hashes_from_transactions(const SharedTransactions &transactions);
 
 }  // namespace taraxa

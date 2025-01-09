@@ -35,6 +35,11 @@ const size_t kV3NetworkVersion = 3;
 
 const uint32_t kRecentlyFinalizedTransactionsFactor = 2;
 
+constexpr uint64_t kTxGas = 21000;
+constexpr uint64_t kTxGasContractCreation = 53000;
+constexpr uint64_t kTxDataZeroGas = 4;
+constexpr uint64_t kTxDataNonZeroGas = 68;
+
 // The various denominations; here for ease of use where needed within code.
 static const u256 kOneTara = dev::exp10<18>();
 // static const u256 kFinney = exp10<15>();

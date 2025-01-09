@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include "common/constants.hpp"
 #include "common/encoding_rlp.hpp"
 
 namespace taraxa {
@@ -177,5 +178,37 @@ Json::Value Transaction::toJSON() const {
 void Transaction::rlp(::taraxa::util::RLPDecoderRef encoding) { fromRLP(encoding.value, false, {}); }
 
 void Transaction::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
+
+uint64_t IntrinsicGas(const std::vector<uint8_t> &data, bool is_contract_creation) {
+  uint64_t gas;
+  if (is_contract_creation) {
+    gas = kTxGasContractCreation;
+  } else {
+    gas = kTxGas;
+  }
+  // Bump the required gas by the amount of transactional data
+  if (!data.empty()) {
+    // Zero and non-zero bytes are priced differently
+    uint64_t nz = std::count_if(data.begin(), data.end(), [](uint8_t b) { return b != 0; });
+
+    // Make sure we don't exceed uint64 for all data combinations
+    if ((std::numeric_limits<uint64_t>::max() - gas) / kTxDataNonZeroGas < nz) {
+      throw std::runtime_error("Out of gas");
+    }
+    gas += nz * kTxDataNonZeroGas;
+
+    uint64_t z = static_cast<uint64_t>(data.size()) - nz;
+    if ((std::numeric_limits<uint64_t>::max() - gas) / kTxDataZeroGas < z) {
+      throw std::runtime_error("Out of gas");
+    }
+    gas += z * kTxDataZeroGas;
+  }
+  return gas;
+}
+
+bool Transaction::intrinsicGasCovered() const {
+  uint64_t gas = IntrinsicGas(data_, !receiver_.has_value());
+  return gas <= gas_;
+}
 
 }  // namespace taraxa
