@@ -15,14 +15,14 @@
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/get_pillar_votes_bundle_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/pillar_vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/status_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/transaction_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v4/votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/get_pillar_votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/pillar_vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/status_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v3/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
@@ -82,16 +82,16 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
     assert(!host.expired());
 
-    assert(kV4NetworkVersion < TARAXA_NET_VERSION);
+    assert(kV3NetworkVersion < TARAXA_NET_VERSION);
 
     dev::p2p::Host::CapabilityList capabilities;
 
     // Register old version (V4) of taraxa capability
-    auto v4_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-        kV4NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+    auto v3_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+        kV3NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
         pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr,
         network::tarcap::TaraxaCapability::kInitV4Handlers);
-    capabilities.emplace_back(v4_tarcap);
+    capabilities.emplace_back(v3_tarcap);
 
     // Register latest version of taraxa capability
     auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
@@ -196,7 +196,7 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
         auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
         tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
       } else {
-        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::v4::TransactionPacketHandler>();
+        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::v3::TransactionPacketHandler>();
         tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
       }
     }
@@ -211,7 +211,7 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
         auto status_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::StatusPacketHandler>();
         status_packet_handler->sendStatusToPeers();
       } else {
-        auto status_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::v4::StatusPacketHandler>();
+        auto status_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::v3::StatusPacketHandler>();
         status_packet_handler->sendStatusToPeers();
       }
     }
@@ -317,7 +317,7 @@ void Network::gossipDagBlock(const std::shared_ptr<DagBlock> &block, bool propos
       tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
                                                                                                       trxs);
     } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v4::DagBlockPacketHandler>()->onNewBlockVerified(
+      tarcap.second->getSpecificHandler<network::tarcap::v3::DagBlockPacketHandler>()->onNewBlockVerified(
           block, proposed, trxs);
     }
   }
@@ -330,7 +330,7 @@ void Network::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::share
     if (tarcap.first == TARAXA_NET_VERSION) {
       tarcap.second->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, block, rebroadcast);
     } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v4::VotePacketHandler>()->onNewPbftVote(vote, block,
+      tarcap.second->getSpecificHandler<network::tarcap::v3::VotePacketHandler>()->onNewPbftVote(vote, block,
                                                                                                  rebroadcast);
     }
   }
@@ -343,7 +343,7 @@ void Network::gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &vo
       tarcap.second->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(votes,
                                                                                                            rebroadcast);
     } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v4::VotesBundlePacketHandler>()->onNewPbftVotesBundle(
+      tarcap.second->getSpecificHandler<network::tarcap::v3::VotesBundlePacketHandler>()->onNewPbftVotesBundle(
           votes, rebroadcast);
     }
   }
@@ -355,7 +355,7 @@ void Network::gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote, boo
     if (tarcap.first == TARAXA_NET_VERSION) {
       tarcap.second->getSpecificHandler<network::tarcap::PillarVotePacketHandler>()->onNewPillarVote(vote, rebroadcast);
     } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v4::PillarVotePacketHandler>()->onNewPillarVote(vote,
+      tarcap.second->getSpecificHandler<network::tarcap::v3::PillarVotePacketHandler>()->onNewPillarVote(vote,
                                                                                                          rebroadcast);
     }
   }
@@ -372,7 +372,7 @@ void Network::handleMaliciousSyncPeer(const dev::p2p::NodeID &node_id) {
     if (tarcap.first == TARAXA_NET_VERSION) {
       tarcap.second->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
     } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v4::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+      tarcap.second->getSpecificHandler<network::tarcap::v3::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
     }
   }
 }
@@ -387,7 +387,7 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
       peer = tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
     } else {
       peer =
-          tarcap.second->getSpecificHandler<::taraxa::network::tarcap::v4::PbftSyncPacketHandler>()->getMaxChainPeer();
+          tarcap.second->getSpecificHandler<::taraxa::network::tarcap::v3::PbftSyncPacketHandler>()->getMaxChainPeer();
     }
 
     if (!peer) {
@@ -413,7 +413,7 @@ void Network::requestPillarBlockVotesBundle(taraxa::PbftPeriod period, const tar
       peer = tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
     } else {
       peer =
-          tarcap.second->getSpecificHandler<::taraxa::network::tarcap::v4::PbftSyncPacketHandler>()->getMaxChainPeer();
+          tarcap.second->getSpecificHandler<::taraxa::network::tarcap::v3::PbftSyncPacketHandler>()->getMaxChainPeer();
     }
 
     if (!peer) {
@@ -426,7 +426,7 @@ void Network::requestPillarBlockVotesBundle(taraxa::PbftPeriod period, const tar
       tarcap.second->getSpecificHandler<network::tarcap::GetPillarVotesBundlePacketHandler>()->requestPillarVotesBundle(
           period, pillar_block_hash, peer);
     } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v4::GetPillarVotesBundlePacketHandler>()
+      tarcap.second->getSpecificHandler<network::tarcap::v3::GetPillarVotesBundlePacketHandler>()
           ->requestPillarVotesBundle(period, pillar_block_hash, peer);
     }
   }
