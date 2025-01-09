@@ -21,7 +21,7 @@ class TaraxaConan(ConanFile):
         self.requires("lz4/1.10.0")
         self.requires("rocksdb/9.7.3")
         self.requires("prometheus-cpp/1.2.4")
-        self.requires("jsoncpp/1.9.5")
+        self.requires("jsoncpp/1.9.6")
 
     def _configure_boost_libs(self):
         self.options["boost"].without_atomic = False
