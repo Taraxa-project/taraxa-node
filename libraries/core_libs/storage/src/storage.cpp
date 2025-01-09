@@ -12,7 +12,7 @@
 #include "final_chain/data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
-#include "storage/uint_comparator.hpp"
+#include "storage/problematic_trx.hpp"
 #include "transaction/system_transaction.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -885,6 +885,11 @@ SharedTransactions DbStorage::getFinalizedTransactions(std::vector<trx_hash_t> c
   std::map<PbftPeriod, std::set<uint32_t>> period_map;
   trxs.reserve(trx_hashes.size());
   for (auto const& tx_hash : trx_hashes) {
+    // TODO remove after Cornus HF
+    if (tx_hash == kProblematicTrx->getHash()) {
+      trxs.emplace_back(kProblematicTrx);
+      continue;
+    }
     auto trx_period = getTransactionLocation(tx_hash);
     if (trx_period.has_value()) {
       period_map[trx_period->period].insert(trx_period->position);
