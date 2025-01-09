@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['2_20alpha_20testing_20internal_0',['Phase 2 - alpha testing (internal)',['../md_doc_2release__cycle.html#autotoc_md242',1,'']]],
+  ['2_20alpha_20testing_20internal_0',['Phase 2 - alpha testing (internal)',['../md_doc_2release__cycle.html#autotoc_md243',1,'']]],
   ['2_20avoid_20non_20tt_20const_20tt_20global_20variables_1',['&lt;a name=&quot;avoidnonconst&quot;&gt;&lt;/a&gt; 2. Avoid non-&lt;tt&gt;const&lt;/tt&gt; global variables',['../md_doc_2coding__practices.html#autotoc_md57',1,'']]],
   ['20_20always_20initialize_20an_20object_2',['&lt;a name=&quot;alwaysinitialize&quot;&gt;&lt;/a&gt; 20. Always initialize an object',['../md_doc_2coding__practices.html#autotoc_md152',1,'']]],
   ['21_20use_20lambdas_20for_20complex_20initialization_20especially_20of_20tt_20const_20tt_20variables_3',['&lt;a name=&quot;lambdainit&quot;&gt;&lt;/a&gt; 21. Use lambdas for complex initialization, especially of &lt;tt&gt;const&lt;/tt&gt; variables',['../md_doc_2coding__practices.html#autotoc_md163',1,'']]],

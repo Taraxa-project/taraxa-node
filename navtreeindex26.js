@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#ad732d53e2059b488e691a63e0ac8c3b5":[17,0,3,10,2,7],
 "structtaraxa_1_1util_1_1_invalid_encoding_size.html":[17,0,3,10,4],
 "structtaraxa_1_1util_1_1_invalid_encoding_size.html#a22829900a7a835a802e9d74d8c2163ce":[17,0,3,10,4,1],
 "structtaraxa_1_1util_1_1_invalid_encoding_size.html#a3bcde54c0f4c767e4d2be383a1ea182c":[17,0,3,10,4,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX26 =
 "v3_2votes__bundle__packet__handler_8cpp.html":[18,0,1,4,1,3,0,0,1,13],
 "v3_2votes__bundle__packet__handler_8hpp.html":[18,0,1,4,1,1,0,0,1,1,13],
 "v3_2votes__bundle__packet__handler_8hpp_source.html":[18,0,1,4,1,1,0,0,1,1,13],
-"vdf_2include_2vdf_2config_8hpp.html":[18,0,1,8,0,0,0],
-"vdf_2include_2vdf_2config_8hpp.html#a1011e62c651406e635b897eb61b57cff":[18,0,1,8,0,0,0,8]
+"vdf_2include_2vdf_2config_8hpp.html":[18,0,1,8,0,0,0]
 };

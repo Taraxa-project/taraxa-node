@@ -105,7 +105,13 @@ Latest supported solc version</h1>
 <p>We currently support <code>0.8.26</code>.</p>
 <h1><a class="anchor" id="autotoc_md212"></a>
 go-ethereum library</h1>
-<p>If you are having issue with go-ethereum library, please use our slightly modified version <a href="https://github.com/Taraxa-project/go-ethereum">https://github.com/Taraxa-project/go-ethereum</a> </p>
+<p>If you are having issue with go-ethereum library, please use our slightly modified version <a href="https://github.com/Taraxa-project/go-ethereum">https://github.com/Taraxa-project/go-ethereum</a></p>
+<h1><a class="anchor" id="autotoc_md213"></a>
+Nonce handling</h1>
+<p>Due to nature of DAG which can reorder transactions:</p><ul>
+<li>Nonce skipping is possible meaning any transaction with nonce larger than previous nonce can be executed.</li>
+<li>It is possible for a transaction without enough balance to pay gas to reach EVM and execution. These transactions will increase the account nonce. </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

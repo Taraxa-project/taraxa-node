@@ -91,7 +91,7 @@ var searchData=
   ['use_20symbolic_20constants_88',['&lt;a name=&quot;magicconstants&quot;&gt;&lt;/a&gt; 12. Avoid &quot;magic constants&quot;; use symbolic constants',['../md_doc_2coding__practices.html#autotoc_md111',1,'']]],
   ['use_20the_20tt_20t_20e_20tt_20notation_20for_20construction_89',['&lt;a name=&quot;construct&quot;&gt;&lt;/a&gt; 14. Use the &lt;tt&gt;T{e}&lt;/tt&gt;notation for construction',['../md_doc_2coding__practices.html#autotoc_md119',1,'']]],
   ['use_20tt_20nullptr_20tt_20rather_20than_20tt_200_20tt_20or_20tt_20null_20tt_90',['&lt;a name=&quot;nullptr&quot;&gt;&lt;/a&gt; 13. Use &lt;tt&gt;nullptr&lt;/tt&gt; rather than &lt;tt&gt;0&lt;/tt&gt; or &lt;tt&gt;NULL&lt;/tt&gt;',['../md_doc_2coding__practices.html#autotoc_md115',1,'']]],
-  ['used_20git_20flow_3a_91',['Used git flow:',['../md_doc_2git__practices.html#autotoc_md228',1,'']]],
+  ['used_20git_20flow_3a_91',['Used git flow:',['../md_doc_2git__practices.html#autotoc_md229',1,'']]],
   ['used_20locally_20including_20passed_20to_20algorithms_92',['&lt;a name=&quot;referencecapture&quot;&gt;&lt;/a&gt; 15. Prefer capturing by reference in lambdas that will be used locally, including passed to algorithms',['../md_doc_2coding__practices.html#autotoc_md125',1,'']]],
   ['used_20nonlocally_20including_20returned_20stored_20on_20the_20heap_20or_20passed_20to_20another_20thread_93',['&lt;a name=&quot;valuecapture&quot;&gt;&lt;/a&gt; 16. Avoid capturing by reference in lambdas that will be used nonlocally, including returned, stored on the heap, or passed to another thread',['../md_doc_2coding__practices.html#autotoc_md132',1,'']]],
   ['useful_20doc_94',['Useful doc',['../index.html#autotoc_md11',1,'']]],

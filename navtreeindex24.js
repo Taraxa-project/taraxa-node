@@ -1,5 +1,6 @@
 var NAVTREEINDEX24 =
 {
+"structdev_1_1p2p_1_1_node_info.html#a8b0ed26d959c3103eb65095b157f178f":[17,0,0,1,19,7],
 "structdev_1_1p2p_1_1_node_info.html#a9121f24ea6f963cfae1d7c32a7a8ab11":[17,0,0,1,19,3],
 "structdev_1_1p2p_1_1_node_info.html#aa1e99e7d5cfcedf999eefdcbab8ef868":[17,0,0,1,19,5],
 "structdev_1_1p2p_1_1_node_info.html#adf35992e58420733e7cca73562872766":[17,0,0,1,19,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX24 =
 "structtaraxa_1_1_ficus_hardfork_config.html#a426357979b5cc1f4dbaee7b86674455b":[17,0,3,29,7],
 "structtaraxa_1_1_ficus_hardfork_config.html#a47f6f5ea963fe7e0583e47db01ee1a9f":[17,0,3,29,2],
 "structtaraxa_1_1_ficus_hardfork_config.html#a73596a92459650cd00b2560ea4f5afda":[17,0,3,29,1],
-"structtaraxa_1_1_ficus_hardfork_config.html#a818ed0d8b7cfa34446eb2f0688299e58":[17,0,3,29,4],
-"structtaraxa_1_1_ficus_hardfork_config.html#ab28d57dfd5f32dc8f112c23c0e567a7a":[17,0,3,29,5]
+"structtaraxa_1_1_ficus_hardfork_config.html#a818ed0d8b7cfa34446eb2f0688299e58":[17,0,3,29,4]
 };

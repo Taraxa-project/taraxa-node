@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"mutation_8cpp.html":[18,0,1,4,1,0,1,5],
 "mutation_8hpp.html":[18,0,1,4,1,0,0,0,5],
 "mutation_8hpp_source.html":[18,0,1,4,1,0,0,0,5],
 "namespacedev_1_1p2p.html#a13a222f19e9973a5cbd3085955ba2e51":[18,0,1,0,2,2,4,1],
@@ -19,8 +20,8 @@ var NAVTREEINDEX21 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[18,0,1,0,2,23,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[18,0,1,0,2,2,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[18,0,1,0,2,23,0],
-"namespacemembers.html":[16,0],
 "namespacemembers.html":[16,0,0],
+"namespacemembers.html":[16,0],
 "namespacemembers_a.html":[16,0,1],
 "namespacemembers_b.html":[16,0,2],
 "namespacemembers_c.html":[16,0,3],
@@ -29,8 +30,8 @@ var NAVTREEINDEX21 =
 "namespacemembers_enum.html":[16,4],
 "namespacemembers_eval.html":[16,5],
 "namespacemembers_f.html":[16,0,6],
-"namespacemembers_func.html":[16,1],
 "namespacemembers_func.html":[16,1,0],
+"namespacemembers_func.html":[16,1],
 "namespacemembers_func_a.html":[16,1,1],
 "namespacemembers_func_b.html":[16,1,2],
 "namespacemembers_func_c.html":[16,1,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info":[18,0,1,3,0,0,7,1],
 "network_2rpc_2eth_2data_8hpp.html":[18,0,1,4,1,2,0,0],
 "network_2rpc_2eth_2data_8hpp.html#a21b988af46ba8b9f7c613aee79d61ab5":[18,0,1,4,1,2,0,0,13],
-"network_2rpc_2eth_2data_8hpp.html#a2afeacbec02bbfc4191244df912baed6":[18,0,1,4,1,2,0,0,11],
-"network_2rpc_2eth_2data_8hpp.html#a2e8f8c258b130976cd2ac009f13b6b91":[18,0,1,4,1,2,0,0,15]
+"network_2rpc_2eth_2data_8hpp.html#a2afeacbec02bbfc4191244df912baed6":[18,0,1,4,1,2,0,0,11]
 };

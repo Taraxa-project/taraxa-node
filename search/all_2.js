@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['1_20active_20development_20of_20new_20features_0',['Phase 1 - active development of new features',['../md_doc_2release__cycle.html#autotoc_md241',1,'']]],
+  ['1_20active_20development_20of_20new_20features_0',['Phase 1 - active development of new features',['../md_doc_2release__cycle.html#autotoc_md242',1,'']]],
   ['1_20prefer_20compile_20time_20checking_20to_20run_20time_20checking_1',['&lt;a name=&quot;compiletimechecking&quot;&gt;&lt;/a&gt; 1. Prefer compile-time checking to run-time checking',['../md_doc_2coding__practices.html#autotoc_md53',1,'']]],
   ['10_20don_20t_20use_20a_20variable_20for_20two_20unrelated_20purposes_2',['&lt;a name=&quot;varrecycle&quot;&gt;&lt;/a&gt; 10. Don&apos;t use a variable for two unrelated purposes',['../md_doc_2coding__practices.html#autotoc_md102',1,'']]],
   ['11_20don_20t_20use_20macros_20for_20constants_20or_20functions_3',['&lt;a name=&quot;macrosconsts&quot;&gt;&lt;/a&gt; 11. Don&apos;t use macros for constants or &quot;functions&quot;',['../md_doc_2coding__practices.html#autotoc_md107',1,'']]],

@@ -1,5 +1,6 @@
 var NAVTREEINDEX25 =
 {
+"structtaraxa_1_1_ficus_hardfork_config.html#ab28d57dfd5f32dc8f112c23c0e567a7a":[17,0,3,29,5],
 "structtaraxa_1_1_ficus_hardfork_config.html#afeb460f9f06b8c1da75d993ffc3e03e8":[17,0,3,29,0],
 "structtaraxa_1_1_full_node_config.html":[17,0,3,31],
 "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe":[17,0,3,31,31],
@@ -248,6 +249,5 @@ var NAVTREEINDEX25 =
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a53b07cb9d48fb974fad6cffceabb9397":[17,0,3,10,2,1],
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a65dbb180c038ab09c3630cfc4192beb6":[17,0,3,10,2,5],
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a855a78293e92333fe5609f47714a79b5":[17,0,3,10,2,2],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#abc224a2eb0c31181039c834d098e0f0b":[17,0,3,10,2,6],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#ad732d53e2059b488e691a63e0ac8c3b5":[17,0,3,10,2,7]
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#abc224a2eb0c31181039c834d098e0f0b":[17,0,3,10,2,6]
 };
