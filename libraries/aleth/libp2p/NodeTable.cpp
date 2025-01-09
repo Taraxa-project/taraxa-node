@@ -79,6 +79,10 @@ bool NodeTable::addNode(Node const& _node) {
     auto const it = m_allNodes.find(_node.id);
     needToPing = (it == m_allNodes.end() || it->second->endpoint() != _node.get_endpoint() ||
                   !it->second->hasValidEndpointProof());
+    if (needToPing && it != m_allNodes.end() &&
+        it->second->lastPongReceivedTime > RLPXDatagramFace::secondsSinceEpoch() - m_requestTimeToLive.count()) {
+      needToPing = false;
+    }
   }
 
   if (needToPing) {
