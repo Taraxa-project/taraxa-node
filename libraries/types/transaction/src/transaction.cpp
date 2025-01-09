@@ -179,7 +179,7 @@ void Transaction::rlp(::taraxa::util::RLPDecoderRef encoding) { fromRLP(encoding
 
 void Transaction::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
 
-uint64_t IntrinsicGas(const std::vector<uint8_t> &data, bool is_contract_creation) {
+inline uint64_t IntrinsicGas(const std::vector<uint8_t> &data, bool is_contract_creation) {
   uint64_t gas;
   if (is_contract_creation) {
     gas = kTxGasContractCreation;
@@ -207,8 +207,12 @@ uint64_t IntrinsicGas(const std::vector<uint8_t> &data, bool is_contract_creatio
 }
 
 bool Transaction::intrinsicGasCovered() const {
-  uint64_t gas = IntrinsicGas(data_, !receiver_.has_value());
-  return gas <= gas_;
+  try {
+    uint64_t gas = IntrinsicGas(data_, !receiver_.has_value());
+    return gas <= gas_;
+  } catch (const std::runtime_error&) {
+    return false;
+  }
 }
 
 }  // namespace taraxa
