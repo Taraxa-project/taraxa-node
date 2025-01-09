@@ -714,6 +714,17 @@ TEST_F(TransactionTest, signature_performance) {
             << "ms" << std::endl;
 }
 
+TEST_F(TransactionTest, intrinsic_gas) {
+  EXPECT_EQ(IntrinsicGas(dev::bytes(), false), kTxGas);
+  EXPECT_EQ(IntrinsicGas(dev::bytes(), true), kTxGasContractCreation);
+  const auto data = dev::bytes(100000, 1);
+  EXPECT_EQ(IntrinsicGas(data, false), kTxGas + 100000 * kTxDataNonZeroGas);
+  EXPECT_EQ(IntrinsicGas(data, true), kTxGasContractCreation + 100000 * kTxDataNonZeroGas);
+  const auto data2 = dev::bytes(100000, 0);
+  EXPECT_EQ(IntrinsicGas(data2, false), kTxGas + 100000 * kTxDataZeroGas);
+  EXPECT_EQ(IntrinsicGas(data2, true), kTxGasContractCreation + 100000 * kTxDataZeroGas);
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
