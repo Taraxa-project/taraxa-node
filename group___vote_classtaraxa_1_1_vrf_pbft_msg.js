@@ -6,7 +6,7 @@ var group___vote_classtaraxa_1_1_vrf_pbft_msg =
     [ "getType", "group___vote.html#a6288475206d07e28b0fd193b001911a3", null ],
     [ "operator==", "group___vote.html#a8cee69c4823d890407f54fc7a8db0401", null ],
     [ "toString", "group___vote.html#a6b7f4bfc16fbdca70a9764b61e7df31a", null ],
-    [ "operator<<", "group___vote.html#a8faf9b9157970ee8fea067548fda31f8", null ],
+    [ "operator<<", "group___vote.html#a5b7d7c60b50aea29c4a7ee8d36194d1c", null ],
     [ "period_", "group___vote.html#a14c8bdba61ceb8ef5ecfb5964de64fca", null ],
     [ "round_", "group___vote.html#a3e88615008ad462faa2f1cc73af27638", null ],
     [ "step_", "group___vote.html#a7c3f1eb1fb715e66e03dcff28b85c67b", null ]

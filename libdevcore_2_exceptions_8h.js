@@ -1,7 +1,7 @@
 var libdevcore_2_exceptions_8h =
 [
-    [ "Exception", "structdev_1_1_exception.html", "structdev_1_1_exception" ],
-    [ "RLPException", "structdev_1_1_r_l_p_exception.html", null ],
+    [ "dev::Exception", "structdev_1_1_exception.html", "structdev_1_1_exception" ],
+    [ "dev::RLPException", "structdev_1_1_r_l_p_exception.html", null ],
     [ "DEV_SIMPLE_EXCEPTION", "libdevcore_2_exceptions_8h.html#a82395d09737f9b495da8df93b67054e9", null ],
     [ "DEV_SIMPLE_EXCEPTION_RLP", "libdevcore_2_exceptions_8h.html#a1c4cad491ccea98485acd91f7d80c264", null ],
     [ "errinfo_externalFunction", "libdevcore_2_exceptions_8h.html#abb53b60ae22401c51cab3a50fb741cc5", null ],

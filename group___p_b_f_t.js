@@ -1,6 +1,6 @@
 var group___p_b_f_t =
 [
-    [ "PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", [
+    [ "taraxa::PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", [
       [ "PbftChain", "group___p_b_f_t.html#a9437dee7bab66a6671a3baabfaa5d177", null ],
       [ "checkPbftBlockValidation", "group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517", null ],
       [ "findPbftBlockInChain", "group___p_b_f_t.html#a068a96e0b08ed10fc6a08f412da6dd63", null ],
@@ -21,7 +21,7 @@ var group___p_b_f_t =
       [ "non_empty_size_", "group___p_b_f_t.html#a069e96349475b2bbfc52998fd608e78c", null ],
       [ "size_", "group___p_b_f_t.html#a4cbac9a55aeb28e499888266e1988fd0", null ]
     ] ],
-    [ "PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", [
+    [ "taraxa::PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", [
       [ "time_point", "group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8", null ],
       [ "PbftManager", "group___p_b_f_t.html#a65d0c990704bf0b2efa42aac80761a36", null ],
       [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
@@ -31,15 +31,15 @@ var group___p_b_f_t =
       [ "advanceRound", "group___p_b_f_t.html#a49a5ce8214c9a8234f04f1b1d845d025", null ],
       [ "broadcastVotes", "group___p_b_f_t.html#acdba3cca85f3438a1acbf4cf3834c135", null ],
       [ "calculateOrderHash", "group___p_b_f_t.html#a367b40e3263ce6684a3371e63783363e", null ],
-      [ "calculateOrderHash", "group___p_b_f_t.html#a49e56ca0dd61f5dfa107284024294d24", null ],
+      [ "calculateOrderHash", "group___p_b_f_t.html#a3310f4a5c500c49938c1a5c288b2d8fc", null ],
       [ "canParticipateInConsensus", "group___p_b_f_t.html#a8b1a0d071e100db610d62f3216999711", null ],
       [ "certifyBlock_", "group___p_b_f_t.html#ab7288559b1eac7a493ad1009a2095baa", null ],
-      [ "checkBlockWeight", "group___p_b_f_t.html#a77a24138af93f043348890a621c7d454", null ],
+      [ "checkBlockWeight", "group___p_b_f_t.html#aaa25bba3687351bf1299f9f652262baf", null ],
       [ "createPbftBlockExtraData", "group___p_b_f_t.html#ab3ab336fa26a34a5bcaa90481557d5d3", null ],
       [ "elapsedTimeInMs", "group___p_b_f_t.html#a99f177271d5c785a7fdfd27ec46868c8", null ],
       [ "finalize_", "group___p_b_f_t.html#ac1d71b10c49fd1e56ec7348377040b64", null ],
       [ "firstFinish_", "group___p_b_f_t.html#a79eb344fe5773f2e7a1d024163d50836", null ],
-      [ "genAndPlaceProposeVote", "group___p_b_f_t.html#a202e0aadd0039f4725a20022cef94a57", null ],
+      [ "genAndPlaceProposeVote", "group___p_b_f_t.html#ad255648627fa204f365492ee282e4f85", null ],
       [ "generatePbftBlock", "group___p_b_f_t.html#a930a7881f6157934bbe63db0b7b3c507", null ],
       [ "getCurrentDposTotalVotesCount", "group___p_b_f_t.html#a855f5bd423b3d34db9aca2b732752574", null ],
       [ "getCurrentNodeVotesCount", "group___p_b_f_t.html#a4f9508762a6fcd8aaca6aca905abacf4", null ],
@@ -61,11 +61,11 @@ var group___p_b_f_t =
       [ "initialState", "group___p_b_f_t.html#adfbf462b602c175ef69942c30c45d5d4", null ],
       [ "lastPbftBlockHashFromQueueOrChain", "group___p_b_f_t.html#ad15bdf09ea608848208827e1d05795d1", null ],
       [ "loopBackFinishState_", "group___p_b_f_t.html#afcaa3b3656d18f6a1bc5bb36761aa079", null ],
-      [ "operator=", "group___p_b_f_t.html#a6d73425783d2dff2cc3dc85eae6cfd7e", null ],
-      [ "operator=", "group___p_b_f_t.html#acdba9333d35310ed3d1c13a7c32fb6ed", null ],
+      [ "operator=", "group___p_b_f_t.html#a94db90cad227de91d043abfe4fb2ed35", null ],
+      [ "operator=", "group___p_b_f_t.html#ae71045b1463ab5fe178965d47e7cc9a9", null ],
       [ "pbftSyncingPeriod", "group___p_b_f_t.html#a42d4c7d89f241bb4361a34b5746a2a55", null ],
       [ "periodDataQueueEmpty", "group___p_b_f_t.html#ac6f1e9ae86354d330025d2c325e0e808", null ],
-      [ "periodDataQueuePush", "group___p_b_f_t.html#a92fe9e5354fbe5e1c57c96bac8d1a310", null ],
+      [ "periodDataQueuePush", "group___p_b_f_t.html#add9955a5386975bcc9ba787b9e59a5eb", null ],
       [ "periodDataQueueSize", "group___p_b_f_t.html#a3cb557d56583afb18dfb5c9d012fef90", null ],
       [ "placeVote", "group___p_b_f_t.html#af95258bde5360d4b898cc34c91d6e749", null ],
       [ "printVotingSummary", "group___p_b_f_t.html#a68607b11213c98e2113152484678d9fa", null ],
@@ -74,8 +74,8 @@ var group___p_b_f_t =
       [ "processProposedBlock", "group___p_b_f_t.html#acc805cc65238c405d4bc497f38860a59", null ],
       [ "proposeBlock_", "group___p_b_f_t.html#aec2ed2868e744617018f25b94cbef671", null ],
       [ "proposePbftBlock", "group___p_b_f_t.html#a2f55e11b4ab63d900852ce5bee0515d8", null ],
-      [ "pushCertVotedPbftBlockIntoChain_", "group___p_b_f_t.html#a7304bfdeb4ef43f04f3b1d848f3009fe", null ],
-      [ "pushPbftBlock_", "group___p_b_f_t.html#a4670eb463e9b26f47866479b8bf23f80", null ],
+      [ "pushCertVotedPbftBlockIntoChain_", "group___p_b_f_t.html#a46f9b29a1baf28ce76ef42b0568e12ca", null ],
+      [ "pushPbftBlock_", "group___p_b_f_t.html#ab57e9d5c14398e05c51b9b013010cc3f", null ],
       [ "pushSyncedPbftBlocksIntoChain", "group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991", null ],
       [ "reorderTransactions", "group___p_b_f_t.html#ac56a08de3cdfb214776b6c10f9f03ac4", null ],
       [ "resetPbftConsensus", "group___p_b_f_t.html#a86fb4dfbc3db98abda8f55cedab01b83", null ],
@@ -97,7 +97,7 @@ var group___p_b_f_t =
       [ "tryPushCertVotesBlock", "group___p_b_f_t.html#ada3b947a91cf04d2474cfb1cc4a84bdd", null ],
       [ "validateFinalChainHash", "group___p_b_f_t.html#a9bcf6a30111ff74614b0976da9debd11", null ],
       [ "validatePbftBlock", "group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948", null ],
-      [ "validatePbftBlockCertVotes", "group___p_b_f_t.html#aae5e8f78af09ae45656324efdecf0fbe", null ],
+      [ "validatePbftBlockCertVotes", "group___p_b_f_t.html#a9466b98790ad488cee5a308c52014901", null ],
       [ "validatePbftBlockExtraData", "group___p_b_f_t.html#a5dcaa5518ae750220e43c736d9c65d59", null ],
       [ "validatePbftBlockPillarVotes", "group___p_b_f_t.html#acfb20bc75783a32ecc9d758b3fe7d875", null ],
       [ "validatePillarDataInPeriodData", "group___p_b_f_t.html#ace361f5c9599c1d00af8dc78b8f60856", null ],
@@ -148,7 +148,7 @@ var group___p_b_f_t =
       [ "trx_mgr_", "group___p_b_f_t.html#a30d700e5010e0eff63950310a1934e2f", null ],
       [ "vote_mgr_", "group___p_b_f_t.html#af14ed5b43a9c91c797d8847d7def4d01", null ]
     ] ],
-    [ "PeriodDataQueue", "group___p_b_f_t.html#classtaraxa_1_1_period_data_queue", [
+    [ "taraxa::PeriodDataQueue", "group___p_b_f_t.html#classtaraxa_1_1_period_data_queue", [
       [ "PeriodDataQueue", "group___p_b_f_t.html#a31dd69567432d7f00aebdbf984d0e9c8", null ],
       [ "cleanOldData", "group___p_b_f_t.html#a8d79d23ef300f120ac5a365f79092952", null ],
       [ "clear", "group___p_b_f_t.html#a04f1f4514d95643b359fadbde0242d8c", null ],
@@ -156,32 +156,32 @@ var group___p_b_f_t =
       [ "getPeriod", "group___p_b_f_t.html#afaca3f57b144e8058c7fab897407749c", null ],
       [ "lastPbftBlock", "group___p_b_f_t.html#ad2cf3c010649e8a6224a7fc5416471f4", null ],
       [ "pop", "group___p_b_f_t.html#a5611d6d658d34da50575e98f2e173fff", null ],
-      [ "push", "group___p_b_f_t.html#a3778ba513f8bf5782da83acb91fd7b52", null ],
+      [ "push", "group___p_b_f_t.html#a18092902fc3d3fc5635f5bfb2f782aa7", null ],
       [ "size", "group___p_b_f_t.html#ad05cce3b393dd7901495b40ece4af8ee", null ],
       [ "last_block_cert_votes_", "group___p_b_f_t.html#a031b1a8ef28ef970ca1d4e7b2d054a37", null ],
       [ "period_", "group___p_b_f_t.html#a640d29636712763de0c3e2710b3578b3", null ],
       [ "queue_", "group___p_b_f_t.html#a15c8d823e9eb09891952583759285a1e", null ],
       [ "queue_access_", "group___p_b_f_t.html#a564222cc2cfd8ecee034c0a89656be13", null ]
     ] ],
-    [ "PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", [
+    [ "taraxa::PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", [
       [ "PbftBlock", "group___p_b_f_t.html#a28075635ed83446a5a94553f4021e9c4", null ],
       [ "PbftBlock", "group___p_b_f_t.html#a575d4828e37856ff98c98b1621691b01", null ],
       [ "PbftBlock", "group___p_b_f_t.html#a548e429fa4831c3f0c7f30c4f625f946", null ],
       [ "PbftBlock", "group___p_b_f_t.html#a358cde250e7fd9b8bffc6be6a1259b39", null ],
       [ "calculateHash_", "group___p_b_f_t.html#a2faa8e8207dbf6a67be09f98ceefd9f4", null ],
       [ "checkUniqueRewardVotes", "group___p_b_f_t.html#a32af495911eba54a204465a01e9d1281", null ],
-      [ "getBeneficiary", "group___p_b_f_t.html#adcf3e9620b0b3e878cb23f7f68b0df87", null ],
-      [ "getBlockHash", "group___p_b_f_t.html#a4d871102f18ec6a79c6ff4184b203b36", null ],
+      [ "getBeneficiary", "group___p_b_f_t.html#afb1b5a7780be72af86f75ddf84be49a3", null ],
+      [ "getBlockHash", "group___p_b_f_t.html#afbeba6f5cc151a4c658dc94fbf41d285", null ],
       [ "getExtraData", "group___p_b_f_t.html#a0f8f19b2c6d25e1fb7512575513e89ed", null ],
       [ "getExtraDataRlp", "group___p_b_f_t.html#ae3feb650583387a505439972ca30c69f", null ],
-      [ "getFinalChainHash", "group___p_b_f_t.html#a1e981ee84a19a971a4a3d7c2b67eff90", null ],
+      [ "getFinalChainHash", "group___p_b_f_t.html#ac2f752be1dd466d32192dd88c8f21b2e", null ],
       [ "getJson", "group___p_b_f_t.html#a8aef5ed309007cb074784b667c0ed548", null ],
       [ "getJsonStr", "group___p_b_f_t.html#ac534b99d6508a4559f83e6decbfc4447", null ],
-      [ "getOrderHash", "group___p_b_f_t.html#a5a2f8d9e47fc25902c365cd8b7c87aa2", null ],
+      [ "getOrderHash", "group___p_b_f_t.html#a6d61cffa4671829f8fda6a03deaca036", null ],
       [ "getPeriod", "group___p_b_f_t.html#a0819b5d19aea0bf8ea3c8c3bebf8d2b0", null ],
-      [ "getPivotDagBlockHash", "group___p_b_f_t.html#a75491172636271bb2087d38ce6a87d90", null ],
-      [ "getPrevBlockHash", "group___p_b_f_t.html#af52113f6af425d31ad748fb285a295fd", null ],
-      [ "getRewardVotes", "group___p_b_f_t.html#a3495e3adf8b3ea6c3d9b8a60960c2124", null ],
+      [ "getPivotDagBlockHash", "group___p_b_f_t.html#addbd9ef690e249f545f0c66f31277945", null ],
+      [ "getPrevBlockHash", "group___p_b_f_t.html#a9f4d1fa2abfe7661fe86659aadca662a", null ],
+      [ "getRewardVotes", "group___p_b_f_t.html#afc038c5c57de6da5d971296e01e19b9d", null ],
       [ "getTimestamp", "group___p_b_f_t.html#a22eee336df7fc15a4fc28879d96a56fa", null ],
       [ "rlp", "group___p_b_f_t.html#ad9ce0317a7c0cda7c86e7372231b2f07", null ],
       [ "sha3", "group___p_b_f_t.html#ae942808470cc3b06077fd9b1524c975e", null ],
@@ -199,7 +199,7 @@ var group___p_b_f_t =
       [ "signature_", "group___p_b_f_t.html#aa89c0cf004ce3cafd5382b7421e5e0bd", null ],
       [ "timestamp_", "group___p_b_f_t.html#abd176d7c9b14807e431bb5d8ee6a2dea", null ]
     ] ],
-    [ "PbftBlockExtraData", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data", [
+    [ "taraxa::PbftBlockExtraData", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data", [
       [ "PbftBlockExtraData", "group___p_b_f_t.html#aee7434e6c123e5b9925f1318af8fce64", null ],
       [ "PbftBlockExtraData", "group___p_b_f_t.html#a24c4fed8e95f1c427ddccb340ef25f43", null ],
       [ "fromBytes", "group___p_b_f_t.html#a52b9f379fc3e500717fc5764a5836b73", null ],
@@ -214,9 +214,9 @@ var group___p_b_f_t =
       [ "patch_version_", "group___p_b_f_t.html#a7dc6c66707a88662512e8829243aa7b2", null ],
       [ "pillar_block_hash_", "group___p_b_f_t.html#ab0a38ab87920e7c3c13a47a33920b60f", null ]
     ] ],
-    [ "PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", [
+    [ "taraxa::PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", [
       [ "PeriodData", "group___p_b_f_t.html#a6d5f9246e611add87a88fff9891f5121", null ],
-      [ "PeriodData", "group___p_b_f_t.html#a55ef3cf129d5cf4e6831b868e4d34e97", null ],
+      [ "PeriodData", "group___p_b_f_t.html#ad45984e25eebae2e5066593cbadaadbf", null ],
       [ "PeriodData", "group___p_b_f_t.html#ae076d670e4986ebe0fed2af2e2b1ca45", null ],
       [ "PeriodData", "group___p_b_f_t.html#a8e0cefe3c3e353a3512a6da620aafd62", null ],
       [ "clear", "group___p_b_f_t.html#a0dc7de87bfa14bd2ce793c19790ec0e6", null ],
@@ -224,26 +224,26 @@ var group___p_b_f_t =
       [ "rlp", "group___p_b_f_t.html#ac00e0b5f280f2f473834fa145ca72349", null ],
       [ "ToOldPeriodData", "group___p_b_f_t.html#a09b2956dcf686c09f2b36e4baac5ac82", null ],
       [ "dag_blocks", "group___p_b_f_t.html#a7c3307d44a3088ae8eca4f3bf318e23f", null ],
-      [ "kBaseRlpItemCount", "group___p_b_f_t.html#a7087aa7e6166ec1334857f709a7239c2", null ],
-      [ "kExtendedRlpItemCount", "group___p_b_f_t.html#ad12b6a4c26020895ffbc9a8564543364", null ],
+      [ "kBaseRlpItemCount", "group___p_b_f_t.html#a05063276422fc45a4c2267ba5cfef634", null ],
+      [ "kExtendedRlpItemCount", "group___p_b_f_t.html#ad3c470f9f7dd46d563a3d90a576ad1d1", null ],
       [ "pbft_blk", "group___p_b_f_t.html#a65b044ffd5778ee985dd4fdff34b5d0d", null ],
       [ "pillar_votes_", "group___p_b_f_t.html#acbfdf26deb3b9286f4f23924073dde56", null ],
       [ "previous_block_cert_votes", "group___p_b_f_t.html#a3741cb2fbfb0a82915c59fe4dff4d89f", null ],
       [ "transactions", "group___p_b_f_t.html#a61d2fa08bce4f962f062136a2b420a8d", null ]
     ] ],
-    [ "PbftStateRootValidation", "group___p_b_f_t.html#ga39898c94848b6a52779d398d677f0a9b", [
-      [ "Valid", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba3ac705f2acd51a4613f9188c05c91d0d", null ],
-      [ "Missing", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba2aee0be2678ee90fd327cc186826438e", null ],
-      [ "Invalid", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba4bbb8f967da6d1a610596d7257179c2b", null ]
+    [ "taraxa::PbftStateRootValidation", "group___p_b_f_t.html#ga39898c94848b6a52779d398d677f0a9b", [
+      [ "taraxa::PbftStateRootValidation::Valid", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba3ac705f2acd51a4613f9188c05c91d0d", null ],
+      [ "taraxa::PbftStateRootValidation::Missing", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba2aee0be2678ee90fd327cc186826438e", null ],
+      [ "taraxa::PbftStateRootValidation::Invalid", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba4bbb8f967da6d1a610596d7257179c2b", null ]
     ] ],
-    [ "PbftStates", "group___p_b_f_t.html#gaa671924d435517347832c7f40f1f6cfc", [
-      [ "value_proposal_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcaac67fcdf2515b0a2fcc7747d14b52ce3", null ],
-      [ "filter_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcae76bdf33130e12b48f02714bdbfee1b5", null ],
-      [ "certify_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfca86ef818379572b2425cfa5bfa5380594", null ],
-      [ "finish_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfca7ce24ff54c8269d225c50cf8efff00cf", null ],
-      [ "finish_polling_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcab30f0b5d1d37bed7deae36af1d8b3d14", null ]
+    [ "taraxa::PbftStates", "group___p_b_f_t.html#gaa671924d435517347832c7f40f1f6cfc", [
+      [ "taraxa::value_proposal_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcaac67fcdf2515b0a2fcc7747d14b52ce3", null ],
+      [ "taraxa::filter_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcae76bdf33130e12b48f02714bdbfee1b5", null ],
+      [ "taraxa::certify_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfca86ef818379572b2425cfa5bfa5380594", null ],
+      [ "taraxa::finish_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfca7ce24ff54c8269d225c50cf8efff00cf", null ],
+      [ "taraxa::finish_polling_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcab30f0b5d1d37bed7deae36af1d8b3d14", null ]
     ] ],
-    [ "operator<<", "group___p_b_f_t.html#ga788b2a39c7312a656ddb0116585697b9", null ],
-    [ "operator<<", "group___p_b_f_t.html#ga3fdeda8aaed53f4c24ef36e0642d819a", null ],
-    [ "operator<<", "group___p_b_f_t.html#ga4eb5ae28c1fec5d7a7695d4545961ea0", null ]
+    [ "taraxa::operator<<", "group___p_b_f_t.html#ga788b2a39c7312a656ddb0116585697b9", null ],
+    [ "taraxa::operator<<", "group___p_b_f_t.html#ga3fdeda8aaed53f4c24ef36e0642d819a", null ],
+    [ "taraxa::operator<<", "group___p_b_f_t.html#ga4eb5ae28c1fec5d7a7695d4545961ea0", null ]
 ];

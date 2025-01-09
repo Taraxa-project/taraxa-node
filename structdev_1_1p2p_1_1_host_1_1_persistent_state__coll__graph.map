@@ -1,4 +1,5 @@
 <map id="dev::p2p::Host::PersistentState" name="dev::p2p::Host::PersistentState">
-<area shape="rect" id="node1" title="Deserialise the data and populate the set of known peers." alt="" coords="5,95,193,136"/>
-<area shape="rect" id="node2" href="$classdev_1_1p2p_1_1_e_n_r.html" title="Class representing Ethereum Node Record &#45; see EIP&#45;778." alt="" coords="43,5,155,32"/>
+<area shape="rect" id="Node000001" title="Deserialise the data and populate the set of known peers." alt="" coords="5,93,193,133"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1p2p_1_1_e_n_r.html" title="Class representing Ethereum Node Record &#45; see EIP&#45;778." alt="" coords="43,5,155,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,44,102,93,97,93,97,44"/>
 </map>

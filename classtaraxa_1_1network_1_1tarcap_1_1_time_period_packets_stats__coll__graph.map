@@ -1,6 +1,10 @@
 <map id="taraxa::network::tarcap::TimePeriodPacketsStats" name="taraxa::network::tarcap::TimePeriodPacketsStats">
-<area shape="rect" id="node1" title="Stats for all received and sent packets of all types." alt="" coords="98,301,285,343"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html" title="MAx stats data holder class." alt="" coords="5,168,180,209"/>
-<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="104,5,279,47"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="204,168,379,209"/>
+<area shape="rect" id="Node000001" title="Stats for all received and sent packets of all types." alt="" coords="98,299,285,339"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="5,167,180,207"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,220,94,248,104,273,116,286,132,296,129,301,113,290,100,276,89,249,86,221"/>
+<area shape="rect" id="Node000003" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="104,5,279,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="144,55,128,71,115,95,105,120,97,167,91,166,100,119,110,92,124,68,140,51"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html" title="MAx stats data holder class." alt="" coords="204,167,379,207"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="237,52,252,68,267,92,278,119,291,166,286,167,273,121,262,95,248,71,233,56"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="287,221,277,249,261,276,232,301,229,297,257,273,273,247,282,219"/>
 </map>

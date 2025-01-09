@@ -1,4 +1,19 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structdev_1_1p2p_1_1_u_d_p_socket_events.html" title="Interface which a UDPSocket&#39;s owner must implement." alt="" coords="5,5,205,32"/>
-<area shape="rect" id="node2" href="$classdev_1_1p2p_1_1_node_table.html" title=" " alt="" coords="253,5,407,32"/>
+<area shape="rect" id="Node000000" href="$classdev_1_1p2p_1_1_u_d_p_datagram.html" title=" " alt="" coords="5,129,184,155"/>
+<area shape="rect" id="Node000001" href="$structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html" title="RLPX Datagram which can be signed." alt="" coords="232,129,444,155"/>
+<area shape="poly" id="edge24_Node000000_Node000001" title=" " alt="" coords="198,139,232,139,232,145,198,145"/>
+<area shape="rect" id="Node000002" href="$structdev_1_1p2p_1_1_discovery_datagram.html" title=" " alt="" coords="492,129,707,155"/>
+<area shape="poly" id="edge25_Node000001_Node000002" title=" " alt="" coords="458,139,492,139,492,145,458,145"/>
+<area shape="rect" id="Node000003" href="$structdev_1_1p2p_1_1_e_n_r_request.html" title=" " alt="" coords="759,5,925,31"/>
+<area shape="poly" id="edge26_Node000002_Node000003" title=" " alt="" coords="626,119,683,79,754,40,784,28,786,33,756,44,686,83,629,123"/>
+<area shape="rect" id="Node000004" href="$structdev_1_1p2p_1_1_e_n_r_response.html" title=" " alt="" coords="755,55,929,80"/>
+<area shape="poly" id="edge27_Node000002_Node000004" title=" " alt="" coords="650,122,754,89,793,77,794,83,755,94,651,127"/>
+<area shape="rect" id="Node000005" href="$structdev_1_1p2p_1_1_find_node.html" title=" " alt="" coords="769,104,915,129"/>
+<area shape="poly" id="edge28_Node000002_Node000005" title=" " alt="" coords="720,127,768,122,769,127,721,132"/>
+<area shape="rect" id="Node000006" href="$structdev_1_1p2p_1_1_neighbours.html" title=" " alt="" coords="763,153,921,179"/>
+<area shape="poly" id="edge29_Node000002_Node000006" title=" " alt="" coords="721,151,763,156,762,161,720,157"/>
+<area shape="rect" id="Node000007" href="$structdev_1_1p2p_1_1_ping_node.html" title=" " alt="" coords="769,203,915,228"/>
+<area shape="poly" id="edge30_Node000002_Node000007" title=" " alt="" coords="655,156,755,187,798,200,796,205,754,193,653,161"/>
+<area shape="rect" id="Node000008" href="$structdev_1_1p2p_1_1_pong.html" title=" " alt="" coords="783,252,901,277"/>
+<area shape="poly" id="edge31_Node000002_Node000008" title=" " alt="" coords="630,160,686,199,756,237,790,249,788,254,754,242,684,203,627,165"/>
 </map>

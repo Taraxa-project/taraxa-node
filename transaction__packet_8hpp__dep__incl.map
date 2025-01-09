@@ -1,8 +1,14 @@
 <map id="libraries/core_libs/network/include/network/tarcap/packets/latest/transaction_packet.hpp" name="libraries/core_libs/network/include/network/tarcap/packets/latest/transaction_packet.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="520,5,707,76"/>
-<area shape="rect" id="node2" href="$latest_2transaction__packet__handler_8hpp.html" title=" " alt="" coords="451,124,642,209"/>
-<area shape="rect" id="node5" href="$latest_2transaction__packet__handler_8cpp.html" title=" " alt="" coords="653,257,883,328"/>
-<area shape="rect" id="node3" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="5,272,192,313"/>
-<area shape="rect" id="node4" href="$latest_2dag__block__packet__handler_8cpp.html" title=" " alt="" coords="216,257,440,328"/>
-<area shape="rect" id="node6" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="465,265,629,321"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="520,5,707,75"/>
+<area shape="rect" id="Node000002" href="$latest_2transaction__packet__handler_8hpp.html" title=" " alt="" coords="451,123,642,207"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="591,88,571,124,567,121,586,85"/>
+<area shape="rect" id="Node000005" href="$latest_2transaction__packet__handler_8cpp.html" title=" " alt="" coords="653,255,883,324"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="644,85,749,253,745,256,640,88"/>
+<area shape="rect" id="Node000003" href="$core__libs_2network_2src_2network_8cpp.html" title=" " alt="" coords="5,269,192,309"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="438,195,205,257,157,272,155,267,203,252,437,190"/>
+<area shape="rect" id="Node000004" href="$latest_2dag__block__packet__handler_8cpp.html" title=" " alt="" coords="216,255,440,324"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="463,216,389,257,386,252,460,211"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="634,211,709,252,706,257,631,216"/>
+<area shape="rect" id="Node000006" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="465,262,629,317"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="549,221,549,262,544,262,544,221"/>
 </map>

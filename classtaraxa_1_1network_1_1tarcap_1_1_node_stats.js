@@ -1,8 +1,8 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_node_stats =
 [
     [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af8028ea7a1a65621c5d3d42e1deefba0", null ],
-    [ "getStatus", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a4ec3a279177dc6fd578beb57ad74f14f", null ],
-    [ "logNodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a47672cff66a34fc05a5910722847244b", null ],
+    [ "getStatus", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a8935dc4a621b4802ef7a1bdeefe3f370", null ],
+    [ "logNodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac0b8c8d9f9f39420e545d3ca6cfa75f5", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ab00824d5ed31f5b77860715376c8b011", null ],
     [ "dag_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a178b3edbfb69bbc60a7f009d66abbf7c", null ],
     [ "intervals_in_sync_since_launch_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#afe3b1759755fb264173dbb7db41b366c", null ],

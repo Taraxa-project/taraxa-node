@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['quickstart_20guide_8283',['Quickstart Guide',['../md_doc_quickstart_guide.html',1,'']]]
+  ['incompatibilities_0',['EVM incompatibilities',['../md_doc_2evm__incompatibilities.html',1,'']]],
+  ['introducing_20taraxa_1',['Introducing Taraxa',['../index.html',1,'']]]
 ];

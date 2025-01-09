@@ -10,12 +10,12 @@ var classdev_1_1secure__vector =
     [ "~secure_vector", "classdev_1_1secure__vector.html#ad8bb5d1a70a560ae8378f0c8a16506cc", null ],
     [ "clear", "classdev_1_1secure__vector.html#a563d8705ba634d58fdde793305df8cae", null ],
     [ "empty", "classdev_1_1secure__vector.html#a1ec7edf1353968e7ddf6ab6b5d404aaf", null ],
-    [ "makeInsecure", "classdev_1_1secure__vector.html#ab5e0b2a1de70dbab43a574be81a4b34f", null ],
-    [ "operator=", "classdev_1_1secure__vector.html#a1ca7853f269bc82ea613603a9e2e4500", null ],
-    [ "ref", "classdev_1_1secure__vector.html#a72a9509409cbaa5b3c28a773dd6ece3d", null ],
-    [ "ref", "classdev_1_1secure__vector.html#a79daade0e68856b34d7781422953640f", null ],
+    [ "makeInsecure", "classdev_1_1secure__vector.html#a16d15d25c70f48ed9a056cec75238f2d", null ],
+    [ "operator=", "classdev_1_1secure__vector.html#aff404dd0c211cc2631da9f7deb960a85", null ],
+    [ "ref", "classdev_1_1secure__vector.html#a22761fe89bdbc4fba9f8ad31aee1aec9", null ],
+    [ "ref", "classdev_1_1secure__vector.html#abd5a5ff035aebadf24e86ce7642d8651", null ],
     [ "size", "classdev_1_1secure__vector.html#abab6cfd65cccda597c669e420c16b600", null ],
     [ "swap", "classdev_1_1secure__vector.html#a464332eb9d37d21a9cb9df1004c9666f", null ],
-    [ "writable", "classdev_1_1secure__vector.html#ad65c63ba1d97f7dd03472d11451b1321", null ],
+    [ "writable", "classdev_1_1secure__vector.html#a6e6e19f3440a79c7e5996482e84aa9c5", null ],
     [ "m_data", "classdev_1_1secure__vector.html#a629e7df1130f547288b1c72d421caef3", null ]
 ];

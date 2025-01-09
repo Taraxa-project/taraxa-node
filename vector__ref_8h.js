@@ -1,8 +1,8 @@
 var vector__ref_8h =
 [
-    [ "vector_ref", "classdev_1_1vector__ref.html", "classdev_1_1vector__ref" ],
-    [ "ref", "vector__ref_8h.html#afd0845f9d56601dac348e42a187c9633", null ],
-    [ "ref", "vector__ref_8h.html#a5ce9bb6fcbd33dd9a2fa1123f8c09cab", null ],
-    [ "ref", "vector__ref_8h.html#a91fc3f96243829957562db59f4e958ed", null ],
-    [ "ref", "vector__ref_8h.html#a9dcb1665bd05ade59af2db0c39ba3bca", null ]
+    [ "dev::vector_ref< _T >", "classdev_1_1vector__ref.html", "classdev_1_1vector__ref" ],
+    [ "ref", "vector__ref_8h.html#a091731617949efe8790072eed9fab2ad", null ],
+    [ "ref", "vector__ref_8h.html#a9bbe331705c6fc56e169061b9eea7797", null ],
+    [ "ref", "vector__ref_8h.html#a13cc6925c2ee0abc466d8e61612da366", null ],
+    [ "ref", "vector__ref_8h.html#af79d7a5dedc1d41337e7a811448c1db9", null ]
 ];

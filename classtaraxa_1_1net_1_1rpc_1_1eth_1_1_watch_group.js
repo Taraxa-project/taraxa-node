@@ -11,7 +11,7 @@ var classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group =
     [ "time_point", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7346d6f445876f918027751a91b9e660", null ],
     [ "Updater", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7371930515697ca5ca7bb59d4aa8c433", null ],
     [ "WatchGroup", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#ac34a827a152f72bbe6f9a24ca820a8ed", null ],
-    [ "get_watch_params", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#afa9b19f9509543c932b6901c6723bf77", null ],
+    [ "get_watch_params", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#abc331f00d30d0e38784dc2d988876777", null ],
     [ "install_watch", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa39c84e43ff08f5c12487171d8112b67", null ],
     [ "poll", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a162a79b7730688d25a845e4de85396a9", null ],
     [ "process_update", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7771933076a670c7c8021c28a1c19f4c", null ],

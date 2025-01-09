@@ -1,4 +1,5 @@
 <map id="taraxa::util::event::EventSubscriber&lt; Payload &gt;" name="taraxa::util::event::EventSubscriber&lt; Payload &gt;">
-<area shape="rect" id="node1" title=" " alt="" coords="5,124,221,165"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="13,5,214,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,123,221,163"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="13,5,214,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,74,116,122,111,122,111,74"/>
 </map>

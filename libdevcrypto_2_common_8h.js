@@ -1,9 +1,9 @@
 var libdevcrypto_2_common_8h =
 [
-    [ "SignatureStruct", "structdev_1_1_signature_struct.html", "structdev_1_1_signature_struct" ],
-    [ "CompactSignatureStruct", "structdev_1_1_compact_signature_struct.html", "structdev_1_1_compact_signature_struct" ],
-    [ "KeyPair", "classdev_1_1_key_pair.html", "classdev_1_1_key_pair" ],
-    [ "Nonce", "classdev_1_1crypto_1_1_nonce.html", "classdev_1_1crypto_1_1_nonce" ],
+    [ "dev::SignatureStruct", "structdev_1_1_signature_struct.html", "structdev_1_1_signature_struct" ],
+    [ "dev::CompactSignatureStruct", "structdev_1_1_compact_signature_struct.html", "structdev_1_1_compact_signature_struct" ],
+    [ "dev::KeyPair", "classdev_1_1_key_pair.html", "classdev_1_1_key_pair" ],
+    [ "dev::crypto::Nonce", "classdev_1_1crypto_1_1_nonce.html", "classdev_1_1crypto_1_1_nonce" ],
     [ "CompactSignature", "libdevcrypto_2_common_8h.html#a13c054d5e460c4e6e36e4e156d63f7ad", null ],
     [ "Public", "libdevcrypto_2_common_8h.html#a33b08ec2e2db2674c10581cc2677054d", null ],
     [ "PublicCompressed", "libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3", null ],

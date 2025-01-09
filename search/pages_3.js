@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['evm_20incompatibilities_8279',['EVM incompatibilities',['../md_doc_evm_incompatibilities.html',1,'']]]
+  ['distribution_20algorithm_0',['Rewards distribution algorithm',['../md_doc_2rewards__distribution.html',1,'']]],
+  ['doxygen_1',['Doxygen',['../md_doc_2doxygen.html',1,'']]]
 ];

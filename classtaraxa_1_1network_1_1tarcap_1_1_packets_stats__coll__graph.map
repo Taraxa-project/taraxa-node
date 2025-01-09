@@ -1,4 +1,5 @@
 <map id="taraxa::network::tarcap::PacketsStats" name="taraxa::network::tarcap::PacketsStats">
-<area shape="rect" id="node1" title="Stats for all packet types." alt="" coords="5,109,180,151"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,5,180,47"/>
+<area shape="rect" id="Node000001" title="Stats for all packet types." alt="" coords="5,108,180,148"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,5,180,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,59,95,108,90,108,90,59"/>
 </map>

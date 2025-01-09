@@ -1,5 +1,7 @@
 <map id="taraxa::final_chain::BlockHeaderData" name="taraxa::final_chain::BlockHeaderData">
-<area shape="rect" id="node1" title=" " alt="" coords="110,139,254,180"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,32"/>
-<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="197,5,357,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="110,137,254,177"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,43,115,77,136,112,159,135,155,139,132,115,110,79,95,45"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="197,5,357,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="276,45,267,80,249,115,222,139,218,135,245,112,262,78,271,44"/>
 </map>

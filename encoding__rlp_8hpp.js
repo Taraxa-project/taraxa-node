@@ -1,7 +1,7 @@
 var encoding__rlp_8hpp =
 [
-    [ "RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref" ],
-    [ "InvalidEncodingSize", "structtaraxa_1_1util_1_1_invalid_encoding_size.html", "structtaraxa_1_1util_1_1_invalid_encoding_size" ],
+    [ "taraxa::util::RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref" ],
+    [ "taraxa::util::InvalidEncodingSize", "structtaraxa_1_1util_1_1_invalid_encoding_size.html", "structtaraxa_1_1util_1_1_invalid_encoding_size" ],
     [ "HAS_RLP_FIELDS", "encoding__rlp_8hpp.html#a0064bd5a28c05c265cc7f805e05a31e4", null ],
     [ "RLP_FIELDS_DEFINE", "encoding__rlp_8hpp.html#a83230b9a613c0bd752120fc2c5629f2d", null ],
     [ "RLP_FIELDS_DEFINE_INPLACE", "encoding__rlp_8hpp.html#a51df72c14cb62803d333c53ca75cfed2", null ],
@@ -26,7 +26,7 @@ var encoding__rlp_8hpp =
     [ "rlp", "encoding__rlp_8hpp.html#a92577fee9fd55e9a607b3084c5d42888", null ],
     [ "rlp", "encoding__rlp_8hpp.html#a974d9667af9b32aa3fae70bd0e1cc62c", null ],
     [ "rlp_dec", "encoding__rlp_8hpp.html#a42009a8d67bcd12cb10331707b73e7cb", null ],
-    [ "rlp_enc", "encoding__rlp_8hpp.html#ac9fe002c6fbb2c399b5faf0312d50f0a", null ],
+    [ "rlp_enc", "encoding__rlp_8hpp.html#a3e202a95f9460dbccf123f275ef74328", null ],
     [ "rlp_enc", "encoding__rlp_8hpp.html#a4aa4f26dac4fb1fdd64f5efc34715505", null ],
     [ "rlp_tuple", "encoding__rlp_8hpp.html#a6a7738fb6818e4b7a123ab5014180934", null ],
     [ "rlp_tuple", "encoding__rlp_8hpp.html#a2be3e4808f63c48975129c4e0571dfe8", null ]

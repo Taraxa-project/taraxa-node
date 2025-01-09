@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['building_20taraxa_2dnode_8275',['Building taraxa-node',['../md_doc_building.html',1,'']]]
+  ['algorithm_0',['Rewards distribution algorithm',['../md_doc_2rewards__distribution.html',1,'']]]
 ];

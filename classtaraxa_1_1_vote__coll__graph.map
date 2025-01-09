@@ -1,4 +1,5 @@
 <map id="taraxa::Vote" name="taraxa::Vote">
-<area shape="rect" id="node1" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="35,168,136,195"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
+<area shape="rect" id="Node000001" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="35,167,136,192"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,44,88,166,83,166,83,44"/>
 </map>

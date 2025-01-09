@@ -1,9 +1,9 @@
 var libdevcore_2_common_8h =
 [
-    [ "secure_vector", "classdev_1_1secure__vector.html", "classdev_1_1secure__vector" ],
-    [ "ScopeGuard", "classdev_1_1_scope_guard.html", "classdev_1_1_scope_guard" ],
-    [ "TimerHelper", "classdev_1_1_timer_helper.html", "classdev_1_1_timer_helper" ],
-    [ "Timer", "classdev_1_1_timer.html", "classdev_1_1_timer" ],
+    [ "dev::secure_vector< T >", "classdev_1_1secure__vector.html", "classdev_1_1secure__vector" ],
+    [ "dev::ScopeGuard", "classdev_1_1_scope_guard.html", "classdev_1_1_scope_guard" ],
+    [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", "classdev_1_1_timer_helper" ],
+    [ "dev::Timer", "classdev_1_1_timer.html", "classdev_1_1_timer" ],
     [ "DEV_IF_THROWS", "libdevcore_2_common_8h.html#aaa97a1758a3c6b1d62130b1ac494dd61", null ],
     [ "DEV_IGNORE_EXCEPTIONS", "libdevcore_2_common_8h.html#a2cd379e4bb521f41f0aec17c1299dc9f", null ],
     [ "DEV_TIMED", "libdevcore_2_common_8h.html#a46aab0b0b6fdf917f8c5c4f0869ccd5f", null ],

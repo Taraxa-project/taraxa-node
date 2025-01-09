@@ -1,8 +1,13 @@
 <map id="taraxa::HardforksConfig" name="taraxa::HardforksConfig">
-<area shape="rect" id="node1" title=" " alt="" coords="725,79,903,105"/>
-<area shape="rect" id="node2" href="$namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="377,5,592,32"/>
-<area shape="rect" id="node3" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="400,56,569,83"/>
-<area shape="rect" id="node4" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="383,107,586,133"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,107,165,133"/>
-<area shape="rect" id="node6" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="390,157,579,184"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="725,79,903,104"/>
+<area shape="rect" id="Node000002" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="390,5,579,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="579,30,702,55,775,76,773,81,701,61,578,36"/>
+<area shape="rect" id="Node000003" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="400,55,569,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="584,72,725,82,725,88,583,77"/>
+<area shape="rect" id="Node000004" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="383,104,586,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="600,108,701,101,725,98,725,104,702,106,600,113"/>
+<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,104,165,129"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="179,114,383,114,383,119,179,119"/>
+<area shape="rect" id="Node000006" href="$namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="377,153,592,179"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="596,149,701,127,780,102,781,107,702,133,597,154"/>
 </map>

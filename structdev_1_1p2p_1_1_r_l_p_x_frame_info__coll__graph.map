@@ -1,6 +1,10 @@
 <map id="dev::p2p::RLPXFrameInfo" name="dev::p2p::RLPXFrameInfo">
-<area shape="rect" id="node1" title="Encapsulation of Frame." alt="" coords="65,213,249,240"/>
-<area shape="rect" id="node2" href="$classdev_1_1_r_l_p.html" title=" " alt="" coords="118,124,195,151"/>
-<area shape="rect" id="node3" href="$classdev_1_1vector__ref.html" title=" " alt="" coords="5,5,172,47"/>
-<area shape="rect" id="node4" title=" " alt="" coords="196,13,256,39"/>
+<area shape="rect" id="Node000001" title="Encapsulation of Frame." alt="" coords="5,299,189,324"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_r_l_p.html" title=" " alt="" coords="59,211,136,236"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,250,100,298,95,298,95,250"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1vector__ref.html" title=" " alt="" coords="146,93,313,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="197,144,113,213,110,208,194,140"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="31,5,91,31"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="58,45,53,86,56,133,72,176,92,209,87,212,68,178,51,134,47,86,53,44"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="95,35,196,91,194,95,93,40"/>
 </map>

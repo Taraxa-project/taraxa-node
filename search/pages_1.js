@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['c_2b_2b_20best_20practices_20guidelines_8276',['C++ Best Practices Guidelines',['../md_doc_coding_practices.html',1,'']]],
-  ['contributing_20guide_8277',['Contributing Guide',['../md_doc_contributing.html',1,'']]]
+  ['best_20practices_20guidelines_0',['C++ Best Practices Guidelines',['../md_doc_2coding__practices.html',1,'']]],
+  ['building_20taraxa_20node_1',['Building taraxa-node',['../md_doc_2building.html',1,'']]]
 ];

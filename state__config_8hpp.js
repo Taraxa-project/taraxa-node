@@ -1,9 +1,9 @@
 var state__config_8hpp =
 [
-    [ "EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", [
+    [ "taraxa::state_api::EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", [
       [ "chain_id", "namespacetaraxa_1_1state__api.html#a1e41db5c557bcf515334890ecc5bbe79", null ]
     ] ],
-    [ "ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", [
+    [ "taraxa::state_api::ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", [
       [ "address", "namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3", null ],
       [ "commission", "namespacetaraxa_1_1state__api.html#a475307748393c38ee606fb5de76f7172", null ],
       [ "delegations", "namespacetaraxa_1_1state__api.html#a6b490366005c76a313d9e7fd1d1307ea", null ],
@@ -12,7 +12,7 @@ var state__config_8hpp =
       [ "owner", "namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e", null ],
       [ "vrf_key", "namespacetaraxa_1_1state__api.html#a66c3ef108fefa0436f3abdf1eeee3384", null ]
     ] ],
-    [ "DPOSConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config", [
+    [ "taraxa::state_api::DPOSConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config", [
       [ "blocks_per_year", "namespacetaraxa_1_1state__api.html#ac4aaee6dbf60f4917c72a4d660a6c576", null ],
       [ "commission_change_delta", "namespacetaraxa_1_1state__api.html#a7335fd9b4fd13740b7db232bb3093501", null ],
       [ "commission_change_frequency", "namespacetaraxa_1_1state__api.html#ab2b4c9752dae77c339d0c5d2d51fced5", null ],
@@ -27,12 +27,12 @@ var state__config_8hpp =
       [ "vote_eligibility_balance_step", "namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754", null ],
       [ "yield_percentage", "namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163", null ]
     ] ],
-    [ "Config", "structtaraxa_1_1state__api_1_1_config.html", "structtaraxa_1_1state__api_1_1_config" ],
-    [ "Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", [
+    [ "taraxa::state_api::Config", "structtaraxa_1_1state__api_1_1_config.html", "structtaraxa_1_1state__api_1_1_config" ],
+    [ "taraxa::state_api::Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", [
       [ "expected_max_trx_per_block", "namespacetaraxa_1_1state__api.html#a6aa169090ee01a5aa0dc420811ae5205", null ],
       [ "max_trie_full_node_levels_to_cache", "namespacetaraxa_1_1state__api.html#ac56c39245ee1448b3bbdbf7364183632", null ]
     ] ],
-    [ "OptsDB", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b", [
+    [ "taraxa::state_api::OptsDB", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b", [
       [ "db_path", "namespacetaraxa_1_1state__api.html#a13aa11cb2ea1bbd6a159176729bafd90", null ],
       [ "disable_most_recent_trie_value_views", "namespacetaraxa_1_1state__api.html#a1a9997e4f7fcc0fd915039afd6a5c31d", null ]
     ] ],

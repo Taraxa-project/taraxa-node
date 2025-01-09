@@ -1,5 +1,7 @@
 <map id="taraxa::TransactionQueue" name="taraxa::TransactionQueue">
-<area shape="rect" id="node1" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="63,256,251,283"/>
-<area shape="rect" id="node2" href="$class_expiration_cache.html" title=" " alt="" coords="5,5,172,47"/>
-<area shape="rect" id="node3" title=" " alt="" coords="196,13,256,39"/>
+<area shape="rect" id="Node000001" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="63,255,251,280"/>
+<area shape="rect" id="Node000002" href="$class_expiration_cache.html" title=" " alt="" coords="5,5,172,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,59,88,96,91,140,101,186,118,229,127,242,140,252,136,257,123,246,113,232,95,187,86,140,83,96,83,59"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="196,13,256,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,52,231,89,227,135,218,185,199,232,189,246,176,257,173,253,185,242,194,229,212,183,222,134,225,89,225,52"/>
 </map>

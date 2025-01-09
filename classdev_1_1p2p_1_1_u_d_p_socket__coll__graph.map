@@ -1,7 +1,11 @@
 <map id="dev::p2p::UDPSocket&lt; Handler, MaxDatagramSize &gt;" name="dev::p2p::UDPSocket&lt; Handler, MaxDatagramSize &gt;">
-<area shape="rect" id="node1" title="UDP Interface Handler must implement UDPSocketEvents." alt="" coords="389,94,620,135"/>
-<area shape="rect" id="node2" href="$structdev_1_1p2p_1_1_u_d_p_socket_face.html" title="Interface which UDPSocket will implement." alt="" coords="36,5,221,32"/>
-<area shape="rect" id="node3" title=" " alt="" coords="5,56,252,112"/>
-<area shape="rect" id="node4" href="$structdev_1_1p2p_1_1_u_d_p_socket_events.html" title="Interface which a UDPSocket&#39;s owner must implement." alt="" coords="29,136,229,163"/>
-<area shape="rect" id="node5" title=" " alt="" coords="97,191,161,217"/>
+<area shape="rect" id="Node000001" title="UDP Interface Handler must implement UDPSocketEvents." alt="" coords="389,91,620,131"/>
+<area shape="rect" id="Node000002" href="$structdev_1_1p2p_1_1_u_d_p_socket_face.html" title="Interface which UDPSocket will implement." alt="" coords="36,5,221,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,31,253,39,437,89,435,94,251,45,212,36"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,55,252,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,90,389,100,389,105,266,95"/>
+<area shape="rect" id="Node000004" href="$structdev_1_1p2p_1_1_u_d_p_socket_events.html" title="Interface which a UDPSocket&#39;s owner must implement." alt="" coords="29,133,229,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="242,133,389,119,389,125,243,138"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="97,188,161,213"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="174,195,263,185,365,165,415,148,460,129,462,134,417,153,366,170,264,190,175,200"/>
 </map>

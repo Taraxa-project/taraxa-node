@@ -1,8 +1,14 @@
 <map id="taraxa::network::threadpool::PacketData" name="taraxa::network::threadpool::PacketData">
-<area shape="rect" id="node1" title=" " alt="" coords="147,213,350,255"/>
-<area shape="rect" id="node2" href="$classdev_1_1_r_l_p.html" title=" " alt="" coords="118,124,195,151"/>
-<area shape="rect" id="node3" href="$classdev_1_1vector__ref.html" title=" " alt="" coords="5,5,172,47"/>
-<area shape="rect" id="node4" title=" " alt="" coords="196,13,256,39"/>
-<area shape="rect" id="node5" title=" " alt="" coords="219,124,278,151"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="302,124,462,151"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="67,299,269,339"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,211,64,236"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,243,99,272,137,296,134,301,96,277,57,247"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="88,211,248,236"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,250,171,298,165,298,165,250"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_r_l_p.html" title=" " alt="" coords="272,211,349,236"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="300,250,276,277,233,301,231,296,273,273,296,246"/>
+<area shape="rect" id="Node000005" href="$classdev_1_1vector__ref.html" title=" " alt="" coords="358,93,525,133"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="410,144,326,213,323,208,406,140"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="243,5,303,31"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="270,45,265,86,268,133,285,176,305,209,300,212,280,178,263,134,259,86,265,44"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="307,35,408,91,406,95,305,40"/>
 </map>

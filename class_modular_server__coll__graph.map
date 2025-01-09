@@ -1,4 +1,5 @@
 <map id="ModularServer&lt; Is &gt;" name="ModularServer&lt; Is &gt;">
-<area shape="rect" id="node1" title=" " alt="" coords="33,95,192,121"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,5,220,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="33,93,192,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,220,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,59,115,93,110,93,110,59"/>
 </map>

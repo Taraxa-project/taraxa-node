@@ -1,3 +1,27 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structdev_1_1_compact_signature_struct.html" title=" " alt="" coords="5,5,216,32"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,133,136,159"/>
+<area shape="rect" id="Node000001" href="$structdev_1_1_exception.html" title="Base class for all exceptions." alt="" coords="224,133,341,159"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="150,143,224,143,224,149,150,149"/>
+<area shape="rect" id="Node000002" href="$structdev_1_1_r_l_p_exception.html" title="Base class for all RLP exceptions." alt="" coords="474,5,615,31"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="307,122,360,81,393,59,428,41,473,26,475,31,430,46,396,64,363,85,310,126"/>
+<area shape="rect" id="Node000004" href="$structdev_1_1p2p_1_1_e_c_d_h_e_error.html" title="The ECDHE agreement failed during RLPx handshake." alt="" coords="464,55,625,80"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="327,126,429,90,478,77,480,83,430,95,329,131"/>
+<area shape="rect" id="Node000005" href="$structdev_1_1p2p_1_1_invalid_public_i_p_address.html" title=" " alt="" coords="429,104,660,129"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="355,135,431,127,431,132,355,141"/>
+<area shape="rect" id="Node000006" href="$structdev_1_1p2p_1_1_network_restart_not_supported.html" title=" " alt="" coords="451,154,638,194"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="355,151,452,161,451,167,355,156"/>
+<area shape="rect" id="Node000007" href="$structdev_1_1p2p_1_1_network_start_required.html" title=" " alt="" coords="430,219,659,244"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="356,159,383,169,407,187,431,204,467,216,465,221,428,208,404,191,380,174,354,164"/>
+<area shape="rect" id="Node000008" href="$structdev_1_1p2p_1_1_r_l_p_x_invalid_packet.html" title=" " alt="" coords="443,268,647,293"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="356,155,383,169,401,191,408,214,414,235,431,255,451,266,448,270,428,259,410,237,403,215,396,194,380,173,353,159"/>
+<area shape="rect" id="Node000003" href="$structtaraxa_1_1util_1_1_invalid_encoding_size.html" title=" " alt="" coords="708,5,939,31"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="629,15,708,15,708,21,629,21"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="13,207,128,232"/>
+<area shape="poly" id="edge9_Node000009_Node000001" title=" " alt="" coords="110,198,183,169,226,156,227,161,185,174,112,203"/>
+<area shape="rect" id="Node000010" href="$classtaraxa_1_1_db_exception.html" title=" " alt="" coords="205,183,360,208"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="141,209,205,201,205,207,142,214"/>
+<area shape="rect" id="Node000011" href="$classtaraxa_1_1net_1_1_invalid_address.html" title=" " alt="" coords="184,232,381,257"/>
+<area shape="poly" id="edge11_Node000009_Node000011" title=" " alt="" coords="142,225,184,230,184,236,141,230"/>
+<area shape="rect" id="Node000012" href="$classtaraxa_1_1net_1_1_invalid_tracing_params.html" title=" " alt="" coords="187,282,378,322"/>
+<area shape="poly" id="edge12_Node000009_Node000012" title=" " alt="" coords="111,235,185,268,218,279,216,284,183,272,109,240"/>
 </map>

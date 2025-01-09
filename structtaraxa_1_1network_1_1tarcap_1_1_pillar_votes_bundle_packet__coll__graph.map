@@ -1,4 +1,5 @@
 <map id="taraxa::network::tarcap::PillarVotesBundlePacket" name="taraxa::network::tarcap::PillarVotesBundlePacket">
-<area shape="rect" id="node1" title=" " alt="" coords="16,109,203,151"/>
-<area shape="rect" id="node2" href="$group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle" title=" " alt="" coords="5,5,213,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="16,108,203,148"/>
+<area shape="rect" id="Node000002" href="$group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle" title=" " alt="" coords="5,5,213,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,59,112,108,107,108,107,59"/>
 </map>

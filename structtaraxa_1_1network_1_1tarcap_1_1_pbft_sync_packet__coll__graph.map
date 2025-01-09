@@ -1,5 +1,7 @@
 <map id="taraxa::network::tarcap::PbftSyncPacket" name="taraxa::network::tarcap::PbftSyncPacket">
-<area shape="rect" id="node1" title=" " alt="" coords="5,199,180,240"/>
-<area shape="rect" id="node2" href="$group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="21,109,165,136"/>
-<area shape="rect" id="node3" title=" " alt="" coords="63,5,123,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,196,180,236"/>
+<area shape="rect" id="Node000002" href="$group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="21,108,165,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,147,95,196,90,196,90,147"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="63,5,123,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,45,95,108,90,108,90,45"/>
 </map>

@@ -31,7 +31,7 @@ var classgraphql_1_1taraxa_1_1_block =
     [ "getTransactionsRoot", "classgraphql_1_1taraxa_1_1_block.html#a4df9b36420b2cb53f0133775cbabd598", null ],
     [ "block_header_", "classgraphql_1_1taraxa_1_1_block.html#a60cb36444c98a04faa0392c2fac3212b", null ],
     [ "final_chain_", "classgraphql_1_1taraxa_1_1_block.html#a28fffacfe49605e87cc04e87ffc9613e", null ],
-    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_block.html#a93ade8edcfcb70fdc476e5c5a9e2cc7a", null ],
+    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_block.html#a7e9781c341fdb9312a75572073b727e3", null ],
     [ "kPBftBlockHash", "classgraphql_1_1taraxa_1_1_block.html#a1fad950c17ae086771cbf9926b19e29e", null ],
     [ "transactions_", "classgraphql_1_1taraxa_1_1_block.html#a272214f2065c534012fce7921c32f257", null ],
     [ "trx_manager_", "classgraphql_1_1taraxa_1_1_block.html#af34bf8cce518dc641bbc1f88fe25fb5c", null ]

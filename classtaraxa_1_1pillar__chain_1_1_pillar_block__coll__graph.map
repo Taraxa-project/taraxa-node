@@ -1,5 +1,7 @@
 <map id="taraxa::pillar_chain::PillarBlock" name="taraxa::pillar_chain::PillarBlock">
-<area shape="rect" id="node1" title="PillarBlock contains merkle root of all finalized blocks created in the last epoch." alt="" coords="109,109,255,151"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,32"/>
-<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="197,5,357,32"/>
+<area shape="rect" id="Node000001" title="PillarBlock contains merkle root of all finalized blocks created in the last epoch." alt="" coords="109,108,255,148"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,39,168,106,164,109,106,43"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="197,5,357,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,44,237,86,211,110,207,106,233,82,262,41"/>
 </map>

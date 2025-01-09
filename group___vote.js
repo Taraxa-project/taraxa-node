@@ -1,6 +1,8 @@
 var group___vote =
 [
-    [ "VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", [
+    [ "taraxa::network", "namespacetaraxa_1_1network.html", null ],
+    [ "taraxa::network::tarcap", "namespacetaraxa_1_1network_1_1tarcap.html", null ],
+    [ "taraxa::VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", [
       [ "VoteManager", "group___vote.html#aca725de2f586a37bfb3935f55a711046", null ],
       [ "~VoteManager", "group___vote.html#a030b575a581433e9d0d6da3fba0ee29f", null ],
       [ "VoteManager", "group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246", null ],
@@ -27,8 +29,8 @@ var group___vote =
       [ "insertUniqueVote", "group___vote.html#a9905cef52d50bf1351a172ab3dbf2271", null ],
       [ "isUniqueVote", "group___vote.html#a27d9ac060898710e4ebeed9257a66b72", null ],
       [ "isValidRewardVote", "group___vote.html#ae973c977717f006fae10b7878a4c2fbc", null ],
-      [ "operator=", "group___vote.html#a38bd14449af576be965293785cc4d8ac", null ],
-      [ "operator=", "group___vote.html#a71368f8f7056743c74eb64be733d4e5a", null ],
+      [ "operator=", "group___vote.html#ad36dde6b1d32505bebf775a3b285aeb4", null ],
+      [ "operator=", "group___vote.html#af4ec245e54ebd91508d1aecdeb822b29", null ],
       [ "resetRewardVotes", "group___vote.html#a003002f11b3556882aba09032de484f0", null ],
       [ "saveOwnVerifiedVote", "group___vote.html#a84fb210740a3d5cf36175b22fe41cf2a", null ],
       [ "setCurrentPbftPeriodAndRound", "group___vote.html#aad3b0005eb4bf67641018be3db3e1962", null ],
@@ -61,7 +63,7 @@ var group___vote =
       [ "verified_votes_", "group___vote.html#ae2238e11e37f563fcdfe94fb87d22e09", null ],
       [ "verified_votes_access_", "group___vote.html#a90b43db0bc6fbe231ed10b86ef33255e", null ]
     ] ],
-    [ "PbftVote", "group___vote.html#classtaraxa_1_1_pbft_vote", [
+    [ "taraxa::PbftVote", "group___vote.html#classtaraxa_1_1_pbft_vote", [
       [ "vrf_pk_t", "group___vote.html#a05ea2bc5ca184d39a4089cc3f6b86de7", null ],
       [ "PbftVote", "group___vote.html#aa1a60910d3b39c494b6b3173b287f86d", null ],
       [ "PbftVote", "group___vote.html#a1aac24c594d9b74dcad3b186b388abbd", null ],
@@ -83,11 +85,11 @@ var group___vote =
       [ "sha3", "group___vote.html#a424d4d6ce930d31755a20c1b4d5fad55", null ],
       [ "toJSON", "group___vote.html#a442303caeec4de50c06194d50e2b2d03", null ],
       [ "verifyVrfSortition", "group___vote.html#a31853775f489173a499af7cf08503710", null ],
-      [ "operator<<", "group___vote.html#a697cdf61cfd266323d5b54712848933a", null ],
+      [ "operator<<", "group___vote.html#a71e3d2933460a8e55a207d4654cfa44a", null ],
       [ "vrf_sortition_", "group___vote.html#a2c0f754951467bbff1f946701422597e", null ],
       [ "weight_", "group___vote.html#a67108dc7db5be3e83f7cac577e676955", null ]
     ] ],
-    [ "PillarVote", "group___vote.html#classtaraxa_1_1_pillar_vote", [
+    [ "taraxa::PillarVote", "group___vote.html#classtaraxa_1_1_pillar_vote", [
       [ "PillarVote", "group___vote.html#adbd235247ab08fcb2c3bd93e214f1154", null ],
       [ "PillarVote", "group___vote.html#ae1c6496d8f1e9149e3abbe69c0d1075d", null ],
       [ "PillarVote", "group___vote.html#ab48d34d81e77f54bc2c11e0d012f8f8f", null ],
@@ -98,11 +100,11 @@ var group___vote =
       [ "getPeriod", "group___vote.html#aa7fe2408af3fb75b7eac91248180ba46", null ],
       [ "rlp", "group___vote.html#ad85db86950b2bcd3f200a48610c585e7", null ],
       [ "sha3", "group___vote.html#ac7577d9f27a4c10bfd39fd493001d209", null ],
-      [ "kNoSigRlpSize", "group___vote.html#a7ddd0af2ba8f0807c0cdc60647abd731", null ],
-      [ "kStandardRlpSize", "group___vote.html#a8f1e10bfda7bcb403c1cfbc2df5b7c51", null ],
+      [ "kNoSigRlpSize", "group___vote.html#a00a03f3ab80fe0ca4b6a11f8560f554b", null ],
+      [ "kStandardRlpSize", "group___vote.html#a857200d4b36b86ab7d71e4e41db16dc1", null ],
       [ "period_", "group___vote.html#a270cca8c747a9592bf1e99659e1724a2", null ]
     ] ],
-    [ "Vote", "group___vote.html#classtaraxa_1_1_vote", [
+    [ "taraxa::Vote", "group___vote.html#classtaraxa_1_1_vote", [
       [ "Vote", "group___vote.html#af16925e0a68bfccde86e30377906ee16", null ],
       [ "Vote", "group___vote.html#a004cbf74471be9a60023bd9d3e81e4f5", null ],
       [ "~Vote", "group___vote.html#ad32e70b331d386018aa8a8617171001b", null ],
@@ -120,25 +122,25 @@ var group___vote =
       [ "vote_hash_", "group___vote.html#ac62f2f618205d20b430c4609c8c73373", null ],
       [ "vote_signature_", "group___vote.html#aeaa1d4836ba3a2ce8243b4dc939e3028", null ]
     ] ],
-    [ "OptimizedPbftVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle", [
+    [ "taraxa::OptimizedPbftVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle", [
       [ "votes", "group___vote.html#a4b42b8e8f8e3265f906f527678d52a1d", null ]
     ] ],
-    [ "OptimizedPillarVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle", [
+    [ "taraxa::OptimizedPillarVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle", [
       [ "pillar_votes", "group___vote.html#a42cd2d1dfc1cc009431c5dd732a71a61", null ]
     ] ],
-    [ "VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", [
+    [ "taraxa::VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", [
       [ "VrfPbftMsg", "group___vote.html#adb609ddffdb2ee906e405a7e141bc16a", null ],
       [ "VrfPbftMsg", "group___vote.html#af5d4dff6468cf553d92f18e9fd707ae5", null ],
       [ "getRlpBytes", "group___vote.html#a51f80fc70a2cc67a05d57cb7cc9f4a29", null ],
       [ "getType", "group___vote.html#a6288475206d07e28b0fd193b001911a3", null ],
       [ "operator==", "group___vote.html#a8cee69c4823d890407f54fc7a8db0401", null ],
       [ "toString", "group___vote.html#a6b7f4bfc16fbdca70a9764b61e7df31a", null ],
-      [ "operator<<", "group___vote.html#a8faf9b9157970ee8fea067548fda31f8", null ],
+      [ "operator<<", "group___vote.html#a5b7d7c60b50aea29c4a7ee8d36194d1c", null ],
       [ "period_", "group___vote.html#a14c8bdba61ceb8ef5ecfb5964de64fca", null ],
       [ "round_", "group___vote.html#a3e88615008ad462faa2f1cc73af27638", null ],
       [ "step_", "group___vote.html#a7c3f1eb1fb715e66e03dcff28b85c67b", null ]
     ] ],
-    [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", [
+    [ "taraxa::VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", [
       [ "vrf_output_t", "group___vote.html#a3d581667afe8b9d385a343ff663e3881", null ],
       [ "vrf_pk_t", "group___vote.html#a7865d707cf80ede913b2acaec1d1c63c", null ],
       [ "vrf_proof_t", "group___vote.html#a3269ce0796ba7a4db4c1d7a1a14d38c2", null ],
@@ -151,23 +153,23 @@ var group___vote =
       [ "getRlpBytes", "group___vote.html#accdd1eb1fa9ffa965c31dc6a5fe61602", null ],
       [ "operator==", "group___vote.html#afd43da336fbf99a0727bdddd9f654cf7", null ],
       [ "verify", "group___vote.html#a0db07466f5bfb4cfe3c260d630174c96", null ],
-      [ "operator<<", "group___vote.html#a5a9524665903c1186005956de19f7fd2", null ],
+      [ "operator<<", "group___vote.html#a1ff2b3ed143ba8a1956b74dac5f9936e", null ],
       [ "kMax256bFP", "group___vote.html#aed1745d8a9bffdabdfcd83465cf6a002", null ],
       [ "max256bits", "group___vote.html#ae25944089b11af1b3ef37dff72b8c86b", null ],
       [ "pbft_msg_", "group___vote.html#a2078e19b96d7ca2d0a651d38ed69de2a", null ]
     ] ],
-    [ "PbftVoteTypes", "group___vote.html#ga8a0770e242b649865f15f20a405507cc", [
-      [ "invalid_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507ccac0f90f4138d33e1cf7eac17f81962061", null ],
-      [ "propose_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507ccac21763d55850e64ff753fdcd72ef2c45", null ],
-      [ "soft_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca2b4d6980ef2c92a18002aa6d7a57a33e", null ],
-      [ "cert_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca15e81b6e3979738b87e59b040d2c9b53", null ],
-      [ "next_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca95aebab4b899f9fad597abfc4d9be96b", null ]
+    [ "taraxa::PbftVoteTypes", "group___vote.html#ga8a0770e242b649865f15f20a405507cc", [
+      [ "taraxa::PbftVoteTypes::invalid_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507ccac0f90f4138d33e1cf7eac17f81962061", null ],
+      [ "taraxa::PbftVoteTypes::propose_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507ccac21763d55850e64ff753fdcd72ef2c45", null ],
+      [ "taraxa::PbftVoteTypes::soft_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca2b4d6980ef2c92a18002aa6d7a57a33e", null ],
+      [ "taraxa::PbftVoteTypes::cert_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca15e81b6e3979738b87e59b040d2c9b53", null ],
+      [ "taraxa::PbftVoteTypes::next_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca95aebab4b899f9fad597abfc4d9be96b", null ]
     ] ],
-    [ "decodePbftVotesBundleRlp", "group___vote.html#ga65e4a1c06bac4c8d40d08e730c526716", null ],
-    [ "decodePillarVotesBundleRlp", "group___vote.html#ga00061f355abe5cfd1a385f637a663c32", null ],
-    [ "encodePbftVotesBundleRlp", "group___vote.html#ga123ba73cb603248f4091e02c323342b9", null ],
-    [ "encodePillarVotesBundleRlp", "group___vote.html#ga8958b525345bb75a7c40b7bc254559f7", null ],
-    [ "getVoterIndexHash", "group___vote.html#gac8701dc4b2326bc90d8d2df733e0bae0", null ],
-    [ "kPbftVotesBundleRlpSize", "group___vote.html#ga7db38bf3c506132cff28937f0d28d4ea", null ],
-    [ "kPillarVotesBundleRlpSize", "group___vote.html#ga1a0928ea74f0edb946321eaf485f786c", null ]
+    [ "taraxa::decodePbftVotesBundleRlp", "group___vote.html#ga65e4a1c06bac4c8d40d08e730c526716", null ],
+    [ "taraxa::decodePillarVotesBundleRlp", "group___vote.html#ga00061f355abe5cfd1a385f637a663c32", null ],
+    [ "taraxa::encodePbftVotesBundleRlp", "group___vote.html#gaa1f76cfec04c4f228cd15db00141ac3f", null ],
+    [ "taraxa::encodePillarVotesBundleRlp", "group___vote.html#ga82ee4f5b0eaa26ee872c2afec294c2ad", null ],
+    [ "taraxa::getVoterIndexHash", "group___vote.html#gac8701dc4b2326bc90d8d2df733e0bae0", null ],
+    [ "taraxa::kPbftVotesBundleRlpSize", "group___vote.html#gac41012497b3fcf640e6149841feb42d2", null ],
+    [ "taraxa::kPillarVotesBundleRlpSize", "group___vote.html#ga3c075fe6980c739a319841a7ae20c80c", null ]
 ];

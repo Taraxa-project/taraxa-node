@@ -4,7 +4,7 @@ var classdev_1_1_notified =
     [ "Notified", "classdev_1_1_notified.html#afca01dc64435240f29e023646b6c5c4b", null ],
     [ "Notified", "classdev_1_1_notified.html#a83359f09f21e760c28df5efa3485d3a2", null ],
     [ "operator N", "classdev_1_1_notified.html#a023ba1db2622ba543a2064df4d0f7043", null ],
-    [ "operator=", "classdev_1_1_notified.html#a6dcc8c422916174b3049d37217f43423", null ],
+    [ "operator=", "classdev_1_1_notified.html#af6547dd118e0f373bbdd55b35a6d2697", null ],
     [ "wait", "classdev_1_1_notified.html#a21c4803fb04b34b43c010684209fde51", null ],
     [ "wait", "classdev_1_1_notified.html#a6dcedeb261fec3410145de3300181866", null ],
     [ "wait", "classdev_1_1_notified.html#a793856b104a24771f83929ed38ed7cf8", null ],

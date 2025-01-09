@@ -1,5 +1,7 @@
 <map id="taraxa::net::JsonRpcHttpProcessor" name="taraxa::net::JsonRpcHttpProcessor">
-<area shape="rect" id="node1" title=" " alt="" coords="131,80,311,121"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1net_1_1_http_processor.html" title=" " alt="" coords="5,5,197,32"/>
-<area shape="rect" id="node3" title=" " alt="" coords="222,5,461,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="131,79,311,119"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_http_processor.html" title=" " alt="" coords="5,5,197,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,36,194,76,191,81,129,41"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="222,5,461,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="314,41,252,81,249,76,311,36"/>
 </map>

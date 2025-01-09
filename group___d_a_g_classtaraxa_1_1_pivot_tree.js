@@ -8,7 +8,7 @@ var group___d_a_g_classtaraxa_1_1_pivot_tree =
     [ "PivotTree", "group___d_a_g.html#a7f00185a260406eb025c473f2f74da1c", null ],
     [ "PivotTree", "group___d_a_g.html#aece3a8463f93b0b4fd5c62d7830e6562", null ],
     [ "getGhostPath", "group___d_a_g.html#a39272d0b73b50342006e8599b580ecef", null ],
-    [ "operator=", "group___d_a_g.html#ad44986e7a4cd61e1aa2d8a20b4b34938", null ],
-    [ "operator=", "group___d_a_g.html#a1c835de4baaf2489806fdfb6fb57b959", null ],
+    [ "operator=", "group___d_a_g.html#afb9797025ea981c6b6d4ec11a554df7e", null ],
+    [ "operator=", "group___d_a_g.html#affe65a98857f21c89aff30fda459c42e", null ],
     [ "DagManager", "group___d_a_g.html#ae5eb5a9b1d9593d3dbd75328cbe64ea8", null ]
 ];

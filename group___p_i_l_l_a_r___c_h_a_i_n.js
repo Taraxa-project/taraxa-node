@@ -1,6 +1,6 @@
 var group___p_i_l_l_a_r___c_h_a_i_n =
 [
-    [ "PillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block", [
+    [ "taraxa::pillar_chain::PillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block", [
       [ "ValidatorVoteCountChange", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html", [
         [ "ValidatorVoteCountChange", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a932e4909348db133e03b13f0fa52d8e7", null ],
         [ "ValidatorVoteCountChange", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#af08e82e512996a76500b393175a8ecd8", null ],
@@ -8,8 +8,8 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
         [ "ValidatorVoteCountChange", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a20a4e8609134a0703b8981dd920014c0", null ],
         [ "ValidatorVoteCountChange", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a098436600c4e178205e43e3290d40e00", null ],
         [ "~ValidatorVoteCountChange", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a0ba64d7aafda5039a888d4c56a03773e", null ],
-        [ "operator=", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#aecb6af08e4b4f795b68d94d446df384e", null ],
-        [ "operator=", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a23a73588196fe4a23594a063d58f522a", null ],
+        [ "operator=", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a44e966b0205960a55ba74dcfbe2557bf", null ],
+        [ "operator=", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a5bea40ff0f2d939507848720b9785ee8", null ],
         [ "addr_", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a1c9e41cde1fd84d39367f597f86aa461", null ],
         [ "vote_count_change_", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#aded05538bffdc27611857ce639af20a8", null ]
       ] ],
@@ -40,8 +40,8 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
       [ "state_root_", "group___p_i_l_l_a_r___c_h_a_i_n.html#ab506e03cb689e70fbd59b347fc26d8f8", null ],
       [ "validators_votes_count_changes_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a89da25ba0007c7cadde38e7347deed2c", null ]
     ] ],
-    [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data", [
-      [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#ac21fe3b27dc4113c94fec54f056da5cd", null ],
+    [ "taraxa::pillar_chain::PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_pillar_block_data", [
+      [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#a183412e7c01c1159083246ced81bcf65", null ],
       [ "PillarBlockData", "group___p_i_l_l_a_r___c_h_a_i_n.html#acae383b03e36d38f4981cc3458f5f980", null ],
       [ "getJson", "group___p_i_l_l_a_r___c_h_a_i_n.html#a5835fed25164703b02ce257d09cd7d77", null ],
       [ "getRlp", "group___p_i_l_l_a_r___c_h_a_i_n.html#a9ee11c365a4b260b914fbcf749d8dbd3", null ],
@@ -49,11 +49,11 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
       [ "kRlpItemCount", "group___p_i_l_l_a_r___c_h_a_i_n.html#a6d465bd950ee7efffc313e0d831d4674", null ],
       [ "pillar_votes_", "group___p_i_l_l_a_r___c_h_a_i_n.html#af119c545bad35423b8f37c952d338813", null ]
     ] ],
-    [ "CurrentPillarBlockDataDb", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db", [
+    [ "taraxa::pillar_chain::CurrentPillarBlockDataDb", "group___p_i_l_l_a_r___c_h_a_i_n.html#structtaraxa_1_1pillar__chain_1_1_current_pillar_block_data_db", [
       [ "pillar_block", "group___p_i_l_l_a_r___c_h_a_i_n.html#a37c60035bfd96e099cc034285f828d9d", null ],
       [ "vote_counts", "group___p_i_l_l_a_r___c_h_a_i_n.html#a00eb8723c86fa420e4e30b18155e0037", null ]
     ] ],
-    [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager", [
+    [ "taraxa::pillar_chain::PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager", [
       [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#ae30271f18d7f9387fbae227552b5ed7a", null ],
       [ "addVerifiedPillarVote", "group___p_i_l_l_a_r___c_h_a_i_n.html#af9cbb2ec28b6528a6f70311e3f7af5a9", null ],
       [ "createPillarBlock", "group___p_i_l_l_a_r___c_h_a_i_n.html#a568f301c50fccba0cfc58e8e0b94f119", null ],
@@ -80,7 +80,7 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
       [ "mutex_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a8a1188c8d8ec755d68ab90132dbd2444", null ],
       [ "network_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a289c3b9928d5c227910aec76e1a82a49", null ],
       [ "node_addr_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a255221736cfc3a82dea6f44fc829eb69", null ],
-      [ "pillar_block_finalized_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a8375ea4330c9ae4e1bbb50e3ea7e52d2", null ],
+      [ "pillar_block_finalized_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a1af268d9589f43825f96f6e60082711e", null ],
       [ "pillar_block_finalized_emitter_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a492825a8a85d688587d2df474a9d55cf", null ],
       [ "pillar_votes_", "group___p_i_l_l_a_r___c_h_a_i_n.html#acbdfa0994b21b41ba126b99ac331a153", null ]
     ] ]

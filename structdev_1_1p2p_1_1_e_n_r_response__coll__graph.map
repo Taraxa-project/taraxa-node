@@ -1,8 +1,13 @@
 <map id="dev::p2p::ENRResponse" name="dev::p2p::ENRResponse">
-<area shape="rect" id="node1" title=" " alt="" coords="237,247,412,273"/>
-<area shape="rect" id="node2" href="$structdev_1_1p2p_1_1_discovery_datagram.html" title=" " alt="" coords="217,171,432,197"/>
-<area shape="rect" id="node3" href="$structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html" title="RLPX Datagram which can be signed." alt="" coords="5,81,217,108"/>
-<area shape="rect" id="node4" href="$classdev_1_1p2p_1_1_u_d_p_datagram.html" title=" " alt="" coords="22,5,201,32"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="241,81,408,108"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="433,81,593,108"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="233,243,408,268"/>
+<area shape="rect" id="Node000002" href="$structdev_1_1p2p_1_1_discovery_datagram.html" title=" " alt="" coords="213,168,428,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="323,208,323,242,318,242,318,208"/>
+<area shape="rect" id="Node000003" href="$structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html" title="RLPX Datagram which can be signed." alt="" coords="5,80,217,105"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="153,108,294,165,292,170,151,113"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1p2p_1_1_u_d_p_datagram.html" title=" " alt="" coords="22,5,201,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="114,45,114,80,109,80,109,45"/>
+<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="241,80,401,105"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="323,119,323,167,318,167,318,119"/>
+<area shape="rect" id="Node000006" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="425,80,592,105"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="472,114,347,170,345,165,470,109"/>
 </map>

@@ -1,9 +1,15 @@
 <map id="libraries/core_libs/network/graphql/include/graphql/account.hpp" name="libraries/core_libs/network/graphql/include/graphql/account.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="438,5,621,61"/>
-<area shape="rect" id="node2" href="$account_8cpp.html" title=" " alt="" coords="5,109,160,165"/>
-<area shape="rect" id="node3" href="$block_8cpp.html" title=" " alt="" coords="184,109,339,165"/>
-<area shape="rect" id="node4" href="$log_8cpp.html" title=" " alt="" coords="363,109,517,165"/>
-<area shape="rect" id="node5" href="$query_8cpp.html" title=" " alt="" coords="541,109,696,165"/>
-<area shape="rect" id="node6" href="$core__libs_2network_2graphql_2src_2transaction_8cpp.html" title=" " alt="" coords="720,109,875,165"/>
-<area shape="rect" id="node7" href="$core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html" title=" " alt="" coords="899,109,1058,165"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="438,5,621,60"/>
+<area shape="rect" id="Node000002" href="$account_8cpp.html" title=" " alt="" coords="5,108,160,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,56,304,81,173,111,161,114,159,108,171,105,302,75,424,51"/>
+<area shape="rect" id="Node000003" href="$block_8cpp.html" title=" " alt="" coords="184,108,339,163"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="448,67,332,110,330,105,446,62"/>
+<area shape="rect" id="Node000004" href="$log_8cpp.html" title=" " alt="" coords="363,108,517,163"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="499,72,465,110,461,106,495,69"/>
+<area shape="rect" id="Node000005" href="$query_8cpp.html" title=" " alt="" coords="541,108,696,163"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="564,69,597,106,593,110,560,72"/>
+<area shape="rect" id="Node000006" href="$core__libs_2network_2graphql_2src_2transaction_8cpp.html" title=" " alt="" coords="720,108,875,163"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="613,62,728,105,727,110,611,67"/>
+<area shape="rect" id="Node000007" href="$core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html" title=" " alt="" coords="899,108,1058,163"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="635,51,887,105,900,109,898,114,886,111,634,56"/>
 </map>

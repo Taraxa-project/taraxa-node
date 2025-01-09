@@ -1,6 +1,9 @@
 <map id="taraxa::state_api::ValidatorInfo" name="taraxa::state_api::ValidatorInfo">
-<area shape="rect" id="node1" title=" " alt="" coords="170,124,310,165"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,187,47"/>
-<area shape="rect" id="node3" title=" " alt="" coords="211,13,269,39"/>
-<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="293,13,453,39"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="210,123,350,163"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,13,165,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,43,250,120,247,125,115,47"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="189,5,371,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="283,59,283,122,277,122,277,59"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="395,13,453,38"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="403,49,340,101,308,125,305,120,337,97,399,45"/>
 </map>

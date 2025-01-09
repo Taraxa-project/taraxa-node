@@ -1,5 +1,7 @@
 <map id="taraxa::vrf_wrapper::VrfSortitionBase" name="taraxa::vrf_wrapper::VrfSortitionBase">
-<area shape="rect" id="node1" title=" " alt="" coords="118,109,269,151"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,181,47"/>
-<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="205,5,381,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="118,108,269,148"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,181,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,53,176,106,173,110,120,57"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="205,5,381,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="267,57,214,110,210,106,263,53"/>
 </map>

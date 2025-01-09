@@ -1,4 +1,5 @@
 <map id="taraxa::Redelegation" name="taraxa::Redelegation">
-<area shape="rect" id="node1" title=" " alt="" coords="6,109,165,136"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="6,108,165,133"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,45,88,108,83,108,83,45"/>
 </map>

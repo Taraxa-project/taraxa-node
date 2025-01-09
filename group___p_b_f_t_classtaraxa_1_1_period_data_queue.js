@@ -7,7 +7,7 @@ var group___p_b_f_t_classtaraxa_1_1_period_data_queue =
     [ "getPeriod", "group___p_b_f_t.html#afaca3f57b144e8058c7fab897407749c", null ],
     [ "lastPbftBlock", "group___p_b_f_t.html#ad2cf3c010649e8a6224a7fc5416471f4", null ],
     [ "pop", "group___p_b_f_t.html#a5611d6d658d34da50575e98f2e173fff", null ],
-    [ "push", "group___p_b_f_t.html#a3778ba513f8bf5782da83acb91fd7b52", null ],
+    [ "push", "group___p_b_f_t.html#a18092902fc3d3fc5635f5bfb2f782aa7", null ],
     [ "size", "group___p_b_f_t.html#ad05cce3b393dd7901495b40ece4af8ee", null ],
     [ "last_block_cert_votes_", "group___p_b_f_t.html#a031b1a8ef28ef970ca1d4e7b2d054a37", null ],
     [ "period_", "group___p_b_f_t.html#a640d29636712763de0c3e2710b3578b3", null ],

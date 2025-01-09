@@ -1,4 +1,5 @@
 <map id="taraxa::network::tarcap::StatusPacket::InitialData" name="taraxa::network::tarcap::StatusPacket::InitialData">
-<area shape="rect" id="node1" title=" " alt="" coords="5,95,195,136"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="20,5,180,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,195,133"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="20,5,180,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,44,103,93,97,93,97,44"/>
 </map>

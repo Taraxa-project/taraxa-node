@@ -1,9 +1,9 @@
 var storage_8hpp =
 [
-    [ "DbException", "classtaraxa_1_1_db_exception.html", "classtaraxa_1_1_db_exception" ],
-    [ "DbStorage", "classtaraxa_1_1_db_storage.html", "classtaraxa_1_1_db_storage" ],
-    [ "Column", "classtaraxa_1_1_db_storage_1_1_column.html", "classtaraxa_1_1_db_storage_1_1_column" ],
-    [ "Columns", "classtaraxa_1_1_db_storage_1_1_columns.html", "classtaraxa_1_1_db_storage_1_1_columns" ],
+    [ "taraxa::DbException", "classtaraxa_1_1_db_exception.html", "classtaraxa_1_1_db_exception" ],
+    [ "taraxa::DbStorage", "classtaraxa_1_1_db_storage.html", "classtaraxa_1_1_db_storage" ],
+    [ "taraxa::DbStorage::Column", "classtaraxa_1_1_db_storage_1_1_column.html", "classtaraxa_1_1_db_storage_1_1_column" ],
+    [ "taraxa::DbStorage::Columns", "classtaraxa_1_1_db_storage_1_1_columns.html", "classtaraxa_1_1_db_storage_1_1_columns" ],
     [ "COLUMN", "storage_8hpp.html#a2eaa50d8ab492e7c148571d65b81f7d9", null ],
     [ "COLUMN_W_COMP", "storage_8hpp.html#ac9945ca6fe197b285226f1698ce8a202", null ],
     [ "Batch", "storage_8hpp.html#a0cd0083754f45af046225376c7cc813a", null ],

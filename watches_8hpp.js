@@ -1,18 +1,18 @@
 var watches_8hpp =
 [
-    [ "WatchGroupConfig", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config", [
+    [ "taraxa::net::rpc::eth::WatchGroupConfig", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config", [
       [ "idle_timeout", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b", null ],
       [ "max_watches", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30", null ]
     ] ],
-    [ "placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
-    [ "WatchGroup", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group" ],
-    [ "Watch", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch", [
+    [ "taraxa::net::rpc::eth::placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
+    [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group" ],
+    [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >::Watch", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch", [
       [ "last_touched", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a90dacc58edfeb95d91304ed5e48c12e9", null ],
       [ "mu", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa0eceed2ad9fa81979e15b2e212c186c", null ],
       [ "params", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5", null ],
       [ "updates", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a039857c71e3e917756fcd98947d466af", null ]
     ] ],
-    [ "Watches", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches" ],
+    [ "taraxa::net::rpc::eth::Watches", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches" ],
     [ "time_point", "watches_8hpp.html#ad1b782697d2ffcfad031bf5ee494afb8", null ],
     [ "WatchesConfig", "watches_8hpp.html#acff653f7fb7bee54990e7ef3d29a7d87", null ],
     [ "WatchID", "watches_8hpp.html#a05439f49d2ef28843b9619e59f1bde4b", null ],

@@ -1,6 +1,6 @@
 var vrf__wrapper_8hpp =
 [
-    [ "VrfSortitionBase", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base" ],
+    [ "taraxa::vrf_wrapper::VrfSortitionBase", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base" ],
     [ "vrf_output_t", "vrf__wrapper_8hpp.html#afca747f9efe9c54e3e5dd36cbd4dd8f2", null ],
     [ "vrf_pk_t", "vrf__wrapper_8hpp.html#a01a98b4e6e59f230848a2a16c224b455", null ],
     [ "vrf_proof_t", "vrf__wrapper_8hpp.html#aaf02dc1e2a86c25939c20376c762ac23", null ],

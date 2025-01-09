@@ -1,10 +1,10 @@
 var libp2p_2_common_8h =
 [
-    [ "NetworkStartRequired", "structdev_1_1p2p_1_1_network_start_required.html", null ],
-    [ "InvalidPublicIPAddress", "structdev_1_1p2p_1_1_invalid_public_i_p_address.html", null ],
-    [ "NetworkRestartNotSupported", "structdev_1_1p2p_1_1_network_restart_not_supported.html", null ],
-    [ "ECDHEError", "structdev_1_1p2p_1_1_e_c_d_h_e_error.html", null ],
-    [ "PeerSessionInfo", "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info", [
+    [ "dev::p2p::NetworkStartRequired", "structdev_1_1p2p_1_1_network_start_required.html", null ],
+    [ "dev::p2p::InvalidPublicIPAddress", "structdev_1_1p2p_1_1_invalid_public_i_p_address.html", null ],
+    [ "dev::p2p::NetworkRestartNotSupported", "structdev_1_1p2p_1_1_network_restart_not_supported.html", null ],
+    [ "dev::p2p::ECDHEError", "structdev_1_1p2p_1_1_e_c_d_h_e_error.html", null ],
+    [ "dev::p2p::PeerSessionInfo", "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info", [
       [ "caps", "namespacedev_1_1p2p.html#a22faee596b9e6c4fea6ae5b998b14f11", null ],
       [ "clientVersion", "namespacedev_1_1p2p.html#a13a222f19e9973a5cbd3085955ba2e51", null ],
       [ "host", "namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89", null ],
@@ -12,10 +12,10 @@ var libp2p_2_common_8h =
       [ "lastPing", "namespacedev_1_1p2p.html#a43c31a929138dbdff7d10a2781433879", null ],
       [ "port", "namespacedev_1_1p2p.html#aac6531409675c705d56aa1dd317a4d1b", null ]
     ] ],
-    [ "NodeIPEndpoint", "classdev_1_1p2p_1_1_node_i_p_endpoint.html", "classdev_1_1p2p_1_1_node_i_p_endpoint" ],
-    [ "NodeSpec", "structdev_1_1p2p_1_1_node_spec.html", "structdev_1_1p2p_1_1_node_spec" ],
-    [ "Node", "classdev_1_1p2p_1_1_node.html", "classdev_1_1p2p_1_1_node" ],
-    [ "hash< bi::address >", "structstd_1_1hash_3_01bi_1_1address_01_4.html", "structstd_1_1hash_3_01bi_1_1address_01_4" ],
+    [ "dev::p2p::NodeIPEndpoint", "classdev_1_1p2p_1_1_node_i_p_endpoint.html", "classdev_1_1p2p_1_1_node_i_p_endpoint" ],
+    [ "dev::p2p::NodeSpec", "structdev_1_1p2p_1_1_node_spec.html", "structdev_1_1p2p_1_1_node_spec" ],
+    [ "dev::p2p::Node", "classdev_1_1p2p_1_1_node.html", "classdev_1_1p2p_1_1_node" ],
+    [ "std::hash< bi::address >", "structstd_1_1hash_3_01bi_1_1address_01_4.html", "structstd_1_1hash_3_01bi_1_1address_01_4" ],
     [ "cnetdetails", "libp2p_2_common_8h.html#acf8a99e82c7f19f577df3ef7a0ead94b", null ],
     [ "cnetlog", "libp2p_2_common_8h.html#a18279f287548e238f7c79b8a3fc7b149", null ],
     [ "cnetnote", "libp2p_2_common_8h.html#a3a508f9c461662e1c84de288426c2e8f", null ],
@@ -69,11 +69,11 @@ var libp2p_2_common_8h =
     [ "isPrivateAddress", "libp2p_2_common_8h.html#aafcf7b3fa7098e4f7bdcb471794cbdc6", null ],
     [ "isPublicAddress", "libp2p_2_common_8h.html#a0331fd836972ccd099d8fb5c0387d931", null ],
     [ "isPublicAddress", "libp2p_2_common_8h.html#a8c95b56f8954977600cf4abf15a98ab1", null ],
-    [ "operator<<", "libp2p_2_common_8h.html#a188f7ace848fdf1c9c4b95486a76f7a2", null ],
-    [ "operator<<", "libp2p_2_common_8h.html#a6604731ce0c5ace0e4ee202b55acb40c", null ],
-    [ "operator<<", "libp2p_2_common_8h.html#aa0e6a539a3ef10663108085aa0fe7b08", null ],
-    [ "operator<<", "libp2p_2_common_8h.html#a29200277f2ab6428668c0a2b3315b50a", null ],
-    [ "operator<<", "libp2p_2_common_8h.html#a7274a51a9b4a19f79ef51d454368ce6a", null ],
+    [ "operator<<", "libp2p_2_common_8h.html#a69e33dd59c8c2bd92bea9a7bf7def5d6", null ],
+    [ "operator<<", "libp2p_2_common_8h.html#a0922f523dc8487ddfeb1667ef6f5c72a", null ],
+    [ "operator<<", "libp2p_2_common_8h.html#a3e17191bf183397f3d3b437980c56332", null ],
+    [ "operator<<", "libp2p_2_common_8h.html#a7816137e7c3a1413214e923ae7a70a21", null ],
+    [ "operator<<", "libp2p_2_common_8h.html#a6354cc3d0ae801710fb74a90b98c2eec", null ],
     [ "p2pPacketTypeToString", "libp2p_2_common_8h.html#a7e724ac9b0d0a40bb4d7ce3e7ff137a3", null ],
     [ "reasonOf", "libp2p_2_common_8h.html#a77d2562ff65b650dd9cbdead15920ed4", null ],
     [ "c_protocolVersion", "libp2p_2_common_8h.html#a668591af9c9e684f2a9cbc5919102f02", null ]

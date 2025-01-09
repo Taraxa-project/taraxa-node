@@ -1,7 +1,7 @@
 var logger__config_8hpp =
 [
-    [ "Config", "classtaraxa_1_1logger_1_1_config.html", "classtaraxa_1_1logger_1_1_config" ],
-    [ "OutputConfig", "structtaraxa_1_1logger_1_1_config_1_1_output_config.html", "structtaraxa_1_1logger_1_1_config_1_1_output_config" ],
+    [ "taraxa::logger::Config", "classtaraxa_1_1logger_1_1_config.html", "classtaraxa_1_1logger_1_1_config" ],
+    [ "taraxa::logger::Config::OutputConfig", "structtaraxa_1_1logger_1_1_config_1_1_output_config.html", "structtaraxa_1_1logger_1_1_config_1_1_output_config" ],
     [ "Verbosity", "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04", [
       [ "Silent", "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a4b39a43108e3d9e4ed99ca5ca126c1d8", null ],
       [ "Error", "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc", null ],

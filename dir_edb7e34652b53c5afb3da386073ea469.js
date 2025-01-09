@@ -4,9 +4,7 @@ var dir_edb7e34652b53c5afb3da386073ea469 =
     [ "Eth.cpp", "_eth_8cpp.html", "_eth_8cpp" ],
     [ "Eth.h", "_eth_8h.html", "_eth_8h" ],
     [ "LogFilter.cpp", "_log_filter_8cpp.html", null ],
-    [ "LogFilter.hpp", "_log_filter_8hpp.html", [
-      [ "LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter" ]
-    ] ],
+    [ "LogFilter.hpp", "_log_filter_8hpp.html", "_log_filter_8hpp" ],
     [ "watches.cpp", "watches_8cpp.html", "watches_8cpp" ],
     [ "watches.hpp", "watches_8hpp.html", "watches_8hpp" ]
 ];

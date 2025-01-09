@@ -1,6 +1,6 @@
 var _eth_8cpp =
 [
-    [ "EthImpl", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl" ],
+    [ "taraxa::net::rpc::eth::EthImpl", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl" ],
     [ "add", "_eth_8cpp.html#a8e7280252a06a8a2b7e275ce51d5e4b9", null ],
     [ "add", "_eth_8cpp.html#ac250db258e1a002bed69ea94e44511a2", null ],
     [ "NewEth", "_eth_8cpp.html#a32e76b365b5e214b3737e5ce8377e822", null ],

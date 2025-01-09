@@ -1,7 +1,13 @@
 <map id="taraxa::storage::migration::OldHeader" name="taraxa::storage::migration::OldHeader">
-<area shape="rect" id="node1" title=" " alt="" coords="118,320,310,361"/>
-<area shape="rect" id="node2" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header" title=" " alt="" coords="143,229,285,271"/>
-<area shape="rect" id="node3" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data" title=" " alt="" coords="142,139,286,180"/>
-<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,32"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="197,5,357,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="118,316,310,356"/>
+<area shape="rect" id="Node000002" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header" title=" " alt="" coords="143,227,285,267"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,281,217,316,211,316,211,281"/>
+<area shape="rect" id="Node000003" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data" title=" " alt="" coords="142,137,286,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="217,191,217,227,211,227,211,191"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,31"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="85,45,80,74,78,108,82,144,96,176,124,204,159,224,156,229,121,208,92,179,77,145,73,108,74,73,79,44"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="92,44,98,79,105,96,115,112,129,125,146,135,144,139,126,129,111,115,100,99,93,80,87,45"/>
+<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="197,5,357,31"/>
+<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="318,37,332,53,339,69,340,83,333,114,321,149,300,179,273,207,245,229,241,224,270,203,296,176,316,146,327,113,334,83,333,71,328,56,314,40"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="265,44,259,56,224,138,219,136,254,54,261,41"/>
 </map>

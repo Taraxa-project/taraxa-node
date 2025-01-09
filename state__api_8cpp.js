@@ -1,6 +1,6 @@
 var state__api_8cpp =
 [
-    [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ],
+    [ "taraxa::state_api::ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ],
     [ "c_method_args_rlp", "state__api_8cpp.html#a10d75343d15946959698a774ed92b9f5", null ],
     [ "c_method_args_rlp", "state__api_8cpp.html#ad023c2193c694a66b36bf860c728021a", null ],
     [ "c_method_args_rlp", "state__api_8cpp.html#a9ed40db6e1e0ed25cc9c32fa4aa6a2ca", null ],

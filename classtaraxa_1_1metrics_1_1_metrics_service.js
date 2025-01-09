@@ -2,7 +2,7 @@ var classtaraxa_1_1metrics_1_1_metrics_service =
 [
     [ "MetricsService", "classtaraxa_1_1metrics_1_1_metrics_service.html#af00ea8ceac750a7e9d2737ac4c625ec7", null ],
     [ "~MetricsService", "classtaraxa_1_1metrics_1_1_metrics_service.html#a0fa76af965bae4ea9279766b26b6a7e9", null ],
-    [ "getMetrics", "classtaraxa_1_1metrics_1_1_metrics_service.html#a9f363a7cb1400e6db2cd7daf43c48e63", null ],
+    [ "getMetrics", "classtaraxa_1_1metrics_1_1_metrics_service.html#afe07cbd16dd57d1f0263edb11a581bbb", null ],
     [ "start", "classtaraxa_1_1metrics_1_1_metrics_service.html#a42098e04517d7748be04ada7116f36b0", null ],
     [ "exposer_", "classtaraxa_1_1metrics_1_1_metrics_service.html#a102f90b38dee4f108dc5b942b267daf4", null ],
     [ "kPollingIntervalMs", "classtaraxa_1_1metrics_1_1_metrics_service.html#a083ec8748dd91cfb1bbe2da1f37032fb", null ],

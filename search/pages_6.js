@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['multiple_20taraxa_20capabilities_20support_8282',['Multiple taraxa capabilities support',['../md_libraries_core_libs_network_src_tarcap_packets_handlers_latest_readme.html',1,'(Global Namespace)'],['../md_libraries_core_libs_network_src_tarcap_packets_handlers_v4_readme.html',1,'(Global Namespace)']]]
+  ['git_20flow_20guide_0',['Git-flow Guide',['../md_doc_2git__practices.html',1,'']]],
+  ['guide_1',['guide',['../md_doc_2contributing.html',1,'Contributing Guide'],['../md_doc_2git__practices.html',1,'Git-flow Guide'],['../md_doc_2quickstart__guide.html',1,'Quickstart Guide']]],
+  ['guidelines_2',['C++ Best Practices Guidelines',['../md_doc_2coding__practices.html',1,'']]]
 ];

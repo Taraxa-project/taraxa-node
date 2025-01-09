@@ -1,9 +1,19 @@
 <map id="libraries/cli/include/cli/config.hpp" name="libraries/cli/include/cli/config.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="429,5,574,47"/>
-<area shape="rect" id="node2" href="$tools_8hpp.html" title=" " alt="" coords="429,95,574,136"/>
-<area shape="rect" id="node3" href="$cli_2src_2config_8cpp.html" title=" " alt="" coords="5,191,192,218"/>
-<area shape="rect" id="node5" href="$tools_8cpp.html" title=" " alt="" coords="217,191,397,218"/>
-<area shape="rect" id="node6" href="$taraxa-bootnode_2main_8cpp.html" title=" " alt="" coords="606,184,802,225"/>
-<area shape="rect" id="node7" href="$taraxad_2main_8cpp.html" title=" " alt="" coords="827,191,1029,218"/>
-<area shape="rect" id="node4" href="$config__updater_8cpp.html" title=" " alt="" coords="421,184,581,225"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="429,5,574,45"/>
+<area shape="rect" id="Node000002" href="$tools_8hpp.html" title=" " alt="" coords="429,93,574,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="504,59,504,93,499,93,499,59"/>
+<area shape="rect" id="Node000003" href="$cli_2src_2config_8cpp.html" title=" " alt="" coords="5,189,192,214"/>
+<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="447,53,126,191,124,186,444,48"/>
+<area shape="rect" id="Node000005" href="$tools_8cpp.html" title=" " alt="" coords="217,189,397,214"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="467,56,418,95,320,190,316,186,414,91,463,52"/>
+<area shape="rect" id="Node000006" href="$taraxa-bootnode_2main_8cpp.html" title=" " alt="" coords="606,181,802,221"/>
+<area shape="poly" id="edge9_Node000001_Node000006" title=" " alt="" coords="538,52,587,91,686,179,682,183,584,95,535,56"/>
+<area shape="rect" id="Node000007" href="$taraxad_2main_8cpp.html" title=" " alt="" coords="827,189,1029,214"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="561,48,901,186,899,191,559,53"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,136,153,191,152,186,414,130"/>
+<area shape="rect" id="Node000004" href="$config__updater_8cpp.html" title=" " alt="" coords="421,181,581,221"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="504,147,504,181,499,181,499,147"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="447,141,334,191,332,186,445,137"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="559,136,661,179,659,184,557,141"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="588,129,872,186,871,191,587,134"/>
 </map>

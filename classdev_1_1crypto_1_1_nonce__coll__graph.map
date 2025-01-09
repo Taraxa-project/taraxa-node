@@ -1,6 +1,9 @@
 <map id="dev::crypto::Nonce" name="dev::crypto::Nonce">
-<area shape="rect" id="node1" title="Generator for non&#45;repeating nonce material. The Nonce class should only be used when a non&#45;repeating ..." alt="" coords="9,185,151,212"/>
-<area shape="rect" id="node2" title=" " alt="" coords="5,89,69,115"/>
-<area shape="rect" id="node3" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="94,81,258,123"/>
-<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="97,5,255,32"/>
+<area shape="rect" id="Node000001" title="Generator for non&#45;repeating nonce material. The Nonce class should only be used when a non&#45;repeating ..." alt="" coords="9,183,151,208"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,87,69,113"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="51,124,77,181,72,184,46,126"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="94,80,258,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,132,122,161,95,184,92,180,118,157,147,128"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="97,5,255,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="179,44,179,80,173,80,173,44"/>
 </map>

@@ -1,9 +1,16 @@
 <map id="dev::p2p::RLPXHandshake" name="dev::p2p::RLPXHandshake">
-<area shape="rect" id="node1" title="Setup inbound or outbound connection for communication over RLPXFrameCoder. RLPx Spec: https://github..." alt="" coords="885,105,1076,131"/>
-<area shape="rect" id="node2" title=" " alt="" coords="501,5,728,47"/>
-<area shape="rect" id="node3" href="$classdev_1_1_key_pair.html" title=" " alt="" coords="564,71,665,98"/>
-<area shape="rect" id="node4" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="213,27,377,68"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,34,164,61"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="215,115,375,142"/>
-<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="531,199,698,226"/>
+<area shape="rect" id="Node000001" title="Setup inbound or outbound connection for communication over RLPXFrameCoder. RLPx Spec: https://github..." alt="" coords="885,103,1076,129"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="501,5,728,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="728,46,862,77,941,101,939,106,861,83,727,51"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="215,105,375,130"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="389,114,885,114,885,119,389,120"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_key_pair.html" title=" " alt="" coords="564,147,665,173"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="348,131,402,144,487,154,564,157,564,162,487,159,401,149,347,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="678,151,861,129,887,126,888,131,862,135,679,156"/>
+<area shape="rect" id="Node000005" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="213,173,377,213"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="391,196,477,189,501,181,563,167,565,172,502,187,478,195,391,201"/>
+<area shape="rect" id="Node000006" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,181,164,206"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="178,191,213,191,213,196,178,196"/>
+<area shape="rect" id="Node000007" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="531,197,698,222"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="711,204,785,195,860,177,916,153,960,126,962,131,918,158,862,183,786,200,712,209"/>
 </map>

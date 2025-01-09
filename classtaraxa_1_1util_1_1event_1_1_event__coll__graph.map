@@ -1,6 +1,10 @@
 <map id="taraxa::util::event::Event&lt; Owner, Payload &gt;" name="taraxa::util::event::Event&lt; Owner, Payload &gt;">
-<area shape="rect" id="node1" title=" " alt="" coords="811,13,1009,54"/>
-<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="565,42,761,83"/>
-<area shape="rect" id="node3" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,13,516,54"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,5,207,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="811,13,1009,53"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="565,41,761,81"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="774,45,810,41,811,47,775,51"/>
+<area shape="rect" id="Node000003" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,13,516,53"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="530,25,540,25,787,25,810,25,810,31,787,30,540,30,530,30"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="530,43,566,47,565,53,529,49"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,5,207,60"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="220,30,300,30,300,35,220,35"/>
 </map>

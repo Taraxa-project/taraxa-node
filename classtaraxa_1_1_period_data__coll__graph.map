@@ -1,4 +1,5 @@
 <map id="taraxa::PeriodData" name="taraxa::PeriodData">
-<area shape="rect" id="node1" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="5,109,149,136"/>
-<area shape="rect" id="node2" title=" " alt="" coords="47,5,107,32"/>
+<area shape="rect" id="Node000001" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="5,108,149,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="47,5,107,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,45,80,108,75,108,75,45"/>
 </map>

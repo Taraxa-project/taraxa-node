@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location" title=" " alt="" coords="5,5,164,47"/>
-<area shape="rect" id="node2" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html" title=" " alt="" coords="212,5,471,47"/>
-<area shape="rect" id="node3" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html" title=" " alt="" coords="519,5,739,47"/>
+<area shape="rect" id="Node000000" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data" title=" " alt="" coords="5,5,149,45"/>
+<area shape="rect" id="Node000001" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header" title=" " alt="" coords="197,5,340,45"/>
+<area shape="poly" id="edge89_Node000000_Node000001" title=" " alt="" coords="163,23,197,23,197,28,163,28"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1storage_1_1migration_1_1_old_header.html" title=" " alt="" coords="388,5,580,45"/>
+<area shape="poly" id="edge90_Node000001_Node000002" title=" " alt="" coords="354,23,388,23,388,28,354,28"/>
 </map>

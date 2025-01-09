@@ -1,10 +1,17 @@
 <map id="taraxa::network::tarcap::TaraxaPeer" name="taraxa::network::tarcap::TaraxaPeer">
-<area shape="rect" id="node1" title=" " alt="" coords="752,151,927,193"/>
-<area shape="rect" id="node2" title=" " alt="" coords="385,5,535,32"/>
-<area shape="rect" id="node3" href="$class_expiration_block_number_cache.html" title=" " alt="" coords="352,93,568,134"/>
-<area shape="rect" id="node4" href="$class_expiration_cache.html" title=" " alt="" coords="9,93,176,134"/>
-<area shape="rect" id="node5" title=" " alt="" coords="431,159,489,185"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="380,209,540,236"/>
-<area shape="rect" id="node7" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="373,261,547,302"/>
-<area shape="rect" id="node8" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,261,180,302"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="760,94,935,134"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="393,5,543,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="557,24,645,37,737,59,776,74,811,91,809,96,774,79,735,65,644,42,556,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="439,55,497,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="511,69,736,94,760,97,759,103,736,99,510,74"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="388,104,548,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="562,113,760,112,760,117,562,119"/>
+<area shape="rect" id="Node000005" href="$class_expiration_block_number_cache.html" title=" " alt="" coords="360,207,576,247"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="590,233,663,227,700,219,735,208,763,192,789,173,828,132,832,136,792,177,766,197,737,212,701,224,664,232,590,238"/>
+<area shape="rect" id="Node000006" href="$class_expiration_cache.html" title=" " alt="" coords="5,215,188,240"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="202,225,360,225,360,230,202,230"/>
+<area shape="rect" id="Node000007" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="381,271,555,311"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="569,294,610,291,653,284,695,272,735,254,769,228,797,195,819,161,835,133,839,135,824,164,802,198,773,232,737,259,697,277,654,289,611,296,569,299"/>
+<area shape="rect" id="Node000008" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="9,271,184,311"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="198,289,380,289,380,294,198,294"/>
 </map>

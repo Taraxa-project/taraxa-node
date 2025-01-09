@@ -14,7 +14,7 @@ var classgraphql_1_1taraxa_1_1_dag_block =
     [ "getVdf", "classgraphql_1_1taraxa_1_1_dag_block.html#aa93de8b3a8af3da82d2150f25eec0d7e", null ],
     [ "dag_block_", "classgraphql_1_1taraxa_1_1_dag_block.html#a9a80c8e4a5bca224e6cb4888f725170e", null ],
     [ "final_chain_", "classgraphql_1_1taraxa_1_1_dag_block.html#a8b4d74506fa6e9429481010972bea2ea", null ],
-    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_dag_block.html#a7f3ea2e6d68a21a09dc04c5fbe290afe", null ],
+    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_dag_block.html#a0f9035f42b6398741824630716afc583", null ],
     [ "mu_", "classgraphql_1_1taraxa_1_1_dag_block.html#a686e67242e3dd539c3e1e51d8267484b", null ],
     [ "pbft_manager_", "classgraphql_1_1taraxa_1_1_dag_block.html#a4ca8c98fa0895a2d468b3dbc22f835f7", null ],
     [ "period_", "classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110", null ],

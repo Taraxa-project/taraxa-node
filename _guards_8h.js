@@ -1,9 +1,9 @@
 var _guards_8h =
 [
-    [ "GenericGuardBool", "structdev_1_1_generic_guard_bool.html", "structdev_1_1_generic_guard_bool" ],
-    [ "GenericUnguardBool", "structdev_1_1_generic_unguard_bool.html", "structdev_1_1_generic_unguard_bool" ],
-    [ "GenericUnguardSharedBool", "structdev_1_1_generic_unguard_shared_bool.html", "structdev_1_1_generic_unguard_shared_bool" ],
-    [ "Notified", "classdev_1_1_notified.html", "classdev_1_1_notified" ],
+    [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", "structdev_1_1_generic_guard_bool" ],
+    [ "dev::GenericUnguardBool< MutexType >", "structdev_1_1_generic_unguard_bool.html", "structdev_1_1_generic_unguard_bool" ],
+    [ "dev::GenericUnguardSharedBool< MutexType >", "structdev_1_1_generic_unguard_shared_bool.html", "structdev_1_1_generic_unguard_shared_bool" ],
+    [ "dev::Notified< N >", "classdev_1_1_notified.html", "classdev_1_1_notified" ],
     [ "DEV_GUARDED", "_guards_8h.html#ad9088522c64873e329d5ad5895232e96", null ],
     [ "DEV_READ_GUARDED", "_guards_8h.html#a9780f3efd682b2a1716c56352c82bfdf", null ],
     [ "DEV_READ_UNGUARDED", "_guards_8h.html#a223828afb008b0a012038bad342061c8", null ],

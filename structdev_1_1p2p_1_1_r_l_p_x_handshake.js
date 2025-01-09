@@ -20,7 +20,7 @@ var structdev_1_1p2p_1_1_r_l_p_x_handshake =
     [ "RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a9f7b47969aa08e6656c67125a16dbb45", null ],
     [ "RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a0409cdfa2a8f8213e5ad3169e065efa6", null ],
     [ "cancel", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ad87a1fa85e6b2a9a891ead173ebfaae9", null ],
-    [ "connectionDirectionString", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a021c9db633bf5ada237c1b52f18ea2e7", null ],
+    [ "connectionDirectionString", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ad737fa0af6de6681282846e9c8eeeb5b", null ],
     [ "error", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#adcbc9beafa0baca8cb2854ccb8311516", null ],
     [ "readAck", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4b0e936deed37aaf1d2e93f946816c44", null ],
     [ "readAckEIP8", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#aa5ee4e3d636e794aa117646de4c365af", null ],

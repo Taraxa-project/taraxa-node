@@ -1,4 +1,5 @@
 <map id="taraxa::network::tarcap::GetPbftSyncPacket" name="taraxa::network::tarcap::GetPbftSyncPacket">
-<area shape="rect" id="node1" title=" " alt="" coords="5,95,180,136"/>
-<area shape="rect" id="node2" title=" " alt="" coords="63,5,123,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,180,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="63,5,123,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,44,95,93,90,93,90,44"/>
 </map>

@@ -1,12 +1,24 @@
 <map id="libraries/core_libs/network/rpc/eth/data.hpp" name="libraries/core_libs/network/rpc/eth/data.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="221,5,411,47"/>
-<area shape="rect" id="node2" href="$_debug_8cpp.html" title=" " alt="" coords="5,95,181,136"/>
-<area shape="rect" id="node3" href="$_eth_8h.html" title=" " alt="" coords="69,273,235,315"/>
-<area shape="rect" id="node6" href="$_log_filter_8hpp.html" title=" " alt="" coords="354,95,569,136"/>
-<area shape="rect" id="node8" href="$watches_8hpp.html" title=" " alt="" coords="257,184,471,225"/>
-<area shape="rect" id="node10" href="$src_2ws__server_8cpp.html" title=" " alt="" coords="593,95,791,136"/>
-<area shape="rect" id="node4" href="$_eth_8cpp.html" title=" " alt="" coords="334,363,514,404"/>
-<area shape="rect" id="node5" href="$node_8cpp.html" title=" " alt="" coords="80,363,224,404"/>
-<area shape="rect" id="node7" href="$_log_filter_8cpp.html" title=" " alt="" coords="547,184,762,225"/>
-<area shape="rect" id="node9" href="$watches_8cpp.html" title=" " alt="" coords="259,273,472,315"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="221,5,411,45"/>
+<area shape="rect" id="Node000002" href="$_debug_8cpp.html" title=" " alt="" coords="5,93,181,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="255,53,143,96,141,91,254,48"/>
+<area shape="rect" id="Node000003" href="$_eth_8h.html" title=" " alt="" coords="69,269,235,309"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="299,58,166,270,162,268,295,56"/>
+<area shape="rect" id="Node000006" href="$_log_filter_8hpp.html" title=" " alt="" coords="354,93,569,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="361,50,431,91,428,96,358,55"/>
+<area shape="rect" id="Node000008" href="$watches_8hpp.html" title=" " alt="" coords="257,181,471,221"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="326,58,345,133,360,180,355,182,340,134,321,60"/>
+<area shape="rect" id="Node000010" href="$src_2ws__server_8cpp.html" title=" " alt="" coords="593,93,791,133"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="412,46,610,91,609,96,411,51"/>
+<area shape="rect" id="Node000004" href="$_eth_8cpp.html" title=" " alt="" coords="334,357,514,397"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="226,311,365,355,364,360,224,316"/>
+<area shape="rect" id="Node000005" href="$node_8cpp.html" title=" " alt="" coords="80,357,224,397"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="155,323,155,357,149,357,149,323"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="476,146,487,180,495,222,496,267,486,310,470,337,450,359,446,355,466,334,482,308,491,266,489,222,482,181,471,147"/>
+<area shape="rect" id="Node000007" href="$_log_filter_8cpp.html" title=" " alt="" coords="547,181,762,221"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="517,137,613,179,611,184,515,141"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="431,144,387,183,384,179,428,140"/>
+<area shape="poly" id="edge9_Node000008_Node000003" title=" " alt="" coords="306,229,199,272,197,267,304,224"/>
+<area shape="rect" id="Node000009" href="$watches_8cpp.html" title=" " alt="" coords="259,269,472,309"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="367,235,368,269,362,269,362,235"/>
 </map>

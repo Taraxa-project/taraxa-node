@@ -15,7 +15,7 @@ var classtaraxa_1_1net_1_1_debug =
     [ "to_address", "classtaraxa_1_1net_1_1_debug.html#a0b5b74af4afa0c0d654cb91845fe54f0", null ],
     [ "to_eth_trx", "classtaraxa_1_1net_1_1_debug.html#af06c2d30414942b7f6764127bdb518a8", null ],
     [ "to_eth_trx", "classtaraxa_1_1net_1_1_debug.html#a9c0c389487a4e3607f9ce55a00523bb1", null ],
-    [ "to_eth_trxs", "classtaraxa_1_1net_1_1_debug.html#af6313fcf1881e7596d2e7e6a1cf644b0", null ],
+    [ "to_eth_trxs", "classtaraxa_1_1net_1_1_debug.html#aa0044575ce053682f1b530e8637f9b3a", null ],
     [ "trace_call", "classtaraxa_1_1net_1_1_debug.html#a9a7b41d07b4b4eda70c39c11aad83ccb", null ],
     [ "trace_replayBlockTransactions", "classtaraxa_1_1net_1_1_debug.html#a3f3be1de7356b5d893f67a47a16cbc3f", null ],
     [ "trace_replayTransaction", "classtaraxa_1_1net_1_1_debug.html#a251807dd63caad7a4b9f197cb9402092", null ],

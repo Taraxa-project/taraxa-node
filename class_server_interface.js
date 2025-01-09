@@ -15,8 +15,8 @@ var class_server_interface =
     [ "bindAndAddMethod", "class_server_interface.html#aa2a8f065c3e92b7050ba6e31064e965a", null ],
     [ "bindAndAddNotification", "class_server_interface.html#ab244206dee61b7de646ae0b4d5ced799", null ],
     [ "implementedModules", "class_server_interface.html#aba54a65f7c1714f2c38f76f7744b69de", null ],
-    [ "methods", "class_server_interface.html#af7af014b31d7fbd7bb3880db1b980efe", null ],
-    [ "notifications", "class_server_interface.html#a19b8ea1735ae989211a9ba6250c18124", null ],
+    [ "methods", "class_server_interface.html#ae5fba4201c582c6e19b5043fedefe612", null ],
+    [ "notifications", "class_server_interface.html#a0c268d7ba3ee51f9b46e7433b5520ab2", null ],
     [ "m_methods", "class_server_interface.html#a9fd42772552cf2c0b31b7dd4b054286f", null ],
     [ "m_notifications", "class_server_interface.html#aae31d8e04774dc4388c3848a7a3e840a", null ]
 ];

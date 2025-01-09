@@ -1,6 +1,10 @@
 <map id="taraxa::util::RLPDecoderRef" name="taraxa::util::RLPDecoderRef">
-<area shape="rect" id="node1" title=" " alt="" coords="56,213,257,240"/>
-<area shape="rect" id="node2" href="$classdev_1_1_r_l_p.html" title=" " alt="" coords="118,124,195,151"/>
-<area shape="rect" id="node3" href="$classdev_1_1vector__ref.html" title=" " alt="" coords="5,5,172,47"/>
-<area shape="rect" id="node4" title=" " alt="" coords="196,13,256,39"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,299,207,324"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_r_l_p.html" title=" " alt="" coords="67,211,145,236"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,250,109,298,103,298,103,250"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1vector__ref.html" title=" " alt="" coords="155,93,321,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="206,144,122,213,119,208,203,140"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="40,5,100,31"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="67,45,61,86,65,133,81,176,100,209,96,212,76,178,59,134,56,86,61,44"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="104,35,205,91,203,95,101,40"/>
 </map>

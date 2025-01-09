@@ -3,7 +3,7 @@ var class_modular_server =
     [ "ModularServer", "class_modular_server.html#ac8163e6745ca706bc97b439246510e8f", null ],
     [ "~ModularServer", "class_modular_server.html#ae1e7bfbc69320a618a2ae07251581334", null ],
     [ "addConnector", "class_modular_server.html#a9c93b3f82a07078dbe88b27166d69eab", null ],
-    [ "connector", "class_modular_server.html#ab033a1864f4a6d99f5f7e267a9798ee4", null ],
+    [ "connector", "class_modular_server.html#a19552defd8f4b7574fa38b50e2471a50", null ],
     [ "HandleMethodCall", "class_modular_server.html#a5578216b749247fb41b7adcd940c9fb0", null ],
     [ "HandleNotificationCall", "class_modular_server.html#aad67bbf3d4777952cc752f6a653ada72", null ],
     [ "modules", "class_modular_server.html#a78fc6f0b521b102f9eb43c458507ab32", null ],

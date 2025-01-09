@@ -1,4 +1,5 @@
 <map id="taraxa::network::tarcap::GetPillarVotesBundlePacket" name="taraxa::network::tarcap::GetPillarVotesBundlePacket">
-<area shape="rect" id="node1" title=" " alt="" coords="5,95,215,136"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="30,5,190,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,215,133"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="30,5,190,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,44,113,93,107,93,107,44"/>
 </map>

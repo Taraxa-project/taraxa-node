@@ -1,7 +1,13 @@
 <map id="taraxa::network::threadpool::PacketsThreadPool" name="taraxa::network::threadpool::PacketsThreadPool">
-<area shape="rect" id="node1" title="PacketsThreadPool for concurrent packets processing." alt="" coords="31,347,233,388"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html" title=" " alt="" coords="31,243,233,284"/>
-<area shape="rect" id="node3" title=" " alt="" coords="82,5,142,32"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html" title=" " alt="" coords="345,139,548,180"/>
-<area shape="rect" id="node5" title=" " alt="" coords="257,250,321,277"/>
+<area shape="rect" id="Node000001" title="PacketsThreadPool for concurrent packets processing." alt="" coords="30,343,233,383"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="82,5,142,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,42,61,87,27,147,15,180,9,214,10,247,21,279,34,298,51,315,89,340,87,345,47,319,30,302,16,281,5,248,4,213,10,179,22,145,56,84,90,39"/>
+<area shape="rect" id="Node000003" href="$classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html" title=" " alt="" coords="30,240,233,280"/>
+<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="116,44,126,177,132,240,127,240,121,178,111,45"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html" title=" " alt="" coords="345,137,548,177"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="153,33,401,135,399,140,151,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,294,134,343,129,343,129,294"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="375,184,192,242,190,237,374,179"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="257,247,321,273"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="261,282,163,345,160,340,258,278"/>
 </map>

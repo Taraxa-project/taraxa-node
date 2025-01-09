@@ -3,7 +3,7 @@ var classtaraxa_1_1net_1_1_http_connection =
     [ "HttpConnection", "classtaraxa_1_1net_1_1_http_connection.html#a4a9d0be7fedc6352e38a8bc88a2e7173", null ],
     [ "~HttpConnection", "classtaraxa_1_1net_1_1_http_connection.html#a4179fbe3ce52f9fdad84c57c99a06205", null ],
     [ "getShared", "classtaraxa_1_1net_1_1_http_connection.html#a8221a76fcff7bf6a65ae5b999d60947d", null ],
-    [ "getSocket", "classtaraxa_1_1net_1_1_http_connection.html#a5bec84d7447d85a63eaa31f1dbff6843", null ],
+    [ "getSocket", "classtaraxa_1_1net_1_1_http_connection.html#a3f79e3499ef9a84185d93415dd74d325", null ],
     [ "read", "classtaraxa_1_1net_1_1_http_connection.html#a548258e56edec3666c55020db185d7f3", null ],
     [ "stop", "classtaraxa_1_1net_1_1_http_connection.html#a3290c993ee0f94e251c57ae0713df542", null ],
     [ "buffer_", "classtaraxa_1_1net_1_1_http_connection.html#a806de76133a77b6846791b480539cb67", null ],

@@ -1,10 +1,19 @@
 <map id="taraxa::DagBlock" name="taraxa::DagBlock">
-<area shape="rect" id="node1" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="907,113,1041,139"/>
-<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="483,5,721,47"/>
-<area shape="rect" id="node3" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="525,71,679,112"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="283,71,433,112"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,37,181,79"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,103,181,144"/>
-<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="522,157,682,183"/>
-<area shape="rect" id="node8" title=" " alt="" coords="572,217,632,243"/>
+<area shape="rect" id="Node000001" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="931,135,1065,161"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="546,43,706,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="720,56,812,67,861,77,908,91,949,111,982,133,979,138,946,116,906,96,859,82,811,72,719,61"/>
+<area shape="rect" id="Node000003" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="507,93,745,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="759,123,931,139,930,144,759,128"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="326,101,390,126"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="404,111,506,111,506,116,404,116"/>
+<area shape="rect" id="Node000005" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="549,157,703,197"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="717,172,906,160,930,157,931,162,907,165,717,178"/>
+<area shape="rect" id="Node000006" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="283,157,433,197"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="447,175,549,175,549,180,447,180"/>
+<area shape="rect" id="Node000007" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,125,181,165"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="195,155,283,166,282,171,195,160"/>
+<area shape="rect" id="Node000008" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,189,181,229"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="195,194,282,184,283,189,195,200"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="596,222,656,247"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="670,234,779,231,843,222,906,206,948,184,980,159,984,163,950,188,908,210,844,227,779,236,670,240"/>
 </map>

@@ -20,7 +20,7 @@ var classgraphql_1_1taraxa_1_1_transaction =
     [ "getV", "classgraphql_1_1taraxa_1_1_transaction.html#a98f7316ba927906ea251d40bd903b366", null ],
     [ "getValue", "classgraphql_1_1taraxa_1_1_transaction.html#ac41d7906dd0c476a3fc75ee0d63f5b38", null ],
     [ "final_chain_", "classgraphql_1_1taraxa_1_1_transaction.html#a6d95c8547d2e80024579750385b5ddcd", null ],
-    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_transaction.html#afd0799c56bc51a537ec4310077aba670", null ],
+    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_transaction.html#a01604731ce6a6817c95b22e646ff9f43", null ],
     [ "location_", "classgraphql_1_1taraxa_1_1_transaction.html#a216e3ea16415e8da3c37cbb0161ab3b2", null ],
     [ "receipt_", "classgraphql_1_1taraxa_1_1_transaction.html#a4129ca4f8bc6d3f45dc2e4e3372d122f", null ],
     [ "transaction_", "classgraphql_1_1taraxa_1_1_transaction.html#a548eeebd06374697ae07dce6f35f56e5", null ],

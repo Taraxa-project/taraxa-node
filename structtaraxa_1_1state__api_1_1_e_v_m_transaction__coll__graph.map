@@ -1,5 +1,7 @@
 <map id="taraxa::state_api::EVMTransaction" name="taraxa::state_api::EVMTransaction">
-<area shape="rect" id="node1" title=" " alt="" coords="81,95,221,136"/>
-<area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
-<area shape="rect" id="node3" title=" " alt="" coords="190,5,245,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,93,221,133"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,40,140,92,135,95,99,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="190,5,245,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,43,166,95,162,92,199,40"/>
 </map>

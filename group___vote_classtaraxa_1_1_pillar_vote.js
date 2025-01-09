@@ -10,7 +10,7 @@ var group___vote_classtaraxa_1_1_pillar_vote =
     [ "getPeriod", "group___vote.html#aa7fe2408af3fb75b7eac91248180ba46", null ],
     [ "rlp", "group___vote.html#ad85db86950b2bcd3f200a48610c585e7", null ],
     [ "sha3", "group___vote.html#ac7577d9f27a4c10bfd39fd493001d209", null ],
-    [ "kNoSigRlpSize", "group___vote.html#a7ddd0af2ba8f0807c0cdc60647abd731", null ],
-    [ "kStandardRlpSize", "group___vote.html#a8f1e10bfda7bcb403c1cfbc2df5b7c51", null ],
+    [ "kNoSigRlpSize", "group___vote.html#a00a03f3ab80fe0ca4b6a11f8560f554b", null ],
+    [ "kStandardRlpSize", "group___vote.html#a857200d4b36b86ab7d71e4e41db16dc1", null ],
     [ "period_", "group___vote.html#a270cca8c747a9592bf1e99659e1724a2", null ]
 ];

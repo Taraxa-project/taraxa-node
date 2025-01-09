@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['introducing_20taraxa_8281',['Introducing Taraxa',['../index.html',1,'']]]
+  ['flow_20guide_0',['Git-flow Guide',['../md_doc_2git__practices.html',1,'']]]
 ];
