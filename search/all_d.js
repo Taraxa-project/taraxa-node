@@ -80,7 +80,7 @@ var searchData=
   ['boost_3a_3alog_77',['log',['../namespaceboost_1_1log.html',1,'boost']]],
   ['boost_5flog_5finline_5fglobal_5flogger_5fctor_5fargs_78',['BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS',['../namespacedev.html#a129cce80f255c924473b074e385ac2fd',1,'dev']]],
   ['boot_5fnode_5fbucket_5fsize_79',['BOOT_NODE_BUCKET_SIZE',['../classdev_1_1p2p_1_1_node_table.html#abdec26d244370b75ffc0f4a678310359',1,'dev::p2p::NodeTable']]],
-  ['boot_5fnodes_80',['boot_nodes',['../classtaraxa_1_1cli_1_1_config.html#a429389baad782d37e15107c72f3e1eb8',1,'taraxa::cli::Config::BOOT_NODES'],['../structtaraxa_1_1_network_config.html#a544ad7ce2c33b3c1e0174e4b61deb9a7',1,'taraxa::NetworkConfig::boot_nodes']]],
+  ['boot_5fnodes_80',['boot_nodes',['../structtaraxa_1_1_network_config.html#a544ad7ce2c33b3c1e0174e4b61deb9a7',1,'taraxa::NetworkConfig::boot_nodes'],['../classtaraxa_1_1cli_1_1_config.html#a429389baad782d37e15107c72f3e1eb8',1,'taraxa::cli::Config::BOOT_NODES']]],
   ['boot_5fnodes_5fappend_81',['BOOT_NODES_APPEND',['../classtaraxa_1_1cli_1_1_config.html#aafd8e83fb66d62165e39cdc4941b8033',1,'taraxa::cli::Config']]],
   ['bp_5fconfig_5f_82',['bp_config_',['../group___d_a_g.html#a30f65fcb04c9d7676e89cc8fde087fb4',1,'taraxa::DagBlockProposer']]],
   ['branch_20naming_20conventions_83',['Branch naming conventions',['../md_doc_2git__practices.html#autotoc_md214',1,'']]],

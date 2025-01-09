@@ -20,5 +20,9 @@ var constants_8hpp =
     [ "kPeriodicEventsThreadCount", "constants_8hpp.html#a7ecb57c956c8d0467fb9514f5e85c005", null ],
     [ "kRecentlyFinalizedTransactionsFactor", "constants_8hpp.html#a017ff573490da91468122ecd635edb96", null ],
     [ "kTaraxaSystemAccount", "constants_8hpp.html#a2d2dbd306cf75267a8ecff658d013f66", null ],
+    [ "kTxDataNonZeroGas", "constants_8hpp.html#a5f35695ecff612fd5ac591d1b019b18d", null ],
+    [ "kTxDataZeroGas", "constants_8hpp.html#a1c46c3dda9fbb884cd54cf004f3d7668", null ],
+    [ "kTxGas", "constants_8hpp.html#a451b7fc195fe6bed9059d2e6cb358f27", null ],
+    [ "kTxGasContractCreation", "constants_8hpp.html#a09fc7fd18dc5350613a94dad25e7ba0f", null ],
     [ "kV3NetworkVersion", "constants_8hpp.html#aa05ef1169875a95c1f2c76038cd546f1", null ]
 ];

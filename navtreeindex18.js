@@ -1,5 +1,9 @@
 var NAVTREEINDEX18 =
 {
+"group___transaction.html#classtaraxa_1_1_transaction_manager":[15,4,2],
+"group___transaction.html#classtaraxa_1_1_transaction_queue":[15,4,3],
+"group___transaction.html#gae7551c287ae57b46d56d27de67df61e7":[15,4,4],
+"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a129e8109f319870e328cc7a1d5b5cae3":[15,4,4,3],
 "group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a157d034f9c98a305eb73776582550027":[15,4,4,0],
 "group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a2f5650e484fa195949ac6c8d11dca4fd":[15,4,4,2],
 "group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7abc0b8ac122f1b32c7e897f89b77a37e7":[15,4,4,1],
@@ -245,9 +249,5 @@ var NAVTREEINDEX18 =
 "latest_2common_2ext__syncing__packet__handler_8hpp_source.html":[18,0,1,4,1,1,0,0,1,0,0,3],
 "latest_2common_2ext__votes__packet__handler_8hpp.html":[18,0,1,4,1,1,0,0,1,0,0,4],
 "latest_2common_2ext__votes__packet__handler_8hpp_source.html":[18,0,1,4,1,1,0,0,1,0,0,4],
-"latest_2common_2packet__handler_8hpp.html":[18,0,1,4,1,1,0,0,1,0,0,5],
-"latest_2common_2packet__handler_8hpp.html#a69592200226e44e63176bbfb4c737d4c":[18,0,1,4,1,1,0,0,1,0,0,5,2],
-"latest_2common_2packet__handler_8hpp.html#aa58b9cec14710dd8284033781fae5a6e":[18,0,1,4,1,1,0,0,1,0,0,5,1],
-"latest_2common_2packet__handler_8hpp_source.html":[18,0,1,4,1,1,0,0,1,0,0,5],
-"latest_2dag__block__packet__handler_8cpp.html":[18,0,1,4,1,3,0,0,0,0]
+"latest_2common_2packet__handler_8hpp.html":[18,0,1,4,1,1,0,0,1,0,0,5]
 };

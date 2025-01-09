@@ -22,6 +22,7 @@ var structtaraxa_1_1_transaction =
     [ "getValue", "structtaraxa_1_1_transaction.html#aef4359bfb2f9011dfe2d025a928d8b40", null ],
     [ "getVRS", "structtaraxa_1_1_transaction.html#afc548040d0786be0722136aa94d4298a", null ],
     [ "hash_for_signature", "structtaraxa_1_1_transaction.html#af492cd79a6fcf8ff4403062401e10ae2", null ],
+    [ "intrinsicGasCovered", "structtaraxa_1_1_transaction.html#a61de1371a9330cb5f304e0ef2cc1066c", null ],
     [ "isZero", "structtaraxa_1_1_transaction.html#ac01847a061aae8c94391cc9a0a50333e", null ],
     [ "operator==", "structtaraxa_1_1_transaction.html#a183f04919111318aa9732a40f849718e", null ],
     [ "rlp", "structtaraxa_1_1_transaction.html#ab1d1cf3ac836c41e86babfc6c59a0fb3", null ],

@@ -31,7 +31,7 @@ var searchData=
   ['genericguardbool_28',['genericguardbool',['../structdev_1_1_generic_guard_bool.html#a094757d358b87eb4fc99e89163722819',1,'dev::GenericGuardBool::GenericGuardBool()'],['../structdev_1_1_generic_guard_bool.html',1,'dev::GenericGuardBool&lt; GuardType, MutexType &gt;']]],
   ['genericunguardbool_29',['genericunguardbool',['../structdev_1_1_generic_unguard_bool.html#aa21aac5dd65c4aabb9b72c728cca497d',1,'dev::GenericUnguardBool::GenericUnguardBool()'],['../structdev_1_1_generic_unguard_bool.html',1,'dev::GenericUnguardBool&lt; MutexType &gt;']]],
   ['genericunguardsharedbool_30',['genericunguardsharedbool',['../structdev_1_1_generic_unguard_shared_bool.html',1,'dev::GenericUnguardSharedBool&lt; MutexType &gt;'],['../structdev_1_1_generic_unguard_shared_bool.html#afb46de6b3e76f522f4166ca74cbd3645',1,'dev::GenericUnguardSharedBool::GenericUnguardSharedBool()']]],
-  ['genesis_31',['genesis',['../structtaraxa_1_1_full_node_config.html#aa98437ebd4c43071e890584ded2f22d0',1,'taraxa::FullNodeConfig::genesis'],['../classtaraxa_1_1cli_1_1_config.html#a1e2dc176594b61dd572df519b8f63752',1,'taraxa::cli::Config::GENESIS']]],
+  ['genesis_31',['genesis',['../classtaraxa_1_1cli_1_1_config.html#a1e2dc176594b61dd572df519b8f63752',1,'taraxa::cli::Config::GENESIS'],['../structtaraxa_1_1_full_node_config.html#aa98437ebd4c43071e890584ded2f22d0',1,'taraxa::FullNodeConfig::genesis']]],
   ['genesis_2ecpp_32',['genesis.cpp',['../genesis_8cpp.html',1,'']]],
   ['genesis_2ehpp_33',['genesis.hpp',['../genesis_8hpp.html',1,'']]],
   ['genesis_5fblock_5f_34',['genesis_block_',['../group___d_a_g.html#ac2cbd5c2284f9a75e3eb012ad2ea371d',1,'taraxa::DagManager']]],

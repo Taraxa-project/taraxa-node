@@ -31,7 +31,7 @@ var searchData=
   ['blocks_5fper_5fyear_28',['blocks_per_year',['../namespacetaraxa_1_1state__api.html#ac4aaee6dbf60f4917c72a4d660a6c576',1,'taraxa::state_api::DPOSConfig']]],
   ['blocks_5fstats_5f_29',['blocks_stats_',['../classtaraxa_1_1rewards_1_1_stats.html#a4655cca7130eb3e898fe8373df8c7035',1,'taraxa::rewards::Stats']]],
   ['boot_5fnode_5fbucket_5fsize_30',['BOOT_NODE_BUCKET_SIZE',['../classdev_1_1p2p_1_1_node_table.html#abdec26d244370b75ffc0f4a678310359',1,'dev::p2p::NodeTable']]],
-  ['boot_5fnodes_31',['boot_nodes',['../classtaraxa_1_1cli_1_1_config.html#a429389baad782d37e15107c72f3e1eb8',1,'taraxa::cli::Config::BOOT_NODES'],['../structtaraxa_1_1_network_config.html#a544ad7ce2c33b3c1e0174e4b61deb9a7',1,'taraxa::NetworkConfig::boot_nodes']]],
+  ['boot_5fnodes_31',['boot_nodes',['../structtaraxa_1_1_network_config.html#a544ad7ce2c33b3c1e0174e4b61deb9a7',1,'taraxa::NetworkConfig::boot_nodes'],['../classtaraxa_1_1cli_1_1_config.html#a429389baad782d37e15107c72f3e1eb8',1,'taraxa::cli::Config::BOOT_NODES']]],
   ['boot_5fnodes_5fappend_32',['BOOT_NODES_APPEND',['../classtaraxa_1_1cli_1_1_config.html#aafd8e83fb66d62165e39cdc4941b8033',1,'taraxa::cli::Config']]],
   ['bp_5fconfig_5f_33',['bp_config_',['../group___d_a_g.html#a30f65fcb04c9d7676e89cc8fde087fb4',1,'taraxa::DagBlockProposer']]],
   ['bridge_5fcontract_5faddress_34',['bridge_contract_address',['../structtaraxa_1_1_ficus_hardfork_config.html#a058654fabef9c7141642683db47b91e3',1,'taraxa::FicusHardforkConfig']]],

@@ -1,5 +1,9 @@
 var NAVTREEINDEX20 =
 {
+"logger_8hpp.html":[18,0,1,5,0,0,0],
+"logger_8hpp.html#a159ca84d25a5487d8e81e4438725df19":[18,0,1,5,0,0,0,0],
+"logger_8hpp.html#a32d1e1885c2d8304b53417ceb5a0da6a":[18,0,1,5,0,0,0,6],
+"logger_8hpp.html#a41399a11426ea3272948aca283625fb5":[18,0,1,5,0,0,0,2],
 "logger_8hpp.html#a65ec35addf583c82df610354d05d8769":[18,0,1,5,0,0,0,5],
 "logger_8hpp.html#a9acd43b09e6273f2daa1e209d23db989":[18,0,1,5,0,0,0,3],
 "logger_8hpp.html#aa10a0f22210c83fe10627ce57b472fd9":[18,0,1,5,0,0,0,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX20 =
 "metrics__service_8cpp.html":[18,0,1,6,1,0],
 "metrics__service_8hpp.html":[18,0,1,6,0,0,1],
 "metrics__service_8hpp_source.html":[18,0,1,6,0,0,1],
-"migration__base_8hpp.html":[18,0,1,4,3,0,0,0,1],
-"migration__base_8hpp_source.html":[18,0,1,4,3,0,0,0,1],
-"migration__manager_8cpp.html":[18,0,1,4,3,1,0,1],
-"migration__manager_8hpp.html":[18,0,1,4,3,0,0,0,2],
-"migration__manager_8hpp_source.html":[18,0,1,4,3,0,0,0,2]
+"migration__base_8hpp.html":[18,0,1,4,3,0,0,0,1]
 };
