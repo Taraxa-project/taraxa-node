@@ -110,9 +110,9 @@ sudo apt-get install -y \
     ccache \
     cmake \
     clang \
-    clang-format-17 \
-    clang-tidy-17 \
-    llvm-17 \
+    clang-format-18 \
+    clang-tidy-18 \
+    llvm-18 \
     golang-go \
     python3-full \
     libzstd-dev \
@@ -131,8 +131,8 @@ sudo apt install solc
 sudo python3 -m pip install conan==1.64.1
 
 # Setup clang as default compiler either in your IDE or by env. variables"
-export CC="clang-17"
-export CXX="clang++-17"
+export CC="clang-18"
+export CXX="clang++-18"
 </pre> <h2><a class="anchor" id="autotoc_md32"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git
@@ -140,16 +140,18 @@ cd taraxa-node
 git submodule update --init --recursive
 </pre> <h2><a class="anchor" id="autotoc_md33"></a>
 Compile</h2>
-<pre class="fragment"># Optional - one time action
+<pre class="fragment">cp ./CMakeModules/settings.yml ~/.conan/settings.yml
+
+# Optional - one time action
 # Create clang profile
 # It is recommended to use clang because on other compilers you could face some errors
 conan profile new clang --detect \
 &amp;&amp; conan profile update settings.compiler=clang clang  \
-&amp;&amp; conan profile update settings.compiler.version=17 clang  \
+&amp;&amp; conan profile update settings.compiler.version=18 clang  \
 &amp;&amp; conan profile update settings.compiler.libcxx=libstdc++11 clang \
 &amp;&amp; conan profile update settings.build_type=RelWithDebInfo clang \
-&amp;&amp; conan profile update env.CC=clang-17 clang  \
-&amp;&amp; conan profile update env.CXX=clang++-17 clang
+&amp;&amp; conan profile update env.CC=clang-18 clang  \
+&amp;&amp; conan profile update env.CXX=clang++-18 clang
 
 # Compile project using cmake
 mkdir cmake-build
@@ -160,8 +162,8 @@ make -j$(nproc)
 Building on MacOS</h1>
 <h2><a class="anchor" id="autotoc_md35"></a>
 Install taraxa-node dependencies:</h2>
-<p>First you need to get (Brew)[<a href="https://brew.sh/">https://brew.sh/</a>] package manager. After that you need tot install dependencies with it. Clang-17 is used for compilation. </p><pre class="fragment">brew update
-brew install coreutils go autoconf automake gflags git libtool llvm@17 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
+<p>First you need to get (Brew)[<a href="https://brew.sh/">https://brew.sh/</a>] package manager. After that you need tot install dependencies with it. Clang-18 is used for compilation. </p><pre class="fragment">brew update
+brew install coreutils go autoconf automake gflags git libtool llvm@18 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
 </pre> <h2><a class="anchor" id="autotoc_md36"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git
@@ -169,12 +171,14 @@ cd taraxa-node
 git submodule update --init --recursive
 </pre> <h2><a class="anchor" id="autotoc_md37"></a>
 Compile</h2>
-<pre class="fragment"># Optional - one time action
+<pre class="fragment">cp ./CMakeModules/settings.yml ~/.conan/settings.yml
+
+# Optional - one time action
 # It is recommended to use clang because on other compilers you could face some errors
 conan profile new clang --detect &amp;&amp; \
 conan profile update settings.compiler=clang clang &amp;&amp; \
-conan profile update settings.compiler.version=17 clang &amp;&amp; \
-conan profile update settings.compiler.compiler.cppstd=17
+conan profile update settings.compiler.version=18 clang &amp;&amp; \
+conan profile update settings.compiler.compiler.cppstd=18
 conan profile update settings.compiler.libcxx=libc++ clang &amp;&amp; \
 conan profile update env.CC=clang clang &amp;&amp; \
 conan profile update env.CXX=clang++ clang
@@ -220,13 +224,15 @@ cd taraxa-node
 git submodule update --init --recursive
 </pre> <h2><a class="anchor" id="autotoc_md46"></a>
 Compile</h2>
-<pre class="fragment"># Optional - one time action
+<pre class="fragment">cp ./CMakeModules/settings.yml ~/.conan/settings.yml
+
+# Optional - one time action
 # It is recommended to use clang because on other compilers you could face some errors
 # Make sure that you executing this from x86_64 CLI. Could be verified with `arch` command
 # It output should be equal to `i386`
 conan profile new clang --detect &amp;&amp; \
 conan profile update settings.compiler=clang clang &amp;&amp; \
-conan profile update settings.compiler.version=17 clang &amp;&amp; \
+conan profile update settings.compiler.version=18 clang &amp;&amp; \
 conan profile update settings.compiler.libcxx=libc++ clang &amp;&amp; \
 conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang &amp;&amp; \
 conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang
