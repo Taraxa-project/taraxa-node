@@ -419,7 +419,7 @@ std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(rocksdb::ColumnF
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
   if (status.ok()) return;
-  throw DbException(string("Db error. Status code: ") + std::to_string(status.code()) +
+  throw DbException(std::string("Db error. Status code: ") + std::to_string(status.code()) +
                     " SubCode: " + std::to_string(status.subcode()) + " Message:" + status.ToString());
 }
 
@@ -1124,9 +1124,11 @@ bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
   return exist(toSlice(hash.asBytes()), Columns::pbft_block_period);
 }
 
-string DbStorage::getPbftHead(blk_hash_t const& hash) { return lookup(toSlice(hash.asBytes()), Columns::pbft_head); }
+std::string DbStorage::getPbftHead(blk_hash_t const& hash) {
+  return lookup(toSlice(hash.asBytes()), Columns::pbft_head);
+}
 
-void DbStorage::savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str) {
+void DbStorage::savePbftHead(blk_hash_t const& hash, std::string const& pbft_chain_head_str) {
   insert(Columns::pbft_head, toSlice(hash.asBytes()), pbft_chain_head_str);
 }
 
