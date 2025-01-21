@@ -10,7 +10,7 @@
 
 ### Not implemented
 
-Taraxa protocol supports all Ethereum methods described on [this page](https://eth.wiki/json-rpc/API#json-rpc-methods) except:
+Taraxa protocol supports all Ethereum methods described on [this page](https://ethereum.org/en/developers/docs/apis/json-rpc/) except:
 
 - web3_clientVersion
 - web3_sha3
@@ -39,6 +39,182 @@ Taraxa protocol supports all Ethereum methods described on [this page](https://e
 - shh_getMessages
 
 All unimplemented methods will return a standard json-rpc error that the method is not present
+
+### eth_subscribe
+
+Creates a new subscription for particular events. The node returns a subscription ID. For each event that matches the subscription, a notification with relevant data is sent together with the subscription ID.
+
+#### Parameters
+
+1. `String` - The type of event you want to subscribe to (i.e. newHeads, newPendingTransactions).
+3. `Object` - Additional parameters for the subscription if needed
+
+#### Returns
+
+`QUANTITY` - The subscription ID
+
+#### Sybscription types 
+
+##### newHeads
+Fires a notification when new header is appended to the chain
+
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newHeads"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x2"}
+
+// Subscription event 
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "result": {
+      ...BLOCK DATA...
+    },
+    "subscription": "0x2"
+  }
+}
+```
+
+##### newPendingTransactions
+Fires a notification each time a pending transaction is added
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newPendingTransactions"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x3"}
+
+// Subscription event 
+{"jsonrpc":"2.0","method":"eth_subscription","params":{"result":"0x18e1a9a0b0ff48ebf3c52e760191e8d8f9ee76c0f802981548158feb16648a1e","subscription":"0x3"}}
+```
+
+##### newDagBlocks
+Fires a notification when DAG block is added 
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newDagBlocks"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x4"}
+
+// Subscription event 
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "result": {
+      "hash": "0xbc98cf6164984f4c39e7818f18336c86450e0c239b65384d38b5bfc617509bef",
+      "level": "0x2ee53cb",
+      "pivot": "0x1c11ecfa257128c7852a0210550aa8b8af34aaf7758dffd727d27e01e89689ec",
+      "sender": "0xa9168bedce05924e0ce6dcb8df7136004250b223",
+      "sig": "0x27803541fa80afa1bedb67ddad5fa3f2e737bf4b4a448291b3e39e943fa6370e5734b0a30b611ebdbe2f4889af4ac42d3e2ede3dddccdefc129df063fce5fb8f00",
+      "timestamp": "0x6785083c",
+      "tips": [],
+      "transactions": [
+        ...
+      ],
+      "trx_estimations": "0x94ae8",
+      "vdf": {
+        "difficulty": "0x10",
+        "proof": "0x48d3dc922396db71ccc239207af7af17865ecfd1afc3a66e6da53bd114fd8120997ad492a4537a639a8ad75056eac71f3347911b5ce01a053c96c35cc9c389896a08b273192770887521bcd1dede9107",
+        "sol1": "0x01fcc185da2151d1f7cc1862a2c991946fc990c6a044376b1cc6ac0ed105e4dcc55f506e1f6f2def92b6c5cc8864be5e149bfb71a28cba88acb1f2ea71ef0f4f6e5bd90a8c826d14ce30f2ff63336a72bde2a2c4be2c8b6a164d96c9190fa75f755a424b9fd46f5ae1987c9e46e73c173bc026c24b78765b623bf8ff000c40f6dd18881d98c7e3c45a314fde04d37d43eaa85bd5b4ab4cab862ed6b9c1bc765e499a90b240207a6d9bbd487812f2ec1114b2034cb01283cc2543cc0808c5f5ed391b0cc97a9ba44c43386826a29843139e6dff4c00d6db7055e2b37e5f33f2018c00f1e72873440e95bc242c50da73df94b35cd9185bbbf7031ba8fb3585a60b",
+        "sol2": "0x06da940dd4a5335c8b0ea61386d22f8c338d38f7f2881a5ab1ed7d5a70e11947092096b2f25de8caaa607c4fc96e118d8cb61c47c34134acf29217b2c07ee9a08c56f6051230d0176c259a085f5b083973c0bdd385a741196d88107e8aa90499c154c7001399d6d0fb7b68c2b0302119fbad67fc8ebe9446a3a1dc94d3321cd5234a37d2dd6deeef1e6f499b96a11b5c52708c4fe20c774c55e1f57aa045bb04d805c1c9da3c6e70fc782402ebdec3d88b3217e49462c41531acbcfd24e1df8decb9edd37417ae54a6ba8f2663bc5b46999f069c3259bc0a17a300a4523449f47a2a784ab880f915c1077763d0c2fd5982c6d553648ae9bea439152f3d0c8826"
+      }
+    },
+    "subscription": "0x4"
+  }
+}
+```
+
+##### newDagBlocksFinalized
+Fires a notification when DAG block is finalized
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newDagBlocksFinalized"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x5"}
+
+// Subscription event 
+{"jsonrpc":"2.0","method":"eth_subscription","params":{"result":{"block":"0xae8237415925358af0668fecb999b3e5071ef472bd0d8daad7e880e991f7e4f2","period":"0xebb0fe"},"subscription":"0x5"}}
+```
+
+##### newPbftBlocks
+Fires a notification each time a new PBFT block is added to the node
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newPbftBlocks"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x6"}
+
+// Subscription event 
+{
+    "jsonrpc": "2.0",
+    "method": "eth_subscription",
+    "params": {
+        "result": {
+            "pbft_block": {
+                "beneficiary": "d0fec34ea0ae3f2e4ed935f47c18bab2d4824799",
+                "block_hash": "2423040510cee56b84db4885b90afd6fd3c7769993ae4217bee38eac29dd237f",
+                "dag_block_hash_as_pivot": "2e979ef5687154a2db84477ff4b0eb24d196cc4ed71850206e6488a3d0c6f0a7",
+                "extra_data": {
+                    "major_version": 1,
+                    "minor_version": 11,
+                    "net_version": 3,
+                    "node_implementation": "T",
+                    "patch_version": 3,
+                    "pillar_block_hash": ""
+                },
+                "order_hash": "29589cfaf143ae8aabf5dbf14d180308b40b0503d0a42239ba08ec43f9a2a4d7",
+                "period": 15446304,
+                "prev_block_hash": "2e0cfed1574db068b865ad09b3472e9cd2380775860492d1d20521e007bb64f1",
+                "prev_state_root_hash": "741a8961737d98f022071957f7153301b0bfbda6c5e1610d336352f24100e1aa",
+                "reward_votes": [...],
+                "schedule": {
+                    "dag_blocks_order": [...]
+                },
+                "signature": "6c71d606c82bac7b6e981c7ddec91c806b32f62ba840cee067d5b53b164bf2c105b1dc4042eb15c034b94c37de2cd50c554c7bf2c9208d3fbe67a23c1c6ba47a00",
+                "timestamp": 1736771943
+            }
+        },
+        "subscription": "0x6"
+    }
+}
+```
+
+##### newPillarBlockData
+Fires a notification when Pillar block is added
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newPillarBlockData", "includeSignatures"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x7"}
+
+// Subscription event 
+{
+    "jsonrpc": "2.0",
+    "method": "eth_subscription",
+    "params": {
+        "result": {
+            "pillar_block": {
+                "bridge_root": "0x139c8e505c4dd144b84a9d141b7040710eab17dfca0ae79db6aa75a6127a8520",
+                "epoch": "0x6f",
+                "hash": "0x2c2b553d5972287256df0c51cf25d9d6d8085f4cda24f615be160204d0d97e33",
+                "pbft_period": "0xeb9880",
+                "previous_pillar_block_hash": "0xb33b24bc01254d9ab69b1b72a1013f55597afca226e20d35e1ae3815400d0527",
+                "state_root": "0x71d78c731c07b502189b223ed3b30f4dd90af4a6467f50c9df566bfaad6e45e9",
+                "validators_vote_counts_changes": []
+            }
+        },
+        "subscription": "0x7"
+    }
+}
+```
 
 ## Taraxa specific methods
 
