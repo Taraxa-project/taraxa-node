@@ -25,7 +25,7 @@ class StateAPI {
   TransactionsExecutionResult result_buf_execution_result_;
   dev::RLPStream rlp_enc_rewards_distribution_;
   RewardsDistributionResult result_buf_rewards_distribution_;
-  string db_path_;
+  std::string db_path_;
 
  public:
   StateAPI(std::function<h256(EthBlockNumber)> get_blk_hash, const Config& state_config, const Opts& opts,

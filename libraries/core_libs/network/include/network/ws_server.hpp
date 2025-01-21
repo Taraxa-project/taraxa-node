@@ -2,22 +2,16 @@
 
 #include <jsonrpccpp/server/abstractserverconnector.h>
 
-#include <algorithm>
 #include <atomic>
 #include <boost/asio/strand.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <cstdlib>
-#include <functional>
-#include <iostream>
 #include <memory>
-#include <queue>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "common/thread_pool.hpp"
-#include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "final_chain/data.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -26,7 +20,6 @@
 namespace taraxa::net {
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
-namespace http = beast::http;            // from <boost/beast/http.hpp>
 namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
 using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 

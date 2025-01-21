@@ -17,7 +17,7 @@ void WsSession::run() {
 
   // Set a decorator to change the Server of the handshake
   ws_.set_option(websocket::stream_base::decorator([](websocket::response_type &res) {
-    res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
+    res.set(beast::http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
   }));
 
   // Accept the websocket handshake

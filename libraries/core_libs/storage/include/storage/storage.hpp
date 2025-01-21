@@ -77,16 +77,16 @@ using OnEntry = std::function<void(Slice const&, Slice const&)>;
 class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
   class Column {
-    string const name_;
+    std::string const name_;
 
    public:
     size_t const ordinal_;
     const rocksdb::Comparator* comparator_;
 
-    Column(string name, size_t ordinal, const rocksdb::Comparator* comparator)
+    Column(std::string name, size_t ordinal, const rocksdb::Comparator* comparator)
         : name_(std::move(name)), ordinal_(ordinal), comparator_(comparator) {}
 
-    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal_(ordinal), comparator_(nullptr) {}
+    Column(std::string name, size_t ordinal) : name_(std::move(name)), ordinal_(ordinal), comparator_(nullptr) {}
 
     auto const& name() const { return ordinal_ ? name_ : rocksdb::kDefaultColumnFamilyName; }
   };
@@ -311,8 +311,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<PbftBlock>> getProposedPbftBlocks();
 
   // pbft_blocks (head)
-  string getPbftHead(blk_hash_t const& hash);
-  void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
+  std::string getPbftHead(blk_hash_t const& hash);
+  void savePbftHead(blk_hash_t const& hash, std::string const& pbft_chain_head_str);
   void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str, Batch& write_batch);
 
   // status
@@ -365,7 +365,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   void compactColumn(Column const& column) { db_->CompactRange({}, handle(column), nullptr, nullptr); }
 
-  inline static bytes asBytes(string const& b) {
+  inline static bytes asBytes(std::string const& b) {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }
 
@@ -391,7 +391,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     return make_slice(&n, sizeof(N));
   }
 
-  inline static Slice toSlice(string const& str) { return make_slice(str.data(), str.size()); }
+  inline static Slice toSlice(std::string const& str) { return make_slice(str.data(), str.size()); }
 
   inline static auto const& toSlice(Slice const& s) { return s; }
 
