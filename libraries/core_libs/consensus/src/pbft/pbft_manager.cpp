@@ -1380,9 +1380,9 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
       continue;
     }
 
-    auto leader_block = getValidPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
+    auto leader_block = getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
     if (!leader_block) {
-      LOG(log_er_) << "Unable to get valid proposed block " << proposed_block_hash;
+      LOG(log_er_) << "Unable to get proposed block " << proposed_block_hash;
       continue;
     }
 
