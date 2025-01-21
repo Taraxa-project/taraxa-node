@@ -11,6 +11,7 @@
 #include <string_view>
 
 #include "common/jsoncpp.hpp"
+#include "network/rpc/eth/LogFilter.hpp"
 #include "network/subscriptions.hpp"
 
 namespace taraxa::net {
@@ -21,7 +22,6 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &req_str) {
     req = util::parse_json(req_str);
   } catch (Json::Exception const &e) {
     LOG(log_er_) << "Failed to parse" << e.what();
-    closed_ = true;
     return {};
   }
 
@@ -76,11 +76,11 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
 
   if (params.size() > 0) {
     if (params[0].asString() == "newHeads") {
-      subscriptions_.addSubscription(std::make_shared<HeadsSubscription>(subscription_id, false));
+      subscriptions_.addSubscription(std::make_shared<HeadsSubscription>(subscription_id, options.asBool()));
     } else if (params[0].asString() == "newPendingTransactions") {
       subscriptions_.addSubscription(std::make_shared<TransactionsSubscription>(subscription_id));
     } else if (params[0].asString() == "newDagBlocks") {
-      subscriptions_.addSubscription(std::make_shared<DagBlocksSubscription>(subscription_id, false));
+      subscriptions_.addSubscription(std::make_shared<DagBlocksSubscription>(subscription_id, options.asBool()));
     } else if (params[0].asString() == "newDagBlocksFinalized") {
       subscriptions_.addSubscription(std::make_shared<DagBlockFinalizedSubscription>(subscription_id));
     } else if (params[0].asString() == "newPbftBlocks") {
@@ -88,6 +88,12 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
     } else if (params[0].asString() == "newPillarBlockData") {
       subscriptions_.addSubscription(
           std::make_shared<PillarBlockSubscription>(subscription_id, options.asString() == "includeSignatures"));
+    } else if (params[0].asString() == "logs") {
+      auto filter =
+          rpc::eth::LogFilter(0, std::nullopt, rpc::eth::parse_addresses(options), rpc::eth::parse_topics(options));
+      subscriptions_.addSubscription(std::make_shared<LogsSubscription>(subscription_id, std::move(filter)));
+    } else {
+      throw std::runtime_error("Unknown subscription type: " + params[0].asString());
     }
   }
 
@@ -103,7 +109,7 @@ std::string JsonRpcWsSession::handleUnsubscription(const Json::Value &req) {
 
   const auto params = req.get("params", Json::Value(Json::Value(Json::arrayValue)));
   if (params.size() != 0) {
-    const int sub_id = params[0].asInt();
+    const int sub_id = dev::getUInt(params[0]);
 
     json_response["result"] = dev::toJS(subscriptions_.removeSubscription(sub_id));
   }

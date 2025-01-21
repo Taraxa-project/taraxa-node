@@ -5,6 +5,9 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <memory>
+
+#include "network/rpc/eth/LogFilter.hpp"
 
 enum class SubscriptionType {
   HEADS,
@@ -13,6 +16,7 @@ enum class SubscriptionType {
   DAG_BLOCK_FINALIZED,
   PBFT_BLOCK_EXECUTED,
   PILLAR_BLOCK,
+  LOGS,
 };
 
 namespace taraxa::net {
@@ -31,25 +35,25 @@ class Subscription {
 
 class HeadsSubscription : public Subscription {
  public:
-  explicit HeadsSubscription(int id, bool hash_only = false) : Subscription(id), hash_only_(hash_only) {}
+  explicit HeadsSubscription(int id, bool hash_only = false) : Subscription(id), full_data_(hash_only) {}
   static constexpr SubscriptionType type = SubscriptionType::HEADS;
 
   SubscriptionType getType() const override { return type; }
   std::string processPayload(Json::Value payload) const override;
 
  private:
-  bool hash_only_ = false;
+  bool full_data_ = false;
 };
 
 class DagBlocksSubscription : public Subscription {
  public:
-  explicit DagBlocksSubscription(int id, bool hash_only = false) : Subscription(id), hash_only_(hash_only) {}
+  explicit DagBlocksSubscription(int id, bool hash_only = false) : Subscription(id), full_data_(hash_only) {}
   static constexpr SubscriptionType type = SubscriptionType::DAG_BLOCKS;
   SubscriptionType getType() const override { return type; }
   std::string processPayload(Json::Value payload) const override;
 
  private:
-  bool hash_only_ = false;
+  bool full_data_ = false;
 };
 
 class TransactionsSubscription : public Subscription {
@@ -88,16 +92,30 @@ class PillarBlockSubscription : public Subscription {
   bool include_signatures_ = false;
 };
 
+class LogsSubscription : public Subscription {
+ public:
+  explicit LogsSubscription(int id, rpc::eth::LogFilter&& filter) : Subscription(id), filter_(filter) {}
+  static constexpr SubscriptionType type = SubscriptionType::LOGS;
+  SubscriptionType getType() const override { return type; }
+  std::string processPayload(Json::Value payload) const override;
+  rpc::eth::LogFilter getFilter() const { return filter_; }
+
+ private:
+  rpc::eth::LogFilter filter_;
+};
+
 class Subscriptions {
  public:
   Subscriptions(std::function<void(std::string&&)> send) : send_(send) {}
   int addSubscription(std::shared_ptr<Subscription> subscription);
   bool removeSubscription(int id);
   void process(SubscriptionType type, const Json::Value& payload);
+  void processLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
+                   const final_chain::TransactionReceipts& receipts);
 
  private:
   std::function<void(std::string&&)> send_;
-  std::map<int, std::shared_ptr<Subscription>> subscriptions_;
-  std::map<SubscriptionType, std::list<int>> subscriptions_by_method_;
+  std::map<uint64_t, std::shared_ptr<Subscription>> subscriptions_;
+  std::map<SubscriptionType, std::list<uint64_t>> subscriptions_by_type_;
 };
 }  // namespace taraxa::net

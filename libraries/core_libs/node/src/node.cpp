@@ -240,13 +240,15 @@ void FullNode::start() {
     }
     if (!conf_.db_config.rebuild_db) {
       final_chain_->block_finalized_.subscribe(
-          [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_), db = as_weak(db_)](auto const &res) {
+          [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_),
+           db = as_weak(db_)](const std::shared_ptr<final_chain::FinalizationResult> &res) {
             if (auto _eth_json_rpc = eth_json_rpc.lock()) {
               _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
             }
             if (auto _ws = ws.lock()) {
               if (_ws->numberOfSessions()) {
-                _ws->newEthBlock(*res->final_chain_blk, hashes_from_transactions(res->trxs));
+                auto transaction_hashes = hashes_from_transactions(res->trxs);
+                _ws->newEthBlock(*res->final_chain_blk, transaction_hashes);
                 if (auto _db = db.lock()) {
                   auto pbft_blk = _db->getPbftBlock(res->hash);
                   if (const auto &hash = pbft_blk->getPivotDagBlockHash(); hash != kNullBlockHash) {
@@ -254,6 +256,7 @@ void FullNode::start() {
                   }
                   _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
                 }
+                _ws->newLogs(*res->final_chain_blk, transaction_hashes, res->trx_receipts);
               }
             }
           },

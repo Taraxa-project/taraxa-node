@@ -7,6 +7,7 @@
 #include <boost/beast/websocket/rfc6455.hpp>
 
 #include "network/rpc/eth/data.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa::net {
 
@@ -119,6 +120,11 @@ void WsSession::newPendingTransaction(const Json::Value &payload) {
   subscriptions_.process(SubscriptionType::TRANSACTIONS, payload);
 }
 
+void WsSession::newLogs(const final_chain::BlockHeader &header, TransactionHashes trx_hashes,
+                        const final_chain::TransactionReceipts &receipts) {
+  subscriptions_.processLogs(header, trx_hashes, receipts);
+}
+
 void WsSession::close(bool normal) {
   closed_ = true;
   if (ws_.is_open()) {
@@ -226,7 +232,21 @@ void WsServer::newEthBlock(const ::taraxa::final_chain::BlockHeader &header, con
   payload["transactions"] = rpc::eth::toJsonArray(trx_hashes);
 
   for (auto const &session : sessions_) {
-    if (!session->is_closed()) session->newEthBlock(payload);
+    if (!session->is_closed()) {
+      session->newEthBlock(payload);
+    }
+  }
+}
+
+void WsServer::newLogs(const ::taraxa::final_chain::BlockHeader &header, TransactionHashes trx_hashes,
+                       const final_chain::TransactionReceipts &receipts) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
+  if (sessions_.empty()) return;
+
+  for (auto const &session : sessions_) {
+    if (!session->is_closed()) {
+      session->newLogs(header, trx_hashes, receipts);
+    }
   }
 }
 

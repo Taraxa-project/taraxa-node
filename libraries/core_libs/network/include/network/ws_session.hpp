@@ -12,6 +12,7 @@
 #include <string>
 
 #include "common/types.hpp"
+#include "final_chain/data.hpp"
 #include "logger/logger.hpp"
 #include "network/subscriptions.hpp"
 
@@ -53,6 +54,8 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newPbftBlockExecuted(const Json::Value& payload);
   void newPendingTransaction(const Json::Value& payload);
   void newPillarBlockData(const Json::Value& payload);
+  void newLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
+               const final_chain::TransactionReceipts& receipts);
 
   LOG_OBJECTS_DEFINE
  protected:
