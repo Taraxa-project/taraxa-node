@@ -1,7 +1,5 @@
 <map id="taraxa::state_api::ExecutionResult" name="taraxa::state_api::ExecutionResult">
-<area shape="rect" id="Node000001" title=" " alt="" coords="94,108,234,148"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="15,93,155,133"/>
 <area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,44,83,64,89,83,100,95,114,106,110,110,96,99,84,85,78,65,78,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="215,5,273,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,45,217,86,193,110,189,106,213,82,234,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,44,88,93,83,93,83,44"/>
 </map>

@@ -58,7 +58,7 @@ var searchData=
   ['resetrewardvotes_55',['resetRewardVotes',['../group___vote.html#a003002f11b3556882aba09032de484f0',1,'taraxa::VoteManager']]],
   ['resetstats_56',['resetStats',['../classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#af2d56398b1fbe249ae32e1163420cb91',1,'taraxa::network::tarcap::PacketsStats']]],
   ['resetstep_57',['resetStep',['../group___p_b_f_t.html#ab73326ab27d582aff6c83adb1a02b536',1,'taraxa::PbftManager']]],
-  ['resolvehost_58',['resolvehost',['../classdev_1_1p2p_1_1_network.html#a647912e734af23479acfa81c85c34243',1,'dev::p2p::Network::resolveHost()'],['../classtaraxa_1_1_network.html#ad075ee68cc36d985f7b3e0b8581d638c',1,'taraxa::Network::resolveHost()']]],
+  ['resolvehost_58',['resolvehost',['../classdev_1_1p2p_1_1_network.html#a647912e734af23479acfa81c85c34243',1,'dev::p2p::Network::resolveHost()'],['../classtaraxa_1_1_network.html#ae9f8d465abc984f8f534a547170799a7',1,'taraxa::Network::resolveHost()']]],
   ['restart_59',['restart',['../classdev_1_1_timer.html#afe18e81027546ef7213ca05c0fe94e4c',1,'dev::Timer']]],
   ['restore_5fstate_60',['restore_state',['../structdev_1_1p2p_1_1_host.html#a4f170aae51e527db4605ddc4097a9e62',1,'dev::p2p::Host']]],
   ['restoreenr_61',['restoreENR',['../structdev_1_1p2p_1_1_host.html#a7b2e3c45444299b4fa1771f6aeca0cdd',1,'dev::p2p::Host']]],

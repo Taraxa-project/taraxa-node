@@ -61,7 +61,7 @@ var searchData=
   ['applytransactionperiod_58',['applyTransactionPeriod',['../classtaraxa_1_1storage_1_1migration_1_1_manager.html#a6b0844a31ac92352f347bdc60f49646a',1,'taraxa::storage::migration::Manager']]],
   ['as_5fweak_59',['as_weak',['../namespacetaraxa.html#a4bf7be465765d75159b20c5b2a9623aa',1,'taraxa']]],
   ['asarray_60',['asarray',['../classdev_1_1_fixed_hash.html#afbe4ac45055dd4dc2eb2584068cf6de1',1,'dev::FixedHash::asArray() const'],['../classdev_1_1_fixed_hash.html#a3057f689db3b7068cbcd871f4ab4eb97',1,'dev::FixedHash::asArray()']]],
-  ['asbytes_61',['asbytes',['../namespacedev.html#adf7a0557ae452ce898e203dc557d030c',1,'dev::asBytes()'],['../classtaraxa_1_1_db_storage.html#a665e81c5b3353666c4df63adb0b34df1',1,'taraxa::DbStorage::asBytes()'],['../classdev_1_1_fixed_hash.html#a2eecbebcc88b4fdfcea89c1966961620',1,'dev::FixedHash::asBytes()']]],
+  ['asbytes_61',['asbytes',['../namespacedev.html#adf7a0557ae452ce898e203dc557d030c',1,'dev::asBytes()'],['../classtaraxa_1_1_db_storage.html#acf1364138d3941b8559e9bf0cca0467e',1,'taraxa::DbStorage::asBytes()'],['../classdev_1_1_fixed_hash.html#a2eecbebcc88b4fdfcea89c1966961620',1,'dev::FixedHash::asBytes()']]],
   ['asbytessec_62',['asBytesSec',['../classdev_1_1_secure_fixed_hash.html#af191ff75250ed277a8f9ab0c4a5f2567',1,'dev::SecureFixedHash']]],
   ['asnibbles_63',['asNibbles',['../namespacedev.html#a2c3e973ab4fa5929d11aedd713e22290',1,'dev']]],
   ['assertaux_64',['assertAux',['../namespacedev.html#aecefb3422584b8c7b7907e21cf8df271',1,'dev']]],

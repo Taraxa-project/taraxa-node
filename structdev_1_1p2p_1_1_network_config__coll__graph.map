@@ -1,5 +1,0 @@
-<map id="dev::p2p::NetworkConfig" name="dev::p2p::NetworkConfig">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,108,187,133"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="67,5,125,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,45,99,108,93,108,93,45"/>
-</map>

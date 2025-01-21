@@ -1,7 +1,5 @@
 <map id="dev::p2p::PeerSessionInfo" name="dev::p2p::PeerSessionInfo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="57,108,247,133"/>
-<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,41,147,107,142,109,98,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="189,5,248,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,44,162,109,157,107,201,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,195,119"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="20,5,180,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,45,103,93,97,93,97,45"/>
 </map>

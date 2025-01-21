@@ -223,7 +223,7 @@ var searchData=
   ['getpbftchainsizeexcludingemptypbftblocks_220',['getPbftChainSizeExcludingEmptyPbftBlocks',['../group___p_b_f_t.html#a2deea0b998e926925c5939c0d5c0ab14',1,'taraxa::PbftChain']]],
   ['getpbftcommitteesize_221',['getPbftCommitteeSize',['../group___p_b_f_t.html#a46334d090efe037a0a8d67aaaff89e7f',1,'taraxa::PbftManager']]],
   ['getpbfthash_222',['getPbftHash',['../classgraphql_1_1taraxa_1_1_block.html#a11361f1595d447f7e71f5d603442447d',1,'graphql::taraxa::Block']]],
-  ['getpbfthead_223',['getPbftHead',['../classtaraxa_1_1_db_storage.html#a7b535601fbd1922f61a5a85ac19531c6',1,'taraxa::DbStorage']]],
+  ['getpbfthead_223',['getPbftHead',['../classtaraxa_1_1_db_storage.html#ab7193d89615d1eeb243c510f67129176',1,'taraxa::DbStorage']]],
   ['getpbftinitiallambda_224',['getPbftInitialLambda',['../group___p_b_f_t.html#a2dec2b28f3c4bc7ee10f1b163852aeb5',1,'taraxa::PbftManager']]],
   ['getpbftmanager_225',['getPbftManager',['../classtaraxa_1_1_full_node.html#a9c7abfaa9a1a91b8792b92fe010246b6',1,'taraxa::FullNode']]],
   ['getpbftmgrfield_226',['getPbftMgrField',['../classtaraxa_1_1_db_storage.html#a1565ab76a03d761a73d53d714e03bb7a',1,'taraxa::DbStorage']]],

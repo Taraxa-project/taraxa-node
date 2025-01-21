@@ -1,13 +1,11 @@
 <map id="taraxa::state_api::StateAPI" name="taraxa::state_api::StateAPI">
-<area shape="rect" id="Node000001" title=" " alt="" coords="740,117,880,157"/>
-<area shape="rect" id="Node000002" href="$classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream." alt="" coords="332,34,456,59"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="470,43,588,51,653,62,717,79,753,95,784,115,781,119,750,100,715,84,652,67,587,56,470,48"/>
-<area shape="rect" id="Node000003" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result" title=" " alt="" coords="291,85,497,125"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="511,112,740,129,740,135,511,117"/>
-<area shape="rect" id="Node000004" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result" title=" " alt="" coords="297,149,491,189"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="505,173,608,172,716,163,751,155,752,160,716,168,608,178,505,178"/>
-<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,157,172,182"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="186,167,296,167,296,172,186,172"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="365,214,423,239"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="437,226,494,226,564,223,640,213,715,193,751,176,782,155,785,160,754,181,717,199,641,218,564,228,494,232,437,231"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="740,84,880,124"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream." alt="" coords="332,31,456,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="470,43,586,52,717,71,756,81,754,86,715,76,586,57,469,49"/>
+<area shape="rect" id="Node000003" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result" title=" " alt="" coords="291,84,497,124"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="511,101,740,101,740,107,511,107"/>
+<area shape="rect" id="Node000004" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result" title=" " alt="" coords="297,148,491,188"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="505,163,608,154,715,136,761,122,763,127,717,141,608,159,505,168"/>
+<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,155,172,181"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="186,165,296,165,296,171,186,171"/>
 </map>

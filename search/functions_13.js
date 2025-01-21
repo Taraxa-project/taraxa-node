@@ -9,7 +9,7 @@ var searchData=
   ['savenewpillarblock_6',['saveNewPillarBlock',['../group___p_i_l_l_a_r___c_h_a_i_n.html#a7f14431f615211d3492ec34212e6fa5c',1,'taraxa::pillar_chain::PillarChainManager']]],
   ['saveownpillarblockvote_7',['saveOwnPillarBlockVote',['../classtaraxa_1_1_db_storage.html#a1da930fcb9abd8ffcae93bdefb2897d4',1,'taraxa::DbStorage']]],
   ['saveownverifiedvote_8',['saveownverifiedvote',['../group___vote.html#a84fb210740a3d5cf36175b22fe41cf2a',1,'taraxa::VoteManager::saveOwnVerifiedVote()'],['../classtaraxa_1_1_db_storage.html#a41692b26da1e4b5b5a7116a7560a93f2',1,'taraxa::DbStorage::saveOwnVerifiedVote(const std::shared_ptr&lt; PbftVote &gt; &amp;vote)']]],
-  ['savepbfthead_9',['savePbftHead',['../classtaraxa_1_1_db_storage.html#af69f3e7594f36c9d4ea2884bec31fa0f',1,'taraxa::DbStorage']]],
+  ['savepbfthead_9',['savePbftHead',['../classtaraxa_1_1_db_storage.html#ad5976282c08690b21c47b97e53751a42',1,'taraxa::DbStorage']]],
   ['savepbftmgrfield_10',['savePbftMgrField',['../classtaraxa_1_1_db_storage.html#a6c8689b3445f7ff99492f4cc010ddec6',1,'taraxa::DbStorage']]],
   ['savepbftmgrstatus_11',['savePbftMgrStatus',['../classtaraxa_1_1_db_storage.html#a7b89bb6349af34b6f8a66442c45861b8',1,'taraxa::DbStorage']]],
   ['saveperioddata_12',['savePeriodData',['../classtaraxa_1_1_db_storage.html#a55029b172261c0dc91da128fef909e06',1,'taraxa::DbStorage']]],

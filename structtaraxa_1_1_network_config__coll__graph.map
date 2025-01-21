@@ -1,7 +1,5 @@
 <map id="taraxa::NetworkConfig" name="taraxa::NetworkConfig">
-<area shape="rect" id="Node000001" title=" " alt="" coords="29,123,197,148"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,64,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="41,44,49,71,63,97,76,110,92,120,89,125,73,114,59,100,44,73,36,45"/>
-<area shape="rect" id="Node000003" href="$structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="87,5,299,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,45,182,73,166,100,138,124,134,120,162,97,177,71,186,43"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="27,93,195,119"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="5,5,217,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,45,114,93,109,93,109,45"/>
 </map>

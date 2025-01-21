@@ -25,7 +25,7 @@ var classtaraxa_1_1_network =
     [ "pbft_syncing", "classtaraxa_1_1_network.html#a1e175776bb9c8a12bc3ba8c4da70fde1", null ],
     [ "registerPeriodicEvents", "classtaraxa_1_1_network.html#a9e200ab1ad2ebb3c0064c887d8d75ac4", null ],
     [ "requestPillarBlockVotesBundle", "classtaraxa_1_1_network.html#a3e1af687f4a39ec0c31cb72746cbe86a", null ],
-    [ "resolveHost", "classtaraxa_1_1_network.html#ad075ee68cc36d985f7b3e0b8581d638c", null ],
+    [ "resolveHost", "classtaraxa_1_1_network.html#ae9f8d465abc984f8f534a547170799a7", null ],
     [ "setSyncStatePeriod", "classtaraxa_1_1_network.html#af42c6f99348955b2beb1461abbd6d729", null ],
     [ "start", "classtaraxa_1_1_network.html#a0f512b48547b33de0e7b03e195d63892", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1_network.html#a6bd999923abfc08d54c1fbb573d0daae", null ],

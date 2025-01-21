@@ -1,7 +1,5 @@
 <map id="dev::p2p::NodeSpec" name="dev::p2p::NodeSpec">
-<area shape="rect" id="Node000001" title=" " alt="" coords="26,93,177,119"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,64,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="48,42,65,68,89,91,85,95,61,71,44,45"/>
-<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="88,5,248,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,45,141,71,117,95,113,91,137,68,153,42"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="10,93,161,119"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,45,88,93,83,93,83,45"/>
 </map>

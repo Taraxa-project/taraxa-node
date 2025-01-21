@@ -158,7 +158,7 @@ var searchData=
   ['as_20parameters_20only_20to_20explicitly_20express_20lifetime_20semantics_155',['&lt;a name=&quot;passsmartptr&quot;&gt;&lt;/a&gt; 8. Take smart pointers as parameters only to explicitly express lifetime semantics',['../md_doc_2coding__practices.html#autotoc_md91',1,'']]],
   ['as_5fweak_156',['as_weak',['../namespacetaraxa.html#a4bf7be465765d75159b20c5b2a9623aa',1,'taraxa']]],
   ['asarray_157',['asarray',['../classdev_1_1_fixed_hash.html#a3057f689db3b7068cbcd871f4ab4eb97',1,'dev::FixedHash::asArray()'],['../classdev_1_1_fixed_hash.html#afbe4ac45055dd4dc2eb2584068cf6de1',1,'dev::FixedHash::asArray() const']]],
-  ['asbytes_158',['asbytes',['../namespacedev.html#adf7a0557ae452ce898e203dc557d030c',1,'dev::asBytes()'],['../classdev_1_1_fixed_hash.html#a2eecbebcc88b4fdfcea89c1966961620',1,'dev::FixedHash::asBytes()'],['../classtaraxa_1_1_db_storage.html#a665e81c5b3353666c4df63adb0b34df1',1,'taraxa::DbStorage::asBytes()']]],
+  ['asbytes_158',['asbytes',['../namespacedev.html#adf7a0557ae452ce898e203dc557d030c',1,'dev::asBytes()'],['../classdev_1_1_fixed_hash.html#a2eecbebcc88b4fdfcea89c1966961620',1,'dev::FixedHash::asBytes()'],['../classtaraxa_1_1_db_storage.html#acf1364138d3941b8559e9bf0cca0467e',1,'taraxa::DbStorage::asBytes()']]],
   ['asbytessec_159',['asBytesSec',['../classdev_1_1_secure_fixed_hash.html#af191ff75250ed277a8f9ab0c4a5f2567',1,'dev::SecureFixedHash']]],
   ['asio_5fcallback_160',['asio_callback',['../classtaraxa_1_1util_1_1_thread_pool.html#a9e0179cef300c6ec068460703db2d069',1,'taraxa::util::ThreadPool']]],
   ['asnibbles_161',['asNibbles',['../namespacedev.html#a2c3e973ab4fa5929d11aedd713e22290',1,'dev']]],

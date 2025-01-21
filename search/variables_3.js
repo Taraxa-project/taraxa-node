@@ -37,7 +37,7 @@ var searchData=
   ['db_5fmax_5fopen_5ffiles_34',['db_max_open_files',['../namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595',1,'taraxa::DBConfig']]],
   ['db_5fmax_5fsnapshots_35',['db_max_snapshots',['../namespacetaraxa.html#acb88135b62c8aadb5c6636e1796ec016',1,'taraxa::DBConfig']]],
   ['db_5fpath_36',['db_path',['../structtaraxa_1_1_full_node_config.html#acffae136a1a4516b1e8935af67d63aa8',1,'taraxa::FullNodeConfig::db_path'],['../namespacetaraxa_1_1state__api.html#a13aa11cb2ea1bbd6a159176729bafd90',1,'taraxa::state_api::OptsDB::db_path']]],
-  ['db_5fpath_5f_37',['db_path_',['../group___final_chain.html#a2e7fd611f3cc2fcc8a6a3cfbaa858cc0',1,'taraxa::state_api::StateAPI::db_path_'],['../classtaraxa_1_1_db_storage.html#a10e7214c85169ada7891f8722e956395',1,'taraxa::DbStorage::db_path_']]],
+  ['db_5fpath_5f_37',['db_path_',['../group___final_chain.html#aa2e1108c62480f7c07a3ea203166417a',1,'taraxa::state_api::StateAPI::db_path_'],['../classtaraxa_1_1_db_storage.html#a10e7214c85169ada7891f8722e956395',1,'taraxa::DbStorage::db_path_']]],
   ['db_5frevert_5fto_5fperiod_38',['db_revert_to_period',['../namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6',1,'taraxa::DBConfig']]],
   ['db_5fsnapshot_5feach_5fn_5fpbft_5fblock_39',['db_snapshot_each_n_pbft_block',['../namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39',1,'taraxa::DBConfig']]],
   ['ddos_5fprotection_40',['ddos_protection',['../structtaraxa_1_1_network_config.html#a308625fa050f2f0e646b0e0ca4d48cbf',1,'taraxa::NetworkConfig']]],

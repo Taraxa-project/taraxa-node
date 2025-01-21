@@ -2,7 +2,7 @@ var searchData=
 [
   ['n_0',['N',['../classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#ae8bd25a0be4f6eb1b5bb4f15971a63af',1,'taraxa::vdf_sortition::VdfSortition']]],
   ['name_1',['name',['../class_server_interface.html#ac0aa223e4ab3f27a4ce502179f102255',1,'ServerInterface::RPCModule::name'],['../classtaraxa_1_1logger_1_1_config.html#ac78bac98d53da0e69b54627f6830d09b',1,'taraxa::logger::Config::name'],['../group___d_a_g.html#ad0062ff49a2f76fe2057c9b44d5e87fb',1,'taraxa::vertex_label_writer::name']]],
-  ['name_5f_2',['name_',['../classtaraxa_1_1_db_storage_1_1_column.html#abe5136c47910bdb799c09a1fe4290fc5',1,'taraxa::DbStorage::Column']]],
+  ['name_5f_2',['name_',['../classtaraxa_1_1_db_storage_1_1_column.html#af3a10a1348a3e1f1978b8816282b1087',1,'taraxa::DbStorage::Column']]],
   ['neighbours_3',['neighbours',['../structdev_1_1p2p_1_1_neighbours.html#af11f59790e01fe30da36d2e77c32ad8d',1,'dev::p2p::Neighbours']]],
   ['net_5fversion_5f_4',['net_version_',['../group___p_b_f_t.html#afef3248cf23c562c8c392b6e0dcda45d',1,'taraxa::PbftBlockExtraData']]],
   ['network_5',['network',['../structtaraxa_1_1_full_node_config.html#aa92cfdd3c9bc4f4b6411ef9d4a735668',1,'taraxa::FullNodeConfig']]],

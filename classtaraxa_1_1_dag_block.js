@@ -6,7 +6,7 @@ var classtaraxa_1_1_dag_block =
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#a00e51bfd48cfa3dab7357938cb4e65b0", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#a5918ea1955486417267213c3e9a12a74", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#ad780ba7392776f8e2c1c8b80c414cc82", null ],
-    [ "DagBlock", "classtaraxa_1_1_dag_block.html#a1f73650dd7f598ac35927a145f8a81a3", null ],
+    [ "DagBlock", "classtaraxa_1_1_dag_block.html#aa79d66b57f40253902dbcc2e648f083d", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#afb5a52db03e70fafdb1d35d56e972806", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#a7f053030792b718833d01b8a7a15c429", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#a92d0d1d65b53c557b39f06aaae6f9b47", null ],
