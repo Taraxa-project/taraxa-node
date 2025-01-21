@@ -67,7 +67,7 @@ data:
     LOG_LEVEL = getenv('LOG_LEVEL', 'INFO')
     PROVIDER_URL = getenv('PROVIDER_URL')
     PRIVATE_KEY = getenv('PRIVATE_KEY')
-    PENDING_TRANSACTIONS_THRESHOLD = 1000
+    PENDING_TRANSACTIONS_THRESHOLD = 5000
 
     logger = logging.getLogger()
     coloredlogs.install(level=LOG_LEVEL, logger=logger)
@@ -122,6 +122,4 @@ data:
             logger.debug(f'Transaction {transaction}')
             signed_transaction = account.sign_transaction(transaction)
             web3.eth.send_raw_transaction(signed_transaction.rawTransaction)
-
-        time.sleep(1)
 {{- end }}
