@@ -263,13 +263,16 @@ void FullNode::start() {
           *rpc_thread_pool_);
     }
 
-    trx_mgr_->transaction_accepted_.subscribe(
-        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
+    trx_mgr_->transaction_added_.subscribe(
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_),
+         node_addr = getAddress()](const std::shared_ptr<Transaction> &trx) {
           if (auto _eth_json_rpc = eth_json_rpc.lock()) {
-            _eth_json_rpc->note_pending_transaction(trx_hash);
+            _eth_json_rpc->note_pending_transaction(trx->getHash());
           }
           if (auto _ws = ws.lock()) {
-            _ws->newPendingTransaction(trx_hash);
+            if (trx->getSender() == node_addr) {
+              _ws->newPendingTransaction(trx->getHash());
+            }
           }
         },
         *rpc_thread_pool_);
@@ -409,8 +412,8 @@ void FullNode::rebuildDb() {
       }
     } else {
       next_period_data = std::make_shared<PeriodData>(std::move(data));
-      // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that pushes
-      // blocks to chain
+      // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that
+      // pushes blocks to chain
       for (auto &t : next_period_data->transactions) t->getSender();
       cert_votes = next_period_data->previous_block_cert_votes;
     }
