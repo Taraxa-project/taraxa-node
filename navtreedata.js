@@ -171,126 +171,138 @@ var NAVTREE =
     [ "Taraxa RPC", "md_doc_2_r_p_c.html", [
       [ "Ethereum compatibility", "md_doc_2_r_p_c.html#autotoc_md264", [
         [ "Quirks", "md_doc_2_r_p_c.html#autotoc_md265", null ],
-        [ "Not implemented", "md_doc_2_r_p_c.html#autotoc_md266", null ]
-      ] ],
-      [ "Taraxa specific methods", "md_doc_2_r_p_c.html#autotoc_md267", [
-        [ "taraxa_protocolVersion", "md_doc_2_r_p_c.html#autotoc_md268", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md269", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md270", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md271", null ]
-        ] ],
-        [ "taraxa_getVersion", "md_doc_2_r_p_c.html#autotoc_md272", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md273", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md274", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md275", null ]
-        ] ],
-        [ "taraxa_getDagBlockByHash", "md_doc_2_r_p_c.html#autotoc_md276", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md277", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md278", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md279", null ]
-        ] ],
-        [ "taraxa_getDagBlockByLevel", "md_doc_2_r_p_c.html#autotoc_md280", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md281", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md282", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md283", null ]
-        ] ],
-        [ "taraxa_dagBlockLevel", "md_doc_2_r_p_c.html#autotoc_md284", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md285", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md286", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md287", null ]
-        ] ],
-        [ "taraxa_dagBlockPeriod", "md_doc_2_r_p_c.html#autotoc_md288", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md289", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md290", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md291", null ]
-        ] ],
-        [ "taraxa_getScheduleBlockByPeriod", "md_doc_2_r_p_c.html#autotoc_md292", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md293", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md294", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md295", null ]
-        ] ],
-        [ "taraxa_pbftBlockHashByPeriod", "md_doc_2_r_p_c.html#autotoc_md296", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md297", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md298", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md299", null ]
-        ] ],
-        [ "taraxa_getConfig", "md_doc_2_r_p_c.html#autotoc_md300", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md301", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md302", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md303", null ]
-        ] ],
-        [ "taraxa_getChainStats", "md_doc_2_r_p_c.html#autotoc_md304", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md305", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md306", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md307", null ]
-        ] ],
-        [ "taraxa_yield", "md_doc_2_r_p_c.html#autotoc_md308", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md309", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md310", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md311", null ]
-        ] ],
-        [ "taraxa_totalSupply", "md_doc_2_r_p_c.html#autotoc_md312", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md313", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md314", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md315", null ]
-        ] ],
-        [ "taraxa_getPillarBlockData", "md_doc_2_r_p_c.html#autotoc_md316", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md317", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md318", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md319", null ]
+        [ "Not implemented", "md_doc_2_r_p_c.html#autotoc_md266", null ],
+        [ "eth_subscribe", "md_doc_2_r_p_c.html#autotoc_md267", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md268", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md269", null ],
+          [ "Sybscription types", "md_doc_2_r_p_c.html#autotoc_md270", [
+            [ "newHeads", "md_doc_2_r_p_c.html#autotoc_md271", null ],
+            [ "newPendingTransactions", "md_doc_2_r_p_c.html#autotoc_md272", null ],
+            [ "newDagBlocks", "md_doc_2_r_p_c.html#autotoc_md273", null ],
+            [ "newDagBlocksFinalized", "md_doc_2_r_p_c.html#autotoc_md274", null ],
+            [ "newPbftBlocks", "md_doc_2_r_p_c.html#autotoc_md275", null ],
+            [ "newPillarBlockData", "md_doc_2_r_p_c.html#autotoc_md276", null ]
+          ] ]
         ] ]
       ] ],
-      [ "Test API", "md_doc_2_r_p_c.html#autotoc_md320", [
-        [ "get_sortition_change", "md_doc_2_r_p_c.html#autotoc_md321", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md322", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md323", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md324", null ]
+      [ "Taraxa specific methods", "md_doc_2_r_p_c.html#autotoc_md277", [
+        [ "taraxa_protocolVersion", "md_doc_2_r_p_c.html#autotoc_md278", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md279", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md280", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md281", null ]
         ] ],
-        [ "send_coin_transaction", "md_doc_2_r_p_c.html#autotoc_md325", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md326", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md327", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md328", null ]
+        [ "taraxa_getVersion", "md_doc_2_r_p_c.html#autotoc_md282", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md283", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md284", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md285", null ]
         ] ],
-        [ "send_coin_transactions", "md_doc_2_r_p_c.html#autotoc_md329", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md330", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md331", null ]
+        [ "taraxa_getDagBlockByHash", "md_doc_2_r_p_c.html#autotoc_md286", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md287", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md288", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md289", null ]
         ] ],
-        [ "get_account_address", "md_doc_2_r_p_c.html#autotoc_md332", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md333", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md334", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md335", null ]
+        [ "taraxa_getDagBlockByLevel", "md_doc_2_r_p_c.html#autotoc_md290", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md291", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md292", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md293", null ]
         ] ],
-        [ "get_peer_count", "md_doc_2_r_p_c.html#autotoc_md336", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md337", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md338", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md339", null ]
+        [ "taraxa_dagBlockLevel", "md_doc_2_r_p_c.html#autotoc_md294", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md295", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md296", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md297", null ]
         ] ],
-        [ "get_node_status", "md_doc_2_r_p_c.html#autotoc_md340", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md341", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md342", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md343", null ]
+        [ "taraxa_dagBlockPeriod", "md_doc_2_r_p_c.html#autotoc_md298", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md299", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md300", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md301", null ]
         ] ],
-        [ "get_all_nodes", "md_doc_2_r_p_c.html#autotoc_md344", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md345", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md346", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md347", null ]
+        [ "taraxa_getScheduleBlockByPeriod", "md_doc_2_r_p_c.html#autotoc_md302", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md303", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md304", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md305", null ]
+        ] ],
+        [ "taraxa_pbftBlockHashByPeriod", "md_doc_2_r_p_c.html#autotoc_md306", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md307", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md308", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md309", null ]
+        ] ],
+        [ "taraxa_getConfig", "md_doc_2_r_p_c.html#autotoc_md310", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md311", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md312", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md313", null ]
+        ] ],
+        [ "taraxa_getChainStats", "md_doc_2_r_p_c.html#autotoc_md314", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md315", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md316", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md317", null ]
+        ] ],
+        [ "taraxa_yield", "md_doc_2_r_p_c.html#autotoc_md318", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md319", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md320", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md321", null ]
+        ] ],
+        [ "taraxa_totalSupply", "md_doc_2_r_p_c.html#autotoc_md322", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md323", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md324", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md325", null ]
+        ] ],
+        [ "taraxa_getPillarBlockData", "md_doc_2_r_p_c.html#autotoc_md326", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md327", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md328", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md329", null ]
         ] ]
       ] ],
-      [ "Debug API", "md_doc_2_r_p_c.html#autotoc_md348", [
-        [ "debug_getPeriodTransactionsWithReceipts", "md_doc_2_r_p_c.html#autotoc_md349", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md350", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md351", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md352", null ]
+      [ "Test API", "md_doc_2_r_p_c.html#autotoc_md330", [
+        [ "get_sortition_change", "md_doc_2_r_p_c.html#autotoc_md331", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md332", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md333", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md334", null ]
         ] ],
-        [ "debug_getPeriodDagBlocks", "md_doc_2_r_p_c.html#autotoc_md353", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md354", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md355", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md356", null ]
+        [ "send_coin_transaction", "md_doc_2_r_p_c.html#autotoc_md335", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md336", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md337", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md338", null ]
         ] ],
-        [ "debug_getPreviousBlockCertVotes", "md_doc_2_r_p_c.html#autotoc_md357", [
-          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md358", null ],
-          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md359", null ],
-          [ "Example", "md_doc_2_r_p_c.html#autotoc_md360", null ]
+        [ "send_coin_transactions", "md_doc_2_r_p_c.html#autotoc_md339", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md340", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md341", null ]
+        ] ],
+        [ "get_account_address", "md_doc_2_r_p_c.html#autotoc_md342", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md343", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md344", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md345", null ]
+        ] ],
+        [ "get_peer_count", "md_doc_2_r_p_c.html#autotoc_md346", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md347", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md348", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md349", null ]
+        ] ],
+        [ "get_node_status", "md_doc_2_r_p_c.html#autotoc_md350", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md351", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md352", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md353", null ]
+        ] ],
+        [ "get_all_nodes", "md_doc_2_r_p_c.html#autotoc_md354", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md355", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md356", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md357", null ]
+        ] ]
+      ] ],
+      [ "Debug API", "md_doc_2_r_p_c.html#autotoc_md358", [
+        [ "debug_getPeriodTransactionsWithReceipts", "md_doc_2_r_p_c.html#autotoc_md359", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md360", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md361", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md362", null ]
+        ] ],
+        [ "debug_getPeriodDagBlocks", "md_doc_2_r_p_c.html#autotoc_md363", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md364", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md365", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md366", null ]
+        ] ],
+        [ "debug_getPreviousBlockCertVotes", "md_doc_2_r_p_c.html#autotoc_md367", [
+          [ "Parameters", "md_doc_2_r_p_c.html#autotoc_md368", null ],
+          [ "Returns", "md_doc_2_r_p_c.html#autotoc_md369", null ],
+          [ "Example", "md_doc_2_r_p_c.html#autotoc_md370", null ]
         ] ]
       ] ]
     ] ],
@@ -356,13 +368,13 @@ var NAVTREEINDEX =
 "group___transaction.html#classtaraxa_1_1_transaction_manager",
 "latest_2common_2packet__handler_8hpp.html#a69592200226e44e63176bbfb4c737d4c",
 "logger_8hpp.html",
-"migration__base_8hpp_source.html",
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info",
-"structdev_1_1_converter_3_01std_1_1set_3_01_t_01_4_01_4.html",
-"structdev_1_1p2p_1_1_node_info.html#a018866d892016661f591b64a825bbf44",
-"structtaraxa_1_1_ficus_hardfork_config.html#a426357979b5cc1f4dbaee7b86674455b",
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a3dc6fb187801345b1d2991e0dd48865a",
-"v3_2vote__packet__handler_8cpp.html"
+"metrics__group_8hpp.html",
+"namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e",
+"structdev_1_1_converter_3_01_fixed_hash_3_01_n_01_4_01_4.html",
+"structdev_1_1p2p_1_1_node_entry.html#a405262e2231a983d75282774adf1536f",
+"structtaraxa_1_1_ddos_protection_config.html#a754560f8810f02fd4669b65c1e033620",
+"structtaraxa_1_1state__api_1_1_config.html",
+"v3_2pillar__vote__packet__handler_8hpp_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

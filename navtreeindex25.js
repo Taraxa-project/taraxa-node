@@ -1,5 +1,15 @@
 var NAVTREEINDEX25 =
 {
+"structtaraxa_1_1_ddos_protection_config.html#a754560f8810f02fd4669b65c1e033620":[17,0,3,27,2],
+"structtaraxa_1_1_ddos_protection_config.html#a7f95401e2a468ced0de219a56e0bdefd":[17,0,3,27,1],
+"structtaraxa_1_1_ddos_protection_config.html#a9c38a5a9bf0dd0de07104a2136841356":[17,0,3,27,9],
+"structtaraxa_1_1_ddos_protection_config.html#aa64afdf887275977afaaf436cd1f5d57":[17,0,3,27,8],
+"structtaraxa_1_1_ddos_protection_config.html#ac7ebf3adcb6de5385c8cce64be5a59b1":[17,0,3,27,10],
+"structtaraxa_1_1_ddos_protection_config.html#ad397e2566fc469b163720d5ce9c7b2a6":[17,0,3,27,5],
+"structtaraxa_1_1_ddos_protection_config.html#afebf1c6865de0152e78970a87bc068fd":[17,0,3,27,0],
+"structtaraxa_1_1_ficus_hardfork_config.html":[17,0,3,29],
+"structtaraxa_1_1_ficus_hardfork_config.html#a058654fabef9c7141642683db47b91e3":[17,0,3,29,6],
+"structtaraxa_1_1_ficus_hardfork_config.html#a19ee3042366911e4e3835537ec32e541":[17,0,3,29,3],
 "structtaraxa_1_1_ficus_hardfork_config.html#a426357979b5cc1f4dbaee7b86674455b":[17,0,3,29,7],
 "structtaraxa_1_1_ficus_hardfork_config.html#a47f6f5ea963fe7e0583e47db01ee1a9f":[17,0,3,29,2],
 "structtaraxa_1_1_ficus_hardfork_config.html#a73596a92459650cd00b2560ea4f5afda":[17,0,3,29,1],
@@ -239,15 +249,5 @@ var NAVTREEINDEX25 =
 "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#a932e4909348db133e03b13f0fa52d8e7":[15,3,0,0,0],
 "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#aded05538bffdc27611857ce639af20a8":[15,3,0,0,9],
 "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#af08e82e512996a76500b393175a8ecd8":[15,3,0,0,1],
-"structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#af33af2fe06b8802d73d210701145a71e":[15,3,0,0,2],
-"structtaraxa_1_1state__api_1_1_config.html":[17,0,3,8,1],
-"structtaraxa_1_1state__api_1_1_config.html#a3867bb291da3931e75c23ab1b170d05a":[17,0,3,8,1,4],
-"structtaraxa_1_1state__api_1_1_config.html#a599e0bbb60d1e43b147bac01cefb8309":[17,0,3,8,1,0],
-"structtaraxa_1_1state__api_1_1_config.html#a615b642f8d815dd93363bc4c7850bdef":[17,0,3,8,1,2],
-"structtaraxa_1_1state__api_1_1_config.html#ad099372be7bb0a693044a7d0830c8e18":[17,0,3,8,1,3],
-"structtaraxa_1_1state__api_1_1_config.html#aeab9bb1152bb8cb61bf1f41cdd18f5c3":[17,0,3,8,1,1],
-"structtaraxa_1_1storage_1_1migration_1_1_old_header.html":[17,0,3,9,0,3],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html":[17,0,3,10,2],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a11e4826e5170008b2efe4c5ac309c4c1":[17,0,3,10,2,0],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a31db61ce7d91cf934eb10dc70b0d4672":[17,0,3,10,2,4]
+"structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html#af33af2fe06b8802d73d210701145a71e":[15,3,0,0,2]
 };
