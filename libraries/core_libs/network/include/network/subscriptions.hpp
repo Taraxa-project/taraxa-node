@@ -74,10 +74,13 @@ class DagBlockFinalizedSubscription : public Subscription {
 
 class PbftBlockExecutedSubscription : public Subscription {
  public:
-  explicit PbftBlockExecutedSubscription(int id) : Subscription(id) {}
+  explicit PbftBlockExecutedSubscription(int id, bool full_block = false) : Subscription(id), full_block_(full_block) {}
   static constexpr SubscriptionType type = SubscriptionType::PBFT_BLOCK_EXECUTED;
   SubscriptionType getType() const override { return type; }
   std::string processPayload(Json::Value payload) const override;
+
+ private:
+  bool full_block_ = false;
 };
 
 class PillarBlockSubscription : public Subscription {

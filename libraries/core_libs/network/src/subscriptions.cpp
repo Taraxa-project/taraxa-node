@@ -90,6 +90,9 @@ std::string DagBlockFinalizedSubscription::processPayload(Json::Value payload) c
 }
 
 std::string PbftBlockExecutedSubscription::processPayload(Json::Value payload) const {
+  if (!full_block_) {
+    payload = payload["block_hash"];
+  }
   return makeEthSubscriptionResponse(id_, payload);
 }
 

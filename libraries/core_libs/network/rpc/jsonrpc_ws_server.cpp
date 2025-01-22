@@ -84,10 +84,10 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
     } else if (params[0].asString() == "newDagBlocksFinalized") {
       subscriptions_.addSubscription(std::make_shared<DagBlockFinalizedSubscription>(subscription_id));
     } else if (params[0].asString() == "newPbftBlocks") {
-      subscriptions_.addSubscription(std::make_shared<PbftBlockExecutedSubscription>(subscription_id));
-    } else if (params[0].asString() == "newPillarBlockData") {
       subscriptions_.addSubscription(
-          std::make_shared<PillarBlockSubscription>(subscription_id, options.asString() == "includeSignatures"));
+          std::make_shared<PbftBlockExecutedSubscription>(subscription_id, options.asBool()));
+    } else if (params[0].asString() == "newPillarBlockData") {
+      subscriptions_.addSubscription(std::make_shared<PillarBlockSubscription>(subscription_id, options.asBool()));
     } else if (params[0].asString() == "logs") {
       auto filter =
           rpc::eth::LogFilter(0, std::nullopt, rpc::eth::parse_addresses(options), rpc::eth::parse_topics(options));
