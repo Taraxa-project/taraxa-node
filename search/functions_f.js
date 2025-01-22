@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['on_5faccept_0',['on_accept',['../classtaraxa_1_1net_1_1_ws_server.html#a04c841545c5df25f425cad23de2c075b',1,'taraxa::net::WsServer::on_accept()'],['../classtaraxa_1_1net_1_1_ws_session.html#ae4b9cf496dddd2135d1c8f4584170421',1,'taraxa::net::WsSession::on_accept(beast::error_code ec)']]],
+  ['on_5faccept_0',['on_accept',['../classtaraxa_1_1net_1_1_ws_session.html#ae4b9cf496dddd2135d1c8f4584170421',1,'taraxa::net::WsSession::on_accept()'],['../classtaraxa_1_1net_1_1_ws_server.html#a04c841545c5df25f425cad23de2c075b',1,'taraxa::net::WsServer::on_accept()']]],
   ['on_5fread_1',['on_read',['../classtaraxa_1_1net_1_1_ws_session.html#a0762852f252dcfd0e5cbdf86ed96da87',1,'taraxa::net::WsSession']]],
   ['on_5fwrite_2',['on_write',['../classtaraxa_1_1net_1_1_ws_session.html#aefa3425312039a827face9bda482d0ed',1,'taraxa::net::WsSession']]],
   ['onconnect_3',['onconnect',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa56541694f03e85f12576febe5180d1e',1,'taraxa::network::tarcap::TaraxaCapability::onConnect()'],['../classdev_1_1p2p_1_1_capability_face.html#a06a582aeba113fe183df50780da210b0',1,'dev::p2p::CapabilityFace::onConnect(std::weak_ptr&lt; Session &gt; session, u256 const &amp;_peerCapabilityVersion)=0']]],

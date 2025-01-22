@@ -9,9 +9,10 @@ var searchData=
   ['hash_3c_20dev_3a_3ah512_20_3e_6',['hash&lt; dev::h512 &gt;',['../structstd_1_1hash_3_01dev_1_1h512_01_4.html',1,'std']]],
   ['hash_3c_20dev_3a_3ah64_20_3e_7',['hash&lt; dev::h64 &gt;',['../structstd_1_1hash_3_01dev_1_1h64_01_4.html',1,'std']]],
   ['hash_3c_20pair_3c_20dev_3a_3ap2p_3a_3anodeid_2c_20string_20_3e_20_3e_8',['hash&lt; pair&lt; dev::p2p::NodeID, string &gt; &gt;',['../structstd_1_1hash_3_01pair_3_01dev_1_1p2p_1_1_node_i_d_00_01string_01_4_01_4.html',1,'std']]],
-  ['host_9',['Host',['../structdev_1_1p2p_1_1_host.html',1,'dev::p2p']]],
-  ['hostcontext_10',['HostContext',['../structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context',1,'dev::p2p::RLPXHandshake']]],
-  ['httpconnection_11',['HttpConnection',['../classtaraxa_1_1net_1_1_http_connection.html',1,'taraxa::net']]],
-  ['httpprocessor_12',['HttpProcessor',['../classtaraxa_1_1net_1_1_http_processor.html',1,'taraxa::net']]],
-  ['httpserver_13',['HttpServer',['../classtaraxa_1_1net_1_1_http_server.html',1,'taraxa::net']]]
+  ['headssubscription_9',['HeadsSubscription',['../classtaraxa_1_1net_1_1_heads_subscription.html',1,'taraxa::net']]],
+  ['host_10',['Host',['../structdev_1_1p2p_1_1_host.html',1,'dev::p2p']]],
+  ['hostcontext_11',['HostContext',['../structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context',1,'dev::p2p::RLPXHandshake']]],
+  ['httpconnection_12',['HttpConnection',['../classtaraxa_1_1net_1_1_http_connection.html',1,'taraxa::net']]],
+  ['httpprocessor_13',['HttpProcessor',['../classtaraxa_1_1net_1_1_http_processor.html',1,'taraxa::net']]],
+  ['httpserver_14',['HttpServer',['../classtaraxa_1_1net_1_1_http_server.html',1,'taraxa::net']]]
 ];

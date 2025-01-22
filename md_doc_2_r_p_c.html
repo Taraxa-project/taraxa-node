@@ -145,11 +145,18 @@ Parameters</h3>
 <h3><a class="anchor" id="autotoc_md269"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - The subscription ID</p>
-<h3><a class="anchor" id="autotoc_md270"></a>
-Sybscription types</h3>
-<h4><a class="anchor" id="autotoc_md271"></a>
-newHeads</h4>
+<h2><a class="anchor" id="autotoc_md270"></a>
+Subscription types</h2>
+<h2><a class="anchor" id="autotoc_md271"></a>
+newHeads</h2>
 <p>Fires a notification when new header is appended to the chain</p>
+<h3><a class="anchor" id="autotoc_md272"></a>
+Params</h3>
+<ol type="1">
+<li><code>BOOLEAN</code> - returns full data if true. Only hash otherwise. Default is false</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md273"></a>
+Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscribe&quot;,&quot;params&quot;:[&quot;newHeads&quot;],&quot;id&quot;:1}</div>
 <div class="line"> </div>
@@ -161,15 +168,16 @@ newHeads</h4>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;method&quot;: &quot;eth_subscription&quot;,</div>
 <div class="line">  &quot;params&quot;: {</div>
-<div class="line">    &quot;result&quot;: {</div>
-<div class="line">      ...BLOCK DATA...</div>
-<div class="line">    },</div>
+<div class="line">    &quot;result&quot;: &quot;0x81b21bf43d12ddd97d0966c63d1260775d66dc0fdba5d6e62e9ddbddda20e391&quot;,</div>
 <div class="line">    &quot;subscription&quot;: &quot;0x2&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md272"></a>
-newPendingTransactions</h4>
-<p>Fires a notification each time a pending transaction is added </p><div class="fragment"><div class="line">// Request</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md274"></a>
+newPendingTransactions</h2>
+<p>Fires a notification with a transaction hash each time a pending transaction is added and is signed with a key that is available in the node</p>
+<h3><a class="anchor" id="autotoc_md275"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
 <div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscribe&quot;,&quot;params&quot;:[&quot;newPendingTransactions&quot;],&quot;id&quot;:1}</div>
 <div class="line"> </div>
 <div class="line">// Result</div>
@@ -177,9 +185,17 @@ newPendingTransactions</h4>
 <div class="line"> </div>
 <div class="line">// Subscription event </div>
 <div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscription&quot;,&quot;params&quot;:{&quot;result&quot;:&quot;0x18e1a9a0b0ff48ebf3c52e760191e8d8f9ee76c0f802981548158feb16648a1e&quot;,&quot;subscription&quot;:&quot;0x3&quot;}}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md273"></a>
-newDagBlocks</h4>
-<p>Fires a notification when DAG block is added </p><div class="fragment"><div class="line">// Request</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md276"></a>
+newDagBlocks</h2>
+<p>Fires a notification when DAG block is added</p>
+<h3><a class="anchor" id="autotoc_md277"></a>
+Params</h3>
+<ol type="1">
+<li><code>BOOLEAN</code> - returns full data if true. Only hash otherwise. Default is false</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md278"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
 <div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscribe&quot;,&quot;params&quot;:[&quot;newDagBlocks&quot;],&quot;id&quot;:1}</div>
 <div class="line"> </div>
 <div class="line">// Result</div>
@@ -212,9 +228,53 @@ newDagBlocks</h4>
 <div class="line">    &quot;subscription&quot;: &quot;0x4&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md274"></a>
-newDagBlocksFinalized</h4>
-<p>Fires a notification when DAG block is finalized </p><div class="fragment"><div class="line">// Request</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md279"></a>
+logs</h2>
+<p>Subscribe to logs notifications</p>
+<h3><a class="anchor" id="autotoc_md280"></a>
+Params</h3>
+<ol type="1">
+<li><code>Object</code> - Filter object</li>
+</ol>
+<ul>
+<li><code>address</code>: <code>DATA</code>, 20 Bytes - The address from which the log originated.</li>
+<li><code>topics</code>: <code>Array of DATA</code>, 32 Bytes - Array of 32 Bytes <code>DATA</code> topics. Topics are order-dependent. A log is matched if any of the topics in the array match. Look at filter documentation for more details</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md281"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;: 1, &quot;method&quot;: &quot;eth_subscribe&quot;, &quot;params&quot;: [&quot;logs&quot;, {&quot;address&quot;:&quot;0x00000000000000000000000000000000000000FE&quot;, &quot;topics&quot;: [&quot;0x9310ccfcb8de723f578a9e4282ea9f521f05ae40dc08f3068dfad528a65ee3c7&quot;]}]}</div>
+<div class="line"> </div>
+<div class="line">// Result</div>
+<div class="line">{&quot;id&quot;:1,&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:&quot;0x5&quot;}</div>
+<div class="line"> </div>
+<div class="line">// Subscription event </div>
+<div class="line">{</div>
+<div class="line">    &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
+<div class="line">    &quot;method&quot;: &quot;eth_subscription&quot;,</div>
+<div class="line">    &quot;params&quot;: {</div>
+<div class="line">        &quot;result&quot;: {</div>
+<div class="line">            &quot;address&quot;: &quot;0x00000000000000000000000000000000000000fe&quot;,</div>
+<div class="line">            &quot;blockHash&quot;: &quot;0xa5e49eeb9e83aa481bf8a7dedda6ab527f2996c0877b0509024141e243efe7ce&quot;,</div>
+<div class="line">            &quot;blockNumber&quot;: &quot;0x13dc5&quot;,</div>
+<div class="line">            &quot;data&quot;: &quot;0x0000000000000000000000000000000000000000000000929ee692bd630fd73a&quot;,</div>
+<div class="line">            &quot;logIndex&quot;: &quot;0x0&quot;,</div>
+<div class="line">            &quot;removed&quot;: false,</div>
+<div class="line">            &quot;topics&quot;: [</div>
+<div class="line">                &quot;0x9310ccfcb8de723f578a9e4282ea9f521f05ae40dc08f3068dfad528a65ee3c7&quot;,</div>
+<div class="line">                &quot;0x000000000000000000000000d56dc0e94776fbb167f4ac7de7db60ac61ff0764&quot;,</div>
+<div class="line">                &quot;0x000000000000000000000000702d581a73b1632a2240ef09a11468e2448f7e14&quot;</div>
+<div class="line">            ],</div>
+<div class="line">            &quot;transactionHash&quot;: &quot;0xa52041e3e1b217b7076043d5eaf3393d95c2700090ed05053f24c545f53977a5&quot;,</div>
+<div class="line">            &quot;transactionIndex&quot;: &quot;0x0&quot;</div>
+<div class="line">        },</div>
+<div class="line">        &quot;subscription&quot;: &quot;0x5&quot;</div>
+<div class="line">    }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md282"></a>
+newDagBlocksFinalized</h2>
+<p>Fires a notification when DAG block is finalized</p>
+<div class="fragment"><div class="line">// Request</div>
 <div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscribe&quot;,&quot;params&quot;:[&quot;newDagBlocksFinalized&quot;],&quot;id&quot;:1}</div>
 <div class="line"> </div>
 <div class="line">// Result</div>
@@ -222,9 +282,17 @@ newDagBlocksFinalized</h4>
 <div class="line"> </div>
 <div class="line">// Subscription event </div>
 <div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscription&quot;,&quot;params&quot;:{&quot;result&quot;:{&quot;block&quot;:&quot;0xae8237415925358af0668fecb999b3e5071ef472bd0d8daad7e880e991f7e4f2&quot;,&quot;period&quot;:&quot;0xebb0fe&quot;},&quot;subscription&quot;:&quot;0x5&quot;}}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md275"></a>
-newPbftBlocks</h4>
-<p>Fires a notification each time a new PBFT block is added to the node </p><div class="fragment"><div class="line">// Request</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md283"></a>
+newPbftBlocks</h2>
+<p>Fires a notification each time a new PBFT block is added to the node</p>
+<h3><a class="anchor" id="autotoc_md284"></a>
+Params</h3>
+<ol type="1">
+<li><code>BOOLEAN</code> - returns full data if true. Only hash otherwise. Default is false</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md285"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
 <div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscribe&quot;,&quot;params&quot;:[&quot;newPbftBlocks&quot;],&quot;id&quot;:1}</div>
 <div class="line"> </div>
 <div class="line">// Result</div>
@@ -235,38 +303,22 @@ newPbftBlocks</h4>
 <div class="line">    &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">    &quot;method&quot;: &quot;eth_subscription&quot;,</div>
 <div class="line">    &quot;params&quot;: {</div>
-<div class="line">        &quot;result&quot;: {</div>
-<div class="line">            &quot;pbft_block&quot;: {</div>
-<div class="line">                &quot;beneficiary&quot;: &quot;d0fec34ea0ae3f2e4ed935f47c18bab2d4824799&quot;,</div>
-<div class="line">                &quot;block_hash&quot;: &quot;2423040510cee56b84db4885b90afd6fd3c7769993ae4217bee38eac29dd237f&quot;,</div>
-<div class="line">                &quot;dag_block_hash_as_pivot&quot;: &quot;2e979ef5687154a2db84477ff4b0eb24d196cc4ed71850206e6488a3d0c6f0a7&quot;,</div>
-<div class="line">                &quot;extra_data&quot;: {</div>
-<div class="line">                    &quot;major_version&quot;: 1,</div>
-<div class="line">                    &quot;minor_version&quot;: 11,</div>
-<div class="line">                    &quot;net_version&quot;: 3,</div>
-<div class="line">                    &quot;node_implementation&quot;: &quot;T&quot;,</div>
-<div class="line">                    &quot;patch_version&quot;: 3,</div>
-<div class="line">                    &quot;pillar_block_hash&quot;: &quot;&quot;</div>
-<div class="line">                },</div>
-<div class="line">                &quot;order_hash&quot;: &quot;29589cfaf143ae8aabf5dbf14d180308b40b0503d0a42239ba08ec43f9a2a4d7&quot;,</div>
-<div class="line">                &quot;period&quot;: 15446304,</div>
-<div class="line">                &quot;prev_block_hash&quot;: &quot;2e0cfed1574db068b865ad09b3472e9cd2380775860492d1d20521e007bb64f1&quot;,</div>
-<div class="line">                &quot;prev_state_root_hash&quot;: &quot;741a8961737d98f022071957f7153301b0bfbda6c5e1610d336352f24100e1aa&quot;,</div>
-<div class="line">                &quot;reward_votes&quot;: [...],</div>
-<div class="line">                &quot;schedule&quot;: {</div>
-<div class="line">                    &quot;dag_blocks_order&quot;: [...]</div>
-<div class="line">                },</div>
-<div class="line">                &quot;signature&quot;: &quot;6c71d606c82bac7b6e981c7ddec91c806b32f62ba840cee067d5b53b164bf2c105b1dc4042eb15c034b94c37de2cd50c554c7bf2c9208d3fbe67a23c1c6ba47a00&quot;,</div>
-<div class="line">                &quot;timestamp&quot;: 1736771943</div>
-<div class="line">            }</div>
-<div class="line">        },</div>
+<div class="line">        &quot;result&quot;:&quot;0x1227bee33c02ebac7c18a49381afc7ffabe4264611b7a7e5e980978ae1549360&quot;,  </div>
 <div class="line">        &quot;subscription&quot;: &quot;0x6&quot;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md276"></a>
-newPillarBlockData</h4>
-<p>Fires a notification when Pillar block is added </p><div class="fragment"><div class="line">// Request</div>
-<div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscribe&quot;,&quot;params&quot;:[&quot;newPillarBlockData&quot;, &quot;includeSignatures&quot;],&quot;id&quot;:1}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md286"></a>
+newPillarBlockData</h2>
+<p>Fires a notification when Pillar block is added</p>
+<h3><a class="anchor" id="autotoc_md287"></a>
+params</h3>
+<ol type="1">
+<li><code>BOOLEAN</code> - if to include signatures in the notification. Default is false</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md288"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;eth_subscribe&quot;,&quot;params&quot;:[&quot;newPillarBlockData&quot;, true],&quot;id&quot;:1}</div>
 <div class="line"> </div>
 <div class="line">// Result</div>
 <div class="line">{&quot;id&quot;:1,&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;result&quot;:&quot;0x7&quot;}</div>
@@ -285,23 +337,26 @@ newPillarBlockData</h4>
 <div class="line">                &quot;previous_pillar_block_hash&quot;: &quot;0xb33b24bc01254d9ab69b1b72a1013f55597afca226e20d35e1ae3815400d0527&quot;,</div>
 <div class="line">                &quot;state_root&quot;: &quot;0x71d78c731c07b502189b223ed3b30f4dd90af4a6467f50c9df566bfaad6e45e9&quot;,</div>
 <div class="line">                &quot;validators_vote_counts_changes&quot;: []</div>
-<div class="line">            }</div>
+<div class="line">            }, </div>
+<div class="line">            &quot;signatures&quot;: [</div>
+<div class="line">              ...</div>
+<div class="line">            ]</div>
 <div class="line">        },</div>
 <div class="line">        &quot;subscription&quot;: &quot;0x7&quot;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md277"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md289"></a>
 Taraxa specific methods</h1>
-<h2><a class="anchor" id="autotoc_md278"></a>
+<h2><a class="anchor" id="autotoc_md290"></a>
 taraxa_protocolVersion</h2>
 <p>Returns current taraxa network protocol version</p>
-<h3><a class="anchor" id="autotoc_md279"></a>
+<h3><a class="anchor" id="autotoc_md291"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md280"></a>
+<h3><a class="anchor" id="autotoc_md292"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - The current network protocol version</p>
-<h3><a class="anchor" id="autotoc_md281"></a>
+<h3><a class="anchor" id="autotoc_md293"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_protocolVersion&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -312,13 +367,13 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;:&quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;0x2&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md282"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md294"></a>
 taraxa_getVersion</h2>
 <p>Returns extended description of Taraxa node version.</p>
-<h3><a class="anchor" id="autotoc_md283"></a>
+<h3><a class="anchor" id="autotoc_md295"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md284"></a>
+<h3><a class="anchor" id="autotoc_md296"></a>
 Returns</h3>
 <p><code>OBJECT</code>, An object with info about current version</p><ul>
 <li><code>version</code>: <code>STRING</code> - Triplet describing full version of node in format <code>MAJOR.MINOR.PATCH</code></li>
@@ -327,7 +382,7 @@ Returns</h3>
 <li><code>git_commit_date</code>: <code>STRING</code> - Date of the commit node was built from</li>
 <li><code>git_description</code>: <code>STRING</code> - Git description of commit node was built from</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md285"></a>
+<h3><a class="anchor" id="autotoc_md297"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getVersion&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -344,16 +399,16 @@ Example</h3>
 <div class="line">    &quot;git_description&quot;: &quot;v1.0.1-candidate-405-g0e2abae5&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md286"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md298"></a>
 taraxa_getDagBlockByHash</h2>
 <p>Returns information about DAG block by hash</p>
-<h3><a class="anchor" id="autotoc_md287"></a>
+<h3><a class="anchor" id="autotoc_md299"></a>
 Parameters</h3>
 <ol type="1">
 <li><code>DATA</code>, 32 Bytes - Hash of a block.</li>
 <li><code>Boolean</code> - If true it returns the full transaction objects, if false only the hashes of the transactions.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md288"></a>
+<h3><a class="anchor" id="autotoc_md300"></a>
 Returns</h3>
 <p><code>OBJECT</code> - A DAG block object, or null when no block was found:</p>
 <ul>
@@ -376,7 +431,7 @@ Returns</h3>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md289"></a>
+<h3><a class="anchor" id="autotoc_md301"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getDagBlockByHash&quot;,&quot;params&quot;: [&quot;0x73fabc5e2ff3863b8c8a313ee0200b915ef2f3606d24f3ff817a4655c04852a6&quot;, false],&quot;id&quot;:1}&#39;</div>
@@ -411,16 +466,16 @@ Example</h3>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md290"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md302"></a>
 taraxa_getDagBlockByLevel</h2>
 <p>Returns information about DAG blocks for specified level</p>
-<h3><a class="anchor" id="autotoc_md291"></a>
+<h3><a class="anchor" id="autotoc_md303"></a>
 Parameters</h3>
 <ol type="1">
 <li><code>QUANTITY</code> - Level to get blocks from</li>
 <li><code>Boolean</code> - If true it returns the full transaction objects, if false only the hashes of the transactions.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md292"></a>
+<h3><a class="anchor" id="autotoc_md304"></a>
 Returns</h3>
 <p><code>ARRAY</code> of <code>OBJECT</code> - A DAG block object, or null when no block was found:</p><ul>
 <li><code>pivot</code>: <code>DATA</code>, 32 Bytes -</li>
@@ -442,7 +497,7 @@ Returns</h3>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md293"></a>
+<h3><a class="anchor" id="autotoc_md305"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getDagBlockByLevel&quot;,&quot;params&quot;:[&quot;0xEA1C6A&quot;, false],&quot;id&quot;:1}&#39;</div>
@@ -477,16 +532,16 @@ Example</h3>
 <div class="line">    }, ...</div>
 <div class="line">  ]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md294"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md306"></a>
 taraxa_dagBlockLevel</h2>
 <p>Returns current maximum level of DAG</p>
-<h3><a class="anchor" id="autotoc_md295"></a>
+<h3><a class="anchor" id="autotoc_md307"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md296"></a>
+<h3><a class="anchor" id="autotoc_md308"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - The current maximum DAG level</p>
-<h3><a class="anchor" id="autotoc_md297"></a>
+<h3><a class="anchor" id="autotoc_md309"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_dagBlockLevel&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -497,16 +552,16 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;0xea1f7f&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md298"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md310"></a>
 taraxa_dagBlockPeriod</h2>
 <p>Returns last period</p>
-<h3><a class="anchor" id="autotoc_md299"></a>
+<h3><a class="anchor" id="autotoc_md311"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md300"></a>
+<h3><a class="anchor" id="autotoc_md312"></a>
 Returns</h3>
 <p><code>String</code> - The current protocol version</p>
-<h3><a class="anchor" id="autotoc_md301"></a>
+<h3><a class="anchor" id="autotoc_md313"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_dagBlockPeriod&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -517,13 +572,13 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;0x1d52a3&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md302"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md314"></a>
 taraxa_getScheduleBlockByPeriod</h2>
 <p>Returns PBFT block info with DAG block schedule for period</p>
-<h3><a class="anchor" id="autotoc_md303"></a>
+<h3><a class="anchor" id="autotoc_md315"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md304"></a>
+<h3><a class="anchor" id="autotoc_md316"></a>
 Returns</h3>
 <p><code>OBJECT</code> - PBFT block info</p><ul>
 <li><code>beneficiary</code>: <code>DATA</code>, 20 Bytes - Address of beneficiary(block creator)</li>
@@ -539,7 +594,7 @@ Returns</h3>
 <li><code>signature</code>: <code>DATA</code>, 65 Bytes - Beneficiary signature of the block</li>
 <li><code>timestamp</code>: <code>QUANTITY</code> - Time of block generation</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md305"></a>
+<h3><a class="anchor" id="autotoc_md317"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getScheduleBlockByPeriod&quot;,&quot;params&quot;:[&quot;0x1D533B&quot;],&quot;id&quot;:1}&#39;</div>
@@ -583,16 +638,16 @@ Example</h3>
 <div class="line">    &quot;timestamp&quot;: 1653563053</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md306"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md318"></a>
 taraxa_pbftBlockHashByPeriod</h2>
 <p>Returns hash of PBFT block for specified period</p>
-<h3><a class="anchor" id="autotoc_md307"></a>
+<h3><a class="anchor" id="autotoc_md319"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md308"></a>
+<h3><a class="anchor" id="autotoc_md320"></a>
 Returns</h3>
 <p><code>STRING</code> - PBFT block hash</p>
-<h3><a class="anchor" id="autotoc_md309"></a>
+<h3><a class="anchor" id="autotoc_md321"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_pbftBlockHashByPeriod&quot;,&quot;params&quot;:[&quot;0x1D533B&quot;],&quot;id&quot;:1}&#39;</div>
@@ -603,13 +658,13 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;024409a272dd2f87b0c98f8be109dbf993eb61346a0f4ff5dacc5a7205b49623&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md310"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md322"></a>
 taraxa_getConfig</h2>
 <p>Returns current node configuration</p>
-<h3><a class="anchor" id="autotoc_md311"></a>
+<h3><a class="anchor" id="autotoc_md323"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md312"></a>
+<h3><a class="anchor" id="autotoc_md324"></a>
 Returns</h3>
 <p><code>OBJECT</code> - config object</p><ul>
 <li><code>chain_id</code>: <code>QUANTITY</code> - chain id. Different between networks</li>
@@ -618,7 +673,7 @@ Returns</h3>
 <li><code>pbft</code>: <code>OBJECT</code> - PBFT configuration object</li>
 <li><code>sortition</code>: <code>OBJECT</code> - Sortition configuration object</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md313"></a>
+<h3><a class="anchor" id="autotoc_md325"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getConfig&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -689,20 +744,20 @@ Example</h3>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md314"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md326"></a>
 taraxa_getChainStats</h2>
 <p>Returns current chain stats with count of transactions, PBFT blocks and DAG blocks</p>
-<h3><a class="anchor" id="autotoc_md315"></a>
+<h3><a class="anchor" id="autotoc_md327"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md316"></a>
+<h3><a class="anchor" id="autotoc_md328"></a>
 Returns</h3>
 <p><code>OBJECT</code> - current chain stats object</p><ul>
 <li><code>pbft_period</code>: <code>QUANTITY</code> - current PBFT period</li>
 <li><code>dag_blocks_executed</code>: <code>QUANTITY</code> - count of executed(finalized) DAG blocks</li>
 <li><code>transactions_executed</code>: <code>QUANTITY</code> - count of executed transactions</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md317"></a>
+<h3><a class="anchor" id="autotoc_md329"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getChainStats&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -717,17 +772,17 @@ Example</h3>
 <div class="line">    &quot;transactions_executed&quot;: 200</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md318"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md330"></a>
 taraxa_yield</h2>
 <p>Returns yield for specified period</p>
-<h3><a class="anchor" id="autotoc_md319"></a>
+<h3><a class="anchor" id="autotoc_md331"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md320"></a>
+<h3><a class="anchor" id="autotoc_md332"></a>
 Returns</h3>
 <p><code>String</code> - yield</p>
 <p>To transform returned yield to percents -&gt; <code>decimal(yield) / 1e4</code>\ To transform returned yield to fraction -&gt; <code>decimal(yield) / 1e6</code></p>
-<h3><a class="anchor" id="autotoc_md321"></a>
+<h3><a class="anchor" id="autotoc_md333"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_yield&quot;,&quot;params&quot;:[&quot;0x1D533B&quot;],&quot;id&quot;:1}&#39;</div>
@@ -738,16 +793,16 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;0x30D40&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md322"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md334"></a>
 taraxa_totalSupply</h2>
 <p>Returns total supply for specified period</p>
-<h3><a class="anchor" id="autotoc_md323"></a>
+<h3><a class="anchor" id="autotoc_md335"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md324"></a>
+<h3><a class="anchor" id="autotoc_md336"></a>
 Returns</h3>
 <p><code>String</code> - total supply</p>
-<h3><a class="anchor" id="autotoc_md325"></a>
+<h3><a class="anchor" id="autotoc_md337"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_totalSupply&quot;,&quot;params&quot;:[&quot;0x1D533B&quot;],&quot;id&quot;:1}&#39;</div>
@@ -758,16 +813,16 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;0x204FCE5E3E25026110000000&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md326"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md338"></a>
 taraxa_getPillarBlockData</h2>
 <p>Returns finalized pillar block + pillar votes for specified bock number</p>
-<h3><a class="anchor" id="autotoc_md327"></a>
+<h3><a class="anchor" id="autotoc_md339"></a>
 Parameters</h3>
 <ol type="1">
 <li><code>QUANTITY</code> - pillar block period</li>
 <li><code>Boolean</code> - If true it returns also pillar block signatures</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md328"></a>
+<h3><a class="anchor" id="autotoc_md340"></a>
 Returns</h3>
 <p><code>OBJECT</code> - pillar block data</p><ul>
 <li><code>pillar_block</code>: <code>OBJECT</code> - pillar block object</li>
@@ -789,7 +844,7 @@ Returns</h3>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md329"></a>
+<h3><a class="anchor" id="autotoc_md341"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getPillarBlockData&quot;,&quot;params&quot;:[100, true],&quot;id&quot;:1}&#39;</div>
@@ -836,17 +891,17 @@ Example</h3>
 <div class="line">    ]</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md330"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md342"></a>
 Test API</h1>
-<h2><a class="anchor" id="autotoc_md331"></a>
+<h2><a class="anchor" id="autotoc_md343"></a>
 get_sortition_change</h2>
 <p>Get sortition params changes for closest smaller period to specified</p>
-<h3><a class="anchor" id="autotoc_md332"></a>
+<h3><a class="anchor" id="autotoc_md344"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - param is wrapped into object</p><ul>
 <li><code>period</code>: QUANTITY` - period number to get sortition parameters for</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md333"></a>
+<h3><a class="anchor" id="autotoc_md345"></a>
 Returns</h3>
 <p><code>OBJECT</code> - sortition parameters</p><ul>
 <li><code>interval_efficiency</code>: <code>QUANTITY</code> - efficiency of interval</li>
@@ -854,7 +909,7 @@ Returns</h3>
 <li><code>threshold_upper</code>: <code>QUANTITY</code> - upper bound of selection</li>
 <li><code>kThresholdUpperMinValue</code>: <code>QUANTITY</code> - const that represents minimum value of <code>threshold_upper</code></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md334"></a>
+<h3><a class="anchor" id="autotoc_md346"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_sortition_change&quot;,&quot;params&quot;:[{&quot;period&quot;: 3000}],&quot;id&quot;:1}&#39;</div>
@@ -870,10 +925,10 @@ Example</h3>
 <div class="line">    &quot;threshold_upper&quot;: 31953</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md335"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md347"></a>
 send_coin_transaction</h2>
 <p>Method to create and send transfer transaction. Used in some tests and CI</p>
-<h3><a class="anchor" id="autotoc_md336"></a>
+<h3><a class="anchor" id="autotoc_md348"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transaction from</li>
@@ -883,10 +938,10 @@ Parameters</h3>
 <li><code>gas</code>: <code>QUANTITY</code> - Amount of gas transaction can use</li>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Address of receiver account</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md337"></a>
+<h3><a class="anchor" id="autotoc_md349"></a>
 Returns</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md338"></a>
+<h3><a class="anchor" id="autotoc_md350"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;send_coin_transaction&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -897,10 +952,10 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: null</div>
 <div class="line">}</div>
-</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md339"></a>
+</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md351"></a>
 send_coin_transactions</h2>
 <p>Method to create and send multiple transaction. Used to create high transactions load in tests</p>
-<h3><a class="anchor" id="autotoc_md340"></a>
+<h3><a class="anchor" id="autotoc_md352"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transactions from</li>
@@ -911,19 +966,19 @@ Parameters</h3>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Array of Addresses of receiver account</li>
 <li><code>transaction_count</code>: <code>QUANTITY</code>, - Number of transactions to create</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md341"></a>
+<h3><a class="anchor" id="autotoc_md353"></a>
 Returns</h3>
 <p>Number of transactions inserted successfully, in case of transaction insertion failure, error message is returned</p>
-<h2><a class="anchor" id="autotoc_md342"></a>
+<h2><a class="anchor" id="autotoc_md354"></a>
 get_account_address</h2>
 <p>Returns address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md343"></a>
+<h3><a class="anchor" id="autotoc_md355"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md344"></a>
+<h3><a class="anchor" id="autotoc_md356"></a>
 Returns</h3>
 <p><code>DATA</code>, 20 Bytes - address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md345"></a>
+<h3><a class="anchor" id="autotoc_md357"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_account_address&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -936,16 +991,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: &quot;b3888b0bafcf1f9481a0ec97ff032d84f22254ec&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md346"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md358"></a>
 get_peer_count</h2>
 <p>Returns count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md347"></a>
+<h3><a class="anchor" id="autotoc_md359"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md348"></a>
+<h3><a class="anchor" id="autotoc_md360"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md349"></a>
+<h3><a class="anchor" id="autotoc_md361"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_peer_count&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -958,16 +1013,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: 50</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md350"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md362"></a>
 get_node_status</h2>
 <p>Returns current taraxa network protocol version</p>
-<h3><a class="anchor" id="autotoc_md351"></a>
+<h3><a class="anchor" id="autotoc_md363"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md352"></a>
+<h3><a class="anchor" id="autotoc_md364"></a>
 Returns</h3>
 <p><code>OBJECT</code> - with a lot of info about node status including networking. See Example</p>
-<h3><a class="anchor" id="autotoc_md353"></a>
+<h3><a class="anchor" id="autotoc_md365"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_node_status&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -1014,16 +1069,16 @@ Example</h3>
 <div class="line">    &quot;trx_pool_size&quot;: 7</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md354"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md366"></a>
 get_all_nodes</h2>
 <p>Returns info of current connected nodes including its id, ip_address and port</p>
-<h3><a class="anchor" id="autotoc_md355"></a>
+<h3><a class="anchor" id="autotoc_md367"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md356"></a>
+<h3><a class="anchor" id="autotoc_md368"></a>
 Returns</h3>
 <p><code>STRING</code> - string that contains info about peer if format <code>id ip_address:port</code> separated with <code>\n</code>.</p>
-<h3><a class="anchor" id="autotoc_md357"></a>
+<h3><a class="anchor" id="autotoc_md369"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_all_nodes&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -1034,15 +1089,15 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;f8ff62f2df819566023ec3cda97f73697e789089b5c97c22a24c175edec3256242796a7a843fe1b949558160dae0fd5510e31c93440798212ef99a55c64e7b0f 66.94.114.186:10002\n45022ea1765d3a569003e2088a0893ffe00656c25f32ee414b39c6e45c8aa05cc41453158d832c67b5bba710edb648223f654fae9e2a1f513d7e42447f25a2d6 38.242.218.203:10002&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md358"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md370"></a>
 Debug API</h1>
-<h2><a class="anchor" id="autotoc_md359"></a>
+<h2><a class="anchor" id="autotoc_md371"></a>
 debug_getPeriodTransactionsWithReceipts</h2>
 <p>Returns all transactions from block at specified period</p>
-<h3><a class="anchor" id="autotoc_md360"></a>
+<h3><a class="anchor" id="autotoc_md372"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md361"></a>
+<h3><a class="anchor" id="autotoc_md373"></a>
 Returns</h3>
 <p><code>ARRAY</code> of <code>OBJECT</code> - Object that is result of transaction and receipt objects merging <br  />
 </p><ul>
@@ -1067,7 +1122,7 @@ Returns</h3>
 <li><code>logsBloom</code>: <code>DATA</code>, 256 Bytes - Bloom filter for light clients to quickly retrieve related logs.</li>
 <li><code>status</code>: <code>QUANTITY</code> either 1 (success) or 0 (failure)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md362"></a>
+<h3><a class="anchor" id="autotoc_md374"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPeriodTransactionsWithReceipts&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
@@ -1102,13 +1157,13 @@ Example</h3>
 <div class="line">    }, ...</div>
 <div class="line">  ]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md363"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md375"></a>
 debug_getPeriodDagBlocks</h2>
 <p>Returns all dag blocks for specified period</p>
-<h3><a class="anchor" id="autotoc_md364"></a>
+<h3><a class="anchor" id="autotoc_md376"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md365"></a>
+<h3><a class="anchor" id="autotoc_md377"></a>
 Returns</h3>
 <p><code>ARRAY</code> of <code>OBJECT</code> - A DAG block object:</p><ul>
 <li><code>pivot</code>: <code>DATA</code>, 32 Bytes -</li>
@@ -1130,7 +1185,7 @@ Returns</h3>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md366"></a>
+<h3><a class="anchor" id="autotoc_md378"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPeriodDagBlocks&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
@@ -1160,13 +1215,13 @@ Example</h3>
 <div class="line">    }, ...</div>
 <div class="line">  ]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md367"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md379"></a>
 debug_getPreviousBlockCertVotes</h2>
 <p>Returns all previous block cert votes for specified period</p>
-<h3><a class="anchor" id="autotoc_md368"></a>
+<h3><a class="anchor" id="autotoc_md380"></a>
 Parameters</h3>
 <p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md369"></a>
+<h3><a class="anchor" id="autotoc_md381"></a>
 Returns</h3>
 <p><code>ARRAY</code> of <code>OBJECT</code> - A Vote block object:</p><ul>
 <li><code>hash</code>: <code>DATA</code>, 32 Bytes - Hash of the vote</li>
@@ -1175,7 +1230,7 @@ Returns</h3>
 <li><code>block_hash</code>: <code>DATA</code>, 32 Bytes - Hash of the block vote</li>
 <li><code>weight</code>: <code>QUANTITY</code> - weight of the vote</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md370"></a>
+<h3><a class="anchor" id="autotoc_md382"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPreviousBlockCertVotes&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>

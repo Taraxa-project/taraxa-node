@@ -1,7 +1,11 @@
 <map id="taraxa::net::JsonRpcWsSession" name="taraxa::net::JsonRpcWsSession">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,167,228,192"/>
-<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_ws_session.html" title=" " alt="" coords="31,93,202,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,132,119,167,114,167,114,132"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="21,5,212,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="119,59,119,93,114,93,114,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="53,271,276,296"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_ws_session.html" title=" " alt="" coords="79,196,250,221"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,236,167,270,162,270,162,236"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,93,196,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,143,159,194,154,197,119,146"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1net_1_1_subscriptions.html" title=" " alt="" coords="220,101,408,126"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="286,135,185,198,182,194,283,131"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="282,5,346,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="317,44,317,101,311,101,311,44"/>
 </map>

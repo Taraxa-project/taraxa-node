@@ -17,8 +17,9 @@ var searchData=
   ['logactivepeers_14',['logActivePeers',['../structdev_1_1p2p_1_1_host.html#ad7bea36bbfe3b25bec9cbd9eb1d9adad',1,'dev::p2p::Host']]],
   ['logfilter_15',['LogFilter',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a37c3a70b29f7b44a4d8fe666414eb742',1,'taraxa::net::rpc::eth::LogFilter']]],
   ['lognodestats_16',['logNodeStats',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac0b8c8d9f9f39420e545d3ca6cfa75f5',1,'taraxa::network::tarcap::NodeStats']]],
-  ['lookup_17',['lookup',['../classtaraxa_1_1_db_storage.html#a9b657786cf22bbe144c57dbfb4d79cca',1,'taraxa::DbStorage']]],
-  ['lookup_5fint_18',['lookup_int',['../classtaraxa_1_1_db_storage.html#ad6c2c04fb697dff29a3719e30d59b407',1,'taraxa::DbStorage']]],
-  ['loopbackfinishstate_5f_19',['loopBackFinishState_',['../group___p_b_f_t.html#afcaa3b3656d18f6a1bc5bb36761aa079',1,'taraxa::PbftManager']]],
-  ['lz4compress_20',['LZ4compress',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#aca4f2f0acf5448c9337dfc0d49c9d2d7',1,'dev::p2p::RLPXFrameCoder']]]
+  ['logssubscription_17',['LogsSubscription',['../classtaraxa_1_1net_1_1_logs_subscription.html#afef42b90f57f686711d682f0dd0b9511',1,'taraxa::net::LogsSubscription']]],
+  ['lookup_18',['lookup',['../classtaraxa_1_1_db_storage.html#a9b657786cf22bbe144c57dbfb4d79cca',1,'taraxa::DbStorage']]],
+  ['lookup_5fint_19',['lookup_int',['../classtaraxa_1_1_db_storage.html#ad6c2c04fb697dff29a3719e30d59b407',1,'taraxa::DbStorage']]],
+  ['loopbackfinishstate_5f_20',['loopBackFinishState_',['../group___p_b_f_t.html#afcaa3b3656d18f6a1bc5bb36761aa079',1,'taraxa::PbftManager']]],
+  ['lz4compress_21',['LZ4compress',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#aca4f2f0acf5448c9337dfc0d49c9d2d7',1,'dev::p2p::RLPXFrameCoder']]]
 ];

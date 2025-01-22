@@ -14,7 +14,7 @@ var searchData=
   ['on_20macos_11',['Building on MacOS',['../md_doc_2building.html#autotoc_md34',1,'']]],
   ['on_20the_20heap_20or_20passed_20to_20another_20thread_12',['&lt;a name=&quot;valuecapture&quot;&gt;&lt;/a&gt; 16. Avoid capturing by reference in lambdas that will be used nonlocally, including returned, stored on the heap, or passed to another thread',['../md_doc_2coding__practices.html#autotoc_md132',1,'']]],
   ['on_20ubuntu_2024_2004_13',['Building on Ubuntu 24.04',['../md_doc_2building.html#autotoc_md30',1,'']]],
-  ['on_5faccept_14',['on_accept',['../classtaraxa_1_1net_1_1_ws_server.html#a04c841545c5df25f425cad23de2c075b',1,'taraxa::net::WsServer::on_accept()'],['../classtaraxa_1_1net_1_1_ws_session.html#ae4b9cf496dddd2135d1c8f4584170421',1,'taraxa::net::WsSession::on_accept()']]],
+  ['on_5faccept_14',['on_accept',['../classtaraxa_1_1net_1_1_ws_session.html#ae4b9cf496dddd2135d1c8f4584170421',1,'taraxa::net::WsSession::on_accept()'],['../classtaraxa_1_1net_1_1_ws_server.html#a04c841545c5df25f425cad23de2c075b',1,'taraxa::net::WsServer::on_accept()']]],
   ['on_5fdone_15',['on_done',['../structdev_1_1p2p_1_1_session.html#ac2908ff423e6a573c3e2461ba3423727',1,'dev::p2p::Session::SendRequest']]],
   ['on_5ffailure_16',['on_failure',['../structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a0dfaa2680924c1c6f27b3353ccc51356',1,'dev::p2p::RLPXHandshake::HostContext']]],
   ['on_5fread_17',['on_read',['../classtaraxa_1_1net_1_1_ws_session.html#a0762852f252dcfd0e5cbdf86ed96da87',1,'taraxa::net::WsSession']]],
@@ -124,6 +124,6 @@ var searchData=
   ['overwrite_5fconfig_121',['OVERWRITE_CONFIG',['../classtaraxa_1_1cli_1_1_config.html#a0e57340cfbb66133f07943f856a74814',1,'taraxa::cli::Config']]],
   ['overwriteconfigfromjson_122',['overwriteConfigFromJson',['../structtaraxa_1_1_full_node_config.html#a2c448f29c13e83cf18eb1108cdc75c9c',1,'taraxa::FullNodeConfig']]],
   ['own_5fverified_5fvotes_5f_123',['own_verified_votes_',['../group___vote.html#ab652ce97eeea5fa3ec8343494c458c9b',1,'taraxa::VoteManager']]],
-  ['owner_124',['owner',['../classtaraxa_1_1util_1_1event_1_1_event.html#a469cd772a6e2826427f8b6e2af03f64f',1,'taraxa::util::event::Event::Owner'],['../namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e',1,'taraxa::state_api::ValidatorInfo::owner']]],
+  ['owner_124',['owner',['../namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e',1,'taraxa::state_api::ValidatorInfo::owner'],['../classtaraxa_1_1util_1_1event_1_1_event.html#a469cd772a6e2826427f8b6e2af03f64f',1,'taraxa::util::event::Event::Owner']]],
   ['ownership_20by_20a_20raw_20pointer_20tt_20t_20tt_20or_20reference_20tt_20t_20tt_125',['&lt;a name=&quot;smartptr&quot;&gt;&lt;/a&gt; 5. Never transfer ownership by a raw pointer (&lt;tt&gt;T*&lt;/tt&gt;) or reference (&lt;tt&gt;T&amp;&lt;/tt&gt;)',['../md_doc_2coding__practices.html#autotoc_md78',1,'']]]
 ];

@@ -29,5 +29,6 @@ var searchData=
   ['transactionqueuemetrics_26',['TransactionQueueMetrics',['../classtaraxa_1_1metrics_1_1_transaction_queue_metrics.html',1,'taraxa::metrics']]],
   ['transactionreceipt_27',['TransactionReceipt',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt',1,'taraxa::final_chain']]],
   ['transactionsexecutionresult_28',['TransactionsExecutionResult',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result',1,'taraxa::state_api']]],
-  ['transactionskeleton_29',['TransactionSkeleton',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton',1,'taraxa::net::rpc::eth']]]
+  ['transactionskeleton_29',['TransactionSkeleton',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton',1,'taraxa::net::rpc::eth']]],
+  ['transactionssubscription_30',['TransactionsSubscription',['../classtaraxa_1_1net_1_1_transactions_subscription.html',1,'taraxa::net']]]
 ];

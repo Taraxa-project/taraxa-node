@@ -27,13 +27,14 @@ var searchData=
   ['staticlog2_3c_201_20_3e_24',['StaticLog2&lt; 1 &gt;',['../structdev_1_1_static_log2_3_011_01_4.html',1,'dev']]],
   ['stats_25',['Stats',['../classtaraxa_1_1rewards_1_1_stats.html',1,'taraxa::rewards']]],
   ['statuspacket_26',['StatusPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet',1,'taraxa::network::tarcap']]],
-  ['statuspackethandler_27',['statuspackethandler',['../classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_status_packet_handler.html',1,'taraxa::network::tarcap::v3::StatusPacketHandler'],['../classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html',1,'taraxa::network::tarcap::StatusPacketHandler']]],
+  ['statuspackethandler_27',['statuspackethandler',['../classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html',1,'taraxa::network::tarcap::StatusPacketHandler'],['../classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_status_packet_handler.html',1,'taraxa::network::tarcap::v3::StatusPacketHandler']]],
   ['statustable_28',['StatusTable',['../classtaraxa_1_1_status_table.html',1,'taraxa']]],
   ['stepvotes_29',['StepVotes',['../namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes',1,'taraxa::VerifiedVotes']]],
   ['streamout_30',['StreamOut',['../structdev_1_1_stream_out.html',1,'dev']]],
   ['streamout_3c_20uint8_5ft_20_3e_31',['StreamOut&lt; uint8_t &gt;',['../structdev_1_1_stream_out_3_01uint8__t_01_4.html',1,'dev']]],
-  ['subscription_32',['Subscription',['../classgraphql_1_1taraxa_1_1_subscription.html',1,'graphql::taraxa']]],
-  ['syncstate_33',['SyncState',['../classgraphql_1_1taraxa_1_1_sync_state.html',1,'graphql::taraxa']]],
-  ['syncstatus_34',['SyncStatus',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status',1,'taraxa::net::rpc::eth']]],
-  ['systemtransaction_35',['SystemTransaction',['../structtaraxa_1_1_system_transaction.html',1,'taraxa']]]
+  ['subscription_32',['subscription',['../classgraphql_1_1taraxa_1_1_subscription.html',1,'graphql::taraxa::Subscription'],['../classtaraxa_1_1net_1_1_subscription.html',1,'taraxa::net::Subscription']]],
+  ['subscriptions_33',['Subscriptions',['../classtaraxa_1_1net_1_1_subscriptions.html',1,'taraxa::net']]],
+  ['syncstate_34',['SyncState',['../classgraphql_1_1taraxa_1_1_sync_state.html',1,'graphql::taraxa']]],
+  ['syncstatus_35',['SyncStatus',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status',1,'taraxa::net::rpc::eth']]],
+  ['systemtransaction_36',['SystemTransaction',['../structtaraxa_1_1_system_transaction.html',1,'taraxa']]]
 ];

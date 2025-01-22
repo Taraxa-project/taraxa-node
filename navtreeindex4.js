@@ -1,5 +1,12 @@
 var NAVTREEINDEX4 =
 {
+"classdev_1_1p2p_1_1_node_table.html#acc79fb500db389c4480534a9c316e8ee":[17,0,0,1,22,9],
+"classdev_1_1p2p_1_1_node_table.html#acc947166ab0d0d53c0ae82e050d14301":[17,0,0,1,22,19],
+"classdev_1_1p2p_1_1_node_table.html#acdb299588ec7ad49cfa6e2e0f2cb776b":[17,0,0,1,22,26],
+"classdev_1_1p2p_1_1_node_table.html#ace0bbbfbdb67e3c7e9bfb5c5e82f3ca7":[17,0,0,1,22,76],
+"classdev_1_1p2p_1_1_node_table.html#ad971773454cd84a33b419063e6af8e7c":[17,0,0,1,22,66],
+"classdev_1_1p2p_1_1_node_table.html#ad9901f4d431e73002058c056fb63a5d5":[17,0,0,1,22,77],
+"classdev_1_1p2p_1_1_node_table.html#adc582e124a2456cdde27b5ac4374c0e4":[17,0,0,1,22,60],
 "classdev_1_1p2p_1_1_node_table.html#addda5e37633fabc8e2a4038b9ebfa28a":[17,0,0,1,22,4],
 "classdev_1_1p2p_1_1_node_table.html#ade27d74d11db98a6b0ef30d82a16e025":[17,0,0,1,22,78],
 "classdev_1_1p2p_1_1_node_table.html#ae1d9a153f6d72f9fd7915952d55ec69f":[17,0,0,1,22,72],
@@ -242,12 +249,5 @@ var NAVTREEINDEX4 =
 "classgraphql_1_1taraxa_1_1_current_state.html":[17,0,1,0,2],
 "classgraphql_1_1taraxa_1_1_current_state.html#a0457adfdf60a20d4c28500fcbfbc587d":[17,0,1,0,2,0],
 "classgraphql_1_1taraxa_1_1_current_state.html#a19c18cc74b69f8775ec1615861d6e924":[17,0,1,0,2,2],
-"classgraphql_1_1taraxa_1_1_current_state.html#a21b34090e62e90572b4e96906c360f1a":[17,0,1,0,2,5],
-"classgraphql_1_1taraxa_1_1_current_state.html#a9e0084c43ffe85bbdb236b8b0deee7b9":[17,0,1,0,2,1],
-"classgraphql_1_1taraxa_1_1_current_state.html#aab5308ceceed33330be705970b063155":[17,0,1,0,2,3],
-"classgraphql_1_1taraxa_1_1_current_state.html#ace87b515cf134af145daf0ff6aa1cbb2":[17,0,1,0,2,4],
-"classgraphql_1_1taraxa_1_1_dag_block.html":[17,0,1,0,3],
-"classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110":[17,0,1,0,3,17],
-"classgraphql_1_1taraxa_1_1_dag_block.html#a0f9035f42b6398741824630716afc583":[17,0,1,0,3,14],
-"classgraphql_1_1taraxa_1_1_dag_block.html#a19cea62dc4902352c6ad11eeb1ebf261":[17,0,1,0,3,4]
+"classgraphql_1_1taraxa_1_1_current_state.html#a21b34090e62e90572b4e96906c360f1a":[17,0,1,0,2,5]
 };

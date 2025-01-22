@@ -1,3 +1,17 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classtaraxa_1_1_network.html" title=" " alt="" coords="5,5,132,31"/>
+<area shape="rect" id="Node000000" href="$classtaraxa_1_1net_1_1_subscription.html" title=" " alt="" coords="5,169,187,194"/>
+<area shape="rect" id="Node000001" href="$classtaraxa_1_1net_1_1_dag_block_finalized_subscription.html" title=" " alt="" coords="249,5,471,45"/>
+<area shape="poly" id="edge101_Node000000_Node000001" title=" " alt="" coords="115,156,165,105,198,78,233,55,260,43,263,48,236,60,201,82,168,109,118,160"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_dag_blocks_subscription.html" title=" " alt="" coords="235,70,485,95"/>
+<area shape="poly" id="edge102_Node000000_Node000002" title=" " alt="" coords="126,159,176,130,234,104,274,93,275,98,236,109,178,135,129,164"/>
+<area shape="rect" id="Node000003" href="$classtaraxa_1_1net_1_1_heads_subscription.html" title=" " alt="" coords="249,119,471,145"/>
+<area shape="poly" id="edge103_Node000000_Node000003" title=" " alt="" coords="178,163,291,142,292,147,179,169"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1net_1_1_logs_subscription.html" title=" " alt="" coords="255,169,465,194"/>
+<area shape="poly" id="edge104_Node000000_Node000004" title=" " alt="" coords="200,179,254,179,254,184,200,184"/>
+<area shape="rect" id="Node000005" href="$classtaraxa_1_1net_1_1_pbft_block_executed_subscription.html" title=" " alt="" coords="249,219,471,259"/>
+<area shape="poly" id="edge105_Node000000_Node000005" title=" " alt="" coords="169,194,268,216,267,221,168,200"/>
+<area shape="rect" id="Node000006" href="$classtaraxa_1_1net_1_1_pillar_block_subscription.html" title=" " alt="" coords="275,283,445,323"/>
+<area shape="poly" id="edge106_Node000000_Node000006" title=" " alt="" coords="125,200,175,235,236,268,275,282,273,287,234,273,172,240,122,205"/>
+<area shape="rect" id="Node000007" href="$classtaraxa_1_1net_1_1_transactions_subscription.html" title=" " alt="" coords="269,347,451,387"/>
+<area shape="poly" id="edge107_Node000000_Node000007" title=" " alt="" coords="115,204,164,269,198,303,236,332,269,348,267,352,233,337,194,307,160,273,110,208"/>
 </map>

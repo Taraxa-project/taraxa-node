@@ -7,5 +7,6 @@ var searchData=
   ['timeout_4',['Timeout',['../namespacedev_1_1p2p.html#a1a6ed6078a9c0a52b98d376eb09397beac85a251cc457840f1e032f1b733e9398',1,'dev::p2p']]],
   ['toomanypeers_5',['TooManyPeers',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276aa8e445746634e990a98cd1b879574f71',1,'dev::p2p']]],
   ['trace_6',['Trace',['../namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04a70e20badfd3992083cfd6fbf842f46be',1,'taraxa::logger']]],
-  ['trxcount_7',['TrxCount',['../namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901a9540f372ef60b102369ec3f8bff8ba7f',1,'taraxa']]]
+  ['transactions_7',['TRANSACTIONS',['../subscriptions_8hpp.html#ac4bb1f6dea914dce7c2649a3bd1c30a6a1914d44deb472f572a4bdf2fa1697c36',1,'subscriptions.hpp']]],
+  ['trxcount_8',['TrxCount',['../namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901a9540f372ef60b102369ec3f8bff8ba7f',1,'taraxa']]]
 ];

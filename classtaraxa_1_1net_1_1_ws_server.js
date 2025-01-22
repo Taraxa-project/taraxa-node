@@ -9,7 +9,8 @@ var classtaraxa_1_1net_1_1_ws_server =
     [ "newDagBlock", "classtaraxa_1_1net_1_1_ws_server.html#a4f078ae0025d3b709e6c05594af77a33", null ],
     [ "newDagBlockFinalized", "classtaraxa_1_1net_1_1_ws_server.html#a32fe46d862ddcfdaa581a9927ad39097", null ],
     [ "newEthBlock", "classtaraxa_1_1net_1_1_ws_server.html#a322346eb144b9474d339a11289d714f3", null ],
-    [ "newPbftBlockExecuted", "classtaraxa_1_1net_1_1_ws_server.html#a8e904b54c82e17f52b79548e48728e06", null ],
+    [ "newLogs", "classtaraxa_1_1net_1_1_ws_server.html#a88396cf300ef08b31116e140a92d44d8", null ],
+    [ "newPbftBlockExecuted", "classtaraxa_1_1net_1_1_ws_server.html#a75de3e1be39c900d3541cf2a2fcccaef", null ],
     [ "newPendingTransaction", "classtaraxa_1_1net_1_1_ws_server.html#ab277fe8bf79d7a6e0906ad3fcfbdb480", null ],
     [ "newPillarBlockData", "classtaraxa_1_1net_1_1_ws_server.html#a873f68ea99e53010675f8f71413a2657", null ],
     [ "numberOfPendingTasks", "classtaraxa_1_1net_1_1_ws_server.html#a9151d2592132cd5a651a493fa924e411", null ],
@@ -25,7 +26,7 @@ var classtaraxa_1_1net_1_1_ws_server =
     [ "ioc_", "classtaraxa_1_1net_1_1_ws_server.html#ac32da50e60f8daf8714beb8dd9ff95d6", null ],
     [ "kMaxPendingTasks", "classtaraxa_1_1net_1_1_ws_server.html#ab07e6b8f496f370c7f29613fd896a596", null ],
     [ "node_addr_", "classtaraxa_1_1net_1_1_ws_server.html#a33ae5c7a9f40a1315212e12e52875b54", null ],
-    [ "sessions", "classtaraxa_1_1net_1_1_ws_server.html#afb7956ac95ba0c7660bf955c1f0680f4", null ],
+    [ "sessions_", "classtaraxa_1_1net_1_1_ws_server.html#ae4c3bf2a36ff5d320fe51a8008d58c48", null ],
     [ "sessions_mtx_", "classtaraxa_1_1net_1_1_ws_server.html#a4dc59c273b111e6d71fc95ee706ff24c", null ],
     [ "stopped_", "classtaraxa_1_1net_1_1_ws_server.html#ae2fa1c3aebdb9d0d0973d545bf430136", null ],
     [ "thread_pool_", "classtaraxa_1_1net_1_1_ws_server.html#a22701939b194b0dd1825eff2ba03ba37", null ]

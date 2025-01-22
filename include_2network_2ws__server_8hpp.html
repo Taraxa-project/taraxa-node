@@ -91,25 +91,18 @@ $(document).ready(function(){initNavTree('include_2network_2ws__server_8hpp.html
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle"><div class="title">ws_server.hpp File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;jsonrpccpp/server/abstractserverconnector.h&gt;</code><br />
-<code>#include &lt;atomic&gt;</code><br />
-<code>#include &lt;boost/asio/strand.hpp&gt;</code><br />
-<code>#include &lt;boost/beast/core.hpp&gt;</code><br />
-<code>#include &lt;boost/beast/websocket.hpp&gt;</code><br />
-<code>#include &lt;cstdlib&gt;</code><br />
-<code>#include &lt;memory&gt;</code><br />
-<code>#include &lt;string&gt;</code><br />
-<code>#include &lt;vector&gt;</code><br />
+<div class="textblock"><code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="thread__pool_8hpp_source.html">common/thread_pool.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="types_2dag__block_2include_2dag_2dag__block_8hpp_source.html">dag/dag_block.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="consensus_2include_2final__chain_2data_8hpp_source.html">final_chain/data.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="ws__session_8hpp_source.html">network/ws_session.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="pbft__chain_8hpp_source.html">pbft/pbft_chain.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="pillar__block_8hpp_source.html">pillar_chain/pillar_block.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="types_2transaction_2include_2transaction_2transaction_8hpp_source.html">transaction/transaction.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
@@ -161,8 +154,6 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html">taraxa::net::WsSession</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_server.html">taraxa::net::WsServer</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -172,11 +163,6 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1net" id="r_namespacetaraxa_1_1net"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net.html">taraxa::net</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:a87adc53071ba8ddc553c84e894a4accc" id="r_a87adc53071ba8ddc553c84e894a4accc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net.html#a87adc53071ba8ddc553c84e894a4accc">taraxa::net::tcp</a> = boost::asio::ip::tcp</td></tr>
-<tr class="separator:a87adc53071ba8ddc553c84e894a4accc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

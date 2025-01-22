@@ -2,7 +2,6 @@ var classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl =
 [
     [ "EthImpl", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a7f4b4a73f737c09fd248861fb7b6f59f", null ],
     [ "call", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#ab8ef41e10626d3651ebb32f5fc93fee6", null ],
-    [ "DEV_SIMPLE_EXCEPTION", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aa1dfa4c575f45bec4fa4df0aa9bbf966", null ],
     [ "eth_accounts", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a2633b9dd117d887e31fa019fbe8f7e9a", null ],
     [ "eth_blockNumber", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#af5eb633f29fb7f4a4746b69e8ee15aa8", null ],
     [ "eth_call", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#ab9f9fbb659b82d00137a52a7635fc66f", null ],
@@ -50,7 +49,6 @@ var classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl =
     [ "parse_blk_num_specific", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aea1a8d9e0557c027a566d65e44197514", null ],
     [ "parse_log_filter", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#ad775cd59784b1ebbf8bbfded8c882b24", null ],
     [ "prepare_transaction_for_call", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a81ac46039a6652d55cf81bc72e6d66c5", null ],
-    [ "toAddress", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a2ec49bfe2a7e421933054fa21ff4b705", null ],
     [ "toTransactionSkeleton", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a9c594f6f826c98befe9a1c31738fc498", null ],
     [ "transaction_count", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a97002d7ccbd968b383fe89ca6f379bc8", null ],
     [ "transactionCount", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#ad5bf602057873bfcc509c3275a979573", null ],

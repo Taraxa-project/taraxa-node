@@ -23,8 +23,10 @@ var searchData=
   ['storage_2ehpp_20',['storage.hpp',['../storage_8hpp.html',1,'']]],
   ['subscription_2ecpp_21',['subscription.cpp',['../subscription_8cpp.html',1,'']]],
   ['subscription_2ehpp_22',['subscription.hpp',['../subscription_8hpp.html',1,'']]],
-  ['sync_5fstate_2ecpp_23',['sync_state.cpp',['../sync__state_8cpp.html',1,'']]],
-  ['sync_5fstate_2ehpp_24',['sync_state.hpp',['../sync__state_8hpp.html',1,'']]],
-  ['system_5ftransaction_2ecpp_25',['system_transaction.cpp',['../system__transaction_8cpp.html',1,'']]],
-  ['system_5ftransaction_2ehpp_26',['system_transaction.hpp',['../system__transaction_8hpp.html',1,'']]]
+  ['subscriptions_2ecpp_23',['subscriptions.cpp',['../subscriptions_8cpp.html',1,'']]],
+  ['subscriptions_2ehpp_24',['subscriptions.hpp',['../subscriptions_8hpp.html',1,'']]],
+  ['sync_5fstate_2ecpp_25',['sync_state.cpp',['../sync__state_8cpp.html',1,'']]],
+  ['sync_5fstate_2ehpp_26',['sync_state.hpp',['../sync__state_8hpp.html',1,'']]],
+  ['system_5ftransaction_2ecpp_27',['system_transaction.cpp',['../system__transaction_8cpp.html',1,'']]],
+  ['system_5ftransaction_2ehpp_28',['system_transaction.hpp',['../system__transaction_8hpp.html',1,'']]]
 ];

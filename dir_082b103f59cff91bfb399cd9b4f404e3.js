@@ -4,5 +4,6 @@ var dir_082b103f59cff91bfb399cd9b4f404e3 =
     [ "threadpool", "dir_555dc46813f7d12514a764c53d93c28d.html", "dir_555dc46813f7d12514a764c53d93c28d" ],
     [ "http_server.cpp", "http__server_8cpp.html", null ],
     [ "network.cpp", "core__libs_2network_2src_2network_8cpp.html", null ],
+    [ "subscriptions.cpp", "subscriptions_8cpp.html", "subscriptions_8cpp" ],
     [ "ws_server.cpp", "src_2ws__server_8cpp.html", null ]
 ];

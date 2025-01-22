@@ -115,7 +115,7 @@ var searchData=
   ['proposer_5fworker_5f_112',['proposer_worker_',['../group___d_a_g.html#ae8e8147ea54d72a8db66a06fb7546beb',1,'taraxa::DagBlockProposer']]],
   ['protocolid_113',['protocolId',['../structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#ae9abdd306b6740bc3b07b422212333b0',1,'dev::p2p::RLPXFrameInfo']]],
   ['provider_5f_114',['provider_',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html#a347f8adc03302c21b1375ddb6853fbc4',1,'taraxa::util::lazy::Lazy']]],
-  ['prune_5fstate_5fdb_115',['prune_state_db',['../namespacetaraxa.html#abdd62bbac265c8653d3c403952b8175d',1,'taraxa::DBConfig::prune_state_db'],['../classtaraxa_1_1cli_1_1_config.html#aed6aa9bc1b88eeeb5ffca242242069c1',1,'taraxa::cli::Config::PRUNE_STATE_DB']]],
+  ['prune_5fstate_5fdb_115',['prune_state_db',['../classtaraxa_1_1cli_1_1_config.html#aed6aa9bc1b88eeeb5ffca242242069c1',1,'taraxa::cli::Config::PRUNE_STATE_DB'],['../namespacetaraxa.html#abdd62bbac265c8653d3c403952b8175d',1,'taraxa::DBConfig::prune_state_db']]],
   ['pub_5fkey_5f_116',['pub_key_',['../classtaraxa_1_1_network.html#a6fb98ce4c68ab8f98c637829662de859',1,'taraxa::Network']]],
   ['public_5fip_117',['public_ip',['../structtaraxa_1_1_network_config.html#a85cb06d2c30472248db88950cdfe120c',1,'taraxa::NetworkConfig::public_ip'],['../classtaraxa_1_1cli_1_1_config.html#aac8aa3b99f73aa16fac59fa9990dd30a',1,'taraxa::cli::Config::PUBLIC_IP']]],
   ['publicipaddress_118',['publicIPAddress',['../structdev_1_1p2p_1_1_network_config.html#a307da441278a1eeaa417d47809fca66c',1,'dev::p2p::NetworkConfig']]]

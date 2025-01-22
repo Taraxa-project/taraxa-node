@@ -38,7 +38,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "nonfinalized_transactions_in_dag_", "group___transaction.html#a16c4d3c1bfe64a804a3478319e77a2cf", null ],
     [ "recently_finalized_transactions_", "group___transaction.html#a8c55e3c5cdcbd8c82eaa772e2f85bbe1", null ],
     [ "recently_finalized_transactions_per_period_", "group___transaction.html#a7225a4fa9d77f5e3c8a9717b31dd97aa", null ],
-    [ "transaction_accepted_", "group___transaction.html#a2ba3199a952e30073de5b456b67ef67f", null ],
+    [ "transaction_added_", "group___transaction.html#aa2f1764e1b4856b7e30c45943c5f0bcc", null ],
     [ "transactions_mutex_", "group___transaction.html#a00a2976d0676026e18ca173b54fcf2f0", null ],
     [ "transactions_pool_", "group___transaction.html#a7fd9dcd6c2f9c35d33bafafe740973cf", null ],
     [ "trx_count_", "group___transaction.html#a023cf1c70f9a5851ed9e1f2054da01f2", null ]
