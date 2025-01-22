@@ -226,7 +226,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   addr_t getFullNodeAddress() const;
 
  public:
-  util::Event<TransactionManager, h256> const transaction_accepted_{};
+  util::Event<TransactionManager, std::shared_ptr<Transaction>> const transaction_added_{};
 
  private:
   const FullNodeConfig &kConf;

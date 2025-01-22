@@ -9,11 +9,9 @@
 #include "common/init.hpp"
 #include "config/genesis.hpp"
 #include "final_chain/final_chain.hpp"
-#include "final_chain/trie_common.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
-#include "transaction/system_transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "transaction/transaction_queue.hpp"
 

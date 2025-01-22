@@ -84,18 +84,18 @@ std::string PbftBlock::getJsonStr() const { return getJson().toStyledString(); }
 
 Json::Value PbftBlock::getJson() const {
   Json::Value json;
-  json["prev_block_hash"] = prev_block_hash_.toString();
-  json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
-  json["order_hash"] = order_hash_.toString();
-  json["final_chain_hash"] = final_chain_hash_.toString();
-  json["period"] = (Json::Value::UInt64)period_;
-  json["timestamp"] = (Json::Value::UInt64)timestamp_;
-  json["block_hash"] = block_hash_.toString();
-  json["signature"] = signature_.toString();
-  json["beneficiary"] = beneficiary_.toString();
+  json["prev_block_hash"] = dev::toJS(prev_block_hash_);
+  json["dag_block_hash_as_pivot"] = dev::toJS(dag_block_hash_as_pivot_);
+  json["order_hash"] = dev::toJS(order_hash_);
+  json["final_chain_hash"] = dev::toJS(final_chain_hash_);
+  json["period"] = dev::toJS(period_);
+  json["timestamp"] = dev::toJS(timestamp_);
+  json["block_hash"] = dev::toJS(block_hash_);
+  json["signature"] = dev::toJS(signature_);
+  json["beneficiary"] = dev::toJS(beneficiary_);
   json["reward_votes"] = Json::Value(Json::arrayValue);
   for (const auto& v : reward_votes_) {
-    json["reward_votes"].append(v.toString());
+    json["reward_votes"].append(dev::toJS(v));
   }
   json["extra_data"] = extra_data_.has_value() ? extra_data_->getJson() : "";
 

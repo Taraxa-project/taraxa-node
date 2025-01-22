@@ -12,6 +12,7 @@ class JsonRpcWsSession final : public WsSession {
  private:
   std::string handleRequest(const Json::Value& req);
   std::string handleSubscription(const Json::Value& req);
+  std::string handleUnsubscription(const Json::Value& req);
 };
 
 class JsonRpcWsServer final : public WsServer {
