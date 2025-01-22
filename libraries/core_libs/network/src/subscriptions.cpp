@@ -2,17 +2,21 @@
 
 #include <libdevcore/CommonJS.h>
 
+#include <mutex>
+
 #include "common/jsoncpp.hpp"
 
 namespace taraxa::net {
-// Subscriptions::Subscriptions(int id, SubscriptionType type) : id(id), type(type) {}
+
 int Subscriptions::addSubscription(std::shared_ptr<Subscription> subscription) {
+  std::lock_guard<std::mutex> lock(subscriptions_mutex_);
   subscriptions_[subscription->getId()] = subscription;
   subscriptions_by_type_[subscription->getType()].push_back(subscription->getId());
   return subscription->getId();
 }
 
 bool Subscriptions::removeSubscription(int id) {
+  std::lock_guard<std::mutex> lock(subscriptions_mutex_);
   auto it = subscriptions_.find(id);
   if (it == subscriptions_.end()) {
     return false;

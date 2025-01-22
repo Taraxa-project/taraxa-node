@@ -117,5 +117,6 @@ class Subscriptions {
   std::function<void(std::string&&)> send_;
   std::map<uint64_t, std::shared_ptr<Subscription>> subscriptions_;
   std::map<SubscriptionType, std::list<uint64_t>> subscriptions_by_type_;
+  std::mutex subscriptions_mutex_;
 };
 }  // namespace taraxa::net
