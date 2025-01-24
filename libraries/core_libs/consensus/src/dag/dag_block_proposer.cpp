@@ -99,9 +99,6 @@ bool DagBlockProposer::proposeDagBlock() {
     if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
       return false;
     }
-    if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty()) {
-      return false;
-    }
   }
 
   if (vdf.isStale(sortition_params)) {

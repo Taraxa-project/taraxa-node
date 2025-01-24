@@ -3,6 +3,8 @@
   "is_light_node": false,
   "final_chain_cache_in_blocks": 5,
   "report_malicious_behaviour" : true,
+  "propose_dag_gas_limit" : "0x1908B100",
+  "propose_pbft_gas_limit" : "0x7d2b7500",
   "network": {
     "rpc": {
       "http_port": 7777,
