@@ -22,6 +22,7 @@ config:
   extraArgs: []
   snapshots:
     enabled: true
+  maxPendingTasks: 100
   
   # Default keys, VRFs and address for kube testing
   node:
