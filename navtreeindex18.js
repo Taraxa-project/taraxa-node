@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"group___transaction.html#a4cd27f99d369af399f855725adfccbe6":[15,4,3,17],
 "group___transaction.html#a50f1bb894c6ebf89cff9d80a238d1492":[15,4,1,8],
 "group___transaction.html#a5518e05109ea6a098343f4e2a0f58711":[15,4,2,1],
 "group___transaction.html#a557720dd0574c559a4646436601f39af":[15,4,2,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "hardfork_8hpp.html#a0c10319bd16b5dfdc2cc23cfecd6004c":[18,0,1,3,0,0,4,14],
 "hardfork_8hpp.html#a0f8a7499f7a4537c48b4523fae22c2d2":[18,0,1,3,0,0,4,9],
 "hardfork_8hpp.html#a14157ba246d30ca958cb600e23b4620b":[18,0,1,3,0,0,4,6],
-"hardfork_8hpp.html#a1e5265c1850dd356b18a5ff39ceeac13":[18,0,1,3,0,0,4,11],
-"hardfork_8hpp.html#a27b546b68991f92f8697e2d241d8fa97":[18,0,1,3,0,0,4,16]
+"hardfork_8hpp.html#a1e5265c1850dd356b18a5ff39ceeac13":[18,0,1,3,0,0,4,11]
 };

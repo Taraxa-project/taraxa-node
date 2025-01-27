@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"md_doc_2coding__practices.html#autotoc_md53":[4,0,0],
 "md_doc_2coding__practices.html#autotoc_md57":[4,0,1],
 "md_doc_2coding__practices.html#autotoc_md64":[4,0,2],
 "md_doc_2coding__practices.html#autotoc_md69":[4,0,3],
@@ -107,8 +108,8 @@ var NAVTREEINDEX21 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[18,0,1,0,2,23,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[18,0,1,0,2,2,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[18,0,1,0,2,23,0],
-"namespacemembers.html":[16,0],
 "namespacemembers.html":[16,0,0],
+"namespacemembers.html":[16,0],
 "namespacemembers_a.html":[16,0,1],
 "namespacemembers_b.html":[16,0,2],
 "namespacemembers_c.html":[16,0,3],
@@ -192,8 +193,8 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#ac844af3765833743b765ce695265d486":[18,0,1,4,0,0,8,0,0,1],
 "namespacetaraxa.html#acb88135b62c8aadb5c6636e1796ec016":[18,0,1,3,0,0,0,0,1],
 "namespacetaraxa.html#ace279b5bb50e6cdeb99932ac0a0f3416":[18,0,1,3,0,0,5,2,1],
-"namespacetaraxa.html#add2731f05401c618d926c2ddc218ba82":[18,0,1,4,0,0,8,0,0,0,1],
 "namespacetaraxa.html#add2731f05401c618d926c2ddc218ba82":[18,0,1,4,0,0,8,0,1,1],
+"namespacetaraxa.html#add2731f05401c618d926c2ddc218ba82":[18,0,1,4,0,0,8,0,0,0,1],
 "namespacetaraxa.html#adf04d5c498c76dd7cd8ec1e713dfb391":[18,0,1,4,0,0,8,0,0,3],
 "namespacetaraxa.html#af37c1e1391e90c597c50c5f1c2cc5f76":[18,0,1,3,0,0,4,1,0],
 "namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39":[18,0,1,3,0,0,0,0,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "namespacetaraxa_1_1network_1_1tarcap.html#a18535b66e63535d72cc491e7c5e5e137":[18,0,1,4,1,1,0,0,0,0,5,0,1],
 "namespacetaraxa_1_1network_1_1tarcap.html#a19b4fa0267c79478bf4ac4c44aa607a5":[18,0,1,4,1,1,0,0,0,0,7,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#a1aaa631e902c3cfbfb4a906ab9577608":[18,0,1,4,1,1,0,0,0,0,0,0,1],
-"namespacetaraxa_1_1network_1_1tarcap.html#a2a5afaf9d7b7f738cbe911ba83af452d":[18,0,1,4,1,1,0,0,0,0,9,0,3],
-"namespacetaraxa_1_1network_1_1tarcap.html#a2f6fbb0d9a4e4fb5ae146b5d0da3c802":[18,0,1,4,1,1,0,0,0,0,6,0,0]
+"namespacetaraxa_1_1network_1_1tarcap.html#a2a5afaf9d7b7f738cbe911ba83af452d":[18,0,1,4,1,1,0,0,0,0,9,0,3]
 };

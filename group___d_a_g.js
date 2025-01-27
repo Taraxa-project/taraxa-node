@@ -82,6 +82,7 @@ var group___d_a_g =
       [ "executor_", "group___d_a_g.html#a8ec46166cc8cb10a3f4bd1493fc60800", null ],
       [ "final_chain_", "group___d_a_g.html#abe7ac85bab1992c7eb368d899cf5fc58", null ],
       [ "kDagGasLimit", "group___d_a_g.html#a37c728c8e45b35f8030a3278cd0f157e", null ],
+      [ "kDagProposeGasLimit", "group___d_a_g.html#a612a3b2c45fbc87a417346fd4d568dc0", null ],
       [ "key_manager_", "group___d_a_g.html#a5a36c04f481e9c1dd344fd2af990a3cc", null ],
       [ "kHardforks", "group___d_a_g.html#afbabead5b9d3b67d6419adcf03f823f7", null ],
       [ "kPbftGasLimit", "group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84", null ],

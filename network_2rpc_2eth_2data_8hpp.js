@@ -41,5 +41,6 @@ var network_2rpc_2eth_2data_8hpp =
     [ "toJson", "network_2rpc_2eth_2data_8hpp.html#a87d3f1c3c85378baec6adc017942460e", null ],
     [ "toJson", "network_2rpc_2eth_2data_8hpp.html#a2e8f8c258b130976cd2ac009f13b6b91", null ],
     [ "toJson", "network_2rpc_2eth_2data_8hpp.html#a970d1cddc244b777fc73464e33796802", null ],
-    [ "toJsonArray", "network_2rpc_2eth_2data_8hpp.html#a3968a07117dca8732444c8ae609599cd", null ]
+    [ "toJsonArray", "network_2rpc_2eth_2data_8hpp.html#a3968a07117dca8732444c8ae609599cd", null ],
+    [ "CALL_EXCEPTION", "network_2rpc_2eth_2data_8hpp.html#aa9bf64301b34840c143e8bea97ec0901", null ]
 ];

@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"structdev_1_1p2p_1_1_session.html#a8753bb9dee966b7d39abc9b7237cd665":[17,0,0,1,36,3],
+"structdev_1_1p2p_1_1_session.html#a8c56370e9a87fbfb16d4f23fa51aa79e":[17,0,0,1,36,14],
 "structdev_1_1p2p_1_1_session.html#a9f81114e13214a9c93614252f2cf24e3":[17,0,0,1,36,19],
 "structdev_1_1p2p_1_1_session.html#aa2ec36b98acb1bb0ef7d718a56b5b3de":[17,0,0,1,36,24],
 "structdev_1_1p2p_1_1_session.html#aa37c7b1a87763a646999e86f7842e0b2":[17,0,0,1,36,34],
@@ -247,7 +249,5 @@ var NAVTREEINDEX25 =
 "structtaraxa_1_1_transaction.html#ac9757f51915ac63d923b4d58d06f4f29":[17,0,3,67,38],
 "structtaraxa_1_1_transaction.html#ae2d6301c8b44e9ff093bc7bdeb625422":[17,0,3,67,5],
 "structtaraxa_1_1_transaction.html#aef4359bfb2f9011dfe2d025a928d8b40":[17,0,3,67,19],
-"structtaraxa_1_1_transaction.html#af2673ba70c888218de98485d5018af0f":[17,0,3,67,39],
-"structtaraxa_1_1_transaction.html#af492cd79a6fcf8ff4403062401e10ae2":[17,0,3,67,21],
-"structtaraxa_1_1_transaction.html#af8a7c8df007e8ef709eaf6a55f557593":[17,0,3,67,46]
+"structtaraxa_1_1_transaction.html#af2673ba70c888218de98485d5018af0f":[17,0,3,67,39]
 };
