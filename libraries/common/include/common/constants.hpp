@@ -31,7 +31,7 @@ constexpr uint32_t kDefaultTransactionPoolSize{200000};
 constexpr uint32_t kMaxNonFinalizedTransactions{1000000};
 constexpr uint32_t kMaxNonFinalizedDagBlocks{100};
 
-const size_t kV3NetworkVersion = 3;
+const size_t kV4NetworkVersion = 4;
 
 const uint32_t kRecentlyFinalizedTransactionsFactor = 2;
 

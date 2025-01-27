@@ -171,7 +171,8 @@ class EthImpl : public Eth, EthParams {
       if (ret.code_retval.empty()) {
         throw jsonrpc::JsonRpcException(ret.consensus_err.empty() ? ret.code_err : ret.consensus_err);
       }
-      throw jsonrpc::JsonRpcException(CALL_EXCEPTION, ret.consensus_err.empty() ? ret.code_err : ret.consensus_err, toJS(ret.code_retval));
+      throw jsonrpc::JsonRpcException(CALL_EXCEPTION, ret.consensus_err.empty() ? ret.code_err : ret.consensus_err,
+                                      toJS(ret.code_retval));
     }
     return toJS(ret.code_retval);
   }
