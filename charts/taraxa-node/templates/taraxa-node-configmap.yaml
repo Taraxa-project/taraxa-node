@@ -160,6 +160,8 @@ data:
     cat $CONFIG_PATH | jq '.db_config.db_max_snapshots = 0' | jq '.db_config.db_snapshot_each_n_pbft_block = 0' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
     {{- end }}
 
+    cat $CONFIG_PATH | jq '.network.rpc.max_pending_tasks = {{ .Values.config.maxPendingTasks }}' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+
     echo "***** $CONFIG_PATH *****"
     cat $CONFIG_PATH
     echo "***** $CONFIG_PATH *****"

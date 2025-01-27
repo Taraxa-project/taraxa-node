@@ -122,6 +122,8 @@ spec:
             - {{ .Values.node.indexer.persistence.mountPoint }}
             - -blockchain_ws 
             - 'ws://localhost:8777'
+            - -sync_queue_limit
+            - {{ .Values.node.indexer.syncQueueLimit | quote }}
           volumeMounts:
             - name: indexer-data
               mountPath: /data
