@@ -7,32 +7,46 @@
 #include <jsonrpccpp/common/exception.h>
 #include <libdevcore/CommonJS.h>
 
+#include <memory>
 #include <string_view>
 
 #include "common/jsoncpp.hpp"
-#include "common/util.hpp"
-#include "config/config.hpp"
+#include "network/rpc/eth/LogFilter.hpp"
+#include "network/subscriptions.hpp"
 
 namespace taraxa::net {
 
-std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
-  Json::Value json;
+std::string JsonRpcWsSession::processRequest(const std::string_view &req_str) {
+  Json::Value req;
   try {
-    json = util::parse_json(request);
+    req = util::parse_json(req_str);
   } catch (Json::Exception const &e) {
     LOG(log_er_) << "Failed to parse" << e.what();
-    closed_ = true;
     return {};
   }
 
-  // Check for Batch requests
-  if (!json.isArray()) {
-    if (const auto method = json.get("method", ""); method == "eth_subscribe") {
-      return handleSubscription(json);
+  try {
+    // Check for Batch requests
+    if (!req.isArray()) {
+      if (const auto method = req.get("method", ""); method == "eth_subscribe") {
+        return handleSubscription(req);
+      }
+      if (const auto method = req.get("method", ""); method == "eth_unsubscribe") {
+        return handleUnsubscription(req);
+      }
     }
-  }
 
-  return handleRequest(json);
+    return handleRequest(req);
+  } catch (std::exception const &e) {
+    LOG(log_er_) << "Exception " << e.what();
+    Json::Value json_response;
+    auto &res_json_error = json_response["error"] = Json::Value(Json::objectValue);
+    res_json_error["code"] = jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR;
+    res_json_error["message"] = e.what();
+    json_response["id"] = req.get("id", 0);
+    json_response["jsonrpc"] = "2.0";
+    return util::to_string(json_response);
+  }
 }
 
 std::string JsonRpcWsSession::handleRequest(const Json::Value &req) {
@@ -41,18 +55,7 @@ std::string JsonRpcWsSession::handleRequest(const Json::Value &req) {
   if (ws_server) {
     auto handler = ws_server->GetHandler();
     if (handler != NULL) {
-      try {
-        handler->HandleRequest(util::to_string(req), response);
-      } catch (std::exception const &e) {
-        LOG(log_er_) << "Exception " << e.what();
-        Json::Value json_response;
-        auto &res_json_error = json_response["error"] = Json::Value(Json::objectValue);
-        res_json_error["code"] = jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR;
-        res_json_error["message"] = e.what();
-        json_response["id"] = req.get("id", 0);
-        json_response["jsonrpc"] = "2.0";
-        return util::to_string(json_response);
-      }
+      handler->HandleRequest(util::to_string(req), response);
     }
   }
   return response;
@@ -64,30 +67,52 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
   const auto params = req.get("params", Json::Value(Json::Value(Json::arrayValue)));
 
   json_response["id"] = req.get("id", 0);
-  ;
   json_response["jsonrpc"] = "2.0";
   const auto subscription_id = subscription_id_.fetch_add(1) + 1;
+  Json::Value options;
+  if (params.size() == 2) {
+    options = params[1];
+  }
 
   if (params.size() > 0) {
     if (params[0].asString() == "newHeads") {
-      new_heads_subscription_ = subscription_id;
+      subscriptions_.addSubscription(std::make_shared<HeadsSubscription>(subscription_id, options.asBool()));
     } else if (params[0].asString() == "newPendingTransactions") {
-      new_transactions_subscription_ = subscription_id;
+      subscriptions_.addSubscription(std::make_shared<TransactionsSubscription>(subscription_id));
     } else if (params[0].asString() == "newDagBlocks") {
-      new_dag_blocks_subscription_ = subscription_id;
+      subscriptions_.addSubscription(std::make_shared<DagBlocksSubscription>(subscription_id, options.asBool()));
     } else if (params[0].asString() == "newDagBlocksFinalized") {
-      new_dag_block_finalized_subscription_ = subscription_id;
+      subscriptions_.addSubscription(std::make_shared<DagBlockFinalizedSubscription>(subscription_id));
     } else if (params[0].asString() == "newPbftBlocks") {
-      new_pbft_block_executed_subscription_ = subscription_id;
+      subscriptions_.addSubscription(
+          std::make_shared<PbftBlockExecutedSubscription>(subscription_id, options.asBool()));
     } else if (params[0].asString() == "newPillarBlockData") {
-      new_pillar_block_subscription_ = subscription_id;
-      if (params.size() == 2 && params[1].asString() == "includeSignatures") {
-        include_pillar_block_signatures = true;
-      }
+      subscriptions_.addSubscription(std::make_shared<PillarBlockSubscription>(subscription_id, options.asBool()));
+    } else if (params[0].asString() == "logs") {
+      auto filter =
+          rpc::eth::LogFilter(0, std::nullopt, rpc::eth::parse_addresses(options), rpc::eth::parse_topics(options));
+      subscriptions_.addSubscription(std::make_shared<LogsSubscription>(subscription_id, std::move(filter)));
+    } else {
+      throw std::runtime_error("Unknown subscription type: " + params[0].asString());
     }
   }
 
   json_response["result"] = dev::toJS(subscription_id);
+
+  return util::to_string(json_response);
+}
+
+std::string JsonRpcWsSession::handleUnsubscription(const Json::Value &req) {
+  Json::Value json_response;
+  json_response["id"] = req.get("id", 0);
+  json_response["jsonrpc"] = "2.0";
+
+  const auto params = req.get("params", Json::Value(Json::Value(Json::arrayValue)));
+  if (params.size() != 0) {
+    const int sub_id = dev::getUInt(params[0]);
+
+    json_response["result"] = dev::toJS(subscriptions_.removeSubscription(sub_id));
+  }
 
   return util::to_string(json_response);
 }

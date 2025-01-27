@@ -82,9 +82,9 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
       if (pbft_synced_period + node_history < peer_pbft_chain_size) {
         LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
             << "Light node " << packet_data.from_node_id_.abridged()
-            << " would not be able to serve our syncing request. "
-            << "Current synced period " << pbft_synced_period << ", peer synced period " << peer_pbft_chain_size
-            << ", peer light node history " << node_history << ". Peer will be disconnected";
+            << " would not be able to serve our syncing request. " << "Current synced period " << pbft_synced_period
+            << ", peer synced period " << peer_pbft_chain_size << ", peer light node history " << node_history
+            << ". Peer will be disconnected";
         disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
         return;
       }

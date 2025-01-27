@@ -34,7 +34,7 @@ const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000FE
 
 inline auto addr(const Secret& secret = Secret::random()) { return KeyPair(secret).address(); }
 
-inline auto addr(const string& secret_str) { return addr(Secret(secret_str)); }
+inline auto addr(const std::string& secret_str) { return addr(Secret(secret_str)); }
 
 struct wait_opts {
   nanoseconds timeout;

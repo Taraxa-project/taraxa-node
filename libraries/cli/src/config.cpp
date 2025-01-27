@@ -298,9 +298,9 @@ bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
 
-std::string Config::dirNameFromFile(const string& file) {
+std::string Config::dirNameFromFile(const std::string& file) {
   size_t pos = file.find_last_of("\\/");
-  return (string::npos == pos) ? "" : file.substr(0, pos);
+  return (std::string::npos == pos) ? "" : file.substr(0, pos);
 }
 
 }  // namespace taraxa::cli

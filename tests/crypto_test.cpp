@@ -374,14 +374,14 @@ TEST_F(CryptoTest, keypair_signature_verify_hash_test) {
   EXPECT_EQ(key_pair.pub().size, 64);
   EXPECT_EQ(key_pair.secret().size, 32);
 
-  string message = "0123456789abcdef";
+  std::string message = "0123456789abcdef";
   dev::Signature signature = dev::sign(key_pair.secret(), dev::sha3(message));
   EXPECT_EQ(signature.size, 65);
 
   bool verify = dev::verify(key_pair.pub(), signature, dev::sha3(message));
   EXPECT_EQ(verify, true);
 
-  string credential = dev::sha3(signature).hex();
+  std::string credential = dev::sha3(signature).hex();
   EXPECT_EQ(credential.length(), 64);
 }
 
