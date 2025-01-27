@@ -143,6 +143,7 @@ class DagBlockProposer {
   const vrf_wrapper::vrf_sk_t vrf_sk_;
   const vrf_wrapper::vrf_pk_t vrf_pk_;
 
+  const uint64_t kDagProposeGasLimit;
   const uint64_t kPbftGasLimit;
   const uint64_t kDagGasLimit;
 
