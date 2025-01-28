@@ -8,7 +8,6 @@ set(HEADERS
     include/common/default_construct_copyable_movable.hpp
     include/common/encoding_rlp.hpp
     include/common/encoding_solidity.hpp
-    include/common/functional.hpp
     include/common/jsoncpp.hpp
     include/common/lazy.hpp
     include/common/thread_pool.hpp

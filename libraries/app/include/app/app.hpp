@@ -22,8 +22,8 @@ class Plugin;
 
 class App : public std::enable_shared_from_this<App>, public AppBase {
  public:
-  explicit App();
-  ~App();
+  App();
+  virtual ~App();
 
   App(const App&) = delete;
   App(App&&) = delete;
@@ -46,9 +46,6 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
 
   const dev::Address& getAddress() const { return kp_->address(); }
-
-  // For Debug
-  uint64_t getProposedBlocksCount() const;
 
   void rebuildDb();
 
@@ -94,9 +91,8 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   void scheduleLoggingConfigUpdate();
 
  private:
-  // In case we will you config for this TP, it needs to be unique_ptr !!!
-  util::ThreadPool subscription_pool_;
-  util::ThreadPool executor_{1};
+  std::shared_ptr<util::ThreadPool> subscription_pool_ = std::make_shared<util::ThreadPool>(1);
+  util::ThreadPool config_update_executor_{1};
 
   // components
   std::shared_ptr<DbStorage> db_;

@@ -53,8 +53,6 @@ struct FullNodeConfig {
   uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
   uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
-  bool enable_test_rpc = false;
-  bool enable_debug = false;
   uint32_t final_chain_cache_in_blocks = 5;
   uint64_t propose_dag_gas_limit = 0x1E0A6E0;
   uint64_t propose_pbft_gas_limit = 0x12C684C0;

@@ -2,9 +2,6 @@
 
 #include "NetFace.h"
 #include "common/app_base.hpp"
-namespace taraxa {
-class FullNode;
-}
 
 namespace taraxa::net {
 

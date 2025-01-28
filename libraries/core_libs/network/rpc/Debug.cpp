@@ -4,9 +4,12 @@
 #include <libdevcore/CommonJS.h>
 
 #include "common/jsoncpp.hpp"
+#include "common/thread_pool.hpp"
+#include "final_chain/final_chain.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "network/rpc/eth/data.hpp"
 #include "transaction/transaction.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 using namespace std;
 using namespace dev;
@@ -43,13 +46,13 @@ Debug::get_transaction_with_state(const std::string& transaction_hash) {
   if (!node) {
     return {};
   }
-  const auto hash = jsToFixed<32>(transaction_hash);
 
-  auto loc = node->getFinalChain()->transactionLocation(hash);
+  auto final_chain = node->getFinalChain();
+  auto loc = final_chain->transactionLocation(jsToFixed<32>(transaction_hash));
   if (!loc) {
     throw std::runtime_error("Transaction not found");
   }
-  auto block_transactions = node->getFinalChain()->getTransactions(loc->period);
+  auto block_transactions = final_chain->getTransactions(loc->period);
 
   auto state_trxs = SharedTransactions(block_transactions.begin(), block_transactions.begin() + loc->position);
 

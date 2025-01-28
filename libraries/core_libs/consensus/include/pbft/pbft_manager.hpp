@@ -16,8 +16,6 @@ namespace taraxa {
  * @{
  */
 
-class FullNode;
-
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 enum class PbftStateRootValidation { Valid = 0, Missing, Invalid };
 

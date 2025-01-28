@@ -19,17 +19,17 @@
 #include "metrics/network_metrics.hpp"
 #include "metrics/pbft_metrics.hpp"
 #include "metrics/transaction_queue_metrics.hpp"
-#include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 #include "slashing_manager/slashing_manager.hpp"
 #include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
 
-App::App() : subscription_pool_(1), executor_(1) {}
+App::App() {}
 
 App::~App() { close(); }
 
@@ -52,7 +52,7 @@ void App::init(const cli::Config &cli_conf) {
   fs::create_directories(conf_.log_path);
 
   // Initialize logging
-  auto const &node_addr = kp_->address();
+  const auto &node_addr = kp_->address();
   for (auto &logging : conf_.log_configs) {
     logging.InitLogging(node_addr);
   }
@@ -97,9 +97,6 @@ void App::init(const cli::Config &cli_conf) {
 
     auto migration_manager = storage::migration::Manager(db_);
     migration_manager.applyAll();
-    if (conf_.db_config.fix_trx_period) {
-      migration_manager.applyTransactionPeriod();
-    }
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
@@ -161,7 +158,7 @@ void App::start() {
   if (!conf_.db_config.rebuild_db) {
     // GasPricer updater
     final_chain_->block_finalized_.subscribe(
-        [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
+        [gas_pricer = as_weak(gas_pricer_)](const auto &res) {
           if (auto gp = gas_pricer.lock()) {
             gp->update(res->trxs);
           }
@@ -169,7 +166,7 @@ void App::start() {
         subscription_pool_);
 
     final_chain_->block_finalized_.subscribe(
-        [trx_manager = as_weak(trx_mgr_)](auto const &res) {
+        [trx_manager = as_weak(trx_mgr_)](const auto &res) {
           if (auto trx_mgr = trx_manager.lock()) {
             trx_mgr->blockFinalized(res->final_chain_blk->number);
           }
@@ -218,7 +215,7 @@ void App::scheduleLoggingConfigUpdate() {
   }
 
   static auto node_address = dev::KeyPair(conf_.node_secret).address();
-  executor_.post([&]() {
+  config_update_executor_.post([&]() {
     while (started_ && !stopped_) {
       auto path = std::filesystem::path(conf_.json_file_name);
       if (path.empty()) {
@@ -262,11 +259,13 @@ void App::setupMetricsUpdaters() {
   pbft_metrics->setStepUpdater([pbft_mgr = pbft_mgr_]() { return pbft_mgr->getPbftStep(); });
   pbft_metrics->setVotesCountUpdater(
       [pbft_mgr = pbft_mgr_]() { return pbft_mgr->getCurrentNodeVotesCount().value_or(0); });
-  final_chain_->block_finalized_.subscribe([pbft_metrics](const std::shared_ptr<final_chain::FinalizationResult> &res) {
-    pbft_metrics->setBlockNumber(res->final_chain_blk->number);
-    pbft_metrics->setBlockTransactionsCount(res->trxs.size());
-    pbft_metrics->setBlockTimestamp(res->final_chain_blk->timestamp);
-  });
+  final_chain_->block_finalized_.subscribe(
+      [pbft_metrics](const std::shared_ptr<final_chain::FinalizationResult> &res) {
+        pbft_metrics->setBlockNumber(res->final_chain_blk->number);
+        pbft_metrics->setBlockTransactionsCount(res->trxs.size());
+        pbft_metrics->setBlockTimestamp(res->final_chain_blk->timestamp);
+      },
+      subscription_pool_);
 }
 
 void App::close() {
@@ -347,7 +346,5 @@ void App::rebuildDb() {
   pbft_mgr_->pushSyncedPbftBlocksIntoChain();
   LOG(log_si_) << "Rebuild completed";
 }
-
-uint64_t App::getProposedBlocksCount() const { return dag_block_proposer_->getProposedBlocksCount(); }
 
 }  // namespace taraxa

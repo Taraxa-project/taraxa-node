@@ -5,15 +5,15 @@
 #include "network/ws_server.hpp"
 #include "plugin/plugin.hpp"
 
-namespace taraxa {
-
-namespace net {
+namespace taraxa::net {
 class TaraxaFace;
 class NetFace;
 class EthFace;
 class TestFace;
 class DebugFace;
-}  // namespace net
+}  // namespace taraxa::net
+
+namespace taraxa::plugin {
 
 class Rpc : public Plugin {
  public:
@@ -42,6 +42,8 @@ class Rpc : public Plugin {
   std::unique_ptr<JsonRpcServer> jsonrpc_api_;
 
   uint32_t threads_;
+  bool enable_test_rpc_ = false;
+  bool enable_debug_ = false;
 };
 
-}  // namespace taraxa
+}  // namespace taraxa::plugin

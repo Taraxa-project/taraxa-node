@@ -17,8 +17,8 @@ void Config::addCliOptions(const bpo::options_description& options) { plugins_op
 
 void Config::parseCommandLine(int argc, const char* argv[], const std::string& available_plugins) {
   bpo::options_description allowed_options("");
-  auto main_options = makeMainOptions(available_plugins);
-  auto node_command_options = makeNodeOptions();
+  auto main_options = makeMainOptions();
+  auto node_command_options = makeNodeOptions(available_plugins);
   allowed_options.add(main_options);
   allowed_options.add(node_command_options);
   allowed_options.add(plugins_options_);
@@ -194,9 +194,6 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     node_config_.db_config.rebuild_db_period = cli_options_[REBUILD_DB_PERIOD].as<uint64_t>();
     node_config_.db_config.migrate_only = cli_options_[MIGRATE_ONLY].as<bool>();
 
-    node_config_.enable_test_rpc = cli_options_[ENABLE_TEST_RPC].as<bool>();
-    node_config_.enable_debug = cli_options_[ENABLE_DEBUG].as<bool>();
-
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)
@@ -222,15 +219,13 @@ std::string Config::dirNameFromFile(const std::string& file) {
   return (std::string::npos == pos) ? "" : file.substr(0, pos);
 }
 
-bpo::options_description Config::makeMainOptions(const std::string& available_plugins) {
+bpo::options_description Config::makeMainOptions() {
   bpo::options_description main_options("OPTIONS");
 
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");
   main_options.add_options()(VERSION, "Print version of taraxad");
 
-  auto plugins_desc = "List of plugins to activate: " + available_plugins;
-  main_options.add_options()(PLUGINS, bpo::value<std::vector<std::string>>()->multitoken(), plugins_desc.c_str());
   main_options.add_options()(COMMAND, bpo::value<std::vector<std::string>>()->multitoken(),
                              "Command arg:"
                              "\nnode                  Runs the actual node (default)"
@@ -241,13 +236,17 @@ bpo::options_description Config::makeMainOptions(const std::string& available_pl
   return main_options;
 }
 
-bpo::options_description Config::makeNodeOptions() {
+bpo::options_description Config::makeNodeOptions(const std::string& available_plugins) {
   bpo::options_description node_command_options("NODE COMMAND OPTIONS");
   // Set config file and data directory to default values
   config = tools::getTaraxaDefaultConfigFile();
   wallet = tools::getTaraxaDefaultWalletFile();
   genesis = tools::getTaraxaDefaultGenesisFile();
 
+  auto plugins_desc = "List of plugins to activate separated by space: " + available_plugins +
+                      " (default: " + std::accumulate(plugins_.begin(), plugins_.end(), std::string()) + ")";
+  node_command_options.add_options()(PLUGINS, bpo::value<std::vector<std::string>>()->multitoken(),
+                                     plugins_desc.c_str());
   node_command_options.add_options()(WALLET, bpo::value<std::string>(&wallet),
                                      "JSON wallet file (default: \"~/.taraxa/wallet.json\")");
   node_command_options.add_options()(CONFIG, bpo::value<std::string>(&config),
@@ -291,10 +290,6 @@ bpo::options_description Config::makeNodeOptions() {
       "only written to config file if overwrite-config flag is set. \n"
       "WARNING: Overwrite-config set can override/delete current secret keys in the wallet");
 
-  node_command_options.add_options()(ENABLE_TEST_RPC, bpo::bool_switch()->default_value(false),
-                                     "Enables Test JsonRPC. Disabled by default");
-  node_command_options.add_options()(ENABLE_DEBUG, bpo::bool_switch()->default_value(false),
-                                     "Enables Debug RPC interface. Disabled by default");
   // db related options
   node_command_options.add_options()(DESTROY_DB, bpo::bool_switch()->default_value(false),
                                      "Destroys all the existing data in the database");
@@ -317,8 +312,6 @@ bpo::options_description Config::makeNodeOptions() {
   // migration related options
   node_command_options.add_options()(MIGRATE_ONLY, bpo::bool_switch()->default_value(false),
                                      "Only migrate DB, it will NOT run a node");
-  node_command_options.add_options()(FIX_TRX_PERIOD, bpo::bool_switch()->default_value(false),
-                                     "Fix transactions period field. This will take at least few hours");
   return node_command_options;
 }
 

@@ -11,7 +11,7 @@ class Plugin {
   explicit Plugin(std::shared_ptr<AppBase>& a) : _app(a) {}
   virtual ~Plugin() = default;
 
-  std::shared_ptr<AppBase> app() const { return _app; }
+  std::shared_ptr<AppBase> app() const { return _app.lock(); }
 
   virtual std::string name() const = 0;
 
@@ -26,7 +26,7 @@ class Plugin {
   virtual void addOptions(boost::program_options::options_description& command_line_options) = 0;
 
  protected:
-  std::shared_ptr<AppBase> _app;
+  std::weak_ptr<AppBase> _app;
 };
 
 }  // namespace taraxa

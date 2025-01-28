@@ -41,8 +41,6 @@ static constexpr const char* LOG_CHANNELS_APPEND = "log-channels-append";
 static constexpr const char* NODE_SECRET = "node-secret";
 static constexpr const char* VRF_SECRET = "vrf-secret";
 static constexpr const char* OVERWRITE_CONFIG = "overwrite-config";
-static constexpr const char* ENABLE_TEST_RPC = "enable-test-rpc";
-static constexpr const char* ENABLE_DEBUG = "debug";
 static constexpr const char* MIGRATE_ONLY = "migrate-only";
 class Config {
  public:
@@ -68,12 +66,12 @@ class Config {
  protected:
   bpo::options_description plugins_options_;
   FullNodeConfig node_config_;
-  std::vector<std::string> plugins_;
+  std::vector<std::string> plugins_ = {"RPC"};
   bool node_configured_ = false;
 
   std::string dirNameFromFile(const std::string& file);
-  bpo::options_description makeMainOptions(const std::string& available_plugins);
-  bpo::options_description makeNodeOptions();
+  bpo::options_description makeMainOptions();
+  bpo::options_description makeNodeOptions(const std::string& available_plugins);
 
   bpo::variables_map cli_options_;
 

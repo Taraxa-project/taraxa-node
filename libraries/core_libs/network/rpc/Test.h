@@ -1,9 +1,7 @@
 #pragma once
 
-#include <future>
-
 #include "TestFace.h"
-#include "node/node.hpp"
+#include "common/app_base.hpp"
 
 namespace dev::eth {
 class Client;

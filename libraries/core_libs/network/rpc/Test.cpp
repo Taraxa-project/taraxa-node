@@ -7,9 +7,9 @@
 #include "common/types.hpp"
 #include "dag/dag_manager.hpp"
 #include "network/network.hpp"
-#include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 using namespace std;
 using namespace dev;

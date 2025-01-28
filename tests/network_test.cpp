@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 
-#include "common/encoding_rlp.hpp"
+#include "app/app.hpp"
 #include "common/init.hpp"
 #include "common/lazy.hpp"
 #include "config/config.hpp"
@@ -641,13 +641,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   EXPECT_TRUE(wait_connect({node1, node2}));
 
   std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
-  for (int i = 0; i < 1200; i++) {
-    if (node2->getPbftChain()->getPbftChainSize() == expect_pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(node2->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
+  EXPECT_HAPPENS({2min, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size)
+  });
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t second_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(second_pbft_block_hash, pbft_block2.getBlockHash());
@@ -823,14 +819,12 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   const auto node_cfgs = make_node_cfgs(2, 1, 20);
 
-  const auto node1 = std::make_shared<FullNode>(node_cfgs[0]);
-  node1->start();
+  const auto node1 = create_node(node_cfgs[0], true /*start*/);
   const auto node1_pbft_mgr = node1->getPbftManager();
   const auto node1_vote_mgr = node1->getVoteManager();
   node1_pbft_mgr->stop();
 
-  const auto node2 = std::make_shared<FullNode>(node_cfgs[1]);
-  node2->start();
+  const auto node2 = create_node(node_cfgs[1], true /*start*/);
   const auto node2_pbft_mgr = node2->getPbftManager();
   const auto node2_vote_mgr = node2->getVoteManager();
   node2_pbft_mgr->stop();
@@ -1659,8 +1653,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   // Bootstrapping node5 join the network
-  nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[numberOfNodes - 1]));
-  nodes.back()->start();
+  nodes.emplace_back(create_node(node_cfgs[numberOfNodes - 1], true /*start*/));
   EXPECT_TRUE(wait_connect(nodes));
 
   std::cout << "Waiting Sync for node5..." << std::endl;
@@ -1829,9 +1822,6 @@ TEST_F(NetworkTest, peer_cache_test) {
     uint64_t expected_known_transactions_with_block_number =
         std::min(number_of_insertion, (max_block_to_keep_in_cache + 1) * transactions_in_block);
     EXPECT_EQ(known_transactions_with_block_number.size(), expected_known_transactions_with_block_number);
-
-    std::cout << block_number << " " << known_transactions_with_block_number.size() << " " << known_transactions.size()
-              << std::endl;
   }
 }
 

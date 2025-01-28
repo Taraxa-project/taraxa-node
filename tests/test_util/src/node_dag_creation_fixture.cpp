@@ -1,5 +1,8 @@
 #include "test_util/node_dag_creation_fixture.hpp"
 
+#include "dag/dag_manager.hpp"
+#include "test_util/samples.hpp"
+
 namespace taraxa::core_tests {
 
 void NodeDagCreationFixture::modifyConfig(FullNodeConfig &cfg) {

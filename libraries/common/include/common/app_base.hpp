@@ -46,11 +46,14 @@ class AppBase {
   virtual std::shared_ptr<GasPricer> getGasPricer() const = 0;
 
   const dev::Address &getAddress() const { return kp_->address(); }
-  auto getSecretKey() const { return kp_->secret(); }
+  const Secret &getSecretKey() const { return kp_->secret(); }
+  vrf_wrapper::vrf_sk_t getVrfSecretKey() const { return conf_.vrf_secret; }
 
   virtual std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const = 0;
 
   bool isStarted() const { return started_; }
+
+  virtual void start() = 0;
 
  protected:
   // configuration

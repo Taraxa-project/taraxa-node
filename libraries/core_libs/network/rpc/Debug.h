@@ -3,12 +3,20 @@
 
 #include <json/value.h>
 
-#include <future>
 #include <memory>
-#include <stdexcept>
 
 #include "DebugFace.h"
-#include "node/node.hpp"
+#include "common/app_base.hpp"
+
+namespace taraxa {
+struct Transaction;
+}
+
+namespace taraxa::state_api {
+struct TransactionReceipt;
+struct EVMTransaction;
+struct Tracing;
+}  // namespace taraxa::state_api
 
 namespace dev::eth {
 class Client;

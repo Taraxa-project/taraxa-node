@@ -21,7 +21,6 @@ enum class TransactionStatus { Inserted = 0, InsertedNonProposable, Known, Overf
 struct FullNodeConfig;
 class DagBlock;
 class DagManager;
-class FullNode;
 
 /**
  * @brief TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving
@@ -233,9 +232,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
  private:
   addr_t getFullNodeAddress() const;
 
- public:
-  util::Event<TransactionManager, std::shared_ptr<Transaction>> const transaction_added_{};
-
  private:
   const FullNodeConfig &kConf;
   // Guards updating transaction status
@@ -256,6 +252,9 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<final_chain::FinalChain> final_chain_{nullptr};
 
   LOG_OBJECTS_DEFINE
+
+ public:
+  util::Event<TransactionManager, std::shared_ptr<Transaction>> const transaction_added_{};
 };
 
 /** @}*/

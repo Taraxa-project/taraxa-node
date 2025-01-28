@@ -2,8 +2,6 @@
 
 #include <boost/asio.hpp>
 
-#include "common/functional.hpp"
-
 namespace taraxa::util {
 
 class ThreadPool : std::enable_shared_from_this<ThreadPool> {
@@ -46,10 +44,6 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
     uint64_t period_ms = 0, delay_ms = period_ms;
   };
   void post_loop(Periodicity const &periodicity, std::function<void()> action);
-
-  operator task_executor_t() {
-    return [this](auto &&task) { post(std::forward<task_t>(task)); };
-  }
 };
 
 }  // namespace taraxa::util

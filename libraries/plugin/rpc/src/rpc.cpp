@@ -13,16 +13,31 @@
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 
-namespace taraxa {
+namespace taraxa::plugin {
+
 namespace bpo = boost::program_options;
-const auto THREADS = "rpc.threads";
+constexpr auto THREADS = "rpc.threads";
+constexpr auto ENABLE_TEST_RPC = "rpc.enable-test-rpc";
+constexpr auto ENABLE_DEBUG = "rpc.debug";
+
 void Rpc::init(const boost::program_options::variables_map &opts) {
   if (!opts[THREADS].empty()) {
     threads_ = opts[THREADS].as<uint32_t>();
   }
+  if (!opts[ENABLE_TEST_RPC].empty()) {
+    enable_test_rpc_ = opts[ENABLE_TEST_RPC].as<bool>();
+  }
+  if (!opts[ENABLE_DEBUG].empty()) {
+    enable_debug_ = opts[ENABLE_DEBUG].as<bool>();
+  }
 }
+
 void Rpc::addOptions(boost::program_options::options_description &opts) {
   opts.add_options()(THREADS, bpo::value<uint32_t>(), "Number of threads for RPC");
+  opts.add_options()(ENABLE_TEST_RPC, bpo::bool_switch()->default_value(false),
+                     "Enables Test JsonRPC. Disabled by default");
+  opts.add_options()(ENABLE_DEBUG, bpo::bool_switch()->default_value(false),
+                     "Enables Debug RPC interface. Disabled by default");
 }
 
 void Rpc::start() {
@@ -32,7 +47,6 @@ void Rpc::start() {
   }
   // Inits rpc related members
   if (conf.network.rpc) {
-    std::cout << "creating threadpool with " << conf.network.rpc->threads_num << " threads" << std::endl;
     rpc_thread_pool_ = std::make_unique<util::ThreadPool>(conf.network.rpc->threads_num);
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = app()->getAddress();
@@ -66,13 +80,13 @@ void Rpc::start() {
 
     auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
     std::shared_ptr<net::Test> test_json_rpc;
-    // if (conf_.enable_test_rpc) {
-    //  TODO Because this object refers to App, the lifecycle/dependency management is more complicated);
-    test_json_rpc = std::make_shared<net::Test>(app());
-    //}
+    if (enable_test_rpc_) {
+      //  TODO Because this object refers to App, the lifecycle/dependency management is more complicated);
+      test_json_rpc = std::make_shared<net::Test>(app());
+    }
 
     std::shared_ptr<net::Debug> debug_json_rpc;
-    if (conf.enable_debug) {
+    if (enable_debug_) {
       // TODO Because this object refers to App, the lifecycle/dependency management is more complicated);
       debug_json_rpc = std::make_shared<net::Debug>(app(), conf.genesis.dag.gas_limit);
     }
@@ -119,7 +133,7 @@ void Rpc::start() {
               }
             }
           },
-          *rpc_thread_pool_);
+          rpc_thread_pool_);
     }
 
     app()->getTransactionManager()->transaction_accepted_.subscribe(
@@ -131,14 +145,14 @@ void Rpc::start() {
             _ws->newPendingTransaction(trx_hash);
           }
         },
-        *rpc_thread_pool_);
+        rpc_thread_pool_);
     app()->getDagManager()->block_verified_.subscribe(
         [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &dag_block) {
           if (auto _ws = ws.lock()) {
             _ws->newDagBlock(dag_block);
           }
         },
-        *rpc_thread_pool_);
+        rpc_thread_pool_);
 
     app()->getPillarChainManager()->pillar_block_finalized_.subscribe(
         [ws_weak = as_weak(jsonrpc_ws_)](const auto &pillar_block_data) {
@@ -146,7 +160,7 @@ void Rpc::start() {
             ws->newPillarBlockData(pillar_block_data);
           }
         },
-        *rpc_thread_pool_);
+        rpc_thread_pool_);
   }
   if (conf.network.graphql) {
     graphql_thread_pool_ = std::make_shared<util::ThreadPool>(conf.network.graphql->threads_num);
@@ -179,4 +193,4 @@ void Rpc::shutdown() {
                            // self-reference from App to App).
 }
 
-}  // namespace taraxa
+}  // namespace taraxa::plugin
