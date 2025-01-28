@@ -254,7 +254,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   LOG_OBJECTS_DEFINE
 
  public:
-  util::Event<TransactionManager, std::shared_ptr<Transaction>> const transaction_added_{};
+  util::Event<TransactionManager, const trx_hash_t &> const transaction_added_{};
 };
 
 /** @}*/

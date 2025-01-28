@@ -116,7 +116,7 @@ void Rpc::start() {
     if (!conf.db_config.rebuild_db) {
       app()->getFinalChain()->block_finalized_.subscribe(
           [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_),
-           db = as_weak(app()->getDB())](auto const &res) {
+           db = as_weak(app()->getDB())](const auto &res) {
             if (auto _eth_json_rpc = eth_json_rpc.lock()) {
               _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
             }
@@ -136,8 +136,8 @@ void Rpc::start() {
           rpc_thread_pool_);
     }
 
-    app()->getTransactionManager()->transaction_accepted_.subscribe(
-        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
+    app()->getTransactionManager()->transaction_added_.subscribe(
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](const auto &trx_hash) {
           if (auto _eth_json_rpc = eth_json_rpc.lock()) {
             _eth_json_rpc->note_pending_transaction(trx_hash);
           }
@@ -147,7 +147,7 @@ void Rpc::start() {
         },
         rpc_thread_pool_);
     app()->getDagManager()->block_verified_.subscribe(
-        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &dag_block) {
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](const auto &dag_block) {
           if (auto _ws = ws.lock()) {
             _ws->newDagBlock(dag_block);
           }
