@@ -27,7 +27,7 @@ var searchData=
   ['staticlog2_3c_201_20_3e_24',['StaticLog2&lt; 1 &gt;',['../structdev_1_1_static_log2_3_011_01_4.html',1,'dev']]],
   ['stats_25',['Stats',['../classtaraxa_1_1rewards_1_1_stats.html',1,'taraxa::rewards']]],
   ['statuspacket_26',['StatusPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet',1,'taraxa::network::tarcap']]],
-  ['statuspackethandler_27',['statuspackethandler',['../classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html',1,'taraxa::network::tarcap::StatusPacketHandler'],['../classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_status_packet_handler.html',1,'taraxa::network::tarcap::v3::StatusPacketHandler']]],
+  ['statuspackethandler_27',['StatusPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html',1,'taraxa::network::tarcap']]],
   ['statustable_28',['StatusTable',['../classtaraxa_1_1_status_table.html',1,'taraxa']]],
   ['stepvotes_29',['StepVotes',['../namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes',1,'taraxa::VerifiedVotes']]],
   ['streamout_30',['StreamOut',['../structdev_1_1_stream_out.html',1,'dev']]],

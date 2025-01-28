@@ -201,25 +201,6 @@ var annotated_dup =
       ] ],
       [ "network", "namespacetaraxa_1_1network.html", [
         [ "tarcap", "namespacetaraxa_1_1network_1_1tarcap.html", [
-          [ "v3", "namespacetaraxa_1_1network_1_1tarcap_1_1v3.html", [
-            [ "DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_dag_block_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_dag_block_packet_handler" ],
-            [ "DagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_dag_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_dag_sync_packet_handler" ],
-            [ "ExtPillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_ext_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_ext_pillar_vote_packet_handler" ],
-            [ "ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_ext_syncing_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_ext_syncing_packet_handler" ],
-            [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_ext_votes_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_ext_votes_packet_handler" ],
-            [ "GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_dag_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_dag_sync_packet_handler" ],
-            [ "GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_next_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_next_votes_bundle_packet_handler" ],
-            [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pbft_sync_packet_handler" ],
-            [ "GetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pillar_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_get_pillar_votes_bundle_packet_handler" ],
-            [ "PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_packet_handler" ],
-            [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pbft_sync_packet_handler" ],
-            [ "PillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pillar_vote_packet_handler" ],
-            [ "PillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pillar_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_pillar_votes_bundle_packet_handler" ],
-            [ "StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_status_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_status_packet_handler" ],
-            [ "TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_transaction_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_transaction_packet_handler" ],
-            [ "VotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_vote_packet_handler" ],
-            [ "VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v3_1_1_votes_bundle_packet_handler" ]
-          ] ],
           [ "BasePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler" ],
           [ "DagBlockPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet", "namespacetaraxa_1_1network_1_1tarcap_structtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_dup" ],
           [ "DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler" ],
@@ -308,11 +289,7 @@ var annotated_dup =
       [ "storage", "namespacetaraxa_1_1storage.html", [
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
-          [ "FinalChainHeader", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header.html", "classtaraxa_1_1storage_1_1migration_1_1_final_chain_header" ],
-          [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
-          [ "OldHeader", "structtaraxa_1_1storage_1_1migration_1_1_old_header.html", null ],
-          [ "PeriodDagBlocks", "classtaraxa_1_1storage_1_1migration_1_1_period_dag_blocks.html", "classtaraxa_1_1storage_1_1migration_1_1_period_dag_blocks" ],
-          [ "TransactionPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_period" ]
+          [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ]
         ] ]
       ] ],
       [ "util", "namespacetaraxa_1_1util.html", [

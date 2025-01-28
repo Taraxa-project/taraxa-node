@@ -1,25 +1,25 @@
 <map id="libraries/core_libs/network/include/network/tarcap/packets/latest/votes_bundle_packet.hpp" name="libraries/core_libs/network/include/network/tarcap/packets/latest/votes_bundle_packet.hpp">
 <area shape="rect" id="Node000001" title=" " alt="" coords="553,5,743,75"/>
-<area shape="rect" id="Node000002" href="$latest_2common_2ext__votes__packet__handler_8hpp.html" title=" " alt="" coords="485,123,677,207"/>
+<area shape="rect" id="Node000002" href="$ext__votes__packet__handler_8hpp.html" title=" " alt="" coords="485,123,677,207"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="626,88,606,124,601,121,621,85"/>
-<area shape="rect" id="Node000009" href="$latest_2votes__bundle__packet__handler_8hpp.html" title=" " alt="" coords="667,255,871,339"/>
+<area shape="rect" id="Node000009" href="$votes__bundle__packet__handler_8hpp.html" title=" " alt="" coords="667,255,871,339"/>
 <area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="674,86,692,122,753,253,748,255,687,124,669,88"/>
-<area shape="rect" id="Node000003" href="$latest_2get__next__votes__bundle__packet__handler_8hpp.html" title=" " alt="" coords="171,255,389,339"/>
+<area shape="rect" id="Node000003" href="$get__next__votes__bundle__packet__handler_8hpp.html" title=" " alt="" coords="171,255,389,339"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="475,215,376,257,374,252,473,210"/>
-<area shape="rect" id="Node000006" href="$latest_2vote__packet__handler_8hpp.html" title=" " alt="" coords="413,262,643,331"/>
+<area shape="rect" id="Node000006" href="$vote__packet__handler_8hpp.html" title=" " alt="" coords="413,262,643,331"/>
 <area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="562,221,544,263,539,261,557,219"/>
 <area shape="poly" id="edge9_Node000002_Node000009" title=" " alt="" coords="653,212,711,252,708,256,650,217"/>
-<area shape="rect" id="Node000004" href="$latest_2get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="5,387,232,471"/>
+<area shape="rect" id="Node000004" href="$get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="5,387,232,471"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="220,350,172,388,168,384,216,346"/>
 <area shape="rect" id="Node000005" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="467,401,631,456"/>
 <area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="378,342,496,399,494,404,376,347"/>
 <area shape="poly" id="edge8_Node000006_Node000005" title=" " alt="" coords="538,345,548,401,542,402,533,345"/>
 <area shape="rect" id="Node000007" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="656,409,843,449"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="599,336,719,406,716,411,596,341"/>
-<area shape="rect" id="Node000008" href="$latest_2vote__packet__handler_8cpp.html" title=" " alt="" coords="256,394,443,463"/>
+<area shape="rect" id="Node000008" href="$vote__packet__handler_8cpp.html" title=" " alt="" coords="256,394,443,463"/>
 <area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="472,342,397,396,394,392,469,337"/>
 <area shape="poly" id="edge12_Node000009_Node000005" title=" " alt="" coords="689,348,595,404,592,399,687,343"/>
 <area shape="poly" id="edge10_Node000009_Node000007" title=" " alt="" coords="764,353,755,409,750,408,758,352"/>
-<area shape="rect" id="Node000010" href="$latest_2votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="867,394,1112,463"/>
+<area shape="rect" id="Node000010" href="$votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="867,394,1112,463"/>
 <area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="852,344,934,392,931,396,849,348"/>
 </map>

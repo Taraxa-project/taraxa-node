@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['x86_5f64_20session_0',['Run an x86_64 session',['../md_doc_2building.html#autotoc_md42',1,'']]],
-  ['x86_5f64_20with_20rosetta2_1',['Building on M1 Macs for x86_64 with Rosetta2',['../md_doc_2building.html#autotoc_md40',1,'']]],
+  ['x86_5f64_20session_0',['Run an x86_64 session',['../md_doc_2building.html#autotoc_md41',1,'']]],
+  ['x86_5f64_20with_20rosetta2_1',['Building on M1 Macs for x86_64 with Rosetta2',['../md_doc_2building.html#autotoc_md39',1,'']]],
   ['x_5fevents_2',['x_events',['../classdev_1_1p2p_1_1_node_table_event_handler.html#ad252bb8bab27b8434af083ed2d22cee3',1,'dev::p2p::NodeTableEventHandler']]],
   ['x_5finfo_3',['x_info',['../structdev_1_1p2p_1_1_session.html#a7daefdc69ddb7f31f5a2503233480591',1,'dev::p2p::Session']]],
   ['x_5fips_4',['x_ips',['../classdev_1_1p2p_1_1_node_table.html#a0785d3a39f317bc0b98c9e73d67879d9',1,'dev::p2p::NodeTable']]],

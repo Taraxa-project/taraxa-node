@@ -1,9 +1,0 @@
-<map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/v3/vote_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/v3/vote_packet_handler.hpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="205,5,413,75"/>
-<area shape="rect" id="Node000002" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="5,137,192,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,84,134,140,132,135,234,79"/>
-<area shape="rect" id="Node000003" href="$v3_2vote__packet__handler_8cpp.html" title=" " alt="" coords="216,123,403,192"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="312,89,312,122,307,122,307,89"/>
-<area shape="rect" id="Node000004" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="427,130,591,185"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="381,79,465,128,463,132,378,84"/>
-</map>

@@ -4,7 +4,7 @@ var searchData=
   ['egressmac_1',['egressMac',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder_impl.html#aa497850173d78f984be61c8fe15aaf08',1,'dev::p2p::RLPXFrameCoderImpl']]],
   ['eligibility_5fbalance_5fthreshold_2',['eligibility_balance_threshold',['../namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4',1,'taraxa::state_api::DPOSConfig']]],
   ['emptystring_3',['EmptyString',['../namespacedev.html#a68c67d1a81b975e0dd4d1de134fa92eb',1,'dev']]],
-  ['enable_5fdebug_4',['enable_debug',['../classtaraxa_1_1cli_1_1_config.html#aab26fbddd5f44a333ae4ecf7854d3d30',1,'taraxa::cli::Config::ENABLE_DEBUG'],['../structtaraxa_1_1_full_node_config.html#aeaf5ace948da7088670642301131a259',1,'taraxa::FullNodeConfig::enable_debug']]],
+  ['enable_5fdebug_4',['enable_debug',['../structtaraxa_1_1_full_node_config.html#aeaf5ace948da7088670642301131a259',1,'taraxa::FullNodeConfig::enable_debug'],['../classtaraxa_1_1cli_1_1_config.html#aab26fbddd5f44a333ae4ecf7854d3d30',1,'taraxa::cli::Config::ENABLE_DEBUG']]],
   ['enable_5ftest_5frpc_5',['enable_test_rpc',['../structtaraxa_1_1_full_node_config.html#a249ce0e41d9efaeb1029617408c63c13',1,'taraxa::FullNodeConfig::enable_test_rpc'],['../classtaraxa_1_1cli_1_1_config.html#a1a03d46a5abdcaed8f4f57ed4416a081',1,'taraxa::cli::Config::ENABLE_TEST_RPC']]],
   ['endpoint_6',['endpoint',['../namespacetaraxa_1_1state__api.html#ab094db016ae63d9e76541fbd2e016fda',1,'taraxa::state_api::ValidatorInfo::endpoint'],['../structdev_1_1p2p_1_1_neighbours_1_1_neighbour.html#ab43d7ce3da7aee002be8ef7849007059',1,'dev::p2p::Neighbours::Neighbour::endpoint']]],
   ['endpoint_5f_7',['endpoint_',['../classdev_1_1p2p_1_1_node.html#abed5fdf9e7892e8b79ff4d330864ee66',1,'dev::p2p::Node']]],

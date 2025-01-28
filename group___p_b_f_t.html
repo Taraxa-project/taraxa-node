@@ -6351,11 +6351,6 @@ Collaboration diagram for taraxa::PeriodData:</div>
 <tr class="memitem:a0dc7de87bfa14bd2ce793c19790ec0e6" id="r_a0dc7de87bfa14bd2ce793c19790ec0e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0dc7de87bfa14bd2ce793c19790ec0e6">clear</a> ()</td></tr>
 <tr class="memdesc:a0dc7de87bfa14bd2ce793c19790ec0e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear PBFT block, certify votes, DAG blocks, and transactions.  <br /></td></tr>
 <tr class="separator:a0dc7de87bfa14bd2ce793c19790ec0e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Static Public Member Functions</h3></td></tr>
-<tr class="memitem:a5c4fd0399379ac9f21a53332720ff8da" id="r_a5c4fd0399379ac9f21a53332720ff8da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">static</a> <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a5c4fd0399379ac9f21a53332720ff8da">FromOldPeriodData</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="group___p_b_f_t.html#ac00e0b5f280f2f473834fa145ca72349">rlp</a>)</td></tr>
-<tr class="separator:a5c4fd0399379ac9f21a53332720ff8da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09b2956dcf686c09f2b36e4baac5ac82" id="r_a09b2956dcf686c09f2b36e4baac5ac82"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">static</a> <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a09b2956dcf686c09f2b36e4baac5ac82">ToOldPeriodData</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;<a class="el" href="group___p_b_f_t.html#ac00e0b5f280f2f473834fa145ca72349">rlp</a>)</td></tr>
-<tr class="separator:a09b2956dcf686c09f2b36e4baac5ac82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
 <tr class="memitem:a65b044ffd5778ee985dd4fdff34b5d0d" id="r_a65b044ffd5778ee985dd4fdff34b5d0d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a65b044ffd5778ee985dd4fdff34b5d0d">pbft_blk</a></td></tr>
 <tr class="separator:a65b044ffd5778ee985dd4fdff34b5d0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -6505,32 +6500,6 @@ Collaboration diagram for taraxa::PeriodData:</div>
 
 </div>
 </div>
-<a id="a5c4fd0399379ac9f21a53332720ff8da" name="a5c4fd0399379ac9f21a53332720ff8da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5c4fd0399379ac9f21a53332720ff8da">&#9670;&#160;</a></span>FromOldPeriodData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> taraxa::PeriodData::FromOldPeriodData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;&#160;</td>
-          <td class="paramname"><em>rlp</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ac00e0b5f280f2f473834fa145ca72349" name="ac00e0b5f280f2f473834fa145ca72349"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac00e0b5f280f2f473834fa145ca72349">&#9670;&#160;</a></span>rlp()</h2>
 
@@ -6548,32 +6517,6 @@ Collaboration diagram for taraxa::PeriodData:</div>
 
 <p>Recursive Length Prefix. </p>
 <dl class="section return"><dt>Returns</dt><dd>bytes of RLP stream </dd></dl>
-
-</div>
-</div>
-<a id="a09b2956dcf686c09f2b36e4baac5ac82" name="a09b2956dcf686c09f2b36e4baac5ac82"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a09b2956dcf686c09f2b36e4baac5ac82">&#9670;&#160;</a></span>ToOldPeriodData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> taraxa::PeriodData::ToOldPeriodData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;&#160;</td>
-          <td class="paramname"><em>rlp</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
 
 </div>
 </div>
