@@ -48,7 +48,6 @@ Config::Config(int argc, const char* argv[]) {
   bool enable_test_rpc = false;
   bool enable_debug = false;
   bool migrate_only = false;
-  bool fix_trx_period = false;
 
   // Set node as default command
   command.push_back(NODE_COMMAND);
@@ -136,8 +135,6 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(PRUNE_STATE_DB, bpo::bool_switch(&prune_state_db), "Prune state_db");
   node_command_options.add_options()(MIGRATE_ONLY, bpo::bool_switch(&migrate_only),
                                      "Only migrate DB, it will NOT run a node");
-  node_command_options.add_options()(FIX_TRX_PERIOD, bpo::bool_switch(&fix_trx_period),
-                                     "Fix transactions period field. This will take at least few hours");
 
   allowed_options.add(main_options);
 
@@ -273,7 +270,6 @@ Config::Config(int argc, const char* argv[]) {
     node_config_.db_config.prune_state_db = prune_state_db;
     node_config_.db_config.rebuild_db_period = rebuild_db_period;
     node_config_.db_config.migrate_only = migrate_only;
-    node_config_.db_config.fix_trx_period = fix_trx_period;
 
     node_config_.enable_test_rpc = enable_test_rpc;
     node_config_.enable_debug = enable_debug;

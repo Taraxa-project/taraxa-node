@@ -90,9 +90,6 @@ void FullNode::init() {
 
     auto migration_manager = storage::migration::Manager(db_);
     migration_manager.applyAll();
-    if (conf_.db_config.fix_trx_period) {
-      migration_manager.applyTransactionPeriod();
-    }
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
