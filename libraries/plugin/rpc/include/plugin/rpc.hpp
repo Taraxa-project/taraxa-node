@@ -41,7 +41,7 @@ class Rpc : public Plugin {
   std::shared_ptr<net::WsServer> graphql_ws_;
   std::unique_ptr<JsonRpcServer> jsonrpc_api_;
 
-  uint32_t threads_;
+  uint32_t threads_ = 0;
   bool enable_test_rpc_ = false;
   bool enable_debug_ = false;
 };
