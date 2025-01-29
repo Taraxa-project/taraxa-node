@@ -31,11 +31,15 @@
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
     "transaction_interval_ms": 100,
-    "ideal_peer_count": 10,
-    "max_peer_count": 50,
+    "ideal_peer_count": 5,
+    "max_peer_count": 10,
     "sync_level_size": 10,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
+		"trusted_nodes" : 
+		[
+			"00dd2e12a91efcf2f458c039942d16607cca05dfe1f5a94ca59e573aadd86b576f4660ab1baa1ce475c9513b4c9fd04d48a4d9a8173479ccd301e012d21d8239"
+		],
     "deep_syncing_threshold": 50,
     "boot_nodes": [
       {
@@ -82,7 +86,12 @@
         "id": "630476958941c5e44960793a4fc420ba5450fed6ff296dc7b51773d12cea49f5b9ad6d5836cfd379b9ffa38e3c72661175acbda28829db3855bb29b7ac804bd0",
         "ip": "boot-node-8.mainnet.taraxa.io",
         "port": 10002
-      }
+      },
+			{
+				"id" : "00dd2e12a91efcf2f458c039942d16607cca05dfe1f5a94ca59e573aadd86b576f4660ab1baa1ce475c9513b4c9fd04d48a4d9a8173479ccd301e012d21d8239",
+				"ip" : "188.252.157.235",
+				"port" : 10002
+			}
     ]
   },
   "db_config": {
