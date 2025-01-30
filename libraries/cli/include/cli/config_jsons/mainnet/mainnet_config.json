@@ -2,15 +2,17 @@
   "data_path": "",
   "is_light_node": false,
   "final_chain_cache_in_blocks": 5,
-  "report_malicious_behaviour" : true,
+  "report_malicious_behaviour": true,
   "network": {
     "rpc": {
       "http_port": 7777,
-      "ws_port": 8777
+      "ws_port": 8777,
+      "threads_num": 2
     },
     "graphql": {
       "http_port": 9777,
-      "ws_port": 6777
+      "ws_port": 6777,
+      "threads_num": 1
     },
     "prometheus": {
       "listen_port": 8888,
