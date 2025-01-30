@@ -227,15 +227,16 @@ void FullNode::start() {
     if (conf_.network.rpc->http_port) {
       auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
       jsonrpc_http_ = std::make_shared<net::HttpServer>(
-          rpc_thread_pool_, boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->http_port},
-          getAddress(), json_rpc_processor, conf_.network.rpc->max_pending_tasks);
+          rpc_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->http_port}, getAddress(),
+          json_rpc_processor);
       jsonrpc_api_->addConnector(json_rpc_processor);
       jsonrpc_http_->start();
     }
     if (conf_.network.rpc->ws_port) {
       jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
-          rpc_thread_pool_, boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->ws_port},
-          getAddress(), conf_.network.rpc->max_pending_tasks);
+          rpc_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->ws_port}, getAddress());
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
@@ -280,23 +281,22 @@ void FullNode::start() {
         *subscribe_thread_pool_);
   }
   if (conf_.network.graphql) {
-    graphql_thread_pool_ = std::make_shared<util::ThreadPool>(conf_.network.graphql->threads_num);
+    graphql_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.network.graphql->threads_num);
     if (conf_.network.graphql->ws_port) {
       graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
-          graphql_thread_pool_,
-          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->ws_port}, getAddress(),
-          conf_.network.rpc->max_pending_tasks);
+          graphql_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->ws_port},
+          getAddress());
       // graphql_ws_->run();
     }
 
     if (conf_.network.graphql->http_port) {
       graphql_http_ = std::make_shared<net::HttpServer>(
-          graphql_thread_pool_,
+          graphql_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->http_port},
           getAddress(),
           std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, gas_pricer_,
-                                                      as_weak(network_), conf_.genesis.chain_id),
-          conf_.network.rpc->max_pending_tasks);
+                                                      as_weak(network_), conf_.genesis.chain_id));
       graphql_http_->start();
     }
   }
