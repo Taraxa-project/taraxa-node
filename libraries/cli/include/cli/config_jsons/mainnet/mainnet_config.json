@@ -33,7 +33,7 @@
     "transaction_interval_ms": 100,
     "ideal_peer_count": 5,
     "max_peer_count": 10,
-    "sync_level_size": 10,
+    "sync_level_size": 5,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
 		"trusted_nodes" : 
@@ -89,7 +89,7 @@
       },
 			{
 				"id" : "00dd2e12a91efcf2f458c039942d16607cca05dfe1f5a94ca59e573aadd86b576f4660ab1baa1ce475c9513b4c9fd04d48a4d9a8173479ccd301e012d21d8239",
-				"ip" : "188.252.157.235",
+				"ip" : "109.60.9.171",
 				"port" : 10002
 			}
     ]
