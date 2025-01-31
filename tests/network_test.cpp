@@ -6,12 +6,14 @@
 #include <iostream>
 #include <vector>
 
+#include "common/encoding_rlp.hpp"
 #include "common/init.hpp"
 #include "common/lazy.hpp"
 #include "config/config.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
 #include "logger/logger.hpp"
+#include "network/tarcap/packets/latest/pbft_sync_packet.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp"
@@ -1830,6 +1832,31 @@ TEST_F(NetworkTest, peer_cache_test) {
 
     std::cout << block_number << " " << known_transactions_with_block_number.size() << " " << known_transactions.size()
               << std::endl;
+  }
+}
+
+TEST_F(NetworkTest, pbft_sync_packet_rlp_encoding) {
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
+  auto nodes = create_nodes(node_cfgs, true);
+  auto blocks_to_check = 10;
+
+  wait({30s, 100ms}, [&](auto& ctx) {
+    auto pdr = nodes[0]->getDB()->getPeriodDataRaw(blocks_to_check);
+    WAIT_EXPECT_NE(ctx, pdr.size(), 0);
+  });
+
+  for (int i = 1; i <= blocks_to_check; i++) {
+    auto raw_data = nodes[0]->getDB()->getPeriodDataRaw(i);
+    ASSERT_NE(raw_data.size(), 0);
+
+    auto raw_packet = std::make_shared<network::tarcap::PbftSyncPacketRaw>(true, raw_data);
+
+    auto encoded = util::rlp_enc(raw_packet);
+    auto decoded = util::rlp_dec<network::tarcap::PbftSyncPacket>(dev::RLP(encoded));
+
+    auto encoded_orig = util::rlp_enc(decoded);
+
+    EXPECT_EQ(encoded, encoded_orig);
   }
 }
 
