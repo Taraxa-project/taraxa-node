@@ -87,11 +87,17 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
 
   delegation_delay_ = config.genesis.state.dpos.delegation_delay;
   const auto kPruneBlocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
+  // prune state db only if we have more than 2*kPruneBlocksToKeep blocks
+  const auto kPruneStateDbThreshold = 1.5 * kPruneBlocksToKeep;
   if ((config.db_config.prune_state_db || kLightNode) && last_blk_num.has_value() &&
-      *last_blk_num > kPruneBlocksToKeep) {
-    LOG(log_si_) << "Pruning state db, this might take several minutes";
-    prune(*last_blk_num - kPruneBlocksToKeep);
-    LOG(log_si_) << "Pruning state db complete";
+      *last_blk_num > kPruneStateDbThreshold) {
+    auto prune_block_num = *last_blk_num - kPruneStateDbThreshold;
+    auto prune_block = getBlockHeader(prune_block_num);
+    if (prune_block) {
+      LOG(log_si_) << "Pruning state db, this might take several minutes";
+      prune(prune_block_num);
+      LOG(log_si_) << "Pruning state db complete";
+    }
   }
 }
 
@@ -191,9 +197,8 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   for (const auto& r : exec_results) {
     LogEntries logs;
     logs.reserve(r.logs.size());
-    std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs), [](const auto& l) {
-      return LogEntry{l.address, l.topics, l.data};
-    });
+    std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs),
+                   [](const auto& l) { return LogEntry{l.address, l.topics, l.data}; });
     transactions_gas_used.push_back(r.gas_used);
     receipts.emplace_back(TransactionReceipt{
         r.code_err.empty() && r.consensus_err.empty(),
