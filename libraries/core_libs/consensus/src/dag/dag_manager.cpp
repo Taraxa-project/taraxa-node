@@ -286,6 +286,15 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
 void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
   bool dag_expiry_level_condition = dag_expiry_level_ > max_levels_per_period_ + 1;
   bool period_over_history_condition = period_ > light_node_history;
+
+  auto last_block_number = final_chain_->lastBlockNumber();
+  auto earliest_block_to_keep = last_block_number - light_node_history * 1.5;
+  auto should_clear_history = final_chain_->blockHeader(earliest_block_to_keep);
+  if (!should_clear_history) {
+    LOG(log_si_) << "Cleanup was done recently, skipping clearLightNodeHistory";
+    return;
+  }
+
   if (period_over_history_condition && dag_expiry_level_condition) {
     const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level_ - max_levels_per_period_ - 1);
     assert(proposal_period);
