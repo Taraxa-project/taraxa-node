@@ -93,11 +93,13 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
       *last_blk_num > kPruneStateDbThreshold) {
     auto prune_block_num = *last_blk_num - kPruneStateDbThreshold;
     auto prune_block = getBlockHeader(prune_block_num);
-    if (prune_block) {
-      LOG(log_si_) << "Pruning state db, this might take several minutes";
-      prune(prune_block_num);
-      LOG(log_si_) << "Pruning state db complete";
+    if (!prune_block) {
+      LOG(log_si_) << "Prune was done recently, skip state db pruning";
+      return;
     }
+    LOG(log_si_) << "Pruning state db, this might take several minutes";
+    prune(prune_block_num);
+    LOG(log_si_) << "Pruning state db complete";
   }
 }
 
