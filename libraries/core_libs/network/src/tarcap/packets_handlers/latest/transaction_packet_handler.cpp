@@ -81,6 +81,7 @@ TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> p
   bool trx_max_reached = false;
   auto account_iterator = account_start_index;
   std::pair<SharedTransactions, std::vector<trx_hash_t>> result;
+  uint64_t trx_data_size = 0;
   // Next peer should continue after the last account of the current peer
   uint32_t next_peer_account_index = (account_start_index + 1) % accounts_size;
 
@@ -100,11 +101,13 @@ TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> p
         }
       } else {
         result.first.push_back(trx);
-        if (result.first.size() == kMaxTransactionsInPacket) {
+        trx_data_size += trx->getData().size();
+        if (result.first.size() == kMaxTransactionsInPacket || trx_data_size > kMaxTransactionsSizeInPacket) {
           // Max number of transactions reached, save next_peer_account_index for next peer to continue to avoid
           // sending same transactions to multiple peers
           trx_max_reached = true;
           next_peer_account_index = (account_iterator + 1) % accounts_size;
+          trx_data_size = 0;
         }
       }
     }
