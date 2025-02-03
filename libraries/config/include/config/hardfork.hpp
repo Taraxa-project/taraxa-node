@@ -93,6 +93,16 @@ struct SoleiroliaHardforkConfig {
 Json::Value enc_json(const SoleiroliaHardforkConfig& obj);
 void dec_json(const Json::Value& json, SoleiroliaHardforkConfig& obj);
 
+struct CactiHardforkConfig {
+  uint64_t block_num = -1;
+  uint32_t lambda_change_period = 100;  //  umber of blocks
+  uint32_t lambda_change = 100;         // [ms]
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const CactiHardforkConfig& obj);
+void dec_json(const Json::Value& json, CactiHardforkConfig& obj);
+
 // Keeping it for next HF
 // struct BambooRedelegation {
 //   taraxa::addr_t validator;
@@ -160,6 +170,9 @@ struct HardforksConfig {
   // Soleirolia hf - increase trx gas minimum price
   //               - limit max trx gas
   SoleiroliaHardforkConfig soleirolia_hf;
+
+  // Cacti hardfork
+  CactiHardforkConfig cacti_hf;
 
   HAS_RLP_FIELDS
 };
