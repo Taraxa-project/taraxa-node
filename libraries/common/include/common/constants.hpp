@@ -20,6 +20,7 @@ constexpr uint32_t kDagExpiryLevelLimit = 1000;
 constexpr uint32_t kDagBlockMaxTips = 16;
 
 const uint32_t kMaxTransactionsInPacket{500};
+const uint32_t kMaxTransactionsSizeInPacket{500000};
 const uint32_t kMaxHashesInPacket{5000};
 
 const uint32_t kPeriodicEventsThreadCount{2};
