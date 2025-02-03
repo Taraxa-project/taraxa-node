@@ -622,7 +622,7 @@ class PbftManager {
 
   const std::chrono::milliseconds kMinLambda;         // [ms]
   std::chrono::milliseconds lambda_{0};               // [ms]
-  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
+  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minute
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
