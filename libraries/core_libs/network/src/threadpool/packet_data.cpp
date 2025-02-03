@@ -20,6 +20,9 @@ PacketData::PacketPriority PacketData::getPacketPriority(SubprotocolPacketType p
   if (packet_type > SubprotocolPacketType::kHighPriorityPackets &&
       packet_type < SubprotocolPacketType::kMidPriorityPackets) {
     return PacketPriority::High;
+  } else if (packet_type == SubprotocolPacketType::kGetPbftSyncPacket ||
+             packet_type == SubprotocolPacketType::kPbftSyncPacket) {
+    return PacketPriority::High;
   } else if (packet_type > SubprotocolPacketType::kMidPriorityPackets &&
              packet_type < SubprotocolPacketType::kLowPriorityPackets) {
     return PacketPriority::Mid;
