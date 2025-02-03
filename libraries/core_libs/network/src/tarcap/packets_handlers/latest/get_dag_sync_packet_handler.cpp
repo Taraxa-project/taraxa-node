@@ -16,8 +16,11 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(const FullNodeConfig &conf, std
       dag_mgr_(std::move(dag_mgr)),
       db_(std::move(db)) {}
 
-void GetDagSyncPacketHandler::process(GetDagSyncPacket &&packet,
+void GetDagSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<GetDagSyncPacket>(packet_data.rlp_);
+
   if (!peer->requestDagSyncingAllowed()) {
     // This should not be possible for honest node
     // Each node should perform dag syncing only when allowed

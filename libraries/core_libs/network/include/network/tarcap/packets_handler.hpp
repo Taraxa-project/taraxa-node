@@ -23,16 +23,6 @@ class PacketsHandler {
   const std::shared_ptr<BasePacketHandler>& getSpecificHandler(SubprotocolPacketType packet_type) const;
 
   /**
-   * @brief templated getSpecificHandler method for getting specific packet handler based on
-   * PacketHandlerType::kPacketType_
-   * @tparam PacketHandlerType
-   *
-   * @return std::shared_ptr<PacketHandlerType>
-   */
-  template <typename PacketHandlerType>
-  std::shared_ptr<PacketHandlerType> getSpecificHandler();
-
-  /**
    * @brief Registers packet handler
    *
    * @tparam PacketHandlerType
@@ -46,11 +36,6 @@ class PacketsHandler {
   // Map of all packets handlers, factory method selects specific packet handler for processing based on packet type
   std::unordered_map<SubprotocolPacketType, std::shared_ptr<BasePacketHandler>> packets_handlers_;
 };
-
-template <typename PacketHandlerType>
-std::shared_ptr<PacketHandlerType> PacketsHandler::getSpecificHandler() {
-  return std::static_pointer_cast<PacketHandlerType>(getSpecificHandler(PacketHandlerType::kPacketType_));
-}
 
 template <typename PacketHandlerType, typename... Args>
 void PacketsHandler::registerHandler(Args&&... args) {

@@ -1,5 +1,7 @@
 #include "network/tarcap/shared_states/peers_state.hpp"
 
+#include "pbft/pbft_manager.hpp"
+
 namespace taraxa::network::tarcap {
 
 PeersState::PeersState(std::weak_ptr<dev::p2p::Host> host, const FullNodeConfig& conf)
@@ -135,6 +137,53 @@ bool PeersState::is_peer_malicious(const dev::p2p::NodeID& peer_id) {
   }
 
   return false;
+}
+
+void PeersState::handleMaliciousSyncPeer(const dev::p2p::NodeID& id) {
+  set_peer_malicious(id);
+  disconnectPeer(id);
+}
+
+void PeersState::disconnectPeer(const dev::p2p::NodeID& id) {
+  if (auto host = host_.lock(); host) {
+    host->disconnect(id, dev::p2p::UserReason);
+  }
+}
+
+std::shared_ptr<TaraxaPeer> PeersState::getMaxChainPeer(
+    const std::shared_ptr<PbftManager> pbft_mgr, std::function<bool(const std::shared_ptr<TaraxaPeer>&)> filter_func) {
+  std::shared_ptr<TaraxaPeer> max_pbft_chain_peer;
+  PbftPeriod max_pbft_chain_size = 0;
+  uint64_t max_node_dag_level = 0;
+
+  // Find peer with max pbft chain and dag level
+  for (auto const& peer : getAllPeers()) {
+    // Apply the filter function
+    if (!filter_func(peer.second)) {
+      continue;
+    }
+
+    if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
+      if (peer.second->peer_light_node &&
+          pbft_mgr->pbftSyncingPeriod() + peer.second->peer_light_node_history < peer.second->pbft_chain_size_) {
+        // TODO: do we neet this log ???
+        //        LOG(this->log_er_) << "Disconnecting from light node peer " << peer.first
+        //                           << " History: " << peer.second->peer_light_node_history
+        //                           << " chain size: " << peer.second->pbft_chain_size_;
+        disconnectPeer(peer.first);
+        continue;
+      }
+
+      max_pbft_chain_size = peer.second->pbft_chain_size_;
+      max_node_dag_level = peer.second->dag_level_;
+      max_pbft_chain_peer = peer.second;
+    } else if (peer.second->pbft_chain_size_ == max_pbft_chain_size && peer.second->dag_level_ > max_node_dag_level) {
+      max_node_dag_level = peer.second->dag_level_;
+      max_pbft_chain_peer = peer.second;
+    }
+  }
+
+  return max_pbft_chain_peer;
 }
 
 }  // namespace taraxa::network::tarcap
