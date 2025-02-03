@@ -15,6 +15,8 @@ enum SubprotocolPacketType : uint32_t {
   kVotePacket,  // Vote packer can contain (optional) also pbft block
   kGetNextVotesSyncPacket,
   kVotesBundlePacket,
+  kGetPbftSyncPacket,
+  kPbftSyncPacket,
 
   // Standard packets with mid processing priority
   kMidPriorityPackets,
@@ -26,8 +28,6 @@ enum SubprotocolPacketType : uint32_t {
   // Non critical packets with low processing priority
   kLowPriorityPackets,
   kStatusPacket,
-  kGetPbftSyncPacket,
-  kPbftSyncPacket,
   kGetDagSyncPacket,
   kPillarVotePacket,
   kGetPillarVotesBundlePacket,
