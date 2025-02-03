@@ -83,6 +83,16 @@ struct CornusHardforkConfig {
 Json::Value enc_json(const CornusHardforkConfig& obj);
 void dec_json(const Json::Value& json, CornusHardforkConfig& obj);
 
+struct CactiHardforkConfig {
+  uint64_t block_num = -1;
+  uint32_t lambda_change_period = 100;  //  umber of blocks
+  uint32_t lambda_change = 100;         // [ms]
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const CactiHardforkConfig& obj);
+void dec_json(const Json::Value& json, CactiHardforkConfig& obj);
+
 // Keeping it for next HF
 // struct BambooRedelegation {
 //   taraxa::addr_t validator;
@@ -147,6 +157,9 @@ struct HardforksConfig {
   CornusHardforkConfig cornus_hf;
 
   bool isOnCornusHardfork(uint64_t block_number) const { return block_number >= cornus_hf.block_num; }
+
+  // Cacti hardfork
+  CactiHardforkConfig cacti_hf;
 
   HAS_RLP_FIELDS
 };
