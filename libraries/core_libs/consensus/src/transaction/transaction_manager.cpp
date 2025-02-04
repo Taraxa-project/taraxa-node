@@ -222,7 +222,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
       if (!transaction_in_dag_or_finalized) {
         db_->addTransactionToBatch(*t, write_batch);
         nonfinalized_transactions_in_dag_.emplace(tx_hash, t);
-        if (transactions_pool_.erase(tx_hash)) {
+        if (transactions_pool_.erase(t)) {
           LOG(log_dg_) << "Transaction " << tx_hash << " removed from trx pool ";
           // Transactions are counted when included in DAG
           accepted_transactions.emplace_back(tx_hash);
@@ -403,7 +403,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
       } else {
         LOG(log_dg_) << "Transaction " << hash << " removed from nonfinalized transactions";
       }
-      if (transactions_pool_.erase(hash)) {
+      if (transactions_pool_.erase(trx)) {
         LOG(log_dg_) << "Transaction " << hash << " removed from transactions_pool_";
       }
     }
