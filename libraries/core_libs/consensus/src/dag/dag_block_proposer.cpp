@@ -16,7 +16,7 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
                                    std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<DbStorage> db,
                                    std::shared_ptr<KeyManager> key_manager)
     : bp_config_(config.genesis.dag.block_proposer),
-      total_trx_shards_(std::max(bp_config_.shard, uint16_t(1))),
+      total_trx_shards_(std::max(bp_config_.shard, uint16_t(2))),
       dag_mgr_(std::move(dag_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
@@ -43,7 +43,7 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
   max_num_tries_ += (node_addr_[0] % (10 * max_num_tries_));
 
   auto addr = std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
-  my_trx_shard_ = addr % bp_config_.shard;
+  my_trx_shard_ = addr % 2;
 
   LOG(log_nf_) << "Dag block proposer in " << my_trx_shard_ << " shard ...";
 }
@@ -138,7 +138,7 @@ bool DagBlockProposer::proposeDagBlock() {
   while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
     const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
-    if (latest_level > propose_level && vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
+    if (latest_level > propose_level && vdf.getDifficulty() > (sortition_params.vdf.difficulty_min + 1)) {
       cancellation_token = true;
       break;
     }
@@ -232,9 +232,9 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
     return {};
   }
 
-  if (total_trx_shards_ == 1) return trx_mgr_->packTrxs(proposal_period, weight_limit);
+  if(trx_mgr_->getTransactionPoolSize() < 1100) return trx_mgr_->packTrxs(proposal_period, weight_limit);
 
-  auto [transactions, estimations] = trx_mgr_->packTrxs(proposal_period, weight_limit);
+  auto [transactions, estimations] = trx_mgr_->packTrxs(proposal_period, weight_limit*3);
 
   if (transactions.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;
@@ -242,11 +242,16 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
   }
   SharedTransactions sharded_trxs;
   std::vector<uint64_t> sharded_estimations;
+  uint64_t total_weight = 0;
   for (uint32_t i = 0; i < transactions.size(); i++) {
-    auto shard = std::stoull(transactions[i]->getHash().toString().substr(0, 10), NULL, 16);
+    auto shard = std::stoull(transactions[i]->getSender().toString().substr(0, 10), NULL, 16);
     if (shard % total_trx_shards_ == my_trx_shard_) {
+      total_weight += estimations[i];
+      if(total_weight > weight_limit) {
+        break;
+      }
       sharded_trxs.emplace_back(transactions[i]);
-      estimations.emplace_back(estimations[i]);
+      sharded_estimations.emplace_back(estimations[i]);
     }
   }
   if (sharded_trxs.empty()) {
