@@ -1927,33 +1927,32 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     return std::nullopt;
   }
 
-  // Get all the ordered unique non-finalized transactions which should match period_data.transactions
+  std::unordered_set<trx_hash_t> trx_set_period_data;
+  for (auto const &transaction : period_data.transactions) {
+    trx_set_period_data.emplace(transaction->getHash());
+  }
+
   std::unordered_set<trx_hash_t> trx_set;
-  std::vector<trx_hash_t> transactions_to_query;
+  std::vector<trx_hash_t> finalized_transactions_to_check;
   for (auto const &dag_block : period_data.dag_blocks) {
     for (auto const &trx_hash : dag_block->getTrxs()) {
-      if (trx_set.insert(trx_hash).second) {
-        transactions_to_query.emplace_back(trx_hash);
+      if (trx_set.insert(trx_hash).second && !trx_set_period_data.contains(trx_hash)) {
+        finalized_transactions_to_check.emplace_back(trx_hash);
       }
     }
   }
-  auto non_finalized_transactions = trx_mgr_->excludeFinalizedTransactions(transactions_to_query);
 
-  if (non_finalized_transactions.size() != period_data.transactions.size()) {
-    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transactions count " << period_data.transactions.size()
-                 << " incorrect, expected: " << non_finalized_transactions.size();
-    sync_queue_.clear();
-    net->handleMaliciousSyncPeer(node_id);
-    return std::nullopt;
-  }
-  for (uint32_t i = 0; i < period_data.transactions.size(); i++) {
-    if (!non_finalized_transactions.contains(period_data.transactions[i]->getHash())) {
-      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has incorrect transaction "
-                   << period_data.transactions[i]->getHash();
-      sync_queue_.clear();
-      net->handleMaliciousSyncPeer(node_id);
-      return std::nullopt;
+  // Verify period data is not missing any transaction
+  auto non_finalized_transactions = trx_mgr_->excludeFinalizedTransactions(finalized_transactions_to_check);
+  if (non_finalized_transactions.size() > 0) {
+    for (auto const &t : non_finalized_transactions) {
+      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has missing transaction " << t;
     }
+  }
+
+  // Verify period data does not contain any finalized transactions
+  if (!trx_mgr_->verifyTransactionsNotFinalized(period_data.transactions)) {
+    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has finalized transactions";
   }
 
   if (!validatePillarDataInPeriodData(period_data)) {

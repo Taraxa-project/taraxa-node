@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <jsonrpccpp/common/exception.h>
 #include <libdevcore/Common.h>
 #include <libdevcore/CommonJS.h>
 
@@ -103,7 +104,7 @@ TEST_F(RPCTest, eth_call) {
     trx["from"] = empty_address;
     trx["to"] = dev::KeyPair::create().address().toString();
     trx["value"] = "0x100";
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "insufficient balance for transfer");
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException, "insufficient balance for transfer");
   }
 
   {
@@ -148,7 +149,7 @@ TEST_F(RPCTest, eth_call) {
     trx["gas"] = "0x100000";
     trx["gasPrice"] = "0x241268485270";
     trx["data"] = get_total_eligible_method;
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "insufficient balance to pay for gas");
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException, "insufficient balance to pay for gas");
   }
 
   {
@@ -184,7 +185,7 @@ TEST_F(RPCTest, eth_call) {
     trx["to"] = dpos_contract;
     trx["gas"] = "0x1000";
     trx["data"] = get_total_eligible_method;
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "intrinsic gas too low");
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException, "intrinsic gas too low");
   }
 
   {
@@ -198,7 +199,7 @@ TEST_F(RPCTest, eth_call) {
     trx["to"] = dpos_contract;
     trx["gas"] = "0x5330";
     trx["data"] = get_total_eligible_method;
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "out of gas");
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException, "out of gas");
   }
 
   {

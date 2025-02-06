@@ -20,6 +20,7 @@ constexpr uint32_t kDagExpiryLevelLimit = 1000;
 constexpr uint32_t kDagBlockMaxTips = 16;
 
 const uint32_t kMaxTransactionsInPacket{500};
+const uint32_t kMaxTransactionsSizeInPacket{500000};
 const uint32_t kMaxHashesInPacket{5000};
 
 const uint32_t kPeriodicEventsThreadCount{2};
@@ -31,7 +32,7 @@ constexpr uint32_t kDefaultTransactionPoolSize{200000};
 constexpr uint32_t kMaxNonFinalizedTransactions{1000000};
 constexpr uint32_t kMaxNonFinalizedDagBlocks{100};
 
-const size_t kV3NetworkVersion = 3;
+const size_t kV4NetworkVersion = 4;
 
 const uint32_t kRecentlyFinalizedTransactionsFactor = 2;
 

@@ -167,11 +167,14 @@ data:
     {{- end }}
     {{- end }}
 
-    {{ if .Values.config.snapshots.enabled }}
-    cat $CONFIG_PATH | jq '.db_config.db_max_snapshots = 1' | jq '.db_config.db_snapshot_each_n_pbft_block = 10000' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    {{- if .Values.config.consensusnode.nodeConfig }}
+    echo {{ .Values.config.consensusnode.nodeConfig | toJson | quote }} > $CONFIG_PATH.usr
     {{- else }}
-    cat $CONFIG_PATH | jq '.db_config.db_max_snapshots = 0' | jq '.db_config.db_snapshot_each_n_pbft_block = 0' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    echo {{ .Values.config.nodeConfig | toJson | quote }} > $CONFIG_PATH.usr
     {{- end }}
+
+    jq -s '.[0] * .[1]' $CONFIG_PATH $CONFIG_PATH.usr > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    rm -f $CONFIG_PATH.usr
 
     echo "***** $CONFIG_PATH *****"
     cat $CONFIG_PATH

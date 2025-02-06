@@ -79,4 +79,7 @@ Json::Value toJson(const std::optional<T>& t) {
   return t ? toJson(*t) : Json::Value();
 }
 
+// ERRORS
+const int CALL_EXCEPTION = 3;
+
 }  // namespace taraxa::net::rpc::eth
