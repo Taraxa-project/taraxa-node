@@ -87,7 +87,7 @@ class Network {
   // END METHODS USED IN TESTS ONLY
 
  private:
-  static std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
+  static std::pair<bool, bi::tcp::endpoint> resolveHost(std::string const &addr, uint16_t port);
 
   /**
    * @brief Register period events, e.g. sending status packet, transaction packet etc...

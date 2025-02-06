@@ -90,9 +90,6 @@ void FullNode::init() {
 
     auto migration_manager = storage::migration::Manager(db_);
     migration_manager.applyAll();
-    if (conf_.db_config.fix_trx_period) {
-      migration_manager.applyTransactionPeriod();
-    }
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
@@ -240,13 +237,15 @@ void FullNode::start() {
     }
     if (!conf_.db_config.rebuild_db) {
       final_chain_->block_finalized_.subscribe(
-          [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_), db = as_weak(db_)](auto const &res) {
+          [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_),
+           db = as_weak(db_)](const std::shared_ptr<final_chain::FinalizationResult> &res) {
             if (auto _eth_json_rpc = eth_json_rpc.lock()) {
               _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
             }
             if (auto _ws = ws.lock()) {
               if (_ws->numberOfSessions()) {
-                _ws->newEthBlock(*res->final_chain_blk, hashes_from_transactions(res->trxs));
+                auto transaction_hashes = hashes_from_transactions(res->trxs);
+                _ws->newEthBlock(*res->final_chain_blk, transaction_hashes);
                 if (auto _db = db.lock()) {
                   auto pbft_blk = _db->getPbftBlock(res->hash);
                   if (const auto &hash = pbft_blk->getPivotDagBlockHash(); hash != kNullBlockHash) {
@@ -254,19 +253,23 @@ void FullNode::start() {
                   }
                   _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
                 }
+                _ws->newLogs(*res->final_chain_blk, transaction_hashes, res->trx_receipts);
               }
             }
           },
           *rpc_thread_pool_);
     }
 
-    trx_mgr_->transaction_accepted_.subscribe(
-        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
+    trx_mgr_->transaction_added_.subscribe(
+        [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_),
+         node_addr = getAddress()](const std::shared_ptr<Transaction> &trx) {
           if (auto _eth_json_rpc = eth_json_rpc.lock()) {
-            _eth_json_rpc->note_pending_transaction(trx_hash);
+            _eth_json_rpc->note_pending_transaction(trx->getHash());
           }
           if (auto _ws = ws.lock()) {
-            _ws->newPendingTransaction(trx_hash);
+            if (trx->getSender() == node_addr) {
+              _ws->newPendingTransaction(trx->getHash());
+            }
           }
         },
         *rpc_thread_pool_);
@@ -406,8 +409,8 @@ void FullNode::rebuildDb() {
       }
     } else {
       next_period_data = std::make_shared<PeriodData>(std::move(data));
-      // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that pushes
-      // blocks to chain
+      // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that
+      // pushes blocks to chain
       for (auto &t : next_period_data->transactions) t->getSender();
       cert_votes = next_period_data->previous_block_cert_votes;
     }
