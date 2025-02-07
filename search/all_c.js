@@ -89,7 +89,7 @@ var searchData=
   ['addsubscription_86',['addSubscription',['../classtaraxa_1_1net_1_1_subscriptions.html#ab366218f2ba868e9e82a9d7dec719ce6',1,'taraxa::net::Subscriptions']]],
   ['addsystemtransactiontobatch_87',['addSystemTransactionToBatch',['../classtaraxa_1_1_db_storage.html#a858e545948f39f504ba18a23ed8999fc',1,'taraxa::DbStorage']]],
   ['addtodag_88',['addToDag',['../group___d_a_g.html#ae531eee634d1d0d5bad60586dc5bbc89',1,'taraxa::DagManager']]],
-  ['addtransaction_89',['addTransaction',['../classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f',1,'taraxa::rewards::BlockStats']]],
+  ['addtransaction_89',['addtransaction',['../classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f',1,'taraxa::rewards::BlockStats::addTransaction()'],['../group___transaction.html#a248254d299d7d9d88860b26feae0d939',1,'taraxa::TransactionQueue::addTransaction()']]],
   ['addtransactionlocationtobatch_90',['addTransactionLocationToBatch',['../classtaraxa_1_1_db_storage.html#a24ad3a7be3b243419932bda90da6ecea',1,'taraxa::DbStorage']]],
   ['addtransactiontobatch_91',['addTransactionToBatch',['../classtaraxa_1_1_db_storage.html#a91cb10fa3a8499a93c36a435efe09dae',1,'taraxa::DbStorage']]],
   ['addvees_92',['addVEEs',['../group___d_a_g.html#a50d307a99d2ce78294d970a67b07038b',1,'taraxa::Dag']]],

@@ -226,6 +226,7 @@ var annotated_dup =
           [ "PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state" ],
           [ "PbftSyncPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet", "namespacetaraxa_1_1network_1_1tarcap_structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_dup" ],
           [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ],
+          [ "PbftSyncPacketRaw", "structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_raw.html", "structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_raw" ],
           [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state" ],
           [ "PillarVotePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet", "namespacetaraxa_1_1network_1_1tarcap_structtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_dup" ],
           [ "PillarVotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler" ],

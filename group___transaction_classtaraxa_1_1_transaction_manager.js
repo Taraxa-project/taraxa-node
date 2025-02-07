@@ -29,6 +29,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "transactionsDropped", "group___transaction.html#a9e1c50b1b2119fc0ddce1be200315aaa", null ],
     [ "updateFinalizedTransactionsStatus", "group___transaction.html#a8039ea2ebadfc5b9e21bb4b845bfc939", null ],
     [ "verifyTransaction", "group___transaction.html#a24fdc0d8b8877ca9859afb962aa4e6d3", null ],
+    [ "verifyTransactionsNotFinalized", "group___transaction.html#a57511f64b55066d9760ee3fab135484b", null ],
     [ "db_", "group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec", null ],
     [ "final_chain_", "group___transaction.html#a436ba8aeecf4a00b2644f60d272cbb2f", null ],
     [ "kConf", "group___transaction.html#a46b97c2f0e2b8830cc3207298b92d256", null ],

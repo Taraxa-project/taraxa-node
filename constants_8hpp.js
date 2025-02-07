@@ -12,6 +12,7 @@ var constants_8hpp =
     [ "kMaxNonFinalizedDagBlocks", "constants_8hpp.html#a28123a29b1fa339b2202fbef0ae1db77", null ],
     [ "kMaxNonFinalizedTransactions", "constants_8hpp.html#a362de53960470ae77608995191b6d53d", null ],
     [ "kMaxTransactionsInPacket", "constants_8hpp.html#ae8b2a4b2aa68f4fcb448a76b73dcc6c8", null ],
+    [ "kMaxTransactionsSizeInPacket", "constants_8hpp.html#ad65adf9d7293cbc1a11e7ae0e22576a1", null ],
     [ "kMinTransactionPoolSize", "constants_8hpp.html#a5c4386d0ef4241fe4d08d14e43fbd1f6", null ],
     [ "kMinTxGas", "constants_8hpp.html#a80d7e0bedeecd255ab611e8054073fc5", null ],
     [ "kNullBlockHash", "constants_8hpp.html#a84112ec70b7375cf162f481a3ea15852", null ],
@@ -24,5 +25,5 @@ var constants_8hpp =
     [ "kTxDataZeroGas", "constants_8hpp.html#a1c46c3dda9fbb884cd54cf004f3d7668", null ],
     [ "kTxGas", "constants_8hpp.html#a451b7fc195fe6bed9059d2e6cb358f27", null ],
     [ "kTxGasContractCreation", "constants_8hpp.html#a09fc7fd18dc5350613a94dad25e7ba0f", null ],
-    [ "kV3NetworkVersion", "constants_8hpp.html#aa05ef1169875a95c1f2c76038cd546f1", null ]
+    [ "kV4NetworkVersion", "constants_8hpp.html#a4bf745969073dd11f923013800d92e3b", null ]
 ];

@@ -336,6 +336,7 @@ var hierarchy =
     [ "taraxa::PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", null ],
     [ "taraxa::network::tarcap::PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", null ],
     [ "taraxa::network::tarcap::PbftSyncPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet", null ],
+    [ "taraxa::network::tarcap::PbftSyncPacketRaw", "structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_raw.html", null ],
     [ "dev::p2p::PeerSessionInfo", "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info", null ],
     [ "taraxa::network::tarcap::PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", null ],
     [ "taraxa::PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", null ],
