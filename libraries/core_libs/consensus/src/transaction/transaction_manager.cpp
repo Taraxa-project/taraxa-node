@@ -205,11 +205,25 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     for (auto t : trxs) {
       const auto trx_hash = t->getHash();
 
-      if (!recently_finalized_transactions_.contains(trx_hash) &&
-          !nonfinalized_transactions_in_dag_.contains(trx_hash) && !db_->transactionFinalized(trx_hash)) {
+      bool transaction_in_dag_or_finalized =
+          nonfinalized_transactions_in_dag_.contains(trx_hash) || recently_finalized_transactions_.contains(trx_hash);
+      if (transaction_in_dag_or_finalized) {
+        continue;
+      }
+
+      // Checking nonce in cheaper than checking db, verify with nonce if possible
+      const auto account = final_chain_->getAccount(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
+      if (account.nonce >= t->getNonce()) {
+        // This is a very rare scenario but it can happen:
+        // The check against database is needed because there is a possibility that transaction was executed within last
+        // 100 period (dag proposal period) but it might not be part of recently_finalized_transactions_
+        transaction_in_dag_or_finalized = db_->transactionFinalized(trx_hash);
+      }
+
+      if (!transaction_in_dag_or_finalized) {
         db_->addTransactionToBatch(*t, write_batch);
         nonfinalized_transactions_in_dag_.emplace(trx_hash, t);
-        if (transactions_pool_.erase(trx_hash)) {
+        if (transactions_pool_.erase(t)) {
           LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
         }
         trx_count_++;
@@ -293,6 +307,30 @@ std::unordered_set<trx_hash_t> TransactionManager::excludeFinalizedTransactions(
   return ret;
 }
 
+bool TransactionManager::verifyTransactionsNotFinalized(const SharedTransactions &trxs) {
+  for (auto t : trxs) {
+    const auto tx_hash = t->getHash();
+
+    if (recently_finalized_transactions_.contains(tx_hash)) {
+      LOG(log_er_) << "Transaction " << tx_hash << " already finalized";
+      return false;
+    }
+
+    // Checking nonce in cheaper than checking db, verify with nonce if possible
+    const auto account = final_chain_->getAccount(t->getSender()).value_or(taraxa::state_api::ZeroAccount);
+    if (account.nonce >= t->getNonce()) {
+      // This is a very rare scenario but it can happen:
+      // The check against database is needed because there is a possibility that transaction was executed within last
+      // 100 period (dag proposal period) but it might not be part of recently_finalized_transactions_
+      if (db_->transactionFinalized(tx_hash)) {
+        LOG(log_er_) << "Transaction " << tx_hash << " already finalized in db";
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 /**
  * Retrieve transactions to be included in proposed block
  */
@@ -361,7 +399,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
       } else {
         LOG(log_dg_) << "Transaction " << hash << " removed from nonfinalized transactions";
       }
-      if (transactions_pool_.erase(hash)) {
+      if (transactions_pool_.erase(trx)) {
         LOG(log_dg_) << "Transaction " << hash << " removed from transactions_pool_";
       }
     }

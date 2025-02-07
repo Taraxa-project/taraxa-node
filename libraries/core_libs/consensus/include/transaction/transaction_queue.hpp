@@ -43,11 +43,11 @@ class TransactionQueue {
   /**
    * @brief remove transaction from queue
    *
-   * @param hash
+   * @param transaction
    * @return true
    * @return false
    */
-  bool erase(const trx_hash_t& hash);
+  bool erase(const SharedTransaction& transaction);
 
   /**
    * @brief returns the transaction or null
@@ -135,6 +135,31 @@ class TransactionQueue {
   bool nonProposableTransactionsOverTheLimit() const;
 
  private:
+  /**
+   * @brief add transaction to queue
+   *
+   * @param transaction
+   * @param proposable
+   */
+  void addTransaction(const SharedTransaction& transaction, bool proposable, uint64_t last_block_number = 0);
+
+  /**
+   * @brief remove transaction from queue
+   *
+   * @param transaction
+   * @return true if removed
+   */
+  bool removeTransaction(const SharedTransaction& transaction, bool proposable);
+
+  /**
+   * @brief remove transaction from non proposable transactions
+   *
+   * @param transaction
+   * @return true if removed
+   */
+  std::unordered_map<taraxa::trx_hash_t, std::pair<uint64_t, taraxa::SharedTransaction>>::iterator removeTransaction(
+      std::unordered_map<taraxa::trx_hash_t, std::pair<uint64_t, taraxa::SharedTransaction>>::iterator transaction);
+
   // Transactions in the queue per account ordered by nonce
   std::unordered_map<addr_t, std::map<val_t, std::shared_ptr<Transaction>>> account_nonce_transactions_;
 
@@ -149,6 +174,9 @@ class TransactionQueue {
 
   // Last time transactions were dropped due to queue reaching max size
   std::chrono::system_clock::time_point transaction_overflow_time_;
+
+  // Size of data for transactions in pool
+  size_t data_size_ = 0;
 
   // If transactions are dropped within last kTransactionOverflowTimeLimit seconds, dag blocks with missing transactions
   // will not be treated as malicious
@@ -168,6 +196,9 @@ class TransactionQueue {
 
   // Maximum size of transactions pool
   const size_t kMaxSize;
+
+  // Maximum data size of transactions pool
+  const size_t kMaxDataSize;
 
   // Maximum size of single account transactions
   const size_t kMaxSingleAccountTransactionsSize;

@@ -33,8 +33,10 @@ inline void TransactionPacketHandler::process(TransactionPacket &&packet, const 
   }
 
   size_t unseen_txs_count = 0;
+  size_t data_size = 0;
   for (auto &transaction : packet.transactions) {
     const auto tx_hash = transaction->getHash();
+    data_size += transaction->getData().size();
     peer->markTransactionAsKnown(tx_hash);
 
     // Skip any transactions that are already known to the trx mgr
@@ -66,6 +68,13 @@ inline void TransactionPacketHandler::process(TransactionPacket &&packet, const 
     }
   }
 
+  // Allow 30% bigger size to support old version, to be removed
+  if (data_size > kMaxTransactionsSizeInPacket * 1.3) {
+    std::ostringstream err_msg;
+    err_msg << "Transactions packet data size over limit " << data_size;
+    throw MaliciousPeerException(err_msg.str());
+  }
+
   if (!packet.transactions.empty()) {
     LOG(log_tr_) << "Received TransactionPacket with " << packet.transactions.size() << " transactions";
     LOG(log_dg_) << "Received TransactionPacket with " << packet.transactions.size()
@@ -81,6 +90,7 @@ TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> p
   bool trx_max_reached = false;
   auto account_iterator = account_start_index;
   std::pair<SharedTransactions, std::vector<trx_hash_t>> result;
+  uint64_t trx_data_size = 0;
   // Next peer should continue after the last account of the current peer
   uint32_t next_peer_account_index = (account_start_index + 1) % accounts_size;
 
@@ -91,7 +101,7 @@ TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> p
       if (peer->isTransactionKnown(trx_hash)) {
         continue;
       }
-      // If max number of transactions to be sent is already reached include hashes to be sent
+
       if (trx_max_reached) {
         result.second.push_back(trx_hash);
         if (result.second.size() == kMaxHashesInPacket) {
@@ -99,12 +109,16 @@ TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> p
           return {next_peer_account_index, std::move(result)};
         }
       } else {
-        result.first.push_back(trx);
-        if (result.first.size() == kMaxTransactionsInPacket) {
+        trx_data_size += trx->getData().size();
+        if (trx_data_size <= kMaxTransactionsSizeInPacket) {
+          result.first.push_back(trx);
+        }
+        if (result.first.size() == kMaxTransactionsInPacket || trx_data_size > kMaxTransactionsSizeInPacket) {
           // Max number of transactions reached, save next_peer_account_index for next peer to continue to avoid
           // sending same transactions to multiple peers
           trx_max_reached = true;
           next_peer_account_index = (account_iterator + 1) % accounts_size;
+          trx_data_size = 0;
         }
       }
     }
