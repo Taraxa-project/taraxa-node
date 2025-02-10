@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['taraxa_0',['Taraxa',['../classtaraxa_1_1net_1_1_taraxa.html#aa03bc9e9a2c433469732d3532febd286',1,'taraxa::net::Taraxa']]],
+  ['taraxa_0',['Taraxa',['../classtaraxa_1_1net_1_1_taraxa.html#ad3e12e53505828fbb1ee7e1f15d7b775',1,'taraxa::net::Taraxa']]],
   ['taraxa_5fdagblocklevel_1',['taraxa_dagblocklevel',['../classtaraxa_1_1net_1_1_taraxa.html#a9cea1cbf6c1ca84a993f52e5746c86c4',1,'taraxa::net::Taraxa::taraxa_dagBlockLevel()'],['../classtaraxa_1_1net_1_1_taraxa_face.html#a097b4b50b81d42e24d7de438754085a3',1,'taraxa::net::TaraxaFace::taraxa_dagBlockLevel()'],['../classtaraxa_1_1net_1_1_taraxa_client.html#a69e7af65c41ec4c997a7d3131ff43932',1,'taraxa::net::TaraxaClient::taraxa_dagBlockLevel()']]],
   ['taraxa_5fdagblockleveli_2',['taraxa_dagBlockLevelI',['../classtaraxa_1_1net_1_1_taraxa_face.html#a25459a61986f22c99118e56fc797f53a',1,'taraxa::net::TaraxaFace']]],
   ['taraxa_5fdagblockperiod_3',['taraxa_dagblockperiod',['../classtaraxa_1_1net_1_1_taraxa_client.html#ab89d796f2427938e1e386332a711e32c',1,'taraxa::net::TaraxaClient::taraxa_dagBlockPeriod()'],['../classtaraxa_1_1net_1_1_taraxa.html#aedec7694b0f10833caeedd41c8f3d13f',1,'taraxa::net::Taraxa::taraxa_dagBlockPeriod()'],['../classtaraxa_1_1net_1_1_taraxa_face.html#a6d78297490d7b3d399048a25ab01012c',1,'taraxa::net::TaraxaFace::taraxa_dagBlockPeriod()=0']]],
@@ -38,7 +38,7 @@ var searchData=
   ['tcp4listen_35',['tcp4Listen',['../classdev_1_1p2p_1_1_network.html#acbfddc2e641c6a3c733f9dec3acdfb42',1,'dev::p2p::Network']]],
   ['tcpport_36',['tcpport',['../classdev_1_1p2p_1_1_node_i_p_endpoint.html#a2dd611b14fd21476e7effd044134435a',1,'dev::p2p::NodeIPEndpoint::tcpPort()'],['../classdev_1_1p2p_1_1_e_n_r.html#a28fd7f3c4df1cb25e12c69d4e7515318',1,'dev::p2p::ENR::tcpPort()']]],
   ['tcppublic_37',['tcpPublic',['../structdev_1_1p2p_1_1_host.html#a8752d95dc9200668e58d96ad33bca8d3',1,'dev::p2p::Host']]],
-  ['test_38',['Test',['../classtaraxa_1_1net_1_1_test.html#afed4e122b8680fd345f9ebdb5043f434',1,'taraxa::net::Test']]],
+  ['test_38',['Test',['../classtaraxa_1_1net_1_1_test.html#abae363733ab289299f6bfa45379c49f2',1,'taraxa::net::Test']]],
   ['testbroadcastvotesfunctionality_39',['testBroadcastVotesFunctionality',['../group___p_b_f_t.html#a16797c464cc5265dc5b930196d043a6d',1,'taraxa::PbftManager']]],
   ['testclient_40',['TestClient',['../classtaraxa_1_1net_1_1_test_client.html#ac03b4ca821eb5d48c557723549c98f14',1,'taraxa::net::TestClient']]],
   ['testface_41',['TestFace',['../classtaraxa_1_1net_1_1_test_face.html#a74528dde69d3fc3f00a5cded773dacd6',1,'taraxa::net::TestFace']]],
@@ -129,7 +129,7 @@ var searchData=
   ['traversenat_126',['traverseNAT',['../classdev_1_1p2p_1_1_network.html#aaf2f1a49da0a6d03d906fca02f4873e1',1,'dev::p2p::Network']]],
   ['triggertestsubscribtion_127',['triggerTestSubscribtion',['../classtaraxa_1_1net_1_1_graph_ql_ws_session.html#a1a34e3de403633df1b5f19ab517526a2',1,'taraxa::net::GraphQlWsSession']]],
   ['trimfront_128',['trimFront',['../namespacedev.html#a3dc0027b3cce037a71eadb41ea7288fc',1,'dev']]],
-  ['trygetnode_129',['tryGetNode',['../classtaraxa_1_1net_1_1_taraxa.html#adacc718a58626bf15b71f3a8e606bc41',1,'taraxa::net::Taraxa']]],
+  ['trygetapp_129',['tryGetApp',['../classtaraxa_1_1net_1_1_taraxa.html#ace94ff7038958871efee065d9d4ef4c8',1,'taraxa::net::Taraxa']]],
   ['trypushcertvotesblock_130',['tryPushCertVotesBlock',['../group___p_b_f_t.html#ada3b947a91cf04d2474cfb1cc4a84bdd',1,'taraxa::PbftManager']]],
   ['type_131',['type',['../classdev_1_1p2p_1_1_r_l_p_x_packet.html#a37c90a39db8aa6b317e83d23a502cc99',1,'dev::p2p::RLPXPacket']]],
   ['typename_132',['typename',['../structdev_1_1p2p_1_1_ping_node.html#a2c89d8870e12898d44d03a70e1f3313f',1,'dev::p2p::PingNode::typeName()'],['../structdev_1_1p2p_1_1_pong.html#aa17b104f5922b9da373816e83d21f352',1,'dev::p2p::Pong::typeName()'],['../structdev_1_1p2p_1_1_find_node.html#a7afd63c91ddb82e30c34cf4e94d6c0d7',1,'dev::p2p::FindNode::typeName()'],['../structdev_1_1p2p_1_1_neighbours.html#a6db2e71193149e5193ced8f8ecbc5b36',1,'dev::p2p::Neighbours::typeName()'],['../structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html#affd9067c3f076cf3e5f689546a8066c8',1,'dev::p2p::RLPXDatagramFace::typeName()'],['../structdev_1_1p2p_1_1_e_n_r_response.html#ad0400c492095597e98295cbdae70c32a',1,'dev::p2p::ENRResponse::typeName()'],['../structdev_1_1p2p_1_1_e_n_r_request.html#ab6d419b2199de5e7f93c6b4ce90872c4',1,'dev::p2p::ENRRequest::typeName()']]]

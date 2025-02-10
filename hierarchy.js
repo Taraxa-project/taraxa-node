@@ -9,6 +9,9 @@ var hierarchy =
     ] ],
     [ "graphql::taraxa::Account", "classgraphql_1_1taraxa_1_1_account.html", null ],
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
+    [ "taraxa::AppBase", "classtaraxa_1_1_app_base.html", [
+      [ "taraxa::App", "classtaraxa_1_1_app.html", null ]
+    ] ],
     [ "taraxa::AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", null ],
     [ "taraxa::network::tarcap::BasePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html", [
@@ -139,9 +142,9 @@ var hierarchy =
       [ "dev::p2p::Session", "structdev_1_1p2p_1_1_session.html", null ],
       [ "dev::p2p::UDPSocket< Handler, MaxDatagramSize >", "classdev_1_1p2p_1_1_u_d_p_socket.html", null ],
       [ "graphql::taraxa::Transaction", "classgraphql_1_1taraxa_1_1_transaction.html", null ],
+      [ "taraxa::App", "classtaraxa_1_1_app.html", null ],
       [ "taraxa::DagManager", "group___d_a_g.html#classtaraxa_1_1_dag_manager", null ],
       [ "taraxa::DbStorage", "classtaraxa_1_1_db_storage.html", null ],
-      [ "taraxa::FullNode", "classtaraxa_1_1_full_node.html", null ],
       [ "taraxa::TransactionManager", "group___transaction.html#classtaraxa_1_1_transaction_manager", null ],
       [ "taraxa::net::HttpConnection", "classtaraxa_1_1net_1_1_http_connection.html", null ],
       [ "taraxa::net::HttpServer", "classtaraxa_1_1net_1_1_http_server.html", null ],
@@ -162,23 +165,23 @@ var hierarchy =
     ] ],
     [ "taraxa::util::event::EventSubscriber< Payload >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", [
       [ "taraxa::util::event::Event< taraxa::DagManager, std::shared_ptr< taraxa::DagBlock > >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
-      [ "taraxa::util::event::Event< taraxa::TransactionManager, std::shared_ptr< taraxa::Transaction > >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
+      [ "taraxa::util::event::Event< taraxa::TransactionManager, const dev::FixedHash & >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
       [ "taraxa::util::event::EventEmitter< std::shared_ptr< taraxa::DagBlock > >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
-      [ "taraxa::util::event::EventEmitter< std::shared_ptr< taraxa::Transaction > >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
+      [ "taraxa::util::event::EventEmitter< const dev::FixedHash & >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
       [ "taraxa::util::event::EventEmitter< std::shared_ptr< taraxa::final_chain::FinalizationResult > >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
       [ "taraxa::util::event::EventEmitter< uint64_t >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
       [ "taraxa::util::event::EventEmitter< const taraxa::pillar_chain::PillarBlockData & >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", null ],
       [ "taraxa::util::event::Event< Owner, Payload >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
       [ "taraxa::util::event::EventEmitter< Payload >", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", [
         [ "taraxa::util::event::Event< taraxa::DagManager, std::shared_ptr< taraxa::DagBlock > >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
-        [ "taraxa::util::event::Event< taraxa::TransactionManager, std::shared_ptr< taraxa::Transaction > >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
+        [ "taraxa::util::event::Event< taraxa::TransactionManager, const dev::FixedHash & >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ],
         [ "taraxa::util::event::Event< Owner, Payload >", "classtaraxa_1_1util_1_1event_1_1_event.html", null ]
       ] ]
     ] ],
+    [ "taraxa::util::event::EventSubscriber< const dev::FixedHash & >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", null ],
     [ "taraxa::util::event::EventSubscriber< const taraxa::pillar_chain::PillarBlockData & >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", null ],
     [ "taraxa::util::event::EventSubscriber< std::shared_ptr< taraxa::DagBlock > >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", null ],
     [ "taraxa::util::event::EventSubscriber< std::shared_ptr< taraxa::final_chain::FinalizationResult > >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", null ],
-    [ "taraxa::util::event::EventSubscriber< std::shared_ptr< taraxa::Transaction > >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", null ],
     [ "taraxa::util::event::EventSubscriber< uint64_t >", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", null ],
     [ "taraxa::state_api::EVMBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block", null ],
     [ "taraxa::state_api::EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", null ],
@@ -351,6 +354,9 @@ var hierarchy =
     [ "taraxa::pillar_chain::PillarVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html", null ],
     [ "taraxa::network::tarcap::PillarVotesBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet", null ],
     [ "taraxa::net::rpc::eth::placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
+    [ "taraxa::Plugin", "classtaraxa_1_1_plugin.html", [
+      [ "taraxa::plugin::Rpc", "classtaraxa_1_1plugin_1_1_rpc.html", null ]
+    ] ],
     [ "taraxa::network::threadpool::PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html", null ],
     [ "taraxa::PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", null ],
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],

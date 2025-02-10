@@ -1,7 +1,6 @@
 var classtaraxa_1_1net_1_1_taraxa =
 [
-    [ "NodePtr", "classtaraxa_1_1net_1_1_taraxa.html#a0da8888934a4cdb6ed1b07e432559db9", null ],
-    [ "Taraxa", "classtaraxa_1_1net_1_1_taraxa.html#aa03bc9e9a2c433469732d3532febd286", null ],
+    [ "Taraxa", "classtaraxa_1_1net_1_1_taraxa.html#ad3e12e53505828fbb1ee7e1f15d7b775", null ],
     [ "implementedModules", "classtaraxa_1_1net_1_1_taraxa.html#ae5a356e17a7caef2a470d43fe18aff60", null ],
     [ "taraxa_dagBlockLevel", "classtaraxa_1_1net_1_1_taraxa.html#a9cea1cbf6c1ca84a993f52e5746c86c4", null ],
     [ "taraxa_dagBlockPeriod", "classtaraxa_1_1net_1_1_taraxa.html#aedec7694b0f10833caeedd41c8f3d13f", null ],
@@ -17,7 +16,7 @@ var classtaraxa_1_1net_1_1_taraxa =
     [ "taraxa_protocolVersion", "classtaraxa_1_1net_1_1_taraxa.html#a527aeb1708223067b08610c7a0afa587", null ],
     [ "taraxa_totalSupply", "classtaraxa_1_1net_1_1_taraxa.html#a881240e856b8d0845c82baf92b820749", null ],
     [ "taraxa_yield", "classtaraxa_1_1net_1_1_taraxa.html#aff0d367292edba63b7097f201c7eb41f", null ],
-    [ "tryGetNode", "classtaraxa_1_1net_1_1_taraxa.html#adacc718a58626bf15b71f3a8e606bc41", null ],
-    [ "full_node_", "classtaraxa_1_1net_1_1_taraxa.html#aef887e1a99c134121d894c6e9be617ed", null ],
+    [ "tryGetApp", "classtaraxa_1_1net_1_1_taraxa.html#ace94ff7038958871efee065d9d4ef4c8", null ],
+    [ "app_", "classtaraxa_1_1net_1_1_taraxa.html#a8237ae042f85cdbb006d0f6bc9678ccb", null ],
     [ "version", "classtaraxa_1_1net_1_1_taraxa.html#a6e9d6492d8ceca86d65bce7aec2aa075", null ]
 ];

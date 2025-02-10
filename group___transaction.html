@@ -149,7 +149,7 @@ Enumerations</h2></td></tr>
 <div class="textblock"><p>Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_blocks blocks. Then all of those values are sorted and current price is selected based on percentile. </p>
 </div><table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a050cf41412c4ca78a6a483db9c061d62" id="r_a050cf41412c4ca78a6a483db9c061d62"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a050cf41412c4ca78a6a483db9c061d62">GasPricer</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">config</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> is_light_node=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">false</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">db</a>={})</td></tr>
+<tr class="memitem:a050cf41412c4ca78a6a483db9c061d62" id="r_a050cf41412c4ca78a6a483db9c061d62"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a050cf41412c4ca78a6a483db9c061d62">GasPricer</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> &amp;config, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> is_light_node=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">false</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">db</a>={})</td></tr>
 <tr class="separator:a050cf41412c4ca78a6a483db9c061d62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfb284f68bfcc72821afdd157be739ab" id="r_acfb284f68bfcc72821afdd157be739ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#acfb284f68bfcc72821afdd157be739ab">~GasPricer</a> ()</td></tr>
 <tr class="separator:acfb284f68bfcc72821afdd157be739ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -614,94 +614,94 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_transaction_manager__coll__graph.png" border="0" usemap="#ataraxa_1_1_transaction_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1_transaction_manager_coll__map" id="ataraxa_1_1_transaction_manager_coll__map">
-<area shape="rect" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="2564,269,2767,294"/>
-<area shape="rect" title=" " alt="" coords="2132,121,2384,161"/>
-<area shape="poly" title=" " alt="" coords="2354,162,2385,171,2464,194,2541,222,2640,266,2638,271,2539,226,2462,199,2383,176,2353,167"/>
-<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="2155,185,2361,255"/>
-<area shape="poly" title=" " alt="" coords="2375,235,2581,266,2580,271,2374,240"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="1761,56,1957,96"/>
-<area shape="poly" title=" " alt="" coords="1972,78,2043,95,2078,109,2110,129,2119,139,2123,151,2126,161,2134,171,2156,187,2153,191,2130,175,2121,164,2118,152,2114,142,2106,133,2075,114,2041,100,1970,83"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1281,5,1497,45"/>
-<area shape="poly" title=" " alt="" coords="1511,31,1738,53,1762,57,1761,62,1737,59,1511,36"/>
-<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="784,10,985,65"/>
-<area shape="poly" title=" " alt="" coords="1000,32,1281,25,1281,31,1000,37"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1521,68,1737,108"/>
-<area shape="poly" title=" " alt="" coords="999,49,1028,52,1294,71,1521,82,1521,87,1294,76,1028,57,999,54"/>
-<area shape="poly" title=" " alt="" coords="1739,108,2155,196,2154,201,1738,113"/>
-<area shape="rect" href="structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="2173,318,2343,343"/>
-<area shape="poly" title=" " alt="" coords="2357,316,2563,291,2564,296,2357,321"/>
-<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1777,368,1941,408"/>
-<area shape="poly" title=" " alt="" coords="1955,372,2172,340,2173,345,1955,377"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="1310,443,1469,469"/>
-<area shape="poly" title=" " alt="" coords="1482,451,1604,442,1737,423,1801,406,1802,411,1738,428,1604,447,1483,456"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="1767,432,1951,472"/>
-<area shape="poly" title=" " alt="" coords="1964,427,2107,388,2172,364,2228,341,2230,346,2174,369,2109,393,1966,432"/>
-<area shape="rect" href="structtaraxa_1_1_network_config.html" title=" " alt="" coords="1775,497,1943,522"/>
-<area shape="poly" title=" " alt="" coords="1956,491,2032,472,2107,443,2148,419,2186,391,2242,341,2246,345,2190,395,2151,423,2109,448,2033,477,1958,496"/>
-<area shape="rect" href="structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="1283,497,1495,522"/>
-<area shape="poly" title=" " alt="" coords="1509,507,1775,507,1775,512,1509,512"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_d_b_config" title=" " alt="" coords="1793,219,1925,245"/>
-<area shape="poly" title=" " alt="" coords="1939,240,2021,255,2109,275,2172,295,2227,315,2225,320,2170,300,2107,280,2020,260,1938,246"/>
-<area shape="rect" href="structtaraxa_1_1_genesis_config.html" title=" " alt="" coords="1777,269,1942,294"/>
-<area shape="poly" title=" " alt="" coords="1956,290,2108,309,2173,317,2172,323,2108,315,1956,296"/>
-<area shape="rect" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="1322,394,1457,419"/>
-<area shape="poly" title=" " alt="" coords="1471,413,1533,413,1603,406,1673,387,1706,373,1736,354,1744,343,1747,330,1750,317,1760,303,1778,292,1781,296,1763,307,1755,319,1752,332,1749,345,1739,358,1708,377,1675,392,1604,411,1534,418,1471,418"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="13,382,173,407"/>
-<area shape="poly" title=" " alt="" coords="187,393,1322,403,1322,409,187,398"/>
-<area shape="rect" href="structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="399,326,602,351"/>
-<area shape="poly" title=" " alt="" coords="187,379,407,349,408,354,187,385"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="765,443,1004,483"/>
-<area shape="poly" title=" " alt="" coords="1018,479,1075,481,1136,479,1198,469,1256,451,1268,441,1280,428,1321,413,1323,418,1283,433,1271,444,1259,456,1199,474,1137,484,1075,487,1018,484"/>
-<area shape="rect" title=" " alt="" coords="469,450,533,475"/>
-<area shape="poly" title=" " alt="" coords="547,460,765,460,765,465,547,465"/>
-<area shape="rect" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="807,507,962,547"/>
-<area shape="poly" title=" " alt="" coords="975,523,1147,516,1218,509,1256,499,1266,484,1267,467,1268,447,1279,429,1299,416,1321,408,1322,413,1301,421,1283,433,1273,449,1273,467,1271,486,1259,504,1219,515,1147,522,976,528"/>
-<area shape="rect" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="425,507,576,547"/>
-<area shape="poly" title=" " alt="" coords="590,524,807,524,807,529,590,529"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,453,181,493"/>
-<area shape="poly" title=" " alt="" coords="196,484,370,507,425,514,425,519,369,512,195,489"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,517,181,557"/>
-<area shape="poly" title=" " alt="" coords="195,532,425,526,425,531,195,537"/>
-<area shape="rect" title=" " alt="" coords="855,663,915,689"/>
-<area shape="poly" title=" " alt="" coords="911,653,963,618,1027,587,1079,580,1147,578,1212,573,1238,567,1256,557,1266,542,1270,527,1267,496,1264,462,1268,445,1279,429,1299,415,1321,407,1322,412,1301,420,1283,433,1273,448,1269,463,1273,495,1276,528,1271,545,1259,561,1240,572,1213,579,1147,583,1079,585,1029,592,966,623,914,657"/>
-<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="1295,769,1483,794"/>
-<area shape="poly" title=" " alt="" coords="909,696,960,741,993,762,1029,777,1103,794,1179,800,1252,798,1315,791,1315,797,1252,803,1179,805,1102,799,1027,783,991,766,957,745,905,700"/>
-<area shape="rect" href="structtaraxa_1_1_gas_price_config.html" title=" " alt="" coords="1304,121,1475,146"/>
-<area shape="poly" title=" " alt="" coords="1489,135,1642,146,1705,155,1739,166,1748,177,1753,188,1753,211,1752,234,1756,244,1763,254,1781,266,1778,271,1759,258,1751,246,1747,234,1747,211,1747,189,1744,179,1736,170,1703,160,1642,151,1488,140"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="1305,170,1473,195"/>
-<area shape="poly" title=" " alt="" coords="1487,183,1630,194,1694,205,1739,220,1748,229,1752,238,1756,246,1763,254,1788,266,1785,271,1760,258,1751,249,1747,240,1743,232,1736,225,1693,210,1629,199,1487,188"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="797,99,972,125"/>
-<area shape="poly" title=" " alt="" coords="986,113,1116,124,1258,147,1282,155,1331,167,1330,173,1281,160,1257,152,1115,130,985,119"/>
-<area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="431,106,570,131"/>
-<area shape="poly" title=" " alt="" coords="584,115,797,111,797,116,584,120"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="429,57,572,82"/>
-<area shape="poly" title=" " alt="" coords="586,76,798,100,797,105,586,81"/>
-<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="1320,219,1459,245"/>
-<area shape="poly" title=" " alt="" coords="1473,236,1738,261,1777,266,1776,272,1737,267,1473,241"/>
-<area shape="rect" href="structtaraxa_1_1state__api_1_1_config.html" title=" " alt="" coords="1319,269,1459,309"/>
-<area shape="poly" title=" " alt="" coords="1473,285,1777,280,1777,285,1473,291"/>
-<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config" title=" " alt="" coords="815,264,955,304"/>
-<area shape="poly" title=" " alt="" coords="968,282,1319,286,1319,291,968,288"/>
-<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config" title=" " alt="" coords="815,149,955,189"/>
-<area shape="poly" title=" " alt="" coords="968,171,1131,186,1206,200,1236,209,1259,219,1268,228,1272,237,1276,246,1283,254,1320,273,1318,277,1280,258,1271,249,1267,239,1264,231,1256,224,1234,214,1205,205,1130,191,968,176"/>
-<area shape="rect" href="structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="796,214,973,239"/>
-<area shape="poly" title=" " alt="" coords="988,233,1258,264,1320,274,1319,279,1257,269,987,238"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="406,261,595,286"/>
-<area shape="poly" title=" " alt="" coords="609,259,741,244,796,237,797,242,742,249,610,265"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="416,162,585,187"/>
-<area shape="poly" title=" " alt="" coords="599,184,742,203,801,211,800,217,741,208,599,189"/>
-<area shape="poly" title=" " alt="" coords="615,323,679,306,740,278,751,264,764,250,795,236,797,241,767,254,755,268,743,282,681,311,616,328"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="393,211,608,237"/>
-<area shape="poly" title=" " alt="" coords="622,222,796,223,796,229,622,228"/>
-<area shape="rect" href="structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1320,335,1459,361"/>
-<area shape="poly" title=" " alt="" coords="1472,338,1597,325,1737,305,1805,291,1806,297,1738,311,1598,330,1473,344"/>
-<area shape="rect" href="structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="789,328,980,368"/>
-<area shape="poly" title=" " alt="" coords="994,345,1320,345,1320,351,994,351"/>
-<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts" title=" " alt="" coords="1774,318,1945,343"/>
-<area shape="poly" title=" " alt="" coords="1959,328,2172,328,2172,333,1959,333"/>
-<area shape="poly" title=" " alt="" coords="1436,761,2107,504,2632,292,2634,296,2109,509,1438,766"/>
-<area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="801,807,968,847"/>
-<area shape="poly" title=" " alt="" coords="982,832,1113,835,1186,831,1257,823,1311,809,1358,792,1360,797,1313,814,1258,828,1186,837,1113,840,982,837"/>
+<area shape="rect" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="2565,612,2768,637"/>
+<area shape="rect" title=" " alt="" coords="2133,439,2385,479"/>
+<area shape="poly" title=" " alt="" coords="2379,480,2461,503,2543,536,2605,573,2652,610,2649,614,2602,578,2540,540,2459,508,2378,485"/>
+<area shape="rect" href="structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="2173,504,2344,529"/>
+<area shape="poly" title=" " alt="" coords="2321,530,2618,609,2617,614,2320,535"/>
+<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1777,459,1941,499"/>
+<area shape="poly" title=" " alt="" coords="1955,486,2174,506,2173,511,1955,491"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="1310,467,1469,492"/>
+<area shape="poly" title=" " alt="" coords="1482,477,1777,477,1777,482,1482,482"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="1767,523,1951,563"/>
+<area shape="poly" title=" " alt="" coords="1965,538,2108,530,2173,524,2174,529,2108,535,1965,543"/>
+<area shape="rect" href="structtaraxa_1_1_network_config.html" title=" " alt="" coords="1775,588,1943,613"/>
+<area shape="poly" title=" " alt="" coords="1956,585,2107,558,2218,527,2220,532,2109,563,1957,591"/>
+<area shape="rect" href="structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="1283,588,1495,613"/>
+<area shape="poly" title=" " alt="" coords="1509,598,1775,598,1775,603,1509,603"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_d_b_config" title=" " alt="" coords="1793,201,1925,227"/>
+<area shape="poly" title=" " alt="" coords="1940,216,1984,225,2031,240,2074,264,2110,298,2124,324,2128,349,2126,374,2120,398,2115,421,2114,444,2119,467,2134,490,2152,503,2174,512,2172,517,2149,508,2130,493,2114,469,2108,445,2110,420,2115,397,2121,373,2123,349,2119,325,2106,301,2071,268,2029,245,1983,230,1938,222"/>
+<area shape="rect" href="structtaraxa_1_1_genesis_config.html" title=" " alt="" coords="1777,251,1942,276"/>
+<area shape="poly" title=" " alt="" coords="1910,279,1957,300,2011,330,2064,368,2110,415,2120,436,2121,455,2123,473,2134,489,2153,502,2174,510,2172,515,2150,507,2130,493,2118,475,2116,456,2115,437,2106,418,2061,372,2008,335,1955,305,1908,284"/>
+<area shape="rect" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="1322,391,1457,416"/>
+<area shape="poly" title=" " alt="" coords="1458,385,1588,351,1736,307,1827,274,1829,279,1738,313,1589,357,1459,390"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="13,331,173,356"/>
+<area shape="poly" title=" " alt="" coords="187,341,734,345,1036,354,1162,361,1258,370,1344,388,1343,393,1257,375,1162,366,1036,360,734,351,187,346"/>
+<area shape="rect" href="structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="399,275,602,300"/>
+<area shape="poly" title=" " alt="" coords="187,328,407,297,408,303,187,333"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="765,391,1004,431"/>
+<area shape="poly" title=" " alt="" coords="1018,407,1322,402,1322,407,1018,412"/>
+<area shape="rect" title=" " alt="" coords="469,399,533,424"/>
+<area shape="poly" title=" " alt="" coords="547,409,765,409,765,414,547,414"/>
+<area shape="rect" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="807,455,962,495"/>
+<area shape="poly" title=" " alt="" coords="976,464,1109,448,1257,427,1330,413,1331,419,1258,433,1109,454,976,469"/>
+<area shape="rect" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="425,455,576,495"/>
+<area shape="poly" title=" " alt="" coords="590,473,807,473,807,478,590,478"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,402,181,442"/>
+<area shape="poly" title=" " alt="" coords="195,433,425,463,425,468,195,438"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,466,181,506"/>
+<area shape="poly" title=" " alt="" coords="195,481,425,475,425,480,195,486"/>
+<area shape="rect" title=" " alt="" coords="855,612,915,637"/>
+<area shape="poly" title=" " alt="" coords="912,601,964,567,1027,536,1062,525,1093,521,1147,522,1173,523,1199,519,1226,510,1256,493,1264,484,1267,475,1271,464,1279,452,1312,429,1346,414,1348,419,1315,434,1283,456,1276,466,1273,476,1268,487,1259,497,1228,515,1200,525,1173,528,1147,528,1093,527,1063,531,1029,540,966,572,915,606"/>
+<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="1295,717,1483,743"/>
+<area shape="poly" title=" " alt="" coords="909,645,960,689,993,710,1029,726,1103,743,1179,748,1252,746,1315,740,1315,745,1252,752,1179,754,1102,748,1027,731,991,715,957,693,905,649"/>
+<area shape="rect" href="structtaraxa_1_1_gas_price_config.html" title=" " alt="" coords="1304,67,1475,92"/>
+<area shape="poly" title=" " alt="" coords="1454,61,1520,52,1596,52,1635,58,1673,68,1708,84,1739,107,1752,123,1756,139,1753,172,1750,205,1753,221,1763,236,1779,248,1776,253,1759,240,1748,223,1744,205,1748,172,1751,140,1747,125,1735,111,1705,89,1671,73,1634,63,1596,58,1520,58,1455,67"/>
+<area shape="rect" href="structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="1305,116,1473,141"/>
+<area shape="poly" title=" " alt="" coords="1487,125,1558,126,1632,132,1696,144,1721,152,1739,163,1751,181,1753,200,1753,219,1763,236,1781,248,1778,253,1759,240,1748,220,1747,201,1746,183,1736,167,1718,157,1694,149,1631,138,1558,132,1487,130"/>
+<area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="797,48,972,73"/>
+<area shape="poly" title=" " alt="" coords="986,65,1116,76,1258,95,1335,113,1334,119,1257,101,1115,82,986,70"/>
+<area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="431,55,570,80"/>
+<area shape="poly" title=" " alt="" coords="584,63,797,60,797,65,584,69"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="429,5,572,31"/>
+<area shape="poly" title=" " alt="" coords="586,25,798,48,797,54,586,30"/>
+<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="1320,165,1459,191"/>
+<area shape="poly" title=" " alt="" coords="1472,178,1599,191,1670,203,1738,222,1762,236,1801,248,1799,253,1760,240,1736,227,1668,209,1598,196,1472,183"/>
+<area shape="rect" href="structtaraxa_1_1state__api_1_1_config.html" title=" " alt="" coords="1319,215,1459,255"/>
+<area shape="poly" title=" " alt="" coords="1474,238,1777,256,1776,261,1473,243"/>
+<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config" title=" " alt="" coords="815,213,955,253"/>
+<area shape="poly" title=" " alt="" coords="968,230,1319,232,1319,238,968,236"/>
+<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config" title=" " alt="" coords="815,98,955,138"/>
+<area shape="poly" title=" " alt="" coords="969,120,1131,135,1206,149,1259,168,1268,176,1272,184,1276,192,1283,200,1320,218,1318,223,1280,204,1271,195,1267,187,1263,179,1256,172,1205,154,1130,141,968,125"/>
+<area shape="rect" href="structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="796,163,973,188"/>
+<area shape="poly" title=" " alt="" coords="987,182,1258,211,1320,221,1319,226,1257,217,987,187"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="406,209,595,235"/>
+<area shape="poly" title=" " alt="" coords="609,208,741,193,796,185,797,191,742,198,610,213"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="416,111,585,136"/>
+<area shape="poly" title=" " alt="" coords="599,133,742,151,801,160,800,165,741,157,599,138"/>
+<area shape="poly" title=" " alt="" coords="615,272,679,254,740,227,751,213,764,199,795,185,797,190,767,203,755,216,743,231,681,260,616,277"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="393,160,608,185"/>
+<area shape="poly" title=" " alt="" coords="622,171,796,172,796,177,622,176"/>
+<area shape="rect" href="structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1320,283,1459,308"/>
+<area shape="poly" title=" " alt="" coords="1473,290,1737,274,1776,270,1777,276,1738,279,1473,295"/>
+<area shape="rect" href="structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="789,277,980,317"/>
+<area shape="poly" title=" " alt="" coords="994,294,1320,293,1320,298,994,299"/>
+<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts" title=" " alt="" coords="1774,409,1945,435"/>
+<area shape="poly" title=" " alt="" coords="1959,429,2034,444,2109,470,2122,480,2133,489,2174,503,2172,508,2131,494,2118,484,2107,475,2033,449,1958,434"/>
+<area shape="poly" title=" " alt="" coords="1496,719,2565,630,2565,636,1497,724"/>
+<area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="801,755,968,795"/>
+<area shape="poly" title=" " alt="" coords="982,781,1113,783,1186,780,1257,771,1311,758,1358,740,1360,745,1313,763,1258,777,1186,785,1113,789,982,786"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="2132,781,2385,836"/>
+<area shape="poly" title=" " alt="" coords="2373,775,2457,746,2540,709,2602,671,2649,635,2652,639,2605,675,2543,714,2459,751,2375,780"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="1761,789,1957,829"/>
+<area shape="poly" title=" " alt="" coords="1971,806,2132,806,2132,811,1971,811"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1281,789,1497,829"/>
+<area shape="poly" title=" " alt="" coords="1512,806,1761,806,1761,811,1512,811"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="784,829,985,884"/>
+<area shape="poly" title=" " alt="" coords="999,843,1281,816,1281,822,999,849"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1521,846,1737,886"/>
+<area shape="poly" title=" " alt="" coords="999,859,1028,859,1521,864,1521,869,1028,865,999,864"/>
+<area shape="poly" title=" " alt="" coords="1751,855,1957,838,2132,820,2132,826,1958,843,1751,860"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -784,8 +784,8 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="memitem:a24fdc0d8b8877ca9859afb962aa4e6d3" id="r_a24fdc0d8b8877ca9859afb962aa4e6d3"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a24fdc0d8b8877ca9859afb962aa4e6d3">verifyTransaction</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;trx) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="separator:a24fdc0d8b8877ca9859afb962aa4e6d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
-<tr class="memitem:aa2f1764e1b4856b7e30c45943c5f0bcc" id="r_aa2f1764e1b4856b7e30c45943c5f0bcc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aa2f1764e1b4856b7e30c45943c5f0bcc">transaction_added_</a> {}</td></tr>
-<tr class="separator:aa2f1764e1b4856b7e30c45943c5f0bcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5cbbeba5ba91bd6bfea36083cc7517f" id="r_aa5cbbeba5ba91bd6bfea36083cc7517f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp; &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aa5cbbeba5ba91bd6bfea36083cc7517f">transaction_added_</a> {}</td></tr>
+<tr class="separator:aa5cbbeba5ba91bd6bfea36083cc7517f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
 <tr class="memitem:ac0ec8a96421d83cc3b8bfad7943c10bc" id="r_ac0ec8a96421d83cc3b8bfad7943c10bc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ac0ec8a96421d83cc3b8bfad7943c10bc">getFullNodeAddress</a> () <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="separator:ac0ec8a96421d83cc3b8bfad7943c10bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1799,14 +1799,14 @@ false </dd></dl>
 
 </div>
 </div>
-<a id="aa2f1764e1b4856b7e30c45943c5f0bcc" name="aa2f1764e1b4856b7e30c45943c5f0bcc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2f1764e1b4856b7e30c45943c5f0bcc">&#9670;&#160;</a></span>transaction_added_</h2>
+<a id="aa5cbbeba5ba91bd6bfea36083cc7517f" name="aa5cbbeba5ba91bd6bfea36083cc7517f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5cbbeba5ba91bd6bfea36083cc7517f">&#9670;&#160;</a></span>transaction_added_</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt;<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> taraxa::TransactionManager::transaction_added_ {}</td>
+          <td class="memname"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt;<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;&gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> taraxa::TransactionManager::transaction_added_ {}</td>
         </tr>
       </table>
 </div><div class="memdoc">

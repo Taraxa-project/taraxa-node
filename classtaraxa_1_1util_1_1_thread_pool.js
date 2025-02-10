@@ -12,7 +12,6 @@ var classtaraxa_1_1util_1_1_thread_pool =
     [ "capacity", "classtaraxa_1_1util_1_1_thread_pool.html#aca08dc3f14bc205e681e01003a23a6a7", null ],
     [ "is_running", "classtaraxa_1_1util_1_1_thread_pool.html#a87570ba4ff9a520790576b15099286e3", null ],
     [ "num_pending_tasks", "classtaraxa_1_1util_1_1_thread_pool.html#a1c2a0c6e2ddc6eb268c70f32d137159f", null ],
-    [ "operator task_executor_t", "classtaraxa_1_1util_1_1_thread_pool.html#a00f9e93b5a15039ba98fb707a80c0343", null ],
     [ "operator=", "classtaraxa_1_1util_1_1_thread_pool.html#a66a38b492af9369fa16aee6c247830f8", null ],
     [ "operator=", "classtaraxa_1_1util_1_1_thread_pool.html#a6687305b4d7f64bfa3bb2ff8cbec7b37", null ],
     [ "post", "classtaraxa_1_1util_1_1_thread_pool.html#a960cdd8cde13a606ce286af5816a91a1", null ],

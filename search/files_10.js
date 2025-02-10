@@ -13,5 +13,7 @@ var searchData=
   ['rlpxhandshake_2eh_10',['RLPxHandshake.h',['../_r_l_px_handshake_8h.html',1,'']]],
   ['rlpxpacket_2eh_11',['RLPXPacket.h',['../_r_l_p_x_packet_8h.html',1,'']]],
   ['rlpxsocket_2eh_12',['RLPXSocket.h',['../_r_l_p_x_socket_8h.html',1,'']]],
-  ['rpc_2emd_13',['RPC.md',['../_r_p_c_8md.html',1,'']]]
+  ['rpc_2ecpp_13',['rpc.cpp',['../rpc_8cpp.html',1,'']]],
+  ['rpc_2ehpp_14',['rpc.hpp',['../rpc_8hpp.html',1,'']]],
+  ['rpc_2emd_15',['RPC.md',['../_r_p_c_8md.html',1,'']]]
 ];

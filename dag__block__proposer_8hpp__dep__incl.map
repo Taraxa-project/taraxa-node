@@ -1,7 +1,7 @@
 <map id="libraries/core_libs/consensus/include/dag/dag_block_proposer.hpp" name="libraries/core_libs/consensus/include/dag/dag_block_proposer.hpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="91,5,274,60"/>
-<area shape="rect" id="Node000002" href="$dag__block__proposer_8cpp.html" title=" " alt="" coords="5,108,179,163"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,72,118,110,114,106,148,69"/>
-<area shape="rect" id="Node000003" href="$node_8cpp.html" title=" " alt="" coords="203,115,347,155"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,69,259,113,255,117,214,72"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="105,5,287,60"/>
+<area shape="rect" id="Node000002" href="$app_8cpp.html" title=" " alt="" coords="5,123,187,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,72,110,124,106,120,158,68"/>
+<area shape="rect" id="Node000003" href="$dag__block__proposer_8cpp.html" title=" " alt="" coords="211,108,384,163"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,68,273,106,269,110,231,72"/>
 </map>

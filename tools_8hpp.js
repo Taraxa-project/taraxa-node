@@ -8,7 +8,7 @@ var tools_8hpp =
     [ "generateVrf", "tools_8hpp.html#a95868ba88dd248aca4fe4f8cfbda09a1", null ],
     [ "generateVrfFromKey", "tools_8hpp.html#a72092cff3d233bd496b86bdbe01bac5b", null ],
     [ "generateWallet", "tools_8hpp.html#ae2962f7552a601c30092849e514653be", null ],
-    [ "getChainIdFromString", "tools_8hpp.html#a56a1b406f30af3f7a1e8483886f17d5c", null ],
+    [ "getChainIdFromString", "tools_8hpp.html#a8b7e60d57c505786d013c0102af90f3d", null ],
     [ "getConfig", "tools_8hpp.html#a89c2e7fd58f992c177c988f393f17f1d", null ],
     [ "getConfig", "tools_8hpp.html#a0f4d7acf0654969e98ac7c593aeefef0", null ],
     [ "getGenesis", "tools_8hpp.html#ac63923dda84ae51b467406b3531435bf", null ],

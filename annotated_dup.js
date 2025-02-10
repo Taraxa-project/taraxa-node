@@ -259,6 +259,9 @@ var annotated_dup =
         [ "PillarChainManager", "group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager", "group___p_i_l_l_a_r___c_h_a_i_n_classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager" ],
         [ "PillarVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html", "classtaraxa_1_1pillar__chain_1_1_pillar_votes" ]
       ] ],
+      [ "plugin", "namespacetaraxa_1_1plugin.html", [
+        [ "Rpc", "classtaraxa_1_1plugin_1_1_rpc.html", "classtaraxa_1_1plugin_1_1_rpc" ]
+      ] ],
       [ "rewards", "namespacetaraxa_1_1rewards.html", [
         [ "BlockStats", "classtaraxa_1_1rewards_1_1_block_stats.html", "classtaraxa_1_1rewards_1_1_block_stats" ],
         [ "Stats", "classtaraxa_1_1rewards_1_1_stats.html", "classtaraxa_1_1rewards_1_1_stats" ]
@@ -314,6 +317,8 @@ var annotated_dup =
       [ "vrf_wrapper", "namespacetaraxa_1_1vrf__wrapper.html", [
         [ "VrfSortitionBase", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base" ]
       ] ],
+      [ "App", "classtaraxa_1_1_app.html", "classtaraxa_1_1_app" ],
+      [ "AppBase", "classtaraxa_1_1_app_base.html", "classtaraxa_1_1_app_base" ],
       [ "AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", "namespacetaraxa_structtaraxa_1_1_aspen_hardfork_dup" ],
       [ "ConfigException", "structtaraxa_1_1_config_exception.html", null ],
       [ "ConnectionConfig", "structtaraxa_1_1_connection_config.html", "structtaraxa_1_1_connection_config" ],
@@ -331,7 +336,6 @@ var annotated_dup =
       [ "DdosProtectionConfig", "structtaraxa_1_1_ddos_protection_config.html", "structtaraxa_1_1_ddos_protection_config" ],
       [ "edge_label_writer", "group___d_a_g.html#classtaraxa_1_1edge__label__writer", "group___d_a_g_classtaraxa_1_1edge__label__writer" ],
       [ "FicusHardforkConfig", "structtaraxa_1_1_ficus_hardfork_config.html", "structtaraxa_1_1_ficus_hardfork_config" ],
-      [ "FullNode", "classtaraxa_1_1_full_node.html", "classtaraxa_1_1_full_node" ],
       [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html", "structtaraxa_1_1_full_node_config" ],
       [ "GasPriceConfig", "structtaraxa_1_1_gas_price_config.html", "structtaraxa_1_1_gas_price_config" ],
       [ "GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", "group___transaction_classtaraxa_1_1_gas_pricer" ],
@@ -358,6 +362,7 @@ var annotated_dup =
       [ "PeriodDataQueue", "group___p_b_f_t.html#classtaraxa_1_1_period_data_queue", "group___p_b_f_t_classtaraxa_1_1_period_data_queue" ],
       [ "PillarVote", "group___vote.html#classtaraxa_1_1_pillar_vote", "group___vote_classtaraxa_1_1_pillar_vote" ],
       [ "PivotTree", "group___d_a_g.html#classtaraxa_1_1_pivot_tree", "group___d_a_g_classtaraxa_1_1_pivot_tree" ],
+      [ "Plugin", "classtaraxa_1_1_plugin.html", "classtaraxa_1_1_plugin" ],
       [ "PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", "namespacetaraxa_structtaraxa_1_1_prometheus_config_dup" ],
       [ "ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", "classtaraxa_1_1_proposed_blocks" ],
       [ "Redelegation", "namespacetaraxa.html#structtaraxa_1_1_redelegation", "namespacetaraxa_structtaraxa_1_1_redelegation_dup" ],

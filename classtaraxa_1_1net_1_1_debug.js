@@ -1,6 +1,6 @@
 var classtaraxa_1_1net_1_1_debug =
 [
-    [ "Debug", "classtaraxa_1_1net_1_1_debug.html#ae52c9ee7c3fc2c69af9bf6dd293629a8", null ],
+    [ "Debug", "classtaraxa_1_1net_1_1_debug.html#aa1558ef24f5519e046caa908d2f36146", null ],
     [ "debug_dposTotalAmountDelegated", "classtaraxa_1_1net_1_1_debug.html#a193c8854215b16f01b198b9159293ae0", null ],
     [ "debug_dposValidatorTotalStakes", "classtaraxa_1_1net_1_1_debug.html#a596ec3408460def2bb43b4da9e06df18", null ],
     [ "debug_getPeriodDagBlocks", "classtaraxa_1_1net_1_1_debug.html#ab9ea195630ec06900ca67adf1a320516", null ],
@@ -19,6 +19,6 @@ var classtaraxa_1_1net_1_1_debug =
     [ "trace_call", "classtaraxa_1_1net_1_1_debug.html#a9a7b41d07b4b4eda70c39c11aad83ccb", null ],
     [ "trace_replayBlockTransactions", "classtaraxa_1_1net_1_1_debug.html#a3f3be1de7356b5d893f67a47a16cbc3f", null ],
     [ "trace_replayTransaction", "classtaraxa_1_1net_1_1_debug.html#a251807dd63caad7a4b9f197cb9402092", null ],
-    [ "full_node_", "classtaraxa_1_1net_1_1_debug.html#a24595efc214110733fb6d1bdbf3ff997", null ],
+    [ "app_", "classtaraxa_1_1net_1_1_debug.html#a3cd990d22ed252430cfd3f2edfd6e68a", null ],
     [ "kGasLimit", "classtaraxa_1_1net_1_1_debug.html#a2f874e0dc2357ca204189532e2f89934", null ]
 ];

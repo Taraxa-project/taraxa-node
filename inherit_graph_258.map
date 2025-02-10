@@ -1,24 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="5,261,221,301"/>
-<area shape="rect" id="Node000001" href="$classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="572,5,791,75"/>
-<area shape="poly" id="edge148_Node000000_Node000001" title=" " alt="" coords="128,248,150,209,181,164,221,121,268,86,304,68,343,54,422,37,501,29,572,28,572,34,501,34,423,42,344,60,306,73,271,90,224,125,185,167,155,212,133,250"/>
-<area shape="rect" id="Node000003" href="$classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="578,99,785,168"/>
-<area shape="poly" id="edge149_Node000000_Node000003" title=" " alt="" coords="132,248,155,215,186,178,224,144,268,118,307,104,347,95,428,89,507,93,578,104,577,109,507,98,428,94,347,100,308,109,270,122,227,148,190,182,159,218,136,251"/>
-<area shape="rect" id="Node000005" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="319,247,475,316"/>
-<area shape="poly" id="edge150_Node000000_Node000005" title=" " alt="" coords="235,279,318,279,318,284,235,284"/>
-<area shape="rect" id="Node000006" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="319,340,475,409"/>
-<area shape="poly" id="edge151_Node000000_Node000006" title=" " alt="" coords="188,303,319,347,318,352,187,308"/>
-<area shape="rect" id="Node000007" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="269,433,524,503"/>
-<area shape="poly" id="edge152_Node000000_Node000007" title=" " alt="" coords="143,310,199,365,234,394,271,419,293,431,290,436,268,424,231,398,195,369,139,313"/>
-<area shape="rect" id="Node000008" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="297,527,496,567"/>
-<area shape="poly" id="edge153_Node000000_Node000008" title=" " alt="" coords="130,313,150,358,181,413,221,467,245,491,271,512,298,527,296,532,268,517,241,495,217,470,177,415,146,361,125,315"/>
-<area shape="rect" id="Node000009" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="314,591,479,660"/>
-<area shape="poly" id="edge154_Node000000_Node000009" title=" " alt="" coords="126,314,144,370,174,440,216,513,242,547,271,577,292,591,315,603,313,608,289,596,268,581,238,550,211,516,169,443,139,372,121,315"/>
-<area shape="rect" id="Node000004" href="$classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="582,192,781,232"/>
-<area shape="poly" id="edge155_Node000000_Node000004" title=" " alt="" coords="182,254,269,232,351,221,434,213,582,208,582,214,434,219,351,226,270,237,183,260"/>
-<area shape="rect" id="Node000002" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="299,132,495,172"/>
-<area shape="poly" id="edge156_Node000000_Node000002" title=" " alt="" coords="154,251,208,219,268,188,319,170,321,175,270,193,210,224,157,256"/>
-<area shape="poly" id="edge157_Node000002_Node000001" title=" " alt="" coords="460,124,591,72,593,77,462,129"/>
-<area shape="poly" id="edge158_Node000002_Node000003" title=" " alt="" coords="508,142,578,137,578,143,509,147"/>
-<area shape="poly" id="edge159_Node000002_Node000004" title=" " alt="" coords="506,172,586,189,585,195,505,177"/>
+<area shape="rect" id="Node000000" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="5,5,191,60"/>
 </map>

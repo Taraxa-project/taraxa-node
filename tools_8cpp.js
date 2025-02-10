@@ -8,7 +8,7 @@ var tools_8cpp =
     [ "generateVrf", "tools_8cpp.html#a95868ba88dd248aca4fe4f8cfbda09a1", null ],
     [ "generateVrfFromKey", "tools_8cpp.html#a91439e9012344f4f61aa6c5f518e90e3", null ],
     [ "generateWallet", "tools_8cpp.html#a77e6b42e5c28596e36805e806c77cc5a", null ],
-    [ "getChainIdFromString", "tools_8cpp.html#a56a1b406f30af3f7a1e8483886f17d5c", null ],
+    [ "getChainIdFromString", "tools_8cpp.html#a8b7e60d57c505786d013c0102af90f3d", null ],
     [ "getConfig", "tools_8cpp.html#a89c2e7fd58f992c177c988f393f17f1d", null ],
     [ "getGenesis", "tools_8cpp.html#ac63923dda84ae51b467406b3531435bf", null ],
     [ "getHomeDir", "tools_8cpp.html#a7bea8c0640537805e5ec7c0599d9462b", null ],
@@ -17,6 +17,6 @@ var tools_8cpp =
     [ "getTaraxaDefaultDir", "tools_8cpp.html#af025832254c59368104f4122b217b190", null ],
     [ "getTaraxaDefaultGenesisFile", "tools_8cpp.html#ae8caf849c6aa5a12eccc23b1de267b0f", null ],
     [ "getTaraxaDefaultWalletFile", "tools_8cpp.html#a793f65ff5116126682096812693b0b7d", null ],
-    [ "overrideConfig", "tools_8cpp.html#a93df239d5062502e931b9fd665e69750", null ],
+    [ "overrideConfig", "tools_8cpp.html#a3ae9697d4a11d3b6c165a17a5d84c442", null ],
     [ "overrideWallet", "tools_8cpp.html#ad371a9212bbd71daca16a2683eca248d", null ]
 ];

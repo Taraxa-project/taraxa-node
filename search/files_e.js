@@ -54,8 +54,9 @@ var searchData=
   ['pillar_5fvotes_5fbundle_5fpacket_2ehpp_51',['pillar_votes_bundle_packet.hpp',['../pillar__votes__bundle__packet_8hpp.html',1,'']]],
   ['pillar_5fvotes_5fbundle_5fpacket_5fhandler_2ecpp_52',['pillar_votes_bundle_packet_handler.cpp',['../pillar__votes__bundle__packet__handler_8cpp.html',1,'']]],
   ['pillar_5fvotes_5fbundle_5fpacket_5fhandler_2ehpp_53',['pillar_votes_bundle_packet_handler.hpp',['../pillar__votes__bundle__packet__handler_8hpp.html',1,'']]],
-  ['priority_5fqueue_2ecpp_54',['priority_queue.cpp',['../priority__queue_8cpp.html',1,'']]],
-  ['priority_5fqueue_2ehpp_55',['priority_queue.hpp',['../priority__queue_8hpp.html',1,'']]],
-  ['proposed_5fblocks_2ecpp_56',['proposed_blocks.cpp',['../proposed__blocks_8cpp.html',1,'']]],
-  ['proposed_5fblocks_2ehpp_57',['proposed_blocks.hpp',['../proposed__blocks_8hpp.html',1,'']]]
+  ['plugin_2ehpp_54',['plugin.hpp',['../plugin_8hpp.html',1,'']]],
+  ['priority_5fqueue_2ecpp_55',['priority_queue.cpp',['../priority__queue_8cpp.html',1,'']]],
+  ['priority_5fqueue_2ehpp_56',['priority_queue.hpp',['../priority__queue_8hpp.html',1,'']]],
+  ['proposed_5fblocks_2ecpp_57',['proposed_blocks.cpp',['../proposed__blocks_8cpp.html',1,'']]],
+  ['proposed_5fblocks_2ehpp_58',['proposed_blocks.hpp',['../proposed__blocks_8hpp.html',1,'']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jsonrpcserver_0',['JsonRpcServer',['../classtaraxa_1_1_full_node.html#ae4771e8b2b3c98ef7ae0baa219aabbc6',1,'taraxa::FullNode']]]
+  ['jsonrpcserver_0',['JsonRpcServer',['../classtaraxa_1_1plugin_1_1_rpc.html#af4e1abf0fcd13ff504d85b1ee0cf0a36',1,'taraxa::plugin::Rpc']]]
 ];

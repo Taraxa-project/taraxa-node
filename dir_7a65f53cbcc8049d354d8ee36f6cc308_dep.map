@@ -1,13 +1,13 @@
 <map id="libraries/core_libs/network/include/network/tarcap/stats" name="libraries/core_libs/network/include/network/tarcap/stats">
 <area shape="rect" id="node1" href="dir_7a65f53cbcc8049d354d8ee36f6cc308.html" title="stats" alt="" coords="108,52,163,77"/>
 <area shape="rect" id="node2" href="dir_468f50b028e1e94ed0441083f377df37.html" title="common" alt="" coords="5,125,84,151"/>
-<area shape="poly" id="edge1" href="dir_000087_000003.html" alt="" coords="122,79,72,119,69,114,119,75"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000087_000003.html" title="2" alt="" coords="74,113,84,128"/>
+<area shape="poly" id="edge1" href="dir_000094_000005.html" alt="" coords="122,79,72,119,69,114,119,75"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000094_000005.html" title="2" alt="" coords="74,113,84,128"/>
 <area shape="rect" id="node3" href="dir_bb5b5f24c752375767f5169004c876a2.html" title="aleth" alt="" coords="108,125,163,151"/>
-<area shape="poly" id="edge2" href="dir_000087_000000.html" alt="" coords="138,78,138,112,133,112,133,78"/>
-<area shape="rect" id="edge2-headlabel" href="dir_000087_000000.html" title="1" alt="" coords="139,100,148,114"/>
+<area shape="poly" id="edge2" href="dir_000094_000000.html" alt="" coords="138,78,138,112,133,112,133,78"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000094_000000.html" title="1" alt="" coords="139,100,148,114"/>
 <area shape="rect" id="node4" href="dir_f7551ecb51caaf87735ee43ce07dac37.html" title="logger" alt="" coords="187,125,249,151"/>
-<area shape="poly" id="edge3" href="dir_000087_000045.html" alt="" coords="150,75,196,114,192,118,147,79"/>
-<area shape="rect" id="edge3-headlabel" href="dir_000087_000045.html" title="2" alt="" coords="192,100,201,114"/>
+<area shape="poly" id="edge3" href="dir_000094_000049.html" alt="" coords="150,75,196,114,192,118,147,79"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000094_000049.html" title="2" alt="" coords="192,100,201,114"/>
 <area shape="rect" id="clust1" href="dir_1ca9ccfb116222db9f6425522db16f45.html" title="tarcap" alt="" coords="97,16,174,88"/>
 </map>

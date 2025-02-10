@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['zeroaccount_0',['ZeroAccount',['../group___final_chain.html#ga5c809a2ce1cbc35fa9a7d77abf02b1f7',1,'taraxa::state_api']]],
-  ['zeroaddress_1',['ZeroAddress',['../namespacedev.html#ae4977f645b0bd16f2f0f5fb0478ec84c',1,'dev']]]
+  ['yield_5fpercentage_0',['yield_percentage',['../namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163',1,'taraxa::state_api::DPOSConfig']]]
 ];

@@ -55,9 +55,10 @@ var searchData=
   ['pingnode_52',['PingNode',['../structdev_1_1p2p_1_1_ping_node.html',1,'dev::p2p']]],
   ['pivottree_53',['PivotTree',['../group___d_a_g.html#classtaraxa_1_1_pivot_tree',1,'taraxa']]],
   ['placeholder_5ft_54',['placeholder_t',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t',1,'taraxa::net::rpc::eth']]],
-  ['pong_55',['Pong',['../structdev_1_1p2p_1_1_pong.html',1,'dev::p2p']]],
-  ['portbindexception_56',['PortBindException',['../structdev_1_1p2p_1_1_network_1_1_port_bind_exception.html',1,'dev::p2p::Network']]],
-  ['priorityqueue_57',['PriorityQueue',['../classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html',1,'taraxa::network::threadpool']]],
-  ['prometheusconfig_58',['PrometheusConfig',['../namespacetaraxa.html#structtaraxa_1_1_prometheus_config',1,'taraxa']]],
-  ['proposedblocks_59',['ProposedBlocks',['../classtaraxa_1_1_proposed_blocks.html',1,'taraxa']]]
+  ['plugin_55',['Plugin',['../classtaraxa_1_1_plugin.html',1,'taraxa']]],
+  ['pong_56',['Pong',['../structdev_1_1p2p_1_1_pong.html',1,'dev::p2p']]],
+  ['portbindexception_57',['PortBindException',['../structdev_1_1p2p_1_1_network_1_1_port_bind_exception.html',1,'dev::p2p::Network']]],
+  ['priorityqueue_58',['PriorityQueue',['../classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html',1,'taraxa::network::threadpool']]],
+  ['prometheusconfig_59',['PrometheusConfig',['../namespacetaraxa.html#structtaraxa_1_1_prometheus_config',1,'taraxa']]],
+  ['proposedblocks_60',['ProposedBlocks',['../classtaraxa_1_1_proposed_blocks.html',1,'taraxa']]]
 ];

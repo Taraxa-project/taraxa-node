@@ -124,8 +124,8 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aebee0851b1e1d7ff4c5862216b68be3a" id="r_aebee0851b1e1d7ff4c5862216b68be3a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html#aebee0851b1e1d7ff4c5862216b68be3a">subscribe</a> (<a class="el" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html#af278d99448f2853636e0482518c5732d">Handler</a> &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">handler</a>, <a class="el" href="namespacetaraxa_1_1util.html#adf6bcc32e5ee130e9f286722f92a769a">task_executor_t</a> &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">execution_context</a>=<a class="el" href="namespacetaraxa_1_1util.html#a2e2023bff6913264bc83ccef61e32275">current_thread_executor</a>()) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
-<tr class="separator:aebee0851b1e1d7ff4c5862216b68be3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9ca3b15c2506124b614a05c77bc2d74" id="r_ae9ca3b15c2506124b614a05c77bc2d74"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html#ae9ca3b15c2506124b614a05c77bc2d74">subscribe</a> (<a class="el" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html#af278d99448f2853636e0482518c5732d">Handler</a> &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">handler</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">execution_context</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:ae9ca3b15c2506124b614a05c77bc2d74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a650969d72b9b892e4b2290cd43e8551c" id="r_a650969d72b9b892e4b2290cd43e8551c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html#a650969d72b9b892e4b2290cd43e8551c">unsubscribe</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">subscription_id</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="separator:a650969d72b9b892e4b2290cd43e8551c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -185,8 +185,8 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aebee0851b1e1d7ff4c5862216b68be3a" name="aebee0851b1e1d7ff4c5862216b68be3a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aebee0851b1e1d7ff4c5862216b68be3a">&#9670;&#160;</a></span>subscribe()</h2>
+<a id="ae9ca3b15c2506124b614a05c77bc2d74" name="ae9ca3b15c2506124b614a05c77bc2d74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae9ca3b15c2506124b614a05c77bc2d74">&#9670;&#160;</a></span>subscribe()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -205,8 +205,8 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#adf6bcc32e5ee130e9f286722f92a769a">task_executor_t</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>execution_context</em> = <code><a class="el" href="namespacetaraxa_1_1util.html#a2e2023bff6913264bc83ccef61e32275">current_thread_executor</a>()</code>&#160;</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td>
+          <td class="paramname"><em>execution_context</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

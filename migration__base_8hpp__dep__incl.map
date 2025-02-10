@@ -1,9 +1,9 @@
 <map id="libraries/core_libs/storage/include/storage/migration/migration_base.hpp" name="libraries/core_libs/storage/include/storage/migration/migration_base.hpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="59,5,282,60"/>
-<area shape="rect" id="Node000002" href="$migration__manager_8hpp.html" title=" " alt="" coords="47,108,295,163"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,74,173,108,168,108,168,74"/>
-<area shape="rect" id="Node000003" href="$node_8cpp.html" title=" " alt="" coords="5,218,149,258"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="139,175,97,219,93,216,135,171"/>
-<area shape="rect" id="Node000004" href="$migration__manager_8cpp.html" title=" " alt="" coords="174,211,354,265"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="207,171,242,209,238,212,203,175"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,310,60"/>
+<area shape="rect" id="Node000002" href="$migration__manager_8hpp.html" title=" " alt="" coords="75,108,323,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,74,201,108,196,108,196,74"/>
+<area shape="rect" id="Node000003" href="$app_8cpp.html" title=" " alt="" coords="5,225,187,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="164,174,110,227,106,223,160,170"/>
+<area shape="rect" id="Node000004" href="$migration__manager_8cpp.html" title=" " alt="" coords="211,211,391,265"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="237,170,276,209,273,212,233,174"/>
 </map>
