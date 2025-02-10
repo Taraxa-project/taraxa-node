@@ -44,7 +44,7 @@ void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
   }
   auto timer = std::make_shared<boost::asio::deadline_timer>(ioc_);
   timer->expires_from_now(boost::posix_time::milliseconds(do_in_ms));
-  timer->async_wait([this, action = std::move(action), timer](auto const &err_code) {
+  timer->async_wait([this, action = std::move(action), timer](const auto &err_code) {
     action(err_code);
     --num_pending_tasks_;
   });

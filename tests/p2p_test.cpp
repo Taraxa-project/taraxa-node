@@ -6,9 +6,8 @@
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
 
-#include <vector>
-
 #include "common/init.hpp"
+#include "common/thread_pool.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "test_util/samples.hpp"

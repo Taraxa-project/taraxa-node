@@ -9,158 +9,48 @@
 #include "common/jsoncpp.hpp"
 #include "config/version.hpp"
 
-namespace bpo = boost::program_options;
-
 namespace taraxa::cli {
 
-Config::Config(int argc, const char* argv[]) {
-  boost::program_options::options_description main_options("OPTIONS");
-  boost::program_options::options_description node_command_options("NODE COMMAND OPTIONS");
-  boost::program_options::options_description allowed_options("Allowed options");
-  std::string genesis;
-  std::string config;
-  std::string wallet;
-  int chain_id = static_cast<int>(DEFAULT_CHAIN_ID);
-  std::string chain_str;
-  std::string data_dir;
-  std::vector<std::string> command;
-  std::vector<std::string> boot_nodes;
-  std::string public_ip;
-  uint16_t port = 0;
-  std::vector<std::string> log_channels;
-  std::vector<std::string> log_configurations;
-  std::vector<std::string> boot_nodes_append;
-  std::vector<std::string> log_channels_append;
-  std::string node_secret;
-  std::string vrf_secret;
-  bool overwrite_config;
+Config::Config() : plugins_options_("PLUGINS") {}
 
-  bool destroy_db = false;
-  bool rebuild_network = false;
-  bool rebuild_db = false;
-  bool prune_state_db = false;
+void Config::addCliOptions(const bpo::options_description& options) { plugins_options_.add(options); }
 
-  bool light_node = false;
-  bool version = false;
-  uint64_t rebuild_db_period = 0;
-  uint64_t revert_to_period = 0;
-
-  bool enable_test_rpc = false;
-  bool enable_debug = false;
-  bool migrate_only = false;
-
-  // Set node as default command
-  command.push_back(NODE_COMMAND);
-
-  // Set config file and data directory to default values
-  config = tools::getTaraxaDefaultConfigFile();
-  wallet = tools::getTaraxaDefaultWalletFile();
-  genesis = tools::getTaraxaDefaultGenesisFile();
-
-  // Define all the command line options and descriptions
-  main_options.add_options()(HELP, "Print this help message and exit");
-  main_options.add_options()(VERSION, bpo::bool_switch(&version), "Print version of taraxad");
-  main_options.add_options()(COMMAND, bpo::value<std::vector<std::string>>(&command)->multitoken(),
-                             "Command arg:"
-                             "\nnode                  Runs the actual node (default)"
-                             "\nconfig       Only generate/overwrite config file with provided node command "
-                             "option without starting the node"
-                             "\naccount key           Generate new account or restore from a key (key is optional)"
-                             "\nvrf key               Generate new VRF or restore from a key (key is optional)");
-  node_command_options.add_options()(WALLET, bpo::value<std::string>(&wallet),
-                                     "JSON wallet file (default: \"~/.taraxa/wallet.json\")");
-  node_command_options.add_options()(CONFIG, bpo::value<std::string>(&config),
-                                     "JSON configuration file (default: \"~/.taraxa/config.json\")");
-  node_command_options.add_options()(GENESIS, bpo::value<std::string>(&genesis),
-                                     "JSON genesis file (default: \"~/.taraxa/genesis.json\")");
-  node_command_options.add_options()(DATA_DIR, bpo::value<std::string>(&data_dir),
-                                     "Data directory for the databases, logs ... (default: \"~/.taraxa/data\")");
-  node_command_options.add_options()(DESTROY_DB, bpo::bool_switch(&destroy_db),
-                                     "Destroys all the existing data in the database");
-  node_command_options.add_options()(REBUILD_DB, bpo::bool_switch(&rebuild_db),
-                                     "Reads the raw dag/pbft blocks from the db "
-                                     "and executes all the blocks from scratch "
-                                     "rebuilding all the other "
-                                     "database tables - this could take a long "
-                                     "time");
-  node_command_options.add_options()(REBUILD_DB_PERIOD, bpo::value<uint64_t>(&rebuild_db_period),
-                                     "Use with rebuild-db - Rebuild db up "
-                                     "to a specified period");
-  node_command_options.add_options()(REBUILD_NETWORK, bpo::bool_switch(&rebuild_network),
-                                     "Delete all saved network/nodes information "
-                                     "and rebuild network from boot nodes");
-  node_command_options.add_options()(REVERT_TO_PERIOD, bpo::value<uint64_t>(&revert_to_period),
-                                     "Revert db/state to specified "
-                                     "period (specify period)");
-  node_command_options.add_options()(LIGHT, bpo::bool_switch(&light_node), "Enable light node functionality");
-  node_command_options.add_options()(CHAIN_ID, bpo::value<int>(&chain_id),
-                                     "Chain identifier (integer, 841=Mainnet, 842=Testnet, 843=Devnet) (default: 841) "
-                                     "Only used when creating new config file");
-  node_command_options.add_options()(CHAIN, bpo::value<std::string>(&chain_str),
-                                     "Chain identifier (string, mainnet, testnet, devnet) (default: mainnet) "
-                                     "Only used when creating new config file");
-
-  node_command_options.add_options()(BOOT_NODES, bpo::value<std::vector<std::string>>(&boot_nodes)->multitoken(),
-                                     "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
-  node_command_options.add_options()(
-      BOOT_NODES_APPEND, bpo::value<std::vector<std::string>>(&boot_nodes_append)->multitoken(),
-      "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
-  node_command_options.add_options()(PUBLIC_IP, bpo::value<std::string>(&public_ip),
-                                     "Force advertised public IP to the given IP (default: auto)");
-  node_command_options.add_options()(PORT, bpo::value<uint16_t>(&port),
-                                     "Listen on the given port for incoming connections");
-  node_command_options.add_options()(LOG_CHANNELS, bpo::value<std::vector<std::string>>(&log_channels)->multitoken(),
-                                     "Log channels to log: [channel:level, ....]");
-  node_command_options.add_options()(
-      LOG_CHANNELS_APPEND, bpo::value<std::vector<std::string>>(&log_channels_append)->multitoken(),
-      "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
-  node_command_options.add_options()(LOG_CONFIGURATIONS,
-                                     bpo::value<std::vector<std::string>>(&log_configurations)->multitoken(),
-                                     "Log configurations to use: [configuration_name, ....]");
-  node_command_options.add_options()(NODE_SECRET, bpo::value<std::string>(&node_secret), "Node secret key to use");
-
-  node_command_options.add_options()(VRF_SECRET, bpo::value<std::string>(&vrf_secret), "Vrf secret key to use");
-
-  node_command_options.add_options()(
-      OVERWRITE_CONFIG, bpo::bool_switch(&overwrite_config),
-      "Overwrite config - "
-      "Options data-dir, boot-nodes, log-channels, node-secret and vrf-secret are always used in running a node but "
-      "only written to config file if overwrite-config flag is set. \n"
-      "WARNING: Overwrite-config set can override/delete current secret keys in the wallet");
-
-  node_command_options.add_options()(ENABLE_TEST_RPC, bpo::bool_switch(&enable_test_rpc),
-                                     "Enables Test JsonRPC. Disabled by default");
-  node_command_options.add_options()(ENABLE_DEBUG, bpo::bool_switch(&enable_debug),
-                                     "Enables Debug RPC interface. Disabled by default");
-  node_command_options.add_options()(PRUNE_STATE_DB, bpo::bool_switch(&prune_state_db), "Prune state_db");
-  node_command_options.add_options()(MIGRATE_ONLY, bpo::bool_switch(&migrate_only),
-                                     "Only migrate DB, it will NOT run a node");
-
+void Config::parseCommandLine(int argc, const char* argv[], const std::string& available_plugins) {
+  bpo::options_description allowed_options("");
+  auto main_options = makeMainOptions();
+  auto node_command_options = makeNodeOptions(available_plugins);
   allowed_options.add(main_options);
-
   allowed_options.add(node_command_options);
-  bpo::variables_map option_vars;
+  allowed_options.add(plugins_options_);
 
   auto parsed_line = bpo::parse_command_line(argc, argv, allowed_options);
 
-  bpo::store(parsed_line, option_vars);
-  bpo::notify(option_vars);
-  if (option_vars.count(HELP)) {
+  bpo::store(parsed_line, cli_options_);
+  bpo::notify(cli_options_);
+  if (cli_options_.count(HELP)) {
     std::cout << "NAME:\n  "
                  "taraxad - Taraxa blockchain full node implementation\n"
                  "VERSION:\n  "
               << TARAXA_VERSION << "\nUSAGE:\n  taraxad [options]\n";
-    std::cout << main_options << std::endl;
-    std::cout << node_command_options << std::endl;
+    std::cout << allowed_options << std::endl;
+    // std::cout << node_command_options << std::endl;
     // If help message requested, ignore any additional commands
-    command.clear();
     return;
   }
-  if (version) {
+  if (cli_options_.count(VERSION)) {
     std::cout << kVersionJson << std::endl;
-    // If version requested, ignore any additional commands
-    command.clear();
     return;
+  }
+  if (cli_options_.count(PLUGINS)) {
+    plugins_ = cli_options_[PLUGINS].as<std::vector<std::string>>();
+  }
+
+  std::vector<std::string> command;
+  if (cli_options_.count(COMMAND)) {
+    command = cli_options_[COMMAND].as<std::vector<std::string>>();
+  }
+  if (command.empty()) {
+    command.push_back(NODE_COMMAND);
   }
 
   if (command[0] == NODE_COMMAND || command[0] == CONFIG_COMMAND) {
@@ -179,12 +69,16 @@ Config::Config(int argc, const char* argv[]) {
     }
 
     // Update chain_id
-    if (!chain_str.empty()) {
-      if (chain_id != static_cast<int>(DEFAULT_CHAIN_ID)) {
+    int chain_id = static_cast<int>(DEFAULT_CHAIN_ID);
+    if (cli_options_.count(CHAIN_ID)) {
+      if (cli_options_.count(CHAIN)) {
         std::cout << "You can not specify both " << CHAIN_ID << " and " << CHAIN << std::endl;
         return;
       }
-      chain_id = tools::getChainIdFromString(chain_str);
+      chain_id = cli_options_[CHAIN_ID].as<int>();
+    }
+    if (cli_options_.count(CHAIN)) {
+      chain_id = tools::getChainIdFromString(cli_options_[CHAIN].as<std::string>());
     }
 
     // If any of the config files are missing they are generated with default values
@@ -220,14 +114,43 @@ Config::Config(int argc, const char* argv[]) {
       write_config_and_wallet_files();
     }
     // Override config values with values from CLI
+    if (cli_options_.count(DATA_DIR)) {
+      data_dir = cli_options_[DATA_DIR].as<std::string>();
+    }
+    std::vector<std::string> boot_nodes;
+    if (cli_options_.count(BOOT_NODES)) {
+      boot_nodes = cli_options_[BOOT_NODES].as<std::vector<std::string>>();
+    }
+    std::vector<std::string> log_channels;
+    if (cli_options_.count(LOG_CHANNELS)) {
+      log_channels = cli_options_[LOG_CHANNELS].as<std::vector<std::string>>();
+    }
+    std::vector<std::string> log_configurations;
+    if (cli_options_.count(LOG_CONFIGURATIONS)) {
+      log_configurations = cli_options_[LOG_CONFIGURATIONS].as<std::vector<std::string>>();
+    }
+    std::vector<std::string> boot_nodes_append;
+    if (cli_options_.count(BOOT_NODES_APPEND)) {
+      boot_nodes_append = cli_options_[BOOT_NODES_APPEND].as<std::vector<std::string>>();
+    }
+    std::vector<std::string> log_channels_append;
+    if (cli_options_.count(LOG_CHANNELS_APPEND)) {
+      log_channels_append = cli_options_[LOG_CHANNELS_APPEND].as<std::vector<std::string>>();
+    }
     config_json = tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
                                         boot_nodes_append, log_channels_append);
+
+    std::string node_secret;
+    if (cli_options_.count(NODE_SECRET)) {
+      node_secret = cli_options_[NODE_SECRET].as<std::string>();
+    }
+    std::string vrf_secret;
+    if (cli_options_.count(VRF_SECRET)) {
+      vrf_secret = cli_options_[VRF_SECRET].as<std::string>();
+    }
     wallet_json = tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
-    if (light_node) {
-      config_json["is_light_node"] = true;
-    }
-
+    config_json["is_light_node"] = cli_options_[LIGHT].as<bool>();
     // Create data directory
     if (!data_dir.empty() && !fs::exists(data_dir)) {
       fs::create_directories(data_dir);
@@ -253,26 +176,23 @@ Config::Config(int argc, const char* argv[]) {
     // Validate config values
     node_config_.validate();
 
-    if (destroy_db) {
+    if (cli_options_[DESTROY_DB].as<bool>()) {
       fs::remove_all(node_config_.db_path);
     }
-    if (rebuild_network) {
+    if (cli_options_[REBUILD_NETWORK].as<bool>()) {
       fs::remove_all(node_config_.net_file_path());
     }
-    if (!public_ip.empty()) {
-      node_config_.network.public_ip = public_ip;
+    if (cli_options_.count(PUBLIC_IP) && !cli_options_[PUBLIC_IP].as<std::string>().empty()) {
+      node_config_.network.public_ip = cli_options_[PUBLIC_IP].as<std::string>();
     }
-    if (port) {
-      node_config_.network.listen_port = port;
+    if (cli_options_.count(PORT) && cli_options_[PORT].as<int>() != 0) {
+      node_config_.network.listen_port = cli_options_[PORT].as<int>();
     }
-    node_config_.db_config.db_revert_to_period = revert_to_period;
-    node_config_.db_config.rebuild_db = rebuild_db;
-    node_config_.db_config.prune_state_db = prune_state_db;
-    node_config_.db_config.rebuild_db_period = rebuild_db_period;
-    node_config_.db_config.migrate_only = migrate_only;
-
-    node_config_.enable_test_rpc = enable_test_rpc;
-    node_config_.enable_debug = enable_debug;
+    node_config_.db_config.db_revert_to_period = cli_options_[REVERT_TO_PERIOD].as<uint64_t>();
+    node_config_.db_config.rebuild_db = cli_options_[REBUILD_DB].as<bool>();
+    node_config_.db_config.prune_state_db = cli_options_[PRUNE_STATE_DB].as<bool>();
+    node_config_.db_config.rebuild_db_period = cli_options_[REBUILD_DB_PERIOD].as<uint64_t>();
+    node_config_.db_config.migrate_only = cli_options_[MIGRATE_ONLY].as<bool>();
 
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
@@ -290,13 +210,109 @@ Config::Config(int argc, const char* argv[]) {
   }
 }
 
-bool Config::nodeConfigured() { return node_configured_; }
+bool Config::nodeConfigured() const { return node_configured_; }
 
-FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
+FullNodeConfig Config::getNodeConfiguration() const { return node_config_; }
 
 std::string Config::dirNameFromFile(const std::string& file) {
   size_t pos = file.find_last_of("\\/");
   return (std::string::npos == pos) ? "" : file.substr(0, pos);
+}
+
+bpo::options_description Config::makeMainOptions() {
+  bpo::options_description main_options("OPTIONS");
+
+  // Define all the command line options and descriptions
+  main_options.add_options()(HELP, "Print this help message and exit");
+  main_options.add_options()(VERSION, "Print version of taraxad");
+
+  main_options.add_options()(COMMAND, bpo::value<std::vector<std::string>>()->multitoken(),
+                             "Command arg:"
+                             "\nnode                  Runs the actual node (default)"
+                             "\nconfig       Only generate/overwrite config file with provided node command "
+                             "option without starting the node"
+                             "\naccount key           Generate new account or restore from a key (key is optional)"
+                             "\nvrf key               Generate new VRF or restore from a key (key is optional)");
+  return main_options;
+}
+
+bpo::options_description Config::makeNodeOptions(const std::string& available_plugins) {
+  bpo::options_description node_command_options("NODE COMMAND OPTIONS");
+  // Set config file and data directory to default values
+  config = tools::getTaraxaDefaultConfigFile();
+  wallet = tools::getTaraxaDefaultWalletFile();
+  genesis = tools::getTaraxaDefaultGenesisFile();
+
+  auto plugins_desc = "List of plugins to activate separated by space: " + available_plugins +
+                      " (default: " + std::accumulate(plugins_.begin(), plugins_.end(), std::string()) + ")";
+  node_command_options.add_options()(PLUGINS, bpo::value<std::vector<std::string>>()->multitoken(),
+                                     plugins_desc.c_str());
+  node_command_options.add_options()(WALLET, bpo::value<std::string>(&wallet),
+                                     "JSON wallet file (default: \"~/.taraxa/wallet.json\")");
+  node_command_options.add_options()(CONFIG, bpo::value<std::string>(&config),
+                                     "JSON configuration file (default: \"~/.taraxa/config.json\")");
+  node_command_options.add_options()(GENESIS, bpo::value<std::string>(&genesis),
+                                     "JSON genesis file (default: \"~/.taraxa/genesis.json\")");
+  node_command_options.add_options()(DATA_DIR, bpo::value<std::string>(&data_dir),
+                                     "Data directory for the databases, logs ... (default: \"~/.taraxa/data\")");
+  node_command_options.add_options()(LIGHT, bpo::bool_switch()->default_value(false),
+                                     "Enable light node functionality");
+  node_command_options.add_options()(CHAIN_ID, bpo::value<int>(),
+                                     "Chain identifier (integer, 841=Mainnet, 842=Testnet, 843=Devnet) (default: 841) "
+                                     "Only used when creating new config file");
+  node_command_options.add_options()(CHAIN, bpo::value<std::string>(),
+                                     "Chain identifier (string, mainnet, testnet, devnet) (default: mainnet) "
+                                     "Only used when creating new config file");
+
+  node_command_options.add_options()(BOOT_NODES, bpo::value<std::vector<std::string>>()->multitoken(),
+                                     "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
+  node_command_options.add_options()(
+      BOOT_NODES_APPEND, bpo::value<std::vector<std::string>>()->multitoken(),
+      "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
+  node_command_options.add_options()(PUBLIC_IP, bpo::value<std::string>(),
+                                     "Force advertised public IP to the given IP (default: auto)");
+  node_command_options.add_options()(PORT, bpo::value<uint16_t>(), "Listen on the given port for incoming connections");
+  node_command_options.add_options()(LOG_CHANNELS, bpo::value<std::vector<std::string>>()->multitoken(),
+                                     "Log channels to log: [channel:level, ....]");
+  node_command_options.add_options()(
+      LOG_CHANNELS_APPEND, bpo::value<std::vector<std::string>>()->multitoken(),
+      "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
+  node_command_options.add_options()(LOG_CONFIGURATIONS, bpo::value<std::vector<std::string>>()->multitoken(),
+                                     "Log configurations to use: [configuration_name, ....]");
+  node_command_options.add_options()(NODE_SECRET, bpo::value<std::string>(), "Node secret key to use");
+
+  node_command_options.add_options()(VRF_SECRET, bpo::value<std::string>(), "Vrf secret key to use");
+
+  node_command_options.add_options()(
+      OVERWRITE_CONFIG, bpo::bool_switch(&overwrite_config),
+      "Overwrite config - "
+      "Options data-dir, boot-nodes, log-channels, node-secret and vrf-secret are always used in running a node but "
+      "only written to config file if overwrite-config flag is set. \n"
+      "WARNING: Overwrite-config set can override/delete current secret keys in the wallet");
+
+  // db related options
+  node_command_options.add_options()(DESTROY_DB, bpo::bool_switch()->default_value(false),
+                                     "Destroys all the existing data in the database");
+  node_command_options.add_options()(REBUILD_DB, bpo::bool_switch()->default_value(false),
+                                     "Reads the raw dag/pbft blocks from the db "
+                                     "and executes all the blocks from scratch "
+                                     "rebuilding all the other "
+                                     "database tables - this could take a long "
+                                     "time");
+  node_command_options.add_options()(REBUILD_DB_PERIOD, bpo::value<uint64_t>()->default_value(0),
+                                     "Use with rebuild-db - Rebuild db up "
+                                     "to a specified period");
+  node_command_options.add_options()(REBUILD_NETWORK, bpo::bool_switch()->default_value(false),
+                                     "Delete all saved network/nodes information "
+                                     "and rebuild network from boot nodes");
+  node_command_options.add_options()(REVERT_TO_PERIOD, bpo::value<uint64_t>()->default_value(0),
+                                     "Revert db/state to specified "
+                                     "period (specify period)");
+  node_command_options.add_options()(PRUNE_STATE_DB, bpo::bool_switch()->default_value(false), "Prune state_db");
+  // migration related options
+  node_command_options.add_options()(MIGRATE_ONLY, bpo::bool_switch()->default_value(false),
+                                     "Only migrate DB, it will NOT run a node");
+  return node_command_options;
 }
 
 }  // namespace taraxa::cli
