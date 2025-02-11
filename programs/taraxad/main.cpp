@@ -12,7 +12,7 @@ using namespace taraxa;
 int main(int argc, const char* argv[]) {
   static_init();
 
-  if (!checkDiskSpace(cli::tools::getTaraxaDefaultConfigFile(), 10)) {
+  if (!checkDiskSpace(cli::tools::getTaraxaDataDefaultDir(), 512)) {
     std::cerr << "Insufficient disk space" << std::endl;
     return 1;
   }
