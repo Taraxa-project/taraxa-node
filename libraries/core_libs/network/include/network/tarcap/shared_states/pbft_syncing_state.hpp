@@ -72,7 +72,7 @@ class PbftSyncingState {
   const uint16_t kDeepSyncingThreshold;
 
   // Number of seconds needed for ongoing syncing to be declared as inactive
-  static constexpr std::chrono::seconds kSyncingInactivityThreshold{60};
+  static constexpr std::chrono::seconds kSyncingInactivityThreshold{180};
 
   // What time was received last syncing packet
   std::chrono::steady_clock::time_point last_received_sync_packet_time_{std::chrono::steady_clock::now()};
