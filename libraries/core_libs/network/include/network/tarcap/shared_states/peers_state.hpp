@@ -53,7 +53,10 @@ class PeersState {
    */
   bool is_peer_malicious(const dev::p2p::NodeID& peer_id);
 
- public:
+  void markAsKnownForPeerAndConnections(
+      std::shared_ptr<TaraxaPeer> peer, const dev::FixedHash<32>& hash,
+      std::function<void(std::shared_ptr<TaraxaPeer>, const dev::FixedHash<32>&)> action);
+
   const std::weak_ptr<dev::p2p::Host> host_;
 
  private:

@@ -16,29 +16,23 @@ TaraxaPeer::TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size,
       known_pbft_blocks_(10000, 1000, 10),
       known_votes_(10000, 1000, 10) {}
 
-bool TaraxaPeer::markDagBlockAsKnown(const blk_hash_t& hash) {
-  return known_dag_blocks_.insert(hash, pbft_chain_size_);
-}
+void TaraxaPeer::markDagBlockAsKnown(const blk_hash_t& hash) { known_dag_blocks_.insert(hash, pbft_chain_size_); }
 
 bool TaraxaPeer::isDagBlockKnown(const blk_hash_t& hash) const { return known_dag_blocks_.contains(hash); }
 
-bool TaraxaPeer::markTransactionAsKnown(const trx_hash_t& hash) {
-  return known_transactions_.insert(hash, pbft_chain_size_);
-}
+void TaraxaPeer::markTransactionAsKnown(const trx_hash_t& hash) { known_transactions_.insert(hash, pbft_chain_size_); }
 
 bool TaraxaPeer::isTransactionKnown(const trx_hash_t& hash) const { return known_transactions_.contains(hash); }
 
-bool TaraxaPeer::markPbftVoteAsKnown(const vote_hash_t& hash) { return known_votes_.insert(hash, pbft_chain_size_); }
+void TaraxaPeer::markPbftVoteAsKnown(const vote_hash_t& hash) { known_votes_.insert(hash, pbft_chain_size_); }
 
 bool TaraxaPeer::isPbftVoteKnown(const vote_hash_t& hash) const { return known_votes_.contains(hash); }
 
-bool TaraxaPeer::markPbftBlockAsKnown(const blk_hash_t& hash) {
-  return known_pbft_blocks_.insert(hash, pbft_chain_size_);
-}
+void TaraxaPeer::markPbftBlockAsKnown(const blk_hash_t& hash) { known_pbft_blocks_.insert(hash, pbft_chain_size_); }
 
 bool TaraxaPeer::isPbftBlockKnown(const blk_hash_t& hash) const { return known_pbft_blocks_.contains(hash); }
 
-bool TaraxaPeer::markPillarVoteAsKnown(const vote_hash_t& hash) { return known_votes_.insert(hash, pbft_chain_size_); }
+void TaraxaPeer::markPillarVoteAsKnown(const vote_hash_t& hash) { known_votes_.insert(hash, pbft_chain_size_); }
 
 bool TaraxaPeer::isPillarVoteKnown(const vote_hash_t& hash) const { return known_votes_.contains(hash); }
 
@@ -86,6 +80,16 @@ void TaraxaPeer::resetKnownCaches() {
   known_dag_blocks_.clear();
   known_votes_.clear();
   known_pbft_blocks_.clear();
+}
+
+void TaraxaPeer::setConnections(std::vector<dev::p2p::NodeID>&& connections) {
+  std::unique_lock lock(connections_mutex_);
+  connections_ = connections;
+}
+
+std::vector<dev::p2p::NodeID> TaraxaPeer::getConnections() const {
+  std::shared_lock lock(connections_mutex_);
+  return connections_;
 }
 
 }  // namespace taraxa::network::tarcap

@@ -20,6 +20,9 @@ void PillarVotePacketHandler::process(PillarVotePacket &&packet, const std::shar
   }
 
   if (processPillarVote(packet.pillar_vote, peer)) {
+    // Mark vote as known for the peer and its connections
+    peers_state_->markAsKnownForPeerAndConnections(peer, packet.pillar_vote->getHash(),
+                                                   [](auto peer, auto hash) { peer->markPillarVoteAsKnown(hash); });
     onNewPillarVote(packet.pillar_vote);
   }
 }

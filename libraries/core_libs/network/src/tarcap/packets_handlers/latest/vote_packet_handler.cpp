@@ -57,7 +57,9 @@ void VotePacketHandler::process(VotePacket &&packet, const std::shared_ptr<Tarax
       throw MaliciousPeerException(err_msg.str());
     }
 
-    peer->markPbftBlockAsKnown(packet.optional_data->pbft_block->getBlockHash());
+    // Mark block as known for the peer and its connections
+    peers_state_->markAsKnownForPeerAndConnections(peer, packet.optional_data->pbft_block->getBlockHash(),
+                                                   [](auto peer, auto hash) { peer->markPbftBlockAsKnown(hash); });
     pbft_block = packet.optional_data->pbft_block;
   }
 
@@ -66,8 +68,8 @@ void VotePacketHandler::process(VotePacket &&packet, const std::shared_ptr<Tarax
   }
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
-  peer->markPbftVoteAsKnown(vote_hash);
-
+  peers_state_->markAsKnownForPeerAndConnections(peer, vote_hash,
+                                                 [](auto peer, auto hash) { peer->markPbftVoteAsKnown(hash); });
   pbft_mgr_->gossipVote(packet.vote, pbft_block);
 }
 

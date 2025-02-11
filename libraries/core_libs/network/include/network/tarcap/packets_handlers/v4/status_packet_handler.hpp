@@ -1,10 +1,11 @@
 #pragma once
 
-#include "common/ext_syncing_packet_handler.hpp"
+#include "../latest/common/ext_syncing_packet_handler.hpp"
+#include "network/tarcap/packets/v4/status_packet.hpp"
 
-namespace taraxa::network::tarcap::v3 {
+namespace taraxa::network::tarcap::v4 {
 
-class StatusPacketHandler : public ExtSyncingPacketHandler {
+class StatusPacketHandler : public ExtSyncingPacketHandler<StatusPacket> {
  public:
   StatusPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                       std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -20,14 +21,10 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kStatusPacket;
 
  private:
-  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(StatusPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
-  static constexpr uint16_t kInitialStatusPacketItemsCount = 11;
-  static constexpr uint16_t kStandardStatusPacketItemsCount = 4;
-
   const h256 kGenesisHash;
 };
 
-}  // namespace taraxa::network::tarcap::v3
+}  // namespace taraxa::network::tarcap::v4

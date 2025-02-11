@@ -2,9 +2,8 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "libp2p/Common.h"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v4 {
 
 struct StatusPacket {
   struct InitialData {
@@ -25,10 +24,8 @@ struct StatusPacket {
   uint64_t peer_dag_level;
   bool peer_syncing;
   std::optional<InitialData> initial_data;
-  std::vector<dev::p2p::NodeID> connections;
 
-  RLP_FIELDS_DEFINE_INPLACE(peer_pbft_chain_size, peer_pbft_round, peer_dag_level, peer_syncing, initial_data,
-                            connections)
+  RLP_FIELDS_DEFINE_INPLACE(peer_pbft_chain_size, peer_pbft_round, peer_dag_level, peer_syncing, initial_data)
 };
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::tarcap::v4

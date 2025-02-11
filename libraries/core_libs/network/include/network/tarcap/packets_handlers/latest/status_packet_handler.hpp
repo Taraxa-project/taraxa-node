@@ -14,8 +14,8 @@ class StatusPacketHandler : public ExtSyncingPacketHandler<StatusPacket> {
                       std::shared_ptr<DbStorage> db, h256 genesis_hash, const addr_t& node_addr,
                       const std::string& logs_prefix = "STATUS_PH");
 
-  bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
-  void sendStatusToPeers();
+  bool sendStatus(const dev::p2p::NodeID& node_id, bool initial, const std::vector<dev::p2p::NodeID>& connections = {});
+  void sendStatusToPeers(const std::vector<dev::p2p::NodeID>& connections);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kStatusPacket;
