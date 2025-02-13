@@ -74,6 +74,12 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
   return res;
 }
 
+bool only_transfers(const SharedTransactions& trxs) {
+  return std::all_of(trxs.begin(), trxs.end(), [](const SharedTransaction& trx) {
+    return trx->getReceiver().has_value() && trx->getData().empty() && trx->getGas() <= 22000;
+  });
+}
+
 Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, const Json::Value& trace_params) {
   Json::Value res;
   const auto block = parse_blk_num(block_num);
@@ -81,6 +87,9 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
   if (auto node = full_node_.lock()) {
     auto transactions = node->getDB()->getPeriodTransactions(block);
     if (!transactions.has_value() || transactions->empty()) {
+      return Json::Value(Json::arrayValue);
+    }
+    if (only_transfers(*transactions)) {
       return Json::Value(Json::arrayValue);
     }
     std::vector<state_api::EVMTransaction> trxs = to_eth_trxs(*transactions);
@@ -101,7 +110,7 @@ Json::Value transformToJsonParallel(const S& source, FN op) {
   std::atomic_uint processed = 0;
   for (unsigned i = 0; i < source.size(); ++i) {
     executor.post([&, i]() {
-      out[i] = op(source[i]);
+      out[i] = op(source[i], i);
       ++processed;
     });
   }
@@ -135,11 +144,11 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
       return Json::Value(Json::arrayValue);
     }
 
-    return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
+    return transformToJsonParallel(*trxs, [&final_chain, &block_hash, &period](const auto& trx, auto index) {
       auto hash = trx->getHash();
       auto r = final_chain->transactionReceipt(hash);
       auto location =
-          rpc::eth::ExtendedTransactionLocation{{*final_chain->transactionLocation(hash), *block_hash}, hash};
+          rpc::eth::ExtendedTransactionLocation{{final_chain::TransactionLocation{period, index}, *block_hash}, hash};
       auto transaction = rpc::eth::LocalisedTransaction{trx, location};
       auto receipt = rpc::eth::LocalisedTransactionReceipt{*r, location, trx->getSender(), trx->getReceiver()};
       auto receipt_json = rpc::eth::toJson(receipt);
@@ -162,7 +171,7 @@ Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
     auto period = dev::jsToInt(_period);
     auto dags = node->getDB()->getFinalizedDagBlockByPeriod(period);
 
-    return transformToJsonParallel(dags, [&period](const auto& dag) {
+    return transformToJsonParallel(dags, [&period](const auto& dag, auto) {
       auto block_json = dag->getJson();
       block_json["period"] = toJS(period);
       return block_json;
@@ -193,7 +202,7 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
     const auto votes_period = votes.front()->getPeriod();
     const uint64_t total_dpos_votes_count = final_chain->dposEligibleTotalVoteCount(votes_period - 1);
     res["total_votes_count"] = total_dpos_votes_count;
-    res["votes"] = transformToJsonParallel(votes, [&](const auto& vote) {
+    res["votes"] = transformToJsonParallel(votes, [&](const auto& vote, auto) {
       vote_manager->validateVote(vote);
       return vote->toJSON();
     });
