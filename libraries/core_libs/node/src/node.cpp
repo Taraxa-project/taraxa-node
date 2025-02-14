@@ -174,6 +174,7 @@ void FullNode::start() {
   // Inits rpc related members
   if (conf_.network.rpc) {
     rpc_thread_pool_ = std::make_shared<util::ThreadPool>(conf_.network.rpc->threads_num);
+    subscribe_thread_pool_ = std::make_shared<util::ThreadPool>(1);
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
     eth_rpc_params.chain_id = conf_.genesis.chain_id;
@@ -257,7 +258,7 @@ void FullNode::start() {
               }
             }
           },
-          *rpc_thread_pool_);
+          *subscribe_thread_pool_);
     }
 
     trx_mgr_->transaction_accepted_.subscribe(
@@ -269,14 +270,14 @@ void FullNode::start() {
             _ws->newPendingTransaction(trx_hash);
           }
         },
-        *rpc_thread_pool_);
+        *subscribe_thread_pool_);
     dag_mgr_->block_verified_.subscribe(
         [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](const std::shared_ptr<DagBlock> &dag_block) {
           if (auto _ws = ws.lock()) {
             _ws->newDagBlock(dag_block);
           }
         },
-        *rpc_thread_pool_);
+        *subscribe_thread_pool_);
   }
   if (conf_.network.graphql) {
     graphql_thread_pool_ = std::make_shared<util::ThreadPool>(conf_.network.graphql->threads_num);
