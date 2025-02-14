@@ -25,7 +25,9 @@ void DagBlockPacketHandler::process(DagBlockPacket &&packet, const std::shared_p
   for (const auto &tx : packet.transactions) {
     peer->markTransactionAsKnown(tx->getHash());
   }
-  peer->markDagBlockAsKnown(hash);
+
+  peers_state_->markAsKnownForPeerAndConnections(peer, hash,
+                                                 [](auto peer, auto hash) { peer->markDagBlockAsKnown(hash); });
 
   if (packet.dag_block->getLevel() > peer->dag_level_) {
     peer->dag_level_ = packet.dag_block->getLevel();

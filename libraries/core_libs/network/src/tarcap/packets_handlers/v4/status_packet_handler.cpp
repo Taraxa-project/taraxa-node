@@ -1,15 +1,14 @@
-#include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v4/status_packet_handler.hpp"
 
 #include "config/version.hpp"
 #include "dag/dag.hpp"
-#include "network/tarcap/packets/latest/status_packet.hpp"
 #include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::tarcap::v4 {
 
 StatusPacketHandler::StatusPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                          std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -131,13 +130,9 @@ void StatusPacketHandler::process(StatusPacket&& packet, const std::shared_ptr<T
                  << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
                  << selected_peer->pbft_round_;
   }
-  if (packet.connections.size() > 0) {
-    selected_peer->setConnections(std::move(packet.connections));
-  }
 }
 
-bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initial,
-                                     const std::vector<dev::p2p::NodeID>& connections) {
+bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initial) {
   bool success = false;
   std::string status_packet_type = initial ? "initial" : "standard";
 
@@ -155,19 +150,17 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
         encodePacketRlp(StatusPacket(
             pbft_chain_size, pbft_round, dag_max_level, pbft_syncing_state_->isPbftSyncing(),
             StatusPacket::InitialData{kConf.genesis.chain_id, kGenesisHash, TARAXA_MAJOR_VERSION, TARAXA_MINOR_VERSION,
-                                      TARAXA_PATCH_VERSION, kConf.is_light_node, kConf.light_node_history},
-            connections)));
+                                      TARAXA_PATCH_VERSION, kConf.is_light_node, kConf.light_node_history})));
   } else {
-    success =
-        sealAndSend(node_id, SubprotocolPacketType::kStatusPacket,
-                    encodePacketRlp(StatusPacket(pbft_chain_size, pbft_round, dag_max_level,
-                                                 pbft_syncing_state_->isDeepPbftSyncing(), std::nullopt, connections)));
+    success = sealAndSend(node_id, SubprotocolPacketType::kStatusPacket,
+                          encodePacketRlp(StatusPacket(pbft_chain_size, pbft_round, dag_max_level,
+                                                       pbft_syncing_state_->isDeepPbftSyncing())));
   }
 
   return success;
 }
 
-void StatusPacketHandler::sendStatusToPeers(const std::vector<dev::p2p::NodeID>& connections) {
+void StatusPacketHandler::sendStatusToPeers() {
   auto host = peers_state_->host_.lock();
   if (!host) {
     LOG(log_er_) << "Unavailable host during checkLiveness";
@@ -175,8 +168,8 @@ void StatusPacketHandler::sendStatusToPeers(const std::vector<dev::p2p::NodeID>&
   }
 
   for (auto const& peer : peers_state_->getAllPeers()) {
-    sendStatus(peer.first, false, connections);
+    sendStatus(peer.first, false);
   }
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::tarcap::v4
