@@ -2159,7 +2159,7 @@ bool PbftManager::checkBlockWeight(const std::vector<std::shared_ptr<DagBlock>> 
   const u256 total_weight =
       std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
                       [](u256 value, const auto &dag_block) { return value + dag_block->getGasEstimation(); });
-  auto pbft_gas_limit = kGenesisConfig.getGasLimits(period).second;
+  const auto pbft_gas_limit = kGenesisConfig.getGasLimits(period).second;
   if (total_weight > pbft_gas_limit) {
     return false;
   }
