@@ -74,7 +74,7 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
   SharedTransactions ret;
   ret.reserve(count);
 
-  std::multimap<val_t, std::shared_ptr<Transaction>, std::greater<val_t>> head_transactions;
+  std::multimap<val_t, std::shared_ptr<Transaction>> head_transactions;
   std::unordered_map<addr_t, std::pair<std::map<val_t, std::shared_ptr<Transaction>>::const_iterator,
                                        std::map<val_t, std::shared_ptr<Transaction>>::const_iterator>>
       iterators;
@@ -86,12 +86,12 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
   }
 
   for (auto it = iterators.begin(); it != iterators.end(); it++) {
-    head_transactions.insert({it->second.first->second->getGasPrice(), it->second.first->second});
+    head_transactions.insert({it->second.first->second->getNonce(), it->second.first->second});
     // Increase iterator for an account
     it->second.first++;
   }
   while (!head_transactions.empty()) {
-    // Take transactions with highest gas and put it in ordered transactions
+    // Take transactions with lowest nonce and put it in ordered transactions
     auto head_trx = head_transactions.begin();
     ret.push_back(head_trx->second);
     if (ret.size() == count) {
@@ -101,7 +101,7 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
     auto &it = iterators[head_trx->second->getSender()];
     head_transactions.erase(head_trx);
     if (it.first != it.second) {
-      head_transactions.insert({it.first->second->getGasPrice(), it.first->second});
+      head_transactions.insert({it.first->second->getNonce(), it.first->second});
       it.first++;
     }
   }
