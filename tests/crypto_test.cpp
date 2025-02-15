@@ -9,6 +9,7 @@
 #include <string>
 
 #include "common/init.hpp"
+#include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "logger/logger.hpp"
 #include "test_util/gtest.hpp"
