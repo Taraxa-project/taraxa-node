@@ -24,7 +24,7 @@ var searchData=
   ['tools_2ecpp_21',['tools.cpp',['../tools_8cpp.html',1,'']]],
   ['tools_2ehpp_22',['tools.hpp',['../tools_8hpp.html',1,'']]],
   ['transaction_2ecpp_23',['transaction.cpp',['../types_2transaction_2src_2transaction_8cpp.html',1,'(Global Namespace)'],['../core__libs_2network_2graphql_2src_2transaction_8cpp.html',1,'(Global Namespace)']]],
-  ['transaction_2ehpp_24',['transaction.hpp',['../core__libs_2network_2graphql_2include_2graphql_2transaction_8hpp.html',1,'(Global Namespace)'],['../types_2transaction_2include_2transaction_2transaction_8hpp.html',1,'(Global Namespace)']]],
+  ['transaction_2ehpp_24',['transaction.hpp',['../types_2transaction_2include_2transaction_2transaction_8hpp.html',1,'(Global Namespace)'],['../core__libs_2network_2graphql_2include_2graphql_2transaction_8hpp.html',1,'(Global Namespace)']]],
   ['transaction_5fmanager_2ecpp_25',['transaction_manager.cpp',['../transaction__manager_8cpp.html',1,'']]],
   ['transaction_5fmanager_2ehpp_26',['transaction_manager.hpp',['../transaction__manager_8hpp.html',1,'']]],
   ['transaction_5fpacket_2ehpp_27',['transaction_packet.hpp',['../transaction__packet_8hpp.html',1,'']]],

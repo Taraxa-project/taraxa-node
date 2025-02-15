@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"namespacemembers_n.html":[15,0,14],
 "namespacemembers_o.html":[15,0,15],
 "namespacemembers_p.html":[15,0,16],
 "namespacemembers_r.html":[15,0,17],
@@ -60,8 +61,8 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[17,0,1,5,0,0,8,0,0],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,5,0,0,8,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[17,0,1,5,0,0,8,0,0,0],
-"namespacetaraxa_1_1final__chain.html":[14,4,0],
 "namespacetaraxa_1_1final__chain.html":[14,0,0],
+"namespacetaraxa_1_1final__chain.html":[14,4,0],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[17,0,1,5,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[17,0,1,5,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[17,0,1,5,1,2,0,6,0,0],
@@ -127,8 +128,8 @@ var NAVTREEINDEX21 =
 "namespacetaraxa_1_1network_1_1tarcap.html#aa36849e02b998bc010c345df9665eea6":[17,0,1,5,1,1,0,0,0,0,8,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#ac2dc5a6360b34f15b6ff0bae144e78e7":[17,0,1,5,1,1,0,0,0,0,3,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#aca5868f874ee7a0667fee37b524a2651":[17,0,1,5,1,1,0,0,0,0,1,0,3],
-"namespacetaraxa_1_1network_1_1tarcap.html#acc75817619dae0dc5ead2f20112bb96b":[17,0,1,5,1,1,0,0,0,0,11,0,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#acc75817619dae0dc5ead2f20112bb96b":[17,0,1,5,1,1,0,0,0,0,11,1,0],
+"namespacetaraxa_1_1network_1_1tarcap.html#acc75817619dae0dc5ead2f20112bb96b":[17,0,1,5,1,1,0,0,0,0,11,0,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#acdb9e9277d87eaa116e7d348c1c9ecb8":[17,0,1,5,1,1,0,0,0,0,9,0,1],
 "namespacetaraxa_1_1network_1_1tarcap.html#add615d1e425573fc080e2e65cc4d6fbd":[17,0,1,5,1,1,0,0,0,0,9,1,2],
 "namespacetaraxa_1_1network_1_1tarcap.html#add615d1e425573fc080e2e65cc4d6fbd":[17,0,1,5,1,1,0,0,0,0,9,0,0,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "packets__stats_8hpp.html":[17,0,1,5,1,1,0,0,3,3],
 "packets__stats_8hpp_source.html":[17,0,1,5,1,1,0,0,3,3],
 "pages.html":[],
-"pbft__block_8cpp.html":[17,0,1,9,1,1,0],
-"pbft__block_8hpp.html":[17,0,1,9,1,0,0,0]
+"pbft__block_8cpp.html":[17,0,1,9,1,1,0]
 };

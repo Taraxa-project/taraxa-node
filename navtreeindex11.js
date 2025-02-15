@@ -1,5 +1,6 @@
 var NAVTREEINDEX11 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3f781760904296d022e2c221854cbc3a":[16,0,3,5,0,33,24],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a48c76b3acfc0c33fbde3a76794f17214":[16,0,3,5,0,33,20],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a6c3988e024e7c1c16078f2ff2a28c81c":[16,0,3,5,0,33,1],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a7ee5f5a669a17fcad1e3b12c5030c877":[16,0,3,5,0,33,27],
@@ -202,8 +203,8 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a2b43c6a6a1ccdc2566fe07adf14e9d41":[16,0,3,6,4,0,1],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a32e7e941b8f5cc8bb703be5b5a4d009b":[16,0,3,6,4,4],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a4f1a96cb137b11a5dc68a1caa81a782f":[16,0,3,6,4,10],
-"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5f5c2479e84381dcc978f9b19bb13b27":[17,0,1,5,0,0,4,2,2,0],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5f5c2479e84381dcc978f9b19bb13b27":[16,0,3,6,4,0,0],
+"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a5f5c2479e84381dcc978f9b19bb13b27":[17,0,1,5,0,0,4,2,2,0],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a6883f0a28874d691d822d8d3fb4ed62a":[16,0,3,6,4,2],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a69be18d7782bad66aa68d67fbdc1b4c9":[16,0,3,6,4,5],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a7b326560879e1181d237324e0bdff22c":[16,0,3,6,4,6],
@@ -213,12 +214,12 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ac6a4beccc3be3ad957e2a39e9026a2c7":[16,0,3,6,4,0,2],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ac6a4beccc3be3ad957e2a39e9026a2c7":[17,0,1,5,0,0,4,2,2,2],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#ad21db2e2da4c5a27481aeb1d9ddfb659":[16,0,3,6,4,7],
-"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#aff57ed02b28dbd4e36f00d67041186f8":[17,0,1,5,0,0,4,2,1,0],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#aff57ed02b28dbd4e36f00d67041186f8":[16,0,3,6,4,1,0],
+"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#aff57ed02b28dbd4e36f00d67041186f8":[17,0,1,5,0,0,4,2,1,0],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_period_votes":[17,0,1,5,0,0,4,2,2],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_period_votes":[16,0,3,6,4,0],
-"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_weight_votes":[16,0,3,6,4,1],
 "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_weight_votes":[17,0,1,5,0,0,4,2,1],
+"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_weight_votes":[16,0,3,6,4,1],
 "classtaraxa_1_1plugin_1_1_rpc.html":[16,0,3,7,0],
 "classtaraxa_1_1plugin_1_1_rpc.html#a099831991c496d5712d955cb44374296":[16,0,3,7,0,6],
 "classtaraxa_1_1plugin_1_1_rpc.html#a17b76317e50985e830276139a59065ea":[16,0,3,7,0,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1rewards_1_1_block_stats.html#a8f1a98e990bc1ad0181aed72cc1542ed":[16,0,3,8,0,6],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a8fd93952dcd0b00354a1d0b76ecd3920":[17,0,1,5,0,0,5,0,1,0],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a8fd93952dcd0b00354a1d0b76ecd3920":[16,0,3,8,0,0,0],
-"classtaraxa_1_1rewards_1_1_block_stats.html#a92560300a1e3d60f67d472ab067fcc52":[16,0,3,8,0,8],
-"classtaraxa_1_1rewards_1_1_block_stats.html#a9c0222ab71a509f3997751698ba39f42":[16,0,3,8,0,14]
+"classtaraxa_1_1rewards_1_1_block_stats.html#a92560300a1e3d60f67d472ab067fcc52":[16,0,3,8,0,8]
 };

@@ -2,8 +2,8 @@ var searchData=
 [
   ['dag_2ecpp_0',['dag.cpp',['../dag_8cpp.html',1,'']]],
   ['dag_2ehpp_1',['dag.hpp',['../dag_8hpp.html',1,'']]],
-  ['dag_5fblock_2ecpp_2',['dag_block.cpp',['../core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html',1,'(Global Namespace)'],['../types_2dag__block_2src_2dag__block_8cpp.html',1,'(Global Namespace)']]],
-  ['dag_5fblock_2ehpp_3',['dag_block.hpp',['../core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp.html',1,'(Global Namespace)'],['../types_2dag__block_2include_2dag_2dag__block_8hpp.html',1,'(Global Namespace)']]],
+  ['dag_5fblock_2ecpp_2',['dag_block.cpp',['../types_2dag__block_2src_2dag__block_8cpp.html',1,'(Global Namespace)'],['../core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html',1,'(Global Namespace)']]],
+  ['dag_5fblock_2ehpp_3',['dag_block.hpp',['../types_2dag__block_2include_2dag_2dag__block_8hpp.html',1,'(Global Namespace)'],['../core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp.html',1,'(Global Namespace)']]],
   ['dag_5fblock_5fbundle_5frlp_2ecpp_4',['dag_block_bundle_rlp.cpp',['../dag__block__bundle__rlp_8cpp.html',1,'']]],
   ['dag_5fblock_5fbundle_5frlp_2ehpp_5',['dag_block_bundle_rlp.hpp',['../dag__block__bundle__rlp_8hpp.html',1,'']]],
   ['dag_5fblock_5fpacket_2ehpp_6',['dag_block_packet.hpp',['../dag__block__packet_8hpp.html',1,'']]],
