@@ -3,8 +3,6 @@
 #include <prometheus/gauge.h>
 #include <prometheus/registry.h>
 
-#include <iostream>
-
 namespace taraxa::metrics {
 
 /**

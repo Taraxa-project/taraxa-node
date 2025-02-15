@@ -3,12 +3,20 @@
 
 #include <json/value.h>
 
-#include <future>
 #include <memory>
-#include <stdexcept>
 
 #include "DebugFace.h"
-#include "node/node.hpp"
+#include "common/app_base.hpp"
+
+namespace taraxa {
+struct Transaction;
+}
+
+namespace taraxa::state_api {
+struct TransactionReceipt;
+struct EVMTransaction;
+struct Tracing;
+}  // namespace taraxa::state_api
 
 namespace dev::eth {
 class Client;
@@ -28,8 +36,7 @@ class InvalidTracingParams : public std::exception {
 
 class Debug : public DebugFace {
  public:
-  explicit Debug(const std::shared_ptr<taraxa::FullNode>& _full_node, uint64_t gas_limit)
-      : full_node_(_full_node), kGasLimit(gas_limit) {}
+  explicit Debug(std::shared_ptr<taraxa::AppBase> app, uint64_t gas_limit) : app_(app), kGasLimit(gas_limit) {}
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"debug", "1.0"}}; }
 
   virtual Json::Value debug_traceTransaction(const std::string& param1) override;
@@ -54,7 +61,7 @@ class Debug : public DebugFace {
   std::tuple<std::vector<state_api::EVMTransaction>, state_api::EVMTransaction, uint64_t> get_transaction_with_state(
       const std::string& transaction_hash);
 
-  std::weak_ptr<taraxa::FullNode> full_node_;
+  std::weak_ptr<taraxa::AppBase> app_;
   const uint64_t kGasLimit = ((uint64_t)1 << 53) - 1;
 };
 

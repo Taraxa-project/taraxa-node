@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common/init.hpp"
+#include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "test_util/node_dag_creation_fixture.hpp"
@@ -9,7 +10,7 @@ namespace taraxa::core_tests {
 
 struct PbftManagerTest : NodesTest {
   val_t gas_price = 0;
-  std::vector<std::shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<AppBase>> nodes;
   std::vector<uint64_t> nonces;
 
   void makeNodesWithNonces(const std::vector<taraxa::FullNodeConfig> &cfgs) {
