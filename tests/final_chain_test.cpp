@@ -105,8 +105,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.timestamp, pbft_block->getTimestamp());
     EXPECT_EQ(receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactions_root,
-              trieRootOver(
-                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return trxs[i]->rlp(); }));
+              trieRootOver(trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return trxs[i]->rlp(); }));
     EXPECT_EQ(blk_h.receipts_root, trieRootOver(
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
@@ -543,7 +542,11 @@ TEST_F(FinalChainTest, revert_reason) {
     est["data"] = call_data;
     EXPECT_THROW_WITH(dev::jsToInt(eth_json_rpc->eth_estimateGas(est, "")), std::exception,
                       "execution reverted: arg required");
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(est, "latest"), std::exception, "Exception 3 : execution reverted: arg required, data: \"0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000c6172672072657175697265640000000000000000000000000000000000000000\"\n");
+    EXPECT_THROW_WITH(
+        eth_json_rpc->eth_call(est, "latest"), std::exception,
+        "Exception 3 : execution reverted: arg required, data: "
+        "\"0x08c379a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000"
+        "00000000000000000000000000000c6172672072657175697265640000000000000000000000000000000000000000\"\n");
 
     auto gas = 100000;
     auto trx = std::make_shared<Transaction>(2, 0, 1, gas, dev::fromHex(call_data), sk, test_contract_addr);

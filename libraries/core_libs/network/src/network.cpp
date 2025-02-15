@@ -15,14 +15,6 @@
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/get_pillar_votes_bundle_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/pillar_vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/status_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/transaction_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/v3/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
@@ -76,7 +68,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   taraxa_net_conf.chain_id = config.genesis.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
-  string net_version = "TaraxaNode";  // TODO maybe give a proper name?
+  const std::string net_version = "TaraxaNode";  // TODO maybe give a proper name?
 
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
@@ -179,14 +171,8 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   // Send new transactions
   auto sendTxs = [this, trx_mgr = trx_mgr]() {
     for (auto &tarcap : tarcaps_) {
-      // TODO[2905]: refactor
-      if (tarcap.first == TARAXA_NET_VERSION) {
-        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
-        tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
-      } else {
-        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::v3::TransactionPacketHandler>();
-        tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
-      }
+      auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
+      tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
     }
   };
   periodic_events_tp_.post_loop({kConf.network.transaction_interval_ms}, sendTxs);
@@ -194,14 +180,8 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   // Send status packet
   auto sendStatus = [this]() {
     for (auto &tarcap : tarcaps_) {
-      // TODO[2905]: refactor
-      if (tarcap.first == TARAXA_NET_VERSION) {
-        auto status_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::StatusPacketHandler>();
-        status_packet_handler->sendStatusToPeers();
-      } else {
-        auto status_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::v3::StatusPacketHandler>();
-        status_packet_handler->sendStatusToPeers();
-      }
+      auto status_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::StatusPacketHandler>();
+      status_packet_handler->sendStatusToPeers();
     }
   };
   const auto send_status_interval = 6 * lambda_ms;
@@ -300,52 +280,28 @@ void Network::addBootNodes(bool initial) {
 
 void Network::gossipDagBlock(const std::shared_ptr<DagBlock> &block, bool proposed, const SharedTransactions &trxs) {
   for (const auto &tarcap : tarcaps_) {
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
-                                                                                                      trxs);
-    } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v3::DagBlockPacketHandler>()->onNewBlockVerified(
-          block, proposed, trxs);
-    }
+    tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
+                                                                                                    trxs);
   }
 }
 
 void Network::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
                          bool rebroadcast) {
   for (const auto &tarcap : tarcaps_) {
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      tarcap.second->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, block, rebroadcast);
-    } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v3::VotePacketHandler>()->onNewPbftVote(vote, block,
-                                                                                                 rebroadcast);
-    }
+    tarcap.second->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, block, rebroadcast);
   }
 }
 
 void Network::gossipVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes, bool rebroadcast) {
   for (const auto &tarcap : tarcaps_) {
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      tarcap.second->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(votes,
-                                                                                                           rebroadcast);
-    } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v3::VotesBundlePacketHandler>()->onNewPbftVotesBundle(
-          votes, rebroadcast);
-    }
+    tarcap.second->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(votes,
+                                                                                                         rebroadcast);
   }
 }
 
 void Network::gossipPillarBlockVote(const std::shared_ptr<PillarVote> &vote, bool rebroadcast) {
   for (const auto &tarcap : tarcaps_) {
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      tarcap.second->getSpecificHandler<network::tarcap::PillarVotePacketHandler>()->onNewPillarVote(vote, rebroadcast);
-    } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v3::PillarVotePacketHandler>()->onNewPillarVote(vote,
-                                                                                                         rebroadcast);
-    }
+    tarcap.second->getSpecificHandler<network::tarcap::PillarVotePacketHandler>()->onNewPillarVote(vote, rebroadcast);
   }
 }
 
@@ -356,12 +312,7 @@ void Network::handleMaliciousSyncPeer(const dev::p2p::NodeID &node_id) {
       continue;
     }
 
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      tarcap.second->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
-    } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v3::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
-    }
+    tarcap.second->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
   }
 }
 
@@ -370,13 +321,8 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
 
   for (const auto &tarcap : tarcaps_) {
     std::shared_ptr<network::tarcap::TaraxaPeer> peer;
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      peer = tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
-    } else {
-      peer =
-          tarcap.second->getSpecificHandler<::taraxa::network::tarcap::v3::PbftSyncPacketHandler>()->getMaxChainPeer();
-    }
+
+    peer = tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
 
     if (!peer) {
       continue;
@@ -396,27 +342,15 @@ void Network::requestPillarBlockVotesBundle(taraxa::PbftPeriod period, const tar
   for (const auto &tarcap : tarcaps_) {
     // Try to get most up-to-date peer
     std::shared_ptr<network::tarcap::TaraxaPeer> peer;
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      peer = tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
-    } else {
-      peer =
-          tarcap.second->getSpecificHandler<::taraxa::network::tarcap::v3::PbftSyncPacketHandler>()->getMaxChainPeer();
-    }
+
+    peer = tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
 
     if (!peer) {
       continue;
     }
 
-    // TODO[2748]: is it good enough to request it just from 1 peer without knowing if he has all of the votes ?
-    // TODO[2905]: refactor
-    if (tarcap.first == TARAXA_NET_VERSION) {
-      tarcap.second->getSpecificHandler<network::tarcap::GetPillarVotesBundlePacketHandler>()->requestPillarVotesBundle(
-          period, pillar_block_hash, peer);
-    } else {
-      tarcap.second->getSpecificHandler<network::tarcap::v3::GetPillarVotesBundlePacketHandler>()
-          ->requestPillarVotesBundle(period, pillar_block_hash, peer);
-    }
+    tarcap.second->getSpecificHandler<network::tarcap::GetPillarVotesBundlePacketHandler>()->requestPillarVotesBundle(
+        period, pillar_block_hash, peer);
   }
 }
 

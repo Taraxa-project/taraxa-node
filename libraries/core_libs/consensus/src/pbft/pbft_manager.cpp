@@ -1380,9 +1380,9 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
       continue;
     }
 
-    auto leader_block = getValidPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
+    auto leader_block = getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
     if (!leader_block) {
-      LOG(log_er_) << "Unable to get valid proposed block " << proposed_block_hash;
+      LOG(log_er_) << "Unable to get proposed block " << proposed_block_hash;
       continue;
     }
 
@@ -2071,8 +2071,8 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
   if (current_pillar_block->getPeriod() + 1 != required_votes_period) {
-    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period << " != "
-                 << " current pillar block period " << current_pillar_block->getPeriod() << " + 1";
+    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period
+                 << " != " << " current pillar block period " << current_pillar_block->getPeriod() << " + 1";
     return false;
   }
 
