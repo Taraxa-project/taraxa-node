@@ -38,13 +38,6 @@ struct TransactionLocation {
   EthBlockNumber period = 0;
   uint32_t position = 0;
   bool is_system = false;
-
-  uint32_t getPosition() const {
-    if (is_system) {
-      return position - 1;
-    }
-    return position;
-  }
 };
 
 using SharedTransactionReceipts = std::shared_ptr<std::vector<TransactionReceipt>>;
