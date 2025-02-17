@@ -121,7 +121,7 @@ void WsSession::newPendingTransaction(const Json::Value &payload) {
 }
 
 void WsSession::newLogs(const final_chain::BlockHeader &header, TransactionHashes trx_hashes,
-                        const final_chain::TransactionReceipts &receipts) {
+                        const TransactionReceipts &receipts) {
   subscriptions_.processLogs(header, trx_hashes, receipts);
 }
 
@@ -239,7 +239,7 @@ void WsServer::newEthBlock(const ::taraxa::final_chain::BlockHeader &header, con
 }
 
 void WsServer::newLogs(const ::taraxa::final_chain::BlockHeader &header, TransactionHashes trx_hashes,
-                       const final_chain::TransactionReceipts &receipts) {
+                       const TransactionReceipts &receipts) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   if (sessions_.empty()) return;
 

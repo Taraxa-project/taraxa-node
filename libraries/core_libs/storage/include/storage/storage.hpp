@@ -29,9 +29,8 @@ struct PillarBlockData;
 class PillarBlock;
 }  // namespace pillar_chain
 
-namespace final_chain {
 struct TransactionLocation;
-}  // namespace final_chain
+struct TransactionReceipt;
 
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
@@ -129,7 +128,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_blk_by_number);
     COLUMN(final_chain_blk_hash_by_number);
     COLUMN(final_chain_blk_number_by_hash);
-    COLUMN(final_chain_receipt_by_trx_hash);
+    // COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
     COLUMN_W_COMP(sortition_params_change, getIntComparator<PbftPeriod>());
 
@@ -233,6 +232,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
+  SharedTransactions transactionsFromPeriodDataRlp(PbftPeriod period, const dev::RLP& period_data_rlp) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
   std::vector<std::shared_ptr<PillarVote>> getPeriodPillarVotes(PbftPeriod period) const;
 
@@ -262,7 +262,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(PbftPeriod period);
 
   // Transaction
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash) const;
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
@@ -273,9 +273,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   void addTransactionLocationToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position,
                                      bool is_system = false);
-  std::optional<final_chain::TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
+  std::optional<TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
+  std::optional<TransactionReceipt> getTransactionReceipt(trx_hash_t const& trx_hash) const;
+
   /**
    * @brief Gets finalized transactions from provided hashes
    *

@@ -11,7 +11,7 @@ namespace graphql::taraxa {
 
 Log::Log(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
          std::shared_ptr<::taraxa::TransactionManager> trx_manager, std::shared_ptr<const Transaction> transaction,
-         ::taraxa::final_chain::LogEntry log, int index) noexcept
+         ::taraxa::LogEntry log, int index) noexcept
     : final_chain_(std::move(final_chain)),
       trx_manager_(std::move(trx_manager)),
       kTransaction(std::move(transaction)),
