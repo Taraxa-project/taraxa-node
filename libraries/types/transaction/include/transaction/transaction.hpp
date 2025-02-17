@@ -32,29 +32,29 @@ struct Transaction {
   uint64_t chain_id_ = 0;
   dev::SignatureStruct vrs_;
   mutable trx_hash_t hash_;
-  mutable std::atomic_bool hash_initialized_ = false;
+  mutable bool hash_initialized_ = false;
   bool is_zero_ = false;
   mutable std::mutex hash_mu_;
-  mutable std::atomic_bool sender_initialized_ = false;
+  mutable bool sender_initialized_ = false;
   mutable bool sender_valid_ = false;
   mutable addr_t sender_;
   mutable std::mutex sender_mu_;
-  mutable std::atomic_bool cached_rlp_set_ = false;
+  mutable bool cached_rlp_set_ = false;
   mutable bytes cached_rlp_;
   mutable std::mutex cached_rlp_mu_;
 
   trx_hash_t hash_for_signature() const;
   addr_t const &get_sender_() const;
   virtual void streamRLP(dev::RLPStream &s, bool for_signature) const;
-  virtual void fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash);
+  virtual void fromRLP(const dev::RLP &_rlp, bool verify_strict);
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
   Transaction() : is_zero_(true) {}
   Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
               const secret_t &sk, const std::optional<addr_t> &receiver = std::nullopt, uint64_t chain_id = 0);
-  explicit Transaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {});
-  explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {});
+  explicit Transaction(dev::RLP &&_rlp, bool verify_strict = false);
+  explicit Transaction(const bytes &_rlp, bool verify_strict = false);
   virtual ~Transaction() = default;
 
   bool intrinsicGasCovered() const;

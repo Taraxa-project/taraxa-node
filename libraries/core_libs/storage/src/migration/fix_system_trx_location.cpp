@@ -20,7 +20,7 @@ void FixSystemTrxLocation::migrate(logger::Logger&) {
   }
 
   for (; it->Valid(); it->Next()) {
-    auto trx_hash = dev::h256(it->key().data());
+    auto trx_hash = dev::h256(dev::asBytes(it->key().ToString()));
     auto loc = db_->getTransactionLocation(trx_hash);
     loc->position -= 1;
     db_->addTransactionLocationToBatch(batch_, trx_hash, loc->period, loc->position, true);

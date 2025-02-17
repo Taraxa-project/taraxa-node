@@ -129,7 +129,7 @@ struct FinalChainTest : WithDataDir {
       if (!opts.expect_to_fail) {
         EXPECT_TRUE(r.gas_used != 0);
       }
-      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transactionReceipt(trx->getHash())));
+      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transactionReceipt(blk_h.number, i)));
       cumulative_gas_used_actual += r.gas_used;
       if (assume_only_toplevel_transfers && trx->getValue() != 0 && r.status_code == 1) {
         const auto& sender = trx->getSender();
@@ -484,7 +484,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
     // low nonce trx should fail and consume all gas
     auto balance_before = SUT->getAccount(addr)->balance;
     advance({trx2_1}, {false, false, true});
-    auto receipt = SUT->transactionReceipt(trx2_1->getHash());
+    auto loc = SUT->transactionLocation(trx2_1->getHash());
+    EXPECT_TRUE(loc.has_value());
+    auto receipt = SUT->transactionReceipt(loc->period, loc->position);
     EXPECT_EQ(receipt->gas_used, gas);
     EXPECT_EQ(balance_before - SUT->getAccount(addr)->balance, receipt->gas_used * trx2_1->getGasPrice());
   }
@@ -496,7 +498,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
     auto gas_price = 3;
     auto trx4 = std::make_shared<Transaction>(4, 100, gas_price, gas, dev::bytes(), sk, receiver);
     advance({trx4}, {false, false, true});
-    auto receipt = SUT->transactionReceipt(trx4->getHash());
+    auto loc = SUT->transactionLocation(trx4->getHash());
+    EXPECT_TRUE(loc.has_value());
+    auto receipt = SUT->transactionReceipt(loc->period, loc->position);
     EXPECT_GT(balance_before % gas_price, 0);
     EXPECT_EQ(receipt->gas_used, balance_before / gas_price);
     EXPECT_EQ(SUT->getAccount(addr)->balance, balance_before % gas_price);

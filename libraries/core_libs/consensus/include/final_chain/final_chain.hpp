@@ -122,12 +122,20 @@ class FinalChain {
    */
   std::optional<TransactionLocation> transactionLocation(h256 const& trx_hash) const;
 
+  // /**
+  //  * @brief Method to get transaction receipt by hash
+  //  * @param _transactionHash hash of transaction to get receipt for
+  //  * @return std::optional<TransactionReceipt> transaction receipt or nullopt
+  //  */
+  // std::optional<TransactionReceipt> transactionReceipt(h256 const& _transactionHash) const;
+
   /**
-   * @brief Method to get transaction receipt by hash
-   * @param _transactionHash hash of transaction to get receipt for
+   * @brief Method to get transaction receipt by block number and position
+   * @param blk_n block number
+   * @param position position of transaction in block
    * @return std::optional<TransactionReceipt> transaction receipt or nullopt
    */
-  std::optional<TransactionReceipt> transactionReceipt(h256 const& _transactionHash) const;
+  std::optional<TransactionReceipt> transactionReceipt(EthBlockNumber blk_n, uint64_t position) const;
 
   /**
    * @brief Method to get transactions count in block

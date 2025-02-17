@@ -6,6 +6,7 @@
 
 #include "TransactionObject.h"
 #include "final_chain/final_chain.hpp"
+#include "transaction/receipt.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace graphql::taraxa {
@@ -43,7 +44,7 @@ class Transaction final : public std::enable_shared_from_this<Transaction> {
   std::shared_ptr<::taraxa::Transaction> transaction_;
   // Caching for performance
   mutable std::optional<::taraxa::TransactionReceipt> receipt_;
-  mutable std::optional<::taraxa::TransactionLocation> location_;
+  ::taraxa::TransactionLocation location_;
 };
 
 }  // namespace graphql::taraxa

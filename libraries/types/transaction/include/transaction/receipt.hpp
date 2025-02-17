@@ -38,6 +38,17 @@ struct TransactionLocation {
   EthBlockNumber period = 0;
   uint32_t position = 0;
   bool is_system = false;
+
+  static TransactionLocation fromRlp(dev::RLP&& rlp) {
+    TransactionLocation res;
+    auto it = rlp.begin();
+    res.period = (*it++).toInt<PbftPeriod>();
+    res.position = (*it++).toInt<uint32_t>();
+    if (rlp.itemCount() == 3) {
+      res.is_system = (*it++).toInt<bool>();
+    }
+    return res;
+  }
 };
 
 using SharedTransactionReceipts = std::shared_ptr<std::vector<TransactionReceipt>>;
