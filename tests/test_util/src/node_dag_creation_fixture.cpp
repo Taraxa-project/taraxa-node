@@ -43,15 +43,15 @@ void NodeDagCreationFixture::deployContract() {
   nonce++;
 
   EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
-    WAIT_EXPECT_TRUE(ctx, node->getDB()->transactionFinalized(trx->getHash()));
+    auto loc = node->getFinalChain()->transactionLocation(trx->getHash());
+    WAIT_EXPECT_TRUE(ctx, loc.has_value());
 
     if (!contract_addr) {
-      auto receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
+      auto receipt = node->getFinalChain()->transactionReceipt(loc->period, loc->position);
       WAIT_EXPECT_TRUE(ctx, receipt.has_value());
       WAIT_EXPECT_TRUE(ctx, receipt->new_contract_address.has_value());
       contract_addr = receipt->new_contract_address;
     }
-    auto r = node->getFinalChain()->transactionReceipt(trx->getHash());
 
     WAIT_EXPECT_TRUE(ctx, !node->getFinalChain()->getCode(contract_addr.value()).empty());
   });

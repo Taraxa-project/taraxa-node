@@ -274,31 +274,14 @@ class EthImpl : public Eth, EthParams {
     }
 
     auto receipts = final_chain->blockReceipts(blk_n);
-    if (!receipts) {
-      return util::transformToJsonParallel(transactions, [this, blk_n, &block_hash](const auto& trx, auto index) {
-        auto hash = trx->getHash();
-        auto r = final_chain->transactionReceipt(hash);
-        if (!r) {
-          return Json::Value();
-        }
-        return toJson(LocalisedTransactionReceipt{
-            *r,
-            ExtendedTransactionLocation{{{blk_n, index}, *block_hash}, hash},
-            trx->getSender(),
-            trx->getReceiver(),
-        });
+    return util::transformToJsonParallel(transactions, [&receipts, blk_n, &block_hash](const auto& trx, auto index) {
+      return toJson(LocalisedTransactionReceipt{
+          receipts->at(index),
+          ExtendedTransactionLocation{{{blk_n, index}, *block_hash}, trx->getHash()},
+          trx->getSender(),
+          trx->getReceiver(),
       });
-    }
-    Json::Value res(Json::arrayValue);
-    for (uint32_t i = 0; i < transactions.size(); ++i) {
-      res.append(toJson(LocalisedTransactionReceipt{
-          (*receipts)[i],
-          ExtendedTransactionLocation{{{blk_n, i}, *block_hash}, transactions[i]->getHash()},
-          transactions[i]->getSender(),
-          transactions[i]->getReceiver(),
-      }));
-    }
-    return res;
+    });
   }
 
   Json::Value eth_getUncleByBlockHashAndIndex(const string&, const string&) override { return Json::Value(); }
@@ -413,7 +396,11 @@ class EthImpl : public Eth, EthParams {
   }
 
   optional<LocalisedTransactionReceipt> get_transaction_receipt(const h256& trx_h) const {
-    auto r = final_chain->transactionReceipt(trx_h);
+    auto location = final_chain->transactionLocation(trx_h);
+    if (!location) {
+      return {};
+    }
+    auto r = final_chain->transactionReceipt(location->period, location->position);
     if (!r) {
       return {};
     }

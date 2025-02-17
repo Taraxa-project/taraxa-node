@@ -564,7 +564,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         ASSERT_EQ(trx_by_hash->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         ASSERT_EQ(trx_by_hash->getSender(), kTaraxaSystemAccount);
         // check that receipt exists
-        const auto& trx_receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
+        const auto& trx_receipt = node->getFinalChain()->transactionReceipt(trx_loc->period, trx_loc->position);
         ASSERT_TRUE(trx_receipt.has_value());
         ASSERT_EQ(trx_receipt->status_code, 1);
       }

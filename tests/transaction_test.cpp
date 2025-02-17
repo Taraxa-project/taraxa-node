@@ -4,6 +4,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "common/init.hpp"
@@ -109,8 +110,8 @@ TEST_F(TransactionTest, sig) {
           with_invalid_signature << el_modified;
         }
       }
-      ASSERT_NE(Transaction(with_modified_payload.out()).getSender(), sender);
-      ASSERT_THROW(Transaction(with_invalid_signature.out()).getSender(), Transaction::InvalidTransaction);
+      ASSERT_NE(Transaction(with_modified_payload.invalidate()).getSender(), sender);
+      ASSERT_THROW(Transaction(with_invalid_signature.invalidate()).getSender(), Transaction::InvalidTransaction);
     }
   }
 }
