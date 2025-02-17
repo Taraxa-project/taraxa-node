@@ -1,0 +1,70 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, graphicx, hyperref}
+\title{Taraxa PBFT}
+\author{Version 1.0}
+\date{February 01, 2025}
+
+\begin{document}
+    \maketitle
+
+    \tableofcontents
+
+    \section{Consensus Protocol}
+    \subsection{Round (p, r) Constants}
+
+    $\lambda_{0min}$ = 500 [ms]\\
+    $\lambda_{0max}$ = 1500 [ms]\\\\
+    When user $u$ starts round $(p, r)$, they reset their $\text{timer}_u$ to 0 and other constants as follows:
+
+    \begin{itemize}
+        \item If $r = 1$:
+        \begin{itemize}
+            \item $\lambda_r \in (\lambda_{0min}, \lambda_{0max})$
+            \item $\Lambda_r = 4000$ [ms]
+        \end{itemize}
+
+        \item Otherwise if $r >= 2$:
+        \begin{itemize}
+            \item $\lambda_r = 2000$ [ms]
+            \item $\Lambda_r = 17000$ [ms]
+        \end{itemize}
+    \end{itemize}
+
+    \subsection{Round (p, r) Voting Instructions}
+    The voting instructions are as follows:
+
+    \begin{enumerate}
+
+        \item[] Step 1: \textbf{Proposal} - When $\text{timer}_u = 0$:
+        \begin{itemize}
+            \item[--] If $r = 1$ or $r > 1$ and $u$ has received a next-quorum for $\bot$ from round $(p, r - 1)$, then $u$ assembles a new block proposal $B_u$ and propagates $B_u$ and $H(B_u)$.
+            \item[--] Otherwise, if $r > 1$ and $u$ has received a next-quorum for $H(B') \neq \bot$ from $(p, r-1)$, then $u$ propagates $H(B')$.
+        \end{itemize}
+
+        \item[] Step 2: \textbf{Filtering} - When $\text{timer}_u = 2\lambda_r$:
+        \begin{itemize}
+            \item[--] If $r = 1$ or if $r > 1$ and $u$ has received a next-quorum for $\bot$, then $u$ selects the proposal with the minimum credential and soft-votes for it.
+            \item[--] Otherwise, if $r > 1$ and $u$ has received a next-quorum for $H(B') \neq \bot$, then $u$ soft-votes for $H(B')$.
+        \end{itemize}
+
+        \item[] Step 3: \textbf{Certifying} - While $\text{timer}_u \in (2\lambda_r, \max(4\lambda_r, \Lambda_r))$:
+        \begin{itemize}
+            \item[--] If $u$ receives a soft-quorum for $H(B)$ and a valid block $B$ with $H(B) = H(B)$, then $u$ cert-votes for $H(B)$.
+        \end{itemize}
+
+        \item[] Step $s$ = 2$n$, where $n$ $\in (2, \infty)$: \textbf{First Finishing Step} - When $\text{timer}_u = \max(4\lambda_r, \Lambda_r) + (s-4)\lambda_r$:
+        \begin{itemize}
+            \item[--] If $i$ has certified some value $v$ for round $r$, he next-votes $v$.
+            \item[--] Else if $(r \geq 2 \text{ and } i \text{ has seen } 2t+1 \text{ next-votes for } \bot \text{ for round } r-1)$, he next-votes $\bot$.
+            \item[--] Else he next-votes his starting value $st^r_i$.
+        \end{itemize}
+
+        \item[] Step $s$ = 2$n$+1, where $n$ $\in (2, \infty)$: \textbf{Second Finishing Step} - When $\text{timer}_u = \max(4\lambda_r, \Lambda_r) + (s-5)\lambda_r$ + 100ms:
+        \begin{itemize}
+            \item[--] If $i$ sees $2t+1$ soft-votes for some value $v \neq \bot$ for round $r$, then $i$ next-votes $v$.
+            \item[--] If $(r \geq 2 \text{ and } i \text{ sees } 2t+1 \text{ next-votes for } \bot \text{ for round } r-1 \text{ and } i \text{ has not certified in round } r)$, then $i$ next-votes $\bot$.
+        \end{itemize}
+
+    \end{enumerate}
+
+\end{document}
