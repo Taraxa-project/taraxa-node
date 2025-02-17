@@ -555,7 +555,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         const auto& trx_loc = node->getDB()->getTransactionLocation(trx->getHash());
         EXPECT_TRUE(trx_loc.has_value());
         ASSERT_EQ(trx_loc->period, period - 1);
-        ASSERT_EQ(trx_loc->position, 1);
+        ASSERT_EQ(trx_loc->position, 0);
         ASSERT_EQ(trx_loc->is_system, true);
         // check that we can get this transaction by hash
         const auto& trx_by_hash = node->getDB()->getTransaction(trx->getHash());
