@@ -159,18 +159,29 @@ RLP_FIELDS_DEFINE(CornusHardforkConfig, block_num, delegation_locking_period, da
 Json::Value enc_json(const CactiHardforkConfig& obj) {
   Json::Value json(Json::objectValue);
   json["block_num"] = dev::toJS(obj.block_num);
-  json["lambda_change_period"] = dev::toJS(obj.lambda_change_period);
+  json["lambda_min"] = dev::toJS(obj.lambda_min);
+  json["lambda_max"] = dev::toJS(obj.lambda_max);
+  json["lambda_default"] = dev::toJS(obj.lambda_default);
+  json["lambda_change_interval"] = dev::toJS(obj.lambda_change_interval);
   json["lambda_change"] = dev::toJS(obj.lambda_change);
+  json["block_propagation_min"] = dev::toJS(obj.block_propagation_min);
+  json["block_propagation_max"] = dev::toJS(obj.block_propagation_max);
   return json;
 }
 
 void dec_json(const Json::Value& json, CactiHardforkConfig& obj) {
   obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
-  obj.lambda_change_period = dev::getUInt(json["lambda_change_period"]);
+  obj.lambda_min = dev::getUInt(json["lambda_min"]);
+  obj.lambda_max = dev::getUInt(json["lambda_max"]);
+  obj.lambda_default = dev::getUInt(json["lambda_default"]);
+  obj.lambda_change_interval = dev::getUInt(json["lambda_change_interval"]);
   obj.lambda_change = dev::getUInt(json["lambda_change"]);
+  obj.block_propagation_min = dev::getUInt(json["block_propagation_min"]);
+  obj.block_propagation_max = dev::getUInt(json["block_propagation_max"]);
 }
 
-RLP_FIELDS_DEFINE(CactiHardforkConfig, block_num, lambda_change_period, lambda_change)
+RLP_FIELDS_DEFINE(CactiHardforkConfig, block_num, lambda_min, lambda_max, lambda_default, lambda_change_interval,
+                  lambda_change, block_propagation_min, block_propagation_max)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
@@ -230,5 +241,5 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
-                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf, cacti_hf)
+                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf)
 }  // namespace taraxa
