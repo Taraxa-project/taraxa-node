@@ -336,11 +336,6 @@ class PbftManager {
   void broadcastVotes();
 
   /**
-   * @brief Reset PBFT step to 1
-   */
-  void resetStep();
-
-  /**
    * @brief If node receives 2t+1 next votes for some block(including kNullBlockHash), advance round to + 1.
    * @return true if PBFT round advanced, otherwise false
    */
@@ -620,9 +615,13 @@ class PbftManager {
   std::shared_ptr<util::ThreadPool>
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks
 
+  // kMinLambda & kMaxLambda are deprecated since cacti hardfork
   const std::chrono::milliseconds kMinLambda;         // [ms]
-  std::chrono::milliseconds lambda_{0};               // [ms]
   const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minute
+
+  uint32_t rounds_count_dynamic_lambda_{0};  // rounds count per cacti_hf.lambda_change_interval blocks
+  uint32_t dynamic_lambda_{0};               // [ms] - dynamic lambda that can be anywhere between <500ms, 1500ms>
+  std::chrono::milliseconds current_round_lambda_{0};  // [ms] - current round lambda
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
