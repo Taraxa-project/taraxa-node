@@ -63,25 +63,4 @@ dev::bytes BlockHeader::ethereumRlp() const {
 RLP_FIELDS_DEFINE(BlockHeader, hash, parent_hash, author, state_root, transactions_root, receipts_root, log_bloom,
                   number, gas_limit, gas_used, timestamp, total_reward, extra_data)
 
-RLP_FIELDS_DEFINE(LogEntry, address, topics, data)
-
-LogBloom LogEntry::bloom() const {
-  LogBloom ret;
-  ret.shiftBloom<3>(sha3(address.ref()));
-  for (auto t : topics) {
-    ret.shiftBloom<3>(sha3(t.ref()));
-  }
-  return ret;
-}
-
-RLP_FIELDS_DEFINE(TransactionReceipt, status_code, gas_used, cumulative_gas_used, logs, new_contract_address)
-
-LogBloom TransactionReceipt::bloom() const {
-  LogBloom ret;
-  for (auto const& l : logs) {
-    ret |= l.bloom();
-  }
-  return ret;
-}
-
 }  // namespace taraxa::final_chain

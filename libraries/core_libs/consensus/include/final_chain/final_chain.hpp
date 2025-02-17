@@ -292,6 +292,7 @@ class FinalChain {
   std::shared_ptr<BlockHeader> makeGenesisHeader(std::string&& raw_header) const;
   std::shared_ptr<BlockHeader> makeGenesisHeader(const h256& state_root) const;
 
+  std::pair<h256, LogBloom> processReceipts(Batch& batch, EthBlockNumber blk_n, const TransactionReceipts& receipts);
   std::shared_ptr<BlockHeader> appendBlock(Batch& batch, const PbftBlock& pbft_blk, const h256& state_root,
                                            u256 total_reward, const SharedTransactions& transactions = {},
                                            const TransactionReceipts& receipts = {});
