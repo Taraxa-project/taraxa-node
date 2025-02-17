@@ -1,9 +1,12 @@
 #include "final_chain/final_chain.hpp"
 
+#include <libdevcore/CommonData.h>
+
 #include <optional>
 #include <vector>
 
 #include "common/constants.hpp"
+#include "common/encoding_rlp.hpp"
 #include "common/encoding_solidity.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"

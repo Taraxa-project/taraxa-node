@@ -4,11 +4,11 @@
 
 namespace taraxa::net::rpc::eth {
 
-using taraxa::final_chain::LogBloom;
-using taraxa::final_chain::LogBlooms;
-using taraxa::final_chain::LogEntry;
-using taraxa::final_chain::TransactionLocation;
-using taraxa::final_chain::TransactionReceipt;
+using taraxa::LogBloom;
+using taraxa::LogBlooms;
+using taraxa::LogEntry;
+using taraxa::TransactionLocation;
+using taraxa::TransactionReceipt;
 
 struct TransactionLocationWithBlockHash : TransactionLocation {
   h256 blk_h{};
