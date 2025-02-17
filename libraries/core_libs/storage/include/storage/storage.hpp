@@ -150,6 +150,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   };
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
+  rocksdb::ReadOptions read_options_;
 
   rocksdb::WriteOptions async_write_;
   rocksdb::WriteOptions sync_write_;
@@ -162,7 +163,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   const std::string kStateDbDir = "state_db";
   std::unique_ptr<rocksdb::DB> db_;
   std::vector<rocksdb::ColumnFamilyHandle*> handles_;
-  rocksdb::ReadOptions read_options_;
   std::mutex dag_blocks_mutex_;
   std::atomic<uint64_t> dag_blocks_count_;
   std::atomic<uint64_t> dag_edge_count_;
@@ -274,8 +274,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
-  std::optional<TransactionReceipt> getTransactionReceipt(trx_hash_t const& trx_hash) const;
   SharedTransactionReceipts getBlockReceipts(PbftPeriod period) const;
+  std::optional<TransactionReceipt> getTransactionReceipt(EthBlockNumber blk_n, uint64_t position) const;
 
   /**
    * @brief Gets finalized transactions from provided hashes

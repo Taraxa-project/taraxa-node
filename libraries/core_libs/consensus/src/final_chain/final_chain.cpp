@@ -350,8 +350,6 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_p
       auto rlp = util::rlp_enc(receipt);
       receipts_stream.appendRaw(rlp);
       receipts_trie[i_rlp] = rlp;
-
-      db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp);
     }
     db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_period, header->number, receipts_stream.invalidate());
 
@@ -399,8 +397,8 @@ std::optional<TransactionLocation> FinalChain::transactionLocation(const h256& t
   return db_->getTransactionLocation(trx_hash);
 }
 
-std::optional<TransactionReceipt> FinalChain::transactionReceipt(const h256& trx_h) const {
-  return db_->getTransactionReceipt(trx_h);
+std::optional<TransactionReceipt> FinalChain::transactionReceipt(EthBlockNumber blk_n, uint64_t position) const {
+  return blockReceipts(blk_n)->at(position);
 }
 
 SharedTransactionReceipts FinalChain::blockReceipts(std::optional<EthBlockNumber> n) const {
