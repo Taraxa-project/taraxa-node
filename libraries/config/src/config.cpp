@@ -77,6 +77,8 @@ void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
   // config values that limits transactions and blocks memory pools
   transactions_pool_size = getConfigDataAsUInt(root, {"transactions_pool_size"}, true, kDefaultTransactionPoolSize);
 
+  max_rpc_calls_in_request = getConfigDataAsUInt(root, {"max_rpc_calls_in_request"}, true, kDefaultMaxRpcCallsInRequest);
+
   dec_json(root["network"], network);
 
   dec_json(root["db_config"], db_config);

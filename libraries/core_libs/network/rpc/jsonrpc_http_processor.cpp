@@ -17,6 +17,16 @@ HttpProcessor::Response JsonRpcHttpProcessor::process(const Request &request) {
     response.set("Content-Type", "application/json");
     response.result(boost::beast::http::status::ok);
     try {
+      const uint32_t min_size_to_check = 500;
+      if (request.body().size() > min_size_to_check) {
+        auto req_json = util::parse_json(request.body());
+        if (req_json.isArray()) {
+          if (req_json.size() > max_rpc_calls_in_request_) {
+            throw std::runtime_error(std::string("Too many rpc calls within a single request, max is: ") +
+                                     std::to_string(max_rpc_calls_in_request_));
+          }
+        }
+      }
       handler->HandleRequest(request.body(), response.body());
     } catch (std::exception const &e) {
       err.emplace();

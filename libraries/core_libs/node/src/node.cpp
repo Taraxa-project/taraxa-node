@@ -225,7 +225,7 @@ void FullNode::start() {
         eth_json_rpc, test_json_rpc, debug_json_rpc);
 
     if (conf_.network.rpc->http_port) {
-      auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
+      auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>(conf_.max_rpc_calls_in_request);
       jsonrpc_http_ = std::make_shared<net::HttpServer>(
           rpc_thread_pool_, boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->http_port},
           getAddress(), json_rpc_processor, conf_.network.rpc->max_pending_tasks);
