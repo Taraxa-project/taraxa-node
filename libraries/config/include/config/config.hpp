@@ -64,6 +64,8 @@ struct FullNodeConfig {
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
 
+  uint32_t max_rpc_calls_in_request = kDefaultMaxRpcCallsInRequest;
+
   // Report malicious behaviour like double voting, etc... to slashing/jailing contract
   bool report_malicious_behaviour = false;
 
