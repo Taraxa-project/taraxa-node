@@ -75,6 +75,15 @@ Json::Value toJsonArray(const std::vector<T>& _es) {
 }
 
 template <typename T>
+Json::Value toJsonArray(std::shared_ptr<const std::vector<T>> _es) {
+  Json::Value res(Json::arrayValue);
+  for (const auto& e : *_es) {
+    res.append(toJson(e));
+  }
+  return res;
+}
+
+template <typename T>
 Json::Value toJson(const std::optional<T>& t) {
   return t ? toJson(*t) : Json::Value();
 }

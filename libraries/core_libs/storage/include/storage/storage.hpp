@@ -128,7 +128,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_blk_by_number);
     COLUMN(final_chain_blk_hash_by_number);
     COLUMN(final_chain_blk_number_by_hash);
-    // COLUMN(final_chain_receipt_by_trx_hash);
+    COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
     COLUMN_W_COMP(sortition_params_change, getIntComparator<PbftPeriod>());
 
@@ -275,6 +275,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
   std::optional<TransactionReceipt> getTransactionReceipt(trx_hash_t const& trx_hash) const;
+  std::vector<TransactionReceipt> getBlockReceipts(PbftPeriod period) const;
 
   /**
    * @brief Gets finalized transactions from provided hashes

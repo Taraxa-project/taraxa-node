@@ -273,6 +273,23 @@ class EthImpl : public Eth, EthParams {
     return toJson(get_transaction_receipt(jsToFixed<32>(_transactionHash)));
   }
 
+  Json::Value eth_getBlockReceipts(const string& _blockNumber) override {
+    auto blk_n = parse_blk_num(_blockNumber);
+    auto receipts = final_chain->blockReceipts(blk_n);
+    auto transactions = final_chain->transactions(blk_n);
+    auto block_hash = *final_chain->blockHash(blk_n);
+    Json::Value res(Json::arrayValue);
+    for (uint32_t i = 0; i < transactions.size(); ++i) {
+      res.append(toJson(LocalisedTransactionReceipt{
+          (*receipts)[i],
+          ExtendedTransactionLocation{{{blk_n, i}, block_hash}, transactions[i]->getHash()},
+          transactions[i]->getSender(),
+          transactions[i]->getReceiver(),
+      }));
+    }
+    return res;
+  }
+
   Json::Value eth_getUncleByBlockHashAndIndex(const string&, const string&) override { return Json::Value(); }
 
   Json::Value eth_getUncleByBlockNumberAndIndex(const string&, const string&) override { return Json::Value(); }
