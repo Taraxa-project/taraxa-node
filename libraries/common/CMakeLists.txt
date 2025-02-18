@@ -13,6 +13,7 @@ set(HEADERS
     include/common/lazy.hpp
     include/common/thread_pool.hpp
     include/common/util.hpp
+    include/common/rpc_utils.hpp
 )
 
 set(SOURCES
@@ -21,6 +22,7 @@ set(SOURCES
     src/thread_pool.cpp
     src/util.cpp
     src/vrf_wrapper.cpp
+    src/rpc_utils.cpp
 )
 
 add_library(common ${SOURCES} ${HEADERS})
