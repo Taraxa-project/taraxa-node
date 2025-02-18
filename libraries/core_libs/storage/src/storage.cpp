@@ -982,19 +982,21 @@ std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod pe
 }
 
 std::optional<TransactionReceipt> DbStorage::getTransactionReceipt(trx_hash_t const& trx_hash) const {
-  auto loc = getTransactionLocation(trx_hash);
-  if (!loc.has_value()) {
-    return {};
-  }
-  auto raw = lookup(toSlice(loc->period), DbStorage::Columns::final_chain_receipt_by_period);
+  auto raw = lookup(toSlice(trx_hash.asBytes()), DbStorage::Columns::final_chain_receipt_by_trx_hash);
   if (raw.empty()) {
     return {};
   }
-  dev::RLP receipts_rlp(raw);
+  TransactionReceipt ret;
+  ret.rlp(dev::RLP(raw));
+  return ret;
+}
 
-  TransactionReceipt receipt;
-  receipt.rlp(receipts_rlp[loc->getPosition()]);
-  return std::move(receipt);
+std::vector<TransactionReceipt> DbStorage::getBlockReceipts(PbftPeriod period) const {
+  auto raw = lookup(toSlice(period), DbStorage::Columns::final_chain_receipt_by_period);
+  if (raw.empty()) {
+    return {};
+  }
+  return util::rlp_dec<std::vector<TransactionReceipt>>(dev::RLP(raw));
 }
 
 std::vector<std::shared_ptr<PillarVote>> DbStorage::getPeriodPillarVotes(PbftPeriod period) const {
