@@ -47,4 +47,6 @@ struct TransactionLocation {
   }
 };
 
+using SharedTransactionReceipts = std::shared_ptr<std::vector<TransactionReceipt>>;
+
 }  // namespace taraxa

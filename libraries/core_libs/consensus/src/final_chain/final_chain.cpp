@@ -44,6 +44,7 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
       dpos_is_eligible_cache_(
           config.final_chain_cache_in_blocks,
           [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
+      block_receipts_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return getBlockReceipts(blk); }),
       kConfig(config) {
   LOG_OBJECTS_CREATE("EXECUTOR");
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
@@ -330,42 +331,34 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, const PbftBlo
   return appendBlock(batch, std::move(header), transactions, receipts);
 }
 
-std::pair<h256, LogBloom> FinalChain::processReceipts(Batch& batch, EthBlockNumber blk_n,
-                                                      const TransactionReceipts& receipts) {
-  dev::BytesMap receipts_trie;
-  LogBloom log_bloom;
-  dev::RLPStream receipts_stream;
-  receipts_stream.appendList(receipts.size());
-  for (size_t idx = 0; idx < receipts.size(); ++idx) {
-    const auto& receipt = receipts[idx];
-    log_bloom |= receipt.bloom();
-
-    auto rlp = util::rlp_enc(receipt);
-    receipts_stream.appendRaw(rlp);
-
-    receipts_trie[util::rlp_enc(idx)] = rlp;
-  }
-  db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_period, blk_n, receipts_stream.invalidate());
-  return {hash256(receipts_trie), log_bloom};
-}
-
 std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_ptr<BlockHeader> header,
                                                      const SharedTransactions& transactions,
                                                      const TransactionReceipts& receipts) {
-  dev::BytesMap trxs_trie;
-  dev::RLPStream rlp_strm;
+  {
+    dev::BytesMap trxs_trie;
+    dev::BytesMap receipts_trie;
+    dev::RLPStream receipts_stream;
+    receipts_stream.appendList(receipts.size());
+    for (size_t trx_idx = 0; trx_idx < transactions.size(); ++trx_idx) {
+      const auto& trx = transactions[trx_idx];
+      auto i_rlp = util::rlp_enc(trx_idx);
+      trxs_trie[i_rlp] = trx->rlp();
 
-  for (size_t trx_idx = 0; trx_idx < transactions.size(); ++trx_idx) {
-    const auto& trx = transactions[trx_idx];
-    auto i_rlp = util::rlp_enc(rlp_strm, trx_idx);
-    trxs_trie[i_rlp] = trx->rlp();
+      const auto& receipt = receipts[trx_idx];
+      header->log_bloom |= receipt.bloom();
+
+      auto rlp = util::rlp_enc(receipt);
+      receipts_stream.appendRaw(rlp);
+      receipts_trie[i_rlp] = rlp;
+
+      db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp);
+    }
+    db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_period, header->number, receipts_stream.invalidate());
+
+    header->receipts_root = hash256(receipts_trie);
+    header->transactions_root = hash256(trxs_trie);
+    header->hash = dev::sha3(header->ethereumRlp());
   }
-
-  auto [receipts_root, log_bloom] = processReceipts(batch, header->number, receipts);
-  header->receipts_root = receipts_root;
-  header->log_bloom = log_bloom;
-  header->transactions_root = hash256(trxs_trie);
-  header->hash = dev::sha3(header->ethereumRlp());
 
   auto data = header->serializeForDB();
   db_->insert(batch, DbStorage::Columns::final_chain_blk_by_number, header->number, data);
@@ -376,8 +369,7 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_p
     auto chunk_id = blockBloomsChunkId(level, index / c_bloomIndexSize);
     auto chunk_to_alter = blockBlooms(chunk_id);
     chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
-    db_->insert(batch, DbStorage::Columns::final_chain_log_blooms_index, chunk_id,
-                util::rlp_enc(rlp_strm, chunk_to_alter));
+    db_->insert(batch, DbStorage::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(chunk_to_alter));
   }
   db_->insert(batch, DbStorage::Columns::final_chain_blk_hash_by_number, header->number, header->hash);
   db_->insert(batch, DbStorage::Columns::final_chain_blk_number_by_hash, header->hash, header->number);
@@ -409,6 +401,17 @@ std::optional<TransactionLocation> FinalChain::transactionLocation(const h256& t
 
 std::optional<TransactionReceipt> FinalChain::transactionReceipt(const h256& trx_h) const {
   return db_->getTransactionReceipt(trx_h);
+}
+
+SharedTransactionReceipts FinalChain::blockReceipts(std::optional<EthBlockNumber> n) const {
+  if (!n) {
+    return block_receipts_cache_.last();
+  }
+  return block_receipts_cache_.get(*n);
+}
+
+SharedTransactionReceipts FinalChain::getBlockReceipts(std::optional<EthBlockNumber> n) const {
+  return std::make_shared<TransactionReceipts>(db_->getBlockReceipts(lastIfAbsent(n)));
 }
 
 uint64_t FinalChain::transactionCount(std::optional<EthBlockNumber> n) const {
