@@ -52,7 +52,7 @@ Debug::get_transaction_with_state(const std::string& transaction_hash) {
   if (!loc) {
     throw std::runtime_error("Transaction not found");
   }
-  auto block_transactions = final_chain->getTransactions(loc->period);
+  auto block_transactions = final_chain->transactions(loc->period);
 
   auto state_trxs = SharedTransactions(block_transactions.begin(), block_transactions.begin() + loc->position);
 
