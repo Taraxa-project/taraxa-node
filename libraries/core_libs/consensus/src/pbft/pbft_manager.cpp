@@ -58,28 +58,15 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
   }
 
   if (kGenesisConfig.state.hardforks.isOnCactiHardfork(current_pbft_period)) {
-    // TODO[2949]: REMOVE
-    LOG(log_wr_) << "cacti hf\n ";
-    LOG(log_wr_) << "block_num " << kGenesisConfig.state.hardforks.cacti_hf.block_num;
-    LOG(log_wr_) << "block_propagation_max " << kGenesisConfig.state.hardforks.cacti_hf.block_propagation_max;
-    LOG(log_wr_) << "block_propagation_min " << kGenesisConfig.state.hardforks.cacti_hf.block_propagation_min;
-    LOG(log_wr_) << "lambda_change_interval " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change_interval;
-    LOG(log_wr_) << "lambda_change " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
-    LOG(log_wr_) << "lambda_default " << kGenesisConfig.state.hardforks.cacti_hf.lambda_default;
-    LOG(log_wr_) << "lambda_max " << kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
-    LOG(log_wr_) << "lambda_min " << kGenesisConfig.state.hardforks.cacti_hf.lambda_min;
-
     rounds_count_dynamic_lambda_ = db_->getRoundsCountDynamicLambda();
 
     dynamic_lambda_ = db_->getPbftMgrField(PbftMgrField::Lambda);
+    // No value saved  == 1
     if (dynamic_lambda_ == 1) {
       dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
     }
 
     current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
-    // TODO[2949]: REMOVE
-    LOG(log_wr_) << "Init dynamic_lambda_ " << dynamic_lambda_ << ", current_round_lambda_ " << current_round_lambda_
-                 << ", rounds_count_dynamic_lambda_ " << rounds_count_dynamic_lambda_;
   } else {
     current_round_lambda_ = kMinLambda;
   }
@@ -326,7 +313,7 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
     // To get withing 1 round with the rest of the network - node cannot start exponentially backing off its lambda
     // exactly when it is kMaxSteps behind the network as it would reach kMaxLambda lambda time before catching up. If
     // we delay triggering exponential backoff by 4 steps, node should get within 1 round with the network.
-    // !!! Important: This is true only for values kMinLambda = 15000ms and kMaxLambda = 60000 ms
+    // !!! Important: This is true only for values kMinLambda = 1500ms and kMaxLambda = 60000 ms
     if (network_next_voting_step > step_ && network_next_voting_step - step_ >= kMaxSteps - 4 /* hardcoded delay */) {
       // Reset it only if it was already increased compared to default value
       if (current_round_lambda_ != kMinLambda) {
@@ -345,9 +332,6 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
       }
 
       LOG(log_nf_) << "No round progress - exponentially backing off lambda to " << current_round_lambda_.count()
-                   << " [ms] in step " << step_;
-      // TODO[2949]: REMOVE
-      LOG(log_er_) << "No round progress - exponentially backing off lambda to " << current_round_lambda_.count()
                    << " [ms] in step " << step_;
     }
   }
@@ -443,15 +427,15 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
     if (round == 1) {
       if (kGenesisConfig.state.hardforks.cacti_hf.isDynamicLambdaChangeInterval(period)) {
         // If it took the same amount of rounds to finish lambda_change_interval blocks, decrease dynamic lambda
-        if (rounds_count_dynamic_lambda_ == kGenesisConfig.state.hardforks.cacti_hf.lambda_change_interval) {
+        if (rounds_count_dynamic_lambda_ == kGenesisConfig.state.hardforks.cacti_hf.lambda_change_interval &&
+            dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
           dynamic_lambda_ -= kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
           if (dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
             dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_min;
           }
 
-          // TODO[2949]: REMOVE
-          LOG(log_wr_) << "Decrease dynamic_lambda_: " << dynamic_lambda_ << ", round " << round << ", previous round "
-                       << round_;
+          LOG(log_nf_) << "Decrease dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change
+                       << " to " << dynamic_lambda_ << ", period " << period << ", round " << round;
         }
 
         // Reset rounds count
@@ -462,70 +446,25 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
       current_round_lambda_ = std::chrono::milliseconds(
           round_ /* previous round */ == 1 ? dynamic_lambda_ : kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
     } else {  // round >= 2
-      dynamic_lambda_ += kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
-      if (dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
-        dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
-      }
+      if (dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
+        dynamic_lambda_ += kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
+        if (dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
+          dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
+        }
 
-      // TODO[2949]: REMOVE
-      LOG(log_wr_) << "Increase dynamic_lambda_: " << dynamic_lambda_ << ", round " << round << ", previous round "
-                   << round_;
-      ;
+        LOG(log_nf_) << "Increase dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change << " to "
+                     << dynamic_lambda_ << ", period " << period << ", round " << round;
+      }
 
       // Use default lambda in case current round >= 1
       current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
     }
-
     rounds_count_dynamic_lambda_++;
-
-    // TODO[2949]: REMOVE
-    LOG(log_wr_) << "current_round_lambda_: " << current_round_lambda_ << ", rounds_count_dynamic_lambda_ "
-                 << rounds_count_dynamic_lambda_;
-
-    //    // Block was finalized in first round only if previous round == 1 && new round == 1
-    //    // Decrease dynamic lambda by lambda_decrease_change in case block was finalized in first round
-    //    if (round_ /* previous round */ == 1 && round /* new round */ == 1) {
-    //      // TODO[2949]: REMOVE
-    //      LOG(log_er_) << "Decrease dynamic_lambda_ " << dynamic_lambda_ << ", current_round_lambda_ " <<
-    //      current_round_lambda_; dynamic_lambda_ -= kGenesisConfig.state.hardforks.cacti_hf.lambda_decrease_change;
-    //      // TODO[2949]: REMOVE
-    //      LOG(log_er_) << "Decrease dynamic_lambda_ " << dynamic_lambda_ << ", current_round_lambda_ " <<
-    //      current_round_lambda_; if (dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
-    //        dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_min;
-    //      }
-    //
-    //      // Use dynamic lambda only if previous block was finalized in first round
-    //      current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
-    //
-    //      // TODO[2949]: REMOVE
-    //      LOG(log_er_) << "Decrease lambda by 10 [ms] to " << dynamic_lambda_ << ", current_round_lambda_ " <<
-    //      current_round_lambda_;
-    //    } else {  // Increase dynamic lambda by lambda_increase_change in case block was not finalized in first round
-    //              // TODO[2949]: REMOVE
-    //      LOG(log_er_) << "Increase dynamic_lambda_ " << dynamic_lambda_ << ", current_round_lambda_ " <<
-    //      current_round_lambda_; dynamic_lambda_ += kGenesisConfig.state.hardforks.cacti_hf.lambda_increase_change;
-    //      // TODO[2949]: REMOVE
-    //      LOG(log_er_) << "Increase dynamic_lambda_ " << dynamic_lambda_ << ", current_round_lambda_ " <<
-    //      current_round_lambda_; if (dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
-    //        dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
-    //      }
-    //
-    //      // Use default lambda in case previous block was not finished in first round or current round > 1
-    //      current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
-    //
-    //      // TODO[2949]: REMOVE
-    //      LOG(log_er_) << "Increase lambda by 100 [ms] to " << dynamic_lambda_ << ", current_round_lambda_ " <<
-    //      current_round_lambda_;
-    //    }
 
     db_->saveRoundsCountDynamicLamba(rounds_count_dynamic_lambda_, batch);
     db_->addPbftMgrFieldToBatch(PbftMgrField::Lambda, dynamic_lambda_, batch);
   } else {
     current_round_lambda_ = kMinLambda;
-
-    // TODO[2949]: REMOVE
-    LOG(log_wr_) << "Keep current_round_lambda_ " << current_round_lambda_ << ", cacti hf num "
-                 << kGenesisConfig.state.hardforks.cacti_hf.block_num;
   }
 
   // Update current round and reset step to 1
@@ -690,17 +629,7 @@ void PbftManager::setFinishState_() {
   LOG(log_dg_) << "Will go to first finish State";
   state_ = finish_state;
   setPbftStep(step_ + 1);
-
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(getPbftPeriod())) {
-    auto block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_min);
-    if (getPbftRound() > 1) {
-      block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_max);
-    }
-
-    next_step_time_ms_ = std::max(4 * current_round_lambda_, block_propagation);
-  } else {
-    next_step_time_ms_ = 4 * current_round_lambda_;
-  }
+  next_step_time_ms_ = getPbftDeadline(getPbftPeriod());
 }
 
 void PbftManager::setFinishPollingState_() {
@@ -1186,20 +1115,8 @@ void PbftManager::certifyBlock_() {
     printCertStepInfo_ = false;
   }
 
-  std::chrono::milliseconds go_finish_state_time{0};
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(getPbftPeriod())) {
-    auto block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_min);
-    if (getPbftRound() > 1) {
-      block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_max);
-    }
-
-    go_finish_state_time = std::max(4 * current_round_lambda_, block_propagation);
-  } else {
-    go_finish_state_time = 4 * current_round_lambda_;
-  }
-
   const auto elapsed_time_in_round = elapsedTimeInMs(current_round_start_datetime_);
-  go_finish_state_ = elapsed_time_in_round > go_finish_state_time - kPollingIntervalMs;
+  go_finish_state_ = elapsed_time_in_round > getPbftDeadline(getPbftPeriod()) - kPollingIntervalMs;
   if (go_finish_state_) {
     LOG(log_dg_) << "Step 3 expired, will go to step 4 in period " << period << ", round " << round;
 
@@ -2120,10 +2037,6 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
                << ", round: " << getPbftRound();
 
-  // TODO[2949]: REMOVE
-  LOG(log_wr_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
-               << ", round: " << getPbftRound();
-
   finalize_(std::move(period_data), std::move(dag_blocks_order));
 
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
@@ -2568,5 +2481,18 @@ const std::vector<std::pair<bool, WalletConfig>> &PbftManager::EligibleWallets::
 }
 
 PbftPeriod PbftManager::EligibleWallets::getWalletsEligiblePeriod() const { return period_; }
+
+std::chrono::milliseconds PbftManager::getPbftDeadline(PbftPeriod period) const {
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
+    auto block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_min);
+    if (getPbftRound() > 1) {
+      block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_max);
+    }
+
+    return std::max(4 * current_round_lambda_, block_propagation);
+  }
+
+  return 4 * current_round_lambda_;
+}
 
 }  // namespace taraxa
