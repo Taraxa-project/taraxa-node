@@ -14,6 +14,7 @@
 #include "final_chain/data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
+#include "transaction/receipt.hpp"
 #include "transaction/system_transaction.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -989,12 +990,13 @@ std::optional<TransactionReceipt> DbStorage::getTransactionReceipt(trx_hash_t co
   return ret;
 }
 
-std::vector<TransactionReceipt> DbStorage::getBlockReceipts(PbftPeriod period) const {
+SharedTransactionReceipts DbStorage::getBlockReceipts(PbftPeriod period) const {
   auto raw = lookup(toSlice(period), DbStorage::Columns::final_chain_receipt_by_period);
   if (raw.empty()) {
     return {};
   }
-  return util::rlp_dec<std::vector<TransactionReceipt>>(dev::RLP(raw));
+  return std::make_shared<std::vector<TransactionReceipt>>(
+      util::rlp_dec<std::vector<TransactionReceipt>>(dev::RLP(raw)));
 }
 
 std::vector<std::shared_ptr<PillarVote>> DbStorage::getPeriodPillarVotes(PbftPeriod period) const {

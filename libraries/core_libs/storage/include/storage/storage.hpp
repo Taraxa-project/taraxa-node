@@ -16,6 +16,7 @@
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
+#include "transaction/receipt.hpp"
 #include "transaction/transaction.hpp"
 #include "vote/pillar_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -28,9 +29,6 @@ namespace pillar_chain {
 struct PillarBlockData;
 class PillarBlock;
 }  // namespace pillar_chain
-
-struct TransactionLocation;
-struct TransactionReceipt;
 
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
@@ -277,7 +275,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
   std::optional<TransactionReceipt> getTransactionReceipt(trx_hash_t const& trx_hash) const;
-  std::vector<TransactionReceipt> getBlockReceipts(PbftPeriod period) const;
+  SharedTransactionReceipts getBlockReceipts(PbftPeriod period) const;
 
   /**
    * @brief Gets finalized transactions from provided hashes
