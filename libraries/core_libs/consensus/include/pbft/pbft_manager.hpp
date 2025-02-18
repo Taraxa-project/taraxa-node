@@ -601,6 +601,12 @@ class PbftManager {
    */
   void processPillarBlock(PbftPeriod period);
 
+  /**
+   * @param period
+   * @return pbft deadline time - max time to dinalize the block in provided period
+   */
+  std::chrono::milliseconds getPbftDeadline(PbftPeriod period) const;
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
@@ -623,7 +629,6 @@ class PbftManager {
   std::shared_ptr<util::ThreadPool>
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks
 
-  // kMinLambda & kMaxLambda are deprecated since cacti hardfork
   const std::chrono::milliseconds kMinLambda;         // [ms]
   const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minute
 
