@@ -145,6 +145,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(system_transaction);
     // system transactions hashes by period
     COLUMN(period_system_transactions);
+    // final chain receipts by period
+    COLUMN_W_COMP(final_chain_receipt_by_period, getIntComparator<PbftPeriod>());
 
 #undef COLUMN
 #undef COLUMN_W_COMP
