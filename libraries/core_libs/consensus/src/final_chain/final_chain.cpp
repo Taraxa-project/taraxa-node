@@ -411,7 +411,7 @@ SharedTransactionReceipts FinalChain::blockReceipts(std::optional<EthBlockNumber
 }
 
 SharedTransactionReceipts FinalChain::getBlockReceipts(std::optional<EthBlockNumber> n) const {
-  return std::make_shared<TransactionReceipts>(db_->getBlockReceipts(lastIfAbsent(n)));
+  return db_->getBlockReceipts(lastIfAbsent(n));
 }
 
 uint64_t FinalChain::transactionCount(std::optional<EthBlockNumber> n) const {
