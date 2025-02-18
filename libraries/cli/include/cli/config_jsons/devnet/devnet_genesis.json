@@ -287,6 +287,17 @@
       "delegation_locking_period": 5,
       "dag_gas_limit": "0x1908B100",
       "pbft_gas_limit": "0x7d2b7500"
+    },
+    "cacti_hf" :
+    {
+      "block_num" : 0,
+      "lambda_min" : 500,
+      "lambda_max" : 1500,
+      "lambda_default" : 2000,
+      "lambda_change_interval" : 100,
+      "lambda_change" : 10,
+      "block_propagation_min" : 4000,
+      "block_propagation_max" : 17000
     }
   }
 }
