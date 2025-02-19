@@ -234,7 +234,7 @@ class EthFace : public ServerInterface<EthFace> {
     response = this->eth_chainId();
   }
   inline virtual void eth_getBlockReceiptsI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_getBlockReceipts(request[0u].asString());
+    response = this->eth_getBlockReceipts(request[0u]);
   }
   virtual std::string eth_protocolVersion() = 0;
   virtual std::string eth_coinbase() = 0;
@@ -271,7 +271,7 @@ class EthFace : public ServerInterface<EthFace> {
   virtual Json::Value eth_syncing() = 0;
   virtual std::string eth_estimateGas(const Json::Value &param1, const std::string &param2) = 0;
   virtual Json::Value eth_chainId() = 0;
-  virtual Json::Value eth_getBlockReceipts(const std::string &_blockNumber) = 0;
+  virtual Json::Value eth_getBlockReceipts(const Json::Value &_blockNumber) = 0;
 };
 
 }  // namespace net

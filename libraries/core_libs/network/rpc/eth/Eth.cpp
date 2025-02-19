@@ -262,8 +262,8 @@ class EthImpl : public Eth, EthParams {
     return toJson(get_transaction_receipt(jsToFixed<32>(_transactionHash)));
   }
 
-  Json::Value eth_getBlockReceipts(const string& _blockNumber) override {
-    auto blk_n = parse_blk_num(_blockNumber);
+  Json::Value eth_getBlockReceipts(const Json::Value& _blockNumber) override {
+    auto blk_n = get_block_number_from_json(_blockNumber);
     auto block_hash = final_chain->blockHash(blk_n);
     if (!block_hash) {
       return {};
