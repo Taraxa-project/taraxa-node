@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <regex>
@@ -57,7 +58,12 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.compression = rocksdb::CompressionType::kLZ4Compression;
-  // This options is related to memory consumption
+  // DON'T CHANGE THIS VALUE, IT WILL BREAK THE DB MEMORY USAGE
+  options.max_total_wal_size = 1;
+  options.write_buffer_size = 12 << 20; // 12MB
+  options.db_write_buffer_size = size_t(6) * 1024 * 1024 * 1024;  // 6GB
+  ///////////////////////////////////////////////
+  // This option is related to memory consumption
   // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
   // aleth default 256 (state_db is using another 128)
   options.max_open_files = (max_open_files) ? max_open_files : 256;
