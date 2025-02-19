@@ -42,8 +42,8 @@ class Transaction final : public std::enable_shared_from_this<Transaction> {
   std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num_;
   std::shared_ptr<::taraxa::Transaction> transaction_;
   // Caching for performance
-  mutable std::optional<::taraxa::final_chain::TransactionReceipt> receipt_;
-  mutable std::optional<::taraxa::final_chain::TransactionLocation> location_;
+  mutable std::optional<::taraxa::TransactionReceipt> receipt_;
+  mutable std::optional<::taraxa::TransactionLocation> location_;
 };
 
 }  // namespace graphql::taraxa
