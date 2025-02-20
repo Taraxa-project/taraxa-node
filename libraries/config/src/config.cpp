@@ -110,6 +110,7 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
 
   propose_dag_gas_limit = getConfigDataAsUInt(root, {"propose_dag_gas_limit"}, true, propose_dag_gas_limit);
   propose_pbft_gas_limit = getConfigDataAsUInt(root, {"propose_pbft_gas_limit"}, true, propose_pbft_gas_limit);
+  dag_propose_delay = getConfigDataAsUInt(root, {"dag_propose_delay"}, true, dag_propose_delay);
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;

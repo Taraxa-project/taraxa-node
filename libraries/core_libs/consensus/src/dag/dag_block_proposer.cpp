@@ -14,7 +14,7 @@ using namespace vdf_sortition;
 DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr<DagManager> dag_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr,
                                    std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<DbStorage> db,
-                                   std::shared_ptr<KeyManager> key_manager)
+                                   std::shared_ptr<KeyManager> key_manager, uint64_t propose_delay)
     : bp_config_(config.genesis.dag.block_proposer),
       total_trx_shards_(std::max(bp_config_.shard, uint16_t(1))),
       dag_mgr_(std::move(dag_mgr)),
@@ -34,7 +34,7 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
           config.genesis.getGasLimits(final_chain_->lastBlockNumber()).first),
       kHardforks(config.genesis.state.hardforks),
       kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
-                        config.genesis.state.dpos.vote_eligibility_balance_step) {
+                        config.genesis.state.dpos.vote_eligibility_balance_step), random_gen_(rd_()), random_dist_(1, propose_delay) {
   const auto& node_addr = node_addr_;
   LOG_OBJECTS_CREATE("DAG_PROPOSER");
 
@@ -119,6 +119,10 @@ bool DagBlockProposer::proposeDagBlock() {
       num_tries_ = 0;
       return false;
     }
+  }
+
+  if(vdf.getDifficulty() == sortition_params.vdf.difficulty_min) {
+    thisThreadSleepForMilliSeconds(random_dist_(random_gen_));
   }
 
   auto [transactions, estimations] = getShardedTrxs(*proposal_period, kDagProposeGasLimit);
