@@ -59,9 +59,8 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_if_missing = true;
   options.compression = rocksdb::CompressionType::kLZ4Compression;
   // DON'T CHANGE THIS VALUE, IT WILL BREAK THE DB MEMORY USAGE
-  options.max_total_wal_size = 1;
-  options.write_buffer_size = 12 << 20; // 12MB
-  options.db_write_buffer_size = size_t(6) * 1024 * 1024 * 1024;  // 6GB
+  options.max_total_wal_size =  10 << 20; // 10MB
+  options.db_write_buffer_size = size_t(2) * 1024 * 1024 * 1024;  // 2GB
   ///////////////////////////////////////////////
   // This option is related to memory consumption
   // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
