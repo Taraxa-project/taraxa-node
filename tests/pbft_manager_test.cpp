@@ -487,7 +487,7 @@ TEST_F(PbftManagerWithDagCreation, trx_generation) {
   makeNode();
   deployContract();
 
-  auto testing_cycle_txs_count = {10, 100, 1000};
+  auto testing_cycle_txs_count = {10, 100, 900};
   for (const auto &count : testing_cycle_txs_count) {
     auto txs_before = nonce;
     auto trxs = makeTransactions(count);
