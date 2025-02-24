@@ -185,8 +185,8 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     if (cli_options_.count(PUBLIC_IP) && !cli_options_[PUBLIC_IP].as<std::string>().empty()) {
       node_config_.network.public_ip = cli_options_[PUBLIC_IP].as<std::string>();
     }
-    if (cli_options_.count(PORT) && cli_options_[PORT].as<int>() != 0) {
-      node_config_.network.listen_port = cli_options_[PORT].as<int>();
+    if (cli_options_.count(PORT) && cli_options_[PORT].as<uint16_t>() != 0) {
+      node_config_.network.listen_port = cli_options_[PORT].as<uint16_t>();
     }
     node_config_.db_config.db_revert_to_period = cli_options_[REVERT_TO_PERIOD].as<uint64_t>();
     node_config_.db_config.rebuild_db = cli_options_[REBUILD_DB].as<bool>();
