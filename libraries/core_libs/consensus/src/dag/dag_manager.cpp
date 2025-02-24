@@ -312,7 +312,7 @@ void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
       dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
     }
 
-    db_->clearPeriodDataHistory(end, dag_level_to_keep);
+    db_->clearPeriodDataHistory(end, dag_level_to_keep, last_block_number);
   }
 }
 
