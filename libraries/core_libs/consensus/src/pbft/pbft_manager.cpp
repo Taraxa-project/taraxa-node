@@ -414,58 +414,24 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   // Cleanup saved broadcasted votes for current round
   current_round_broadcasted_votes_.clear();
 
-  LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1";
-
   // Reset broadcast counters
   broadcast_votes_counter_ = 1;
   rebroadcast_votes_counter_ = 1;
 
-  auto batch = db_->createWriteBatch();
   const auto period = getPbftPeriod();
-
   if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
+    // Use dynamic lambda for round 1
     if (round == 1) {
-      if (kGenesisConfig.state.hardforks.cacti_hf.isDynamicLambdaChangeInterval(period)) {
-        // If it took the same amount of rounds to finish lambda_change_interval blocks, decrease dynamic lambda
-        if (rounds_count_dynamic_lambda_ == kGenesisConfig.state.hardforks.cacti_hf.lambda_change_interval &&
-            dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
-          dynamic_lambda_ -= kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
-          if (dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
-            dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_min;
-          }
-
-          LOG(log_nf_) << "Decrease dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change
-                       << " to " << dynamic_lambda_ << ", period " << period << ", round " << round;
-        }
-
-        // Reset rounds count
-        rounds_count_dynamic_lambda_ = 0;
-      }
-
-      // Use dynamic lambda only if previous block was finalized in first round
-      current_round_lambda_ = std::chrono::milliseconds(
-          round_ /* previous round */ == 1 ? dynamic_lambda_ : kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
-    } else {  // round >= 2
-      if (dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
-        dynamic_lambda_ += kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
-        if (dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
-          dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
-        }
-
-        LOG(log_nf_) << "Increase dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change << " to "
-                     << dynamic_lambda_ << ", period " << period << ", round " << round;
-      }
-
-      // Use default lambda in case current round >= 1
+      current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
+    } else {  // otherwise use default lambda
       current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
     }
-    rounds_count_dynamic_lambda_++;
-
-    db_->saveRoundsCountDynamicLamba(rounds_count_dynamic_lambda_, batch);
-    db_->addPbftMgrFieldToBatch(PbftMgrField::Lambda, dynamic_lambda_, batch);
   } else {
     current_round_lambda_ = kMinLambda;
   }
+
+  LOG(log_nf_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1, lambda "
+               << current_round_lambda_ << " [ms]";
 
   // Update current round and reset step to 1
   round_ = round;
@@ -473,6 +439,7 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   state_ = value_proposal_state;
 
   // Update in DB first
+  auto batch = db_->createWriteBatch();
   db_->addPbftMgrFieldToBatch(PbftMgrField::Round, round, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrField::Step, 1, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
@@ -502,9 +469,47 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   }
 
   // Set current period & round in vote manager
-  vote_mgr_->setCurrentPbftPeriodAndRound(getPbftPeriod(), round);
+  vote_mgr_->setCurrentPbftPeriodAndRound(period, round);
 
   current_round_start_datetime_ = std::chrono::system_clock::now();
+}
+
+void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round) {
+  rounds_count_dynamic_lambda_ += finalized_round;
+
+  // Decrease dynamic lambda only every N blocks
+  if (kGenesisConfig.state.hardforks.cacti_hf.isDynamicLambdaChangeInterval(finalized_period)) {
+    // If it took the same amount of rounds to finish lambda_change_interval blocks, decrease dynamic lambda
+    if (rounds_count_dynamic_lambda_ == kGenesisConfig.state.hardforks.cacti_hf.lambda_change_interval &&
+        dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
+      dynamic_lambda_ -= kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
+      if (dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
+        dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_min;
+      }
+
+      LOG(log_nf_) << "Decrease dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change << " to "
+                   << dynamic_lambda_ << ", period " << finalized_period << ", round " << finalized_round;
+    }
+
+    // Reset rounds count
+    rounds_count_dynamic_lambda_ = 0;
+  }
+
+  // Any time block is finalized in round > 1, increase dynamic lambda
+  if (finalized_round > 1 && dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
+    dynamic_lambda_ += kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
+    if (dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
+      dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
+    }
+
+    LOG(log_nf_) << "Increase dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change << " to "
+                 << dynamic_lambda_ << ", period " << finalized_period << ", round " << finalized_round;
+  }
+
+  auto batch = db_->createWriteBatch();
+  db_->saveRoundsCountDynamicLamba(rounds_count_dynamic_lambda_, batch);
+  db_->addPbftMgrFieldToBatch(PbftMgrField::Lambda, dynamic_lambda_, batch);
+  db_->commitWriteBatch(batch);
 }
 
 std::chrono::milliseconds PbftManager::elapsedTimeInMs(const time_point &start_time) {
@@ -1982,7 +1987,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   }
 
   assert(cert_votes.empty() == false);
-  assert(pbft_block_hash == cert_votes[0]->getBlockHash());
+  const auto sample_cert_vote = cert_votes[0];
+  assert(pbft_block_hash == sample_cert_vote->getBlockHash());
 
   auto null_anchor = period_data.pbft_blk->getPivotDagBlockHash() == kNullBlockHash;
 
@@ -2004,8 +2010,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   db_->savePeriodData(period_data, batch);
 
   // Replace current reward votes
-  vote_mgr_->resetRewardVotes(cert_votes[0]->getPeriod(), cert_votes[0]->getRound(), cert_votes[0]->getStep(),
-                              cert_votes[0]->getBlockHash(), batch);
+  vote_mgr_->resetRewardVotes(sample_cert_vote->getPeriod(), sample_cert_vote->getRound(), sample_cert_vote->getStep(),
+                              sample_cert_vote->getBlockHash(), batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
@@ -2041,6 +2047,9 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;
+
+  // Adjust dynamic lambda
+  adjustDynamicLambda(pbft_period, sample_cert_vote->getRound());
 
   // Advance pbft consensus period
   advancePeriod();

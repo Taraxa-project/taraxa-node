@@ -609,6 +609,14 @@ class PbftManager {
    */
   std::chrono::milliseconds getPbftDeadline(PbftPeriod period) const;
 
+  /**
+   * @brief Adjust dynamic lambda
+   *
+   * @param finalized_period period, in which block was finalized
+   * @param finalized_round round, in which block was finalized
+   */
+  void adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round);
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
