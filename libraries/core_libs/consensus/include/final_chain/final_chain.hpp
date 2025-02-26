@@ -247,9 +247,9 @@ class FinalChain {
 
   /**
    * @param blk_num
-   * @return vector of validators vote counts for provided blk_num
+   * @return vector of validators eligible vote counts for provided blk_num
    */
-  std::vector<state_api::ValidatorVoteCount> dposValidatorsVoteCounts(EthBlockNumber blk_num) const;
+  std::vector<state_api::ValidatorVoteCount> dposValidatorsEligibleVoteCounts(EthBlockNumber blk_num) const;
 
   /**
    * @param blk_num
