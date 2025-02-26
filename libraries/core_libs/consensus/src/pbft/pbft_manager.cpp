@@ -1386,8 +1386,10 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
       continue;
     }
 
-    if (leader_block->getPivotDagBlockHash() == kNullBlockHash && empty_leader_block == nullptr) {
-      empty_leader_block = leader_block;
+    if (leader_block->getPivotDagBlockHash() == kNullBlockHash) {
+      if(empty_leader_block == nullptr) {
+        empty_leader_block = leader_block;
+      }
       continue;
     }
     return leader_block;
