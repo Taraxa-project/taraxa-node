@@ -223,7 +223,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
+  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep, PbftPeriod last_block_number);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PeriodData> getPeriodData(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
