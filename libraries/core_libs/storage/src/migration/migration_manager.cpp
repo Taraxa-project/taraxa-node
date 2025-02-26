@@ -37,4 +37,6 @@ void Manager::applyAll() {
 }
 void Manager::applyTransactionPeriod() { applyMigration(std::make_shared<TransactionPeriod>(db_)); }
 
+void Manager::applyReceiptsByPeriod() { applyMigration(std::make_shared<TransactionReceiptsByPeriod>(db_)); }
+
 }  // namespace taraxa::storage::migration

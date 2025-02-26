@@ -93,6 +93,9 @@ void FullNode::init() {
     if (conf_.db_config.fix_trx_period) {
       migration_manager.applyTransactionPeriod();
     }
+    if (conf_.db_config.migrate_receipts_by_period) {
+      migration_manager.applyReceiptsByPeriod();
+    }
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
@@ -407,8 +410,8 @@ void FullNode::rebuildDb() {
       }
     } else {
       next_period_data = std::make_shared<PeriodData>(std::move(data));
-      // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that pushes
-      // blocks to chain
+      // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that
+      // pushes blocks to chain
       for (auto &t : next_period_data->transactions) t->getSender();
       cert_votes = next_period_data->previous_block_cert_votes;
     }

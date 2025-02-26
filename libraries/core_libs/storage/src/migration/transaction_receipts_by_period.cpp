@@ -6,7 +6,6 @@
 #include <rocksdb/options.h>
 #include <rocksdb/utilities/write_batch_with_index.h>
 
-#include "common/thread_pool.hpp"
 #include "storage/storage.hpp"
 
 namespace taraxa::storage::migration {
@@ -23,39 +22,26 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
   db_->read_options_.async_io = true;
   db_->read_options_.verify_checksums = false;
   auto it = db_->getColumnIterator(DbStorage::Columns::period_data);
-  it->SeekToFirst();
-  if (!it->Valid()) {
-    return;
+  {
+    auto target_it = db_->getColumnIterator(target_col);
+    target_it->SeekToFirst();
+    if (!target_it->Valid()) {
+      return;
+    }
+    uint64_t start_period;
+    memcpy(&start_period, target_it->key().data(), sizeof(uint64_t));
+    LOG(log) << "Migrating from period " << start_period;
+    // Start from the smallest migrated period
+    it->SeekForPrev(target_it->key());
   }
-
-  uint64_t start_period, end_period;
-  memcpy(&start_period, it->key().data(), sizeof(uint64_t));
-
-  it->SeekToLast();
-  if (!it->Valid()) {
-    throw std::runtime_error("Something wrong, invalid period_data iterator");
-  }
-  memcpy(&end_period, it->key().data(), sizeof(uint64_t));
-  it->SeekToFirst();
-  // log count of the elements in the column
-  const auto diff = (end_period - start_period) ? (end_period - start_period) : 1;
-  LOG(log) << "Migrating " << diff << " periods";
-  uint64_t curr_progress = 0;
-
   const size_t batch_size = 500000000;
-  util::ThreadPool pool(4);
   // Get and save data in new format for all blocks
-  for (; it->Valid(); it->Next()) {
+  for (; it->Valid(); it->Prev()) {
     uint64_t period;
     memcpy(&period, it->key().data(), sizeof(uint64_t));
-
-    auto percentage = (period - start_period) * 100 / diff;
-    if (percentage > curr_progress) {
-      curr_progress = percentage;
-      LOG(log) << "Migration " << id() << " progress " << curr_progress << "%";
+    if (period % 10000 == 0) {
+      LOG(log) << "Migrating period " << period;
     }
-
-    // auto now = std::chrono::steady_clock::now();
     const auto transactions = db_->transactionsFromPeriodDataRlp(period, dev::RLP(it->value().ToString()));
     if (transactions.empty()) {
       continue;
@@ -89,7 +75,6 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
     }
   }
   db_->commitWriteBatch(batch_);
-  // db_->deleteColumnData(orig_col);
   db_->compactColumn(target_col);
 }
 

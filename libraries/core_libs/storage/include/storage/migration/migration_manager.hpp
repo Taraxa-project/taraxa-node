@@ -12,6 +12,8 @@ class Manager {
   void applyAll();
   void applyTransactionPeriod();
 
+  void applyReceiptsByPeriod();
+
  private:
   void applyMigration(std::shared_ptr<migration::Base> m);
   std::shared_ptr<DbStorage> db_;

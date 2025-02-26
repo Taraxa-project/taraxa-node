@@ -398,7 +398,17 @@ std::optional<TransactionLocation> FinalChain::transactionLocation(const h256& t
 }
 
 std::optional<TransactionReceipt> FinalChain::transactionReceipt(EthBlockNumber blk_n, uint64_t position) const {
-  return blockReceipts(blk_n)->at(position);
+  auto receipts = blockReceipts(blk_n);
+  if (!receipts) {
+    auto transactions = db_->getPeriodTransactions(blk_n);
+    auto trx = transactions->at(position);
+    auto receipt_raw = db_->lookup(trx->getHash(), DbStorage::Columns::final_chain_receipt_by_trx_hash);
+    if (receipt_raw.empty()) {
+      return {};
+    }
+    return util::rlp_dec<TransactionReceipt>(dev::RLP(receipt_raw));
+  }
+  return receipts->at(position);
 }
 
 SharedTransactionReceipts FinalChain::blockReceipts(std::optional<EthBlockNumber> n) const {

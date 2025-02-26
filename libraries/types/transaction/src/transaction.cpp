@@ -49,11 +49,9 @@ Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val
 Transaction::Transaction(const bytes &_bytes, bool verify_strict) {
   dev::RLP rlp;
   try {
-    if (!cached_rlp_set_) {
-      cached_rlp_ = _bytes;
-      cached_rlp_set_ = true;
-    }
-    rlp = dev::RLP(_bytes);
+    cached_rlp_ = std::move(_bytes);
+    cached_rlp_set_ = true;
+    rlp = dev::RLP(cached_rlp_);
   } catch (const dev::RLPException &e) {
     // TODO[1881]: this should be removed when we will add typed transactions support
     std::string error_msg =
