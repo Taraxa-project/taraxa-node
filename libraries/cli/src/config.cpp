@@ -193,6 +193,7 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     node_config_.db_config.prune_state_db = cli_options_[PRUNE_STATE_DB].as<bool>();
     node_config_.db_config.rebuild_db_period = cli_options_[REBUILD_DB_PERIOD].as<uint64_t>();
     node_config_.db_config.migrate_only = cli_options_[MIGRATE_ONLY].as<bool>();
+    node_config_.db_config.migrate_receipts_by_period = cli_options_[MIGRATE_RECEIPTS_BY_PERIOD].as<bool>();
 
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
@@ -312,6 +313,8 @@ bpo::options_description Config::makeNodeOptions(const std::string& available_pl
   // migration related options
   node_command_options.add_options()(MIGRATE_ONLY, bpo::bool_switch()->default_value(false),
                                      "Only migrate DB, it will NOT run a node");
+  node_command_options.add_options()(MIGRATE_RECEIPTS_BY_PERIOD, bpo::bool_switch()->default_value(false),
+                                     "Apply migration to store receipts by period, not by hash");
   return node_command_options;
 }
 
