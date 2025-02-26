@@ -94,7 +94,7 @@ Json::Value enc_json(const SoleiroliaHardforkConfig& obj);
 void dec_json(const Json::Value& json, SoleiroliaHardforkConfig& obj);
 
 struct CactiHardforkConfig {
-  uint64_t block_num = -1;
+  uint64_t block_num = 0;
   uint32_t lambda_min = 500;             // [ms] - valid only for round 1
   uint32_t lambda_max = 1500;            // [ms] - valid only for round 1
   uint32_t lambda_default = 2000;        // [ms] - used in all rounds > 1
