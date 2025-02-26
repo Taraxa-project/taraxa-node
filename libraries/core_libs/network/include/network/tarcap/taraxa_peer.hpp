@@ -23,7 +23,7 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case dag block was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markDagBlockAsKnown(const blk_hash_t& hash);
+  void markDagBlockAsKnown(const blk_hash_t& hash);
   bool isDagBlockKnown(const blk_hash_t& hash) const;
 
   /**
@@ -33,7 +33,7 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case transaction was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markTransactionAsKnown(const trx_hash_t& hash);
+  void markTransactionAsKnown(const trx_hash_t& hash);
   bool isTransactionKnown(const trx_hash_t& hash) const;
 
   /**
@@ -42,7 +42,7 @@ class TaraxaPeer : public boost::noncopyable {
    * @param _hash
    * @return true in case vote was actually marked as known(was not known before), otherwise false (was already known)
    */
-  bool markPbftVoteAsKnown(const vote_hash_t& hash);
+  void markPbftVoteAsKnown(const vote_hash_t& hash);
   bool isPbftVoteKnown(const vote_hash_t& hash) const;
 
   /**
@@ -52,7 +52,7 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case pbft block was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markPbftBlockAsKnown(const blk_hash_t& hash);
+  void markPbftBlockAsKnown(const blk_hash_t& hash);
   bool isPbftBlockKnown(const blk_hash_t& hash) const;
 
   /**
@@ -62,7 +62,7 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case pillar vote was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markPillarVoteAsKnown(const vote_hash_t& hash);
+  void markPillarVoteAsKnown(const vote_hash_t& hash);
   bool isPillarVoteKnown(const vote_hash_t& hash) const;
 
   const dev::p2p::NodeID& getId() const;
@@ -111,6 +111,20 @@ class TaraxaPeer : public boost::noncopyable {
    */
   void resetKnownCaches();
 
+  /**
+   * @brief Set peer connections
+   *
+   * @param connections
+   */
+  void setConnections(std::vector<dev::p2p::NodeID>&& connections);
+
+  /**
+   * @brief Get peer connections
+   *
+   * @return peer connections
+   */
+  std::vector<dev::p2p::NodeID> getConnections() const;
+
  public:
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
@@ -148,6 +162,10 @@ class TaraxaPeer : public boost::noncopyable {
 
   // Packets stats for packets sent by *this TaraxaPeer
   PacketsStats sent_packets_stats_;
+
+  // known peer connections
+  mutable boost::shared_mutex connections_mutex_;
+  std::vector<dev::p2p::NodeID> connections_;
 };
 
 }  // namespace taraxa::network::tarcap

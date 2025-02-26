@@ -137,4 +137,16 @@ bool PeersState::is_peer_malicious(const dev::p2p::NodeID& peer_id) {
   return false;
 }
 
+void PeersState::markAsKnownForPeerAndConnections(
+    std::shared_ptr<TaraxaPeer> sender, const dev::FixedHash<32>& hash,
+    std::function<void(std::shared_ptr<TaraxaPeer>, const dev::FixedHash<32>&)> mark) {
+  mark(sender, hash);
+  auto connections = sender->getConnections();
+  for (const auto& peer_id : connections) {
+    if (auto peer = getPeer(peer_id); peer) {
+      mark(peer, hash);
+    }
+  }
+}
+
 }  // namespace taraxa::network::tarcap
