@@ -221,6 +221,7 @@ TEST_F(RPCTest, eth_getBlock) {
   auto node_cfg = make_node_cfgs(1, 1, 10);
   // Enable rewards distribution
   node_cfg[0].genesis.state.dpos.yield_percentage = 10;
+  node_cfg[0].genesis.state.hardforks.cacti_hf.block_num = -1;
   auto nodes = launch_nodes(node_cfg);
   net::rpc::eth::EthParams eth_rpc_params;
   eth_rpc_params.chain_id = node_cfg.front().genesis.chain_id;
