@@ -266,7 +266,7 @@ class EthImpl : public Eth, EthParams {
 
   Json::Value eth_getTransactionByBlockNumberAndIndex(const string& _blockNumber,
                                                       const string& _transactionIndex) override {
-    return toJson(get_transaction(jsToInt(_transactionIndex), parse_blk_num(_blockNumber)));
+    return toJson(get_transaction(parse_blk_num(_blockNumber), jsToInt(_transactionIndex)));
   }
 
   Json::Value eth_getTransactionReceipt(const string& _transactionHash) override {
@@ -387,7 +387,7 @@ class EthImpl : public Eth, EthParams {
     };
   }
 
-  optional<LocalisedTransaction> get_transaction(uint32_t trx_pos, EthBlockNumber blk_n) const {
+  optional<LocalisedTransaction> get_transaction(EthBlockNumber blk_n, uint32_t trx_pos) const {
     const auto& trxs = final_chain->transactions(blk_n);
     if (trxs.size() <= trx_pos) {
       return {};
@@ -403,7 +403,10 @@ class EthImpl : public Eth, EthParams {
 
   optional<LocalisedTransaction> get_transaction(const h256& blk_h, uint64_t _i) const {
     auto blk_n = final_chain->blockNumber(blk_h);
-    return blk_n ? get_transaction(_i, *blk_n) : nullopt;
+    if (!blk_n) {
+      return {};
+    }
+    return get_transaction(*blk_n, _i);
   }
 
   optional<LocalisedTransactionReceipt> get_transaction_receipt(const h256& trx_h) const {
@@ -415,7 +418,7 @@ class EthImpl : public Eth, EthParams {
     if (!r) {
       return {};
     }
-    auto loc_trx = get_transaction(trx_h);
+    auto loc_trx = get_transaction(location->period, location->position);
     const auto& trx = loc_trx->trx;
     return LocalisedTransactionReceipt{
         *r,

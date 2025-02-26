@@ -7,7 +7,6 @@ namespace taraxa::storage::migration {
 
 Manager::Manager(std::shared_ptr<DbStorage> db, const addr_t& node_addr) : db_(db) {
   registerMigration<FixSystemTrxLocation>();
-  registerMigration<TransactionReceiptsByPeriod>();
   LOG_OBJECTS_CREATE("MIGRATIONS");
 }
 
@@ -34,5 +33,7 @@ void Manager::applyAll() {
     applyMigration(m);
   }
 }
+
+void Manager::applyReceiptsByPeriod() { applyMigration(std::make_shared<TransactionReceiptsByPeriod>(db_)); }
 
 }  // namespace taraxa::storage::migration
