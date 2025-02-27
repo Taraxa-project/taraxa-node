@@ -59,10 +59,6 @@ Creates a new subscription for particular events. The node returns a subscriptio
 
 Fires a notification when new header is appended to the chain
 
-#### Params
-
-1. `BOOLEAN` - returns full data if true. Only hash otherwise. Default is false
-
 #### Example
 
 ```json

@@ -35,14 +35,11 @@ class Subscription {
 
 class HeadsSubscription : public Subscription {
  public:
-  explicit HeadsSubscription(int id, bool hash_only = false) : Subscription(id), full_data_(hash_only) {}
+  explicit HeadsSubscription(int id) : Subscription(id) {}
   static constexpr SubscriptionType type = SubscriptionType::HEADS;
 
   SubscriptionType getType() const override { return type; }
   std::string processPayload(Json::Value payload) const override;
-
- private:
-  bool full_data_ = false;
 };
 
 class DagBlocksSubscription : public Subscription {
