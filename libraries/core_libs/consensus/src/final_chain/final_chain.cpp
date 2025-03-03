@@ -266,7 +266,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   });
 
   // Please do not change order of these three lines :)
-  db_->commitWriteBatch(batch);
+  db_->commitWriteBatch(batch, db_->sync_write_);
   state_api_.transition_state_commit();
   rewards_.clear(new_blk.pbft_blk->getPeriod());
 

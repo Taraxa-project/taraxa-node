@@ -39,6 +39,8 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
       kDbSnapshotsMaxCount(db_max_snapshots) {
   db_path_ = (path / kDbDir);
   state_db_path_ = (path / kStateDbDir);
+  async_write_.sync = false;
+  sync_write_.sync = true;
 
   if (rebuild) {
     const std::string backup_label = "-rebuild-backup-";
@@ -266,7 +268,7 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
         it_dag_level->SeekToFirst();
 
         while (it_dag_level->Valid()) {
-          checkStatus(db->Put(write_options_, handle_dag_blocks_level, toSlice(it_dag_level->key()),
+          checkStatus(db->Put(async_write_, handle_dag_blocks_level, toSlice(it_dag_level->key()),
                               toSlice(it_dag_level->value())));
           it_dag_level->Next();
         }
@@ -614,8 +616,8 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
   auto start_slice = toSlice(start_period);
   auto end_slice = toSlice(end_period);
 
-  db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
-  db_->DeleteRange(write_options_, handle(Columns::pillar_block), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::period_data), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::pillar_block), start_slice, end_slice);
   db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
   db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
 
@@ -671,7 +673,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
   memcpy(&start_level, it->key().data(), sizeof(uint64_t));
   start_slice = toSlice(start_level);
   end_slice = toSlice(dag_level_to_keep - 1);
-  db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::dag_blocks_level), start_slice, end_slice);
   db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
   LOG(log_si_) << "Clear light node history completed";
 }

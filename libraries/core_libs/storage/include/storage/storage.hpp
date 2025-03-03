@@ -151,6 +151,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
 
+  rocksdb::WriteOptions async_write_;
+  rocksdb::WriteOptions sync_write_;
+
  private:
   fs::path path_;
   fs::path db_path_;
@@ -160,7 +163,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::unique_ptr<rocksdb::DB> db_;
   std::vector<rocksdb::ColumnFamilyHandle*> handles_;
   rocksdb::ReadOptions read_options_;
-  rocksdb::WriteOptions write_options_;
   std::mutex dag_blocks_mutex_;
   std::atomic<uint64_t> dag_blocks_count_;
   std::atomic<uint64_t> dag_edge_count_;
@@ -190,8 +192,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   auto dbStoragePath() const { return db_path_; }
   auto stateDbStoragePath() const { return state_db_path_; }
   static Batch createWriteBatch();
-  void commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts);
-  void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, write_options_); }
+  void commitWriteBatch(Batch& write_batch, const rocksdb::WriteOptions& opts);
+  void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, async_write_); }
 
   void rebuildColumns(const rocksdb::Options& options);
   bool createSnapshot(PbftPeriod period);
@@ -449,12 +451,12 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   template <typename K, typename V>
   void insert(rocksdb::ColumnFamilyHandle* col, const K& k, const V& v) {
-    checkStatus(db_->Put(write_options_, col, toSlice(k), toSlice(v)));
+    checkStatus(db_->Put(async_write_, col, toSlice(k), toSlice(v)));
   }
 
   template <typename K, typename V>
   void insert(Column const& col, K const& k, V const& v) {
-    checkStatus(db_->Put(write_options_, handle(col), toSlice(k), toSlice(v)));
+    checkStatus(db_->Put(async_write_, handle(col), toSlice(k), toSlice(v)));
   }
 
   template <typename K, typename V>
@@ -469,7 +471,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   template <typename K>
   void remove(Column const& col, K const& k) {
-    checkStatus(db_->Delete(write_options_, handle(col), toSlice(k)));
+    checkStatus(db_->Delete(async_write_, handle(col), toSlice(k)));
   }
 
   template <typename K>
