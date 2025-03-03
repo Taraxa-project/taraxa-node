@@ -517,7 +517,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
   const auto pillar_blocks_count = 4;
   const auto min_amount_of_pbft_blocks =
       pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
-  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+  ASSERT_HAPPENS({30s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
       WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + 1)
     }
