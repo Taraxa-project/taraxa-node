@@ -56,7 +56,6 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     # this libs are required for arm build by go part
     libzstd-dev \
     libsnappy-dev \
-    libgoogle-perftools4t64 \
     # replace this with conan dependency
     rapidjson-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -121,7 +120,14 @@ FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e4853
 
 # Install curl and jq
 RUN apt-get update \
-    && apt-get install -y curl jq python3 python3-pip python3-virtualenv \
+    && apt-get install -y \
+        curl \
+        jq \
+        python3 \
+        python3-pip \
+        python3-virtualenv \
+        libgoogle-perftools-dev \
+        libgoogle-perftools4t64 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages
