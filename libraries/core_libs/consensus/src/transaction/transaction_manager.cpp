@@ -382,16 +382,16 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
   const auto recently_finalized_transactions_periods =
       kRecentlyFinalizedTransactionsFactor * final_chain_->delegationDelay();
-  if (period_data.transactions.size() > 0) {
-    // Delete transactions older than recently_finalized_transactions_periods
-    if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
-      for (auto hash : recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod() -
-                                                                   recently_finalized_transactions_periods]) {
-        recently_finalized_transactions_.erase(hash);
-      }
-      recently_finalized_transactions_per_period_.erase(period_data.pbft_blk->getPeriod() -
-                                                        recently_finalized_transactions_periods);
+  // Delete transactions older than recently_finalized_transactions_periods
+  if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
+    for (auto hash : recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod() -
+                                                                  recently_finalized_transactions_periods]) {
+      recently_finalized_transactions_.erase(hash);
     }
+    recently_finalized_transactions_per_period_.erase(period_data.pbft_blk->getPeriod() -
+                                                      recently_finalized_transactions_periods);
+  }
+  if (period_data.transactions.size() > 0) {
     for (auto const &trx : period_data.transactions) {
       const auto hash = trx->getHash();
       recently_finalized_transactions_[hash] = trx;
