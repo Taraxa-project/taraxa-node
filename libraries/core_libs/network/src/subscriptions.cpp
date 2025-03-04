@@ -68,9 +68,6 @@ std::string makeEthSubscriptionResponse(int id, const Json::Value& payload) {
 }
 
 std::string HeadsSubscription::processPayload(Json::Value payload) const {
-  if (!full_data_) {
-    payload = payload["hash"];
-  }
   return makeEthSubscriptionResponse(id_, payload);
 }
 
