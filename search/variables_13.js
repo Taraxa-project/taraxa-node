@@ -73,7 +73,8 @@ var searchData=
   ['suspicious_5fpacket_5fcount_5f_70',['suspicious_packet_count_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2ed69c0f95a95ce97ea3d7d672add234',1,'taraxa::network::tarcap::TaraxaPeer']]],
   ['sync_5flevel_5fsize_71',['sync_level_size',['../structtaraxa_1_1_network_config.html#aacf1424b93ac3b5698fbf919a4f2e55c',1,'taraxa::NetworkConfig']]],
   ['sync_5fqueue_5f_72',['sync_queue_',['../group___p_b_f_t.html#a942ae3e34e9c8a7c18fd90382fd013fb',1,'taraxa::PbftManager']]],
-  ['syncing_5f_73',['syncing_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a81b321b8b08cea0c9b38ac19bac01cca',1,'taraxa::network::tarcap::TaraxaPeer']]],
-  ['syncing_5fduration_5fseconds_74',['syncing_duration_seconds',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aa1bb93a8d0030583f20abf73e6d7d4d3',1,'taraxa::network::tarcap::NodeStats']]],
-  ['syncing_5fprobe_75',['syncing_probe',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5746a05dad54b422b97235b6242f1a9d',1,'taraxa::net::rpc::eth::EthParams']]]
+  ['sync_5fwrite_5f_73',['sync_write_',['../classtaraxa_1_1_db_storage.html#a8f33f688bf7c18938c8a5874eeefff79',1,'taraxa::DbStorage']]],
+  ['syncing_5f_74',['syncing_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a81b321b8b08cea0c9b38ac19bac01cca',1,'taraxa::network::tarcap::TaraxaPeer']]],
+  ['syncing_5fduration_5fseconds_75',['syncing_duration_seconds',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aa1bb93a8d0030583f20abf73e6d7d4d3',1,'taraxa::network::tarcap::NodeStats']]],
+  ['syncing_5fprobe_76',['syncing_probe',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5746a05dad54b422b97235b6242f1a9d',1,'taraxa::net::rpc::eth::EthParams']]]
 ];

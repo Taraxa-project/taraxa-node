@@ -22,7 +22,7 @@ var classtaraxa_1_1_db_storage =
     [ "clearOwnVerifiedVotes", "classtaraxa_1_1_db_storage.html#a8b8f1e9fca6b1f825bc12945a384a7ed", null ],
     [ "clearPeriodDataHistory", "classtaraxa_1_1_db_storage.html#a6b6957e4c2d6e706975cc4fa1a7a9912", null ],
     [ "commitWriteBatch", "classtaraxa_1_1_db_storage.html#a88a606470708384489145d70b5e1c11b", null ],
-    [ "commitWriteBatch", "classtaraxa_1_1_db_storage.html#a18273694ac5bef0c063a72ca19408c00", null ],
+    [ "commitWriteBatch", "classtaraxa_1_1_db_storage.html#a4eb4cf3024ae9fa9f802fd56b382da6d", null ],
     [ "compactColumn", "classtaraxa_1_1_db_storage.html#a3bb8669c1a589bbe5b0690df0b1c1244", null ],
     [ "copyColumn", "classtaraxa_1_1_db_storage.html#ab1580acf1e5a153b8a0ce83e89ea6b61", null ],
     [ "createSnapshot", "classtaraxa_1_1_db_storage.html#a441528936e0ad6583242bad33e859523", null ],
@@ -149,6 +149,7 @@ var classtaraxa_1_1_db_storage =
     [ "transactionsInDb", "classtaraxa_1_1_db_storage.html#a5370e33d423e4cf63443a862a04c8867", null ],
     [ "updateDagBlockCounters", "classtaraxa_1_1_db_storage.html#ab87370e6ea832dbe8e9c1d7673b089dc", null ],
     [ "updateDbVersions", "classtaraxa_1_1_db_storage.html#ad462163041fc976cacd980b387071e06", null ],
+    [ "async_write_", "classtaraxa_1_1_db_storage.html#a1f94f7308652e2c2064cf9963e3424aa", null ],
     [ "dag_blocks_count_", "classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6", null ],
     [ "dag_blocks_mutex_", "classtaraxa_1_1_db_storage.html#a15486ac2fabf4c44484ca52c44bf667e", null ],
     [ "dag_edge_count_", "classtaraxa_1_1_db_storage.html#ac3ae348d98de4c56703b03a442d7b9f9", null ],
@@ -167,5 +168,5 @@ var classtaraxa_1_1_db_storage =
     [ "snapshots_", "classtaraxa_1_1_db_storage.html#a79f683cf51d266e66208086af806fa55", null ],
     [ "snapshots_enabled_", "classtaraxa_1_1_db_storage.html#a35667480664c002f235a9636f0e914d7", null ],
     [ "state_db_path_", "classtaraxa_1_1_db_storage.html#a5f93131f687e3a7bccc09f266ab6ae90", null ],
-    [ "write_options_", "classtaraxa_1_1_db_storage.html#a1fb2a90f436ce14038f1c4d5678adfa3", null ]
+    [ "sync_write_", "classtaraxa_1_1_db_storage.html#a8f33f688bf7c18938c8a5874eeefff79", null ]
 ];

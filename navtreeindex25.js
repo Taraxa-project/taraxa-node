@@ -1,5 +1,6 @@
 var NAVTREEINDEX25 =
 {
+"structtaraxa_1_1_genesis_config.html#aa088067d31f2e40d0c6efd5b0298520e":[16,0,3,36,8],
 "structtaraxa_1_1_genesis_config.html#ab48032aee1430428211bcc46162ccd36":[16,0,3,36,0],
 "structtaraxa_1_1_genesis_config.html#abe8b98e1a98bff338771033b064263ae":[16,0,3,36,2],
 "structtaraxa_1_1_genesis_config.html#ac586bc2433e83f4a1dbf59931203c739":[16,0,3,36,11],
@@ -248,6 +249,5 @@ var NAVTREEINDEX25 =
 "system__transaction_8cpp.html":[17,0,1,9,2,1,0],
 "system__transaction_8hpp.html":[17,0,1,9,2,0,0,0],
 "system__transaction_8hpp_source.html":[17,0,1,9,2,0,0,0],
-"taraxa-bootnode_2main_8cpp.html":[17,0,2,0,0],
-"taraxa-bootnode_2main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627":[17,0,2,0,0,0]
+"taraxa-bootnode_2main_8cpp.html":[17,0,2,0,0]
 };

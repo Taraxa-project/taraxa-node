@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"structdev_1_1_static_log2.html":[16,0,0,37],
 "structdev_1_1_static_log2_3_011_01_4.html":[16,0,0,38],
 "structdev_1_1_stream_out.html":[16,0,0,39],
 "structdev_1_1_stream_out.html#a4381e779a5ec57a947a78cf95de8d59e":[16,0,0,39,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "structdev_1_1p2p_1_1_pong.html#a526ca663b8db2fe3239415ff92aff0bd":[16,0,0,1,27,4],
 "structdev_1_1p2p_1_1_pong.html#a5cc55badc75f3e66efc0a43fe008c80b":[16,0,0,1,27,0],
 "structdev_1_1p2p_1_1_pong.html#a80d3e87bbdc604eb2974e3ae4fe45daa":[16,0,0,1,27,3],
-"structdev_1_1p2p_1_1_pong.html#aa17b104f5922b9da373816e83d21f352":[16,0,0,1,27,5],
-"structdev_1_1p2p_1_1_pong.html#ae5e11949b02c2c655c2f73d01ceffc0d":[16,0,0,1,27,6]
+"structdev_1_1p2p_1_1_pong.html#aa17b104f5922b9da373816e83d21f352":[16,0,0,1,27,5]
 };

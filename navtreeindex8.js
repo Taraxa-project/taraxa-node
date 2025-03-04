@@ -1,5 +1,6 @@
 var NAVTREEINDEX8 =
 {
+"classtaraxa_1_1net_1_1_eth_client.html#a0705a9082cd73f627a8042f7197144d7":[16,0,3,4,6,3],
 "classtaraxa_1_1net_1_1_eth_client.html#a094bfc323850065d415f79a7b16faf73":[16,0,3,4,6,30],
 "classtaraxa_1_1net_1_1_eth_client.html#a0a581dc17ddefc02e6802091df644944":[16,0,3,4,6,4],
 "classtaraxa_1_1net_1_1_eth_client.html#a19a8c679cebf7937e75af040c72920a0":[16,0,3,4,6,27],
@@ -171,10 +172,10 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#a5e509823886f8e7e8257b8a055528ade":[17,0,1,5,1,2,8,1,1],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#a5e509823886f8e7e8257b8a055528ade":[16,0,3,4,17,0,1],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#a7f6cec458a6dd88593305e6edf59e785":[16,0,3,4,17,1],
-"classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aa43810058fbe282f0e5cdf465fa06646":[17,0,1,5,1,2,8,1,2],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aa43810058fbe282f0e5cdf465fa06646":[16,0,3,4,17,0,2],
-"classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aaa3e76fccc149b228a74e00ff0cb36fe":[17,0,1,5,1,2,8,1,0],
+"classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aa43810058fbe282f0e5cdf465fa06646":[17,0,1,5,1,2,8,1,2],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aaa3e76fccc149b228a74e00ff0cb36fe":[16,0,3,4,17,0,0],
+"classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aaa3e76fccc149b228a74e00ff0cb36fe":[17,0,1,5,1,2,8,1,0],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#ab5a4f9be4b12752d81748688ecad5d00":[16,0,3,4,17,2],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aeefb0e299e072f2d0a458da755ccb5c8":[16,0,3,4,17,3],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#structtaraxa_1_1net_1_1_json_rpc_http_processor_1_1_error":[16,0,3,4,17,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1_subscriptions.html#af2ff07a37e993dbc573780d8fd4e8a4e":[16,0,3,4,27,5],
 "classtaraxa_1_1net_1_1_taraxa.html":[16,0,3,4,28],
 "classtaraxa_1_1net_1_1_taraxa.html#a2b43dc7e443c4eb2c6c6e390f04cba74":[16,0,3,4,28,11],
-"classtaraxa_1_1net_1_1_taraxa.html#a3dba65272713169e722deba2da5e7ee2":[16,0,3,4,28,12],
-"classtaraxa_1_1net_1_1_taraxa.html#a527aeb1708223067b08610c7a0afa587":[16,0,3,4,28,13]
+"classtaraxa_1_1net_1_1_taraxa.html#a3dba65272713169e722deba2da5e7ee2":[16,0,3,4,28,12]
 };

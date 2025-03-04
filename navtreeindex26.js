@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"taraxa-bootnode_2main_8cpp.html#a3c04138a5bfe5d72780bb7e82a18e627":[17,0,2,0,0,0],
 "taraxa_8hpp.html":[17,0,1,0,2,23],
 "taraxa_8hpp.html#a25b5ca94b7a8b6b832b6927d07418550":[17,0,1,0,2,23,3],
 "taraxa_8hpp.html#a750e597fd226fbb3629e2421f356adec":[17,0,1,0,2,23,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX26 =
 "watches_8cpp.html#ac9040ca03c7f88f06f846307da71d24d":[17,0,1,5,1,2,0,5,0],
 "watches_8hpp.html":[17,0,1,5,1,2,0,6],
 "watches_8hpp.html#a05439f49d2ef28843b9619e59f1bde4b":[17,0,1,5,1,2,0,6,7],
-"watches_8hpp.html#aabff23a169ec37c540ea054fab5a53c5":[17,0,1,5,1,2,0,6,9],
-"watches_8hpp.html#acff653f7fb7bee54990e7ef3d29a7d87":[17,0,1,5,1,2,0,6,6]
+"watches_8hpp.html#aabff23a169ec37c540ea054fab5a53c5":[17,0,1,5,1,2,0,6,9]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX12 =
 {
+"classtaraxa_1_1rewards_1_1_block_stats.html#a92560300a1e3d60f67d472ab067fcc52":[16,0,3,8,0,8],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a9c0222ab71a509f3997751698ba39f42":[16,0,3,8,0,14],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ab271d9e42fb445fa2e8fbefe85400869":[17,0,1,5,0,0,5,0,1,2],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ab271d9e42fb445fa2e8fbefe85400869":[16,0,3,8,0,0,2],
@@ -78,19 +79,19 @@ var NAVTREEINDEX12 =
 "classtaraxa_1_1util_1_1_thread_pool.html#a87570ba4ff9a520790576b15099286e3":[16,0,3,11,6,7],
 "classtaraxa_1_1util_1_1_thread_pool.html#a960cdd8cde13a606ce286af5816a91a1":[16,0,3,11,6,11],
 "classtaraxa_1_1util_1_1_thread_pool.html#a97bd0aeba43b2bb35aab77c6d92bd1f9":[16,0,3,11,6,19],
-"classtaraxa_1_1util_1_1_thread_pool.html#a9bb80625295e7f288f5c7daafe93e4e9":[17,0,1,3,0,0,11,1,0],
 "classtaraxa_1_1util_1_1_thread_pool.html#a9bb80625295e7f288f5c7daafe93e4e9":[16,0,3,11,6,0,0],
+"classtaraxa_1_1util_1_1_thread_pool.html#a9bb80625295e7f288f5c7daafe93e4e9":[17,0,1,3,0,0,11,1,0],
 "classtaraxa_1_1util_1_1_thread_pool.html#a9d5a057e8ea3c3f935df71ad622a71e2":[16,0,3,11,6,5],
 "classtaraxa_1_1util_1_1_thread_pool.html#a9e0179cef300c6ec068460703db2d069":[16,0,3,11,6,1],
 "classtaraxa_1_1util_1_1_thread_pool.html#aa0fd7bb44d69063913667aed6ac6bfd8":[16,0,3,11,6,21],
 "classtaraxa_1_1util_1_1_thread_pool.html#ab8cf191affab5fc7a1f04368e68b9f74":[16,0,3,11,6,14],
 "classtaraxa_1_1util_1_1_thread_pool.html#aca08dc3f14bc205e681e01003a23a6a7":[16,0,3,11,6,6],
-"classtaraxa_1_1util_1_1_thread_pool.html#ae86f735fc4ed90d3965864a4f3b11b95":[16,0,3,11,6,0,1],
 "classtaraxa_1_1util_1_1_thread_pool.html#ae86f735fc4ed90d3965864a4f3b11b95":[17,0,1,3,0,0,11,1,1],
+"classtaraxa_1_1util_1_1_thread_pool.html#ae86f735fc4ed90d3965864a4f3b11b95":[16,0,3,11,6,0,1],
 "classtaraxa_1_1util_1_1_thread_pool.html#af4cb24bda484de2b3ceeb5480da5590e":[16,0,3,11,6,13],
 "classtaraxa_1_1util_1_1_thread_pool.html#af9a538ba805c416624b2d634c81f04aa":[16,0,3,11,6,15],
-"classtaraxa_1_1util_1_1_thread_pool.html#structtaraxa_1_1util_1_1_thread_pool_1_1_periodicity":[16,0,3,11,6,0],
 "classtaraxa_1_1util_1_1_thread_pool.html#structtaraxa_1_1util_1_1_thread_pool_1_1_periodicity":[17,0,1,3,0,0,11,1],
+"classtaraxa_1_1util_1_1_thread_pool.html#structtaraxa_1_1util_1_1_thread_pool_1_1_periodicity":[16,0,3,11,6,0],
 "classtaraxa_1_1util_1_1event_1_1_event.html":[16,0,3,11,0,0],
 "classtaraxa_1_1util_1_1event_1_1_event.html#a469cd772a6e2826427f8b6e2af03f64f":[16,0,3,11,0,0,0],
 "classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html":[16,0,3,11,0,2,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX12 =
 "constants_8hpp.html#a2d2dbd306cf75267a8ecff658d013f66":[17,0,1,3,0,0,2,20],
 "constants_8hpp.html#a362de53960470ae77608995191b6d53d":[17,0,1,3,0,0,2,10],
 "constants_8hpp.html#a451b7fc195fe6bed9059d2e6cb358f27":[17,0,1,3,0,0,2,23],
-"constants_8hpp.html#a4bf745969073dd11f923013800d92e3b":[17,0,1,3,0,0,2,25],
-"constants_8hpp.html#a5c4386d0ef4241fe4d08d14e43fbd1f6":[17,0,1,3,0,0,2,13]
+"constants_8hpp.html#a4bf745969073dd11f923013800d92e3b":[17,0,1,3,0,0,2,25]
 };
