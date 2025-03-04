@@ -56,6 +56,7 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     # this libs are required for arm build by go part
     libzstd-dev \
     libsnappy-dev \
+    libgoogle-perftools4t64 \
     # replace this with conan dependency
     rapidjson-dev \
     && rm -rf /var/lib/apt/lists/*
