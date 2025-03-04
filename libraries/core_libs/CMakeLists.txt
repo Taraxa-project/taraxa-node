@@ -63,6 +63,10 @@ target_link_libraries(core_libs PUBLIC
   cppgraphqlgen::graphqljson
 )
 
+if(TCMALLOC_LIB)
+    target_link_libraries(core_libs INTERFACE ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
+endif()
+
 install(TARGETS core_libs
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
