@@ -113,9 +113,17 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
       return Json::Value(Json::arrayValue);
     }
 
-    return util::transformToJsonParallel(*trxs, [&final_chain, &block_hash, &period](const auto& trx, auto index) {
+    auto receipts = node->getDB()->getBlockReceipts(period);
+
+    return util::transformToJsonParallel(*trxs, [&final_chain, &block_hash, &period, &receipts](const auto& trx,
+                                                                                                auto index) {
       auto hash = trx->getHash();
-      auto r = final_chain->transactionReceipt(hash);
+      std::optional<TransactionReceipt> r;
+      if (receipts) {
+        r = receipts->at(index);
+      } else {
+        r = final_chain->transactionReceipt(hash);
+      }
       if (!r) {
         return Json::Value();
       }
