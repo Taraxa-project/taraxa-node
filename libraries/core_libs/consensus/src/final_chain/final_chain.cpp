@@ -243,7 +243,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   //// Commit system transactions
   if (!system_transactions.empty()) {
     db_->addPeriodSystemTransactions(batch, system_transactions, new_blk.pbft_blk->getPeriod());
-    auto position = new_blk.transactions.size();
+    auto position = new_blk.transactions.size() + 1;
     for (const auto& trx : system_transactions) {
       db_->addSystemTransactionToBatch(batch, trx);
       db_->addTransactionLocationToBatch(batch, trx->getHash(), new_blk.pbft_blk->getPeriod(), position,

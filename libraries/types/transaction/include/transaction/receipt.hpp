@@ -49,6 +49,13 @@ struct TransactionLocation {
     }
     return res;
   }
+
+  uint32_t getPosition() const {
+    if (is_system) {
+      return position - 1;
+    }
+    return position;
+  }
 };
 
 using SharedTransactionReceipts = std::shared_ptr<std::vector<TransactionReceipt>>;

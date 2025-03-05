@@ -159,7 +159,7 @@ struct FinalChainTest : WithDataDir {
       expected_block_log_bloom |= r.bloom();
       auto trx_loc = *SUT->transactionLocation(trx->getHash());
       EXPECT_EQ(trx_loc.period, blk_h.number);
-      EXPECT_EQ(trx_loc.position, i);
+      EXPECT_EQ(trx_loc.getPosition(), i);
     }
     EXPECT_EQ(blk_h.gas_used, cumulative_gas_used_actual);
     if (!receipts.empty()) {
