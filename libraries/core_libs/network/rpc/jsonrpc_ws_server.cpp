@@ -76,7 +76,7 @@ std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
 
   if (params.size() > 0) {
     if (params[0].asString() == "newHeads") {
-      subscriptions_.addSubscription(std::make_shared<HeadsSubscription>(subscription_id, options.asBool()));
+      subscriptions_.addSubscription(std::make_shared<HeadsSubscription>(subscription_id));
     } else if (params[0].asString() == "newPendingTransactions") {
       subscriptions_.addSubscription(std::make_shared<TransactionsSubscription>(subscription_id));
     } else if (params[0].asString() == "newDagBlocks") {
