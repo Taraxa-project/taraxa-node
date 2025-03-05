@@ -1,17 +1,12 @@
-#include <gtest/gtest.h>
-
-#include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
-#include "dag/dag_manager.hpp"
-#include "pbft/pbft_manager.hpp"
-#include "samples.hpp"
+#include "test_util.hpp"
 
 namespace taraxa::core_tests {
 
 struct NodeDagCreationFixture : NodesTest {
   uint64_t nonce = 1;
   uint64_t dummy_nonce = 0;
-  std::shared_ptr<FullNode> node;
+  std::shared_ptr<AppBase> node;
   dev::KeyPair dummy = dev::KeyPair::create();
   std::optional<addr_t> contract_addr;
 

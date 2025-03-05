@@ -68,7 +68,7 @@ inline void TransactionPacketHandler::process(TransactionPacket &&packet, const 
     }
   }
 
-  //Allow 30% bigger size to support old version, to be removed
+  // Allow 30% bigger size to support old version, to be removed
   if (data_size > kMaxTransactionsSizeInPacket * 1.3) {
     std::ostringstream err_msg;
     err_msg << "Transactions packet data size over limit " << data_size;
@@ -101,7 +101,7 @@ TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> p
       if (peer->isTransactionKnown(trx_hash)) {
         continue;
       }
-      
+
       if (trx_max_reached) {
         result.second.push_back(trx_hash);
         if (result.second.size() == kMaxHashesInPacket) {
@@ -110,7 +110,7 @@ TransactionPacketHandler::transactionsToSendToPeer(std::shared_ptr<TaraxaPeer> p
         }
       } else {
         trx_data_size += trx->getData().size();
-        if(trx_data_size <= kMaxTransactionsSizeInPacket) {
+        if (trx_data_size <= kMaxTransactionsSizeInPacket) {
           result.first.push_back(trx);
         }
         if (result.first.size() == kMaxTransactionsInPacket || trx_data_size > kMaxTransactionsSizeInPacket) {
