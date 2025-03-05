@@ -6,8 +6,10 @@
 #include <rocksdb/options.h>
 #include <rocksdb/utilities/write_batch_with_index.h>
 
-#include "storage/storage.hpp"
+#include <chrono>
 
+#include "common/thread_pool.hpp"
+#include "storage/storage.hpp"
 namespace taraxa::storage::migration {
 
 TransactionReceiptsByPeriod::TransactionReceiptsByPeriod(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
@@ -25,17 +27,27 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
   {
     auto target_it = db_->getColumnIterator(target_col);
     target_it->SeekToFirst();
-    if (!target_it->Valid()) {
-      return;
-    }
+
     uint64_t start_period;
-    memcpy(&start_period, target_it->key().data(), sizeof(uint64_t));
-    LOG(log) << "Migrating from period " << start_period;
-    // Start from the smallest migrated period
-    it->SeekForPrev(target_it->key());
+    if (!target_it->Valid()) {
+      it->SeekToLast();
+      if (!it->Valid()) {
+        LOG(log) << "No period data found";
+        return;
+      }
+      memcpy(&start_period, it->key().data(), sizeof(uint64_t));
+      LOG(log) << "Migrating from period " << start_period;
+    } else {
+      memcpy(&start_period, target_it->key().data(), sizeof(uint64_t));
+      LOG(log) << "Migrating from period " << start_period;
+      // Start from the smallest migrated period
+      it->SeekForPrev(target_it->key());
+      it->Prev();
+    }
   }
-  const size_t batch_size = 500000000;
+  // const size_t batch_size = 50 * 1024 * 1024;  // 50MB
   // Get and save data in new format for all blocks
+  util::ThreadPool pool(std::thread::hardware_concurrency());
   for (; it->Valid(); it->Prev()) {
     uint64_t period;
     memcpy(&period, it->key().data(), sizeof(uint64_t));
@@ -49,31 +61,34 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
     }
 
     bool commit = false;
-    dev::RLPStream receipts_rlp;
-    receipts_rlp.appendList(transactions.size());
+    std::vector<std::string> receipts(transactions.size());
     for (uint32_t i = 0; i < transactions.size(); ++i) {
-      auto hash = transactions[i]->getHash();
-      const auto& receipt_raw = db_->lookup(hash, orig_col);
-      if (receipt_raw.empty()) {
-        auto header_exists = db_->exist(period, DbStorage::Columns::final_chain_blk_by_number);
-        if (!header_exists) {
-          break;
+      pool.post([this, period, i, &orig_col, &transactions, &commit, &receipts]() {
+        auto hash = transactions[i]->getHash();
+        const auto& receipt_raw = db_->lookup(hash, orig_col);
+        if (receipt_raw.empty()) {
+          throw std::runtime_error("Transaction receipt not found for transaction " + hash.hex() + " in period " +
+                                   std::to_string(period) + " " + std::to_string(i));
         }
-        throw std::runtime_error("Transaction receipt not found for transaction " + hash.hex() + " in period " +
-                                 std::to_string(period) + " " + std::to_string(i));
-      }
-      commit = true;
-      receipts_rlp.appendRaw(receipt_raw);
+        commit = true;
+        receipts[i] = receipt_raw;
+      });
     }
 
+    while (pool.num_pending_tasks() > 0) {
+      std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+    }
     if (!commit) {
       break;
     }
-    db_->insert(batch_, target_col, period, receipts_rlp.invalidate());
-
-    if (batch_.GetDataSize() > batch_size) {
-      db_->commitWriteBatch(batch_);
+    dev::RLPStream receipts_rlp;
+    receipts_rlp.appendList(transactions.size());
+    for (uint32_t i = 0; i < transactions.size(); ++i) {
+      db_->remove(batch_, orig_col, transactions[i]->getHash());
+      receipts_rlp.appendRaw(receipts[i]);
     }
+
+    db_->insert(batch_, target_col, period, receipts_rlp.invalidate());
   }
   db_->commitWriteBatch(batch_);
   db_->compactColumn(target_col);

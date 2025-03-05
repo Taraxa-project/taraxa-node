@@ -115,13 +115,21 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
     }
 
     auto receipts = final_chain->blockReceipts(period);
-    return util::transformToJsonParallel(*trxs, [&receipts, &block_hash, &period](const auto& trx, auto index) {
+
+    return util::transformToJsonParallel(*trxs, [&final_chain, &receipts, &block_hash, &period](const auto& trx,
+                                                                                                auto index) {
       auto hash = trx->getHash();
 
       auto location = rpc::eth::ExtendedTransactionLocation{{TransactionLocation{period, index}, *block_hash}, hash};
       auto transaction = rpc::eth::LocalisedTransaction{trx, location};
-      auto receipt =
-          rpc::eth::LocalisedTransactionReceipt{receipts->at(index), location, trx->getSender(), trx->getReceiver()};
+      rpc::eth::LocalisedTransactionReceipt receipt;
+      if (!receipts) {
+        receipt = rpc::eth::LocalisedTransactionReceipt{final_chain->transactionReceipt(period, index).value(),
+                                                        location, trx->getSender(), trx->getReceiver()};
+      } else {
+        receipt =
+            rpc::eth::LocalisedTransactionReceipt{receipts->at(index), location, trx->getSender(), trx->getReceiver()};
+      }
 
       auto receipt_json = rpc::eth::toJson(receipt);
       receipt_json.removeMember("transactionHash");
