@@ -30,7 +30,7 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   void run();
   void newEthBlock(const ::taraxa::final_chain::BlockHeader& payload, const TransactionHashes& trx_hashes);
   void newLogs(const ::taraxa::final_chain::BlockHeader& payload, TransactionHashes trx_hashes,
-               const final_chain::TransactionReceipts& receipts);
+               const TransactionReceipts& receipts);
   void newDagBlock(const std::shared_ptr<DagBlock>& blk);
   void newDagBlockFinalized(const blk_hash_t& blk, uint64_t period);
   void newPbftBlockExecuted(const PbftBlock& blk, const std::vector<blk_hash_t>& finalized_dag_blk_hashes);

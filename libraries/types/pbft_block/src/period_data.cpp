@@ -27,8 +27,8 @@ PeriodData::PeriodData(const dev::RLP& rlp) {
   const auto block_bundle_rlp = *it++;
   dag_blocks = decodeDAGBlocksBundleRlp(block_bundle_rlp);
 
-  for (auto const trx_rlp : *it++) {
-    transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
+  for (auto&& trx_rlp : *it++) {
+    transactions.emplace_back(std::make_shared<Transaction>(std::move(trx_rlp)));
   }
 
   // Pillar votes are optional data of period data since ficus hardfork
