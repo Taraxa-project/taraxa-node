@@ -21,7 +21,7 @@ struct DBConfig {
 void dec_json(Json::Value const &json, DBConfig &db_config);
 
 struct FullNodeConfig {
-  static constexpr uint64_t kDefaultLightNodeHistoryDays = 7;
+  static constexpr uint64_t kDefaultLightNodeHistoryDays = 1;
 
   FullNodeConfig() = default;
   // The reason of using Json::Value as a union is that in the tests

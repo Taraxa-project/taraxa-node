@@ -288,9 +288,9 @@ void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
   bool period_over_history_condition = period_ > light_node_history;
 
   auto last_block_number = final_chain_->lastBlockNumber();
-  auto earliest_block_to_keep = last_block_number - light_node_history * 1.5;
-  auto should_clear_history = final_chain_->blockHeader(earliest_block_to_keep);
-  if (!should_clear_history) {
+  auto earliest_block_to_keep = uint64_t(last_block_number - light_node_history * 1.1);
+  auto block_exists = db_->exist(DbStorage::toSlice(earliest_block_to_keep), DbStorage::Columns::period_data);
+  if (!block_exists) {
     LOG(log_si_) << "Cleanup was done recently, skipping clearLightNodeHistory";
     return;
   }
@@ -312,7 +312,7 @@ void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
       dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
     }
 
-    db_->clearPeriodDataHistory(end, dag_level_to_keep);
+    db_->clearPeriodDataHistory(end, dag_level_to_keep, last_block_number);
   }
 }
 

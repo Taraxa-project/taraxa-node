@@ -67,6 +67,11 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
+  if (*proposal_period + kDagExpiryLevelLimit < final_chain_->lastBlockNumber()) {
+    LOG(log_wr_) << "Trying to propose old block " << propose_level;
+    return false;
+  }
+
   if (!isValidDposProposer(*proposal_period)) {
     return false;
   }
@@ -83,6 +88,11 @@ bool DagBlockProposer::proposeDagBlock() {
     max_vote_count = final_chain_->dposEligibleTotalVoteCount(*proposal_period);
   } else {
     max_vote_count = kValidatorMaxVote;
+  }
+
+  if (max_vote_count == 0) {
+    LOG(log_er_) << "Total vote count 0 at proposal period:" << *proposal_period;
+    return false;
   }
 
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
