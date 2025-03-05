@@ -21,10 +21,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     python3-pip \
     lsb-release \
-    libgmp-dev \
-    libmpfr-dev \
-    libmicrohttpd-dev \
-    libgoogle-perftools-dev \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
@@ -53,7 +49,11 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     binutils \
     cmake \
     ccache \
-    # this libs are required for arm build by go part
+    libgmp-dev \
+    libmpfr-dev \
+    libmicrohttpd-dev \
+    libgoogle-perftools-dev \
+    # these libs are required for arm build by go part
     libzstd-dev \
     libsnappy-dev \
     # replace this with conan dependency
@@ -126,7 +126,6 @@ RUN apt-get update \
         python3 \
         python3-pip \
         python3-virtualenv \
-        libgoogle-perftools-dev \
         libgoogle-perftools4t64 \
     && rm -rf /var/lib/apt/lists/*
 
