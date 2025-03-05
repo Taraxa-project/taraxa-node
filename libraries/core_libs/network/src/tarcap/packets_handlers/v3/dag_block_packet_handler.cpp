@@ -35,9 +35,9 @@ void DagBlockPacketHandler::process(const threadpool::PacketData &packet_data,
     const auto trx_count = packet_data.rlp_[0].itemCount();
     transactions.reserve(trx_count);
 
-    for (const auto tx_rlp : packet_data.rlp_[0]) {
+    for (auto &&tx_rlp : packet_data.rlp_[0]) {
       try {
-        auto trx = std::make_shared<Transaction>(tx_rlp);
+        auto trx = std::make_shared<Transaction>(std::move(tx_rlp));
         peer->markTransactionAsKnown(trx->getHash());
         transactions.emplace(trx->getHash(), std::move(trx));
       } catch (const Transaction::InvalidTransaction &e) {

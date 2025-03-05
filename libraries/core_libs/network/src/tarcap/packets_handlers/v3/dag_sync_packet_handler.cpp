@@ -57,9 +57,9 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
   transactions.reserve(trx_count);
   transactions_to_log.reserve(trx_count);
 
-  for (const auto tx_rlp : (*it++)) {
+  for (auto&& tx_rlp : (*it++)) {
     try {
-      auto trx = std::make_shared<Transaction>(tx_rlp);
+      auto trx = std::make_shared<Transaction>(std::move(tx_rlp));
       peer->markTransactionAsKnown(trx->getHash());
       transactions.emplace(trx->getHash(), std::move(trx));
     } catch (const Transaction::InvalidTransaction& e) {
