@@ -39,8 +39,9 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
   for (; it->Valid(); it->Prev()) {
     uint64_t period;
     memcpy(&period, it->key().data(), sizeof(uint64_t));
-    if (period % 10000 == 0) {
+    if (period % 100 == 0) {
       LOG(log) << "Migrating period " << period;
+      db_->commitWriteBatch(batch_);
     }
     const auto transactions = db_->transactionsFromPeriodDataRlp(period, dev::RLP(it->value().ToString()));
     if (transactions.empty()) {
