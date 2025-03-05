@@ -72,7 +72,7 @@ var searchData=
   ['head_5fhash_5f_69',['head_hash_',['../group___p_b_f_t.html#aaa81d91b429a66dfde206e07734d217f',1,'taraxa::PbftChain']]],
   ['header_70',['header',['../structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#ab412aa403cf692a2911f41c10ecf3d54',1,'dev::p2p::RLPXFrameInfo']]],
   ['heads_71',['HEADS',['../subscriptions_8hpp.html#ac4bb1f6dea914dce7c2649a3bd1c30a6a7eb87d1ebe8f12eb105d00464a1eb496',1,'subscriptions.hpp']]],
-  ['headssubscription_72',['headssubscription',['../classtaraxa_1_1net_1_1_heads_subscription.html',1,'taraxa::net::HeadsSubscription'],['../classtaraxa_1_1net_1_1_heads_subscription.html#a0ca5c21bc68c8b94741a0f440a4c50fa',1,'taraxa::net::HeadsSubscription::HeadsSubscription()']]],
+  ['headssubscription_72',['headssubscription',['../classtaraxa_1_1net_1_1_heads_subscription.html',1,'taraxa::net::HeadsSubscription'],['../classtaraxa_1_1net_1_1_heads_subscription.html#a94a99247feb96a78c93599984f847ad0',1,'taraxa::net::HeadsSubscription::HeadsSubscription()']]],
   ['heap_20or_20passed_20to_20another_20thread_73',['&lt;a name=&quot;valuecapture&quot;&gt;&lt;/a&gt; 16. Avoid capturing by reference in lambdas that will be used nonlocally, including returned, stored on the heap, or passed to another thread',['../md_doc_2coding__practices.html#autotoc_md131',1,'']]],
   ['height_5fto_5fsync_74',['height_to_sync',['../namespacetaraxa_1_1network_1_1tarcap.html#a406e1b77628fcfa0e7396fcc005b8785',1,'taraxa::network::tarcap::GetPbftSyncPacket']]],
   ['hellopacket_75',['HelloPacket',['../namespacedev_1_1p2p.html#adabfa58f948d1c67b5d7951e7c4d04e7ab20ea711706aab720b7e438030ef8ead',1,'dev::p2p']]],

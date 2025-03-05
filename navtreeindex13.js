@@ -1,6 +1,5 @@
 var NAVTREEINDEX13 =
 {
-"constants_8hpp.html#a5c4386d0ef4241fe4d08d14e43fbd1f6":[17,0,1,3,0,0,2,13],
 "constants_8hpp.html#a5f35695ecff612fd5ac591d1b019b18d":[17,0,1,3,0,0,2,21],
 "constants_8hpp.html#a7ecb57c956c8d0467fb9514f5e85c005":[17,0,1,3,0,0,2,18],
 "constants_8hpp.html#a80d7e0bedeecd255ab611e8054073fc5":[17,0,1,3,0,0,2,14],
@@ -234,8 +233,8 @@ var NAVTREEINDEX13 =
 "final__chain_8hpp.html":[17,0,1,5,0,0,1,2],
 "final__chain_8hpp_source.html":[17,0,1,5,0,0,1,2],
 "from_hex-example.html":[18,2],
-"functions.html":[16,3,0],
 "functions.html":[16,3,0,0],
+"functions.html":[16,3,0],
 "functions_a.html":[16,3,0,1],
 "functions_b.html":[16,3,0,2],
 "functions_c.html":[16,3,0,3],
@@ -249,5 +248,6 @@ var NAVTREEINDEX13 =
 "functions_func_b.html":[16,3,1,1],
 "functions_func_c.html":[16,3,1,2],
 "functions_func_d.html":[16,3,1,3],
-"functions_func_e.html":[16,3,1,4]
+"functions_func_e.html":[16,3,1,4],
+"functions_func_f.html":[16,3,1,5]
 };

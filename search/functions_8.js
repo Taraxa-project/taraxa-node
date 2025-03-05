@@ -29,7 +29,7 @@ var searchData=
   ['havecapability_26',['haveCapability',['../structdev_1_1p2p_1_1_host.html#a4b23feb69056b7a3c381f9e30d84a509',1,'dev::p2p::Host']]],
   ['havenode_27',['haveNode',['../classdev_1_1p2p_1_1_node_table.html#acdb299588ec7ad49cfa6e2e0f2cb776b',1,'dev::p2p::NodeTable']]],
   ['havepeersession_28',['havePeerSession',['../structdev_1_1p2p_1_1_host.html#a16903fc724197c3fcd2410f2d9f4e657',1,'dev::p2p::Host']]],
-  ['headssubscription_29',['HeadsSubscription',['../classtaraxa_1_1net_1_1_heads_subscription.html#a0ca5c21bc68c8b94741a0f440a4c50fa',1,'taraxa::net::HeadsSubscription']]],
+  ['headssubscription_29',['HeadsSubscription',['../classtaraxa_1_1net_1_1_heads_subscription.html#a94a99247feb96a78c93599984f847ad0',1,'taraxa::net::HeadsSubscription']]],
   ['hex_30',['hex',['../classdev_1_1_fixed_hash.html#a2778da28cbe084bc5b29551a203dd193',1,'dev::FixedHash']]],
   ['hexprefixencode_31',['hexPrefixEncode',['../namespacetaraxa_1_1final__chain.html#aa0b5a88e3d820936d80621999c99726c',1,'taraxa::final_chain']]],
   ['host_32',['Host',['../structdev_1_1p2p_1_1_host.html#a3a67cb085cf2787e50abbeb15dd35cc1',1,'dev::p2p::Host']]],

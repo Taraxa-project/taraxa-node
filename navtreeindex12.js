@@ -1,12 +1,11 @@
 var NAVTREEINDEX12 =
 {
-"classtaraxa_1_1rewards_1_1_block_stats.html#a92560300a1e3d60f67d472ab067fcc52":[16,0,3,8,0,8],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a9c0222ab71a509f3997751698ba39f42":[16,0,3,8,0,14],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ab271d9e42fb445fa2e8fbefe85400869":[17,0,1,5,0,0,5,0,1,2],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ab271d9e42fb445fa2e8fbefe85400869":[16,0,3,8,0,0,2],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ab67a44f047c05e976f1c03cc2c7c9658":[16,0,3,8,0,1],
-"classtaraxa_1_1rewards_1_1_block_stats.html#abdda4d9c87e9208098a0c1aa998cce7d":[17,0,1,5,0,0,5,0,1,1],
 "classtaraxa_1_1rewards_1_1_block_stats.html#abdda4d9c87e9208098a0c1aa998cce7d":[16,0,3,8,0,0,1],
+"classtaraxa_1_1rewards_1_1_block_stats.html#abdda4d9c87e9208098a0c1aa998cce7d":[17,0,1,5,0,0,5,0,1,1],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ac4d130ba560cdd09b2fa9b9e1200ba3c":[16,0,3,8,0,11],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ac8bffadafc8ea73e622b8294b62b3966":[16,0,3,8,0,7],
 "classtaraxa_1_1rewards_1_1_block_stats.html#adfccdf39c111e535045d44998a2860e7":[16,0,3,8,0,10],
@@ -249,5 +248,6 @@ var NAVTREEINDEX12 =
 "constants_8hpp.html#a2d2dbd306cf75267a8ecff658d013f66":[17,0,1,3,0,0,2,20],
 "constants_8hpp.html#a362de53960470ae77608995191b6d53d":[17,0,1,3,0,0,2,10],
 "constants_8hpp.html#a451b7fc195fe6bed9059d2e6cb358f27":[17,0,1,3,0,0,2,23],
-"constants_8hpp.html#a4bf745969073dd11f923013800d92e3b":[17,0,1,3,0,0,2,25]
+"constants_8hpp.html#a4bf745969073dd11f923013800d92e3b":[17,0,1,3,0,0,2,25],
+"constants_8hpp.html#a5c4386d0ef4241fe4d08d14e43fbd1f6":[17,0,1,3,0,0,2,13]
 };

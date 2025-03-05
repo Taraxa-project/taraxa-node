@@ -1,6 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"group___vote.html#a27d9ac060898710e4ebeed9257a66b72":[14,5,2,24],
 "group___vote.html#a2c0994bd60e2eaf3d0297510012458f9":[14,5,2,10],
 "group___vote.html#a2c0f754951467bbff1f946701422597e":[14,5,3,22],
 "group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246":[14,5,2,2],
@@ -249,5 +248,6 @@ var NAVTREEINDEX18 =
 "libdevcore_2_common_8h.html#aaa97a1758a3c6b1d62130b1ac494dd61":[17,0,1,0,0,5,4],
 "libdevcore_2_common_8h.html#aac981abb6c3e53f98af25c98a1965173":[17,0,1,0,0,5,28],
 "libdevcore_2_common_8h.html#ab457e5f6cc31fb60752381cdca22b4c4":[17,0,1,0,0,5,16],
-"libdevcore_2_common_8h.html#aba28f92dc104d0a2740ff60368fca356":[17,0,1,0,0,5,24]
+"libdevcore_2_common_8h.html#aba28f92dc104d0a2740ff60368fca356":[17,0,1,0,0,5,24],
+"libdevcore_2_common_8h.html#abf4bb6315355a8af74bebe1be5187095":[17,0,1,0,0,5,36]
 };

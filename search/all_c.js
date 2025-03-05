@@ -140,7 +140,7 @@ var searchData=
   ['another_20thread_137',['&lt;a name=&quot;valuecapture&quot;&gt;&lt;/a&gt; 16. Avoid capturing by reference in lambdas that will be used nonlocally, including returned, stored on the heap, or passed to another thread',['../md_doc_2coding__practices.html#autotoc_md131',1,'']]],
   ['any_138',['any',['../namespacedev.html#aad96800d822f47b289077fd0238ccda7a5f8083279470300313955812da77d90d',1,'dev']]],
   ['any_20default_20operation_20define_20or_20tt_20delete_20tt_20them_20all_139',['&lt;a name=&quot;ruleoffive&quot;&gt;&lt;/a&gt; 4. If you define or &lt;tt&gt;=delete&lt;/tt&gt; any default operation, define or &lt;tt&gt;=delete&lt;/tt&gt; them all',['../md_doc_2coding__practices.html#autotoc_md68',1,'']]],
-  ['api_140',['api',['../md_doc_2_r_p_c.html#autotoc_md369',1,'Debug API'],['../md_doc_2_r_p_c.html#autotoc_md341',1,'Test API']]],
+  ['api_140',['api',['../md_doc_2_r_p_c.html#autotoc_md368',1,'Debug API'],['../md_doc_2_r_p_c.html#autotoc_md340',1,'Test API']]],
   ['app_141',['app',['../classtaraxa_1_1_app.html',1,'taraxa::App'],['../classtaraxa_1_1_app.html#a339f275511a477719b3a0ed4c1f1e13c',1,'taraxa::App::App()'],['../classtaraxa_1_1_app.html#a20fa745fcc1398836ab9af93df77088c',1,'taraxa::App::App(const App &amp;)=delete'],['../classtaraxa_1_1_app.html#a95a00c1b4706fefdc41135c394dcd7db',1,'taraxa::App::App(App &amp;&amp;)=delete'],['../classtaraxa_1_1_plugin.html#afacff5d10fcf51ef8cd11e44fb417aef',1,'taraxa::Plugin::app()']]],
   ['app_2ecpp_142',['app.cpp',['../app_8cpp.html',1,'']]],
   ['app_2ehpp_143',['app.hpp',['../app_8hpp.html',1,'']]],

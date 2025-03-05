@@ -1,6 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a31b2b25b494ed5a73471dc15ee89f9dc":[16,0,3,4,0,0,12,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a32522f09586ef4d37903905423777f11":[16,0,3,4,0,0,12,12],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a34e8bbd553b786615a90655af1f80895":[16,0,3,4,0,0,12,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a43501ccf5c0b6a8aaabefe31173fe13e":[16,0,3,4,0,0,12,4],
@@ -249,5 +248,6 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a15b1d449b13b1e81aeb4a187d09b0f4e":[16,0,3,5,0,33,13],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a18a9939da7326c9c5f288c1e5935bd4e":[16,0,3,5,0,33,8],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1d83c18dcaae2cb7bc166664f2fd5240":[16,0,3,5,0,33,19],
-"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a2cc7bad03168b4c081ef691be5ebf817":[16,0,3,5,0,33,14]
+"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a2cc7bad03168b4c081ef691be5ebf817":[16,0,3,5,0,33,14],
+"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3c10363f0276200813c50a2b12d9a096":[16,0,3,5,0,33,22]
 };
