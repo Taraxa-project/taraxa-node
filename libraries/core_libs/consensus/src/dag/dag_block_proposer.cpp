@@ -67,7 +67,7 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
-  if(*proposal_period + kDagExpiryLevelLimit < final_chain_->lastBlockNumber()) {
+  if (*proposal_period + kDagExpiryLevelLimit < final_chain_->lastBlockNumber()) {
     LOG(log_wr_) << "Trying to propose old block " << propose_level;
     return false;
   }

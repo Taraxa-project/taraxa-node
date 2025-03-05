@@ -60,7 +60,7 @@ DbStorage::DbStorage(const fs::path& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_if_missing = true;
   options.compression = rocksdb::CompressionType::kLZ4Compression;
   // DON'T CHANGE THIS VALUE, IT WILL BREAK THE DB MEMORY USAGE
-  options.max_total_wal_size =  10 << 20; // 10MB
+  options.max_total_wal_size = 10 << 20;                          // 10MB
   options.db_write_buffer_size = size_t(2) * 1024 * 1024 * 1024;  // 2GB
   ///////////////////////////////////////////////
   // This option is related to memory consumption
@@ -640,7 +640,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     std::map<trx_hash_t, bytes> data_to_keep;
     for (auto t : to_keep) {
       auto raw = asBytes(lookup(t, c));
-      if(!raw.empty()) {
+      if (!raw.empty()) {
         data_to_keep[t] = raw;
       }
     }

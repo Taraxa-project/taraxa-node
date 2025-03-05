@@ -381,7 +381,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
   // Delete transactions older than recently_finalized_transactions_periods
   if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
     for (auto hash : recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod() -
-                                                                  recently_finalized_transactions_periods]) {
+                                                                 recently_finalized_transactions_periods]) {
       recently_finalized_transactions_.erase(hash);
     }
     recently_finalized_transactions_per_period_.erase(period_data.pbft_blk->getPeriod() -
