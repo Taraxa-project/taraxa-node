@@ -109,7 +109,7 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
     auto period = dev::jsToInt(_period);
     auto block_hash = final_chain->blockHash(period);
     auto trxs = node->getDB()->getPeriodTransactions(period);
-    if (!trxs.has_value()) {
+    if (!trxs.has_value() || trxs->empty()) {
       return Json::Value(Json::arrayValue);
     }
 

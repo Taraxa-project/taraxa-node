@@ -36,6 +36,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   explicit WsSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WsServer> ws_server)
       : ws_(std::move(socket)), write_strand_(boost::asio::make_strand(ws_.get_executor())) {
     LOG_OBJECTS_CREATE("WS_SESSION");
+    ws_.set_option(websocket::permessage_deflate{true, true});
     ws_server_ = ws_server;
   }
 
