@@ -6,6 +6,8 @@
 
 #include "common/types.hpp"
 #include "logger/logger.hpp"
+#include "request_stats.hpp"
+#include "config/network.hpp"
 
 namespace taraxa::net {
 
@@ -23,7 +25,7 @@ class HttpHandler;
 class HttpServer : public std::enable_shared_from_this<HttpServer> {
  public:
   HttpServer(boost::asio::io_context& io, boost::asio::ip::tcp::endpoint ep, const addr_t& node_addr,
-             const std::shared_ptr<HttpProcessor>& request_processor);
+             const std::shared_ptr<HttpProcessor>& request_processor, std::unordered_map<std::string, uint32_t> rpc_method_limits);
 
   virtual ~HttpServer() { HttpServer::stop(); }
 
@@ -39,6 +41,13 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
 
  protected:
   std::shared_ptr<HttpProcessor> request_processor_;
+  std::shared_ptr<RequestStats> stats_;
+  boost::asio::steady_timer stats_timer_;
+  std::unordered_map<std::string, uint32_t> rpc_method_limits_;
+  std::unordered_map<std::string, uint32_t> ip_blacklist_;
+
+  void startStatsLogging();
+  void logStats();
 
  private:
   std::atomic<bool> stopped_ = true;

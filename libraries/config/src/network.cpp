@@ -153,6 +153,11 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   for (const auto &item : json["boot_nodes"]) {
     network.boot_nodes.push_back(dec_json(item));
   }
+  for (const auto &item : json["rpc_method_limits"]) {
+    std::string method = item["method"].asString();
+    uint32_t count = item["count"].asInt();
+    network.rpc_method_limits[method] = count;
+  }
   auto listen_ip = boost::asio::ip::address::from_string(network.listen_ip);
   // Rpc config
   if (auto rpc_json = getConfigData(json, {"rpc"}, true); !rpc_json.isNull()) {

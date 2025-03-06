@@ -20,8 +20,21 @@ void WsSession::run() {
     res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
   }));
 
+  try {
+    http::read(ws_.next_layer(), buffer, request_);
+
+    LOG(log_si_) << "Received WebSocket Upgrade Request";
+    for (const auto& header : request_) {
+      LOG(log_si_) << header.name_string() << ": " << header.value();
+    }
+  }
+  catch(...) {
+    LOG(log_si_) << "Received WebSocket Upgrade Request: Exception";
+    return close();
+  }
+
   // Accept the websocket handshake
-  ws_.async_accept(beast::bind_front_handler(&WsSession::on_accept, shared_from_this()));
+  ws_.async_accept(request_, beast::bind_front_handler(&WsSession::on_accept, shared_from_this()));
 }
 
 void WsSession::on_accept(beast::error_code ec) {
@@ -70,7 +83,84 @@ void WsSession::processAsync() {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [this, request = std::move(request)]() mutable { writeAsync(processRequest(request)); });
+  boost::asio::post(executor, [this, request = std::move(request)]() mutable { 
+    auto ws_server = ws_server_.lock();
+
+    std::string ip = request_["X-Real-IP"];
+    try {
+      if(ip.empty()) {
+        auto endpoint = ws_.next_layer().socket().remote_endpoint();
+        ip = endpoint.address().to_string();
+      }
+      else {
+        ip = std::string("X-Real-IP:") + ip;
+      }
+      if(ws_server->ip_blacklist_.contains(ip)) {
+        const uint32_t blacklist_interval_seconds = 300;
+        if(ws_server->ip_blacklist_[ip] + blacklist_interval_seconds < time(nullptr)) {
+          ws_server->ip_blacklist_.erase(ip);
+        } else { 
+          LOG(log_er_) << "Connection closed - IP blacklisted " << ip;
+          return close(true);
+        }
+      }
+    }
+    catch(...) {
+      return;
+    }
+
+    auto start_time = std::chrono::steady_clock::now();
+    writeAsync(processRequest(request)); 
+    auto end_time = std::chrono::steady_clock::now();
+    auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    {
+      std::lock_guard<std::mutex> lock(ws_server->stats_->stats_mutex);
+      auto extractMethod = [](const std::string& jsonString) -> std::vector<std::string> {
+        std::vector<std::string> ret;
+        size_t start = 0;
+        std::string method_key = "\"method\":";
+        size_t method_pos = jsonString.find(method_key, start);
+        while(method_pos != std::string::npos) {        
+          start = method_pos + method_key.length();
+          while(start < jsonString.size() && (jsonString[start] == ' ' || jsonString[start] == '"')) {
+            start++;
+          }
+          size_t end = jsonString.find('"', start);
+          if (end != std::string::npos) {
+            ret.push_back(jsonString.substr(start, end - start));
+          }
+          method_pos = jsonString.find(method_key, start);
+        }
+        return ret;
+      };
+
+      // Method stats
+      auto methods = extractMethod(request);
+      for(auto method : methods) {
+        auto& method_stats = ws_server->stats_->requests_by_method[method];
+        method_stats.count++;
+        method_stats.total_time += (processing_time / methods.size());
+      }
+
+      try {
+        // IP stats
+        auto& ip_stats = ws_server->stats_->requests_by_ip[ip];  // Creates if not exists
+        for(auto method : methods) {
+          auto& method_stats = ip_stats[method];
+          method_stats.count++;
+          method_stats.total_time += (processing_time / methods.size());
+        }
+      }
+      catch(...) {
+        return;
+      }
+
+
+      // Overall stats
+      ws_server->stats_->total_processing_time += processing_time;
+      ws_server->stats_->total_requests++;
+    }
+  });
   LOG(log_tr_) << "After executor.post ";
 }
 
@@ -202,10 +292,14 @@ bool WsSession::is_normal(const beast::error_code &ec) const {
   return false;
 }
 
-WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
-    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)) {
+WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr, std::unordered_map<std::string, uint32_t> rpc_method_limits)
+    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)),
+      stats_(std::make_shared<RequestStats>()),
+    stats_timer_(ioc, std::chrono::minutes(1)), rpc_method_limits_(rpc_method_limits) {
   LOG_OBJECTS_CREATE("WS_SERVER");
   beast::error_code ec;
+  
+  startStatsLogging();
 
   // Open the acceptor
   acceptor_.open(endpoint.protocol(), ec);
@@ -249,6 +343,47 @@ WsServer::~WsServer() {
     if (!session->is_closed()) session->close();
   }
   sessions.clear();
+}
+
+void WsServer::startStatsLogging() {
+  stats_timer_.async_wait([this](boost::system::error_code const& ec) {
+    if (!ec) {
+      logStats();
+      stats_timer_.expires_after(std::chrono::minutes(1));
+      startStatsLogging();
+    } else {
+      LOG(log_er_) << "Stats timer error: " << ec.message();
+    }
+  });
+}
+
+void WsServer::logStats() {
+  std::lock_guard<std::mutex> lock(stats_->stats_mutex);
+  LOG(log_si_) << "Request Statistics (last minute):";
+  LOG(log_si_) << "  By IP:";
+  for (const auto& [ip, stats_ip] : stats_->requests_by_ip) {
+    for (const auto& [method, stats] : stats_ip) {
+      auto method_limit = rpc_method_limits_.find(method);
+      if(method_limit != rpc_method_limits_.end()) {
+        if(method_limit->second < stats.count) {
+          LOG(log_si_) << "Blacklisting: " << ip;
+          ip_blacklist_[ip] = time(nullptr);
+        }
+      }
+      LOG(log_si_) << "    " << ip << ": " << method << ": " << stats.count << " requests, Avg Time: " << stats.averageTimeMs() << " ms";
+    }
+  }
+  LOG(log_si_) << "  By Method:";
+  for (const auto& [method, stats] : stats_->requests_by_method) {
+    LOG(log_si_) << "    " << method << ": " << stats.count << " requests, Avg Time: " << stats.averageTimeMs() << " ms";
+  }
+  LOG(log_si_) << "  Overall Average Processing Time: " << stats_->averageProcessingTimeMs() << " ms";
+
+  // Reset stats for the next minute
+  stats_->requests_by_ip.clear();
+  stats_->requests_by_method.clear();
+  stats_->total_processing_time = std::chrono::microseconds{0};
+  stats_->total_requests = 0;
 }
 
 void WsServer::do_accept() {

@@ -21,6 +21,7 @@
 #include "final_chain/data.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pillar_chain/pillar_block.hpp"
+#include "request_stats.hpp"
 
 namespace taraxa::net {
 
@@ -60,6 +61,9 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void on_write(beast::error_code ec, std::size_t bytes_transferred);
   LOG_OBJECTS_DEFINE
 
+  websocket::request_type request_;
+  beast::flat_buffer buffer;
+    
  protected:
   void processAsync();
   void writeAsync(std::string&& message);
@@ -84,7 +88,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
 // Accepts incoming connections and launches the sessions
 class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
+  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr, std::unordered_map<std::string, uint32_t> rpc_method_limits);
   virtual ~WsServer();
 
   WsServer(const WsServer&) = delete;
@@ -107,6 +111,8 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   virtual bool StartListening() { return true; }
   virtual bool StopListening() { return true; }
 
+  friend WsSession;
+
  private:
   void do_accept();
   void on_accept(beast::error_code ec, tcp::socket socket);
@@ -119,6 +125,15 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
 
  protected:
   const addr_t node_addr_;
+
+  std::shared_ptr<RequestStats> stats_;
+  boost::asio::steady_timer stats_timer_;
+
+  void startStatsLogging();
+  void logStats();
+  
+  std::unordered_map<std::string, uint32_t> rpc_method_limits_;
+  std::unordered_map<std::string, uint32_t> ip_blacklist_;
 };
 
 }  // namespace taraxa::net
