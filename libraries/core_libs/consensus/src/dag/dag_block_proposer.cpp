@@ -105,7 +105,9 @@ bool DagBlockProposer::proposeDagBlock() {
                                   max_vote_count);
 
   auto anchor = dag_mgr_->getAnchors().second;
-  if (frontier.pivot != anchor) {
+  auto ghost_path = dag_mgr_->getGhostPath(anchor);
+  const uint32_t min_ghost_path = 5;
+  if (ghost_path.size() > min_ghost_path) {
     if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
       return false;
     }
