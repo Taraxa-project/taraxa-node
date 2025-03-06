@@ -117,6 +117,9 @@ class EthFace : public ServerInterface<EthFace> {
         &taraxa::net::EthFace::eth_estimateGasI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_chainId", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_chainIdI);
+    this->bindAndAddMethod(jsonrpc::Procedure("eth_getBlockReceipts", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
+                                              "param1", JSON_ANY, NULL),
+                           &taraxa::net::EthFace::eth_getBlockReceiptsI);
   }
 
   inline virtual void eth_protocolVersionI(const Json::Value &request, Json::Value &response) {
@@ -230,6 +233,9 @@ class EthFace : public ServerInterface<EthFace> {
     (void)request;
     response = this->eth_chainId();
   }
+  inline virtual void eth_getBlockReceiptsI(const Json::Value &request, Json::Value &response) {
+    response = this->eth_getBlockReceipts(request[0u]);
+  }
   virtual std::string eth_protocolVersion() = 0;
   virtual std::string eth_coinbase() = 0;
   virtual std::string eth_gasPrice() = 0;
@@ -265,6 +271,7 @@ class EthFace : public ServerInterface<EthFace> {
   virtual Json::Value eth_syncing() = 0;
   virtual std::string eth_estimateGas(const Json::Value &param1, const std::string &param2) = 0;
   virtual Json::Value eth_chainId() = 0;
+  virtual Json::Value eth_getBlockReceipts(const Json::Value &_blockNumber) = 0;
 };
 
 }  // namespace net
