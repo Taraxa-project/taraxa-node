@@ -229,7 +229,7 @@ void FullNode::start() {
       jsonrpc_http_ = std::make_shared<net::HttpServer>(
           rpc_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->http_port}, getAddress(),
-          json_rpc_processor);
+          json_rpc_processor, conf_.network.rpc_method_limits);
       jsonrpc_api_->addConnector(json_rpc_processor);
       jsonrpc_http_->start();
     }
@@ -296,7 +296,7 @@ void FullNode::start() {
           boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->http_port},
           getAddress(),
           std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, gas_pricer_,
-                                                      as_weak(network_), conf_.genesis.chain_id));
+                                                      as_weak(network_), conf_.genesis.chain_id), conf_.network.rpc_method_limits);
       graphql_http_->start();
     }
   }

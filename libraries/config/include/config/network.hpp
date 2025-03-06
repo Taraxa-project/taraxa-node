@@ -9,13 +9,13 @@
 
 namespace taraxa {
 
-struct PrometheusConfig {
-  std::string address;
-  uint16_t listen_port = 0;
-  uint16_t polling_interval_ms = 1000;
-};
-
-struct ConnectionConfig {
+  struct PrometheusConfig {
+    std::string address;
+    uint16_t listen_port = 0;
+    uint16_t polling_interval_ms = 1000;
+  };
+  
+  struct ConnectionConfig {
   std::optional<uint16_t> http_port;
   std::optional<uint16_t> ws_port;
   boost::asio::ip::address address;
@@ -32,6 +32,11 @@ struct NodeConfig {
   std::string id;
   std::string ip;
   uint16_t port = 0;
+};
+
+struct MethodLimitConfig {
+  std::string method_name;
+  uint32_t count;
 };
 
 struct DdosProtectionConfig {
@@ -82,6 +87,7 @@ struct NetworkConfig {
   uint16_t deep_syncing_threshold = 10;
   DdosProtectionConfig ddos_protection;
   std::unordered_set<dev::p2p::NodeID> trusted_nodes;
+  std::unordered_map<std::string, uint32_t> rpc_method_limits;
 
   std::optional<ConnectionConfig> rpc;
   std::optional<ConnectionConfig> graphql;

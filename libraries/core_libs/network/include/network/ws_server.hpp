@@ -21,6 +21,7 @@
 #include "final_chain/data.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pillar_chain/pillar_block.hpp"
+#include "request_stats.hpp"
 
 namespace taraxa::net {
 
@@ -107,6 +108,8 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   virtual bool StartListening() { return true; }
   virtual bool StopListening() { return true; }
 
+  friend WsSession;
+
  private:
   void do_accept();
   void on_accept(beast::error_code ec, tcp::socket socket);
@@ -119,6 +122,12 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
 
  protected:
   const addr_t node_addr_;
+
+  std::shared_ptr<RequestStats> stats_;
+  boost::asio::steady_timer stats_timer_;
+
+  void startStatsLogging();
+  void logStats();
 };
 
 }  // namespace taraxa::net
