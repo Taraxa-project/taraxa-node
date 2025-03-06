@@ -91,11 +91,13 @@ void WsSession::writeAsync(std::string &&message) {
 }
 
 void WsSession::writeImpl(std::string &&message) {
-  ws_.text(true);  // as we are using text msg here
+  if (closed_) return;
+
   try {
+    ws_.text(true);  // as we are using text msg here
     ws_.write(boost::asio::buffer(message));
   } catch (const boost::system::system_error &e) {
-    LOG(log_nf_) << "WS closed in on_write " << e.what();
+    // LOG(log_nf_) << "WS closed in on_write " << e.what();
     return close(is_normal(e.code()));
   }
   LOG(log_tr_) << "WS WRITE COMPLETE " << &ws_;
