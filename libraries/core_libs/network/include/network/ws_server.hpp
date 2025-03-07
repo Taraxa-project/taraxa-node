@@ -16,12 +16,12 @@
 #include <thread>
 #include <vector>
 
-#include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "final_chain/data.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pillar_chain/pillar_block.hpp"
+#include "request_stats.hpp"
 
 namespace taraxa::net {
 
@@ -85,8 +85,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
 // Accepts incoming connections and launches the sessions
 class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WsServer(std::shared_ptr<util::ThreadPool> thread_pool, tcp::endpoint endpoint, addr_t node_addr,
-           uint32_t max_pending_tasks);
+  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
   virtual ~WsServer();
 
   WsServer(const WsServer&) = delete;
@@ -103,13 +102,13 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   void newPendingTransaction(const trx_hash_t& trx_hash);
   void newPillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
   uint32_t numberOfSessions();
-  uint32_t numberOfPendingTasks() const;
-  bool pendingTasksOverLimit() const { return numberOfPendingTasks() > kMaxPendingTasks; }
 
   virtual std::shared_ptr<WsSession> createSession(tcp::socket&& socket) = 0;
 
   virtual bool StartListening() { return true; }
   virtual bool StopListening() { return true; }
+
+  friend WsSession;
 
  private:
   void do_accept();
@@ -122,9 +121,13 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   boost::shared_mutex sessions_mtx_;
 
  protected:
-  std::weak_ptr<util::ThreadPool> thread_pool_;
-  uint32_t kMaxPendingTasks;
   const addr_t node_addr_;
+
+  std::shared_ptr<RequestStats> stats_;
+  boost::asio::steady_timer stats_timer_;
+
+  void startStatsLogging();
+  void logStats();
 };
 
 }  // namespace taraxa::net

@@ -49,13 +49,8 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     return close(is_normal(ec));
   }
 
-  auto ws_server = ws_server_.lock();
-  if (ws_server && ws_server->pendingTasksOverLimit()) {
-    LOG(log_er_) << "WS closed - pending tasks over the limit " << ws_server->numberOfPendingTasks();
-    return close(true);
-  }
-
   LOG(log_tr_) << "WS READ " << (static_cast<char *>(read_buffer_.data().data()));
+
   processAsync();
   // Do another read
   do_read();
@@ -75,7 +70,62 @@ void WsSession::processAsync() {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [this, request = std::move(request)]() mutable { writeAsync(processRequest(request)); });
+  boost::asio::post(executor, [this, request = std::move(request)]() mutable { 
+    auto ws_server = ws_server_.lock();
+    auto start_time = std::chrono::steady_clock::now();
+    writeAsync(processRequest(request)); 
+    auto end_time = std::chrono::steady_clock::now();
+    auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    {
+      std::lock_guard<std::mutex> lock(ws_server->stats_->stats_mutex);
+      auto extractMethod = [](const std::string& jsonString) -> std::vector<std::string> {
+        std::vector<std::string> ret;
+        size_t start = 0;
+        std::string method_key = "\"method\":";
+        size_t method_pos = jsonString.find(method_key, start);
+        while(method_pos != std::string::npos) {        
+          start = method_pos + method_key.length();
+          while(start < jsonString.size() && (jsonString[start] == ' ' || jsonString[start] == '"')) {
+            start++;
+          }
+          size_t end = jsonString.find('"', start);
+          if (end != std::string::npos) {
+            ret.push_back(jsonString.substr(start, end - start));
+          }
+          method_pos = jsonString.find(method_key, start);
+        }
+        return ret;
+      };
+
+      // Method stats
+      auto methods = extractMethod(request);
+      for(auto method : methods) {
+        auto& method_stats = ws_server->stats_->requests_by_method[method];
+        method_stats.count++;
+        method_stats.total_time += (processing_time / methods.size());
+      }
+
+      try {
+        // IP stats
+        auto endpoint = ws_.next_layer().socket().remote_endpoint();
+        std::string ip = endpoint.address().to_string();
+        auto& ip_stats = ws_server->stats_->requests_by_ip[ip];  // Creates if not exists
+        for(auto method : methods) {
+          auto& method_stats = ip_stats[method];
+          method_stats.count++;
+          method_stats.total_time += (processing_time / methods.size());
+        }
+      }
+      catch(...) {
+        LOG(log_dg_) << "remote_endpoint exception";
+      }
+
+
+      // Overall stats
+      ws_server->stats_->total_processing_time += processing_time;
+      ws_server->stats_->total_requests++;
+    }
+  });
   LOG(log_tr_) << "After executor.post ";
 }
 
@@ -96,11 +146,13 @@ void WsSession::writeAsync(std::string &&message) {
 }
 
 void WsSession::writeImpl(std::string &&message) {
-  ws_.text(true);  // as we are using text msg here
+  if (closed_) return;
+
   try {
+    ws_.text(true);  // as we are using text msg here
     ws_.write(boost::asio::buffer(message));
   } catch (const boost::system::system_error &e) {
-    LOG(log_nf_) << "WS closed in on_write " << e.what();
+    // LOG(log_nf_) << "WS closed in on_write " << e.what();
     return close(is_normal(e.code()));
   }
   LOG(log_tr_) << "WS WRITE COMPLETE " << &ws_;
@@ -207,15 +259,14 @@ bool WsSession::is_normal(const beast::error_code &ec) const {
   return false;
 }
 
-WsServer::WsServer(std::shared_ptr<util::ThreadPool> thread_pool, tcp::endpoint endpoint, addr_t node_addr,
-                   uint32_t max_pending_tasks)
-    : ioc_(thread_pool->unsafe_get_io_context()),
-      acceptor_(thread_pool->unsafe_get_io_context()),
-      thread_pool_(thread_pool),
-      kMaxPendingTasks(max_pending_tasks),
-      node_addr_(std::move(node_addr)) {
+WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
+    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)),
+      stats_(std::make_shared<RequestStats>()),
+    stats_timer_(ioc, std::chrono::minutes(1)) {
   LOG_OBJECTS_CREATE("WS_SERVER");
   beast::error_code ec;
+  
+  startStatsLogging();
 
   // Open the acceptor
   acceptor_.open(endpoint.protocol(), ec);
@@ -259,6 +310,40 @@ WsServer::~WsServer() {
     if (!session->is_closed()) session->close();
   }
   sessions.clear();
+}
+
+void WsServer::startStatsLogging() {
+  stats_timer_.async_wait([this](boost::system::error_code const& ec) {
+    if (!ec) {
+      logStats();
+      stats_timer_.expires_after(std::chrono::minutes(1));
+      startStatsLogging();
+    } else {
+      LOG(log_er_) << "Stats timer error: " << ec.message();
+    }
+  });
+}
+
+void WsServer::logStats() {
+  std::lock_guard<std::mutex> lock(stats_->stats_mutex);
+  LOG(log_si_) << "Request Statistics (last minute):";
+  LOG(log_si_) << "  By IP:";
+  for (const auto& [ip, stats_ip] : stats_->requests_by_ip) {
+    for (const auto& [method, stats] : stats_ip) {
+      LOG(log_si_) << "    " << ip << ": " << method << ": " << stats.count << " requests, Avg Time: " << stats.averageTimeMs() << " ms";
+    }
+  }
+  LOG(log_si_) << "  By Method:";
+  for (const auto& [method, stats] : stats_->requests_by_method) {
+    LOG(log_si_) << "    " << method << ": " << stats.count << " requests, Avg Time: " << stats.averageTimeMs() << " ms";
+  }
+  LOG(log_si_) << "  Overall Average Processing Time: " << stats_->averageProcessingTimeMs() << " ms";
+
+  // Reset stats for the next minute
+  stats_->requests_by_ip.clear();
+  stats_->requests_by_method.clear();
+  stats_->total_processing_time = std::chrono::microseconds{0};
+  stats_->total_requests = 0;
 }
 
 void WsServer::do_accept() {
@@ -339,14 +424,6 @@ void WsServer::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_bl
 uint32_t WsServer::numberOfSessions() {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   return sessions.size();
-}
-
-uint32_t WsServer::numberOfPendingTasks() const {
-  auto thread_pool = thread_pool_.lock();
-  if (thread_pool) {
-    return thread_pool->num_pending_tasks();
-  }
-  return 0;
 }
 
 }  // namespace taraxa::net
