@@ -675,7 +675,10 @@ std::vector<EthBlockNumber> FinalChain::withBlockBloom(const LogBloom& b, EthBlo
       if (level > 0) {
         dev::operator+=(ret, withBlockBloom(b, from, to, level - 1, o + index * c_bloomIndexSize));
       } else {
-        ret.push_back(o + index * c_bloomIndexSize);
+        EthBlockNumber blockNumber = o + index * c_bloomIndexSize;
+        if (blockNumber >= from && blockNumber <= to) {
+          ret.push_back(blockNumber);
+        }
       }
     }
   }
