@@ -33,11 +33,6 @@ void dec_json(const Json::Value &json, ConnectionConfig &config) {
     config.ws_port = ws_port.asUInt();
   }
 
-  // max pending tasks
-  if (auto max_pending_tasks = getConfigData(json, {"max_pending_tasks"}, true); !max_pending_tasks.isNull()) {
-    config.max_pending_tasks = max_pending_tasks.asUInt();
-  }
-
   // number of threads processing rpc calls
   if (auto threads_num = getConfigData(json, {"threads_num"}, true); !threads_num.isNull()) {
     config.threads_num = threads_num.asUInt();
@@ -157,6 +152,11 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
 
   for (const auto &item : json["boot_nodes"]) {
     network.boot_nodes.push_back(dec_json(item));
+  }
+  for (const auto &item : json["rpc_method_limits"]) {
+    std::string method = item["method"].asString();
+    uint32_t count = item["count"].asInt();
+    network.rpc_method_limits[method] = count;
   }
   auto listen_ip = boost::asio::ip::address::from_string(network.listen_ip);
   // Rpc config
