@@ -70,7 +70,7 @@ void WsSession::processAsync() {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [this, request = std::move(request)]() mutable { writeAsync(processRequest(request)); });
+  boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable { self->writeAsync(self->processRequest(request)); });
   LOG(log_tr_) << "After executor.post ";
 }
 
@@ -86,8 +86,8 @@ void WsSession::writeAsync(std::string &&message) {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(write_strand_, [this, message = std::move(message)]() mutable { writeImpl(std::move(message)); });
-  LOG(log_tr_) << "After executors.post ";
+  boost::asio::post(executor, [self = shared_from_this(), message = std::move(message)]() mutable { self->writeImpl(std::move(message)); });
+  LOG(log_tr_) << "After executor.post ";
 }
 
 void WsSession::writeImpl(std::string &&message) {
