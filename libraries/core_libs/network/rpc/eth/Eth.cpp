@@ -266,11 +266,11 @@ class EthImpl : public Eth, EthParams {
     auto blk_n = get_block_number_from_json(_blockNumber);
     auto block_hash = final_chain->blockHash(blk_n);
     if (!block_hash) {
-      return {};
+      return Json::Value(Json::arrayValue);
     }
     auto transactions = final_chain->transactions(blk_n);
     if (transactions.empty()) {
-      return {};
+      return Json::Value(Json::arrayValue);
     }
 
     auto receipts = final_chain->blockReceipts(blk_n);
