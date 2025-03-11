@@ -1,6 +1,7 @@
 
 #include "transaction/transaction.hpp"
 
+#include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
 #include <algorithm>
@@ -45,10 +46,12 @@ Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val
   getSender();
 }
 
-Transaction::Transaction(const bytes &_bytes, bool verify_strict, const h256 &hash) {
+Transaction::Transaction(const bytes &_bytes, bool verify_strict) {
   dev::RLP rlp;
   try {
-    rlp = dev::RLP(_bytes);
+    cached_rlp_ = std::move(_bytes);
+    cached_rlp_set_ = true;
+    rlp = dev::RLP(cached_rlp_);
   } catch (const dev::RLPException &e) {
     // TODO[1881]: this should be removed when we will add typed transactions support
     std::string error_msg =
@@ -58,17 +61,16 @@ Transaction::Transaction(const bytes &_bytes, bool verify_strict, const h256 &ha
     BOOST_THROW_EXCEPTION(RLPException() << errinfo_comment(error_msg));
   }
 
-  fromRLP(rlp, verify_strict, hash);
+  fromRLP(rlp, verify_strict);
 }
 
-Transaction::Transaction(const dev::RLP &_rlp, bool verify_strict, const h256 &hash) {
-  fromRLP(_rlp, verify_strict, hash);
+Transaction::Transaction(dev::RLP &&_rlp, bool verify_strict) {
+  cached_rlp_ = _rlp.data().toBytes();
+  cached_rlp_set_ = true;
+  fromRLP(_rlp, verify_strict);
 }
 
-void Transaction::fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash) {
-  hash_ = hash;
-  hash_initialized_ = !hash.isZero();
-
+void Transaction::fromRLP(const dev::RLP &_rlp, bool verify_strict) {
   u256 v, r, s;
   util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_, v, r,
                   s);
@@ -91,26 +93,22 @@ void Transaction::fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &
 }
 
 const trx_hash_t &Transaction::getHash() const {
-  if (!hash_initialized_.load()) {
-    std::unique_lock l(hash_mu_);
-    if (!hash_initialized_.load()) {
-      hash_ = dev::sha3(rlp());
-      hash_initialized_ = true;
-    }
+  std::unique_lock l(hash_mu_);
+  if (!hash_initialized_) {
+    hash_ = dev::sha3(rlp());
+    hash_initialized_ = true;
   }
   return hash_;
 }
 
 const addr_t &Transaction::get_sender_() const {
-  if (!sender_initialized_.load()) {
-    std::unique_lock l(sender_mu_);
-    if (!sender_initialized_.load()) {
-      if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
-        sender_ = toAddress(pubkey);
-        sender_valid_ = true;
-      }
-      sender_initialized_ = true;
+  std::unique_lock l(sender_mu_);
+  if (!sender_initialized_) {
+    if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
+      sender_ = toAddress(pubkey);
+      sender_valid_ = true;
     }
+    sender_initialized_ = true;
   }
   return sender_;
 }
@@ -140,14 +138,12 @@ void Transaction::streamRLP(dev::RLPStream &s, bool for_signature) const {
 }
 
 const bytes &Transaction::rlp() const {
-  if (!cached_rlp_set_.load()) {
-    std::unique_lock l(cached_rlp_mu_);
-    if (!cached_rlp_set_.load()) {
-      dev::RLPStream s;
-      streamRLP(s, false);
-      cached_rlp_ = s.invalidate();
-      cached_rlp_set_ = true;
-    }
+  std::unique_lock l(cached_rlp_mu_);
+  if (!cached_rlp_set_) {
+    dev::RLPStream s;
+    streamRLP(s, false);
+    cached_rlp_ = s.invalidate();
+    cached_rlp_set_ = true;
   }
   return cached_rlp_;
 }
@@ -175,7 +171,7 @@ Json::Value Transaction::toJSON() const {
   return res;
 }
 
-void Transaction::rlp(::taraxa::util::RLPDecoderRef encoding) { fromRLP(encoding.value, false, {}); }
+void Transaction::rlp(::taraxa::util::RLPDecoderRef encoding) { fromRLP(encoding.value, false); }
 
 void Transaction::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
 

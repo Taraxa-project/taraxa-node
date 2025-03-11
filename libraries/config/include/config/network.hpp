@@ -21,9 +21,7 @@ struct ConnectionConfig {
   boost::asio::ip::address address;
 
   // Number of threads dedicated to the rpc calls processing, default = 5
-  uint16_t threads_num{5};
-
-  uint32_t max_pending_tasks{100};
+  uint16_t threads_num{2};
 
   void validate() const;
 };

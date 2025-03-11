@@ -1,5 +1,7 @@
 #include "storage/storage.hpp"
 
+#include <libdevcore/RLP.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <cstddef>
@@ -7,6 +9,7 @@
 #include <memory>
 #include <regex>
 
+#include "common/thread_pool.hpp"
 #include "config/version.hpp"
 #include "dag/dag_block_bundle_rlp.hpp"
 #include "dag/sortition_params_manager.hpp"
@@ -14,6 +17,7 @@
 #include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/problematic_trx.hpp"
+#include "transaction/receipt.hpp"
 #include "transaction/system_transaction.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -36,6 +40,8 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
       kDbSnapshotsMaxCount(db_max_snapshots) {
   db_path_ = (path / kDbDir);
   state_db_path_ = (path / kStateDbDir);
+  async_write_.sync = false;
+  sync_write_.sync = true;
 
   if (rebuild) {
     const std::string backup_label = "-rebuild-backup-";
@@ -59,13 +65,14 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_if_missing = true;
   options.compression = rocksdb::CompressionType::kLZ4Compression;
   // DON'T CHANGE THIS VALUE, IT WILL BREAK THE DB MEMORY USAGE
-  options.max_total_wal_size =  10 << 20; // 10MB
+  options.max_total_wal_size = 10 << 20;                          // 10MB
   options.db_write_buffer_size = size_t(2) * 1024 * 1024 * 1024;  // 2GB
   ///////////////////////////////////////////////
   // This option is related to memory consumption
   // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
   // aleth default 256 (state_db is using another 128)
   options.max_open_files = (max_open_files) ? max_open_files : 256;
+  options.max_total_wal_size = 1024 * 1024 * 1024;
 
   std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
   descriptors.reserve(Columns::all.size());
@@ -263,7 +270,7 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
         it_dag_level->SeekToFirst();
 
         while (it_dag_level->Valid()) {
-          checkStatus(db->Put(write_options_, handle_dag_blocks_level, toSlice(it_dag_level->key()),
+          checkStatus(db->Put(async_write_, handle_dag_blocks_level, toSlice(it_dag_level->key()),
                               toSlice(it_dag_level->value())));
           it_dag_level->Next();
         }
@@ -611,10 +618,12 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
   auto start_slice = toSlice(start_period);
   auto end_slice = toSlice(end_period);
 
-  db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
-  db_->DeleteRange(write_options_, handle(Columns::pillar_block), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::period_data), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::pillar_block), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::final_chain_receipt_by_period), start_slice, end_slice);
   db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
   db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
+  db_->CompactRange({}, handle(Columns::final_chain_receipt_by_period), &start_slice, &end_slice);
 
   std::unordered_set<trx_hash_t> trxs;
   std::unordered_set<blk_hash_t> dag_blocks;
@@ -639,7 +648,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     std::map<trx_hash_t, bytes> data_to_keep;
     for (auto t : to_keep) {
       auto raw = asBytes(lookup(t, c));
-      if(!raw.empty()) {
+      if (!raw.empty()) {
         data_to_keep[t] = raw;
       }
     }
@@ -668,7 +677,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
   memcpy(&start_level, it->key().data(), sizeof(uint64_t));
   start_slice = toSlice(start_level);
   end_slice = toSlice(dag_level_to_keep - 1);
-  db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::dag_blocks_level), start_slice, end_slice);
   db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
   LOG(log_si_) << "Clear light node history completed";
 }
@@ -770,18 +779,10 @@ void DbStorage::addTransactionLocationToBatch(Batch& write_batch, trx_hash_t con
   insert(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()), toSlice(s.invalidate()));
 }
 
-std::optional<final_chain::TransactionLocation> DbStorage::getTransactionLocation(trx_hash_t const& hash) const {
+std::optional<TransactionLocation> DbStorage::getTransactionLocation(trx_hash_t const& hash) const {
   auto data = lookup(toSlice(hash.asBytes()), Columns::trx_period);
   if (!data.empty()) {
-    final_chain::TransactionLocation res;
-    dev::RLP const rlp(data);
-    auto it = rlp.begin();
-    res.period = (*it++).toInt<PbftPeriod>();
-    res.position = (*it++).toInt<uint32_t>();
-    if (rlp.itemCount() == 3) {
-      res.is_system = (*it++).toInt<bool>();
-    }
-    return res;
+    return TransactionLocation::fromRlp(dev::RLP(std::move(data)));
   }
   return std::nullopt;
 }
@@ -844,10 +845,10 @@ blk_hash_t DbStorage::getPeriodBlockHash(PbftPeriod period) const {
   return {};
 }
 
-std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
+std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) const {
   auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
   if (data.size() > 0) {
-    return std::make_shared<Transaction>(data);
+    return std::make_shared<Transaction>(std::move(data));
   }
   auto location = getTransactionLocation(hash);
   if (location && !location->is_system) {
@@ -960,21 +961,45 @@ std::vector<std::shared_ptr<PbftVote>> DbStorage::getPeriodCertVotes(PbftPeriod 
   return decodePbftVotesBundleRlp(votes_rlp);
 }
 
+SharedTransactions DbStorage::transactionsFromPeriodDataRlp(PbftPeriod period, const dev::RLP& period_data_rlp) const {
+  SharedTransactions ret;
+  ret.reserve(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+  for (auto&& transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
+    ret.emplace_back(std::make_shared<Transaction>(std::move(transaction_data)));
+  }
+  auto period_system_transactions = getPeriodSystemTransactions(period);
+  ret.insert(ret.end(), period_system_transactions.begin(), period_system_transactions.end());
+  return ret;
+}
+
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {
   const auto period_data = getPeriodDataRaw(period);
   if (!period_data.size()) {
     return std::nullopt;
   }
 
-  auto period_data_rlp = dev::RLP(period_data);
+  return transactionsFromPeriodDataRlp(period, dev::RLP(period_data));
+}
 
-  SharedTransactions ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
-  for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
-    ret.emplace_back(std::make_shared<Transaction>(transaction_data));
+std::optional<TransactionReceipt> DbStorage::getTransactionReceipt(EthBlockNumber blk_n, uint64_t position) const {
+  auto raw = lookup(toSlice(blk_n), DbStorage::Columns::final_chain_receipt_by_period);
+  if (raw.empty()) {
+    return {};
   }
-  auto period_system_transactions = getPeriodSystemTransactions(period);
-  ret.insert(ret.end(), period_system_transactions.begin(), period_system_transactions.end());
-  return {ret};
+  auto receipts_rlp = dev::RLP(raw);
+  if (receipts_rlp.itemCount() <= position) {
+    return {};
+  }
+  return util::rlp_dec<TransactionReceipt>(receipts_rlp[position]);
+}
+
+SharedTransactionReceipts DbStorage::getBlockReceipts(PbftPeriod period) const {
+  auto raw = lookup(toSlice(period), DbStorage::Columns::final_chain_receipt_by_period);
+  if (raw.empty()) {
+    return {};
+  }
+  return std::make_shared<std::vector<TransactionReceipt>>(
+      util::rlp_dec<std::vector<TransactionReceipt>>(dev::RLP(raw)));
 }
 
 std::vector<std::shared_ptr<PillarVote>> DbStorage::getPeriodPillarVotes(PbftPeriod period) const {

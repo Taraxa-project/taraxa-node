@@ -7,8 +7,8 @@
 #include <stdexcept>
 
 #include "LogFilter.hpp"
+#include "common/rpc_utils.hpp"
 #include "common/types.hpp"
-
 using namespace std;
 using namespace dev;
 using namespace taraxa::final_chain;
@@ -160,7 +160,8 @@ class EthImpl : public Eth, EthParams {
       if (ret.code_retval.empty()) {
         throw jsonrpc::JsonRpcException(ret.consensus_err.empty() ? ret.code_err : ret.consensus_err);
       }
-      throw jsonrpc::JsonRpcException(CALL_EXCEPTION, ret.consensus_err.empty() ? ret.code_err : ret.consensus_err, toJS(ret.code_retval));
+      throw jsonrpc::JsonRpcException(CALL_EXCEPTION, ret.consensus_err.empty() ? ret.code_err : ret.consensus_err,
+                                      toJS(ret.code_retval));
     }
     return toJS(ret.code_retval);
   }
@@ -254,11 +255,42 @@ class EthImpl : public Eth, EthParams {
 
   Json::Value eth_getTransactionByBlockNumberAndIndex(const string& _blockNumber,
                                                       const string& _transactionIndex) override {
-    return toJson(get_transaction(jsToInt(_transactionIndex), parse_blk_num(_blockNumber)));
+    return toJson(get_transaction(parse_blk_num(_blockNumber), jsToInt(_transactionIndex)));
   }
 
   Json::Value eth_getTransactionReceipt(const string& _transactionHash) override {
     return toJson(get_transaction_receipt(jsToFixed<32>(_transactionHash)));
+  }
+
+  Json::Value eth_getBlockReceipts(const Json::Value& _blockNumber) override {
+    auto blk_n = get_block_number_from_json(_blockNumber);
+    auto block_hash = final_chain->blockHash(blk_n);
+    if (!block_hash) {
+      return Json::Value(Json::arrayValue);
+    }
+    auto transactions = final_chain->transactions(blk_n);
+    if (transactions.empty()) {
+      return Json::Value(Json::arrayValue);
+    }
+
+    auto receipts = final_chain->blockReceipts(blk_n);
+    return util::transformToJsonParallel(
+        transactions, [this, &receipts, blk_n, &block_hash](const auto& trx, auto index) {
+          if (!receipts) {
+            return toJson(LocalisedTransactionReceipt{
+                final_chain->transactionReceipt(blk_n, index, trx->getHash()).value(),
+                ExtendedTransactionLocation{{{blk_n, index}, *block_hash}, trx->getHash()},
+                trx->getSender(),
+                trx->getReceiver(),
+            });
+          }
+          return toJson(LocalisedTransactionReceipt{
+              receipts->at(index),
+              ExtendedTransactionLocation{{{blk_n, index}, *block_hash}, trx->getHash()},
+              trx->getSender(),
+              trx->getReceiver(),
+          });
+        });
   }
 
   Json::Value eth_getUncleByBlockHashAndIndex(const string&, const string&) override { return Json::Value(); }
@@ -353,7 +385,7 @@ class EthImpl : public Eth, EthParams {
     };
   }
 
-  optional<LocalisedTransaction> get_transaction(uint32_t trx_pos, EthBlockNumber blk_n) const {
+  optional<LocalisedTransaction> get_transaction(EthBlockNumber blk_n, uint32_t trx_pos) const {
     const auto& trxs = final_chain->transactions(blk_n);
     if (trxs.size() <= trx_pos) {
       return {};
@@ -369,15 +401,22 @@ class EthImpl : public Eth, EthParams {
 
   optional<LocalisedTransaction> get_transaction(const h256& blk_h, uint64_t _i) const {
     auto blk_n = final_chain->blockNumber(blk_h);
-    return blk_n ? get_transaction(_i, *blk_n) : nullopt;
+    if (!blk_n) {
+      return {};
+    }
+    return get_transaction(*blk_n, _i);
   }
 
   optional<LocalisedTransactionReceipt> get_transaction_receipt(const h256& trx_h) const {
-    auto r = final_chain->transactionReceipt(trx_h);
+    auto location = final_chain->transactionLocation(trx_h);
+    if (!location) {
+      return {};
+    }
+    auto r = final_chain->transactionReceipt(location->period, location->position, trx_h);
     if (!r) {
       return {};
     }
-    auto loc_trx = get_transaction(trx_h);
+    auto loc_trx = get_transaction(location->period, location->position);
     const auto& trx = loc_trx->trx;
     return LocalisedTransactionReceipt{
         *r,

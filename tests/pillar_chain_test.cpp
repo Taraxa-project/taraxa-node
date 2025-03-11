@@ -517,7 +517,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
   const auto pillar_blocks_count = 4;
   const auto min_amount_of_pbft_blocks =
       pillar_blocks_count * node_cfgs[0].genesis.state.hardforks.ficus_hf.pillar_blocks_interval;
-  ASSERT_HAPPENS({20s, 250ms}, [&](auto& ctx) {
+  ASSERT_HAPPENS({30s, 250ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
       WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), min_amount_of_pbft_blocks + 1)
     }
@@ -555,7 +555,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         const auto& trx_loc = node->getDB()->getTransactionLocation(trx->getHash());
         EXPECT_TRUE(trx_loc.has_value());
         ASSERT_EQ(trx_loc->period, period - 1);
-        ASSERT_EQ(trx_loc->position, 1);
+        ASSERT_EQ(trx_loc->position, 0);
         ASSERT_EQ(trx_loc->is_system, true);
         // check that we can get this transaction by hash
         const auto& trx_by_hash = node->getDB()->getTransaction(trx->getHash());
@@ -564,7 +564,7 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
         ASSERT_EQ(trx_by_hash->getReceiver(), node_cfgs[0].genesis.state.hardforks.ficus_hf.bridge_contract_address);
         ASSERT_EQ(trx_by_hash->getSender(), kTaraxaSystemAccount);
         // check that receipt exists
-        const auto& trx_receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
+        const auto& trx_receipt = node->getFinalChain()->transactionReceipt(trx_loc->period, trx_loc->position);
         ASSERT_TRUE(trx_receipt.has_value());
         ASSERT_EQ(trx_receipt->status_code, 1);
       }

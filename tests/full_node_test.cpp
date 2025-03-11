@@ -1,6 +1,7 @@
 #include <graphqlservice/GraphQLService.h>
 #include <graphqlservice/JSONResponse.h>
 #include <gtest/gtest.h>
+#include <libdevcore/CommonData.h>
 
 #include <atomic>
 #include <iostream>
@@ -86,7 +87,8 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1]->getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[2]->getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[3]->getHash()));
-  ASSERT_EQ(*g_trx_signed_samples[0], *db.getTransaction(g_trx_signed_samples[0]->getHash()));
+  ASSERT_EQ(dev::toHex(g_trx_signed_samples[0]->rlp()),
+            dev::toHex(db.getTransaction(g_trx_signed_samples[0]->getHash())->rlp()));
   ASSERT_EQ(*g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1]->getHash()));
   ASSERT_EQ(*g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2]->getHash()));
   ASSERT_EQ(*g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3]->getHash()));
@@ -431,7 +433,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     void assert_all_transactions_success() {
       for (auto &n : nodes_) {
         for (auto &t : transactions) {
-          auto receipt = n->getFinalChain()->transactionReceipt(t);
+          auto loc = n->getFinalChain()->transactionLocation(t);
+          ASSERT_TRUE(loc.has_value());
+          auto receipt = n->getFinalChain()->transactionReceipt(loc->period, loc->position);
           if (receipt->status_code != 1) {
             auto trx = n->getTransactionManager()->getTransaction(t);
             std::cout << "failed: " << t.toString() << " sender: " << trx->getSender() << " nonce: " << trx->getNonce()
@@ -1096,7 +1100,9 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
   // Create and destroy to create network. So next time will be loaded from file
-  { auto nodes = launch_nodes(node_cfgs); }
+  {
+    auto nodes = launch_nodes(node_cfgs);
+  }
   {
     auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
