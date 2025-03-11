@@ -128,7 +128,8 @@ class FinalChain {
    * @param position position of transaction in block
    * @return std::optional<TransactionReceipt> transaction receipt or nullopt
    */
-  std::optional<TransactionReceipt> transactionReceipt(EthBlockNumber blk_n, uint64_t position) const;
+  std::optional<TransactionReceipt> transactionReceipt(EthBlockNumber blk_n, uint64_t position,
+                                                       std::optional<trx_hash_t> trx_hash = {}) const;
 
   /**
    * @brief Method to get transactions count in block

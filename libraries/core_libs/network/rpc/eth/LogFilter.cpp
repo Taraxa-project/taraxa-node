@@ -136,7 +136,7 @@ std::vector<LocalisedLogEntry> LogFilter::match_all(const final_chain::FinalChai
     } else {
       for (const auto& hash : *hashes) {
         trx_loc.trx_hash = hash;
-        match_one(trx_loc, *final_chain.transactionReceipt(trx_loc.period, trx_loc.position),
+        match_one(trx_loc, *final_chain.transactionReceipt(trx_loc.period, trx_loc.position, hash),
                   [&](const auto& lle) { ret.push_back(lle); });
         ++trx_loc.position;
       }

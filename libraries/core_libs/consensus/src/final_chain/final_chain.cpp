@@ -397,12 +397,16 @@ std::optional<TransactionLocation> FinalChain::transactionLocation(const h256& t
   return db_->getTransactionLocation(trx_hash);
 }
 
-std::optional<TransactionReceipt> FinalChain::transactionReceipt(EthBlockNumber blk_n, uint64_t position) const {
+std::optional<TransactionReceipt> FinalChain::transactionReceipt(EthBlockNumber blk_n, uint64_t position,
+                                                                 std::optional<trx_hash_t> trx_hash) const {
   auto receipts = blockReceipts(blk_n);
   if (!receipts) {
-    auto transactions = db_->getPeriodTransactions(blk_n);
-    auto trx = transactions->at(position);
-    auto receipt_raw = db_->lookup(trx->getHash(), DbStorage::Columns::final_chain_receipt_by_trx_hash);
+    if (!trx_hash.has_value()) {
+      auto transactions = db_->getPeriodTransactions(blk_n);
+      auto trx = transactions->at(position);
+      trx_hash = trx->getHash();
+    }
+    auto receipt_raw = db_->lookup(trx_hash.value(), DbStorage::Columns::final_chain_receipt_by_trx_hash);
     if (receipt_raw.empty()) {
       return {};
     }

@@ -403,7 +403,7 @@ class EthImpl : public Eth, EthParams {
     if (!location) {
       return {};
     }
-    auto r = final_chain->transactionReceipt(location->period, location->position);
+    auto r = final_chain->transactionReceipt(location->period, location->position, trx_h);
     if (!r) {
       return {};
     }
