@@ -620,8 +620,10 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
 
   db_->DeleteRange(async_write_, handle(Columns::period_data), start_slice, end_slice);
   db_->DeleteRange(async_write_, handle(Columns::pillar_block), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::final_chain_receipt_by_period), start_slice, end_slice);
   db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
   db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
+  db_->CompactRange({}, handle(Columns::final_chain_receipt_by_period), &start_slice, &end_slice);
 
   std::unordered_set<trx_hash_t> trxs;
   std::unordered_set<blk_hash_t> dag_blocks;
