@@ -5,6 +5,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include <boost/beast/websocket/rfc6455.hpp>
+#include <memory>
 
 #include "common/jsoncpp.hpp"
 #include "network/rpc/eth/data.hpp"
@@ -75,12 +76,13 @@ void WsSession::do_write(std::string &&message) {
   LOG(log_tr_) << "WS WRITE " << message.c_str();
 
   LOG(log_tr_) << "Before async_write";
+  auto msg = std::make_shared<std::string>(std::move(message));
   ws_.text(true);  // as we are using text msg here
-  ws_.async_write(boost::asio::buffer(message), beast::bind_front_handler(&WsSession::on_write, shared_from_this()));
+  ws_.async_write(boost::asio::buffer(*msg), beast::bind_front_handler(&WsSession::on_write, shared_from_this(), msg));
   LOG(log_tr_) << "After async_write";
 }
 
-void WsSession::on_write(beast::error_code ec, std::size_t bytes_transferred) {
+void WsSession::on_write(std::shared_ptr<std::string> /*msg*/, beast::error_code ec, std::size_t bytes_transferred ) {
   if (is_closed()) return;
 
   if (ec) {
