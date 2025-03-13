@@ -21,7 +21,7 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
     json = util::parse_json(request);
   } catch (Json::Exception const &e) {
     LOG(log_er_) << "Failed to parse" << e.what();
-    closed_ = true;
+    close();
     return {};
   }
 
