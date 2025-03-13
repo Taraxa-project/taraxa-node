@@ -86,7 +86,7 @@ void WsSession::writeAsync(std::string &&message) {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [self = shared_from_this(), message = std::move(message)]() mutable { self->writeImpl(std::move(message)); });
+  boost::asio::post(write_strand_, [self = shared_from_this(), message = std::move(message)]() mutable { self->writeImpl(std::move(message)); });
   LOG(log_tr_) << "After executor.post ";
 }
 
