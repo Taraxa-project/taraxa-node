@@ -81,7 +81,7 @@ void GraphQlWsSession::triggerTestSubscribtion(unsigned int number) {
   res["params"] = params;
   auto response = util::to_string(res);
   ws_.text(ws_.got_text());
-  writeAsync(std::move(response));
+  do_write(std::move(response));
 }
 
 std::shared_ptr<WsSession> GraphQlWsServer::createSession(tcp::socket&& socket) {
