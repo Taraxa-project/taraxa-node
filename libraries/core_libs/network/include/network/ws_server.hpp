@@ -54,10 +54,10 @@ private:
   void on_accept(beast::error_code ec);
   void do_read();
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
-  void on_write (std::shared_ptr<std::string> msg, beast::error_code ec, std::size_t bytes_transferred);
+  void write(std::string &&message);
 
  protected:
-  void processRequest();
+  void handleRequest();
   void do_write(std::string&& message);
 
   std::atomic<int> subscription_id_ = 0;

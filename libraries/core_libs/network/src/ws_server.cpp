@@ -5,7 +5,6 @@
 #include <libdevcore/CommonJS.h>
 
 #include <boost/beast/websocket/rfc6455.hpp>
-#include <memory>
 
 #include "common/jsoncpp.hpp"
 #include "network/rpc/eth/data.hpp"
@@ -54,20 +53,30 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   LOG(log_tr_) << "WS READ " << (static_cast<char *>(read_buffer_.data().data()));
 
-  processRequest();
+  handleRequest();
   // Do another read
   do_read();
 }
 
-void WsSession::processRequest() {
+void WsSession::handleRequest() {
   if (is_closed()) return;
 
   std::string request(static_cast<char *>(read_buffer_.data().data()), read_buffer_.size());
   read_buffer_.consume(read_buffer_.size());
   LOG(log_tr_) << "processRequest " << request;
 
-  auto response = processRequest(request);
-  do_write(std::move(response));
+  auto executor = ws_.get_executor();
+  if (!executor) {
+    LOG(log_tr_) << "Executor missing - WS closed";
+    close();
+    return;
+  }
+
+  LOG(log_tr_) << "Before executor.post ";
+  boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable {
+    self->do_write(self->processRequest(request));
+  });
+  LOG(log_tr_) << "After executor.post ";
 }
 
 void WsSession::do_write(std::string &&message) {
@@ -75,22 +84,31 @@ void WsSession::do_write(std::string &&message) {
 
   LOG(log_tr_) << "WS WRITE " << message.c_str();
 
+  auto executor = ws_.get_executor();
+  if (!executor) {
+    LOG(log_tr_) << "Executor missing - WS closed";
+    close();
+    return;
+  }
+
   LOG(log_tr_) << "Before async_write";
-  auto msg = std::make_shared<std::string>(std::move(message));
-  ws_.text(true);  // as we are using text msg here
-  ws_.async_write(boost::asio::buffer(*msg), beast::bind_front_handler(&WsSession::on_write, shared_from_this(), msg));
+  boost::asio::post(executor, [self = shared_from_this(), message = std::move(message)]() mutable {
+    self->write(std::move(message));
+  });
   LOG(log_tr_) << "After async_write";
 }
 
-void WsSession::on_write(std::shared_ptr<std::string> /*msg*/, beast::error_code ec, std::size_t bytes_transferred ) {
+void WsSession::write(std::string &&message) {
   if (is_closed()) return;
 
-  if (ec) {
-    LOG(log_er_) << "Error during async_write: " << ec;
-    close(is_normal(ec));
-  } else {
-    LOG(log_tr_) << "WS WRITE COMPLETE " << bytes_transferred << " bytes.";
+  try {
+    ws_.text(true);  // as we are using text msg here
+    ws_.write(boost::asio::buffer(std::move(message)));
+  } catch (const boost::system::system_error &e) {
+    // LOG(log_nf_) << "WS closed in on_write " << e.what();
+    return close(is_normal(e.code()));
   }
+  LOG(log_tr_) << "WS WRITE COMPLETE " << &ws_;
 }
 
 void WsSession::close(bool normal) {
