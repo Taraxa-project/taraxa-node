@@ -20,8 +20,29 @@ void WsSession::run() {
     res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
   }));
 
+  try {
+    http::read(ws_.next_layer(), upgrade_request_buffer_, upgrade_request_);
+  }
+  catch(...) {
+    LOG(log_er_) << "Received WebSocket Upgrade Request: Exception";
+    close();
+    return;
+  }
+
+  ip_ = upgrade_request_["X-Real-IP"];
+  if(ip_.empty()) {
+    try {
+      auto endpoint = ws_.next_layer().socket().remote_endpoint();
+      ip_ = endpoint.address().to_string();
+    }
+    catch(...) {
+      ip_
+       = "Unknown";
+    }
+  }
+
   // Accept the websocket handshake
-  ws_.async_accept(beast::bind_front_handler(&WsSession::on_accept, shared_from_this()));
+  ws_.async_accept(upgrade_request_, beast::bind_front_handler(&WsSession::on_accept, shared_from_this()));
 }
 
 void WsSession::on_accept(beast::error_code ec) {
@@ -70,7 +91,16 @@ void WsSession::processAsync() {
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable { self->writeAsync(self->processRequest(request)); });
+  boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable {
+    auto start_time = std::chrono::steady_clock::now();
+    self->writeAsync(self->processRequest(request));
+    auto end_time = std::chrono::steady_clock::now();
+    auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    auto ws_server = self->ws_server_.lock();
+    if(ws_server && ws_server->metrics_) {
+      ws_server->metrics_->report(request, self->ip_, "WebSocket", processing_time.count());
+    }
+  });
   LOG(log_tr_) << "After executor.post ";
 }
 
@@ -204,8 +234,8 @@ bool WsSession::is_normal(const beast::error_code &ec) const {
   return false;
 }
 
-WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
-    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)) {
+WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr, std::shared_ptr<metrics::JsonRpcMetrics> metrics)
+    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)), metrics_(metrics) {
   LOG_OBJECTS_CREATE("WS_SERVER");
   beast::error_code ec;
 
