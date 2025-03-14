@@ -131,6 +131,14 @@ class FinalChain {
   std::optional<TransactionReceipt> transactionReceipt(EthBlockNumber blk_n, uint64_t position,
                                                        std::optional<trx_hash_t> trx_hash = {}) const;
 
+  std::shared_ptr<Transaction> transaction(EthBlockNumber blk_n, uint32_t position) const {
+    auto blk_trxs = transactions_cache_.getFromCache(blk_n);
+    if (blk_trxs) {
+      return (*blk_trxs)[position];
+    }
+    return db_->getTransaction(blk_n, position);
+  }
+
   /**
    * @brief Method to get transactions count in block
    * @param n block number

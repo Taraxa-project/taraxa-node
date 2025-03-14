@@ -850,15 +850,20 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) c
   }
   auto location = getTransactionLocation(hash);
   if (location && !location->is_system) {
-    auto period_data = getPeriodDataRaw(location->period);
-    if (period_data.size() > 0) {
-      auto period_data_rlp = dev::RLP(period_data);
-      auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
-      return std::make_shared<Transaction>(transaction_data[location->position]);
-    }
+    return getTransaction(location->period, location->position);
   } else {
     // get system trx from a different column
     return getSystemTransaction(hash);
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Transaction> DbStorage::getTransaction(PbftPeriod period, uint32_t position) const {
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.size() > 0) {
+    auto period_data_rlp = dev::RLP(period_data);
+    auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
+    return std::make_shared<Transaction>(transaction_data[position]);
   }
   return nullptr;
 }
