@@ -121,19 +121,23 @@ void LogFilter::match_one(const ExtendedTransactionLocation& trx_loc, const Tran
 
 std::vector<LocalisedLogEntry> LogFilter::match_all(const final_chain::FinalChain& final_chain) const {
   std::vector<LocalisedLogEntry> ret;
-
   auto action = [&, this](EthBlockNumber blk_n) {
     ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.blockHash(blk_n)}};
-    auto hashes = final_chain.transactionHashes(trx_loc.period);
     auto block_receipts = final_chain.blockReceipts(blk_n);
-
-    if (block_receipts && block_receipts->size() == hashes->size()) {
+    if (block_receipts && block_receipts->size()) {
+      std::unordered_map<uint64_t, LocalisedLogEntry> ret_block;
       for (uint32_t i = 0; i < block_receipts->size(); i++) {
-        trx_loc.trx_hash = (*hashes)[i];
-        match_one(trx_loc, (*block_receipts)[i], [&](const auto& lle) { ret.push_back(lle); });
+        match_one(trx_loc, (*block_receipts)[i], [&](const auto& lle) { ret_block[i] = lle; });
         ++trx_loc.position;
       }
+      if(ret_block.size() > 0) {
+        for(auto &r : ret_block) {
+          r.second.trx_loc.trx_hash = final_chain.transaction(trx_loc.period, r.first)->getHash();
+          ret.push_back(r.second);
+        }
+      }
     } else {
+      auto hashes = final_chain.transactionHashes(trx_loc.period);
       for (const auto& hash : *hashes) {
         trx_loc.trx_hash = hash;
         match_one(trx_loc, *final_chain.transactionReceipt(trx_loc.period, trx_loc.position, hash),
@@ -141,6 +145,7 @@ std::vector<LocalisedLogEntry> LogFilter::match_all(const final_chain::FinalChai
         ++trx_loc.position;
       }
     }
+    
   };
   // to_block can't be greater than the last executed block number
   const auto last_block_number = final_chain.lastBlockNumber();

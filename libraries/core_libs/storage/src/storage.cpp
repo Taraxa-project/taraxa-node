@@ -865,6 +865,16 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) c
   return nullptr;
 }
 
+std::shared_ptr<Transaction> DbStorage::getTransaction(PbftPeriod period, uint32_t position) const {
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.size() > 0) {
+    auto period_data_rlp = dev::RLP(period_data);
+    auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
+    return std::make_shared<Transaction>(transaction_data[position]);
+  }
+  return nullptr;
+}
+
 uint64_t DbStorage::getTransactionCount(PbftPeriod period) const {
   auto period_data = getPeriodDataRaw(period);
   if (period_data.size()) {
