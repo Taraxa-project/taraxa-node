@@ -84,15 +84,15 @@ void WsSession::do_write(std::string &&message) {
 
   LOG(log_tr_) << "WS WRITE " << message.c_str();
 
-  auto executor = ws_.get_executor();
-  if (!executor) {
+
+  if (const auto executor = ws_.get_executor(); !executor) {
     LOG(log_tr_) << "Executor missing - WS closed";
     close();
     return;
   }
 
   LOG(log_tr_) << "Before async_write";
-  boost::asio::post(executor, [self = shared_from_this(), message = std::move(message)]() mutable {
+  boost::asio::post(write_strand_, [self = shared_from_this(), message = std::move(message)]() mutable {
     self->write(std::move(message));
   });
   LOG(log_tr_) << "After async_write";

@@ -28,9 +28,11 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
  public:
   // Take ownership of the socket
   explicit WsSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WsServer>&& ws_server)
-      :  ws_server_(std::move(ws_server)), ws_(std::move(socket)) {
+      : ws_server_(std::move(ws_server)),
+        ws_(std::move(socket)),
+        write_strand_(boost::asio::make_strand(ws_.get_executor())) {
     LOG_OBJECTS_CREATE("WS_SESSION");
-    ws_.set_option(websocket::permessage_deflate{true, true});
+    // ws_.set_option(websocket::permessage_deflate{true, true});
   }
 
   // Start the asynchronous operation
@@ -48,13 +50,13 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newPillarBlockData(const pillar_chain::PillarBlockData& pillar_block_data);
   LOG_OBJECTS_DEFINE
 
-private:
+ private:
   static bool is_normal(const beast::error_code& ec);
   void on_close(beast::error_code ec);
   void on_accept(beast::error_code ec);
   void do_read();
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
-  void write(std::string &&message);
+  void write(std::string&& message);
 
  protected:
   void handleRequest();
@@ -72,6 +74,7 @@ private:
   websocket::stream<beast::tcp_stream> ws_;
 
  private:
+  boost::asio::strand<boost::asio::any_io_executor> write_strand_;
   beast::flat_buffer read_buffer_;
   std::atomic<bool> closed_ = false;
 };
