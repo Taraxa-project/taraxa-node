@@ -32,7 +32,6 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
         ws_(std::move(socket)),
         write_strand_(boost::asio::make_strand(ws_.get_executor())) {
     LOG_OBJECTS_CREATE("WS_SESSION");
-    // ws_.set_option(websocket::permessage_deflate{true, true});
   }
 
   // Start the asynchronous operation

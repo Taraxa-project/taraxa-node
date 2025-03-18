@@ -15,6 +15,9 @@ void WsSession::run() {
   // Set suggested timeout settings for the websocket
   ws_.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
 
+  // Enable permessage deflate for compression - DONT INCREASE ABOVE 14 it crashes node while running with indexer
+  ws_.set_option(websocket::permessage_deflate{true, true, 14, 14});
+
   // Set a decorator to change the Server of the handshake
   ws_.set_option(websocket::stream_base::decorator([](websocket::response_type &res) {
     res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
