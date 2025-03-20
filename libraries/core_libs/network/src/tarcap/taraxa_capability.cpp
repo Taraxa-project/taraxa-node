@@ -274,8 +274,9 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
                                                               logs_prefix);
 
-      packets_handlers->registerHandler<GetPbftSyncPacketHandler>(
-          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, vote_mgr, db, node_addr, logs_prefix);
+      packets_handlers->registerHandler<GetPbftSyncPacketHandler>(config, peers_state, packets_stats,
+                                                                  pbft_syncing_state, pbft_mgr, pbft_chain, vote_mgr,
+                                                                  db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
                                                                pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,
@@ -287,7 +288,7 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
       packets_handlers->registerHandler<PillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
                                                                         pillar_chain_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<PbftBlocksBundlePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
-                                                                       node_addr, logs_prefix);
+                                                                       pbft_syncing_state, node_addr, logs_prefix);
       return packets_handlers;
     };
 

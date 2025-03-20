@@ -1,5 +1,6 @@
 #include "network/tarcap/packets_handlers/latest/pbft_blocks_bundle_packet_handler.hpp"
 
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -8,17 +9,25 @@ PbftBlocksBundlePacketHandler::PbftBlocksBundlePacketHandler(const FullNodeConfi
                                                              std::shared_ptr<PeersState> peers_state,
                                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                              std::shared_ptr<PbftManager> pbft_mgr,
+                                                             std::shared_ptr<PbftSyncingState> syncing_state,
                                                              const addr_t &node_addr, const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "PBFT_BLOCKS_BUNDLE_PH"),
-      pbft_mgr_(std::move(pbft_mgr)) {}
+      pbft_mgr_(std::move(pbft_mgr)),
+      pbft_syncing_state_(syncing_state) {}
 
 void PbftBlocksBundlePacketHandler::process(PbftBlocksBundlePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto current_pbft_period = pbft_mgr_->getPbftPeriod();
 
   std::unordered_map<PbftPeriod, std::unordered_set<addr_t>> unique_authors;
 
-  // TODO: packet should be only from the last syncing peer
+  if (pbft_syncing_state_->lastSyncingPeer()->getId() != peer->getId()) {
+    LOG(log_wr_) << "PbftBlocksBundlePacket received from unexpected peer " << peer->getId().abridged()
+                 << " last syncing peer " << pbft_syncing_state_->lastSyncingPeer()->getId().abridged();
+    // Note: do not throw MaliciousPeerException as in some edge cases node could be syncing with new peer could
+    // already. In that case we can ignore this packet
+    return;
+  }
 
   for (const auto &proposed_block : packet.pbft_blocks) {
     const auto proposed_block_period = proposed_block->getPeriod();
