@@ -1,8 +1,10 @@
 #include "network/tarcap/packets_handlers/latest/get_pbft_sync_packet_handler.hpp"
 
+#include "network/tarcap/packets/latest/pbft_blocks_bundle_packet.hpp"
 #include "network/tarcap/packets/latest/pbft_sync_packet.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "storage/storage.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -13,12 +15,14 @@ namespace taraxa::network::tarcap {
 GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
+                                                   std::shared_ptr<PbftManager> pbft_mgr,
                                                    std::shared_ptr<PbftChain> pbft_chain,
                                                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
                                                    const addr_t &node_addr, const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
+      pbft_mgr_(std::move(pbft_mgr)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
       db_(std::move(db)) {}
@@ -59,6 +63,14 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
   LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << peer->getId();
 
   sendPbftBlocks(peer, packet.height_to_sync, blocks_to_transfer, pbft_chain_synced);
+
+  // Send current proposed blocks after the last sync packet
+  if (pbft_chain_synced) {
+    for (auto &&period_proposed_blocks : pbft_mgr_->getProposedBlocks()) {
+      sealAndSend(peer->getId(), SubprotocolPacketType::kPbftBlocksBundlePacket,
+                  encodePacketRlp(PbftBlocksBundlePacket{.pbft_blocks = std::move(period_proposed_blocks.second)}));
+    }
+  }
 }
 
 // api for pbft syncing
