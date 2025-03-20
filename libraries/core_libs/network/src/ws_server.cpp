@@ -15,6 +15,9 @@ void WsSession::run() {
   // Set suggested timeout settings for the websocket
   ws_.set_option(websocket::stream_base::timeout::suggested(beast::role_type::server));
 
+  // Enable permessage deflate for compression - DONT INCREASE ABOVE 14 it crashes node while running with indexer
+  ws_.set_option(websocket::permessage_deflate{true, true, 14, 14});
+
   // Set a decorator to change the Server of the handshake
   ws_.set_option(websocket::stream_base::decorator([](websocket::response_type &res) {
     res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
@@ -25,8 +28,10 @@ void WsSession::run() {
 }
 
 void WsSession::on_accept(beast::error_code ec) {
+  if (is_closed()) return;
+
   if (ec) {
-    if (!closed_) LOG(log_er_) << ec << " accept";
+    LOG(log_er_) << ec << " accept";
     return close();
   }
 
@@ -51,57 +56,85 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   LOG(log_tr_) << "WS READ " << (static_cast<char *>(read_buffer_.data().data()));
 
-  processAsync();
+  handleRequest();
   // Do another read
   do_read();
 }
 
-void WsSession::processAsync() {
-  if (closed_) return;
+void WsSession::handleRequest() {
+  if (is_closed()) return;
 
   std::string request(static_cast<char *>(read_buffer_.data().data()), read_buffer_.size());
   read_buffer_.consume(read_buffer_.size());
-  LOG(log_tr_) << "processAsync " << request;
+  LOG(log_tr_) << "processRequest " << request;
+
   auto executor = ws_.get_executor();
   if (!executor) {
     LOG(log_tr_) << "Executor missing - WS closed";
-    closed_ = true;
+    close();
     return;
   }
 
   LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable { self->writeAsync(self->processRequest(request)); });
+  boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable {
+    self->do_write(self->processRequest(request));
+  });
   LOG(log_tr_) << "After executor.post ";
 }
 
-void WsSession::writeAsync(std::string &&message) {
-  if (closed_) return;
+void WsSession::do_write(std::string &&message) {
+  if (is_closed()) return;
 
   LOG(log_tr_) << "WS WRITE " << message.c_str();
-  auto executor = ws_.get_executor();
-  if (!executor) {
+
+
+  if (const auto executor = ws_.get_executor(); !executor) {
     LOG(log_tr_) << "Executor missing - WS closed";
-    closed_ = true;
+    close();
     return;
   }
 
-  LOG(log_tr_) << "Before executor.post ";
-  boost::asio::post(write_strand_, [self = shared_from_this(), message = std::move(message)]() mutable { self->writeImpl(std::move(message)); });
-  LOG(log_tr_) << "After executor.post ";
+  LOG(log_tr_) << "Before async_write";
+  boost::asio::post(write_strand_, [self = shared_from_this(), message = std::move(message)]() mutable {
+    self->write(std::move(message));
+  });
+  LOG(log_tr_) << "After async_write";
 }
 
-void WsSession::writeImpl(std::string &&message) {
-  if (closed_) return;
+void WsSession::write(std::string &&message) {
+  if (is_closed()) return;
 
   try {
     ws_.text(true);  // as we are using text msg here
-    ws_.write(boost::asio::buffer(message));
+    ws_.write(boost::asio::buffer(std::move(message)));
   } catch (const boost::system::system_error &e) {
     // LOG(log_nf_) << "WS closed in on_write " << e.what();
     return close(is_normal(e.code()));
   }
   LOG(log_tr_) << "WS WRITE COMPLETE " << &ws_;
 }
+
+void WsSession::close(bool normal) {
+  closed_ = true;
+  if (ws_.is_open()) {
+    ws_.async_close(normal ? beast::websocket::close_code::normal : beast::websocket::close_code::abnormal,
+                    beast::bind_front_handler(&WsSession::on_close, shared_from_this()));
+  }
+}
+
+void WsSession::on_close(beast::error_code ec) {
+  if (ec) {
+    LOG(log_er_) << "Error during async_close: " << ec;
+  } else {
+    LOG(log_tr_) << "Websocket closed successfully.";
+  }
+}
+
+bool WsSession::is_normal(const beast::error_code &ec) {
+  return ec == websocket::error::closed || ec == boost::asio::error::eof;
+}
+
+bool WsSession::is_closed() const { return closed_ || !ws_.is_open(); }
 
 void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, const TransactionHashes &trx_hashes) {
   if (new_heads_subscription_ != 0) {
@@ -114,7 +147,7 @@ void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, c
     res["params"] = params;
     auto response = util::to_string(res);
     LOG(log_tr_) << "WS WRITE " << response.c_str();
-    writeAsync(std::move(response));
+    do_write(std::move(response));
   }
 }
 void WsSession::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
@@ -131,7 +164,7 @@ void WsSession::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
       LOG(log_tr_) << "Executor missing - WS closed";
       return close(false);
     }
-    writeAsync(std::move(response));
+    do_write(std::move(response));
   }
 }
 
@@ -146,7 +179,7 @@ void WsSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
     params["subscription"] = dev::toJS(new_dag_block_finalized_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
-    writeAsync(std::move(response));
+    do_write(std::move(response));
   }
 }
 
@@ -160,7 +193,7 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
     params["subscription"] = dev::toJS(new_pbft_block_executed_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
-    writeAsync(std::move(response));
+    do_write(std::move(response));
   }
 }
 
@@ -173,7 +206,7 @@ void WsSession::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_b
     res["method"] = "eth_subscription";
     res["params"] = params;
     auto response = util::to_string(res);
-    writeAsync(std::move(response));
+    do_write(std::move(response));
   }
 }
 
@@ -186,22 +219,8 @@ void WsSession::newPendingTransaction(trx_hash_t const &trx_hash) {
     params["subscription"] = dev::toJS(new_transactions_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
-    writeAsync(std::move(response));
+    do_write(std::move(response));
   }
-}
-
-void WsSession::close(bool normal) {
-  closed_ = true;
-  if (ws_.is_open()) {
-    ws_.close(normal ? beast::websocket::normal : beast::websocket::abnormal);
-  }
-}
-
-bool WsSession::is_normal(const beast::error_code &ec) const {
-  if (ec == websocket::error::closed || ec == boost::asio::error::eof) {
-    return true;
-  }
-  return false;
 }
 
 WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
