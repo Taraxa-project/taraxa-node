@@ -55,7 +55,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newPendingTransaction(const Json::Value& payload);
   void newPillarBlockData(const Json::Value& payload);
   void newLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
-               const final_chain::TransactionReceipts& receipts);
+               const TransactionReceipts& receipts);
 
   LOG_OBJECTS_DEFINE
  protected:

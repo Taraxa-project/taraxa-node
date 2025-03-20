@@ -101,15 +101,16 @@ void Rpc::start() {
     if (conf.network.rpc->http_port) {
       auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
       jsonrpc_http_ = std::make_shared<net::HttpServer>(
-          rpc_thread_pool_, boost::asio::ip::tcp::endpoint{conf.network.rpc->address, *conf.network.rpc->http_port},
-          app()->getAddress(), json_rpc_processor, conf.network.rpc->max_pending_tasks);
+          rpc_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf.network.rpc->address, *conf.network.rpc->http_port}, app()->getAddress(),
+          json_rpc_processor);
       jsonrpc_api_->addConnector(json_rpc_processor);
       jsonrpc_http_->start();
     }
     if (conf.network.rpc->ws_port) {
       jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
-          rpc_thread_pool_, boost::asio::ip::tcp::endpoint{conf.network.rpc->address, *conf.network.rpc->ws_port},
-          app()->getAddress(), conf.network.rpc->max_pending_tasks);
+          rpc_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf.network.rpc->address, *conf.network.rpc->ws_port}, app()->getAddress());
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
@@ -166,21 +167,20 @@ void Rpc::start() {
     graphql_thread_pool_ = std::make_shared<util::ThreadPool>(conf.network.graphql->threads_num);
     if (conf.network.graphql->ws_port) {
       graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
-          graphql_thread_pool_,
+          graphql_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf.network.graphql->address, *conf.network.graphql->ws_port},
-          app()->getAddress(), conf.network.rpc->max_pending_tasks);
+          app()->getAddress());
       // graphql_ws_->run();
     }
 
     if (conf.network.graphql->http_port) {
       graphql_http_ = std::make_shared<net::HttpServer>(
-          graphql_thread_pool_,
+          graphql_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf.network.graphql->address, *conf.network.graphql->http_port},
           app()->getAddress(),
           std::make_shared<net::GraphQlHttpProcessor>(
               app()->getFinalChain(), app()->getDagManager(), app()->getPbftManager(), app()->getTransactionManager(),
-              app()->getDB(), app()->getGasPricer(), as_weak(app()->getNetwork()), conf.genesis.chain_id),
-          conf.network.rpc->max_pending_tasks);
+              app()->getDB(), app()->getGasPricer(), as_weak(app()->getNetwork()), conf.genesis.chain_id));
       graphql_http_->start();
     }
   }

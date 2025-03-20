@@ -123,11 +123,13 @@ class FinalChain {
   std::optional<TransactionLocation> transactionLocation(h256 const& trx_hash) const;
 
   /**
-   * @brief Method to get transaction receipt by hash
-   * @param _transactionHash hash of transaction to get receipt for
+   * @brief Method to get transaction receipt by block number and position
+   * @param blk_n block number
+   * @param position position of transaction in block
    * @return std::optional<TransactionReceipt> transaction receipt or nullopt
    */
-  std::optional<TransactionReceipt> transactionReceipt(h256 const& _transactionHash) const;
+  std::optional<TransactionReceipt> transactionReceipt(EthBlockNumber blk_n, uint64_t position,
+                                                       std::optional<trx_hash_t> trx_hash = {}) const;
 
   /**
    * @brief Method to get transactions count in block
@@ -271,10 +273,12 @@ class FinalChain {
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor);
 
-  const SharedTransactions getTransactions(std::optional<EthBlockNumber> n = {}) const;
+  SharedTransactionReceipts blockReceipts(std::optional<EthBlockNumber> n = {}) const;
 
  private:
+  const SharedTransactions getTransactions(std::optional<EthBlockNumber> n = {}) const;
   std::shared_ptr<TransactionHashes> getTransactionHashes(std::optional<EthBlockNumber> n = {}) const;
+  SharedTransactionReceipts getBlockReceipts(std::optional<EthBlockNumber> n = {}) const;
   std::shared_ptr<const BlockHeader> getBlockHeader(EthBlockNumber n) const;
   std::optional<h256> getBlockHash(EthBlockNumber n) const;
   EthBlockNumber lastIfAbsent(const std::optional<EthBlockNumber>& client_blk_n) const;
@@ -292,6 +296,7 @@ class FinalChain {
   std::shared_ptr<BlockHeader> makeGenesisHeader(std::string&& raw_header) const;
   std::shared_ptr<BlockHeader> makeGenesisHeader(const h256& state_root) const;
 
+  std::pair<h256, LogBloom> processReceipts(Batch& batch, EthBlockNumber blk_n, const TransactionReceipts& receipts);
   std::shared_ptr<BlockHeader> appendBlock(Batch& batch, const PbftBlock& pbft_blk, const h256& state_root,
                                            u256 total_reward, const SharedTransactions& transactions = {},
                                            const TransactionReceipts& receipts = {});
@@ -324,6 +329,8 @@ class FinalChain {
   ValueByBlockCache<uint64_t> total_vote_count_cache_;
   MapByBlockCache<addr_t, uint64_t> dpos_vote_count_cache_;
   MapByBlockCache<addr_t, uint64_t> dpos_is_eligible_cache_;
+
+  ValueByBlockCache<SharedTransactionReceipts> block_receipts_cache_;
 
   std::condition_variable finalized_cv_;
   std::mutex finalized_mtx_;

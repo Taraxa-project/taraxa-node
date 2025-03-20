@@ -111,7 +111,7 @@ class Subscriptions {
   bool removeSubscription(int id);
   void process(SubscriptionType type, const Json::Value& payload);
   void processLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
-                   const final_chain::TransactionReceipts& receipts);
+                   const TransactionReceipts& receipts);
 
  private:
   std::function<void(std::string&&)> send_;
