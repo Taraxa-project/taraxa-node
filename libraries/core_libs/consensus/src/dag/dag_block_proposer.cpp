@@ -254,10 +254,11 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
   SharedTransactions sharded_trxs;
   std::vector<uint64_t> sharded_estimations;
   for (uint32_t i = 0; i < transactions.size(); i++) {
-    auto shard = std::stoull(transactions[i]->getHash().toString().substr(0, 10), NULL, 16);
+    auto shard = std::stoull(transactions[i]->getSender().toString().substr(0, 10), NULL, 16) +
+                 proposal_period / kShardProposePeriodInterval;
     if (shard % total_trx_shards_ == my_trx_shard_) {
       sharded_trxs.emplace_back(transactions[i]);
-      estimations.emplace_back(estimations[i]);
+      sharded_estimations.emplace_back(estimations[i]);
     }
   }
   if (sharded_trxs.empty()) {
