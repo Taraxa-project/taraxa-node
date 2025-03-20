@@ -165,11 +165,18 @@ bool PriorityQueue::updateBlockingDependencies(const PacketData& packet, bool un
     //  GetPillarVotesBundlePacket -> serve pillar votes syncing data to only 1 node at the time
     //  PillarVotesBundlePacket -> process only 1 packet at a time. TODO[2744]: remove after protection mechanism is
     //  implemented PbftSyncPacket -> process sync pbft blocks synchronously
+    case SubprotocolPacketType::kPbftSyncPacket: {
+      if (!unblock_processing) {
+        blocked_packets_mask_.markPacketAsHardBlocked(packet, SubprotocolPacketType::kPbftBlocksBundlePacket);
+      } else {
+        blocked_packets_mask_.markPacketAsHardUnblocked(packet, SubprotocolPacketType::kPbftBlocksBundlePacket);
+      }
+    }
     case SubprotocolPacketType::kGetDagSyncPacket:
     case SubprotocolPacketType::kGetPbftSyncPacket:
     case SubprotocolPacketType::kGetPillarVotesBundlePacket:
     case SubprotocolPacketType::kPillarVotesBundlePacket:  // TODO[2744]: remove
-    case SubprotocolPacketType::kPbftSyncPacket: {
+    case SubprotocolPacketType::kPbftBlocksBundlePacket: {
       if (!unblock_processing) {
         blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       } else {

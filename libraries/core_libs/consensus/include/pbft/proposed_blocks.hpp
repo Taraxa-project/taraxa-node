@@ -21,15 +21,6 @@ class ProposedBlocks {
 
   /**
    * @brief Push proposed PBFT block into the proposed blocks
-   * @param proposed_block proposed PBFT block
-   * @param propose_vote propose PBFT vote
-   * @return true if block was successfully pushed, otherwise false
-   */
-  bool pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block,
-                             const std::shared_ptr<PbftVote>& propose_vote);
-
-  /**
-   * @brief Push proposed PBFT block into the proposed blocks
    * @param proposed_block
    * @param save_to_db if true save to db
    * @return true if block was successfully pushed, otherwise false
@@ -73,6 +64,11 @@ class ProposedBlocks {
    * @return err msg in case there are some old blocks, otherwise empty optional
    */
   std::optional<std::string> checkOldBlocksPresence(PbftPeriod current_period) const;
+
+  /**
+   * @return proposed blocks ordered by period
+   */
+  std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> getProposedBlocks() const;
 
  private:
   // <PBFT period, <block hash, [block, is_valid_flag]>>
