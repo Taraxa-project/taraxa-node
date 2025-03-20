@@ -169,7 +169,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   auto batch = db_->createWriteBatch();
 
   block_applying_emitter_.emit(blockHeader()->number + 1);
-
+  auto start = std::chrono::high_resolution_clock::now();
   /*
   // Any dag block producer producing duplicate dag blocks on same level should be slashed
 
@@ -197,6 +197,11 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   const auto& [exec_results] = state_api_.execute_transactions(
       {new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit, new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
       evm_trxs);
+  LOG(log_si_) << "EVM execution time: "
+               << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() -
+                                                                        start)
+                      .count()
+               << " ms";
   TransactionReceipts receipts;
   receipts.reserve(exec_results.size());
   std::vector<gas_t> transactions_gas_used;
@@ -229,7 +234,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   if (!finalized_dag_blk_hashes.empty()) {
     db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
     db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
-    LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
+    LOG(log_si_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
                  << num_executed_dag_blk_ - 1 << " , Transactions count: " << all_transactions.size();
   }
 
@@ -266,8 +271,15 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   });
 
   // Please do not change order of these three lines :)
+  auto bc = std::chrono::high_resolution_clock::now();
   db_->commitWriteBatch(batch, db_->sync_write_);
+  auto cb = std::chrono::high_resolution_clock::now();
+  LOG(log_si_) << "Commit write batch time: " << std::chrono::duration_cast<std::chrono::milliseconds>(cb - bc).count()
+               << " ms" << std::endl;
   state_api_.transition_state_commit();
+  auto tc = std::chrono::high_resolution_clock::now();
+  LOG(log_si_) << "State transition time: " << std::chrono::duration_cast<std::chrono::milliseconds>(tc - cb).count()
+               << " ms";
   rewards_.clear(new_blk.pbft_blk->getPeriod());
 
   num_executed_dag_blk_ = num_executed_dag_blk;
@@ -275,7 +287,11 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   block_headers_cache_.append(blk_header->number, blk_header);
   last_block_number_ = blk_header->number;
   block_finalized_emitter_.emit(result);
-  LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
+  LOG(log_si_) << "successful finalize block " << result->hash << " with number " << blk_header->number << " in "
+               << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() -
+                                                                        start)
+                      .count()
+               << " ms";
 
   // Creates snapshot if needed
   if (db_->createSnapshot(blk_header->number)) {

@@ -3,33 +3,27 @@
 #include <gtest/gtest.h>
 #include <libdevcore/CommonData.h>
 
-#include <atomic>
+#include <cstdint>
 #include <iostream>
 #include <mutex>
 #include <shared_mutex>
 #include <vector>
 
-#include "cli/config.hpp"
-#include "cli/tools.hpp"
 #include "common/constants.hpp"
 #include "common/init.hpp"
+#include "common/types.hpp"
 #include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"
 #include "graphql/mutation.hpp"
 #include "graphql/query.hpp"
 #include "graphql/subscription.hpp"
-#include "logger/logger.hpp"
-#include "network/network.hpp"
-#include "network/rpc/Taraxa.h"
 #include "node/node.hpp"
-#include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
 #include "transaction/transaction_manager.hpp"
 
 // TODO rename this namespace to `tests`
 namespace taraxa::core_tests {
 using samples::sendTrx;
-using vrf_wrapper::VrfSortitionBase;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
@@ -1669,6 +1663,76 @@ TEST_F(FullNodeTest, graphql_test) {
   auto transactionAt = service::ScalarArgument::require("transactionAt", block);
   const auto hash2 = service::StringArgument::require("hash", transactionAt);
   EXPECT_EQ(nodes[0]->getFinalChain()->transactionHashes(2)->at(0).toString(), hash2);
+}
+
+TEST_F(FullNodeTest, cycle_transactions) {
+  auto node_cfgs = make_node_cfgs(2, 2);
+  auto nodes = launch_nodes(node_cfgs);
+  std::cout << "Send first trx ..." << std::endl;
+  auto node_addr = nodes[0]->getAddress();
+  auto fc = nodes[0]->getFinalChain();
+  auto initial_bal = fc->getBalance(node_addr);
+  EXPECT_TRUE(initial_bal.second);
+
+  const auto trx = std::make_shared<Transaction>(
+      fc->getAccount(node_addr)->nonce + 1, 0, 0, 2000000,
+      dev::fromHex(
+          "0x6080604052348015600f57600080fd5b5063045d9f3b424302601081901c18026001556102d3806100316000396000f3fe60806040"
+          "5234801561001057600080fd5b50600436106100625760003560e01c80632f048afa146100675780637ea9ead31461007c578063a49c"
+          "bc46146100a1578063abbb061e146100b4578063b8dda9c7146100c7578063ffb2c479146100e7575b600080fd5b61007a6100753660"
+          "04610262565b6100fa565b005b61008f61008a366004610262565b61012b565b60405190815260200160405180910390f35b61007a61"
+          "00af366004610262565b610172565b61008f6100c2366004610262565b6101b4565b61008f6100d5366004610262565b600060208190"
+          "52908152604090205481565b61008f6100f5366004610262565b610207565b60005b8181101561012757600061010f61022d565b6000"
+          "81815260208190526040902055506001016100fd565b5050565b600061013860024361027b565b60000361014757506000919050565b"
+          "6000805b8381101561016b57600061015d61022d565b92909201915060010161014b565b5092915050565b61017d60024361027b565b"
+          "6000036101875750565b60005b8181101561012757600061019c61022d565b6000818152602081905260409020555060010161018a56"
+          "5b6000806000805b848110156101fe5767a3b195354a39b70d6760bee2bee120fc1583019081026f1145efb08343750a52a767aff950"
+          "8a3591909102189283019291506001016101bb565b50909392505050565b60008060005b8381101561016b57600061021f61022d565b"
+          "92909201915060010161020d565b600180546760bee2bee120fc1501908190556f1145efb08343750a52a767aff9508a35810267a3b1"
+          "95354a39b70d9091021890565b60006020828403121561027457600080fd5b5035919050565b60008261029857634e487b7160e01b60"
+          "0052601260045260246000fd5b50069056fea26469706673582212203bf6015111f9544c7a4c228aabc1c0d9d0bb207c73e5a4cd63ce"
+          "4f5c4bd915d864736f6c634300081c0033"),
+      g_secret);
+  nodes[0]->getTransactionManager()->insertTransaction(trx);
+  uint64_t trx_count = 1;
+  EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
+    for (auto &node : nodes) {
+      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != 1)) {
+        return;
+      }
+    }
+  });
+  auto loc = fc->transactionLocation(trx->getHash());
+  auto receipt = fc->transactionReceipt(loc->period, loc->position);
+  EXPECT_EQ(receipt->status_code, 1);
+  auto contract_address = receipt->new_contract_address;
+  std::cout << "Contract code: " << dev::toHex(fc->getCode(contract_address.value())) << std::endl;
+
+  const auto calldata = "0xabbb061e0000000000000000000000000000000000000000000000000000000000041eb0";
+  std::cout << "Calldata: " << dev::toHex(dev::fromHex(calldata)) << std::endl;
+
+  const auto nonce = fc->getAccount(node_addr)->nonce + 1;
+  const auto test_trx_count = 100;
+  for (uint256_t i = nonce; i < nonce + test_trx_count; i++) {
+    const auto call_trx =
+        std::make_shared<Transaction>(i, 0, 0, 30000000, dev::fromHex(calldata), g_secret, contract_address);
+    nodes[0]->getTransactionManager()->insertTransaction(call_trx);
+    trx_count++;
+  }
+  EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
+    for (auto &node : nodes) {
+      if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trx_count)) {
+        return;
+      }
+    }
+  });
+
+  // {
+  //   auto loc = fc->transactionLocation(call_trx->getHash());
+  //   auto receipt = fc->transactionReceipt(loc->period, loc->position);
+  //   EXPECT_EQ(receipt->status_code, 1);
+  //   std::cout << "Call trx executed " << receipt->gas_used << std::endl;
+  // }
 }
 
 }  // namespace taraxa::core_tests
