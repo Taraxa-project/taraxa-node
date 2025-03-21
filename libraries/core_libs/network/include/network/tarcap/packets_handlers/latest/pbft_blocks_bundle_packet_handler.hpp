@@ -20,6 +20,7 @@ class PbftBlocksBundlePacketHandler : public PacketHandler<PbftBlocksBundlePacke
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kPbftBlocksBundlePacket;
+  static constexpr size_t kMaxBlocksInPacket = 10;
 
  private:
   virtual void process(PbftBlocksBundlePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
