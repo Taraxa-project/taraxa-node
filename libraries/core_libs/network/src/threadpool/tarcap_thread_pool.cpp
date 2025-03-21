@@ -1,15 +1,17 @@
 #include "network/threadpool/tarcap_thread_pool.hpp"
 
 #include "network/tarcap/packets_handler.hpp"
+#include "pbft/pbft_manager.hpp"
 
 namespace taraxa::network::threadpool {
 
-PacketsThreadPool::PacketsThreadPool(size_t workers_num, const addr_t& node_addr)
+PacketsThreadPool::PacketsThreadPool(size_t workers_num, const std::shared_ptr<PbftManager>& pbft_mgr,
+                                     const addr_t& node_addr)
     : workers_num_(workers_num),
       packets_handlers_(),
       stopProcessing_(false),
       packets_count_(0),
-      queue_(workers_num, node_addr),
+      queue_(workers_num, pbft_mgr, node_addr),
       queue_mutex_(),
       cond_var_(),
       workers_() {

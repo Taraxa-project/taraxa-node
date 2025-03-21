@@ -1,9 +1,12 @@
 #include "network/threadpool/priority_queue.hpp"
 
+#include "pbft/pbft_manager.hpp"
+
 namespace taraxa::network::threadpool {
 
-PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
-    : blocked_packets_mask_(), MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
+PriorityQueue::PriorityQueue(size_t tp_workers_count, const std::shared_ptr<PbftManager>& pbft_mgr,
+                             const addr_t& node_addr)
+    : blocked_packets_mask_(pbft_mgr), MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
   // tp_workers_count value should be validated (>=3) after it is read from config
   assert(tp_workers_count >= 3);

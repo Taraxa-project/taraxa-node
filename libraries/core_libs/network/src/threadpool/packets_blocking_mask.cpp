@@ -1,8 +1,11 @@
 #include "network/threadpool/packets_blocking_mask.hpp"
 
 #include "dag/dag_block.hpp"
+#include "pbft/pbft_manager.hpp"
 
 namespace taraxa::network::threadpool {
+
+PacketsBlockingMask::PacketsBlockingMask(const std::shared_ptr<PbftManager>& pbft_mgr) : pbft_mgr_(pbft_mgr) {}
 
 void PacketsBlockingMask::markPacketAsHardBlocked(const PacketData& blocking_packet,
                                                   SubprotocolPacketType packet_type_to_block) {
@@ -207,9 +210,17 @@ bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
 
   // Custom blocks for specific packet types...
   // Check if DagBlockPacket is blocked by processing some dag blocks with <= dag level
-  if (packet_data.type_ == SubprotocolPacketType::kDagBlockPacket &&
-      (isDagBlockPacketBlockedByLevel(packet_data) || isDagBlockPacketBlockedBySameDagBlock(packet_data))) {
-    return true;
+  if (packet_data.type_ == SubprotocolPacketType::kDagBlockPacket) {
+    if (isDagBlockPacketBlockedByLevel(packet_data) || isDagBlockPacketBlockedBySameDagBlock(packet_data)) {
+      return true;
+    }
+  } else if (packet_data.type_ == SubprotocolPacketType::kPbftBlocksBundlePacket) {
+    // kPbftBlocksBundlePacket contains latest proposed blocks that are sent after the last sync packet. It should be
+    // processed only is sync queue is empty -> all data from sync packets have been processed, otherwise proposed
+    // blocks fail validation
+    if (!pbft_mgr_->periodDataQueueEmpty()) {
+      return true;
+    }
   }
 
   // Check if packet is order blocked
