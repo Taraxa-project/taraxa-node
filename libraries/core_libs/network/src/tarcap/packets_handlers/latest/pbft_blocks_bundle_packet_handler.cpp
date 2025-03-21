@@ -40,7 +40,7 @@ void PbftBlocksBundlePacketHandler::process(PbftBlocksBundlePacket &&packet, con
 
     // Check if proposed block period is relevant compared to the current node period
     if (proposed_block_period < current_pbft_period || proposed_block_period > current_pbft_period + 5) {
-      // This should not happen as sendet sends PbftBlocksBundlePacket only after he sends last sync packet and
+      // This should not happen as sender sends PbftBlocksBundlePacket only after he sends last sync packet and
       // PbftBlocksBundlePacket processing is blocked until sync_queue is empty
       LOG(log_er_)
           << "Unable to validate proposed blocks bundle as sync packets were not processed yet. Current chain size "
