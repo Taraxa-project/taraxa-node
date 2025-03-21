@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/thread_pool.hpp"
 #include "dag.hpp"
 #include "dag/dag_block.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -281,6 +282,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   const GenesisConfig kGenesis;
   const uint64_t kValidatorMaxVote;
+  util::ThreadPool estimation_thread_pool_;
 
   LOG_OBJECTS_DEFINE
 };

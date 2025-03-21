@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "transaction/transaction.hpp"
@@ -21,6 +22,22 @@ TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_p
     std::unique_lock transactions_lock(transactions_mutex_);
     trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
   }
+}
+
+uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs,
+                                                  std::optional<PbftPeriod> proposal_period) const {
+  util::ThreadPool estimation_thread_pool_(std::thread::hardware_concurrency() / 2);
+  std::atomic<uint64_t> total_gas = 0;
+  for (const auto &trx : trxs) {
+    if (trx->getGas() <= kEstimateGasLimit) {
+      total_gas += trx->getGas();
+    } else {
+      estimation_thread_pool_.post([&]() { total_gas += estimateTransactionGas(trx, proposal_period); });
+    }
+  }
+
+  estimation_thread_pool_.wait();
+  return total_gas.load();
 }
 
 uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
@@ -197,8 +214,9 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
 
   {
-    // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
-    // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
+    // This lock synchronizes inserting and removing transactions from transactions memory pool with database
+    // insertion. Unique lock here makes sure that transactions we are removing are not reinserted in
+    // transactions_pool_
     std::unique_lock transactions_lock(transactions_mutex_);
 
     for (auto t : trxs) {
@@ -385,7 +403,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
   // Delete transactions older than recently_finalized_transactions_periods
   if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
     for (auto hash : recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod() -
-                                                                  recently_finalized_transactions_periods]) {
+                                                                 recently_finalized_transactions_periods]) {
       recently_finalized_transactions_.erase(hash);
     }
     recently_finalized_transactions_per_period_.erase(period_data.pbft_blk->getPeriod() -
