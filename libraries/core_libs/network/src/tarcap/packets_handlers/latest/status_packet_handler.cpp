@@ -1,9 +1,8 @@
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
 
 #include "config/version.hpp"
-#include "dag/dag.hpp"
+#include "network/tarcap/packets/latest/get_next_votes_bundle_packet.hpp"
 #include "network/tarcap/packets/latest/status_packet.hpp"
-#include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -17,12 +16,14 @@ StatusPacketHandler::StatusPacketHandler(const FullNodeConfig& conf, std::shared
                                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
                                          h256 genesis_hash, const addr_t& node_addr, const std::string& logs_prefix)
-    : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
-                              logs_prefix + "STATUS_PH"),
+    : ISyncPacketHandler(conf, peers_state, packets_stats, std::move(pbft_syncing_state), std::move(pbft_chain),
+                         std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr, logs_prefix + "STATUS_PH"),
       kGenesisHash(genesis_hash) {}
 
-void StatusPacketHandler::process(StatusPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) {
+void StatusPacketHandler::process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<StatusPacket>(packet_data.rlp_);
+
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
   const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
@@ -121,7 +122,11 @@ void StatusPacketHandler::process(StatusPacket&& packet, const std::shared_ptr<T
 
       const auto [pbft_current_round, pbft_current_period] = pbft_mgr_->getPbftRoundAndPeriod();
       if (pbft_current_period == selected_peer->pbft_period_ && pbft_current_round < selected_peer->pbft_round_) {
-        requestPbftNextVotesAtPeriodRound(selected_peer->getId(), pbft_current_period, pbft_current_round);
+        // TODO: this functionality is implemented in requestPbftNextVotesAtPeriodRound in ExtVotesPacketHandler
+        const auto get_next_votes_packet =
+            GetNextVotesBundlePacket{.peer_pbft_period = pbft_current_period, .peer_pbft_round = pbft_current_round};
+        sealAndSend(selected_peer->getId(), SubprotocolPacketType::kGetNextVotesSyncPacket,
+                    encodePacketRlp(get_next_votes_packet));
       }
     }
     selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
@@ -130,46 +135,6 @@ void StatusPacketHandler::process(StatusPacket&& packet, const std::shared_ptr<T
                  << selected_peer->dag_level_ << ", peer pbft chain size " << selected_peer->pbft_chain_size_
                  << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
                  << selected_peer->pbft_round_;
-  }
-}
-
-bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initial) {
-  bool success = false;
-  std::string status_packet_type = initial ? "initial" : "standard";
-
-  LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
-               << TARAXA_NET_VERSION << ", network id " << kConf.genesis.chain_id << ", genesis " << kGenesisHash
-               << ", node version " << TARAXA_VERSION;
-
-  auto dag_max_level = dag_mgr_->getMaxLevel();
-  auto pbft_chain_size = pbft_chain_->getPbftChainSize();
-  const auto pbft_round = pbft_mgr_->getPbftRound();
-
-  if (initial) {
-    success = sealAndSend(
-        node_id, SubprotocolPacketType::kStatusPacket,
-        encodePacketRlp(StatusPacket(
-            pbft_chain_size, pbft_round, dag_max_level, pbft_syncing_state_->isPbftSyncing(),
-            StatusPacket::InitialData{kConf.genesis.chain_id, kGenesisHash, TARAXA_MAJOR_VERSION, TARAXA_MINOR_VERSION,
-                                      TARAXA_PATCH_VERSION, kConf.is_light_node, kConf.light_node_history})));
-  } else {
-    success = sealAndSend(node_id, SubprotocolPacketType::kStatusPacket,
-                          encodePacketRlp(StatusPacket(pbft_chain_size, pbft_round, dag_max_level,
-                                                       pbft_syncing_state_->isDeepPbftSyncing())));
-  }
-
-  return success;
-}
-
-void StatusPacketHandler::sendStatusToPeers() {
-  auto host = peers_state_->host_.lock();
-  if (!host) {
-    LOG(log_er_) << "Unavailable host during checkLiveness";
-    return;
-  }
-
-  for (auto const& peer : peers_state_->getAllPeers()) {
-    sendStatus(peer.first, false);
   }
 }
 

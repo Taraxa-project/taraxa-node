@@ -16,13 +16,17 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(const FullNodeConfig &conf, std::sh
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                                              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
                                              const addr_t &node_addr, const std::string &logs_prefix)
-    : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
-                              logs_prefix + "PBFT_SYNC_PH"),
+    : ISyncPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
+                         std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
+                         logs_prefix + "PBFT_SYNC_PH"),
       vote_mgr_(std::move(vote_mgr)),
       periodic_events_tp_(1, true) {}
 
-void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
+                                    const std::shared_ptr<TaraxaPeer> &peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<PbftSyncPacket>(packet_data.rlp_);
+
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
@@ -85,7 +89,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
         if (vote->getBlockHash() != pbft_blk_hash) {
           LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_blk_hash
                        << " from peer " << peer->getId().abridged() << " received, stop syncing.";
-          handleMaliciousSyncPeer(peer->getId());
+          peers_state_->handleMaliciousSyncPeer(peer->getId());
           return;
         }
       }
@@ -98,13 +102,13 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
       if (vote->getBlockHash() != last_pbft_block_hash) {
         LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of "
                      << last_pbft_block_hash << " from peer " << peer->getId().abridged() << " received, stop syncing.";
-        handleMaliciousSyncPeer(peer->getId());
+        peers_state_->handleMaliciousSyncPeer(peer->getId());
         return;
       }
     }
 
     if (!pbft_mgr_->validatePillarDataInPeriodData(packet.period_data)) {
-      handleMaliciousSyncPeer(peer->getId());
+      peers_state_->handleMaliciousSyncPeer(peer->getId());
       return;
     }
 
@@ -125,7 +129,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
                      << " received " << packet.period_data.pbft_blk->getOrderHash() << "; Dag order: " << blk_order
                      << "; Trx order: " << trx_order << "; from " << peer->getId().abridged() << ", stop syncing.";
       }
-      handleMaliciousSyncPeer(peer->getId());
+      peers_state_->handleMaliciousSyncPeer(peer->getId());
       return;
     }
 
@@ -137,7 +141,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
           LOG(log_er_) << "Invalid reward votes in block " << packet.period_data.pbft_blk->getBlockHash()
                        << " from peer " << peer->getId().abridged()
                        << " received, stop syncing. Validation failed. Err: " << vote_is_valid.second;
-          handleMaliciousSyncPeer(peer->getId());
+          peers_state_->handleMaliciousSyncPeer(peer->getId());
           return;
         }
 
@@ -157,7 +161,7 @@ void PbftSyncPacketHandler::process(PbftSyncPacket &&packet, const std::shared_p
 
         LOG(log_er_) << "Invalid reward votes in block " << packet.period_data.pbft_blk->getBlockHash() << " from peer "
                      << peer->getId().abridged() << " received, stop syncing.";
-        handleMaliciousSyncPeer(peer->getId());
+        peers_state_->handleMaliciousSyncPeer(peer->getId());
         return;
       }
     }
@@ -252,17 +256,6 @@ void PbftSyncPacketHandler::delayedPbftSync(uint32_t counter) {
         pbft_syncing_state_->setPbftSyncing(false);
       }
     }
-  }
-}
-
-void PbftSyncPacketHandler::handleMaliciousSyncPeer(const dev::p2p::NodeID &id) {
-  peers_state_->set_peer_malicious(id);
-
-  if (auto host = peers_state_->host_.lock(); host) {
-    LOG(log_nf_) << "Disconnect peer " << id;
-    host->disconnect(id, dev::p2p::UserReason);
-  } else {
-    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
   }
 }
 

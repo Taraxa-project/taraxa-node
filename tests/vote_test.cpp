@@ -123,8 +123,8 @@ TEST_F(VoteTest, transfer_vote) {
   PbftStep step = 1;
   auto vote = node1->getVoteManager()->generateVote(propose_block_hash, type, period, round, step);
 
-  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(nw2->getNodeId()), vote,
-                                                                              nullptr);
+  nw1->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
+      ->sendPbftVote(nw1->getPeer(nw2->getNodeId()), vote, nullptr);
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();
@@ -160,7 +160,9 @@ TEST_F(VoteTest, vote_broadcast) {
   // generate a vote far ahead (never exist in PBFT manager)
   auto vote = vote_mgr1->generateVote(blk_hash_t(1), PbftVoteTypes::soft_vote, period, round, 2);
 
-  node1->getNetwork()->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, nullptr);
+  node1->getNetwork()
+      ->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
+      ->onNewPbftVote(vote, nullptr);
 
   EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, vote_mgr2->getVerifiedVotesSize(), 1)

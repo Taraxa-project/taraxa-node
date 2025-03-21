@@ -8,6 +8,10 @@
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
 #include "network/tarcap/taraxa_peer.hpp"
 
+namespace taraxa {
+class PbftManager;
+}
+
 namespace taraxa::network::tarcap {
 
 /**
@@ -52,6 +56,27 @@ class PeersState {
    * @return returns true if peer is in malicious peer list
    */
   bool is_peer_malicious(const dev::p2p::NodeID& peer_id);
+
+  /**
+   * @brief Handle malicious peer
+   * @param id
+   */
+  void handleMaliciousSyncPeer(const dev::p2p::NodeID& id);
+
+  /**
+   * @param filter_func
+   * @return TaraxaPeer shared_ptr with max chain size
+   */
+  std::shared_ptr<TaraxaPeer> getMaxChainPeer(
+      const std::shared_ptr<PbftManager> pbft_mgr, std::function<bool(const std::shared_ptr<TaraxaPeer>&)> filter_func =
+                                                       [](const std::shared_ptr<TaraxaPeer>&) { return true; });
+
+ private:
+  /**
+   * @brief Disconnect peer
+   * @param id
+   */
+  void disconnectPeer(const dev::p2p::NodeID& id);
 
  public:
   const std::weak_ptr<dev::p2p::Host> host_;

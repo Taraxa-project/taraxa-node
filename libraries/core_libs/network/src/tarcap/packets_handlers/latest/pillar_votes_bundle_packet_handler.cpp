@@ -12,8 +12,11 @@ PillarVotesBundlePacketHandler::PillarVotesBundlePacketHandler(
     : ExtPillarVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats),
                                  std::move(pillar_chain_manager), node_addr, logs_prefix + "PILLAR_VOTES_BUNDLE_PH") {}
 
-void PillarVotesBundlePacketHandler::process(PillarVotesBundlePacket &&packet,
+void PillarVotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                              const std::shared_ptr<TaraxaPeer> &peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<PillarVotesBundlePacket>(packet_data.rlp_);
+
   if (packet.pillar_votes_bundle.pillar_votes.size() == 0 ||
       packet.pillar_votes_bundle.pillar_votes.size() > kMaxPillarVotesInBundleRlp) {
     throw InvalidRlpItemsCountException("PillarVotesBundlePacket", packet.pillar_votes_bundle.pillar_votes.size(),
