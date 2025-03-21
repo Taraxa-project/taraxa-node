@@ -1167,45 +1167,6 @@ void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &propose
   proposed_blocks_.pushProposedPbftBlock(proposed_block);
 }
 
-void PbftManager::processProposedBlocks(const std::vector<std::shared_ptr<PbftBlock>> &proposed_blocks) {
-  const auto current_pbft_period = getPbftPeriod();
-
-  std::unordered_map<PbftPeriod, std::unordered_set<addr_t>> unique_authors;
-
-  // TODO: packet should be only from the last syncing peer
-
-  for (const auto &proposed_block : proposed_blocks) {
-    const auto proposed_block_period = proposed_block->getPeriod();
-    const auto proposed_block_author = proposed_block->getBeneficiary();
-
-    // Check if proposed block period is relevant compared to the current node period
-    if (proposed_block_period < current_pbft_period || proposed_block_period > current_pbft_period + 5) {
-      if (!sync_queue_.empty()) {
-        // TODO: we might wait here, which is not ideal as it blocks 1 thread, or we wait for sync queue to be empy in
-        // blocking mask
-        LOG(log_er_)
-            << "Unable to validate proposed blocks bundle as sync packets were not processed yet. Current chain size "
-            << current_pbft_period << ", proposed block period " << proposed_block_period;
-      }
-
-      continue;
-    }
-
-    // Check if block author is unique per period
-    if (!unique_authors[proposed_block_period].insert(proposed_block_author).second) {
-      // TODO: malicious sender
-      continue;
-    }
-
-    // Check if block author is dpos eligible
-    if (!canParticipateInConsensus(proposed_block_period - 1, proposed_block_author)) {
-      continue;
-    }
-
-    processProposedBlock(proposed_block);
-  }
-}
-
 blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes) {
   if (dag_block_hashes.empty()) {
     return kNullBlockHash;

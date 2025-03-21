@@ -244,13 +244,6 @@ class PbftManager {
   void processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block);
 
   /**
-   * @brief Push proposed blocks into the proposed_blocks_ in case it is not there yet
-   *
-   * @param proposed_blocks
-   */
-  void processProposedBlocks(const std::vector<std::shared_ptr<PbftBlock>> &proposed_blocks);
-
-  /**
    * @brief Get a proposed PBFT block based on specified period and block hash
    * @param period
    * @param block_hash
