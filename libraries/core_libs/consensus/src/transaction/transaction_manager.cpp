@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "transaction/transaction.hpp"
@@ -16,12 +17,33 @@ TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_p
       estimations_cache_(kConf.transactions_pool_size / 10, kConf.transactions_pool_size / 100),
       kDagBlockGasLimit(kConf.genesis.dag.gas_limit),
       db_(std::move(db)),
-      final_chain_(std::move(final_chain)) {
+      final_chain_(std::move(final_chain)),
+      estimation_thread_pool_(std::thread::hardware_concurrency() / 2) {
   LOG_OBJECTS_CREATE("TRXMGR");
   {
     std::unique_lock transactions_lock(transactions_mutex_);
     trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
   }
+}
+
+uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs,
+                                                  std::optional<PbftPeriod> proposal_period) {
+  std::atomic<uint64_t> total_gas = 0;
+  std::vector<std::future<void>> futures;
+  futures.reserve(trxs.size());
+  for (const auto &trx : trxs) {
+    if (trx->getGas() <= kEstimateGasLimit) {
+      total_gas += trx->getGas();
+    } else {
+      futures.emplace_back(
+          estimation_thread_pool_.post([&]() { total_gas += estimateTransactionGas(trx, proposal_period); }));
+    }
+  }
+  for (auto &future : futures) {
+    future.get();
+  }
+
+  return total_gas.load();
 }
 
 uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
@@ -214,8 +236,9 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
 
   {
-    // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
-    // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
+    // This lock synchronizes inserting and removing transactions from transactions memory pool with database
+    // insertion. Unique lock here makes sure that transactions we are removing are not reinserted in
+    // transactions_pool_
     std::unique_lock transactions_lock(transactions_mutex_);
 
     for (auto t : trxs) {
