@@ -40,13 +40,12 @@ void PbftBlocksBundlePacketHandler::process(PbftBlocksBundlePacket &&packet, con
 
     // Check if proposed block period is relevant compared to the current node period
     if (proposed_block_period < current_pbft_period || proposed_block_period > current_pbft_period + 5) {
-      if (!pbft_mgr_->periodDataQueueEmpty()) {
-        // TODO: we might wait here, which is not ideal as it blocks 1 thread, or we wait for sync queue to be empy in
-        // blocking mask
-        LOG(log_er_)
-            << "Unable to validate proposed blocks bundle as sync packets were not processed yet. Current chain size "
-            << current_pbft_period << ", proposed block period " << proposed_block_period;
-      }
+      // This should not happen as sendet sends PbftBlocksBundlePacket only after he sends last sync packet and
+      // PbftBlocksBundlePacket processing is blocked until sync_queue is empty
+      LOG(log_er_)
+          << "Unable to validate proposed blocks bundle as sync packets were not processed yet. Current chain size "
+          << current_pbft_period << ", proposed block period " << proposed_block_period << ", proposed block hash "
+          << proposed_block->getBlockHash();
 
       continue;
     }
