@@ -54,6 +54,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
                      std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr);
 
   /**
+   * @brief Estimates required gas value to execute transactions
+   * @param trxs transactions
+   * @param proposal_period proposal period
+   * @return estimated gas value for transactions
+   */
+  uint64_t estimateTransactions(const SharedTransactions &trxs, std::optional<PbftPeriod> proposal_period) const;
+
+  /**
    * @brief Estimates required gas value to execute transaction
    * @param trx transaction
    * @param proposal_period proposal period

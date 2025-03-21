@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
+#include <chrono>
 
 #include "common/functional.hpp"
 
@@ -49,6 +50,12 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
 
   operator task_executor_t() {
     return [this](auto &&task) { post(std::forward<task_t>(task)); };
+  }
+
+  void wait() {
+    while (num_pending_tasks_ > 0) {
+      std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+    }
   }
 };
 
