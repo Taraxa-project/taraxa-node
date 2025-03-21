@@ -63,6 +63,7 @@ void PbftBlock::calculateHash_() {
     assert(false);
   }
   auto p = dev::recover(signature_, sha3(false));
+  // TODO: this could crash nodes
   assert(p);
   beneficiary_ = dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
 }

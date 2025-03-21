@@ -32,6 +32,7 @@ enum SubprotocolPacketType : uint32_t {
   kPillarVotePacket,
   kGetPillarVotesBundlePacket,
   kPillarVotesBundlePacket,
+  kPbftBlocksBundlePacket,
 
   kPacketCount
 };
@@ -68,6 +69,8 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "GetPillarVotesBundlePacket";
     case kPillarVotesBundlePacket:
       return "PillarVotesBundlePacket";
+    case kPbftBlocksBundlePacket:
+      return "PbftBlocksBundlePacket";
     default:
       break;
   }

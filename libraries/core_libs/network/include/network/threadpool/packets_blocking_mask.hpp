@@ -7,10 +7,22 @@
 #include "network/tarcap/packet_types.hpp"
 #include "network/threadpool/packet_data.hpp"
 
+namespace taraxa {
+class PbftManager;
+}
+
 namespace taraxa::network::threadpool {
 
 class PacketsBlockingMask {
  public:
+  PacketsBlockingMask(const std::shared_ptr<PbftManager>& pbft_mgr);
+  ~PacketsBlockingMask() = default;
+
+  PacketsBlockingMask(const PacketsBlockingMask&) = default;
+  PacketsBlockingMask& operator=(const PacketsBlockingMask&) = default;
+  PacketsBlockingMask(PacketsBlockingMask&&) = default;
+  PacketsBlockingMask& operator=(PacketsBlockingMask&&) = default;
+
   void markPacketAsHardBlocked(const PacketData& blocking_packet, SubprotocolPacketType packet_type_to_block);
   void markPacketAsHardUnblocked(const PacketData& blocking_packet, SubprotocolPacketType packet_type_to_unblock);
 
@@ -66,6 +78,8 @@ class PacketsBlockingMask {
   // concurrently, to reduce perofrmance impact only one packet/block will be processsed and others will be waiting.
   //  This map contains dag blocks that are currently processed with the associated packet id
   std::map<taraxa::sig_t, PacketData::PacketId> processing_dag_blocks_;
+
+  std::shared_ptr<PbftManager> pbft_mgr_;
 
   static constexpr size_t kRequiredDagPacketSizeV3 = 2;
   static constexpr size_t kDagBlockPosV3 = 1;

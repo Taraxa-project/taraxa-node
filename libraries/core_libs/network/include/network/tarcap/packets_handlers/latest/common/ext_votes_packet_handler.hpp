@@ -84,7 +84,7 @@ class ExtVotesPacketHandler : public PacketHandler<PacketType> {
     }
 
     if (pbft_block) {
-      pbft_mgr_->processProposedBlock(pbft_block, vote);
+      pbft_mgr_->processProposedBlock(pbft_block);
     }
 
     return true;
@@ -252,11 +252,18 @@ class ExtVotesPacketHandler : public PacketHandler<PacketType> {
    * @return true if validation successful, otherwise false
    */
   bool validateVoteAndBlock(const std::shared_ptr<PbftVote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const {
+    if (pbft_block->getPeriod() != vote->getPeriod()) {
+      LOG(this->log_er_) << "Vote " << vote->getHash() << " period " << vote->getPeriod() << " != pbft block block "
+                         << pbft_block->getPeriod();
+      return false;
+    }
+
     if (pbft_block->getBlockHash() != vote->getBlockHash()) {
       LOG(this->log_er_) << "Vote " << vote->getHash() << " voted block " << vote->getBlockHash() << " != actual block "
                          << pbft_block->getBlockHash();
       return false;
     }
+
     return true;
   }
 
