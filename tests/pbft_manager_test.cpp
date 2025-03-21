@@ -446,7 +446,7 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   auto propose_vote = node1->getVoteManager()->generateVote(
       proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, proposed_pbft_block->getPeriod(),
       node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
-  pbft_mgr1->processProposedBlock(proposed_pbft_block, propose_vote);
+  pbft_mgr1->processProposedBlock(proposed_pbft_block);
 
   auto block1_from_node1 = pbft_mgr1->getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
