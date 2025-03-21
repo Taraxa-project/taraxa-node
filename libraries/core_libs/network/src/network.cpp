@@ -35,7 +35,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
       pbft_mgr_(pbft_mgr),
       tp_(config.network.num_threads, false),
       packets_tp_(std::make_shared<network::threadpool::PacketsThreadPool>(config.network.packets_processing_threads,
-                                                                           key.address())),
+                                                                           pbft_mgr, key.address())),
       periodic_events_tp_(kPeriodicEventsThreadCount, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
@@ -67,7 +67,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
   taraxa_net_conf.chain_id = config.genesis.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
-  const std::string net_version = "TaraxaNode";  // TODO maybe give a proper name?
+  const std::string net_version = "TaraxaNode";
 
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {

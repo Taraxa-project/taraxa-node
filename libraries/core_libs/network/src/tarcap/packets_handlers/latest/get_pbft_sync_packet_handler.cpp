@@ -66,9 +66,24 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
 
   // Send current proposed blocks after the last sync packet
   if (pbft_chain_synced) {
+    PbftBlocksBundlePacket proposed_blocks_packet;
+
     for (auto &&period_proposed_blocks : pbft_mgr_->getProposedBlocks()) {
+      for (auto &&proposed_block : period_proposed_blocks.second) {
+        proposed_blocks_packet.pbft_blocks.push_back(std::move(proposed_block));
+
+        // Send max 10 blocks in a single packet
+        if (proposed_blocks_packet.pbft_blocks.size() == 10) {
+          sealAndSend(peer->getId(), SubprotocolPacketType::kPbftBlocksBundlePacket,
+                      encodePacketRlp(proposed_blocks_packet));
+          proposed_blocks_packet.pbft_blocks.clear();
+        }
+      }
+    }
+
+    if (!proposed_blocks_packet.pbft_blocks.empty()) {
       sealAndSend(peer->getId(), SubprotocolPacketType::kPbftBlocksBundlePacket,
-                  encodePacketRlp(PbftBlocksBundlePacket{.pbft_blocks = std::move(period_proposed_blocks.second)}));
+                  encodePacketRlp(proposed_blocks_packet));
     }
   }
 }

@@ -17,15 +17,16 @@ PbftBlocksBundlePacketHandler::PbftBlocksBundlePacketHandler(const FullNodeConfi
       pbft_syncing_state_(syncing_state) {}
 
 void PbftBlocksBundlePacketHandler::process(PbftBlocksBundlePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+  LOG(log_dg_) << "PbftBlocksBundlePacket received from peer " << peer->getId().abridged();
   const auto current_pbft_period = pbft_mgr_->getPbftPeriod();
 
   std::unordered_map<PbftPeriod, std::unordered_set<addr_t>> unique_authors;
 
   if (pbft_syncing_state_->lastSyncingPeer()->getId() != peer->getId()) {
-    LOG(log_wr_) << "PbftBlocksBundlePacket received from unexpected peer " << peer->getId().abridged()
+    LOG(log_er_) << "PbftBlocksBundlePacket received from unexpected peer " << peer->getId().abridged()
                  << " last syncing peer " << pbft_syncing_state_->lastSyncingPeer()->getId().abridged();
-    // Note: do not throw MaliciousPeerException as in some edge cases node could be syncing with new peer could
-    // already. In that case we can ignore this packet
+    // Note: do not throw MaliciousPeerException as in some edge cases node could be already syncing with new peer.
+    // In such case we can simply ignore this packet
     return;
   }
 
@@ -62,6 +63,7 @@ void PbftBlocksBundlePacketHandler::process(PbftBlocksBundlePacket &&packet, con
     }
 
     pbft_mgr_->processProposedBlock(proposed_block);
+    LOG(log_dg_) << "Processed received proposed block: " << proposed_block->getBlockHash();
   }
 }
 
