@@ -154,6 +154,13 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
     proposable = false;
   }
 
+  if (kConf.propose_dag_gas_limit < tx->getGas()) {
+    if (!insert_non_proposable) {
+      return TransactionStatus::Known;
+    }
+    proposable = false;
+  }
+
   const auto last_block_number = final_chain_->lastBlockNumber();
   LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
   return transactions_pool_.insert(std::move(tx), proposable, last_block_number);
@@ -341,24 +348,31 @@ bool TransactionManager::verifyTransactionsNotFinalized(const SharedTransactions
 std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrxs(PbftPeriod proposal_period,
                                                                                   uint64_t weight_limit) {
   SharedTransactions trxs;
-  std::vector<uint64_t> estimations;
-  uint64_t total_weight = 0;
   const uint64_t max_transactions_in_block = weight_limit / kMinTxGas;
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     trxs = transactions_pool_.getOrderedTransactions(max_transactions_in_block);
   }
+
+  std::vector<uint64_t> estimations;
+  SharedTransactions trxs_to_propose;
+  uint64_t total_weight = 0;
   for (uint64_t i = 0; i < trxs.size(); i++) {
-    uint64_t weight;
-    weight = estimateTransactionGas(trxs[i], proposal_period);
+    // trx too big to fit, skip it
+    if(total_weight + trxs[i]->getGas() > weight_limit) {
+      continue;
+    }
+    uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
+
     total_weight += weight;
-    if (total_weight > weight_limit) {
-      trxs.resize(i);
+    trxs_to_propose.push_back(trxs[i]);
+    estimations.push_back(weight);
+    // stop if there is no space for even the smallest transaction
+    if (weight_limit - total_weight <= kMinTxGas) {
       break;
     }
-    estimations.push_back(weight);
   }
-  return {trxs, estimations};
+  return {trxs_to_propose, estimations};
 }
 
 std::vector<SharedTransactions> TransactionManager::getAllPoolTrxs() {
@@ -385,7 +399,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
   // Delete transactions older than recently_finalized_transactions_periods
   if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
     for (auto hash : recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod() -
-                                                                  recently_finalized_transactions_periods]) {
+                                                                 recently_finalized_transactions_periods]) {
       recently_finalized_transactions_.erase(hash);
     }
     recently_finalized_transactions_per_period_.erase(period_data.pbft_blk->getPeriod() -
