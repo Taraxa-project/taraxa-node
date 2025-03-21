@@ -81,6 +81,14 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
         pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr);
     capabilities.emplace_back(latest_tarcap);
 
+    // Register previous (v4) version of taraxa capability
+    assert(TARAXA_NET_VERSION - 1 == 4);
+    auto v4_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+        TARAXA_NET_VERSION - 1, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_,
+        db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr,
+        network::tarcap::TaraxaCapability::kInitV4VersionHandlers);
+    capabilities.emplace_back(v4_tarcap);
+
     return capabilities;
   };
 

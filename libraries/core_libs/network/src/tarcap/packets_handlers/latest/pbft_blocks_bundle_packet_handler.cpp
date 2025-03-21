@@ -18,8 +18,12 @@ PbftBlocksBundlePacketHandler::PbftBlocksBundlePacketHandler(const FullNodeConfi
 
 void PbftBlocksBundlePacketHandler::process(PbftBlocksBundlePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "PbftBlocksBundlePacket received from peer " << peer->getId().abridged();
-  const auto current_pbft_period = pbft_mgr_->getPbftPeriod();
+  if (packet.pbft_blocks.size() > kMaxBlocksInPacket) {
+    throw InvalidRlpItemsCountException("PbftBlocksBundlePacket:pbft_blocks", packet.pbft_blocks.size(),
+                                        kMaxBlocksInPacket);
+  }
 
+  const auto current_pbft_period = pbft_mgr_->getPbftPeriod();
   std::unordered_map<PbftPeriod, std::unordered_set<addr_t>> unique_authors;
 
   if (pbft_syncing_state_->lastSyncingPeer()->getId() != peer->getId()) {

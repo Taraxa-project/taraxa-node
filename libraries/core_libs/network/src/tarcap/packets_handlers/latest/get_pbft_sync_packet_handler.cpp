@@ -2,6 +2,7 @@
 
 #include "network/tarcap/packets/latest/pbft_blocks_bundle_packet.hpp"
 #include "network/tarcap/packets/latest/pbft_sync_packet.hpp"
+#include "network/tarcap/packets_handlers/latest/pbft_blocks_bundle_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -72,8 +73,8 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
       for (auto &&proposed_block : period_proposed_blocks.second) {
         proposed_blocks_packet.pbft_blocks.push_back(std::move(proposed_block));
 
-        // Send max 10 blocks in a single packet
-        if (proposed_blocks_packet.pbft_blocks.size() == 10) {
+        // Send max kMaxBlocksInPacket(10) blocks in a single packet
+        if (proposed_blocks_packet.pbft_blocks.size() == PbftBlocksBundlePacketHandler::kMaxBlocksInPacket) {
           sealAndSend(peer->getId(), SubprotocolPacketType::kPbftBlocksBundlePacket,
                       encodePacketRlp(proposed_blocks_packet));
           proposed_blocks_packet.pbft_blocks.clear();

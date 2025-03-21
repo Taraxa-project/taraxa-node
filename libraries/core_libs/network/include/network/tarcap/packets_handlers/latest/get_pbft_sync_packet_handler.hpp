@@ -29,10 +29,10 @@ class GetPbftSyncPacketHandler : public PacketHandler {
  private:
   virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
+ protected:
   virtual void sendPbftBlocks(const std::shared_ptr<TaraxaPeer>& peer, PbftPeriod from_period,
                               size_t blocks_to_transfer, bool pbft_chain_synced);
 
- protected:
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
