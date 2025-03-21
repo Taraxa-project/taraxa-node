@@ -61,6 +61,7 @@ data:
     from dotenv import load_dotenv
     from os import getenv
     from web3 import Web3
+    from web3.gas_strategies.rpc import rpc_gas_price_strategy
 
     load_dotenv()
 
@@ -83,6 +84,7 @@ data:
     logger.info(f'Got initial validators: {initial_validators}')
 
     web3 = Web3(provider)
+    web3.eth.set_gas_price_strategy(rpc_gas_price_strategy)
     logger.info(f'Connected to Taraxa node: {PROVIDER_URL}')
 
     last_block = web3.eth.getBlock('latest')
@@ -104,6 +106,8 @@ data:
             continue
 
         logger.info(f'Sending transactions to initial validators')
+        gas_price = web3.eth.generate_gas_price()
+        logger.info(f'Gas price: {gas_price}')
 
         for initial_validator in initial_validators:
             transaction_count = transaction_count+1
@@ -115,7 +119,7 @@ data:
                 'to': initial_validator,
                 'value': 1,
                 'gas': 21000,
-                'gasPrice': 1,
+                'gasPrice': gas_price,
                 'nonce': transaction_count,
                 'chainId': chain_id,
             }
