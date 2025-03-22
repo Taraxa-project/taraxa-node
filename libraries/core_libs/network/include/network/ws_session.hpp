@@ -28,25 +28,18 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   // Take ownership of the socket
   explicit WsSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WsServer> ws_server)
       : ws_(std::move(socket)),
-        write_strand_(boost::asio::make_strand(ws_.get_executor())),
-        subscriptions_(std::bind(&WsSession::writeAsync, this, std::placeholders::_1)) {
+        ws_server_(ws_server),
+        subscriptions_(std::bind(&WsSession::do_write, this, std::placeholders::_1)),
+        write_strand_(boost::asio::make_strand(ws_.get_executor())) {
     LOG_OBJECTS_CREATE("WS_SESSION");
-    ws_server_ = ws_server;
   }
 
   // Start the asynchronous operation
   void run();
   void close(bool normal = true);
-
-  void on_accept(beast::error_code ec);
-  void do_read();
-  void on_read(beast::error_code ec, std::size_t bytes_transferred);
+  bool is_closed() const;
 
   virtual std::string processRequest(const std::string_view& request) = 0;
-
-  bool is_closed() const { return closed_; }
-  bool is_normal(const beast::error_code& ec) const;
-  void on_write(beast::error_code ec, std::size_t bytes_transferred);
 
   void newEthBlock(const Json::Value& payload);
   void newDagBlock(const Json::Value& blk);
@@ -55,20 +48,29 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newPendingTransaction(const Json::Value& payload);
   void newPillarBlockData(const Json::Value& payload);
   void newLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
-               const final_chain::TransactionReceipts& receipts);
+               const TransactionReceipts& receipts);
 
   LOG_OBJECTS_DEFINE
+ private:
+  static bool is_normal(const beast::error_code& ec);
+  void on_close(beast::error_code ec);
+  void on_accept(beast::error_code ec);
+  void do_read();
+  void on_read(beast::error_code ec, std::size_t bytes_transferred);
+  void write(std::string&& message);
+
  protected:
-  void processAsync();
-  void writeAsync(std::string&& message);
-  void writeImpl(std::string&& message);
+  void handleRequest();
+  void do_write(std::string&& message);
+
   websocket::stream<beast::tcp_stream> ws_;
-  boost::asio::strand<boost::asio::any_io_executor> write_strand_;
-  beast::flat_buffer read_buffer_;
   std::atomic<int> subscription_id_ = 0;
-  bool include_pillar_block_signatures_ = false;
-  std::atomic<bool> closed_ = false;
   std::weak_ptr<WsServer> ws_server_;
   Subscriptions subscriptions_;
+
+ private:
+  boost::asio::strand<boost::asio::any_io_executor> write_strand_;
+  beast::flat_buffer read_buffer_;
+  std::atomic<bool> closed_ = false;
 };
 }  // namespace taraxa::net

@@ -34,7 +34,7 @@ void Subscriptions::process(SubscriptionType type, const Json::Value& payload) {
   }
 }
 void Subscriptions::processLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
-                                const final_chain::TransactionReceipts& receipts) {
+                                const TransactionReceipts& receipts) {
   for (auto id : subscriptions_by_type_[SubscriptionType::LOGS]) {
     auto sub = std::dynamic_pointer_cast<LogsSubscription>(subscriptions_[id]);
     if (!sub) {

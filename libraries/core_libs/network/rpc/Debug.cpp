@@ -4,8 +4,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include "common/jsoncpp.hpp"
-#include "common/thread_pool.hpp"
-#include "final_chain/final_chain.hpp"
+#include "common/rpc_utils.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "network/rpc/eth/data.hpp"
 #include "transaction/transaction.hpp"
@@ -52,7 +51,7 @@ Debug::get_transaction_with_state(const std::string& transaction_hash) {
   if (!loc) {
     throw std::runtime_error("Transaction not found");
   }
-  auto block_transactions = final_chain->getTransactions(loc->period);
+  auto block_transactions = final_chain->transactions(loc->period);
 
   auto state_trxs = SharedTransactions(block_transactions.begin(), block_transactions.begin() + loc->position);
 
@@ -101,38 +100,6 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
   return res;
 }
 
-template <class S, class FN>
-Json::Value transformToJsonParallel(const S& source, FN op) {
-  if (source.empty()) {
-    return Json::Value(Json::arrayValue);
-  }
-  static util::ThreadPool executor{std::thread::hardware_concurrency() / 2};
-
-  Json::Value out(Json::arrayValue);
-  out.resize(source.size());
-  std::atomic_uint processed = 0;
-  for (unsigned i = 0; i < source.size(); ++i) {
-    executor.post([&, i]() {
-      out[i] = op(source[i], i);
-      ++processed;
-    });
-  }
-
-  while (true) {
-    if (processed == source.size()) {
-      break;
-    }
-  }
-  return out;
-}
-
-Json::Value mergeJsons(Json::Value&& o1, Json::Value&& o2) {
-  for (auto itr = o2.begin(); itr != o2.end(); ++itr) {
-    o1[itr.key().asString()] = *itr;
-  }
-  return o1;
-}
-
 Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _period) {
   try {
     auto node = app_.lock();
@@ -143,21 +110,31 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
     auto period = dev::jsToInt(_period);
     auto block_hash = final_chain->blockHash(period);
     auto trxs = node->getDB()->getPeriodTransactions(period);
-    if (!trxs.has_value()) {
+    if (!trxs.has_value() || trxs->empty()) {
       return Json::Value(Json::arrayValue);
     }
 
-    return transformToJsonParallel(*trxs, [&final_chain, &block_hash, &period](const auto& trx, auto index) {
+    auto receipts = final_chain->blockReceipts(period);
+
+    return util::transformToJsonParallel(*trxs, [&final_chain, &receipts, &block_hash, &period](const auto& trx,
+                                                                                                auto index) {
       auto hash = trx->getHash();
-      auto r = final_chain->transactionReceipt(hash);
-      auto location =
-          rpc::eth::ExtendedTransactionLocation{{final_chain::TransactionLocation{period, index}, *block_hash}, hash};
+
+      auto location = rpc::eth::ExtendedTransactionLocation{{TransactionLocation{period, index}, *block_hash}, hash};
       auto transaction = rpc::eth::LocalisedTransaction{trx, location};
-      auto receipt = rpc::eth::LocalisedTransactionReceipt{*r, location, trx->getSender(), trx->getReceiver()};
+      rpc::eth::LocalisedTransactionReceipt receipt;
+      if (!receipts) {
+        receipt = rpc::eth::LocalisedTransactionReceipt{final_chain->transactionReceipt(period, index, hash).value(),
+                                                        location, trx->getSender(), trx->getReceiver()};
+      } else {
+        receipt =
+            rpc::eth::LocalisedTransactionReceipt{receipts->at(index), location, trx->getSender(), trx->getReceiver()};
+      }
+
       auto receipt_json = rpc::eth::toJson(receipt);
       receipt_json.removeMember("transactionHash");
 
-      return mergeJsons(rpc::eth::toJson(transaction), std::move(receipt_json));
+      return util::mergeJsons(rpc::eth::toJson(transaction), std::move(receipt_json));
     });
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
@@ -174,7 +151,7 @@ Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
     auto period = dev::jsToInt(_period);
     auto dags = node->getDB()->getFinalizedDagBlockByPeriod(period);
 
-    return transformToJsonParallel(dags, [&period](const auto& dag, auto) {
+    return util::transformToJsonParallel(dags, [&period](const auto& dag, auto) {
       auto block_json = dag->getJson();
       block_json["period"] = toJS(period);
       return block_json;
@@ -205,7 +182,7 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
     const auto votes_period = votes.front()->getPeriod();
     const uint64_t total_dpos_votes_count = final_chain->dposEligibleTotalVoteCount(votes_period - 1);
     res["total_votes_count"] = total_dpos_votes_count;
-    res["votes"] = transformToJsonParallel(votes, [&](const auto& vote, auto) {
+    res["votes"] = util::transformToJsonParallel(votes, [&](const auto& vote, auto) {
       vote_manager->validateVote(vote);
       return vote->toJSON();
     });
