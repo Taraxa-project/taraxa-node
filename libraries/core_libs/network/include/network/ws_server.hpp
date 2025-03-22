@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "final_chain/data.hpp"
 #include "network/ws_session.hpp"
@@ -12,9 +11,6 @@
 
 namespace taraxa::net {
 
-//------------------------------------------------------------------------------
-
-// Accepts incoming connections and launches the sessions
 class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::AbstractServerConnector {
  public:
   WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
