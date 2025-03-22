@@ -202,6 +202,11 @@ Functions</h2></td></tr>
 <tr class="separator:aae0d1a2af185914f61e3152821947037"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0cf9b786ac9c80e9ef79fb2c667d63b" id="r_aa0cf9b786ac9c80e9ef79fb2c667d63b"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#aa0cf9b786ac9c80e9ef79fb2c667d63b">readJsonFromString</a> (std::string_view <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">str</a>)</td></tr>
 <tr class="separator:aa0cf9b786ac9c80e9ef79fb2c667d63b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5853f7e4dd247c05751aeaa749dfcb70" id="r_a5853f7e4dd247c05751aeaa749dfcb70"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">S</a> , <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">FN</a> &gt; </td></tr>
+<tr class="memitem:a5853f7e4dd247c05751aeaa749dfcb70"><td class="memTemplItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a5853f7e4dd247c05751aeaa749dfcb70">transformToJsonParallel</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">S</a> &amp;source, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">FN</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">op</a>)</td></tr>
+<tr class="separator:a5853f7e4dd247c05751aeaa749dfcb70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe79f016ab8be22f3558d5df295d82fe" id="r_abe79f016ab8be22f3558d5df295d82fe"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#abe79f016ab8be22f3558d5df295d82fe">mergeJsons</a> (Json::Value &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">o1</a>, Json::Value &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">o2</a>)</td></tr>
+<tr class="separator:abe79f016ab8be22f3558d5df295d82fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa57a87cf79b5ec8b938c45fc75c6a285" id="r_aa57a87cf79b5ec8b938c45fc75c6a285"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#aa57a87cf79b5ec8b938c45fc75c6a285">readJsonFromFile</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::filesystem::path &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">file_path</a>)</td></tr>
 <tr class="separator:aa57a87cf79b5ec8b938c45fc75c6a285"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -294,6 +299,34 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
           <td></td>
           <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">Params</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;...&#160;</td>
           <td class="paramname"><em>rest</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abe79f016ab8be22f3558d5df295d82fe" name="abe79f016ab8be22f3558d5df295d82fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe79f016ab8be22f3558d5df295d82fe">&#9670;&#160;</a></span>mergeJsons()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Json::Value taraxa::util::mergeJsons </td>
+          <td>(</td>
+          <td class="paramtype">Json::Value &amp;&amp;&#160;</td>
+          <td class="paramname"><em>o1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Json::Value &amp;&amp;&#160;</td>
+          <td class="paramname"><em>o2</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1081,6 +1114,36 @@ template&lt;typename... Params&gt; </div>
           <td></td>
           <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>&#160;</td>
           <td class="paramname"><em>no_indent</em> = <code><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">true</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5853f7e4dd247c05751aeaa749dfcb70" name="a5853f7e4dd247c05751aeaa749dfcb70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5853f7e4dd247c05751aeaa749dfcb70">&#9670;&#160;</a></span>transformToJsonParallel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">S</a> , <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">FN</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">Json::Value taraxa::util::transformToJsonParallel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">S</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">FN</a>&#160;</td>
+          <td class="paramname"><em>op</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

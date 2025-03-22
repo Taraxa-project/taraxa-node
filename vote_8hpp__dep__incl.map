@@ -6,8 +6,8 @@
 <area shape="poly" id="edge78_Node000001_Node000101" title=" " alt="" coords="3206,52,2804,198,2766,213,2764,208,2802,194,3204,47"/>
 <area shape="rect" id="Node000103" href="$pillar__vote_8hpp.html" title=" " alt="" coords="3476,93,3624,148"/>
 <area shape="poly" id="edge44_Node000001_Node000103" title=" " alt="" coords="3341,47,3477,92,3475,97,3339,52"/>
-<area shape="rect" id="Node000126" href="$vote_8cpp.html" title=" " alt="" coords="3648,101,3796,141"/>
-<area shape="poly" id="edge79_Node000001_Node000126" title=" " alt="" coords="3368,39,3496,61,3636,91,3663,98,3662,103,3635,96,3495,66,3367,44"/>
+<area shape="rect" id="Node000130" href="$vote_8cpp.html" title=" " alt="" coords="3648,101,3796,141"/>
+<area shape="poly" id="edge79_Node000001_Node000130" title=" " alt="" coords="3368,39,3496,61,3636,91,3663,98,3662,103,3635,96,3495,66,3367,44"/>
 <area shape="rect" id="Node000003" href="$block__stats_8hpp.html" title=" " alt="" coords="2417,203,2619,258"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2213,142,2399,193,2425,201,2424,206,2397,199,2211,147"/>
 <area shape="rect" id="Node000010" href="$vote__manager_8hpp.html" title=" " alt="" coords="1249,203,1461,258"/>
@@ -96,8 +96,8 @@
 <area shape="poly" id="edge62_Node000103_Node000111" title=" " alt="" coords="3638,145,3761,151,3933,157,4094,169,4151,180,4170,186,4183,194,4202,223,4212,254,4215,288,4212,323,4195,390,4171,446,4166,444,4189,388,4207,322,4210,288,4207,255,4197,225,4179,198,4168,191,4150,185,4094,175,3933,163,3760,156,3638,150"/>
 <area shape="rect" id="Node000117" href="$storage_8hpp.html" title=" " alt="" coords="3026,203,3205,258"/>
 <area shape="poly" id="edge63_Node000103_Node000117" title=" " alt="" coords="3463,146,3206,210,3204,205,3462,141"/>
-<area shape="rect" id="Node000125" href="$pillar__vote_8cpp.html" title=" " alt="" coords="3571,211,3719,251"/>
-<area shape="poly" id="edge76_Node000103_Node000125" title=" " alt="" coords="3585,157,3630,208,3626,212,3581,161"/>
+<area shape="rect" id="Node000129" href="$pillar__vote_8cpp.html" title=" " alt="" coords="3571,211,3719,251"/>
+<area shape="poly" id="edge76_Node000103_Node000129" title=" " alt="" coords="3585,157,3630,208,3626,212,3581,161"/>
 <area shape="rect" id="Node000105" href="$pillar__chain__manager_8hpp.html" title=" " alt="" coords="3558,328,3793,383"/>
 <area shape="poly" id="edge46_Node000104_Node000105" title=" " alt="" coords="3516,262,3630,326,3627,330,3513,267"/>
 <area shape="rect" id="Node000113" href="$pillar__votes_8cpp.html" title=" " alt="" coords="3363,328,3534,383"/>

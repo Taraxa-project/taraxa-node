@@ -30,25 +30,6 @@ var group___final_chain =
       [ "number", "group___final_chain.html#a2150879a49281a5426b712612329b2ed", null ],
       [ "timestamp", "group___final_chain.html#a20e929aebe9b03aa67fcffeb2874cccc", null ]
     ] ],
-    [ "taraxa::final_chain::LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", [
-      [ "bloom", "group___final_chain.html#aff8665e430d6b7e0201bc4e19f611168", null ],
-      [ "address", "group___final_chain.html#a4063796bd3a87794411f6cfdc3b4655a", null ],
-      [ "data", "group___final_chain.html#a8fc725e0f668a0d0bd698da7b9199b4f", null ],
-      [ "topics", "group___final_chain.html#a1d8ca5785c8af2536b1790f68b89b76b", null ]
-    ] ],
-    [ "taraxa::final_chain::TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", [
-      [ "bloom", "group___final_chain.html#abc0de504b2054bd57ae6eaf43298fed0", null ],
-      [ "cumulative_gas_used", "group___final_chain.html#abb89719649d4299b268bf6614d70d0e6", null ],
-      [ "gas_used", "group___final_chain.html#a87dd70441e9227e6961829bacfd220cf", null ],
-      [ "logs", "group___final_chain.html#a2af8c575511f01b9254f45021a135657", null ],
-      [ "new_contract_address", "group___final_chain.html#a40c5738750b7aac0abd5ef1e4bbfd792", null ],
-      [ "status_code", "group___final_chain.html#a638cdb2e246e18eeafe1ed33cca7c50f", null ]
-    ] ],
-    [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
-      [ "is_system", "group___final_chain.html#a1f522fb726983b16822213eb32719628", null ],
-      [ "period", "group___final_chain.html#a6d827caa1b2efb11c0704faf0c53a59b", null ],
-      [ "position", "group___final_chain.html#a1915ed15a2a8c5f08104baec7946e4a5", null ]
-    ] ],
     [ "taraxa::final_chain::NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", [
       [ "author", "group___final_chain.html#aba7674604f65d71baf1a26a25fdbf281", null ],
       [ "dag_blk_hashes", "group___final_chain.html#ad360623c4773be2ccbc2074479a5699e", null ],
@@ -73,6 +54,7 @@ var group___final_chain =
       [ "blockHash", "group___final_chain.html#a3bd0011891b8ee02ea43253e67c34e9b", null ],
       [ "blockHeader", "group___final_chain.html#a38d25fccc77655980a718a59e05a372a", null ],
       [ "blockNumber", "group___final_chain.html#a0e09e9512405a78f5403337c9ec41e0e", null ],
+      [ "blockReceipts", "group___final_chain.html#aba5e896f5165214d37324ae35e797f9d", null ],
       [ "call", "group___final_chain.html#a5ddb2d6b759ddf3d0df57250b4a79ddb", null ],
       [ "delegationDelay", "group___final_chain.html#ae4f4677aa7fe0f649a7ace30401b7c03", null ],
       [ "dposEligibleTotalVoteCount", "group___final_chain.html#a86fa06547d7694dd3118961a2b5d583c", null ],
@@ -92,6 +74,7 @@ var group___final_chain =
       [ "getBalance", "group___final_chain.html#ab0f3af8c637b00b84a339fc561d97042", null ],
       [ "getBlockHash", "group___final_chain.html#a48013dc9d7402f1cef15583793edd182", null ],
       [ "getBlockHeader", "group___final_chain.html#adacb0bb942f02536f90d8eb7dc338491", null ],
+      [ "getBlockReceipts", "group___final_chain.html#a2daa076a0b7af0ac4b6eb7079b48daca", null ],
       [ "getBridgeEpoch", "group___final_chain.html#a31200af2b7a8ad161b37fe9b3cf5cdcb", null ],
       [ "getBridgeRoot", "group___final_chain.html#a96df9d027087a2da15831ff5b2038d7f", null ],
       [ "getCode", "group___final_chain.html#a9803489369a7b61496cc955c86526059", null ],
@@ -106,6 +89,7 @@ var group___final_chain =
       [ "makeSystemTransactions", "group___final_chain.html#a681611077a4cdbbe86ee07874dcfee77", null ],
       [ "operator=", "group___final_chain.html#a3df36a7ec841c51496ea7414ab48cc72", null ],
       [ "operator=", "group___final_chain.html#a16ceb07ff0304defc0a959e456289f53", null ],
+      [ "processReceipts", "group___final_chain.html#af1bdefd3983ad2dc9f2688f721c996b6", null ],
       [ "prune", "group___final_chain.html#a24f877b97503a5c56e6a59332f9fb770", null ],
       [ "stop", "group___final_chain.html#a2efcfb30f7764ed87340b05789026f43", null ],
       [ "toEvmTransaction", "group___final_chain.html#a1fb4c20009a08b0d17b44ee376bc1251", null ],
@@ -113,7 +97,7 @@ var group___final_chain =
       [ "transactionCount", "group___final_chain.html#a7c2017fb88bdb3abb1f0ebc82ec1fd83", null ],
       [ "transactionHashes", "group___final_chain.html#a4b3e9ee295ea6c7893b597cf79b2f01b", null ],
       [ "transactionLocation", "group___final_chain.html#a6c15e11efcf47d905998e3cff291a7a1", null ],
-      [ "transactionReceipt", "group___final_chain.html#a5287c9799eace61d917ed4e57ac0dbe8", null ],
+      [ "transactionReceipt", "group___final_chain.html#a4313bdbcdfe3675d9e3a62e9302fce52", null ],
       [ "transactions", "group___final_chain.html#a6ae9235af51623ed1d0a4df151d808e3", null ],
       [ "updateStateConfig", "group___final_chain.html#a98575a5df57cb51ddf929592a2d06b7f", null ],
       [ "waitForFinalized", "group___final_chain.html#a2f893fc41060c474d0d10dd2411664f2", null ],
@@ -126,6 +110,7 @@ var group___final_chain =
       [ "block_finalized_emitter_", "group___final_chain.html#abc20e02427fbb67bd0867f2a9eb09fd0", null ],
       [ "block_hashes_cache_", "group___final_chain.html#a94b19f26b79fad1f74e542bdd369d865", null ],
       [ "block_headers_cache_", "group___final_chain.html#a0a482761c5cba3b9dc5bedd8ca803059", null ],
+      [ "block_receipts_cache_", "group___final_chain.html#a6322c897d43ea08583497124c50b37f3", null ],
       [ "db_", "group___final_chain.html#a0eb719aac5c1b695f828cd740169118f", null ],
       [ "delegation_delay_", "group___final_chain.html#a1c43c58d7d6f0f256c96756c07cee6a7", null ],
       [ "dpos_is_eligible_cache_", "group___final_chain.html#ac0d11c16616d700c34dbdce5110cd49d", null ],
@@ -256,11 +241,7 @@ var group___final_chain =
       [ "vote_count", "group___final_chain.html#ad8fb78511df94733a852a7488926b561", null ]
     ] ],
     [ "taraxa::final_chain::BlocksBlooms", "group___final_chain.html#ga135593595f98c5905f60e3a4d9c61112", null ],
-    [ "taraxa::final_chain::LogBloom", "group___final_chain.html#ga7c637c1037e99cfc76922e6cbb3f88a4", null ],
-    [ "taraxa::final_chain::LogBlooms", "group___final_chain.html#gab778dd415cc20f3ce082af8d41fba3ef", null ],
-    [ "taraxa::final_chain::LogEntries", "group___final_chain.html#ga12616fa78b8d1e267634739c1d717d0e", null ],
     [ "taraxa::final_chain::Nonce", "group___final_chain.html#ga001b5bf2760971962153e566acb2943a", null ],
-    [ "taraxa::final_chain::TransactionReceipts", "group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb", null ],
     [ "taraxa::final_chain::c_bloomIndexLevels", "group___final_chain.html#gafa9d5d8f0427b57b0a22530677e2e99b", null ],
     [ "taraxa::final_chain::c_bloomIndexSize", "group___final_chain.html#gab574ac6d6a7a462feef4499a61a17be2", null ],
     [ "taraxa::state_api::ZeroAccount", "group___final_chain.html#ga5c809a2ce1cbc35fa9a7d77abf02b1f7", null ]

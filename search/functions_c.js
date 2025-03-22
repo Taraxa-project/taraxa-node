@@ -13,7 +13,7 @@ var searchData=
   ['listenport_10',['listenPort',['../structdev_1_1p2p_1_1_host.html#a0e538e8d25bf6374eed667d53698fecd',1,'dev::p2p::Host']]],
   ['loadloggingconfigs_11',['loadLoggingConfigs',['../structtaraxa_1_1_full_node_config.html#a3c3a85b4c00e792f76588f75ba4ff19f',1,'taraxa::FullNodeConfig']]],
   ['loadsnapshots_12',['loadSnapshots',['../classtaraxa_1_1_db_storage.html#af9a8bc3584e3d96d459648ee2fd279c0',1,'taraxa::DbStorage']]],
-  ['log_13',['Log',['../classgraphql_1_1taraxa_1_1_log.html#a6269ad12b925b282d72ec95ed1205ba1',1,'graphql::taraxa::Log']]],
+  ['log_13',['Log',['../classgraphql_1_1taraxa_1_1_log.html#a7362ba477e0ca7f6f3fe916e11c60f9b',1,'graphql::taraxa::Log']]],
   ['logactivepeers_14',['logActivePeers',['../structdev_1_1p2p_1_1_host.html#ad7bea36bbfe3b25bec9cbd9eb1d9adad',1,'dev::p2p::Host']]],
   ['logfilter_15',['LogFilter',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a37c3a70b29f7b44a4d8fe666414eb742',1,'taraxa::net::rpc::eth::LogFilter']]],
   ['lognodestats_16',['logNodeStats',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac0b8c8d9f9f39420e545d3ca6cfa75f5',1,'taraxa::network::tarcap::NodeStats']]],

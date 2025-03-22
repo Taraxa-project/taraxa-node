@@ -1,7 +1,7 @@
 <map id="taraxa::net::rpc::eth::TransactionLocationWithBlockHash" name="taraxa::net::rpc::eth::TransactionLocationWithBlockHash">
-<area shape="rect" id="Node000001" title=" " alt="" coords="49,108,307,148"/>
-<area shape="rect" id="Node000002" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location" title=" " alt="" coords="5,5,164,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,54,162,106,159,110,110,57"/>
-<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="188,13,355,38"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,50,198,110,194,106,249,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,93,339,133"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1_transaction_location.html" title=" " alt="" coords="5,5,207,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,38,191,91,187,95,127,42"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="231,5,397,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="293,42,233,95,229,91,289,38"/>
 </map>

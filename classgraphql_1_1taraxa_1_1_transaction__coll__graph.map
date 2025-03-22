@@ -1,5 +1,7 @@
 <map id="graphql::taraxa::Transaction" name="graphql::taraxa::Transaction">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,93,208,119"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="9,5,204,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,59,109,93,104,93,104,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="112,108,315,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,200,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,52,201,106,198,110,134,56"/>
+<area shape="rect" id="Node000003" href="$structtaraxa_1_1_transaction_location.html" title=" " alt="" coords="225,13,426,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="303,49,229,110,225,106,299,45"/>
 </map>

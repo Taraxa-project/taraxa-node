@@ -19,15 +19,16 @@ var searchData=
   ['timerhelper_16',['TimerHelper',['../classdev_1_1_timer_helper.html',1,'dev']]],
   ['tracing_17',['Tracing',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing',1,'taraxa::state_api']]],
   ['transaction_18',['transaction',['../classgraphql_1_1taraxa_1_1_transaction.html',1,'graphql::taraxa::Transaction'],['../structtaraxa_1_1_transaction.html',1,'taraxa::Transaction']]],
-  ['transactionlocation_19',['TransactionLocation',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location',1,'taraxa::final_chain']]],
+  ['transactionlocation_19',['TransactionLocation',['../structtaraxa_1_1_transaction_location.html',1,'taraxa']]],
   ['transactionlocationwithblockhash_20',['TransactionLocationWithBlockHash',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html',1,'taraxa::net::rpc::eth']]],
   ['transactionmanager_21',['TransactionManager',['../group___transaction.html#classtaraxa_1_1_transaction_manager',1,'taraxa']]],
   ['transactionpacket_22',['TransactionPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_transaction_packet',1,'taraxa::network::tarcap']]],
   ['transactionpackethandler_23',['TransactionPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html',1,'taraxa::network::tarcap']]],
   ['transactionqueue_24',['TransactionQueue',['../group___transaction.html#classtaraxa_1_1_transaction_queue',1,'taraxa']]],
   ['transactionqueuemetrics_25',['TransactionQueueMetrics',['../classtaraxa_1_1metrics_1_1_transaction_queue_metrics.html',1,'taraxa::metrics']]],
-  ['transactionreceipt_26',['TransactionReceipt',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt',1,'taraxa::final_chain']]],
-  ['transactionsexecutionresult_27',['TransactionsExecutionResult',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result',1,'taraxa::state_api']]],
-  ['transactionskeleton_28',['TransactionSkeleton',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton',1,'taraxa::net::rpc::eth']]],
-  ['transactionssubscription_29',['TransactionsSubscription',['../classtaraxa_1_1net_1_1_transactions_subscription.html',1,'taraxa::net']]]
+  ['transactionreceipt_26',['TransactionReceipt',['../structtaraxa_1_1_transaction_receipt.html',1,'taraxa']]],
+  ['transactionreceiptsbyperiod_27',['TransactionReceiptsByPeriod',['../classtaraxa_1_1storage_1_1migration_1_1_transaction_receipts_by_period.html',1,'taraxa::storage::migration']]],
+  ['transactionsexecutionresult_28',['TransactionsExecutionResult',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result',1,'taraxa::state_api']]],
+  ['transactionskeleton_29',['TransactionSkeleton',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton',1,'taraxa::net::rpc::eth']]],
+  ['transactionssubscription_30',['TransactionsSubscription',['../classtaraxa_1_1net_1_1_transactions_subscription.html',1,'taraxa::net']]]
 ];

@@ -13,7 +13,10 @@ var hierarchy =
       [ "taraxa::App", "classtaraxa_1_1_app.html", null ]
     ] ],
     [ "taraxa::AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", null ],
-    [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", null ],
+    [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
+      [ "taraxa::storage::migration::FixSystemTrxLocation", "classtaraxa_1_1storage_1_1migration_1_1_fix_system_trx_location.html", null ],
+      [ "taraxa::storage::migration::TransactionReceiptsByPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_receipts_by_period.html", null ]
+    ] ],
     [ "taraxa::network::tarcap::BasePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html", [
       [ "taraxa::network::tarcap::PacketHandler< DagBlockPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", null ],
       [ "taraxa::network::tarcap::PacketHandler< DagSyncPacket >", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html", null ],
@@ -278,7 +281,7 @@ var hierarchy =
     [ "taraxa::net::rpc::eth::LocalisedTransaction", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction", null ],
     [ "taraxa::net::rpc::eth::LocalisedTransactionReceipt", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction_receipt", null ],
     [ "graphql::taraxa::Log", "classgraphql_1_1taraxa_1_1_log.html", null ],
-    [ "taraxa::final_chain::LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", null ],
+    [ "taraxa::LogEntry", "structtaraxa_1_1_log_entry.html", null ],
     [ "taraxa::net::rpc::eth::LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", null ],
     [ "taraxa::state_api::LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", null ],
     [ "taraxa::MagnoliaHardfork", "namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork", null ],
@@ -464,14 +467,14 @@ var hierarchy =
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", [
       [ "taraxa::SystemTransaction", "structtaraxa_1_1_system_transaction.html", null ]
     ] ],
-    [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
+    [ "taraxa::TransactionLocation", "structtaraxa_1_1_transaction_location.html", [
       [ "taraxa::net::rpc::eth::TransactionLocationWithBlockHash", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html", [
         [ "taraxa::net::rpc::eth::ExtendedTransactionLocation", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html", null ]
       ] ]
     ] ],
     [ "taraxa::network::tarcap::TransactionPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_transaction_packet", null ],
     [ "taraxa::TransactionQueue", "group___transaction.html#classtaraxa_1_1_transaction_queue", null ],
-    [ "taraxa::final_chain::TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", null ],
+    [ "taraxa::TransactionReceipt", "structtaraxa_1_1_transaction_receipt.html", null ],
     [ "taraxa::state_api::TransactionsExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result", null ],
     [ "taraxa::net::rpc::eth::TransactionSkeleton", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton", null ],
     [ "dev::p2p::UDPDatagram", "classdev_1_1p2p_1_1_u_d_p_datagram.html", [
@@ -501,6 +504,7 @@ var hierarchy =
     [ "taraxa::pillar_chain::PillarBlock::ValidatorVoteCountChange", "structtaraxa_1_1pillar__chain_1_1_pillar_block_1_1_validator_vote_count_change.html", null ],
     [ "taraxa::ValueByBlockCache< Value >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< const SharedTransactions >", "classtaraxa_1_1_value_by_block_cache.html", null ],
+    [ "taraxa::ValueByBlockCache< SharedTransactionReceipts >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< std::optional< const dev::FixedHash > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< std::shared_ptr< const taraxa::final_chain::BlockHeader > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< std::shared_ptr< const TransactionHashes > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
@@ -526,7 +530,7 @@ var hierarchy =
     [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >::Watch", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch", null ],
     [ "taraxa::net::rpc::eth::Watches", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
-    [ "taraxa::net::rpc::eth::WatchGroup< WatchType::logs, std::pair< taraxa::net::rpc::eth::ExtendedTransactionLocation const &, taraxa::final_chain::TransactionReceipt const & >, taraxa::net::rpc::eth::LocalisedLogEntry, taraxa::net::rpc::eth::LogFilter >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
+    [ "taraxa::net::rpc::eth::WatchGroup< WatchType::logs, std::pair< taraxa::net::rpc::eth::ExtendedTransactionLocation const &, taraxa::TransactionReceipt const & >, taraxa::net::rpc::eth::LocalisedLogEntry, taraxa::net::rpc::eth::LogFilter >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroup< WatchType::new_blocks, dev::FixedHash >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroup< WatchType::new_transactions, dev::FixedHash >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroupConfig", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config", null ],

@@ -127,10 +127,7 @@ var annotated_dup =
         [ "BlockHeaderData", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header_data", "group___final_chain_structtaraxa_1_1final__chain_1_1_block_header_data" ],
         [ "FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", "group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain" ],
         [ "FinalizationResult", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result", "group___final_chain_structtaraxa_1_1final__chain_1_1_finalization_result" ],
-        [ "LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", "group___final_chain_structtaraxa_1_1final__chain_1_1_log_entry" ],
-        [ "NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", "group___final_chain_structtaraxa_1_1final__chain_1_1_new_block" ],
-        [ "TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", "group___final_chain_structtaraxa_1_1final__chain_1_1_transaction_location" ],
-        [ "TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", "group___final_chain_structtaraxa_1_1final__chain_1_1_transaction_receipt" ]
+        [ "NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", "group___final_chain_structtaraxa_1_1final__chain_1_1_new_block" ]
       ] ],
       [ "logger", "namespacetaraxa_1_1logger.html", [
         [ "Config", "classtaraxa_1_1logger_1_1_config.html", "classtaraxa_1_1logger_1_1_config" ]
@@ -293,7 +290,9 @@ var annotated_dup =
       [ "storage", "namespacetaraxa_1_1storage.html", [
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
-          [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ]
+          [ "FixSystemTrxLocation", "classtaraxa_1_1storage_1_1migration_1_1_fix_system_trx_location.html", "classtaraxa_1_1storage_1_1migration_1_1_fix_system_trx_location" ],
+          [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
+          [ "TransactionReceiptsByPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_receipts_by_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_receipts_by_period" ]
         ] ]
       ] ],
       [ "util", "namespacetaraxa_1_1util.html", [
@@ -343,6 +342,7 @@ var annotated_dup =
       [ "HardforksConfig", "structtaraxa_1_1_hardforks_config.html", "structtaraxa_1_1_hardforks_config" ],
       [ "InvalidRlpItemsCountException", "classtaraxa_1_1_invalid_rlp_items_count_exception.html", "classtaraxa_1_1_invalid_rlp_items_count_exception" ],
       [ "KeyManager", "classtaraxa_1_1_key_manager.html", "classtaraxa_1_1_key_manager" ],
+      [ "LogEntry", "structtaraxa_1_1_log_entry.html", "structtaraxa_1_1_log_entry" ],
       [ "MagnoliaHardfork", "namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork", "namespacetaraxa_structtaraxa_1_1_magnolia_hardfork_dup" ],
       [ "MaliciousPeerException", "classtaraxa_1_1_malicious_peer_exception.html", "classtaraxa_1_1_malicious_peer_exception" ],
       [ "MapByBlockCache", "classtaraxa_1_1_map_by_block_cache.html", "classtaraxa_1_1_map_by_block_cache" ],
@@ -374,8 +374,10 @@ var annotated_dup =
       [ "StatusTable", "classtaraxa_1_1_status_table.html", "classtaraxa_1_1_status_table" ],
       [ "SystemTransaction", "structtaraxa_1_1_system_transaction.html", "structtaraxa_1_1_system_transaction" ],
       [ "Transaction", "structtaraxa_1_1_transaction.html", "structtaraxa_1_1_transaction" ],
+      [ "TransactionLocation", "structtaraxa_1_1_transaction_location.html", "structtaraxa_1_1_transaction_location" ],
       [ "TransactionManager", "group___transaction.html#classtaraxa_1_1_transaction_manager", "group___transaction_classtaraxa_1_1_transaction_manager" ],
       [ "TransactionQueue", "group___transaction.html#classtaraxa_1_1_transaction_queue", "group___transaction_classtaraxa_1_1_transaction_queue" ],
+      [ "TransactionReceipt", "structtaraxa_1_1_transaction_receipt.html", "structtaraxa_1_1_transaction_receipt" ],
       [ "UintComparator", "classtaraxa_1_1_uint_comparator.html", "classtaraxa_1_1_uint_comparator" ],
       [ "ValueByBlockCache", "classtaraxa_1_1_value_by_block_cache.html", "classtaraxa_1_1_value_by_block_cache" ],
       [ "VdfParams", "namespacetaraxa.html#structtaraxa_1_1_vdf_params", "namespacetaraxa_structtaraxa_1_1_vdf_params_dup" ],

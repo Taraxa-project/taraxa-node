@@ -18,6 +18,7 @@ var cli_2include_2cli_2config_8hpp =
     [ "LOG_CHANNELS_APPEND", "cli_2include_2cli_2config_8hpp.html#aba1acddf7518f21b38f50d41a017689f", null ],
     [ "LOG_CONFIGURATIONS", "cli_2include_2cli_2config_8hpp.html#adea355b27088c048e226f894722c9f94", null ],
     [ "MIGRATE_ONLY", "cli_2include_2cli_2config_8hpp.html#a3b324eb10d0f4c57caa5455e1ee98ebd", null ],
+    [ "MIGRATE_RECEIPTS_BY_PERIOD", "cli_2include_2cli_2config_8hpp.html#a072cc863ed1de04c4e71fef709c5a836", null ],
     [ "NODE_COMMAND", "cli_2include_2cli_2config_8hpp.html#ac5b756c2b33d286ebb157b92df73074f", null ],
     [ "NODE_SECRET", "cli_2include_2cli_2config_8hpp.html#a5440bc70590ee145c31db583a9f8032b", null ],
     [ "OVERWRITE_CONFIG", "cli_2include_2cli_2config_8hpp.html#aaeaa8e37e868e5ce59719cfdef60cd00", null ],

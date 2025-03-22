@@ -21,8 +21,8 @@ var classgraphql_1_1taraxa_1_1_transaction =
     [ "getValue", "classgraphql_1_1taraxa_1_1_transaction.html#ac41d7906dd0c476a3fc75ee0d63f5b38", null ],
     [ "final_chain_", "classgraphql_1_1taraxa_1_1_transaction.html#a6d95c8547d2e80024579750385b5ddcd", null ],
     [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_transaction.html#a01604731ce6a6817c95b22e646ff9f43", null ],
-    [ "location_", "classgraphql_1_1taraxa_1_1_transaction.html#a216e3ea16415e8da3c37cbb0161ab3b2", null ],
-    [ "receipt_", "classgraphql_1_1taraxa_1_1_transaction.html#a4129ca4f8bc6d3f45dc2e4e3372d122f", null ],
+    [ "location_", "classgraphql_1_1taraxa_1_1_transaction.html#a81d29754e6d2dbed1c82105de01c107d", null ],
+    [ "receipt_", "classgraphql_1_1taraxa_1_1_transaction.html#a0fa2b2f7f29edd3eaa41bfc5b4263755", null ],
     [ "transaction_", "classgraphql_1_1taraxa_1_1_transaction.html#a548eeebd06374697ae07dce6f35f56e5", null ],
     [ "trx_manager_", "classgraphql_1_1taraxa_1_1_transaction.html#a05680ec4965d2e2e0a754b8cb259f701", null ]
 ];

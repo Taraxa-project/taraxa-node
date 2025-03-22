@@ -36,7 +36,7 @@ var searchData=
   ['local_5fmax_5flevel_5fin_5fdag_5fprev_5finterval_5f_33',['local_max_level_in_dag_prev_interval_',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aeb19852ece458f1bdf5b8c1a0b0b855b',1,'taraxa::network::tarcap::NodeStats']]],
   ['local_5fpbft_5fround_5fprev_5finterval_5f_34',['local_pbft_round_prev_interval_',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a38b65a6499eccaf9c017fcd06de1571f',1,'taraxa::network::tarcap::NodeStats']]],
   ['local_5fpbft_5fsync_5fperiod_5fprev_5finterval_5f_35',['local_pbft_sync_period_prev_interval_',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a20852311c92db303133b6d395a01d4e9',1,'taraxa::network::tarcap::NodeStats']]],
-  ['location_5f_36',['location_',['../classgraphql_1_1taraxa_1_1_transaction.html#a216e3ea16415e8da3c37cbb0161ab3b2',1,'graphql::taraxa::Transaction']]],
+  ['location_5f_36',['location_',['../classgraphql_1_1taraxa_1_1_transaction.html#a81d29754e6d2dbed1c82105de01c107d',1,'graphql::taraxa::Transaction']]],
   ['locus_37',['locus',['../classdev_1_1p2p_1_1_u_d_p_datagram.html#a07e614388d036fce114e9fa84dc68718',1,'dev::p2p::UDPDatagram']]],
   ['log_5factive_5fpeers_5finterval_38',['log_active_peers_interval',['../namespacedev_1_1p2p.html#aec7cfc5e175d131a86790712cca33383',1,'dev::p2p::TaraxaNetworkConfig']]],
   ['log_5fbloom_39',['log_bloom',['../group___final_chain.html#adb876110627de99837efb692077c227e',1,'taraxa::final_chain::BlockHeaderData']]],
@@ -47,7 +47,7 @@ var searchData=
   ['log_5fpackets_5fstats_44',['log_packets_stats',['../structtaraxa_1_1_ddos_protection_config.html#a7f95401e2a468ced0de219a56e0bdefd',1,'taraxa::DdosProtectionConfig']]],
   ['log_5fpath_45',['log_path',['../structtaraxa_1_1_full_node_config.html#a944aff6d1ac6d851475babe34c2cbcea',1,'taraxa::FullNodeConfig']]],
   ['logging_5finitialized_5f_46',['logging_initialized_',['../classtaraxa_1_1logger_1_1_config.html#abedaf7c26b641822e5f4868b41423073',1,'taraxa::logger::Config']]],
-  ['logs_47',['logs',['../group___final_chain.html#a2af8c575511f01b9254f45021a135657',1,'taraxa::final_chain::TransactionReceipt::logs'],['../group___final_chain.html#a438cc43e9b33f0ee87d15294a59861e5',1,'taraxa::state_api::ExecutionResult::logs']]],
+  ['logs_47',['logs',['../group___final_chain.html#a438cc43e9b33f0ee87d15294a59861e5',1,'taraxa::state_api::ExecutionResult::logs'],['../structtaraxa_1_1_transaction_receipt.html#a5ec660f6986252870159003b92b0d4ed',1,'taraxa::TransactionReceipt::logs']]],
   ['logs_5f_48',['logs_',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#accffe3c20d02450d1e190c4cb451fa33',1,'taraxa::net::rpc::eth::Watches']]],
   ['loop_5fback_5ffinish_5fstate_5f_49',['loop_back_finish_state_',['../group___p_b_f_t.html#ac223cb71b31a508a0be870366c48b877',1,'taraxa::PbftManager']]],
   ['lru_5f_50',['lru_',['../classtaraxa_1_1_status_table.html#a6678fe7127e7b08a3598df5cb6e2fa2b',1,'taraxa::StatusTable']]]

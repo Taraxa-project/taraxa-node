@@ -9,7 +9,7 @@ var searchData=
   ['rebuild_5fdb_6',['rebuild_db',['../namespacetaraxa_1_1cli.html#a3772c6ee5ea355bdf8567e2252c407fb',1,'taraxa::cli::REBUILD_DB'],['../namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce',1,'taraxa::DBConfig::rebuild_db']]],
   ['rebuild_5fdb_5fperiod_7',['rebuild_db_period',['../namespacetaraxa.html#abe73b7f0480b66b1d6f4e9b7b31ac2e1',1,'taraxa::DBConfig::rebuild_db_period'],['../namespacetaraxa_1_1cli.html#a8816e19cac93d6e565038a60ecdf8549',1,'taraxa::cli::REBUILD_DB_PERIOD']]],
   ['rebuild_5fnetwork_8',['REBUILD_NETWORK',['../namespacetaraxa_1_1cli.html#a95c979094f2e186a1a25fe14cda9f412',1,'taraxa::cli']]],
-  ['receipt_5f_9',['receipt_',['../classgraphql_1_1taraxa_1_1_transaction.html#a4129ca4f8bc6d3f45dc2e4e3372d122f',1,'graphql::taraxa::Transaction']]],
+  ['receipt_5f_9',['receipt_',['../classgraphql_1_1taraxa_1_1_transaction.html#a0fa2b2f7f29edd3eaa41bfc5b4263755',1,'graphql::taraxa::Transaction']]],
   ['receipts_5froot_10',['receipts_root',['../group___final_chain.html#aba2e760e1754c4998c9eecfc32056a35',1,'taraxa::final_chain::BlockHeaderData']]],
   ['receive_5ftime_5f_11',['receive_time_',['../classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#ad90424ac2cfe5e0296507ddf41815495',1,'taraxa::network::threadpool::PacketData']]],
   ['received_5fpackets_5fstats_5f_12',['received_packets_stats_',['../classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#a824707fea13d9f6d95543cb622c0e220',1,'taraxa::network::tarcap::TimePeriodPacketsStats']]],

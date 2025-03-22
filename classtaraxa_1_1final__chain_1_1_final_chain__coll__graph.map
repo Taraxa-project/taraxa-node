@@ -1,105 +1,105 @@
 <map id="taraxa::final_chain::FinalChain" name="taraxa::final_chain::FinalChain">
-<area shape="rect" id="Node000001" title="main responsibility is blocks execution in EVM, getting data from EVM state" alt="" coords="2537,509,2680,549"/>
-<area shape="rect" id="Node000002" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="2063,96,2318,165"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2332,133,2380,142,2429,157,2475,180,2515,210,2544,245,2567,284,2584,327,2596,370,2608,451,2610,509,2605,509,2602,451,2590,371,2579,329,2562,287,2540,248,2511,214,2472,184,2427,162,2379,147,2331,138"/>
-<area shape="rect" id="Node000003" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1599,69,1815,109"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1829,91,2034,105,2063,109,2063,114,2033,111,1828,96"/>
-<area shape="rect" id="Node000004" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="1179,30,1380,85"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1394,70,1410,72,1599,84,1598,89,1409,77,1393,76"/>
-<area shape="rect" id="Node000006" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1599,5,1815,45"/>
-<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="1393,46,1598,31,1599,36,1394,51"/>
-<area shape="rect" id="Node000005" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="2091,25,2290,65"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="2304,41,2358,47,2415,61,2469,84,2493,100,2515,120,2535,150,2553,194,2580,308,2599,425,2608,509,2603,510,2593,426,2575,309,2548,196,2531,152,2511,123,2490,105,2466,89,2413,66,2358,53,2303,46"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1829,28,2091,39,2091,44,1829,33"/>
-<area shape="rect" id="Node000007" href="$group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i" title=" " alt="" coords="2121,208,2261,248"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="2274,222,2332,226,2396,237,2459,258,2488,273,2515,293,2539,317,2558,344,2585,405,2601,464,2608,509,2603,509,2596,465,2580,407,2553,347,2534,320,2512,297,2485,278,2457,263,2395,242,2332,231,2274,227"/>
+<area shape="rect" id="Node000001" title="main responsibility is blocks execution in EVM, getting data from EVM state" alt="" coords="2537,541,2680,581"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="2063,28,2318,97"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2332,54,2380,60,2429,73,2475,93,2515,124,2537,156,2555,204,2570,262,2583,326,2600,451,2609,541,2603,541,2595,452,2577,327,2565,263,2550,205,2532,158,2511,127,2472,98,2427,78,2379,66,2331,60"/>
+<area shape="rect" id="Node000003" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1599,5,1815,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1829,32,2063,50,2063,56,1828,37"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="1179,35,1380,90"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1393,50,1598,32,1599,37,1394,55"/>
+<area shape="rect" id="Node000006" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1599,69,1815,109"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="1394,71,1410,72,1599,82,1598,88,1409,77,1393,76"/>
+<area shape="rect" id="Node000005" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="2091,128,2290,168"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="2304,138,2358,142,2414,153,2468,174,2493,188,2515,206,2534,232,2550,269,2577,366,2596,466,2607,541,2602,541,2591,467,2572,367,2545,271,2529,234,2511,210,2490,193,2466,178,2413,158,2357,147,2303,143"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1828,88,1929,94,2034,105,2124,125,2123,131,2033,111,1928,99,1828,93"/>
+<area shape="rect" id="Node000007" href="$group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i" title=" " alt="" coords="2121,207,2261,247"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="2274,219,2333,222,2397,232,2459,253,2489,269,2515,289,2541,317,2562,350,2578,385,2590,421,2604,489,2609,541,2604,541,2599,490,2585,423,2573,387,2558,352,2537,320,2512,293,2486,274,2457,258,2395,237,2332,227,2274,224"/>
 <area shape="rect" id="Node000008" href="$classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream." alt="" coords="1645,201,1769,226"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="1783,213,2120,223,2120,229,1783,218"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="1783,213,2120,222,2120,227,1783,218"/>
 <area shape="rect" id="Node000009" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result" title=" " alt="" coords="1603,251,1810,291"/>
-<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="1824,268,1926,265,2033,256,2120,241,2121,247,2034,261,1926,270,1824,273"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="1824,268,1926,264,2033,255,2120,240,2121,245,2034,260,1926,269,1824,273"/>
 <area shape="rect" id="Node000010" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result" title=" " alt="" coords="1609,133,1804,173"/>
-<area shape="poly" id="edge10_Node000007_Node000010" title=" " alt="" coords="1818,148,1923,152,2034,167,2138,205,2136,210,2033,172,1923,157,1818,153"/>
+<area shape="poly" id="edge10_Node000007_Node000010" title=" " alt="" coords="1818,144,1923,148,1979,154,2034,165,2058,178,2129,204,2127,209,2056,182,2032,171,1979,160,1923,153,1818,150"/>
 <area shape="rect" id="Node000011" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1196,141,1363,166"/>
 <area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="1377,151,1609,151,1609,156,1377,156"/>
-<area shape="rect" id="Node000012" href="$classtaraxa_1_1rewards_1_1_stats.html" title="class that is managing rewards stats processing and hardforks(intervals changes) So intermediate bloc..." alt="" coords="1409,1109,1575,1134"/>
-<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="1588,1131,1675,1139,1781,1142,1901,1140,2029,1128,2160,1103,2224,1086,2287,1063,2348,1037,2407,1005,2461,968,2511,925,2531,897,2548,855,2575,745,2593,631,2603,549,2608,550,2598,632,2580,746,2553,856,2535,899,2515,928,2464,972,2409,1009,2351,1041,2289,1068,2226,1091,2161,1109,2030,1133,1901,1145,1781,1148,1675,1144,1588,1137"/>
-<area shape="rect" id="Node000013" href="$structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="780,1091,957,1117"/>
-<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="971,1107,1012,1109,1409,1118,1409,1123,1012,1115,971,1113"/>
-<area shape="rect" id="Node000048" href="$structtaraxa_1_1state__api_1_1_config.html" title=" " alt="" coords="1209,1052,1349,1092"/>
-<area shape="poly" id="edge50_Node000048_Node000013" title=" " alt="" coords="971,1094,1149,1080,1209,1075,1209,1080,1150,1085,971,1099"/>
-<area shape="rect" id="Node000014" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="390,1102,579,1127"/>
-<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="593,1110,725,1107,780,1105,780,1110,725,1112,594,1115"/>
-<area shape="rect" id="Node000015" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="400,1151,569,1177"/>
-<area shape="poly" id="edge15_Node000013_Node000015" title=" " alt="" coords="583,1150,725,1129,807,1114,808,1119,726,1135,583,1155"/>
-<area shape="rect" id="Node000016" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="383,1003,586,1029"/>
-<area shape="poly" id="edge16_Node000013_Node000016" title=" " alt="" coords="601,1027,663,1039,726,1056,750,1068,815,1089,814,1094,748,1073,724,1061,662,1044,600,1032"/>
-<area shape="rect" id="Node000017" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,953,165,978"/>
-<area shape="poly" id="edge17_Node000016_Node000017" title=" " alt="" coords="179,974,384,1001,384,1006,179,980"/>
-<area shape="rect" id="Node000035" href="$classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="1212,854,1347,879"/>
-<area shape="poly" id="edge36_Node000035_Node000017" title=" " alt="" coords="179,955,1211,869,1212,875,179,960"/>
-<area shape="rect" id="Node000018" href="$namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="377,1053,592,1078"/>
-<area shape="poly" id="edge18_Node000013_Node000018" title=" " alt="" coords="606,1075,780,1092,779,1098,605,1080"/>
-<area shape="rect" id="Node000019" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2057,351,2324,406"/>
-<area shape="poly" id="edge19_Node000001_Node000019" title=" " alt="" coords="2338,402,2427,427,2514,460,2553,483,2586,507,2582,511,2550,487,2512,465,2425,432,2337,408"/>
-<area shape="rect" id="Node000020" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2090,430,2291,485"/>
-<area shape="poly" id="edge20_Node000001_Node000020" title=" " alt="" coords="2305,472,2514,507,2538,511,2537,517,2513,512,2304,477"/>
-<area shape="rect" id="Node000021" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2082,509,2299,549"/>
-<area shape="poly" id="edge21_Node000001_Node000021" title=" " alt="" coords="2313,527,2537,527,2537,532,2313,532"/>
-<area shape="rect" id="Node000022" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2090,574,2291,629"/>
-<area shape="poly" id="edge22_Node000001_Node000022" title=" " alt="" coords="2305,592,2406,581,2513,561,2559,547,2561,552,2514,567,2407,586,2305,597"/>
-<area shape="rect" id="Node000023" href="$classtaraxa_1_1_map_by_block_cache.html" title=" " alt="" coords="2094,653,2287,723"/>
-<area shape="poly" id="edge23_Node000001_Node000023" title=" " alt="" coords="2301,673,2406,650,2460,632,2512,610,2555,580,2588,548,2592,551,2558,584,2515,614,2462,637,2407,655,2302,678"/>
-<area shape="rect" id="Node000024" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2090,747,2291,787"/>
-<area shape="poly" id="edge24_Node000001_Node000024" title=" " alt="" coords="2304,757,2356,749,2411,734,2464,713,2512,685,2543,653,2568,616,2587,579,2598,549,2603,551,2591,581,2573,619,2548,657,2515,689,2466,718,2412,739,2358,754,2305,763"/>
-<area shape="rect" id="Node000025" href="$classtaraxa_1_1_map_by_block_cache.html" title=" " alt="" coords="2085,811,2296,851"/>
-<area shape="poly" id="edge25_Node000001_Node000025" title=" " alt="" coords="2285,850,2341,856,2401,855,2459,843,2487,831,2512,815,2540,787,2562,754,2579,717,2591,679,2603,605,2605,550,2611,550,2608,605,2596,680,2584,719,2567,757,2544,791,2515,819,2489,836,2461,848,2401,860,2341,862,2284,856"/>
-<area shape="rect" id="Node000026" title=" " alt="" coords="453,501,517,526"/>
-<area shape="poly" id="edge26_Node000001_Node000026" title=" " alt="" coords="509,490,568,443,653,389,703,364,756,344,811,330,867,325,1493,325,1727,320,1910,312,1998,310,2092,313,2199,321,2324,336,2425,347,2467,359,2515,387,2545,415,2570,448,2602,508,2597,511,2566,451,2541,419,2512,391,2465,364,2424,352,2324,341,2198,326,2092,318,1998,316,1910,317,1728,325,1493,331,867,331,812,336,758,349,705,369,656,394,571,448,512,494"/>
-<area shape="rect" id="Node000036" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="749,723,988,763"/>
-<area shape="poly" id="edge38_Node000036_Node000026" title=" " alt="" coords="511,533,610,618,678,666,751,708,779,720,777,725,748,713,675,671,607,622,507,537"/>
-<area shape="rect" id="Node000027" href="$structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="2105,875,2276,901"/>
-<area shape="poly" id="edge27_Node000001_Node000027" title=" " alt="" coords="2246,902,2306,914,2377,919,2413,916,2448,909,2481,897,2512,878,2530,855,2547,819,2574,724,2592,624,2602,549,2608,550,2597,625,2579,725,2552,821,2535,858,2515,882,2484,901,2450,914,2414,922,2377,924,2305,919,2245,907"/>
-<area shape="rect" id="Node000028" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1625,675,1789,715"/>
-<area shape="poly" id="edge28_Node000027_Node000028" title=" " alt="" coords="1802,676,1861,674,1923,680,1983,697,2010,712,2035,731,2047,747,2052,764,2049,798,2045,830,2049,846,2059,861,2081,876,2106,884,2104,890,2078,881,2055,865,2044,848,2040,831,2043,797,2047,765,2043,750,2031,735,2007,717,1981,702,1922,685,1861,679,1803,681"/>
-<area shape="rect" id="Node000029" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1200,682,1359,707"/>
-<area shape="poly" id="edge29_Node000028_Node000029" title=" " alt="" coords="1373,692,1625,692,1625,697,1373,697"/>
-<area shape="rect" id="Node000030" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1615,839,1799,879"/>
-<area shape="poly" id="edge30_Node000027_Node000030" title=" " alt="" coords="1813,862,2105,880,2105,886,1813,868"/>
-<area shape="rect" id="Node000031" href="$structtaraxa_1_1_network_config.html" title=" " alt="" coords="1623,789,1791,814"/>
-<area shape="poly" id="edge31_Node000027_Node000031" title=" " alt="" coords="1804,802,1916,816,1976,828,2034,846,2058,860,2106,874,2105,879,2056,865,2032,850,1975,833,1915,821,1804,808"/>
-<area shape="rect" id="Node000032" href="$structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="1173,755,1385,781"/>
-<area shape="poly" id="edge32_Node000031_Node000032" title=" " alt="" coords="1399,775,1623,792,1622,797,1399,780"/>
-<area shape="rect" id="Node000033" href="$namespacetaraxa.html#structtaraxa_1_1_d_b_config" title=" " alt="" coords="1641,903,1773,929"/>
-<area shape="poly" id="edge33_Node000027_Node000033" title=" " alt="" coords="1786,911,2033,900,2105,894,2105,899,2034,905,1787,917"/>
-<area shape="rect" id="Node000034" href="$structtaraxa_1_1_genesis_config.html" title=" " alt="" coords="1624,953,1789,978"/>
-<area shape="poly" id="edge34_Node000027_Node000034" title=" " alt="" coords="1803,958,1914,948,2033,931,2096,915,2152,898,2153,903,2098,921,2034,936,1914,954,1803,963"/>
-<area shape="poly" id="edge35_Node000034_Node000035" title=" " alt="" coords="1361,868,1483,880,1538,890,1576,904,1585,913,1589,923,1593,931,1600,939,1625,951,1622,956,1597,943,1588,934,1584,925,1581,916,1573,909,1536,895,1482,885,1361,873"/>
-<area shape="poly" id="edge37_Node000035_Node000036" title=" " alt="" coords="1002,743,1079,761,1117,776,1151,797,1160,808,1164,819,1167,830,1175,839,1193,850,1213,857,1211,862,1191,854,1172,843,1162,832,1159,821,1156,810,1148,801,1114,781,1078,766,1001,749"/>
-<area shape="rect" id="Node000037" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="791,787,946,827"/>
-<area shape="poly" id="edge39_Node000035_Node000037" title=" " alt="" coords="960,810,1052,820,1150,833,1226,851,1225,857,1149,839,1051,825,960,816"/>
-<area shape="rect" id="Node000038" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="409,787,560,827"/>
-<area shape="poly" id="edge40_Node000037_Node000038" title=" " alt="" coords="574,804,791,804,791,809,574,809"/>
-<area shape="rect" id="Node000041" title=" " alt="" coords="839,853,899,878"/>
-<area shape="poly" id="edge41_Node000035_Node000041" title=" " alt="" coords="912,863,1212,864,1212,869,912,868"/>
-<area shape="rect" id="Node000042" href="$structtaraxa_1_1_gas_price_config.html" title=" " alt="" coords="1194,903,1365,929"/>
-<area shape="poly" id="edge42_Node000034_Node000042" title=" " alt="" coords="1379,922,1575,943,1627,950,1627,955,1574,948,1378,927"/>
-<area shape="rect" id="Node000043" href="$structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="1195,953,1363,978"/>
-<area shape="poly" id="edge43_Node000034_Node000043" title=" " alt="" coords="1377,963,1624,963,1624,968,1377,968"/>
-<area shape="rect" id="Node000044" href="$structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="781,954,956,979"/>
-<area shape="poly" id="edge44_Node000043_Node000044" title=" " alt="" coords="970,964,1195,963,1195,968,970,969"/>
-<area shape="rect" id="Node000045" href="$structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="415,954,554,979"/>
-<area shape="poly" id="edge45_Node000044_Node000045" title=" " alt="" coords="568,964,781,964,781,969,568,969"/>
-<area shape="rect" id="Node000047" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="1210,1002,1349,1027"/>
-<area shape="poly" id="edge46_Node000034_Node000047" title=" " alt="" coords="1362,1005,1574,983,1627,975,1627,981,1575,988,1363,1010"/>
-<area shape="poly" id="edge47_Node000034_Node000048" title=" " alt="" coords="1363,1061,1464,1046,1574,1020,1632,999,1680,976,1682,981,1634,1003,1575,1025,1465,1051,1363,1066"/>
-<area shape="rect" id="Node000049" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config" title=" " alt="" coords="799,1155,939,1195"/>
-<area shape="poly" id="edge48_Node000048_Node000049" title=" " alt="" coords="952,1185,998,1189,1048,1189,1099,1183,1148,1171,1182,1155,1212,1134,1259,1090,1262,1094,1215,1138,1184,1160,1150,1176,1100,1188,1048,1194,998,1194,952,1191"/>
-<area shape="rect" id="Node000050" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config" title=" " alt="" coords="799,1019,939,1059"/>
-<area shape="poly" id="edge49_Node000048_Node000050" title=" " alt="" coords="953,1043,1210,1064,1209,1069,952,1048"/>
-<area shape="rect" id="Node000051" href="$structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1210,805,1349,830"/>
-<area shape="poly" id="edge51_Node000034_Node000051" title=" " alt="" coords="1363,815,1486,824,1540,835,1561,843,1576,853,1585,863,1590,875,1590,897,1590,919,1593,930,1600,939,1625,955,1622,959,1597,943,1588,932,1584,920,1584,897,1584,876,1581,866,1573,857,1559,848,1538,841,1485,830,1362,820"/>
-<area shape="rect" id="Node000052" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="773,659,964,699"/>
-<area shape="poly" id="edge52_Node000051_Node000052" title=" " alt="" coords="978,663,1022,665,1068,672,1112,687,1151,711,1160,721,1164,731,1165,752,1165,772,1168,781,1175,790,1192,802,1211,809,1209,814,1189,806,1171,794,1163,784,1160,773,1159,752,1159,733,1155,724,1148,715,1110,692,1067,677,1022,670,978,668"/>
-<area shape="rect" id="Node000053" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts" title=" " alt="" coords="1621,739,1792,765"/>
-<area shape="poly" id="edge53_Node000027_Node000053" title=" " alt="" coords="1806,749,1872,752,1938,758,1996,770,2018,777,2035,787,2047,806,2048,826,2049,844,2059,861,2081,875,2106,883,2104,888,2079,879,2055,865,2044,845,2043,826,2042,808,2031,791,2016,782,1994,775,1938,764,1871,757,1806,755"/>
+<area shape="rect" id="Node000012" href="$classtaraxa_1_1rewards_1_1_stats.html" title="class that is managing rewards stats processing and hardforks(intervals changes) So intermediate bloc..." alt="" coords="1409,1110,1575,1135"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="1566,1135,1649,1149,1754,1161,1875,1168,2007,1166,2143,1150,2210,1136,2276,1117,2340,1093,2401,1064,2459,1027,2511,985,2532,955,2550,910,2565,853,2578,791,2595,669,2603,581,2609,582,2600,669,2583,792,2570,855,2555,911,2537,958,2515,988,2462,1032,2404,1068,2342,1098,2278,1122,2212,1141,2144,1155,2007,1171,1875,1173,1753,1166,1648,1154,1565,1141"/>
+<area shape="rect" id="Node000013" href="$structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="780,1127,957,1153"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="971,1135,1409,1122,1409,1128,971,1140"/>
+<area shape="rect" id="Node000049" href="$structtaraxa_1_1state__api_1_1_config.html" title=" " alt="" coords="1209,1164,1349,1204"/>
+<area shape="poly" id="edge50_Node000049_Node000013" title=" " alt="" coords="933,1153,1012,1168,1115,1177,1209,1181,1209,1186,1115,1183,1012,1173,932,1158"/>
+<area shape="rect" id="Node000014" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="390,1127,579,1153"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="593,1137,780,1137,780,1143,593,1143"/>
+<area shape="rect" id="Node000015" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="400,1177,569,1202"/>
+<area shape="poly" id="edge15_Node000013_Node000015" title=" " alt="" coords="583,1175,725,1157,780,1150,780,1155,726,1163,584,1180"/>
+<area shape="rect" id="Node000016" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="383,1021,586,1046"/>
+<area shape="poly" id="edge16_Node000013_Node000016" title=" " alt="" coords="600,1041,665,1057,697,1069,727,1085,739,1099,751,1113,781,1126,779,1130,748,1117,735,1102,724,1089,695,1074,663,1062,599,1046"/>
+<area shape="rect" id="Node000017" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,991,165,1017"/>
+<area shape="poly" id="edge17_Node000016_Node000017" title=" " alt="" coords="179,1008,383,1023,383,1029,179,1013"/>
+<area shape="rect" id="Node000036" href="$classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="1212,909,1347,934"/>
+<area shape="poly" id="edge37_Node000036_Node000017" title=" " alt="" coords="179,991,189,991,340,983,457,980,575,978,725,971,857,960,988,947,1212,925,1212,930,988,952,857,965,726,976,575,983,457,985,340,988,190,996,179,997"/>
+<area shape="rect" id="Node000018" href="$namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="377,1078,592,1103"/>
+<area shape="poly" id="edge18_Node000013_Node000018" title=" " alt="" coords="606,1102,726,1117,780,1125,780,1130,725,1123,605,1108"/>
+<area shape="rect" id="Node000019" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2057,347,2324,402"/>
+<area shape="poly" id="edge19_Node000001_Node000019" title=" " alt="" coords="2338,393,2428,418,2473,436,2515,458,2540,476,2562,498,2596,539,2592,543,2558,501,2536,480,2512,462,2470,441,2426,423,2337,398"/>
+<area shape="rect" id="Node000020" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2090,426,2291,481"/>
+<area shape="poly" id="edge20_Node000001_Node000020" title=" " alt="" coords="2305,468,2408,489,2514,517,2568,539,2566,544,2512,523,2406,494,2304,473"/>
+<area shape="rect" id="Node000021" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2082,505,2299,545"/>
+<area shape="poly" id="edge21_Node000001_Node000021" title=" " alt="" coords="2313,533,2537,553,2537,558,2313,538"/>
+<area shape="rect" id="Node000022" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2090,570,2291,625"/>
+<area shape="poly" id="edge22_Node000001_Node000022" title=" " alt="" coords="2305,598,2406,596,2513,585,2544,579,2545,584,2514,591,2407,601,2305,604"/>
+<area shape="rect" id="Node000023" href="$classtaraxa_1_1_map_by_block_cache.html" title=" " alt="" coords="2094,649,2287,719"/>
+<area shape="poly" id="edge23_Node000001_Node000023" title=" " alt="" coords="2300,670,2405,651,2460,637,2512,619,2549,600,2580,579,2583,584,2551,605,2514,624,2461,642,2406,657,2301,676"/>
+<area shape="rect" id="Node000024" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2090,743,2291,783"/>
+<area shape="poly" id="edge24_Node000001_Node000024" title=" " alt="" coords="2304,752,2356,743,2410,729,2463,710,2512,683,2540,660,2563,632,2595,580,2600,583,2567,636,2543,664,2515,688,2465,714,2411,734,2357,748,2305,757"/>
+<area shape="rect" id="Node000025" href="$classtaraxa_1_1_map_by_block_cache.html" title=" " alt="" coords="2085,807,2296,847"/>
+<area shape="poly" id="edge25_Node000001_Node000025" title=" " alt="" coords="2294,846,2348,850,2406,847,2462,834,2488,823,2512,809,2537,785,2557,757,2573,726,2585,693,2599,630,2604,581,2609,582,2604,631,2590,694,2578,728,2562,760,2541,789,2515,813,2490,828,2463,840,2406,853,2348,855,2294,851"/>
+<area shape="rect" id="Node000026" href="$classtaraxa_1_1_value_by_block_cache.html" title=" " alt="" coords="2077,871,2304,911"/>
+<area shape="poly" id="edge26_Node000001_Node000026" title=" " alt="" coords="2291,910,2346,915,2404,912,2461,899,2487,887,2512,871,2542,841,2565,804,2582,763,2594,721,2605,641,2606,582,2611,582,2610,641,2599,722,2587,765,2570,806,2546,844,2515,875,2490,892,2463,904,2405,918,2346,920,2290,915"/>
+<area shape="rect" id="Node000027" title=" " alt="" coords="453,530,517,555"/>
+<area shape="poly" id="edge27_Node000001_Node000027" title=" " alt="" coords="506,518,563,465,648,401,698,372,752,348,809,331,867,325,1493,325,1727,320,1910,312,2092,312,2198,319,2324,332,2426,339,2468,349,2515,378,2551,416,2577,461,2595,505,2605,540,2600,542,2590,507,2572,463,2546,419,2512,382,2466,354,2425,344,2324,337,2198,324,2091,317,1910,317,1727,325,1493,331,867,331,810,337,754,353,701,377,651,406,566,469,509,522"/>
+<area shape="rect" id="Node000037" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="749,781,988,821"/>
+<area shape="poly" id="edge39_Node000037_Node000027" title=" " alt="" coords="508,564,549,608,606,662,675,719,751,767,778,779,776,784,748,772,672,723,603,666,545,611,504,568"/>
+<area shape="rect" id="Node000028" href="$structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="2105,935,2276,961"/>
+<area shape="poly" id="edge28_Node000001_Node000028" title=" " alt="" coords="2246,962,2306,974,2377,978,2413,976,2448,968,2482,956,2512,937,2531,912,2548,873,2563,824,2575,769,2593,661,2603,581,2608,582,2599,662,2581,770,2568,825,2553,875,2536,914,2515,941,2484,960,2450,974,2414,981,2377,984,2306,979,2245,967"/>
+<area shape="rect" id="Node000029" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1625,735,1789,775"/>
+<area shape="poly" id="edge29_Node000028_Node000029" title=" " alt="" coords="1802,736,1861,734,1923,740,1983,757,2010,772,2035,791,2047,807,2052,824,2049,858,2045,890,2049,906,2059,921,2081,936,2106,944,2104,950,2078,941,2055,925,2044,908,2040,891,2043,857,2047,825,2043,810,2031,795,2007,777,1981,762,1922,745,1861,739,1803,741"/>
+<area shape="rect" id="Node000030" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1200,742,1359,767"/>
+<area shape="poly" id="edge30_Node000029_Node000030" title=" " alt="" coords="1373,752,1625,752,1625,757,1373,757"/>
+<area shape="rect" id="Node000031" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1615,899,1799,939"/>
+<area shape="poly" id="edge31_Node000028_Node000031" title=" " alt="" coords="1813,922,2105,940,2105,946,1813,928"/>
+<area shape="rect" id="Node000032" href="$structtaraxa_1_1_network_config.html" title=" " alt="" coords="1623,849,1791,874"/>
+<area shape="poly" id="edge32_Node000028_Node000032" title=" " alt="" coords="1804,862,1916,876,1976,888,2034,906,2058,920,2106,934,2105,939,2056,925,2032,910,1975,893,1915,881,1804,868"/>
+<area shape="rect" id="Node000033" href="$structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="1173,810,1385,835"/>
+<area shape="poly" id="edge33_Node000032_Node000033" title=" " alt="" coords="1399,831,1623,851,1622,856,1399,836"/>
+<area shape="rect" id="Node000034" href="$namespacetaraxa.html#structtaraxa_1_1_d_b_config" title=" " alt="" coords="1641,963,1773,989"/>
+<area shape="poly" id="edge34_Node000028_Node000034" title=" " alt="" coords="1786,971,2033,960,2105,954,2105,959,2034,965,1787,977"/>
+<area shape="rect" id="Node000035" href="$structtaraxa_1_1_genesis_config.html" title=" " alt="" coords="1624,1013,1789,1038"/>
+<area shape="poly" id="edge35_Node000028_Node000035" title=" " alt="" coords="1803,1018,1914,1008,2033,991,2096,975,2152,958,2153,963,2098,981,2034,996,1914,1014,1803,1023"/>
+<area shape="poly" id="edge36_Node000035_Node000036" title=" " alt="" coords="1361,924,1483,938,1538,950,1576,964,1585,973,1589,983,1593,991,1600,999,1625,1011,1622,1016,1597,1003,1588,994,1584,985,1581,976,1573,969,1536,955,1482,943,1361,929"/>
+<area shape="poly" id="edge38_Node000036_Node000037" title=" " alt="" coords="1002,795,1041,800,1079,810,1117,824,1151,845,1161,857,1164,870,1167,883,1175,894,1193,905,1213,912,1211,917,1190,910,1172,898,1162,885,1159,872,1156,860,1148,849,1114,829,1078,815,1040,806,1001,800"/>
+<area shape="rect" id="Node000038" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="791,897,946,937"/>
+<area shape="poly" id="edge40_Node000036_Node000038" title=" " alt="" coords="960,916,1212,918,1212,923,960,921"/>
+<area shape="rect" id="Node000039" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="409,876,560,916"/>
+<area shape="poly" id="edge41_Node000038_Node000039" title=" " alt="" coords="574,898,791,910,791,916,574,904"/>
+<area shape="rect" id="Node000042" title=" " alt="" coords="839,847,899,873"/>
+<area shape="poly" id="edge42_Node000036_Node000042" title=" " alt="" coords="913,863,1150,897,1212,907,1212,913,1149,903,912,868"/>
+<area shape="rect" id="Node000043" href="$structtaraxa_1_1_gas_price_config.html" title=" " alt="" coords="1194,963,1365,989"/>
+<area shape="poly" id="edge43_Node000035_Node000043" title=" " alt="" coords="1379,982,1575,1003,1627,1010,1627,1015,1574,1008,1378,987"/>
+<area shape="rect" id="Node000044" href="$structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="1195,1013,1363,1038"/>
+<area shape="poly" id="edge44_Node000035_Node000044" title=" " alt="" coords="1377,1023,1624,1023,1624,1028,1377,1028"/>
+<area shape="rect" id="Node000045" href="$structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="781,1013,956,1038"/>
+<area shape="poly" id="edge45_Node000044_Node000045" title=" " alt="" coords="970,1023,1195,1023,1195,1028,970,1028"/>
+<area shape="rect" id="Node000048" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="1210,1062,1349,1087"/>
+<area shape="poly" id="edge46_Node000035_Node000048" title=" " alt="" coords="1362,1065,1574,1043,1627,1035,1627,1041,1575,1048,1363,1070"/>
+<area shape="poly" id="edge47_Node000035_Node000049" title=" " alt="" coords="1363,1191,1413,1192,1467,1188,1522,1179,1573,1160,1615,1133,1650,1099,1677,1064,1696,1037,1700,1040,1682,1067,1654,1102,1618,1137,1576,1165,1523,1184,1467,1194,1413,1197,1363,1196"/>
+<area shape="rect" id="Node000050" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config" title=" " alt="" coords="799,1197,939,1237"/>
+<area shape="poly" id="edge48_Node000049_Node000050" title=" " alt="" coords="953,1219,1047,1220,1149,1213,1210,1201,1211,1207,1150,1219,1047,1226,953,1225"/>
+<area shape="rect" id="Node000051" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config" title=" " alt="" coords="799,1063,939,1103"/>
+<area shape="poly" id="edge49_Node000049_Node000051" title=" " alt="" coords="953,1079,1048,1087,1100,1095,1150,1108,1206,1133,1252,1161,1249,1166,1203,1138,1148,1113,1099,1100,1048,1092,952,1085"/>
+<area shape="rect" id="Node000052" href="$structtaraxa_1_1_dag_config.html" title=" " alt="" coords="1210,859,1349,885"/>
+<area shape="poly" id="edge51_Node000035_Node000052" title=" " alt="" coords="1363,871,1486,881,1540,892,1561,900,1576,910,1586,921,1590,933,1590,956,1589,979,1593,989,1600,999,1625,1015,1622,1019,1597,1003,1588,992,1584,980,1584,956,1585,934,1581,924,1573,914,1559,905,1539,898,1485,886,1362,876"/>
+<area shape="rect" id="Node000053" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="773,717,964,757"/>
+<area shape="poly" id="edge52_Node000052_Node000053" title=" " alt="" coords="978,719,1022,720,1068,726,1112,741,1151,765,1160,774,1164,785,1165,806,1165,826,1168,836,1175,845,1192,856,1211,864,1209,869,1189,861,1171,849,1163,838,1160,827,1159,806,1159,786,1155,777,1148,769,1110,745,1067,732,1022,725,978,725"/>
+<area shape="rect" id="Node000054" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts" title=" " alt="" coords="1621,799,1792,825"/>
+<area shape="poly" id="edge53_Node000028_Node000054" title=" " alt="" coords="1806,809,1872,812,1938,818,1996,830,2018,837,2035,847,2047,866,2048,886,2049,904,2059,921,2081,935,2106,943,2104,948,2079,939,2055,925,2044,905,2043,886,2042,868,2031,851,2016,842,1994,835,1938,824,1871,817,1806,815"/>
 </map>

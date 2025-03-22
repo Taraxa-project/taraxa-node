@@ -199,6 +199,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:adc669ffb11b7c6c94efd435a22287ea9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a26daf94afb332ffa5f59094c6d68cbcb" id="r_a26daf94afb332ffa5f59094c6d68cbcb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a26daf94afb332ffa5f59094c6d68cbcb">getPeriodBlockHash</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="separator:a26daf94afb332ffa5f59094c6d68cbcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2542291e1e7dfad2f348e39a196f3bf7" id="r_a2542291e1e7dfad2f348e39a196f3bf7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a2542291e1e7dfad2f348e39a196f3bf7">transactionsFromPeriodDataRlp</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">period_data_rlp</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:a2542291e1e7dfad2f348e39a196f3bf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b26ad95106e0603d9c10768140e0d14" id="r_a8b26ad95106e0603d9c10768140e0d14"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8b26ad95106e0603d9c10768140e0d14">getPeriodTransactions</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="separator:a8b26ad95106e0603d9c10768140e0d14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0cdcc36612e567cc619b7b3333d2db7" id="r_ab0cdcc36612e567cc619b7b3333d2db7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab0cdcc36612e567cc619b7b3333d2db7">getPeriodPillarVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
@@ -243,8 +245,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a74ceb5b21b5007ad1ec3d68c57a6cb52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af02b3d7be68505a2ffc5527df0a02a85" id="r_af02b3d7be68505a2ffc5527df0a02a85"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#af02b3d7be68505a2ffc5527df0a02a85">getParamsChangeForPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:af02b3d7be68505a2ffc5527df0a02a85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a293302014a66ea0edcf444decf09f9d0" id="r_a293302014a66ea0edcf444decf09f9d0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a293302014a66ea0edcf444decf09f9d0">getTransaction</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;hash)</td></tr>
-<tr class="separator:a293302014a66ea0edcf444decf09f9d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1126f69b462d5a71c8de3f5cb0cafbd0" id="r_a1126f69b462d5a71c8de3f5cb0cafbd0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1126f69b462d5a71c8de3f5cb0cafbd0">getTransaction</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;hash) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:a1126f69b462d5a71c8de3f5cb0cafbd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3cf2c8eb2b43bd19da2865c34aea3620" id="r_a3cf2c8eb2b43bd19da2865c34aea3620"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3cf2c8eb2b43bd19da2865c34aea3620">getAllNonfinalizedTransactions</a> ()</td></tr>
 <tr class="separator:a3cf2c8eb2b43bd19da2865c34aea3620"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4137d87f054eaa5fb1825f41873fb5dd" id="r_a4137d87f054eaa5fb1825f41873fb5dd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a4137d87f054eaa5fb1825f41873fb5dd">transactionInDb</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;hash)</td></tr>
@@ -261,12 +263,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae8176573026b914f06c298c0dc138140"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24ad3a7be3b243419932bda90da6ecea" id="r_a24ad3a7be3b243419932bda90da6ecea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a24ad3a7be3b243419932bda90da6ecea">addTransactionLocationToBatch</a> (<a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">write_batch</a>, <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;trx, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint32_t</a> position, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> is_system=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">false</a>)</td></tr>
 <tr class="separator:a24ad3a7be3b243419932bda90da6ecea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae4ea4a35fc975529e8df688faa4a38a" id="r_aae4ea4a35fc975529e8df688faa4a38a"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location">final_chain::TransactionLocation</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aae4ea4a35fc975529e8df688faa4a38a">getTransactionLocation</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;hash) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
-<tr class="separator:aae4ea4a35fc975529e8df688faa4a38a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a687c2f89626411079526199e45bd1411" id="r_a687c2f89626411079526199e45bd1411"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structtaraxa_1_1_transaction_location.html">TransactionLocation</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a687c2f89626411079526199e45bd1411">getTransactionLocation</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;hash) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:a687c2f89626411079526199e45bd1411"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bf99217c4ac32943f2e68a7de1f096f" id="r_a1bf99217c4ac32943f2e68a7de1f096f"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1bf99217c4ac32943f2e68a7de1f096f">getAllTransactionPeriod</a> ()</td></tr>
 <tr class="separator:a1bf99217c4ac32943f2e68a7de1f096f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a088a21c446c0b4ad206bb8c422b525f5" id="r_a088a21c446c0b4ad206bb8c422b525f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a088a21c446c0b4ad206bb8c422b525f5">getTransactionCount</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="separator:a088a21c446c0b4ad206bb8c422b525f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4f7e4c8e47efe1517e095075e7adc04" id="r_ac4f7e4c8e47efe1517e095075e7adc04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a3b0286899d76623069c6883c709467fb">SharedTransactionReceipts</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac4f7e4c8e47efe1517e095075e7adc04">getBlockReceipts</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:ac4f7e4c8e47efe1517e095075e7adc04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad440a34ee319f4c1a74dae41b5f16375" id="r_ad440a34ee319f4c1a74dae41b5f16375"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structtaraxa_1_1_transaction_receipt.html">TransactionReceipt</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ad440a34ee319f4c1a74dae41b5f16375">getTransactionReceipt</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">blk_n</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a> position) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:ad440a34ee319f4c1a74dae41b5f16375"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44b3af26c8e44701d0a48f358f245576" id="r_a44b3af26c8e44701d0a48f358f245576"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a44b3af26c8e44701d0a48f358f245576">getFinalizedTransactions</a> (std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">trx_hashes</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="memdesc:a44b3af26c8e44701d0a48f358f245576"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets finalized transactions from provided hashes.  <br /></td></tr>
 <tr class="separator:a44b3af26c8e44701d0a48f358f245576"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -437,6 +443,8 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
+<tr class="memitem:a4d5b9c846763350f8cc03178b8057d69" id="r_a4d5b9c846763350f8cc03178b8057d69"><td class="memItemLeft" align="right" valign="top">rocksdb::ReadOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a4d5b9c846763350f8cc03178b8057d69">read_options_</a></td></tr>
+<tr class="separator:a4d5b9c846763350f8cc03178b8057d69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f94f7308652e2c2064cf9963e3424aa" id="r_a1f94f7308652e2c2064cf9963e3424aa"><td class="memItemLeft" align="right" valign="top">rocksdb::WriteOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1f94f7308652e2c2064cf9963e3424aa">async_write_</a></td></tr>
 <tr class="separator:a1f94f7308652e2c2064cf9963e3424aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f33f688bf7c18938c8a5874eeefff79" id="r_a8f33f688bf7c18938c8a5874eeefff79"><td class="memItemLeft" align="right" valign="top">rocksdb::WriteOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8f33f688bf7c18938c8a5874eeefff79">sync_write_</a></td></tr>
@@ -458,8 +466,6 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a4d892dd07605cbedaf998abd5765a26b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4f74c663fa2d966d6ffdded1b90a146" id="r_ac4f74c663fa2d966d6ffdded1b90a146"><td class="memItemLeft" align="right" valign="top">std::vector&lt; rocksdb::ColumnFamilyHandle * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac4f74c663fa2d966d6ffdded1b90a146">handles_</a></td></tr>
 <tr class="separator:ac4f74c663fa2d966d6ffdded1b90a146"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4d5b9c846763350f8cc03178b8057d69" id="r_a4d5b9c846763350f8cc03178b8057d69"><td class="memItemLeft" align="right" valign="top">rocksdb::ReadOptions&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a4d5b9c846763350f8cc03178b8057d69">read_options_</a></td></tr>
-<tr class="separator:a4d5b9c846763350f8cc03178b8057d69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15486ac2fabf4c44484ca52c44bf667e" id="r_a15486ac2fabf4c44484ca52c44bf667e"><td class="memItemLeft" align="right" valign="top">std::mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a15486ac2fabf4c44484ca52c44bf667e">dag_blocks_mutex_</a></td></tr>
 <tr class="separator:a15486ac2fabf4c44484ca52c44bf667e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08e047fd250cb0d786c208eddb78fdd6" id="r_a08e047fd250cb0d786c208eddb78fdd6"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6">dag_blocks_count_</a></td></tr>
@@ -1517,6 +1523,24 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
+<a id="ac4f7e4c8e47efe1517e095075e7adc04" name="ac4f7e4c8e47efe1517e095075e7adc04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4f7e4c8e47efe1517e095075e7adc04">&#9670;&#160;</a></span>getBlockReceipts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a3b0286899d76623069c6883c709467fb">SharedTransactionReceipts</a> taraxa::DbStorage::getBlockReceipts </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a952faaf7edbe9f4819802f2901984d58" name="a952faaf7edbe9f4819802f2901984d58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a952faaf7edbe9f4819802f2901984d58">&#9670;&#160;</a></span>getBlocksByLevel()</h2>
 
@@ -2388,8 +2412,8 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="a293302014a66ea0edcf444decf09f9d0" name="a293302014a66ea0edcf444decf09f9d0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a293302014a66ea0edcf444decf09f9d0">&#9670;&#160;</a></span>getTransaction()</h2>
+<a id="a1126f69b462d5a71c8de3f5cb0cafbd0" name="a1126f69b462d5a71c8de3f5cb0cafbd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1126f69b462d5a71c8de3f5cb0cafbd0">&#9670;&#160;</a></span>getTransaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2399,7 +2423,7 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;&#160;</td>
           <td class="paramname"><em>hash</em></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2424,18 +2448,46 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="aae4ea4a35fc975529e8df688faa4a38a" name="aae4ea4a35fc975529e8df688faa4a38a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aae4ea4a35fc975529e8df688faa4a38a">&#9670;&#160;</a></span>getTransactionLocation()</h2>
+<a id="a687c2f89626411079526199e45bd1411" name="a687c2f89626411079526199e45bd1411"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a687c2f89626411079526199e45bd1411">&#9670;&#160;</a></span>getTransactionLocation()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location">final_chain::TransactionLocation</a> &gt; taraxa::DbStorage::getTransactionLocation </td>
+          <td class="memname">std::optional&lt; <a class="el" href="structtaraxa_1_1_transaction_location.html">TransactionLocation</a> &gt; taraxa::DbStorage::getTransactionLocation </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> &amp;&#160;</td>
           <td class="paramname"><em>hash</em></td><td>)</td>
           <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad440a34ee319f4c1a74dae41b5f16375" name="ad440a34ee319f4c1a74dae41b5f16375"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad440a34ee319f4c1a74dae41b5f16375">&#9670;&#160;</a></span>getTransactionReceipt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="structtaraxa_1_1_transaction_receipt.html">TransactionReceipt</a> &gt; taraxa::DbStorage::getTransactionReceipt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a>&#160;</td>
+          <td class="paramname"><em>position</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4010,6 +4062,34 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
+<a id="a2542291e1e7dfad2f348e39a196f3bf7" name="a2542291e1e7dfad2f348e39a196f3bf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2542291e1e7dfad2f348e39a196f3bf7">&#9670;&#160;</a></span>transactionsFromPeriodDataRlp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> taraxa::DbStorage::transactionsFromPeriodDataRlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;&#160;</td>
+          <td class="paramname"><em>period_data_rlp</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a5370e33d423e4cf63443a862a04c8867" name="a5370e33d423e4cf63443a862a04c8867"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5370e33d423e4cf63443a862a04c8867">&#9670;&#160;</a></span>transactionsInDb()</h2>
 
@@ -4391,19 +4471,11 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">rocksdb::ReadOptions taraxa::DbStorage::read_options_</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>

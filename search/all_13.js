@@ -29,7 +29,7 @@ var searchData=
   ['handlepingnode_26',['handlePingNode',['../classdev_1_1p2p_1_1_node_table.html#a611d013b0cf8ee20530d4e448d849898',1,'dev::p2p::NodeTable']]],
   ['handlepong_27',['handlePong',['../classdev_1_1p2p_1_1_node_table.html#a39b52c56092513e4e3013cfebe7207ab',1,'dev::p2p::NodeTable']]],
   ['handler_28',['Handler',['../structtaraxa_1_1util_1_1event_1_1_event_subscriber.html#af278d99448f2853636e0482518c5732d',1,'taraxa::util::event::EventSubscriber']]],
-  ['handlerequest_29',['handleRequest',['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html#aff0a484c4d323e3565f3420fc55fead6',1,'taraxa::net::JsonRpcWsSession']]],
+  ['handlerequest_29',['handlerequest',['../classtaraxa_1_1net_1_1_ws_session.html#afabf3296c1dabafc0047b4345fb918ca',1,'taraxa::net::WsSession::handleRequest()'],['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html#aff0a484c4d323e3565f3420fc55fead6',1,'taraxa::net::JsonRpcWsSession::handleRequest()']]],
   ['handles_5f_30',['handles_',['../classtaraxa_1_1_db_storage.html#ac4f74c663fa2d966d6ffdded1b90a146',1,'taraxa::DbStorage']]],
   ['handlesubscription_31',['handleSubscription',['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html#a348e8eb9601e98a7c0824ed61e7fadb1',1,'taraxa::net::JsonRpcWsSession']]],
   ['handleunsubscription_32',['handleUnsubscription',['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html#a12a36be4e82361904f9f34764209c661',1,'taraxa::net::JsonRpcWsSession']]],
@@ -56,7 +56,7 @@ var searchData=
   ['hash_3c_20pair_3c_20dev_3a_3ap2p_3a_3anodeid_2c_20string_20_3e_20_3e_53',['hash&lt; pair&lt; dev::p2p::NodeID, string &gt; &gt;',['../structstd_1_1hash_3_01pair_3_01dev_1_1p2p_1_1_node_i_d_00_01string_01_4_01_4.html',1,'std']]],
   ['hash_5f_54',['hash_',['../structtaraxa_1_1_transaction.html#a017deaeea7740fed1d2a7bf437ae577d',1,'taraxa::Transaction::hash_'],['../classtaraxa_1_1_dag_block.html#ad053650234b92e86832a79f42a731a78',1,'taraxa::DagBlock::hash_'],['../group___p_i_l_l_a_r___c_h_a_i_n.html#a60b45bedafb8d25646f32f6d1292e33b',1,'taraxa::pillar_chain::PillarBlock::hash_']]],
   ['hash_5ffor_5fsignature_55',['hash_for_signature',['../structtaraxa_1_1_transaction.html#af492cd79a6fcf8ff4403062401e10ae2',1,'taraxa::Transaction']]],
-  ['hash_5finitialized_5f_56',['hash_initialized_',['../structtaraxa_1_1_transaction.html#a8fc79af8f68622e0dce2617e842f51d8',1,'taraxa::Transaction']]],
+  ['hash_5finitialized_5f_56',['hash_initialized_',['../structtaraxa_1_1_transaction.html#a237ff469fdb3f03d680ebbb0fe5a57ce',1,'taraxa::Transaction']]],
   ['hash_5fmu_5f_57',['hash_mu_',['../structtaraxa_1_1_transaction.html#a4e8f91f7dec8e84dc51f046f4b4ef41c',1,'taraxa::Transaction::hash_mu_'],['../classtaraxa_1_1_dag_block.html#ac3fee1611ecdde1dd78b99e4f7856fc4',1,'taraxa::DagBlock::hash_mu_']]],
   ['hash_5fmutex_5f_58',['hash_mutex_',['../group___p_i_l_l_a_r___c_h_a_i_n.html#aba643ff845d123f0e0da939fd29d5af6',1,'taraxa::pillar_chain::PillarBlock']]],
   ['hash_5fvalue_59',['hash_value',['../namespacedev.html#ae12d1dd0acf7786829a044974dbea66b',1,'dev']]],
@@ -84,7 +84,7 @@ var searchData=
   ['highest_5fblock_81',['highest_block',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a8d904d39294192ba000300f708f4f9d1',1,'taraxa::net::rpc::eth::SyncStatus']]],
   ['hoc_20releases_20with_20bug_20fixes_82',['Ad-hoc releases with bug fixes',['../md_doc_2release__cycle.html#autotoc_md245',1,'']]],
   ['homebrew_83',['Install Homebrew',['../md_doc_2building.html#autotoc_md42',1,'']]],
-  ['host_84',['host',['../structdev_1_1p2p_1_1_host.html',1,'dev::p2p::Host'],['../structdev_1_1p2p_1_1_host.html#a3a67cb085cf2787e50abbeb15dd35cc1',1,'dev::p2p::Host::Host()'],['../namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89',1,'dev::p2p::PeerSessionInfo::host']]],
+  ['host_84',['host',['../structdev_1_1p2p_1_1_host.html',1,'dev::p2p::Host'],['../namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89',1,'dev::p2p::PeerSessionInfo::host'],['../structdev_1_1p2p_1_1_host.html#a3a67cb085cf2787e50abbeb15dd35cc1',1,'dev::p2p::Host::Host()']]],
   ['host_2ecpp_85',['Host.cpp',['../_host_8cpp.html',1,'']]],
   ['host_2eh_86',['Host.h',['../_host_8h.html',1,'']]],
   ['host_5f_87',['host_',['../classtaraxa_1_1_network.html#a9a17fef921508b0eedf68da85406660a',1,'taraxa::Network::host_'],['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4cb1c53c949cceb37f64e472058c1493',1,'taraxa::network::tarcap::PeersState::host_']]],
@@ -100,5 +100,5 @@ var searchData=
   ['httpconnection_97',['httpconnection',['../classtaraxa_1_1net_1_1_http_server.html#a0b9aed8652f5316c2d4c04eabe3d1c0c',1,'taraxa::net::HttpServer::HttpConnection'],['../classtaraxa_1_1net_1_1_http_connection.html#a4a9d0be7fedc6352e38a8bc88a2e7173',1,'taraxa::net::HttpConnection::HttpConnection()'],['../classtaraxa_1_1net_1_1_http_connection.html',1,'taraxa::net::HttpConnection']]],
   ['httphandler_98',['HttpHandler',['../classtaraxa_1_1net_1_1_http_server.html#a00c15ddc2d81dbe5857c3bbcbef9a68e',1,'taraxa::net::HttpServer']]],
   ['httpprocessor_99',['HttpProcessor',['../classtaraxa_1_1net_1_1_http_processor.html',1,'taraxa::net']]],
-  ['httpserver_100',['httpserver',['../classtaraxa_1_1net_1_1_http_server.html#af3b15d65cde8515afc1e1d808f669834',1,'taraxa::net::HttpServer::HttpServer()'],['../classtaraxa_1_1net_1_1_http_server.html',1,'taraxa::net::HttpServer']]]
+  ['httpserver_100',['httpserver',['../classtaraxa_1_1net_1_1_http_server.html#a81df8c9232a970148cc8d97512e38468',1,'taraxa::net::HttpServer::HttpServer()'],['../classtaraxa_1_1net_1_1_http_server.html',1,'taraxa::net::HttpServer']]]
 ];

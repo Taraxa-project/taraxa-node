@@ -6,7 +6,7 @@ var searchData=
   ['hardforks_3',['hardforks',['../structtaraxa_1_1state__api_1_1_config.html#ad099372be7bb0a693044a7d0830c8e18',1,'taraxa::state_api::Config']]],
   ['hash_4',['hash',['../group___final_chain.html#aa248d8ceb01bdb669ae3c64822dae150',1,'taraxa::final_chain::BlockHeader::hash'],['../group___final_chain.html#a74bb648e6d8f03814ed5a5567c347be5',1,'taraxa::final_chain::NewBlock::hash']]],
   ['hash_5f_5',['hash_',['../group___p_i_l_l_a_r___c_h_a_i_n.html#a60b45bedafb8d25646f32f6d1292e33b',1,'taraxa::pillar_chain::PillarBlock::hash_'],['../classtaraxa_1_1_dag_block.html#ad053650234b92e86832a79f42a731a78',1,'taraxa::DagBlock::hash_'],['../structtaraxa_1_1_transaction.html#a017deaeea7740fed1d2a7bf437ae577d',1,'taraxa::Transaction::hash_']]],
-  ['hash_5finitialized_5f_6',['hash_initialized_',['../structtaraxa_1_1_transaction.html#a8fc79af8f68622e0dce2617e842f51d8',1,'taraxa::Transaction']]],
+  ['hash_5finitialized_5f_6',['hash_initialized_',['../structtaraxa_1_1_transaction.html#a237ff469fdb3f03d680ebbb0fe5a57ce',1,'taraxa::Transaction']]],
   ['hash_5fmu_5f_7',['hash_mu_',['../classtaraxa_1_1_dag_block.html#ac3fee1611ecdde1dd78b99e4f7856fc4',1,'taraxa::DagBlock::hash_mu_'],['../structtaraxa_1_1_transaction.html#a4e8f91f7dec8e84dc51f046f4b4ef41c',1,'taraxa::Transaction::hash_mu_']]],
   ['hash_5fmutex_5f_8',['hash_mutex_',['../group___p_i_l_l_a_r___c_h_a_i_n.html#aba643ff845d123f0e0da939fd29d5af6',1,'taraxa::pillar_chain::PillarBlock']]],
   ['head_5fhash_5f_9',['head_hash_',['../group___p_b_f_t.html#aaa81d91b429a66dfde206e07734d217f',1,'taraxa::PbftChain']]],

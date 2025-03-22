@@ -12,7 +12,7 @@ var searchData=
   ['new_5fblocks_5f_9',['new_blocks_',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a24d7ff724a8db34cb23d5fa8491f13a6',1,'taraxa::net::rpc::eth::Watches']]],
   ['new_5fconf_5f_10',['new_conf_',['../classtaraxa_1_1cli_1_1_config_updater.html#a4d652eb88aa54b4cce32a9d466c5dc3d',1,'taraxa::cli::ConfigUpdater']]],
   ['new_5fcontract_5faddr_11',['new_contract_addr',['../group___final_chain.html#a2a3ec3216af93a45e94965c03a967bf0',1,'taraxa::state_api::ExecutionResult']]],
-  ['new_5fcontract_5faddress_12',['new_contract_address',['../group___final_chain.html#a40c5738750b7aac0abd5ef1e4bbfd792',1,'taraxa::final_chain::TransactionReceipt']]],
+  ['new_5fcontract_5faddress_12',['new_contract_address',['../structtaraxa_1_1_transaction_receipt.html#a0854b146c891ace8d77a04f29ac8403d',1,'taraxa::TransactionReceipt']]],
   ['new_5ftransactions_5f_13',['new_transactions_',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a32522f09586ef4d37903905423777f11',1,'taraxa::net::rpc::eth::Watches']]],
   ['next_5fstep_5ftime_5fms_5f_14',['next_step_time_ms_',['../group___p_b_f_t.html#a60b3092152bc8fc64ab68638ef6f39aa',1,'taraxa::PbftManager']]],
   ['next_5fsubscription_5fid_5f_15',['next_subscription_id_',['../classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html#affc7445fe0137c5cc34dcefe752ce88f',1,'taraxa::util::event::EventSubscriber::State']]],

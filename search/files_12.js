@@ -23,7 +23,7 @@ var searchData=
   ['time_5fperiod_5fpackets_5fstats_2ehpp_20',['time_period_packets_stats.hpp',['../time__period__packets__stats_8hpp.html',1,'']]],
   ['tools_2ecpp_21',['tools.cpp',['../tools_8cpp.html',1,'']]],
   ['tools_2ehpp_22',['tools.hpp',['../tools_8hpp.html',1,'']]],
-  ['transaction_2ecpp_23',['transaction.cpp',['../types_2transaction_2src_2transaction_8cpp.html',1,'(Global Namespace)'],['../core__libs_2network_2graphql_2src_2transaction_8cpp.html',1,'(Global Namespace)']]],
+  ['transaction_2ecpp_23',['transaction.cpp',['../core__libs_2network_2graphql_2src_2transaction_8cpp.html',1,'(Global Namespace)'],['../types_2transaction_2src_2transaction_8cpp.html',1,'(Global Namespace)']]],
   ['transaction_2ehpp_24',['transaction.hpp',['../types_2transaction_2include_2transaction_2transaction_8hpp.html',1,'(Global Namespace)'],['../core__libs_2network_2graphql_2include_2graphql_2transaction_8hpp.html',1,'(Global Namespace)']]],
   ['transaction_5fmanager_2ecpp_25',['transaction_manager.cpp',['../transaction__manager_8cpp.html',1,'']]],
   ['transaction_5fmanager_2ehpp_26',['transaction_manager.hpp',['../transaction__manager_8hpp.html',1,'']]],
@@ -33,7 +33,9 @@ var searchData=
   ['transaction_5fqueue_2ecpp_30',['transaction_queue.cpp',['../transaction__queue_8cpp.html',1,'']]],
   ['transaction_5fqueue_2ehpp_31',['transaction_queue.hpp',['../transaction__queue_8hpp.html',1,'']]],
   ['transaction_5fqueue_5fmetrics_2ehpp_32',['transaction_queue_metrics.hpp',['../transaction__queue__metrics_8hpp.html',1,'']]],
-  ['trie_5fcommon_2ecpp_33',['trie_common.cpp',['../trie__common_8cpp.html',1,'']]],
-  ['trie_5fcommon_2ehpp_34',['trie_common.hpp',['../trie__common_8hpp.html',1,'']]],
-  ['types_2ehpp_35',['types.hpp',['../types_8hpp.html',1,'']]]
+  ['transaction_5freceipts_5fby_5fperiod_2ecpp_33',['transaction_receipts_by_period.cpp',['../transaction__receipts__by__period_8cpp.html',1,'']]],
+  ['transaction_5freceipts_5fby_5fperiod_2ehpp_34',['transaction_receipts_by_period.hpp',['../transaction__receipts__by__period_8hpp.html',1,'']]],
+  ['trie_5fcommon_2ecpp_35',['trie_common.cpp',['../trie__common_8cpp.html',1,'']]],
+  ['trie_5fcommon_2ehpp_36',['trie_common.hpp',['../trie__common_8hpp.html',1,'']]],
+  ['types_2ehpp_37',['types.hpp',['../types_8hpp.html',1,'']]]
 ];

@@ -6,7 +6,7 @@ var searchData=
   ['timepoint_3',['TimePoint',['../classdev_1_1p2p_1_1_node_table.html#addda5e37633fabc8e2a4038b9ebfa28a',1,'dev::p2p::NodeTable']]],
   ['topics_4',['Topics',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a4b4f0d090a7ad2094e9c003c44b84166',1,'taraxa::net::rpc::eth::LogFilter']]],
   ['transactionhashes_5',['TransactionHashes',['../namespacetaraxa.html#a7d06996d287fdcc8938bb4662842c2ff',1,'taraxa']]],
-  ['transactionreceipts_6',['TransactionReceipts',['../group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb',1,'taraxa::final_chain']]],
+  ['transactionreceipts_6',['TransactionReceipts',['../namespacetaraxa.html#a470449328f268875a8eefcb7238693c2',1,'taraxa']]],
   ['transactions_7',['Transactions',['../namespacetaraxa.html#a316d23bc6a64185feb687281f3922f7c',1,'taraxa']]],
   ['trx_5fhash_5ft_8',['trx_hash_t',['../namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314',1,'taraxa']]],
   ['trx_5fnonce_5ft_9',['trx_nonce_t',['../namespacetaraxa.html#a73873ff077f3a9470e522a373eba9200',1,'taraxa']]]

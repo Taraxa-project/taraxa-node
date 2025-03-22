@@ -1,13 +1,13 @@
 <map id="taraxa::net::rpc::eth::Watches" name="taraxa::net::rpc::eth::Watches">
-<area shape="rect" id="Node000001" title=" " alt="" coords="727,99,877,139"/>
-<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html" title=" " alt="" coords="281,5,508,60"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="522,57,727,101,726,106,521,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="765,99,916,139"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html" title=" " alt="" coords="301,5,527,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="542,56,766,102,765,107,541,61"/>
 <area shape="rect" id="Node000003" href="$namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config" title=" " alt="" coords="5,99,156,139"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="158,93,235,70,282,57,284,63,237,75,160,98"/>
-<area shape="rect" id="Node000004" href="$classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html" title=" " alt="" coords="297,85,492,154"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="170,117,297,117,297,122,170,122"/>
-<area shape="rect" id="Node000005" href="$classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html" title=" " alt="" coords="236,178,553,306"/>
-<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="147,142,237,178,235,182,145,147"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="506,117,727,117,727,122,506,122"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="566,188,734,137,735,142,567,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="157,93,235,70,300,54,301,59,237,75,158,98"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html" title=" " alt="" coords="317,85,511,154"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="170,117,316,117,316,122,170,122"/>
+<area shape="rect" id="Node000005" href="$classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html" title=" " alt="" coords="236,179,592,292"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="153,141,252,176,250,181,151,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="525,117,765,117,765,122,525,122"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="604,181,765,137,767,142,606,186"/>
 </map>

@@ -11,6 +11,7 @@ var classtaraxa_1_1net_1_1_eth_client =
     [ "eth_getBalance", "classtaraxa_1_1net_1_1_eth_client.html#ab01190dd8770c7f6a3cc7cc6b1d7d254", null ],
     [ "eth_getBlockByHash", "classtaraxa_1_1net_1_1_eth_client.html#ad3792cc0450ff3305a223b6d63a14cd9", null ],
     [ "eth_getBlockByNumber", "classtaraxa_1_1net_1_1_eth_client.html#a5d200145320b876672a93f906ed77210", null ],
+    [ "eth_getBlockReceipts", "classtaraxa_1_1net_1_1_eth_client.html#af3012c88d217199c615cb50301e9239f", null ],
     [ "eth_getBlockTransactionCountByHash", "classtaraxa_1_1net_1_1_eth_client.html#ab19381b39e797a02da9be95c9701b673", null ],
     [ "eth_getBlockTransactionCountByNumber", "classtaraxa_1_1net_1_1_eth_client.html#a27d996a91b99f6c3d0df138a2bc02028", null ],
     [ "eth_getCode", "classtaraxa_1_1net_1_1_eth_client.html#a2fa2b2f22862241b7cdaa7143e26f747", null ],

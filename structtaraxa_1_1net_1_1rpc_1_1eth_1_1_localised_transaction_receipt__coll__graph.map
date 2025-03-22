@@ -1,16 +1,16 @@
 <map id="taraxa::net::rpc::eth::LocalisedTransactionReceipt" name="taraxa::net::rpc::eth::LocalisedTransactionReceipt">
-<area shape="rect" id="Node000001" title=" " alt="" coords="897,69,1112,109"/>
-<area shape="rect" id="Node000002" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt" title=" " alt="" coords="601,5,755,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="769,40,902,67,901,72,768,45"/>
-<area shape="rect" id="Node000003" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html" title=" " alt="" coords="568,69,788,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="802,87,897,87,897,92,802,92"/>
-<area shape="rect" id="Node000004" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html" title=" " alt="" coords="260,33,519,73"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="533,69,568,73,568,78,532,74"/>
-<area shape="rect" id="Node000005" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location" title=" " alt="" coords="9,13,168,53"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="182,37,260,42,259,47,182,42"/>
-<area shape="rect" id="Node000006" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,89,172,114"/>
-<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="186,100,342,101,519,97,568,95,568,100,519,103,342,106,186,105"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="182,84,263,71,264,76,182,89"/>
-<area shape="rect" id="Node000007" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="598,134,758,159"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="764,129,897,105,898,111,765,134"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="932,55,1147,95"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1_transaction_receipt.html" title=" " alt="" coords="615,5,810,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="800,30,932,54,931,59,799,36"/>
+<area shape="rect" id="Node000003" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html" title=" " alt="" coords="603,55,823,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="837,73,932,73,932,78,837,78"/>
+<area shape="rect" id="Node000004" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html" title=" " alt="" coords="295,19,553,59"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="567,55,603,59,602,64,567,60"/>
+<area shape="rect" id="Node000005" href="$structtaraxa_1_1_transaction_location.html" title=" " alt="" coords="5,7,207,32"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="220,24,294,29,294,34,220,29"/>
+<area shape="rect" id="Node000006" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="23,71,189,96"/>
+<area shape="poly" id="edge6_Node000003_Node000006" title=" " alt="" coords="203,83,367,86,553,83,602,81,603,86,553,89,367,91,203,89"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="202,67,294,55,295,60,203,73"/>
+<area shape="rect" id="Node000007" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="633,120,793,145"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="799,115,931,91,932,97,800,120"/>
 </map>
