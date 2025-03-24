@@ -13,6 +13,7 @@ TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_p
                                        std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr)
     : kConf(conf),
       transactions_pool_(final_chain, kConf.transactions_pool_size),
+      estimations_cache_(kConf.transactions_pool_size / 10, kConf.transactions_pool_size / 100),
       kDagBlockGasLimit(kConf.genesis.dag.gas_limit),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
@@ -24,10 +25,15 @@ TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_p
 }
 
 uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
-                                                    std::optional<PbftPeriod> proposal_period) const {
+                                                    std::optional<PbftPeriod> proposal_period) {
   if (trx->getGas() <= kEstimateGasLimit) {
     return trx->getGas();
   }
+
+  if (const auto [cached_estimation, found] = estimations_cache_.get(trx->getHash()); found) {
+    return cached_estimation;
+  }
+
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
           trx->getSender(),
@@ -43,6 +49,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
     return 0;
   }
+  estimations_cache_.insert(trx->getHash(), result.gas_used);
   return result.gas_used;
 }
 
@@ -385,7 +392,7 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
   // Delete transactions older than recently_finalized_transactions_periods
   if (period_data.pbft_blk->getPeriod() > recently_finalized_transactions_periods) {
     for (auto hash : recently_finalized_transactions_per_period_[period_data.pbft_blk->getPeriod() -
-                                                                  recently_finalized_transactions_periods]) {
+                                                                 recently_finalized_transactions_periods]) {
       recently_finalized_transactions_.erase(hash);
     }
     recently_finalized_transactions_per_period_.erase(period_data.pbft_blk->getPeriod() -
