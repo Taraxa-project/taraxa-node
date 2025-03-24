@@ -248,7 +248,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
   std::unordered_map<PbftPeriod, std::vector<trx_hash_t>> recently_finalized_transactions_per_period_;
-  ExpirationCacheMap<size_t, uint64_t> estimations_cache_;
+  ExpirationCacheMap<trx_hash_t, uint64_t> estimations_cache_;
   uint64_t trx_count_ = 0;
 
   const uint64_t kDagBlockGasLimit;
