@@ -42,6 +42,8 @@ static constexpr const char* NODE_SECRET = "node-secret";
 static constexpr const char* VRF_SECRET = "vrf-secret";
 static constexpr const char* OVERWRITE_CONFIG = "overwrite-config";
 static constexpr const char* MIGRATE_ONLY = "migrate-only";
+static constexpr const char* MIGRATE_RECEIPTS_BY_PERIOD = "migrate-receipts-by-period";
+
 class Config {
  public:
   Config();

@@ -266,6 +266,13 @@
     "params": [],
     "order": [],
     "returns": {}
+  },
+  {
+    "name": "eth_getBlockReceipts",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
   }
 ]
-

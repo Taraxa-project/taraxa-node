@@ -1,10 +1,16 @@
 #include "final_chain/final_chain.hpp"
 
+#include <libdevcore/RLP.h>
+
+#include <utility>
+
 #include "common/encoding_solidity.hpp"
+#include "common/types.hpp"
 #include "common/util.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "final_chain/trie_common.hpp"
 #include "pbft/pbft_block.hpp"
+#include "transaction/receipt.hpp"
 #include "transaction/system_transaction.hpp"
 
 namespace taraxa::final_chain {
@@ -38,6 +44,7 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
       dpos_is_eligible_cache_(
           config.final_chain_cache_in_blocks,
           [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
+      block_receipts_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return getBlockReceipts(blk); }),
       kConfig(config) {
   LOG_OBJECTS_CREATE("EXECUTOR");
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
@@ -236,7 +243,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   //// Commit system transactions
   if (!system_transactions.empty()) {
     db_->addPeriodSystemTransactions(batch, system_transactions, new_blk.pbft_blk->getPeriod());
-    auto position = new_blk.transactions.size() + 1;
+    auto position = new_blk.transactions.size();
     for (const auto& trx : system_transactions) {
       db_->addSystemTransactionToBatch(batch, trx);
       db_->addTransactionLocationToBatch(batch, trx->getHash(), new_blk.pbft_blk->getPeriod(), position,
@@ -327,24 +334,29 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, const PbftBlo
 std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_ptr<BlockHeader> header,
                                                      const SharedTransactions& transactions,
                                                      const TransactionReceipts& receipts) {
-  dev::BytesMap trxs_trie, receipts_trie;
-  dev::RLPStream rlp_strm;
-  size_t trx_idx = 0;
-  for (; trx_idx < transactions.size(); ++trx_idx) {
-    const auto& trx = transactions[trx_idx];
-    auto i_rlp = util::rlp_enc(rlp_strm, trx_idx);
-    trxs_trie[i_rlp] = trx->rlp();
+  {
+    dev::BytesMap trxs_trie;
+    dev::BytesMap receipts_trie;
+    dev::RLPStream receipts_stream;
+    receipts_stream.appendList(receipts.size());
+    for (size_t trx_idx = 0; trx_idx < transactions.size(); ++trx_idx) {
+      const auto& trx = transactions[trx_idx];
+      auto i_rlp = util::rlp_enc(trx_idx);
+      trxs_trie[i_rlp] = trx->rlp();
 
-    const auto& receipt = receipts[trx_idx];
-    receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
-    db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp_strm.out());
+      const auto& receipt = receipts[trx_idx];
+      header->log_bloom |= receipt.bloom();
 
-    header->log_bloom |= receipt.bloom();
+      auto rlp = util::rlp_enc(receipt);
+      receipts_stream.appendRaw(rlp);
+      receipts_trie[i_rlp] = rlp;
+    }
+    db_->insert(batch, DbStorage::Columns::final_chain_receipt_by_period, header->number, receipts_stream.invalidate());
+
+    header->receipts_root = hash256(receipts_trie);
+    header->transactions_root = hash256(trxs_trie);
+    header->hash = dev::sha3(header->ethereumRlp());
   }
-
-  header->transactions_root = hash256(trxs_trie);
-  header->receipts_root = hash256(receipts_trie);
-  header->hash = dev::sha3(header->ethereumRlp());
 
   auto data = header->serializeForDB();
   db_->insert(batch, DbStorage::Columns::final_chain_blk_by_number, header->number, data);
@@ -355,8 +367,7 @@ std::shared_ptr<BlockHeader> FinalChain::appendBlock(Batch& batch, std::shared_p
     auto chunk_id = blockBloomsChunkId(level, index / c_bloomIndexSize);
     auto chunk_to_alter = blockBlooms(chunk_id);
     chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
-    db_->insert(batch, DbStorage::Columns::final_chain_log_blooms_index, chunk_id,
-                util::rlp_enc(rlp_strm, chunk_to_alter));
+    db_->insert(batch, DbStorage::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(chunk_to_alter));
   }
   db_->insert(batch, DbStorage::Columns::final_chain_blk_hash_by_number, header->number, header->hash);
   db_->insert(batch, DbStorage::Columns::final_chain_blk_number_by_hash, header->hash, header->number);
@@ -386,14 +397,33 @@ std::optional<TransactionLocation> FinalChain::transactionLocation(const h256& t
   return db_->getTransactionLocation(trx_hash);
 }
 
-std::optional<TransactionReceipt> FinalChain::transactionReceipt(const h256& trx_h) const {
-  auto raw = db_->lookup(trx_h, DbStorage::Columns::final_chain_receipt_by_trx_hash);
-  if (raw.empty()) {
-    return {};
+std::optional<TransactionReceipt> FinalChain::transactionReceipt(EthBlockNumber blk_n, uint64_t position,
+                                                                 std::optional<trx_hash_t> trx_hash) const {
+  auto receipts = blockReceipts(blk_n);
+  if (!receipts) {
+    if (!trx_hash.has_value()) {
+      auto transactions = db_->getPeriodTransactions(blk_n);
+      auto trx = transactions->at(position);
+      trx_hash = trx->getHash();
+    }
+    auto receipt_raw = db_->lookup(trx_hash.value(), DbStorage::Columns::final_chain_receipt_by_trx_hash);
+    if (receipt_raw.empty()) {
+      return {};
+    }
+    return util::rlp_dec<TransactionReceipt>(dev::RLP(receipt_raw));
   }
-  TransactionReceipt ret;
-  ret.rlp(dev::RLP(raw));
-  return ret;
+  return receipts->at(position);
+}
+
+SharedTransactionReceipts FinalChain::blockReceipts(std::optional<EthBlockNumber> n) const {
+  if (!n) {
+    return block_receipts_cache_.last();
+  }
+  return block_receipts_cache_.get(*n);
+}
+
+SharedTransactionReceipts FinalChain::getBlockReceipts(std::optional<EthBlockNumber> n) const {
+  return db_->getBlockReceipts(lastIfAbsent(n));
 }
 
 uint64_t FinalChain::transactionCount(std::optional<EthBlockNumber> n) const {
@@ -649,7 +679,10 @@ std::vector<EthBlockNumber> FinalChain::withBlockBloom(const LogBloom& b, EthBlo
       if (level > 0) {
         dev::operator+=(ret, withBlockBloom(b, from, to, level - 1, o + index * c_bloomIndexSize));
       } else {
-        ret.push_back(o + index * c_bloomIndexSize);
+        EthBlockNumber blockNumber = o + index * c_bloomIndexSize;
+        if (blockNumber >= from && blockNumber <= to) {
+          ret.push_back(blockNumber);
+        }
       }
     }
   }

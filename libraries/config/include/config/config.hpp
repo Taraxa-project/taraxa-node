@@ -16,6 +16,7 @@ struct DBConfig {
   bool prune_state_db = false;
   bool migrate_only = false;
   PbftPeriod rebuild_db_period = 0;
+  bool migrate_receipts_by_period = false;
 };
 
 void dec_json(Json::Value const &json, DBConfig &db_config);

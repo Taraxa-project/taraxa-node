@@ -1,5 +1,7 @@
 #include "storage/storage.hpp"
 
+#include <libdevcore/RLP.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <cstddef>
@@ -7,6 +9,7 @@
 #include <memory>
 #include <regex>
 
+#include "common/thread_pool.hpp"
 #include "config/version.hpp"
 #include "dag/dag_block_bundle_rlp.hpp"
 #include "dag/sortition_params_manager.hpp"
@@ -67,6 +70,7 @@ DbStorage::DbStorage(const fs::path& path, uint32_t db_snapshot_each_n_pbft_bloc
   // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
   // aleth default 256 (state_db is using another 128)
   options.max_open_files = (max_open_files) ? max_open_files : 256;
+  options.max_total_wal_size = 1024 * 1024 * 1024;
 
   std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
   descriptors.reserve(Columns::all.size());
@@ -614,8 +618,10 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
 
   db_->DeleteRange(async_write_, handle(Columns::period_data), start_slice, end_slice);
   db_->DeleteRange(async_write_, handle(Columns::pillar_block), start_slice, end_slice);
+  db_->DeleteRange(async_write_, handle(Columns::final_chain_receipt_by_period), start_slice, end_slice);
   db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
   db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
+  db_->CompactRange({}, handle(Columns::final_chain_receipt_by_period), &start_slice, &end_slice);
 
   std::unordered_set<trx_hash_t> trxs;
   std::unordered_set<blk_hash_t> dag_blocks;
@@ -771,18 +777,10 @@ void DbStorage::addTransactionLocationToBatch(Batch& write_batch, trx_hash_t con
   insert(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()), toSlice(s.invalidate()));
 }
 
-std::optional<final_chain::TransactionLocation> DbStorage::getTransactionLocation(trx_hash_t const& hash) const {
+std::optional<TransactionLocation> DbStorage::getTransactionLocation(trx_hash_t const& hash) const {
   auto data = lookup(toSlice(hash.asBytes()), Columns::trx_period);
   if (!data.empty()) {
-    final_chain::TransactionLocation res;
-    dev::RLP const rlp(data);
-    auto it = rlp.begin();
-    res.period = (*it++).toInt<PbftPeriod>();
-    res.position = (*it++).toInt<uint32_t>();
-    if (rlp.itemCount() == 3) {
-      res.is_system = (*it++).toInt<bool>();
-    }
-    return res;
+    return TransactionLocation::fromRlp(dev::RLP(std::move(data)));
   }
   return std::nullopt;
 }
@@ -845,10 +843,10 @@ blk_hash_t DbStorage::getPeriodBlockHash(PbftPeriod period) const {
   return {};
 }
 
-std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
+std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) const {
   auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
   if (data.size() > 0) {
-    return std::make_shared<Transaction>(data);
+    return std::make_shared<Transaction>(std::move(data));
   }
   auto location = getTransactionLocation(hash);
   if (location && !location->is_system) {
@@ -956,21 +954,45 @@ std::vector<std::shared_ptr<PbftVote>> DbStorage::getPeriodCertVotes(PbftPeriod 
   return decodePbftVotesBundleRlp(votes_rlp);
 }
 
+SharedTransactions DbStorage::transactionsFromPeriodDataRlp(PbftPeriod period, const dev::RLP& period_data_rlp) const {
+  SharedTransactions ret;
+  ret.reserve(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+  for (auto&& transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
+    ret.emplace_back(std::make_shared<Transaction>(std::move(transaction_data)));
+  }
+  auto period_system_transactions = getPeriodSystemTransactions(period);
+  ret.insert(ret.end(), period_system_transactions.begin(), period_system_transactions.end());
+  return ret;
+}
+
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {
   const auto period_data = getPeriodDataRaw(period);
   if (!period_data.size()) {
     return std::nullopt;
   }
 
-  auto period_data_rlp = dev::RLP(period_data);
+  return transactionsFromPeriodDataRlp(period, dev::RLP(period_data));
+}
 
-  SharedTransactions ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
-  for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
-    ret.emplace_back(std::make_shared<Transaction>(transaction_data));
+std::optional<TransactionReceipt> DbStorage::getTransactionReceipt(EthBlockNumber blk_n, uint64_t position) const {
+  auto raw = lookup(toSlice(blk_n), DbStorage::Columns::final_chain_receipt_by_period);
+  if (raw.empty()) {
+    return {};
   }
-  auto period_system_transactions = getPeriodSystemTransactions(period);
-  ret.insert(ret.end(), period_system_transactions.begin(), period_system_transactions.end());
-  return {ret};
+  auto receipts_rlp = dev::RLP(raw);
+  if (receipts_rlp.itemCount() <= position) {
+    return {};
+  }
+  return util::rlp_dec<TransactionReceipt>(receipts_rlp[position]);
+}
+
+SharedTransactionReceipts DbStorage::getBlockReceipts(PbftPeriod period) const {
+  auto raw = lookup(toSlice(period), DbStorage::Columns::final_chain_receipt_by_period);
+  if (raw.empty()) {
+    return {};
+  }
+  return std::make_shared<std::vector<TransactionReceipt>>(
+      util::rlp_dec<std::vector<TransactionReceipt>>(dev::RLP(raw)));
 }
 
 std::vector<std::shared_ptr<PillarVote>> DbStorage::getPeriodPillarVotes(PbftPeriod period) const {
