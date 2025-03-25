@@ -14,8 +14,8 @@ var searchData=
   ['get_5fpbft_5fsync_5fpacket_5fhandler_2ecpp_11',['get_pbft_sync_packet_handler.cpp',['../get__pbft__sync__packet__handler_8cpp.html',1,'']]],
   ['get_5fpbft_5fsync_5fpacket_5fhandler_2ehpp_12',['get_pbft_sync_packet_handler.hpp',['../get__pbft__sync__packet__handler_8hpp.html',1,'']]],
   ['get_5fpillar_5fvotes_5fbundle_5fpacket_2ehpp_13',['get_pillar_votes_bundle_packet.hpp',['../get__pillar__votes__bundle__packet_8hpp.html',1,'']]],
-  ['get_5fpillar_5fvotes_5fbundle_5fpacket_5fhandler_2ecpp_14',['get_pillar_votes_bundle_packet_handler.cpp',['../get__pillar__votes__bundle__packet__handler_8cpp.html',1,'']]],
-  ['get_5fpillar_5fvotes_5fbundle_5fpacket_5fhandler_2ehpp_15',['get_pillar_votes_bundle_packet_handler.hpp',['../get__pillar__votes__bundle__packet__handler_8hpp.html',1,'']]],
+  ['get_5fpillar_5fvotes_5fbundle_5fpacket_5fhandler_2ecpp_14',['get_pillar_votes_bundle_packet_handler.cpp',['../interface_2get__pillar__votes__bundle__packet__handler_8cpp.html',1,'(Global Namespace)'],['../latest_2get__pillar__votes__bundle__packet__handler_8cpp.html',1,'(Global Namespace)']]],
+  ['get_5fpillar_5fvotes_5fbundle_5fpacket_5fhandler_2ehpp_15',['get_pillar_votes_bundle_packet_handler.hpp',['../latest_2get__pillar__votes__bundle__packet__handler_8hpp.html',1,'(Global Namespace)'],['../interface_2get__pillar__votes__bundle__packet__handler_8hpp.html',1,'(Global Namespace)']]],
   ['git_5fpractices_2emd_16',['git_practices.md',['../git__practices_8md.html',1,'']]],
   ['global_5fconst_2ehpp_17',['global_const.hpp',['../global__const_8hpp.html',1,'']]],
   ['guards_2eh_18',['Guards.h',['../_guards_8h.html',1,'']]]

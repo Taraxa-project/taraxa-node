@@ -93,6 +93,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1network_1_1tarcap_1_1_p
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">taraxa::network::tarcap::PeersState Class Reference</div></div>
@@ -217,11 +218,22 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9669efd89c04940fbd482d5f2a763a49" id="r_a9669efd89c04940fbd482d5f2a763a49"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9669efd89c04940fbd482d5f2a763a49">is_peer_malicious</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">peer_id</a>)</td></tr>
 <tr class="memdesc:a9669efd89c04940fbd482d5f2a763a49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if peer is in malicious peers list.  <br /></td></tr>
 <tr class="separator:a9669efd89c04940fbd482d5f2a763a49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac23784afcf8dcf5ac073e3bcd4daf24c" id="r_ac23784afcf8dcf5ac073e3bcd4daf24c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac23784afcf8dcf5ac073e3bcd4daf24c">handleMaliciousSyncPeer</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;id)</td></tr>
+<tr class="memdesc:ac23784afcf8dcf5ac073e3bcd4daf24c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handle malicious peer.  <br /></td></tr>
+<tr class="separator:ac23784afcf8dcf5ac073e3bcd4daf24c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09cc07c79d56e93ac1b97b92dc9f889b" id="r_a09cc07c79d56e93ac1b97b92dc9f889b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a09cc07c79d56e93ac1b97b92dc9f889b">getMaxChainPeer</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">pbft_mgr</a>, std::function&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>(<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;)&gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">filter_func</a>=[](<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;) { <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">return</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">true</a>;})</td></tr>
+<tr class="separator:a09cc07c79d56e93ac1b97b92dc9f889b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a4cb1c53c949cceb37f64e472058c1493" id="r_a4cb1c53c949cceb37f64e472058c1493"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::weak_ptr&lt; <a class="el" href="structdev_1_1p2p_1_1_host.html">dev::p2p::Host</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4cb1c53c949cceb37f64e472058c1493">host_</a></td></tr>
 <tr class="separator:a4cb1c53c949cceb37f64e472058c1493"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:ac4b6f259e553b8c42f0be7bb967f1c77" id="r_ac4b6f259e553b8c42f0be7bb967f1c77"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac4b6f259e553b8c42f0be7bb967f1c77">disconnectPeer</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;id)</td></tr>
+<tr class="memdesc:ac4b6f259e553b8c42f0be7bb967f1c77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disconnect peer.  <br /></td></tr>
+<tr class="separator:ac4b6f259e553b8c42f0be7bb967f1c77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -311,6 +323,40 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ac4b6f259e553b8c42f0be7bb967f1c77" name="ac4b6f259e553b8c42f0be7bb967f1c77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4b6f259e553b8c42f0be7bb967f1c77">&#9670;&#160;</a></span>disconnectPeer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> taraxa::network::tarcap::PeersState::disconnectPeer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
+          <td class="paramname"><em>id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Disconnect peer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">id</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a0133cde253f39258728a57ccd59d7524" name="a0133cde253f39258728a57ccd59d7524"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0133cde253f39258728a57ccd59d7524">&#9670;&#160;</a></span>erasePeer()</h2>
 
@@ -360,6 +406,41 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a09cc07c79d56e93ac1b97b92dc9f889b" name="a09cc07c79d56e93ac1b97b92dc9f889b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09cc07c79d56e93ac1b97b92dc9f889b">&#9670;&#160;</a></span>getMaxChainPeer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; taraxa::network::tarcap::PeersState::getMaxChainPeer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt;&#160;</td>
+          <td class="paramname"><em>pbft_mgr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>(<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;)&gt;&#160;</td>
+          <td class="paramname"><em>filter_func</em> = <code>[](<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a>&#160;std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a>&gt;&amp;)&#160;{&#160;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">return</a>&#160;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">true</a>;&#160;}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filter_func</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> shared_ptr with max chain size </dd></dl>
 
 </div>
 </div>
@@ -444,6 +525,32 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac23784afcf8dcf5ac073e3bcd4daf24c" name="ac23784afcf8dcf5ac073e3bcd4daf24c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac23784afcf8dcf5ac073e3bcd4daf24c">&#9670;&#160;</a></span>handleMaliciousSyncPeer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> taraxa::network::tarcap::PeersState::handleMaliciousSyncPeer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
+          <td class="paramname"><em>id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Handle malicious peer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">id</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

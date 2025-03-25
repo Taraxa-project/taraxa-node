@@ -1,12 +1,12 @@
 var searchData=
 [
   ['handle_0',['handle',['../classtaraxa_1_1_db_storage.html#ac0b98de59537f7274bc9d1c57576e78b',1,'taraxa::DbStorage']]],
-  ['handle_5fcaught_5fexception_1',['handle_caught_exception',['../classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#af7de18af454115770a0bce58fde403fc',1,'taraxa::network::tarcap::PacketHandler']]],
+  ['handle_5fcaught_5fexception_1',['handle_caught_exception',['../classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a811346c7f84b17fc3ea4b808e0efe734',1,'taraxa::network::tarcap::PacketHandler']]],
   ['handleenrrequest_2',['handleENRRequest',['../classdev_1_1p2p_1_1_node_table.html#a0fcb0bd36dd0ad9938489d8b22c52bda',1,'dev::p2p::NodeTable']]],
   ['handleenrresponse_3',['handleENRResponse',['../classdev_1_1p2p_1_1_node_table.html#a4ddd57cf476103eea8dcdb5053fbffa1',1,'dev::p2p::NodeTable']]],
   ['handleexpireddagblockstransactions_4',['handleExpiredDagBlocksTransactions',['../group___d_a_g.html#a05d925eccd7403ab607e5f70793c19e0',1,'taraxa::DagManager']]],
   ['handlefindnode_5',['handleFindNode',['../classdev_1_1p2p_1_1_node_table.html#afe55ec9227a16c56cd773eadf85be5c7',1,'dev::p2p::NodeTable']]],
-  ['handlemalicioussyncpeer_6',['handlemalicioussyncpeer',['../classtaraxa_1_1_network.html#a56fa2e5f1bc7590b3c99dc8402d0e68c',1,'taraxa::Network::handleMaliciousSyncPeer()'],['../classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a3db3cd7ded8f6f0a2ae5fba487bb892d',1,'taraxa::network::tarcap::PbftSyncPacketHandler::handleMaliciousSyncPeer()']]],
+  ['handlemalicioussyncpeer_6',['handlemalicioussyncpeer',['../classtaraxa_1_1_network.html#a56fa2e5f1bc7590b3c99dc8402d0e68c',1,'taraxa::Network::handleMaliciousSyncPeer()'],['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac23784afcf8dcf5ac073e3bcd4daf24c',1,'taraxa::network::tarcap::PeersState::handleMaliciousSyncPeer()']]],
   ['handlemethodcall_7',['handlemethodcall',['../class_modular_server.html#a5578216b749247fb41b7adcd940c9fb0',1,'ModularServer::HandleMethodCall()'],['../class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html#a478e6ee940e6ad70bc30f3625d0ec723',1,'ModularServer&lt; I, Is... &gt;::HandleMethodCall()']]],
   ['handleneighbours_8',['handleNeighbours',['../classdev_1_1p2p_1_1_node_table.html#a00f1067fa696e4da99bc28967e3a0e34',1,'dev::p2p::NodeTable']]],
   ['handlenotificationcall_9',['handlenotificationcall',['../class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html#ac103c344d481c55a0ec4fa5f228029ff',1,'ModularServer&lt; I, Is... &gt;::HandleNotificationCall()'],['../class_modular_server.html#aad67bbf3d4777952cc752f6a653ada72',1,'ModularServer::HandleNotificationCall()']]],

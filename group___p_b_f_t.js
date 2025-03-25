@@ -1,5 +1,6 @@
 var group___p_b_f_t =
 [
+    [ "taraxa::pillar_chain", "namespacetaraxa_1_1pillar__chain.html", null ],
     [ "taraxa::PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", [
       [ "PbftChain", "group___p_b_f_t.html#a9437dee7bab66a6671a3baabfaa5d177", null ],
       [ "checkPbftBlockValidation", "group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517", null ],

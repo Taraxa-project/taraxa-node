@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TARAXA: taraxa::network::tarcap::PacketHandler&lt; PacketType &gt; Class Template Reference</title>
+<title>TARAXA: taraxa::network::tarcap::PacketHandler Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -95,7 +95,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1network_1_1tarcap_1_1_p
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">taraxa::network::tarcap::PacketHandler&lt; PacketType &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
+  <div class="headertitle"><div class="title">taraxa::network::tarcap::PacketHandler Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -104,15 +104,15 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1network_1_1tarcap_1_1_p
 
 <p><code>#include &lt;<a class="el" href="packet__handler_8hpp_source.html">packet_handler.hpp</a>&gt;</code></p>
 <div class="dynheader">
-Collaboration diagram for taraxa::network::tarcap::PacketHandler&lt; PacketType &gt;:</div>
+Collaboration diagram for taraxa::network::tarcap::PacketHandler:</div>
 <div class="dyncontent">
-<div class="center"><img src="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler__coll__graph.png" border="0" usemap="#ataraxa_1_1network_1_1tarcap_1_1_packet_handler_3_01_packet_type_01_4_coll__map" alt="Collaboration graph"/></div>
-<map name="ataraxa_1_1network_1_1tarcap_1_1_packet_handler_3_01_packet_type_01_4_coll__map" id="ataraxa_1_1network_1_1tarcap_1_1_packet_handler_3_01_packet_type_01_4_coll__map">
-<area shape="rect" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="2184,123,2409,163"/>
+<div class="center"><img src="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler__coll__graph.png" border="0" usemap="#ataraxa_1_1network_1_1tarcap_1_1_packet_handler_coll__map" alt="Collaboration graph"/></div>
+<map name="ataraxa_1_1network_1_1tarcap_1_1_packet_handler_coll__map" id="ataraxa_1_1network_1_1tarcap_1_1_packet_handler_coll__map">
+<area shape="rect" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="2184,123,2359,163"/>
 <area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html" title="Base Packet handler base class that consists processPacket function." alt="" coords="1919,95,2093,135"/>
-<area shape="poly" title=" " alt="" coords="2107,122,2184,129,2183,134,2107,127"/>
+<area shape="poly" title=" " alt="" coords="2107,123,2184,131,2184,136,2107,128"/>
 <area shape="rect" href="structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="1921,159,2091,185"/>
-<area shape="poly" title=" " alt="" coords="2105,159,2184,151,2184,157,2105,165"/>
+<area shape="poly" title=" " alt="" coords="2105,158,2183,150,2184,155,2105,164"/>
 <area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="1587,5,1751,45"/>
 <area shape="poly" title=" " alt="" coords="1766,29,1834,47,1867,62,1897,83,1907,99,1909,116,1911,131,1921,145,1939,157,1936,161,1917,149,1906,132,1904,116,1902,101,1893,87,1864,67,1832,52,1764,34"/>
 <area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="1216,13,1375,38"/>
@@ -185,23 +185,21 @@ Collaboration diagram for taraxa::network::tarcap::PacketHandler&lt; PacketType 
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a4947e1e5a86e31edfa2fdd86d8a68c8a" id="r_a4947e1e5a86e31edfa2fdd86d8a68c8a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a4947e1e5a86e31edfa2fdd86d8a68c8a">PacketHandler</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">conf</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">peers_state</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packets_stats</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_addr</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::string &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">log_channel_name</a>)</td></tr>
-<tr class="separator:a4947e1e5a86e31edfa2fdd86d8a68c8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaa1fa6fcc74e65aac0e85e1d81cbcc2c" id="r_aaa1fa6fcc74e65aac0e85e1d81cbcc2c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aaa1fa6fcc74e65aac0e85e1d81cbcc2c">~PacketHandler</a> ()=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">default</a></td></tr>
-<tr class="separator:aaa1fa6fcc74e65aac0e85e1d81cbcc2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac101367749119ed648e8f20f21d51de" id="r_aac101367749119ed648e8f20f21d51de"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aac101367749119ed648e8f20f21d51de">PacketHandler</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">default</a></td></tr>
-<tr class="separator:aac101367749119ed648e8f20f21d51de"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c386f92917e4a3fa0eca12078db4e32" id="r_a4c386f92917e4a3fa0eca12078db4e32"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a4c386f92917e4a3fa0eca12078db4e32">PacketHandler</a> (<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">default</a></td></tr>
-<tr class="separator:a4c386f92917e4a3fa0eca12078db4e32"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab91c1a1eab767a544eea52fd95382351" id="r_ab91c1a1eab767a544eea52fd95382351"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab91c1a1eab767a544eea52fd95382351">operator=</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">delete</a></td></tr>
-<tr class="separator:ab91c1a1eab767a544eea52fd95382351"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a998f8b89e40d62d42a419e0d6f20d8b8" id="r_a998f8b89e40d62d42a419e0d6f20d8b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a998f8b89e40d62d42a419e0d6f20d8b8">operator=</a> (<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">delete</a></td></tr>
-<tr class="separator:a998f8b89e40d62d42a419e0d6f20d8b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e5a2fe35b7ec680a1a375f520143ab2" id="r_a2e5a2fe35b7ec680a1a375f520143ab2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a2e5a2fe35b7ec680a1a375f520143ab2">processPacket</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_data</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">override</a></td></tr>
-<tr class="memdesc:a2e5a2fe35b7ec680a1a375f520143ab2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packet processing function wrapper that logs packet stats and calls process function.  <br /></td></tr>
-<tr class="separator:a2e5a2fe35b7ec680a1a375f520143ab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86a22fa685ae9930f503fca9d74824e4" id="r_a86a22fa685ae9930f503fca9d74824e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a86a22fa685ae9930f503fca9d74824e4">requestPbftNextVotesAtPeriodRound</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">peerID</a>, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">pbft_period</a>, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">pbft_round</a>)</td></tr>
-<tr class="separator:a86a22fa685ae9930f503fca9d74824e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4d38850b451ccdc21338ec4f68646f8" id="r_ae4d38850b451ccdc21338ec4f68646f8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ae4d38850b451ccdc21338ec4f68646f8">PacketHandler</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">conf</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">peers_state</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packets_stats</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_addr</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::string &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">log_channel_name</a>)</td></tr>
+<tr class="separator:ae4d38850b451ccdc21338ec4f68646f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab06ae64a92de5d4350a8429977b36b2f" id="r_ab06ae64a92de5d4350a8429977b36b2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab06ae64a92de5d4350a8429977b36b2f">~PacketHandler</a> ()=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">default</a></td></tr>
+<tr class="separator:ab06ae64a92de5d4350a8429977b36b2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bf5e1f5602478ca27cdccac219abbef" id="r_a6bf5e1f5602478ca27cdccac219abbef"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a6bf5e1f5602478ca27cdccac219abbef">PacketHandler</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">default</a></td></tr>
+<tr class="separator:a6bf5e1f5602478ca27cdccac219abbef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b2d7afcbf210dbd66c7f23ba0d08e76" id="r_a0b2d7afcbf210dbd66c7f23ba0d08e76"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0b2d7afcbf210dbd66c7f23ba0d08e76">PacketHandler</a> (<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">default</a></td></tr>
+<tr class="separator:a0b2d7afcbf210dbd66c7f23ba0d08e76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad02f3a84a69d3fcae08eb805b1e585b2" id="r_ad02f3a84a69d3fcae08eb805b1e585b2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ad02f3a84a69d3fcae08eb805b1e585b2">operator=</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">delete</a></td></tr>
+<tr class="separator:ad02f3a84a69d3fcae08eb805b1e585b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1280ab7cd4b79d90aaf58d611d1eecc" id="r_af1280ab7cd4b79d90aaf58d611d1eecc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#af1280ab7cd4b79d90aaf58d611d1eecc">operator=</a> (<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">delete</a></td></tr>
+<tr class="separator:af1280ab7cd4b79d90aaf58d611d1eecc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab58614822e7dd915db29c7e0563b0e99" id="r_ab58614822e7dd915db29c7e0563b0e99"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab58614822e7dd915db29c7e0563b0e99">processPacket</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_data</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">override</a></td></tr>
+<tr class="memdesc:ab58614822e7dd915db29c7e0563b0e99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Packet processing function wrapper that logs packet stats and calls process function.  <br /></td></tr>
+<tr class="separator:ab58614822e7dd915db29c7e0563b0e99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html">taraxa::network::tarcap::BasePacketHandler</a></td></tr>
 <tr class="memitem:a5abf0fca90342c72c93d2c71f95b4cca inherit pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler" id="r_a5abf0fca90342c72c93d2c71f95b4cca"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html#a5abf0fca90342c72c93d2c71f95b4cca">BasePacketHandler</a> ()=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">default</a></td></tr>
 <tr class="separator:a5abf0fca90342c72c93d2c71f95b4cca inherit pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -218,45 +216,39 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a36c1bb7e10ec2cb9fe8dfc08c9215735" id="r_a36c1bb7e10ec2cb9fe8dfc08c9215735"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a36c1bb7e10ec2cb9fe8dfc08c9215735">sealAndSend</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_id</a>, <a class="el" href="namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9">SubprotocolPacketType</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_type</a>, <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">rlp_bytes</a>)</td></tr>
-<tr class="separator:a36c1bb7e10ec2cb9fe8dfc08c9215735"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2f15134067ecb2dd40308c1ec8a7f18" id="r_aa2f15134067ecb2dd40308c1ec8a7f18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aa2f15134067ecb2dd40308c1ec8a7f18">disconnect</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_id</a>, <a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">reason</a>)</td></tr>
-<tr class="separator:aa2f15134067ecb2dd40308c1ec8a7f18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93b800876b4ed756e1abc6813090870c" id="r_a93b800876b4ed756e1abc6813090870c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a93b800876b4ed756e1abc6813090870c">sealAndSend</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_id</a>, <a class="el" href="namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9">SubprotocolPacketType</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_type</a>, <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">rlp_bytes</a>)</td></tr>
+<tr class="separator:a93b800876b4ed756e1abc6813090870c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60a25f09bb4858e081bdfcde7a1361a0" id="r_a60a25f09bb4858e081bdfcde7a1361a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a60a25f09bb4858e081bdfcde7a1361a0">disconnect</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_id</a>, <a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">reason</a>)</td></tr>
+<tr class="separator:a60a25f09bb4858e081bdfcde7a1361a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:a97edfbfbbbe2e0546e81107ffc9b4b61" id="r_a97edfbfbbbe2e0546e81107ffc9b4b61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a97edfbfbbbe2e0546e81107ffc9b4b61">kConf</a></td></tr>
-<tr class="separator:a97edfbfbbbe2e0546e81107ffc9b4b61"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab66926b88d7d5e83ae24e0cfa2294677" id="r_ab66926b88d7d5e83ae24e0cfa2294677"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab66926b88d7d5e83ae24e0cfa2294677">peers_state_</a> {<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">nullptr</a>}</td></tr>
-<tr class="separator:ab66926b88d7d5e83ae24e0cfa2294677"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af3525b130a5f686df73e51c3212fe6d2" id="r_af3525b130a5f686df73e51c3212fe6d2"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#af3525b130a5f686df73e51c3212fe6d2">packets_stats_</a></td></tr>
-<tr class="separator:af3525b130a5f686df73e51c3212fe6d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bc0eb91a8941bd8d03eb55c41d06b2c" id="r_a0bc0eb91a8941bd8d03eb55c41d06b2c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0bc0eb91a8941bd8d03eb55c41d06b2c">kConf</a></td></tr>
+<tr class="separator:a0bc0eb91a8941bd8d03eb55c41d06b2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9543214a6d87aeb9dbb1902fa2aa5ccf" id="r_a9543214a6d87aeb9dbb1902fa2aa5ccf"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a9543214a6d87aeb9dbb1902fa2aa5ccf">peers_state_</a> {<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">nullptr</a>}</td></tr>
+<tr class="separator:a9543214a6d87aeb9dbb1902fa2aa5ccf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a481d7860a8bc694182f20bc57067253a" id="r_a481d7860a8bc694182f20bc57067253a"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a481d7860a8bc694182f20bc57067253a">packets_stats_</a></td></tr>
+<tr class="separator:a481d7860a8bc694182f20bc57067253a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:af7de18af454115770a0bce58fde403fc" id="r_af7de18af454115770a0bce58fde403fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#af7de18af454115770a0bce58fde403fc">handle_caught_exception</a> (std::string_view <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">exception_msg</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_data</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;peer, <a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">disconnect_reason</a>=<a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276a1cf1a918a3e2bccd63557c66cc6ffd31">dev::p2p::DisconnectReason::UserReason</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">set_peer_as_malicious</a>=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">false</a>)</td></tr>
-<tr class="separator:af7de18af454115770a0bce58fde403fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83daa0670665add72aca176ee49ed72f" id="r_a83daa0670665add72aca176ee49ed72f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a83daa0670665add72aca176ee49ed72f">process</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &amp;&amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;peer)=0</td></tr>
-<tr class="memdesc:a83daa0670665add72aca176ee49ed72f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main packet processing function.  <br /></td></tr>
-<tr class="separator:a83daa0670665add72aca176ee49ed72f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a811346c7f84b17fc3ea4b808e0efe734" id="r_a811346c7f84b17fc3ea4b808e0efe734"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a811346c7f84b17fc3ea4b808e0efe734">handle_caught_exception</a> (std::string_view <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">exception_msg</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_data</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;peer, <a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">disconnect_reason</a>=<a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276a1cf1a918a3e2bccd63557c66cc6ffd31">dev::p2p::DisconnectReason::UserReason</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">set_peer_as_malicious</a>=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">false</a>)</td></tr>
+<tr class="separator:a811346c7f84b17fc3ea4b808e0efe734"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abec580a0a3f1ec080832cc0f121e64aa" id="r_abec580a0a3f1ec080832cc0f121e64aa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#abec580a0a3f1ec080832cc0f121e64aa">process</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_data</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;peer)=0</td></tr>
+<tr class="memdesc:abec580a0a3f1ec080832cc0f121e64aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main packet processing function.  <br /></td></tr>
+<tr class="separator:abec580a0a3f1ec080832cc0f121e64aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a>&gt;<br />
-class taraxa::network::tarcap::PacketHandler&lt; PacketType &gt;</div><p>Packet handler base class that consists of shared state and some commonly used functions. </p>
+<div class="textblock"><p>Packet handler base class that consists of shared state and some commonly used functions. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a4947e1e5a86e31edfa2fdd86d8a68c8a" name="a4947e1e5a86e31edfa2fdd86d8a68c8a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4947e1e5a86e31edfa2fdd86d8a68c8a">&#9670;&#160;</a></span>PacketHandler() <span class="overload">[1/3]</span></h2>
+<a id="ae4d38850b451ccdc21338ec4f68646f8" name="ae4d38850b451ccdc21338ec4f68646f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4d38850b451ccdc21338ec4f68646f8">&#9670;&#160;</a></span>PacketHandler() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::PacketHandler </td>
+          <td class="memname">taraxa::network::tarcap::PacketHandler::PacketHandler </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;&#160;</td>
           <td class="paramname"><em>conf</em>, </td>
@@ -291,28 +283,21 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="aaa1fa6fcc74e65aac0e85e1d81cbcc2c" name="aaa1fa6fcc74e65aac0e85e1d81cbcc2c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaa1fa6fcc74e65aac0e85e1d81cbcc2c">&#9670;&#160;</a></span>~PacketHandler()</h2>
+<a id="ab06ae64a92de5d4350a8429977b36b2f" name="ab06ae64a92de5d4350a8429977b36b2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab06ae64a92de5d4350a8429977b36b2f">&#9670;&#160;</a></span>~PacketHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::~<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> </td>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a> taraxa::network::tarcap::PacketHandler::~PacketHandler </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -327,21 +312,19 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="aac101367749119ed648e8f20f21d51de" name="aac101367749119ed648e8f20f21d51de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac101367749119ed648e8f20f21d51de">&#9670;&#160;</a></span>PacketHandler() <span class="overload">[2/3]</span></h2>
+<a id="a6bf5e1f5602478ca27cdccac219abbef" name="a6bf5e1f5602478ca27cdccac219abbef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6bf5e1f5602478ca27cdccac219abbef">&#9670;&#160;</a></span>PacketHandler() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::PacketHandler </td>
+          <td class="memname">taraxa::network::tarcap::PacketHandler::PacketHandler </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -355,21 +338,19 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="a4c386f92917e4a3fa0eca12078db4e32" name="a4c386f92917e4a3fa0eca12078db4e32"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c386f92917e4a3fa0eca12078db4e32">&#9670;&#160;</a></span>PacketHandler() <span class="overload">[3/3]</span></h2>
+<a id="a0b2d7afcbf210dbd66c7f23ba0d08e76" name="a0b2d7afcbf210dbd66c7f23ba0d08e76"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b2d7afcbf210dbd66c7f23ba0d08e76">&#9670;&#160;</a></span>PacketHandler() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::PacketHandler </td>
+          <td class="memname">taraxa::network::tarcap::PacketHandler::PacketHandler </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -384,19 +365,17 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa2f15134067ecb2dd40308c1ec8a7f18" name="aa2f15134067ecb2dd40308c1ec8a7f18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2f15134067ecb2dd40308c1ec8a7f18">&#9670;&#160;</a></span>disconnect()</h2>
+<a id="a60a25f09bb4858e081bdfcde7a1361a0" name="a60a25f09bb4858e081bdfcde7a1361a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60a25f09bb4858e081bdfcde7a1361a0">&#9670;&#160;</a></span>disconnect()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::disconnect </td>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> taraxa::network::tarcap::PacketHandler::disconnect </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
           <td class="paramname"><em>node_id</em>, </td>
@@ -415,26 +394,24 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="af7de18af454115770a0bce58fde403fc" name="af7de18af454115770a0bce58fde403fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7de18af454115770a0bce58fde403fc">&#9670;&#160;</a></span>handle_caught_exception()</h2>
+<a id="a811346c7f84b17fc3ea4b808e0efe734" name="a811346c7f84b17fc3ea4b808e0efe734"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a811346c7f84b17fc3ea4b808e0efe734">&#9670;&#160;</a></span>handle_caught_exception()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::handle_caught_exception </td>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> taraxa::network::tarcap::PacketHandler::handle_caught_exception </td>
           <td>(</td>
           <td class="paramtype">std::string_view&#160;</td>
           <td class="paramname"><em>exception_msg</em>, </td>
@@ -471,28 +448,26 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ab91c1a1eab767a544eea52fd95382351" name="ab91c1a1eab767a544eea52fd95382351"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab91c1a1eab767a544eea52fd95382351">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+<a id="ad02f3a84a69d3fcae08eb805b1e585b2" name="ad02f3a84a69d3fcae08eb805b1e585b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad02f3a84a69d3fcae08eb805b1e585b2">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">::operator</a>= </td>
+          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp; taraxa::network::tarcap::PacketHandler::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -506,21 +481,19 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="a998f8b89e40d62d42a419e0d6f20d8b8" name="a998f8b89e40d62d42a419e0d6f20d8b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a998f8b89e40d62d42a419e0d6f20d8b8">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+<a id="af1280ab7cd4b79d90aaf58d611d1eecc" name="af1280ab7cd4b79d90aaf58d611d1eecc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1280ab7cd4b79d90aaf58d611d1eecc">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">::operator</a>= </td>
+          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp; taraxa::network::tarcap::PacketHandler::operator= </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">PacketHandler</a> &amp;&amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -534,22 +507,20 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="a83daa0670665add72aca176ee49ed72f" name="a83daa0670665add72aca176ee49ed72f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a83daa0670665add72aca176ee49ed72f">&#9670;&#160;</a></span>process()</h2>
+<a id="abec580a0a3f1ec080832cc0f121e64aa" name="abec580a0a3f1ec080832cc0f121e64aa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abec580a0a3f1ec080832cc0f121e64aa">&#9670;&#160;</a></span>process()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::process </td>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">virtual</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> taraxa::network::tarcap::PacketHandler::process </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>packet</em>, </td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;&#160;</td>
+          <td class="paramname"><em>packet_data</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -572,23 +543,21 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 <p>Main packet processing function. </p>
 
-<p>Implemented in <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#adbf24b0d49ecf41ef6cf36339c8cd01e">taraxa::network::tarcap::GetDagSyncPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a8622f8340f0e5b884276644edc6fd24e">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html#a2549e701f6ebbd55b95ba9128b4fe7ed">taraxa::network::tarcap::GetPillarVotesBundlePacketHandler</a>, and <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a77492201d172186ac34ea1c669461774">taraxa::network::tarcap::TransactionPacketHandler</a>.</p>
+<p>Implemented in <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#abff302bfa44993476fde72c2e58af144">taraxa::network::tarcap::DagBlockPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html#aa8137dcc9fdd0f7dc46d929550da236b">taraxa::network::tarcap::DagSyncPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a1c4cca7f3c8aa9cb06b573d711985076">taraxa::network::tarcap::GetDagSyncPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html#a344241bbd68629ba499d1b73fb0ae44f">taraxa::network::tarcap::GetNextVotesBundlePacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a8f78b6691322ec7de2b8a000ee6caad6">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html#a874884a4d8f929324d6a20224861ed98">taraxa::network::tarcap::GetPillarVotesBundlePacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aebd34946803c22de53ac28291378910a">taraxa::network::tarcap::PbftSyncPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet_handler.html#a06b049b4a32bf8038be971de4d22a92c">taraxa::network::tarcap::PillarVotePacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet_handler.html#a91a8f8494f0a279685b2233d60c91b4c">taraxa::network::tarcap::PillarVotesBundlePacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a40b0f8d805194d66937ab26e332e3800">taraxa::network::tarcap::StatusPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a3e0874d6cfd20eeed43d18249262ff18">taraxa::network::tarcap::TransactionPacketHandler</a>, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a94b97652504bcd4c3da0b803fe05f00a">taraxa::network::tarcap::VotePacketHandler</a>, and <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#a10a212641e266f1ca1fea9e898e5448b">taraxa::network::tarcap::VotesBundlePacketHandler</a>.</p>
 
 </div>
 </div>
-<a id="a2e5a2fe35b7ec680a1a375f520143ab2" name="a2e5a2fe35b7ec680a1a375f520143ab2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e5a2fe35b7ec680a1a375f520143ab2">&#9670;&#160;</a></span>processPacket()</h2>
+<a id="ab58614822e7dd915db29c7e0563b0e99" name="ab58614822e7dd915db29c7e0563b0e99"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab58614822e7dd915db29c7e0563b0e99">&#9670;&#160;</a></span>processPacket()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::processPacket </td>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> taraxa::network::tarcap::PacketHandler::processPacket </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;&#160;</td>
           <td class="paramname"><em>packet_data</em></td><td>)</td>
@@ -597,7 +566,7 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -614,63 +583,17 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="a86a22fa685ae9930f503fca9d74824e4" name="a86a22fa685ae9930f503fca9d74824e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a86a22fa685ae9930f503fca9d74824e4">&#9670;&#160;</a></span>requestPbftNextVotesAtPeriodRound()</h2>
+<a id="a93b800876b4ed756e1abc6813090870c" name="a93b800876b4ed756e1abc6813090870c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93b800876b4ed756e1abc6813090870c">&#9670;&#160;</a></span>sealAndSend()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::requestPbftNextVotesAtPeriodRound </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
-          <td class="paramname"><em>peerID</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
-          <td class="paramname"><em>pbft_period</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a>&#160;</td>
-          <td class="paramname"><em>pbft_round</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a36c1bb7e10ec2cb9fe8dfc08c9215735" name="a36c1bb7e10ec2cb9fe8dfc08c9215735"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a36c1bb7e10ec2cb9fe8dfc08c9215735">&#9670;&#160;</a></span>sealAndSend()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::sealAndSend </td>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> taraxa::network::tarcap::PacketHandler::sealAndSend </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
           <td class="paramname"><em>node_id</em>, </td>
@@ -695,7 +618,7 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -703,19 +626,17 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a97edfbfbbbe2e0546e81107ffc9b4b61" name="a97edfbfbbbe2e0546e81107ffc9b4b61"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a97edfbfbbbe2e0546e81107ffc9b4b61">&#9670;&#160;</a></span>kConf</h2>
+<a id="a0bc0eb91a8941bd8d03eb55c41d06b2c" name="a0bc0eb91a8941bd8d03eb55c41d06b2c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0bc0eb91a8941bd8d03eb55c41d06b2c">&#9670;&#160;</a></span>kConf</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a>&amp; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::kConf</td>
+          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a>&amp; taraxa::network::tarcap::PacketHandler::kConf</td>
         </tr>
       </table>
   </td>
@@ -727,19 +648,17 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="af3525b130a5f686df73e51c3212fe6d2" name="af3525b130a5f686df73e51c3212fe6d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af3525b130a5f686df73e51c3212fe6d2">&#9670;&#160;</a></span>packets_stats_</h2>
+<a id="a481d7860a8bc694182f20bc57067253a" name="a481d7860a8bc694182f20bc57067253a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a481d7860a8bc694182f20bc57067253a">&#9670;&#160;</a></span>packets_stats_</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a>&gt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::packets_stats_</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a>&gt; taraxa::network::tarcap::PacketHandler::packets_stats_</td>
         </tr>
       </table>
   </td>
@@ -751,19 +670,17 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<a id="ab66926b88d7d5e83ae24e0cfa2294677" name="ab66926b88d7d5e83ae24e0cfa2294677"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab66926b88d7d5e83ae24e0cfa2294677">&#9670;&#160;</a></span>peers_state_</h2>
+<a id="a9543214a6d87aeb9dbb1902fa2aa5ccf" name="a9543214a6d87aeb9dbb1902fa2aa5ccf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9543214a6d87aeb9dbb1902fa2aa5ccf">&#9670;&#160;</a></span>peers_state_</h2>
 
 <div class="memitem">
 <div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">class</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a>&gt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketType</a> &gt;::peers_state_ {<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">nullptr</a>}</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a>&gt; taraxa::network::tarcap::PacketHandler::peers_state_ {<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">nullptr</a>}</td>
         </tr>
       </table>
   </td>
@@ -775,8 +692,9 @@ template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>libraries/core_libs/network/include/network/tarcap/packets_handlers/latest/common/<a class="el" href="packet__handler_8hpp_source.html">packet_handler.hpp</a></li>
+<li>libraries/core_libs/network/src/tarcap/packets_handlers/latest/common/<a class="el" href="packet__handler_8cpp.html">packet_handler.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

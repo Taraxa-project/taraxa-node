@@ -1,7 +1,7 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler =
 [
-    [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#af648c67b035e94def0f92fe848dc2bac", null ],
-    [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a8622f8340f0e5b884276644edc6fd24e", null ],
+    [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a75b7d7cdd5ff4f708bdb3e7dab36b44f", null ],
+    [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a8f78b6691322ec7de2b8a000ee6caad6", null ],
     [ "sendPbftBlocks", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a6992a180a8995901031f1b17362e0fe5", null ],
     [ "db_", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a66bc045d5383a67bd29581789a4a989e", null ],
     [ "kPacketType_", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#abb00a37642f6819cd0e5c7ba44e0b306", null ],
