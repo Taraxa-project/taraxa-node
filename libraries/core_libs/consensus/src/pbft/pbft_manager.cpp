@@ -700,7 +700,7 @@ bool PbftManager::stateOperations_() {
   // If node is not eligible to vote and create block, always return true so pbft state machine never enters specific
   // consensus steps (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just
   // observe 2t+1 cert votes to move to the next period or 2t+1 next votes to move to the next round
-  if (!canParticipateInConsensus(period - 1)) {
+  if (!canParticipateInConsensus(period - 1, node_addr_)) {
     // Check 2t+1 cert/next votes every kPollingIntervalMs
     std::this_thread::sleep_for(std::chrono::milliseconds(kPollingIntervalMs));
     return true;
@@ -808,7 +808,7 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     return false;
   }
 
-  proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
+  proposed_blocks_.pushProposedPbftBlock(proposed_block);
 
   return true;
 }
@@ -1159,13 +1159,12 @@ PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev
   }
 }
 
-void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
-                                       const std::shared_ptr<PbftVote> &propose_vote) {
-  if (proposed_blocks_.isInProposedBlocks(propose_vote->getPeriod(), propose_vote->getBlockHash())) {
+void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block) {
+  if (proposed_blocks_.isInProposedBlocks(proposed_block->getPeriod(), proposed_block->getBlockHash())) {
     return;
   }
 
-  proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
+  proposed_blocks_.pushProposedPbftBlock(proposed_block);
 }
 
 blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes) {
@@ -2122,9 +2121,9 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
   return true;
 }
 
-bool PbftManager::canParticipateInConsensus(PbftPeriod period) const {
+bool PbftManager::canParticipateInConsensus(PbftPeriod period, const addr_t &node_addr) const {
   try {
-    return final_chain_->dposIsEligible(period, node_addr_);
+    return final_chain_->dposIsEligible(period, node_addr);
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to decide if node is consensus node or not for period: " << period
                  << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
@@ -2133,6 +2132,10 @@ bool PbftManager::canParticipateInConsensus(PbftPeriod period) const {
   }
 
   return false;
+}
+
+std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> PbftManager::getProposedBlocks() const {
+  return proposed_blocks_.getProposedBlocks();
 }
 
 blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {

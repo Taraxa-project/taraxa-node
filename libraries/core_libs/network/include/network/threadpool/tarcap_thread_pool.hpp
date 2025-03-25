@@ -11,6 +11,10 @@
 
 namespace taraxa::network::tarcap {
 class PacketsHandler;
+}  // namespace taraxa::network::tarcap
+
+namespace taraxa {
+class PbftManager;
 }
 
 namespace taraxa::network::threadpool {
@@ -23,7 +27,8 @@ class PacketsThreadPool {
   /**
    * @param workers_num  Number of workers
    **/
-  PacketsThreadPool(size_t workers_num = 10, const addr_t& node_addr = {});
+  PacketsThreadPool(size_t workers_num = 10, const std::shared_ptr<PbftManager>& pbft_mgr = nullptr,
+                    const addr_t& node_addr = {});
   ~PacketsThreadPool();
 
   PacketsThreadPool(const PacketsThreadPool&) = delete;

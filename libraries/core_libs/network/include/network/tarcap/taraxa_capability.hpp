@@ -64,6 +64,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
    * @brief Default InitPacketsHandlers function definition with the latest version of packets handlers
    */
   static const InitPacketsHandlers kInitLatestVersionHandlers;
+  static const InitPacketsHandlers kInitV4VersionHandlers;
 
  public:
   TaraxaCapability(TarcapVersion version, const FullNodeConfig &conf, const h256 &genesis_hash,

@@ -5,13 +5,6 @@
 
 namespace taraxa {
 
-bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block,
-                                           const std::shared_ptr<PbftVote>& propose_vote) {
-  assert(propose_vote->getBlockHash() == proposed_block->getBlockHash());
-  assert(propose_vote->getPeriod() == proposed_block->getPeriod());
-  return pushProposedPbftBlock(proposed_block);
-}
-
 bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block, bool save_to_db) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
@@ -89,6 +82,18 @@ std::optional<std::string> ProposedBlocks::checkOldBlocksPresence(PbftPeriod cur
   }
 
   return msg.empty() ? std::nullopt : std::make_optional(msg);
+}
+
+std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> ProposedBlocks::getProposedBlocks() const {
+  std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> result;
+
+  for (auto period_it = proposed_blocks_.begin(); period_it != proposed_blocks_.end(); period_it++) {
+    for (auto block_it = period_it->second.begin(); block_it != period_it->second.end(); block_it++) {
+      result[period_it->first].push_back(block_it->second.first);
+    }
+  }
+
+  return result;
 }
 
 }  // namespace taraxa

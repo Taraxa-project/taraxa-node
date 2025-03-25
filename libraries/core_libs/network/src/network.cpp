@@ -35,7 +35,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
       pbft_mgr_(pbft_mgr),
       tp_(config.network.num_threads, false),
       packets_tp_(std::make_shared<network::threadpool::PacketsThreadPool>(config.network.packets_processing_threads,
-                                                                           key.address())),
+                                                                           pbft_mgr, key.address())),
       periodic_events_tp_(kPeriodicEventsThreadCount, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
@@ -67,7 +67,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
   taraxa_net_conf.chain_id = config.genesis.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
-  const std::string net_version = "TaraxaNode";  // TODO maybe give a proper name?
+  const std::string net_version = "TaraxaNode";
 
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
@@ -80,6 +80,14 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
         TARAXA_NET_VERSION, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
         pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr);
     capabilities.emplace_back(latest_tarcap);
+
+    // Register previous (v4) version of taraxa capability
+    assert(TARAXA_NET_VERSION - 1 == 4);
+    auto v4_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+        TARAXA_NET_VERSION - 1, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_,
+        db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr,
+        network::tarcap::TaraxaCapability::kInitV4VersionHandlers);
+    capabilities.emplace_back(v4_tarcap);
 
     return capabilities;
   };
