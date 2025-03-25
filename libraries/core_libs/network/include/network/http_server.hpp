@@ -6,6 +6,7 @@
 
 #include "common/types.hpp"
 #include "logger/logger.hpp"
+#include "metrics/jsonrpc_metrics.hpp"
 
 namespace taraxa::net {
 
@@ -23,7 +24,7 @@ class HttpHandler;
 class HttpServer : public std::enable_shared_from_this<HttpServer> {
  public:
   HttpServer(boost::asio::io_context& io, boost::asio::ip::tcp::endpoint ep, const addr_t& node_addr,
-             const std::shared_ptr<HttpProcessor>& request_processor);
+             const std::shared_ptr<HttpProcessor>& request_processor, std::shared_ptr<metrics::JsonRpcMetrics> metrics);
 
   virtual ~HttpServer() { HttpServer::stop(); }
 
@@ -39,6 +40,7 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
 
  protected:
   std::shared_ptr<HttpProcessor> request_processor_;
+  std::shared_ptr<metrics::JsonRpcMetrics> metrics_;
 
  private:
   std::atomic<bool> stopped_ = true;

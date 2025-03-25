@@ -15,6 +15,7 @@
 #include "final_chain/data.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pillar_chain/pillar_block.hpp"
+#include "metrics/jsonrpc_metrics.hpp"
 
 namespace taraxa::net {
 
@@ -76,6 +77,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   boost::asio::strand<boost::asio::any_io_executor> write_strand_;
   beast::flat_buffer read_buffer_;
   std::atomic<bool> closed_ = false;
+  std::string ip_;
 };
 
 //------------------------------------------------------------------------------
@@ -83,7 +85,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
 // Accepts incoming connections and launches the sessions
 class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
+  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr, std::shared_ptr<metrics::JsonRpcMetrics> metrics);
   virtual ~WsServer();
 
   WsServer(const WsServer&) = delete;
@@ -118,6 +120,8 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
 
  protected:
   const addr_t node_addr_;
+  std::shared_ptr<metrics::JsonRpcMetrics> metrics_;
+  friend WsSession;
 };
 
 }  // namespace taraxa::net
