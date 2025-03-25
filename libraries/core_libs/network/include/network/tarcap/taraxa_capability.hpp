@@ -34,7 +34,13 @@ class PillarChainManager;
 
 namespace taraxa::network::tarcap {
 
-class PacketsHandler;
+class ISyncPacketHandler;
+class IVotePacketHandler;
+class IPillarVotePacketHandler;
+class IGetPillarVotesBundlePacketHandler;
+class ITransactionPacketHandler;
+class IDagBlockPacketHandler;
+
 class PbftSyncingState;
 class TaraxaPeer;
 
@@ -88,8 +94,15 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
 
   const std::shared_ptr<PeersState> &getPeersState();
 
+  /**
+   * @brief templated getSpecificHandler method for getting specific packet handler based on packet_type
+   *
+   * @tparam PacketHandlerType
+   *
+   * @return std::shared_ptr<PacketHandlerType>
+   */
   template <typename PacketHandlerType>
-  std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
+  std::shared_ptr<PacketHandlerType> getSpecificHandler(SubprotocolPacketType packet_type) const;
 
  private:
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
@@ -127,8 +140,56 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
 };
 
 template <typename PacketHandlerType>
-std::shared_ptr<PacketHandlerType> TaraxaCapability::getSpecificHandler() const {
-  return packets_handlers_->getSpecificHandler<PacketHandlerType>();
+std::shared_ptr<PacketHandlerType> TaraxaCapability::getSpecificHandler(SubprotocolPacketType packet_type) const {
+  // Note: Allow to manually cast only to known base classes types.
+  // We support multiple taraxa capabilities, which can contain different versions of packet handlers and casting
+  // directly to final classes types breaks the functionality...
+  switch (packet_type) {
+    case SubprotocolPacketType::kPbftSyncPacket:
+    case SubprotocolPacketType::kStatusPacket:
+      if (!std::is_same<ISyncPacketHandler, PacketHandlerType>::value) {
+        assert(false);
+      }
+      break;
+
+    case SubprotocolPacketType::kTransactionPacket:
+      if (!std::is_same<ITransactionPacketHandler, PacketHandlerType>::value) {
+        assert(false);
+      }
+      break;
+
+    case SubprotocolPacketType::kVotePacket:
+    case SubprotocolPacketType::kVotesBundlePacket:
+      if (!std::is_same<IVotePacketHandler, PacketHandlerType>::value) {
+        assert(false);
+      }
+      break;
+
+    case SubprotocolPacketType::kPillarVotePacket:
+      if (!std::is_same<IPillarVotePacketHandler, PacketHandlerType>::value) {
+        assert(false);
+      }
+      break;
+
+    case SubprotocolPacketType::kGetPillarVotesBundlePacket:
+      if (!std::is_same<IGetPillarVotesBundlePacketHandler, PacketHandlerType>::value) {
+        assert(false);
+      }
+      break;
+
+    case SubprotocolPacketType::kDagBlockPacket:
+      if (!std::is_same<IDagBlockPacketHandler, PacketHandlerType>::value) {
+        assert(false);
+      }
+      break;
+
+    default:
+      assert(false);
+      return nullptr;
+  }
+
+  auto handler = packets_handlers_->getSpecificHandler(packet_type);
+  return std::dynamic_pointer_cast<PacketHandlerType>(handler);
 }
 
 }  // namespace taraxa::network::tarcap

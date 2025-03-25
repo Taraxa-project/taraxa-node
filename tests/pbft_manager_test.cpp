@@ -452,7 +452,8 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   ASSERT_TRUE(block1_from_node1);
   EXPECT_EQ(block1_from_node1->getJsonStr(), proposed_pbft_block->getJsonStr());
 
-  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(propose_vote, proposed_pbft_block);
+  nw1->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
+      ->onNewPbftVote(propose_vote, proposed_pbft_block);
 
   // Check node2 and node3 receive the PBFT block
   std::shared_ptr<PbftBlock> node2_synced_proposed_block = nullptr;
