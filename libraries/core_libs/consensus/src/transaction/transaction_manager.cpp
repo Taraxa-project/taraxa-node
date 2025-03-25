@@ -30,16 +30,16 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
     return trx->getGas();
   }
 
-  auto hash = trx->getHash();
+  trx_hash_t hash;
   if (proposal_period) {
     dev::RLPStream hash_rlp(2);
     hash_rlp << trx->getHash();
     hash_rlp << *proposal_period;
     hash = dev::sha3(hash_rlp.invalidate());
-  }
 
-  if (const auto [cached_estimation, found] = estimations_cache_.get(hash); found) {
-    return cached_estimation;
+    if (const auto [cached_estimation, found] = estimations_cache_.get(hash); found) {
+      return cached_estimation;
+    }
   }
 
   const auto &result = final_chain_->call(
@@ -57,7 +57,9 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
     return 0;
   }
-  estimations_cache_.insert(hash, result.gas_used);
+  if (proposal_period) {
+    estimations_cache_.insert(hash, result.gas_used);
+  }
   return result.gas_used;
 }
 
