@@ -6,6 +6,7 @@ var dir_5f1bcd96c9228609235a08d573380c2c =
     [ "get_next_votes_bundle_packet.hpp", "get__next__votes__bundle__packet_8hpp.html", "get__next__votes__bundle__packet_8hpp" ],
     [ "get_pbft_sync_packet.hpp", "get__pbft__sync__packet_8hpp.html", "get__pbft__sync__packet_8hpp" ],
     [ "get_pillar_votes_bundle_packet.hpp", "get__pillar__votes__bundle__packet_8hpp.html", "get__pillar__votes__bundle__packet_8hpp" ],
+    [ "pbft_blocks_bundle_packet.hpp", "pbft__blocks__bundle__packet_8hpp.html", "pbft__blocks__bundle__packet_8hpp" ],
     [ "pbft_sync_packet.hpp", "pbft__sync__packet_8hpp.html", "pbft__sync__packet_8hpp" ],
     [ "pillar_vote_packet.hpp", "pillar__vote__packet_8hpp.html", "pillar__vote__packet_8hpp" ],
     [ "pillar_votes_bundle_packet.hpp", "pillar__votes__bundle__packet_8hpp.html", "pillar__votes__bundle__packet_8hpp" ],

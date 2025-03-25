@@ -122,6 +122,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4473eb570d4506ed5ed356927f6296ea" id="r_a4473eb570d4506ed5ed356927f6296ea"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a4473eb570d4506ed5ed356927f6296ea">syncingPeer</a> () <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="memdesc:a4473eb570d4506ed5ed356927f6296ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the peer that our node is syncing with.  <br /></td></tr>
 <tr class="separator:a4473eb570d4506ed5ed356927f6296ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a458e50c39a45a5804e3c3c9cc7c6a72d" id="r_a458e50c39a45a5804e3c3c9cc7c6a72d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a458e50c39a45a5804e3c3c9cc7c6a72d">lastSyncingPeer</a> () <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:a458e50c39a45a5804e3c3c9cc7c6a72d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70dd4fb7b012f4d931f7f806c8bfff51" id="r_a70dd4fb7b012f4d931f7f806c8bfff51"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a70dd4fb7b012f4d931f7f806c8bfff51">setLastSyncPacketTime</a> ()</td></tr>
 <tr class="memdesc:a70dd4fb7b012f4d931f7f806c8bfff51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set current time as last received sync packet time.  <br /></td></tr>
 <tr class="separator:a70dd4fb7b012f4d931f7f806c8bfff51"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -143,6 +145,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a0dca1c6f796ee9b7d2f99ae91161ec45"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ca54534bf7c50cb7f7b86a81a13159c" id="r_a5ca54534bf7c50cb7f7b86a81a13159c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a5ca54534bf7c50cb7f7b86a81a13159c">peer_</a></td></tr>
 <tr class="separator:a5ca54534bf7c50cb7f7b86a81a13159c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92f3c6d01b50e6a627d6902331e5398b" id="r_a92f3c6d01b50e6a627d6902331e5398b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a92f3c6d01b50e6a627d6902331e5398b">last_syncing_peer_</a></td></tr>
+<tr class="separator:a92f3c6d01b50e6a627d6902331e5398b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a971ddb14adcdec11fe48ace370060b9f" id="r_a971ddb14adcdec11fe48ace370060b9f"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a971ddb14adcdec11fe48ace370060b9f">peer_mutex_</a></td></tr>
 <tr class="separator:a971ddb14adcdec11fe48ace370060b9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -230,6 +234,24 @@ Static Private Attributes</h2></td></tr>
 
 <p>Check if PBFT is in syncing. If not in active syncing, set PBFT syncing to false. </p>
 <dl class="section return"><dt>Returns</dt><dd>true if PBFT is in syncing </dd></dl>
+
+</div>
+</div>
+<a id="a458e50c39a45a5804e3c3c9cc7c6a72d" name="a458e50c39a45a5804e3c3c9cc7c6a72d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a458e50c39a45a5804e3c3c9cc7c6a72d">&#9670;&#160;</a></span>lastSyncingPeer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; taraxa::network::tarcap::PbftSyncingState::lastSyncingPeer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>last syncing peer, node might not be actively syncing from this peer anymore </dd></dl>
 
 </div>
 </div>
@@ -414,6 +436,28 @@ Static Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::chrono::steady_clock::time_point taraxa::network::tarcap::PbftSyncingState::last_received_sync_packet_time_ {std::chrono::steady_clock::now()}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a92f3c6d01b50e6a627d6902331e5398b" name="a92f3c6d01b50e6a627d6902331e5398b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92f3c6d01b50e6a627d6902331e5398b">&#9670;&#160;</a></span>last_syncing_peer_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a>&gt; taraxa::network::tarcap::PbftSyncingState::last_syncing_peer_</td>
         </tr>
       </table>
   </td>

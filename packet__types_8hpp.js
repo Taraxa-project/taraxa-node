@@ -17,6 +17,7 @@ var packet__types_8hpp =
       [ "kPillarVotePacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9ac5df08fa8e0827757197e8bffad20a24", null ],
       [ "kGetPillarVotesBundlePacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a212df6996d4e83067231c5a67a12b115", null ],
       [ "kPillarVotesBundlePacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9a6993ed65f83217146504ce75f26e5a5b", null ],
+      [ "kPbftBlocksBundlePacket", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9acb5e16e02320533e41116468926b3073", null ],
       [ "kPacketCount", "packet__types_8hpp.html#adfc7b21eb1d78b8ec93d34ffe9742be9aa0d3cc0857acc9a7a6ef4c34c28c6c51", null ]
     ] ],
     [ "convertPacketTypeToString", "packet__types_8hpp.html#a413de40884a1e55e67d57ceb83a25313", null ]

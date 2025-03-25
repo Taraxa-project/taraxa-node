@@ -43,13 +43,16 @@ var hierarchy =
           ] ]
         ] ],
         [ "taraxa::network::tarcap::GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html", null ],
-        [ "taraxa::network::tarcap::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", null ],
+        [ "taraxa::network::tarcap::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", [
+          [ "taraxa::network::tarcap::v4::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler.html", null ]
+        ] ],
         [ "taraxa::network::tarcap::IGetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_i_get_pillar_votes_bundle_packet_handler.html", [
           [ "taraxa::network::tarcap::GetPillarVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html", null ]
         ] ],
         [ "taraxa::network::tarcap::ITransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_i_transaction_packet_handler.html", [
           [ "taraxa::network::tarcap::TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html", null ]
-        ] ]
+        ] ],
+        [ "taraxa::network::tarcap::PbftBlocksBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet_handler.html", null ]
       ] ]
     ] ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
@@ -317,6 +320,7 @@ var hierarchy =
     [ "taraxa::network::threadpool::PacketsThreadPool", "classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html", null ],
     [ "taraxa::PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", null ],
     [ "taraxa::PbftBlockExtraData", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block_extra_data", null ],
+    [ "taraxa::network::tarcap::PbftBlocksBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet", null ],
     [ "taraxa::PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", null ],
     [ "taraxa::PbftConfig", "structtaraxa_1_1_pbft_config.html", null ],
     [ "taraxa::PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", null ],

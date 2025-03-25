@@ -122,8 +122,8 @@ Collaboration diagram for taraxa::network::threadpool::PacketsThreadPool:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a34788ef84012a6033ae9790f03cd80df" id="r_a34788ef84012a6033ae9790f03cd80df"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#a34788ef84012a6033ae9790f03cd80df">PacketsThreadPool</a> (size_t <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">workers_num</a>=10, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_addr</a>={})</td></tr>
-<tr class="separator:a34788ef84012a6033ae9790f03cd80df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3acf86b861b32584a22475969400b6b5" id="r_a3acf86b861b32584a22475969400b6b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#a3acf86b861b32584a22475969400b6b5">PacketsThreadPool</a> (size_t <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">workers_num</a>=10, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">pbft_mgr</a>=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">nullptr</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">node_addr</a>={})</td></tr>
+<tr class="separator:a3acf86b861b32584a22475969400b6b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a95073c6708dddc6e5c78ee96fd9214" id="r_a0a95073c6708dddc6e5c78ee96fd9214"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#a0a95073c6708dddc6e5c78ee96fd9214">~PacketsThreadPool</a> ()</td></tr>
 <tr class="separator:a0a95073c6708dddc6e5c78ee96fd9214"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7784d62b38c2d619cfb09ba6a13cfb3f" id="r_a7784d62b38c2d619cfb09ba6a13cfb3f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#a7784d62b38c2d619cfb09ba6a13cfb3f">PacketsThreadPool</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html">PacketsThreadPool</a> &amp;)=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">delete</a></td></tr>
@@ -175,8 +175,8 @@ Private Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html" title="PacketsThreadPool for concurrent packets processing.">PacketsThreadPool</a> for concurrent packets processing. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a34788ef84012a6033ae9790f03cd80df" name="a34788ef84012a6033ae9790f03cd80df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a34788ef84012a6033ae9790f03cd80df">&#9670;&#160;</a></span>PacketsThreadPool() <span class="overload">[1/3]</span></h2>
+<a id="a3acf86b861b32584a22475969400b6b5" name="a3acf86b861b32584a22475969400b6b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3acf86b861b32584a22475969400b6b5">&#9670;&#160;</a></span>PacketsThreadPool() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -186,6 +186,12 @@ Private Attributes</h2></td></tr>
           <td>(</td>
           <td class="paramtype">size_t&#160;</td>
           <td class="paramname"><em>workers_num</em> = <code>10</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>pbft_mgr</em> = <code><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">nullptr</a></code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

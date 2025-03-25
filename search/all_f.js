@@ -1,7 +1,7 @@
 var searchData=
 [
   ['daemon_5f_0',['daemon_',['../group___p_b_f_t.html#adcd7ff1c28e3c0b6b0a0108118b479fa',1,'taraxa::PbftManager']]],
-  ['dag_1',['dag',['../group___d_a_g.html',1,'DAG'],['../group___d_a_g.html#classtaraxa_1_1_dag',1,'taraxa::Dag'],['../group___d_a_g.html#a7def37042439fa3c713ea8861d40b199',1,'taraxa::Dag::Dag(blk_hash_t const &amp;dag_genesis_block_hash, addr_t node_addr)'],['../group___d_a_g.html#a6266d656a7eba53bac6fa8dc7e7eb5da',1,'taraxa::Dag::Dag(const Dag &amp;)=default'],['../group___d_a_g.html#a91d4f1eb81776e18f3908374d0eef614',1,'taraxa::Dag::Dag(Dag &amp;&amp;)=default'],['../structtaraxa_1_1_genesis_config.html#a6d173ee1f3f886be8dade3da5064da92',1,'taraxa::GenesisConfig::dag']]],
+  ['dag_1',['dag',['../group___d_a_g.html',1,'DAG'],['../group___d_a_g.html#classtaraxa_1_1_dag',1,'taraxa::Dag'],['../structtaraxa_1_1_genesis_config.html#a6d173ee1f3f886be8dade3da5064da92',1,'taraxa::GenesisConfig::dag'],['../group___d_a_g.html#a7def37042439fa3c713ea8861d40b199',1,'taraxa::Dag::Dag(blk_hash_t const &amp;dag_genesis_block_hash, addr_t node_addr)'],['../group___d_a_g.html#a6266d656a7eba53bac6fa8dc7e7eb5da',1,'taraxa::Dag::Dag(const Dag &amp;)=default'],['../group___d_a_g.html#a91d4f1eb81776e18f3908374d0eef614',1,'taraxa::Dag::Dag(Dag &amp;&amp;)=default']]],
   ['dag_20blocks_20rewards_2',['DAG blocks rewards',['../md_doc_2rewards__distribution.html#autotoc_md259',1,'']]],
   ['dag_20structure_3a_3',['DAG structure:',['../md_doc_2rewards__distribution.html#autotoc_md255',1,'']]],
   ['dag_2ecpp_4',['dag.cpp',['../dag_8cpp.html',1,'']]],

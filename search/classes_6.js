@@ -11,7 +11,7 @@ var searchData=
   ['getnextvotesbundlepacket_8',['GetNextVotesBundlePacket',['../namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet',1,'taraxa::network::tarcap']]],
   ['getnextvotesbundlepackethandler_9',['GetNextVotesBundlePacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html',1,'taraxa::network::tarcap']]],
   ['getpbftsyncpacket_10',['GetPbftSyncPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet',1,'taraxa::network::tarcap']]],
-  ['getpbftsyncpackethandler_11',['GetPbftSyncPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html',1,'taraxa::network::tarcap']]],
+  ['getpbftsyncpackethandler_11',['getpbftsyncpackethandler',['../classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html',1,'taraxa::network::tarcap::GetPbftSyncPacketHandler'],['../classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler.html',1,'taraxa::network::tarcap::v4::GetPbftSyncPacketHandler']]],
   ['getpillarvotesbundlepacket_12',['GetPillarVotesBundlePacket',['../namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet',1,'taraxa::network::tarcap']]],
   ['getpillarvotesbundlepackethandler_13',['GetPillarVotesBundlePacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet_handler.html',1,'taraxa::network::tarcap']]],
   ['graphqlhttpprocessor_14',['GraphQlHttpProcessor',['../classtaraxa_1_1net_1_1_graph_ql_http_processor.html',1,'taraxa::net']]],

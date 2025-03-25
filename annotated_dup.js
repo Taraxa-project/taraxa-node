@@ -198,6 +198,9 @@ var annotated_dup =
       ] ],
       [ "network", "namespacetaraxa_1_1network.html", [
         [ "tarcap", "namespacetaraxa_1_1network_1_1tarcap.html", [
+          [ "v4", "namespacetaraxa_1_1network_1_1tarcap_1_1v4.html", [
+            [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v4_1_1_get_pbft_sync_packet_handler" ]
+          ] ],
           [ "BasePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler" ],
           [ "DagBlockPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet", "namespacetaraxa_1_1network_1_1tarcap_structtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_dup" ],
           [ "DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler" ],
@@ -226,6 +229,8 @@ var annotated_dup =
           [ "PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler" ],
           [ "PacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_stats" ],
           [ "PacketStats", "classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_packet_stats" ],
+          [ "PbftBlocksBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet", "namespacetaraxa_1_1network_1_1tarcap_structtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet_dup" ],
+          [ "PbftBlocksBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet_handler" ],
           [ "PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state" ],
           [ "PbftSyncPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet", "namespacetaraxa_1_1network_1_1tarcap_structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_dup" ],
           [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ],

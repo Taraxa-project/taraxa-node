@@ -106,9 +106,6 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1_proposed_blocks.html',
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a22d91ab51e5c1ce862ca29ee70c95f2e" id="r_a22d91ab51e5c1ce862ca29ee70c95f2e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a22d91ab51e5c1ce862ca29ee70c95f2e">ProposedBlocks</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">db</a>)</td></tr>
 <tr class="separator:a22d91ab51e5c1ce862ca29ee70c95f2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77e83f1ff1a6a15744081fd939274821" id="r_a77e83f1ff1a6a15744081fd939274821"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a77e83f1ff1a6a15744081fd939274821">pushProposedPbftBlock</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">proposed_block</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507ccac21763d55850e64ff753fdcd72ef2c45">propose_vote</a>)</td></tr>
-<tr class="memdesc:a77e83f1ff1a6a15744081fd939274821"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push proposed PBFT block into the proposed blocks.  <br /></td></tr>
-<tr class="separator:a77e83f1ff1a6a15744081fd939274821"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31db937f43191476213ef5c08b5cad0f" id="r_a31db937f43191476213ef5c08b5cad0f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a31db937f43191476213ef5c08b5cad0f">pushProposedPbftBlock</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">proposed_block</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">save_to_db</a>=<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">true</a>)</td></tr>
 <tr class="memdesc:a31db937f43191476213ef5c08b5cad0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push proposed PBFT block into the proposed blocks.  <br /></td></tr>
 <tr class="separator:a31db937f43191476213ef5c08b5cad0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -127,6 +124,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a35efe83a90309e07bdf9d54c6395f27a" id="r_a35efe83a90309e07bdf9d54c6395f27a"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a35efe83a90309e07bdf9d54c6395f27a">checkOldBlocksPresence</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">current_period</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
 <tr class="memdesc:a35efe83a90309e07bdf9d54c6395f27a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if there are any old proposed blocks that were supposed to be deleted.  <br /></td></tr>
 <tr class="separator:a35efe83a90309e07bdf9d54c6395f27a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accc4ead18999c837bf59f2ca9d099224" id="r_accc4ead18999c837bf59f2ca9d099224"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#accc4ead18999c837bf59f2ca9d099224">getProposedBlocks</a> () <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="separator:accc4ead18999c837bf59f2ca9d099224"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -258,6 +257,24 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="accc4ead18999c837bf59f2ca9d099224" name="accc4ead18999c837bf59f2ca9d099224"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#accc4ead18999c837bf59f2ca9d099224">&#9670;&#160;</a></span>getProposedBlocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::map&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt; taraxa::ProposedBlocks::getProposedBlocks </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>proposed blocks ordered by period </dd></dl>
+
+</div>
+</div>
 <a id="af3b1c579aa64b0c50a1c5421fb699b5c" name="af3b1c579aa64b0c50a1c5421fb699b5c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af3b1c579aa64b0c50a1c5421fb699b5c">&#9670;&#160;</a></span>isInProposedBlocks()</h2>
 
@@ -323,7 +340,7 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <a id="a31db937f43191476213ef5c08b5cad0f" name="a31db937f43191476213ef5c08b5cad0f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a31db937f43191476213ef5c08b5cad0f">&#9670;&#160;</a></span>pushProposedPbftBlock() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a31db937f43191476213ef5c08b5cad0f">&#9670;&#160;</a></span>pushProposedPbftBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -353,44 +370,6 @@ Private Attributes</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">proposed_block</td><td></td></tr>
     <tr><td class="paramname">save_to_db</td><td>if true save to db </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if block was successfully pushed, otherwise false </dd></dl>
-
-</div>
-</div>
-<a id="a77e83f1ff1a6a15744081fd939274821" name="a77e83f1ff1a6a15744081fd939274821"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a77e83f1ff1a6a15744081fd939274821">&#9670;&#160;</a></span>pushProposedPbftBlock() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">bool</a> taraxa::ProposedBlocks::pushProposedPbftBlock </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>proposed_block</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>propose_vote</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Push proposed PBFT block into the proposed blocks. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">proposed_block</td><td>proposed PBFT block </td></tr>
-    <tr><td class="paramname">propose_vote</td><td>propose PBFT vote </td></tr>
   </table>
   </dd>
 </dl>

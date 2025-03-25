@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$group___d_a_g.html#structtaraxa_1_1_sortition_params_change" title="Changing vrf params for DAG blocks generation." alt="" coords="5,5,229,31"/>
+<area shape="rect" id="Node000000" href="$structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="5,5,180,31"/>
+<area shape="rect" id="Node000001" href="$structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="228,5,396,31"/>
+<area shape="poly" id="edge132_Node000000_Node000001" title=" " alt="" coords="194,15,228,15,228,21,194,21"/>
 </map>
