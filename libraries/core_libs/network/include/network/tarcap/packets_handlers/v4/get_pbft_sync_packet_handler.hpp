@@ -11,7 +11,7 @@ class GetPbftSyncPacketHandler : public tarcap::GetPbftSyncPacketHandler {
   using tarcap::GetPbftSyncPacketHandler::GetPbftSyncPacketHandler;
 
  private:
-  virtual void process(GetPbftSyncPacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 };
 
 }  // namespace taraxa::network::tarcap::v4

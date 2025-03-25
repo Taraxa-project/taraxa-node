@@ -11,7 +11,11 @@
 
 namespace taraxa::network::tarcap::v4 {
 
-void GetPbftSyncPacketHandler::process(GetPbftSyncPacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+void GetPbftSyncPacketHandler::process(const threadpool::PacketData& packet_data,
+                                       const std::shared_ptr<TaraxaPeer>& peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<GetPbftSyncPacket>(packet_data.rlp_);
+
   LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.

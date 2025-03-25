@@ -1,5 +1,6 @@
 #include "network/tarcap/packets_handlers/latest/pbft_blocks_bundle_packet_handler.hpp"
 
+#include "network/tarcap/packets/latest/pbft_blocks_bundle_packet.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_manager.hpp"
 
@@ -16,8 +17,11 @@ PbftBlocksBundlePacketHandler::PbftBlocksBundlePacketHandler(const FullNodeConfi
       pbft_mgr_(std::move(pbft_mgr)),
       pbft_syncing_state_(syncing_state) {}
 
-void PbftBlocksBundlePacketHandler::process(PbftBlocksBundlePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
-  LOG(log_dg_) << "PbftBlocksBundlePacket received from peer " << peer->getId().abridged();
+void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet_data,
+                                            const std::shared_ptr<TaraxaPeer> &peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<PbftBlocksBundlePacket>(packet_data.rlp_);
+
   if (packet.pbft_blocks.size() > kMaxBlocksInPacket) {
     throw InvalidRlpItemsCountException("PbftBlocksBundlePacket:pbft_blocks", packet.pbft_blocks.size(),
                                         kMaxBlocksInPacket);

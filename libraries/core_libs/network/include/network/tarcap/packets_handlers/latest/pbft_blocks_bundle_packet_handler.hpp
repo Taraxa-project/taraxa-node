@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common/packet_handler.hpp"
-#include "network/tarcap/packets/latest/pbft_blocks_bundle_packet.hpp"
 
 namespace taraxa {
 class PbftManager;
@@ -11,7 +10,7 @@ namespace taraxa::network::tarcap {
 
 class PbftSyncingState;
 
-class PbftBlocksBundlePacketHandler : public PacketHandler<PbftBlocksBundlePacket> {
+class PbftBlocksBundlePacketHandler : public PacketHandler {
  public:
   PbftBlocksBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                 std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -23,7 +22,7 @@ class PbftBlocksBundlePacketHandler : public PacketHandler<PbftBlocksBundlePacke
   static constexpr size_t kMaxBlocksInPacket = 10;
 
  private:
-  virtual void process(PbftBlocksBundlePacket&& packet, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
