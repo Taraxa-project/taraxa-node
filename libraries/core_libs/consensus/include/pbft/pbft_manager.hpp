@@ -576,6 +576,9 @@ class PbftManager {
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
+  
+  const uint32_t kSyncingThreadPoolSize;
+  std::shared_ptr<util::ThreadPool> sync_thread_pool_; // Thread pool used for transaction sender retrieval in syncing blocks
 
   const addr_t node_addr_;
   const secret_t node_sk_;

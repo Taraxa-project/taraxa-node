@@ -33,25 +33,28 @@ void ThreadPool::stop() {
   ioc_.restart();  // for potential restart
 }
 
-void ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
+std::future<void> ThreadPool::post(uint64_t do_in_ms, asio_callback action) {
+  auto task = std::make_shared<std::packaged_task<void(boost::system::error_code)>>(std::move(action));
+  std::future<void> future = task->get_future();
   ++num_pending_tasks_;
   if (!do_in_ms) {
-    boost::asio::post(ioc_, [this, action = std::move(action)] {
-      action({});
+    boost::asio::post(ioc_, [this, task] {
+      (*task)({});
       --num_pending_tasks_;
     });
-    return;
+    return future;
   }
   auto timer = std::make_shared<boost::asio::deadline_timer>(ioc_);
   timer->expires_from_now(boost::posix_time::milliseconds(do_in_ms));
-  timer->async_wait([this, action = std::move(action), timer](auto const &err_code) {
-    action(err_code);
+  timer->async_wait([this, task, timer](boost::system::error_code const &err_code) {
+    (*task)(err_code);
     --num_pending_tasks_;
   });
+  return future;
 }
 
-void ThreadPool::post(uint64_t do_in_ms, std::function<void()> action) {
-  post(do_in_ms, [action = std::move(action)](auto const &err) {
+std::future<void> ThreadPool::post(uint64_t do_in_ms, std::function<void()> action) {
+  return post(do_in_ms, [action = std::move(action)](auto const &err) {
     if (!err) {
       action();
       return;
