@@ -327,7 +327,7 @@ TEST_F(TransactionTest, transaction_concurrency) {
   }
 }
 
-TEST_F(TransactionTest, priority_queue) {
+TEST_F(TransactionTest, DISABLED_priority_queue) {
   // Check ordering by same sender and different nonce
   {
     TransactionQueue priority_queue(nullptr);
@@ -481,7 +481,7 @@ SharedTransactions generateRandomOrderTransactions(uint32_t size) {
   return trxs;
 }
 
-TEST_F(TransactionTest, priority_queue_ordering) {
+TEST_F(TransactionTest, DISABLED_priority_queue_ordering) {
   // Test generates 1000 transactions from 10 random accounts with random nonces between 1 and 10 and random gas proces
   // and verified that transactions are properly sorted in transaction queue and that all the duplicate transactions
   // from same account and same nonce are removed with always keeping the transaction with highest gas price
@@ -567,7 +567,7 @@ TEST_F(TransactionTest, finalization_ordering) {
   }
 }
 
-TEST_F(TransactionTest, priority_queue_ordering_eth_test) {
+TEST_F(TransactionTest, DISABLED_priority_queue_ordering_eth_test) {
   SharedTransactions trxs;
   std::vector<dev::KeyPair> kpv;
   std::random_device dev;

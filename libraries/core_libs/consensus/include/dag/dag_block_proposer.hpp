@@ -35,7 +35,7 @@ class DagBlockProposer {
  public:
   DagBlockProposer(const FullNodeConfig& config, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
-                   std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager);
+                   std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t propose_delay);
   ~DagBlockProposer() { stop(); }
   DagBlockProposer(const DagBlockProposer&) = delete;
   DagBlockProposer(DagBlockProposer&&) = delete;
@@ -149,6 +149,10 @@ class DagBlockProposer {
 
   const HardforksConfig kHardforks;
   const uint64_t kValidatorMaxVote;
+
+  std::random_device rd_;
+  std::mt19937 random_gen_;
+  std::uniform_int_distribution<int> random_dist_;
 
   LOG_OBJECTS_DEFINE
 };
