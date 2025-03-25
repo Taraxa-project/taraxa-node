@@ -206,7 +206,7 @@ bool Transaction::intrinsicGasCovered() const {
   try {
     uint64_t gas = IntrinsicGas(data_, !receiver_.has_value());
     return gas <= gas_;
-  } catch (const std::runtime_error&) {
+  } catch (const std::runtime_error &) {
     return false;
   }
 }
