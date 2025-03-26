@@ -51,5 +51,4 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
     return [this](auto &&task) { post(std::forward<task_t>(task)); };
   }
 };
-
 }  // namespace taraxa::util

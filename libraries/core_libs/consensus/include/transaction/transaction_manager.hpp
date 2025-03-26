@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstddef>
+
 #include "common/event.hpp"
+#include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
 #include "logger/logger.hpp"
@@ -54,6 +56,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
  public:
   TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db,
                      std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr);
+
+  /**
+   * @brief Estimates required gas value to execute transactions
+   * @param trxs transactions
+   * @param proposal_period proposal period
+   * @return estimated gas value for transactions
+   */
+  uint64_t estimateTransactions(const SharedTransactions &trxs, std::optional<PbftPeriod> proposal_period);
 
   /**
    * @brief Estimates required gas value to execute transaction
@@ -257,6 +267,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   std::shared_ptr<DbStorage> db_{nullptr};
   std::shared_ptr<final_chain::FinalChain> final_chain_{nullptr};
+
+  util::ThreadPool estimation_thread_pool_;
 
   LOG_OBJECTS_DEFINE
 };

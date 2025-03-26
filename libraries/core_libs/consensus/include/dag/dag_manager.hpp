@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/thread_pool.hpp"
 #include "dag.hpp"
 #include "dag/dag_block.hpp"
 #include "pbft/pbft_chain.hpp"
