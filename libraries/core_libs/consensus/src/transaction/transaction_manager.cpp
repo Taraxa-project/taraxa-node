@@ -101,7 +101,8 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
     return {false, "invalid gas"};
   }
 
-  if (kConf.genesis.state.hardforks.isOnCornusHardfork(this->final_chain_->lastBlockNumber())) {
+  const auto block_num = this->final_chain_->lastBlockNumber();
+  if (kConf.genesis.state.hardforks.isOnCornusHardfork(block_num)) {
     if (!trx->intrinsicGasCovered()) {
       return {false, "intrinsic gas too low"};
     }
@@ -114,9 +115,16 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   // gas_price in transaction must be greater than or equal to minimum value from config
-  if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
-    return {false, "gas_price too low"};
+  if (kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(block_num)) {
+    if (kConf.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price > trx->getGasPrice()) {
+      return {false, "gas_price too low"};
+    }
+  } else {
+    if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
+      return {false, "gas_price too low"};
+    }
   }
+
 
   return {true, ""};
 }
