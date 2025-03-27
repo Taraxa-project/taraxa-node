@@ -413,9 +413,6 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
       continue;
     }
     uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
-    if (weight == 0) {
-      continue;
-    }
 
     total_weight += weight;
     trxs_to_propose.push_back(trxs[i]);
