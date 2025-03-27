@@ -64,21 +64,26 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
     }
   }
 
-  const auto &result = final_chain_->call(
-      state_api::EVMTransaction{
-          trx->getSender(),
-          trx->getGasPrice(),
-          trx->getReceiver(),
-          trx->getNonce(),
-          trx->getValue(),
-          kDagBlockGasLimit,
-          trx->getData(),
-      },
-      proposal_period);
+  const auto isBeforeSoleiroliaHF =
+      proposal_period && !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(*proposal_period);
+
+  auto evm_trx = state_api::EVMTransaction{
+      trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
+      trx->getValue(),  trx->getGas(),      trx->getData(),
+  };
+
+  if (isBeforeSoleiroliaHF) {
+    evm_trx.gas = kDagBlockGasLimit;
+  }
+
+  const auto &result = final_chain_->call(evm_trx, proposal_period);
 
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
-    return 0;
+    if (isBeforeSoleiroliaHF) {
+      return 0;
+    }
   }
+
   if (proposal_period) {
     estimations_cache_.insert(hash, result.gas_used);
   }
@@ -97,8 +102,14 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.
-  if (kDagBlockGasLimit < trx->getGas()) {
-    return {false, "invalid gas"};
+  if (kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(this->final_chain_->lastBlockNumber())) {
+    if (kConf.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit < trx->getGas()) {
+      return {false, "invalid gas"};
+    }
+  } else {
+    if (kDagBlockGasLimit < trx->getGas()) {
+      return {false, "invalid gas"};
+    }
   }
 
   const auto block_num = this->final_chain_->lastBlockNumber();
@@ -407,11 +418,11 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   uint64_t total_weight = 0;
   for (uint64_t i = 0; i < trxs.size(); i++) {
     // trx too big to fit, skip it
-    if(total_weight + trxs[i]->getGas() > weight_limit) {
+    if (total_weight + trxs[i]->getGas() > weight_limit) {
       continue;
     }
     uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
-    if(weight == 0) {
+    if (weight == 0) {
       continue;
     }
 
