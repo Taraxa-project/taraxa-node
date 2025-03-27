@@ -26,8 +26,7 @@ TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_p
   }
 }
 
-uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs,
-                                                  std::optional<PbftPeriod> proposal_period) {
+uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs, PbftPeriod proposal_period) {
   std::atomic<uint64_t> total_gas = 0;
   std::vector<std::future<void>> futures;
   futures.reserve(trxs.size());
@@ -46,26 +45,21 @@ uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs
   return total_gas.load();
 }
 
-uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
-                                                    std::optional<PbftPeriod> proposal_period) {
+uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx, PbftPeriod proposal_period) {
   if (trx->getGas() <= kEstimateGasLimit) {
     return trx->getGas();
   }
 
-  trx_hash_t hash;
-  if (proposal_period) {
-    dev::RLPStream hash_rlp(2);
-    hash_rlp << trx->getHash();
-    hash_rlp << *proposal_period;
-    hash = dev::sha3(hash_rlp.invalidate());
+  dev::RLPStream hash_rlp(2);
+  hash_rlp << trx->getHash();
+  hash_rlp << proposal_period;
+  const auto hash = dev::sha3(hash_rlp.invalidate());
 
-    if (const auto [cached_estimation, found] = estimations_cache_.get(hash); found) {
-      return cached_estimation;
-    }
+  if (const auto [cached_estimation, found] = estimations_cache_.get(hash); found) {
+    return cached_estimation;
   }
 
-  const auto isBeforeSoleiroliaHF =
-      proposal_period && !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(*proposal_period);
+  const auto isBeforeSoleiroliaHF = !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(proposal_period);
 
   auto evm_trx = state_api::EVMTransaction{
       trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
@@ -84,9 +78,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
     }
   }
 
-  if (proposal_period) {
-    estimations_cache_.insert(hash, result.gas_used);
-  }
+  estimations_cache_.insert(hash, result.gas_used);
   return result.gas_used;
 }
 
@@ -135,7 +127,6 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
       return {false, "gas_price too low"};
     }
   }
-
 
   return {true, ""};
 }

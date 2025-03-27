@@ -1101,7 +1101,9 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
   // Create and destroy to create network. So next time will be loaded from file
-  { auto nodes = launch_nodes(node_cfgs); }
+  {
+    auto nodes = launch_nodes(node_cfgs);
+  }
   {
     auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
@@ -1620,7 +1622,7 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
     auto trx2 = std::make_shared<Transaction>(nonce++, 0, 0, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
 
-    EXPECT_EQ(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize()),
+    EXPECT_EQ(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getFinalChain()->lastBlockNumber()),
               0);
   }
   // After HF

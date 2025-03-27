@@ -63,7 +63,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param proposal_period proposal period
    * @return estimated gas value for transactions
    */
-  uint64_t estimateTransactions(const SharedTransactions &trxs, std::optional<PbftPeriod> proposal_period);
+  uint64_t estimateTransactions(const SharedTransactions &trxs, PbftPeriod proposal_period);
 
   /**
    * @brief Estimates required gas value to execute transaction
@@ -71,7 +71,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param proposal_period proposal period
    * @return estimated gas value for transaction
    */
-  uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<PbftPeriod> proposal_period);
+  uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, PbftPeriod proposal_period);
 
   /**
    * @brief Gets transactions from pool to include in the block with specified weight limit
