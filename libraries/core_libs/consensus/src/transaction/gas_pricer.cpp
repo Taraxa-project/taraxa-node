@@ -5,11 +5,12 @@
 namespace taraxa {
 
 GasPricer::GasPricer(const GenesisConfig &config, bool is_light_node, std::shared_ptr<DbStorage> db)
-    : kGenesisConfig(config),
+    : kPercentile(config.gas_price.percentile),
+      kMinimumPrice(config.state.hardforks.soleirolia_hf.trx_min_gas_price),
       kIsLightNode(is_light_node),
-      latest_price_(kGenesisConfig.state.hardforks.soleirolia_hf.trx_min_gas_price),
-      price_list_(kGenesisConfig.gas_price.blocks) {
-  assert(kGenesisConfig.gas_price.percentile <= 100);
+      latest_price_(kMinimumPrice),
+      price_list_(config.gas_price.blocks) {
+  assert(kPercentile <= 100);
   if (db) {
     init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(db_); });
   }
@@ -21,7 +22,7 @@ GasPricer::~GasPricer() {
 
 u256 GasPricer::bid() const {
   std::shared_lock lock(mutex_);
-  return std::max(latest_price_, u256(kGenesisConfig.state.hardforks.soleirolia_hf.trx_min_gas_price));
+  return std::max(latest_price_, kMinimumPrice);
 }
 
 void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
@@ -63,7 +64,7 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
   std::copy(price_list_.begin(), price_list_.end(), std::back_inserter(sorted_prices));
   std::sort(sorted_prices.begin(), sorted_prices.end());
 
-  if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kGenesisConfig.gas_price.percentile / 100]) {
+  if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile / 100]) {
     latest_price_ = std::move(new_price);
   }
 }
@@ -83,7 +84,7 @@ void GasPricer::update(const SharedTransactions& trxs) {
     std::copy(price_list_.begin(), price_list_.end(), std::back_inserter(sorted_prices));
     std::sort(sorted_prices.begin(), sorted_prices.end());
 
-    if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kGenesisConfig.gas_price.percentile / 100]) {
+    if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile / 100]) {
       latest_price_ = std::move(new_price);
     }
   }
