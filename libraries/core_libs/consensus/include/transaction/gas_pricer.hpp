@@ -39,10 +39,9 @@ class GasPricer {
   /**
    * @brief updates gas price after each executed block
    *
-   * @param block_num of the latest block
    * @param trxs from latest block
    */
-  void update(PbftPeriod block_num, const SharedTransactions &trxs);
+  void update(const SharedTransactions &trxs);
 
  private:
   /**
@@ -56,8 +55,6 @@ class GasPricer {
   const bool kIsLightNode;
 
   mutable std::shared_mutex mutex_;
-  // Latest block number, of which transactions were used to update gas pricer
-  PbftPeriod latest_block_num_;
   u256 latest_price_;
   boost::circular_buffer<u256> price_list_;
 

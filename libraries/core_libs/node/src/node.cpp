@@ -314,7 +314,7 @@ void FullNode::start() {
     final_chain_->block_finalized_.subscribe(
         [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
           if (auto gp = gas_pricer.lock()) {
-            gp->update(res->final_chain_blk->number, res->trxs);
+            gp->update(res->trxs);
           }
         },
         subscription_pool_);

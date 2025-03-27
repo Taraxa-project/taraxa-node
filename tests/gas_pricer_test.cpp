@@ -26,19 +26,19 @@ TEST_F(GasPricerTest, basic_test) {
   GasPricer gp(GenesisConfig{});
   EXPECT_EQ(gp.bid(), 1);
 
-  gp.update(1, {std::make_shared<Transaction>(0, 0, 1 /*gas_price*/, 0, bytes(), secret)});
+  gp.update({std::make_shared<Transaction>(0, 0, 1 /*gas_price*/, 0, bytes(), secret)});
   EXPECT_EQ(gp.bid(), 1);
 
-  gp.update(2, {std::make_shared<Transaction>(0, 0, 2 /*gas_price*/, 0, bytes(), secret)});
+  gp.update({std::make_shared<Transaction>(0, 0, 2 /*gas_price*/, 0, bytes(), secret)});
   EXPECT_EQ(gp.bid(), 1);
 
-  gp.update(3, {std::make_shared<Transaction>(0, 0, 3 /*gas_price*/, 0, bytes(), secret)});
+  gp.update({std::make_shared<Transaction>(0, 0, 3 /*gas_price*/, 0, bytes(), secret)});
   EXPECT_EQ(gp.bid(), 2);
 
-  gp.update(4, {std::make_shared<Transaction>(0, 0, 4 /*gas_price*/, 0, bytes(), secret)});
+  gp.update({std::make_shared<Transaction>(0, 0, 4 /*gas_price*/, 0, bytes(), secret)});
   EXPECT_EQ(gp.bid(), 2);
 
-  gp.update(5, {std::make_shared<Transaction>(0, 0, 5 /*gas_price*/, 0, bytes(), secret)});
+  gp.update({std::make_shared<Transaction>(0, 0, 5 /*gas_price*/, 0, bytes(), secret)});
   EXPECT_EQ(gp.bid(), 3);
 }
 
@@ -56,7 +56,7 @@ TEST_F(GasPricerTest, random_test) {
   prices.reserve(config.gas_price.blocks);
   for (size_t i = 0; i < config.gas_price.blocks; ++i) {
     const size_t gas_price = 1 + std::rand() % 1000;
-    gp.update(i, {std::make_shared<Transaction>(0, 0, gas_price, 0, bytes(), secret)});
+    gp.update({std::make_shared<Transaction>(0, 0, gas_price, 0, bytes(), secret)});
     prices.push_back(gas_price);
   }
 

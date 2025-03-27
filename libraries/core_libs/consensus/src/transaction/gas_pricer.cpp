@@ -7,9 +7,8 @@ namespace taraxa {
 GasPricer::GasPricer(const GenesisConfig &config, bool is_light_node, std::shared_ptr<DbStorage> db)
     : kGenesisConfig(config),
       kIsLightNode(is_light_node),
-      latest_block_num_(0),
-      latest_price_(0),
-      price_list_(config.gas_price.blocks) {
+      latest_price_(kGenesisConfig.state.hardforks.soleirolia_hf.trx_min_gas_price),
+      price_list_(kGenesisConfig.gas_price.blocks) {
   assert(kGenesisConfig.gas_price.percentile <= 100);
   if (db) {
     init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(db_); });
@@ -22,15 +21,7 @@ GasPricer::~GasPricer() {
 
 u256 GasPricer::bid() const {
   std::shared_lock lock(mutex_);
-
-  u256 minimum_price;
-  if (kGenesisConfig.state.hardforks.isOnSoleiroliaHardfork(latest_block_num_)) {
-    minimum_price = kGenesisConfig.state.hardforks.soleirolia_hf.trx_min_gas_price;
-  } else {
-    minimum_price = kGenesisConfig.gas_price.minimum_price;
-  }
-
-  return std::max(latest_price_, minimum_price);
+  return std::max(latest_price_, u256(kGenesisConfig.state.hardforks.soleirolia_hf.trx_min_gas_price));
 }
 
 void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
@@ -40,7 +31,6 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
   auto block_num = *last_blk_num;
 
   std::unique_lock lock(mutex_);
-  latest_block_num_ = block_num;
 
   while (price_list_.capacity() != price_list_.size() && block_num) {
     auto trxs = db->getPeriodTransactions(block_num);
@@ -78,16 +68,14 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
   }
 }
 
-void GasPricer::update(PbftPeriod block_num, const SharedTransactions& trxs) {
-  std::unique_lock lock(mutex_);
-  latest_block_num_ = block_num;
-
+void GasPricer::update(const SharedTransactions& trxs) {
   if (trxs.empty()) return;
 
   if (const auto min_trx =
           *std::min_element(trxs.begin(), trxs.end(),
                             [](const auto& t1, const auto& t2) { return t1->getGasPrice() < t2->getGasPrice(); });
       min_trx->getGasPrice()) {
+    std::unique_lock lock(mutex_);
     price_list_.push_back(min_trx->getGasPrice());
 
     std::vector<u256> sorted_prices;
