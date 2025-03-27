@@ -112,8 +112,10 @@ void FullNode::init() {
     LOG(log_nf_) << "Prometheus: config values aren't specified. Metrics collecting is disabled";
   }
 
-  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis.gas_price, conf_.is_light_node, db_);
   final_chain_ = std::make_shared<final_chain::FinalChain>(db_, conf_, node_addr);
+
+  // Important: init gas pricer only after final_chain is initialized
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, db_);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
@@ -312,7 +314,7 @@ void FullNode::start() {
     final_chain_->block_finalized_.subscribe(
         [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
           if (auto gp = gas_pricer.lock()) {
-            gp->update(res->trxs);
+            gp->update(res->final_chain_blk->number, res->trxs);
           }
         },
         subscription_pool_);
