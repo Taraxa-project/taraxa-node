@@ -85,7 +85,7 @@ void dec_json(const Json::Value& json, CornusHardforkConfig& obj);
 
 struct SoleiroliaHardforkConfig {
   uint64_t block_num = -1;
-  uint64_t trx_min_gas_price = 1000000000;  // [wei]
+  uint64_t trx_min_gas_price = 1;  // [wei]
   uint64_t trx_max_gas_limit = 31500000;
 
   HAS_RLP_FIELDS
