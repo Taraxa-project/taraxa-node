@@ -162,8 +162,8 @@
     },
     "soleirolia_hf": {
       "block_num": -1,
-      "trx_min_gas_price": "0x1",
-      "trx_max_gas_limit": "0x1"
+      "trx_min_gas_price": "0x3B9ACA00",
+      "trx_max_gas_limit": "0x1E0A6E0"
     }
   }
 }
