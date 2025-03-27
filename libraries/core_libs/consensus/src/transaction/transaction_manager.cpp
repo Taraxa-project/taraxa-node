@@ -77,6 +77,9 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
       proposal_period);
 
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
+    if (proposal_period) {
+      estimations_cache_.insert(hash, 0);
+    }
     return 0;
   }
   if (proposal_period) {
