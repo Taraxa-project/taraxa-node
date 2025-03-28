@@ -1,9 +1,11 @@
 #include "transaction/transaction_manager.hpp"
 
+#include <cstdint>
 #include <string>
 #include <unordered_set>
 #include <utility>
 
+#include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "logger/logger.hpp"
@@ -26,8 +28,7 @@ TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_p
   }
 }
 
-uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs,
-                                                  std::optional<PbftPeriod> proposal_period) {
+uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs, PbftPeriod proposal_period) {
   std::atomic<uint64_t> total_gas = 0;
   std::vector<std::future<void>> futures;
   futures.reserve(trxs.size());
@@ -46,46 +47,44 @@ uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs
   return total_gas.load();
 }
 
-uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
-                                                    std::optional<PbftPeriod> proposal_period) {
+uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx, PbftPeriod proposal_period) {
   if (trx->getGas() <= kEstimateGasLimit) {
     return trx->getGas();
   }
 
-  trx_hash_t hash;
-  if (proposal_period) {
-    dev::RLPStream hash_rlp(2);
-    hash_rlp << trx->getHash();
-    hash_rlp << *proposal_period;
-    hash = dev::sha3(hash_rlp.invalidate());
+  dev::RLPStream hash_rlp(2);
+  hash_rlp << trx->getHash();
+  hash_rlp << proposal_period;
+  const auto hash = dev::sha3(hash_rlp.invalidate());
 
-    if (const auto [cached_estimation, found] = estimations_cache_.get(hash); found) {
-      return cached_estimation;
-    }
+  if (const auto [cached_estimation, found] = estimations_cache_.get(hash); found) {
+    return cached_estimation;
   }
 
-  const auto &result = final_chain_->call(
-      state_api::EVMTransaction{
-          trx->getSender(),
-          trx->getGasPrice(),
-          trx->getReceiver(),
-          trx->getNonce(),
-          trx->getValue(),
-          kDagBlockGasLimit,
-          trx->getData(),
-      },
-      proposal_period);
+  const auto isBeforeSoleiroliaHF = !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(proposal_period);
+
+  auto evm_trx = state_api::EVMTransaction{
+      trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
+      trx->getValue(),  trx->getGas(),      trx->getData(),
+  };
+
+  if (isBeforeSoleiroliaHF) {
+    evm_trx.gas = kDagBlockGasLimit;
+  }
+
+  const auto &result = final_chain_->call(evm_trx, proposal_period);
+  estimations_cache_.insert(hash, result.gas_used);
 
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
-    return 0;
-  }
-  if (proposal_period) {
-    estimations_cache_.insert(hash, result.gas_used);
+    if (isBeforeSoleiroliaHF) {
+      estimations_cache_.insert(hash, 0);
+      return 0;
+    }
   }
   return result.gas_used;
 }
 
-std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
+std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx, bool from_dag) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
     return {true, ""};
@@ -96,12 +95,22 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
             "chain_id mismatch " + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.genesis.chain_id)};
   }
 
+  const int64_t block_num = final_chain_->lastBlockNumber();
+  const auto isOnSoleiroliaHF = kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(
+    std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), int64_t(0)));
+
   // Ensure the transaction doesn't exceed the current block limit gas.
-  if (kDagBlockGasLimit < trx->getGas()) {
-    return {false, "invalid gas"};
+  if (isOnSoleiroliaHF) {
+    if (kConf.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit < trx->getGas()) {
+      return {false, "invalid gas"};
+    }
+  } else {
+    if (kDagBlockGasLimit < trx->getGas()) {
+      return {false, "invalid gas"};
+    }
   }
 
-  if (kConf.genesis.state.hardforks.isOnCornusHardfork(this->final_chain_->lastBlockNumber())) {
+  if (kConf.genesis.state.hardforks.isOnCornusHardfork(block_num)) {
     if (!trx->intrinsicGasCovered()) {
       return {false, "intrinsic gas too low"};
     }
@@ -114,8 +123,14 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   // gas_price in transaction must be greater than or equal to minimum value from config
-  if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
-    return {false, "gas_price too low"};
+  if (isOnSoleiroliaHF) {
+    if (kConf.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price > trx->getGasPrice()) {
+      return {false, "gas_price too low"};
+    }
+  } else {
+    if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
+      return {false, "gas_price too low"};
+    }
   }
 
   return {true, ""};
@@ -399,11 +414,11 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   uint64_t total_weight = 0;
   for (uint64_t i = 0; i < trxs.size(); i++) {
     // trx too big to fit, skip it
-    if(total_weight + trxs[i]->getGas() > weight_limit) {
+    if (total_weight + trxs[i]->getGas() > weight_limit) {
       continue;
     }
     uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
-    if(weight == 0) {
+    if (weight == 0) {
       continue;
     }
 

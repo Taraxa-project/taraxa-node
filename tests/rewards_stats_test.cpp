@@ -29,7 +29,8 @@ class TestableRewardsStats : public rewards::Stats {
                                        0,
                                        AspenHardfork{0, 0},
                                        FicusHardforkConfig{0, 0, {}},
-                                       CornusHardforkConfig{0, 0, 0, 0}},
+                                       CornusHardforkConfig{0, 0, 0, 0},
+                                       SoleiroliaHardforkConfig{0, 0, 0}},
                        db, [](auto) { return 100; }) {}
   auto getStats() { return blocks_stats_; }
 };
@@ -257,7 +258,8 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
                                                         0,
                                                         AspenHardfork{6, 999},
                                                         FicusHardforkConfig{0, 0, {}},
-                                                        CornusHardforkConfig{0, 0, 0, 0}},
+                                                        CornusHardforkConfig{0, 0, 0, 0},
+                                                        SoleiroliaHardforkConfig{0, 0, 0}},
                                         db, [](auto) { return 100; });
   rewards::Stats post_aspen_reward_stats(100,
                                          HardforksConfig{0,
@@ -268,7 +270,8 @@ TEST_F(RewardsStatsTest, dagBlockRewards) {
                                                          0,
                                                          AspenHardfork{4, 999},
                                                          FicusHardforkConfig{0, 0, {}},
-                                                         CornusHardforkConfig{0, 0, 0, 0}},
+                                                         CornusHardforkConfig{0, 0, 0, 0},
+                                                         SoleiroliaHardforkConfig{0, 0, 0}},
                                          db, [](auto) { return 100; });
 
   // Create pbft block with 5 dag blocks
