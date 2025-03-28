@@ -1,9 +1,11 @@
 #include "transaction/transaction_manager.hpp"
 
+#include <cstdint>
 #include <string>
 #include <unordered_set>
 #include <utility>
 
+#include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "logger/logger.hpp"
@@ -82,7 +84,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   return result.gas_used;
 }
 
-std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
+std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx, bool from_dag) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
     return {true, ""};
@@ -93,8 +95,12 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
             "chain_id mismatch " + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.genesis.chain_id)};
   }
 
+  const int64_t block_num = final_chain_->lastBlockNumber();
+  const auto isOnSoleiroliaHF = kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(
+    std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), int64_t(0)));
+
   // Ensure the transaction doesn't exceed the current block limit gas.
-  if (kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(this->final_chain_->lastBlockNumber())) {
+  if (isOnSoleiroliaHF) {
     if (kConf.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit < trx->getGas()) {
       return {false, "invalid gas"};
     }
@@ -104,7 +110,6 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
     }
   }
 
-  const auto block_num = this->final_chain_->lastBlockNumber();
   if (kConf.genesis.state.hardforks.isOnCornusHardfork(block_num)) {
     if (!trx->intrinsicGasCovered()) {
       return {false, "intrinsic gas too low"};
@@ -118,7 +123,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   // gas_price in transaction must be greater than or equal to minimum value from config
-  if (kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(block_num)) {
+  if (isOnSoleiroliaHF) {
     if (kConf.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price > trx->getGasPrice()) {
       return {false, "gas_price too low"};
     }
