@@ -94,9 +94,9 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
             "chain_id mismatch " + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.genesis.chain_id)};
   }
 
-  const auto block_num = final_chain_->lastBlockNumber();
+  const int64_t block_num = final_chain_->lastBlockNumber();
   const auto isOnSoleiroliaHF = kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(
-    std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), uint64_t(0)));
+    std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), int64_t(0)));
 
   // Ensure the transaction doesn't exceed the current block limit gas.
   if (isOnSoleiroliaHF) {
