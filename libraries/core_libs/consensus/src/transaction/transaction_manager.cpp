@@ -1,5 +1,6 @@
 #include "transaction/transaction_manager.hpp"
 
+#include <cstdint>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -94,7 +95,8 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   const auto block_num = final_chain_->lastBlockNumber();
-  const auto isOnSoleiroliaHF = kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(block_num - (from_dag ? kDagExpiryLevelLimit : 0));
+  const auto isOnSoleiroliaHF = kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(
+    std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), uint64_t(0)));
 
   // Ensure the transaction doesn't exceed the current block limit gas.
   if (isOnSoleiroliaHF) {
