@@ -72,7 +72,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
 
     const auto [verified, reason] = trx_mgr_->verifyTransaction(transaction);
     if (!verified) {
-      if (reason == "invalid gas") { // remove after HF
+      if (reason == "invalid gas" || reason == "gas_price too low") {  // remove after HF
         LOG(log_dg_) << "Transaction " << transaction->getHash() << " has invalid gas.";
         trx_mgr_->insertValidatedTransaction(std::move(transaction));
         continue;
