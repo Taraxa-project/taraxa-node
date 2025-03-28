@@ -1625,12 +1625,15 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
     EXPECT_EQ(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getFinalChain()->lastBlockNumber()),
               0);
   }
+  CleanupDirs();
   // After HF
   {
     auto node_cfgs = make_node_cfgs(1, 1, 5);
     for (auto &cfg : node_cfgs) {
       cfg.genesis.state.hardforks.soleirolia_hf.block_num = 0;
       cfg.genesis.dag.gas_limit = 31500000;
+      cfg.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit = 31500000;
+      cfg.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price = 999;
     }
     auto nodes = launch_nodes(node_cfgs);
 
@@ -1639,7 +1642,7 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
     node0->getDagBlockProposer()->stop();
 
     auto nonce = 0;
-    auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, 10000000, dev::fromHex(receiver_contract_code),
+    auto trx1 = std::make_shared<Transaction>(nonce++, 0, 1000, 31000000, dev::fromHex(receiver_contract_code),
                                               node0->getSecretKey());
     EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx1).first);
 
@@ -1655,7 +1658,7 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
         node0->getFinalChain()->transactionReceipt(trx_location->period, trx_location->position, trx1->getHash());
     EXPECT_TRUE(recipe);
 
-    auto trx2 = std::make_shared<Transaction>(nonce++, 0, 0, 314369, dev::fromHex(call_data), node0->getSecretKey(),
+    auto trx2 = std::make_shared<Transaction>(nonce++, 0, 1000, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
 
     EXPECT_GE(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize()),
