@@ -75,6 +75,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
 
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
     if (isBeforeSoleiroliaHF) {
+      estimations_cache_.insert(hash, 0);
       return 0;
     }
   }
