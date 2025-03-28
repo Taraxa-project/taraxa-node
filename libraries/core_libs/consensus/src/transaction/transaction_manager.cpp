@@ -71,14 +71,13 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   }
 
   const auto &result = final_chain_->call(evm_trx, proposal_period);
+  estimations_cache_.insert(hash, result.gas_used);
 
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
     if (isBeforeSoleiroliaHF) {
       return 0;
     }
   }
-
-  estimations_cache_.insert(hash, result.gas_used);
   return result.gas_used;
 }
 
