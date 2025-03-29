@@ -36,7 +36,9 @@ uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs
       total_gas += trx->getGas();
     } else {
       futures.emplace_back(
-          estimation_thread_pool_.post([&]() { total_gas += estimateTransactionGas(trx, proposal_period); }));
+          estimation_thread_pool_.post([&]() { 
+            total_gas += estimateTransactionGas(trx, proposal_period).gas_used; 
+          }));
     }
   }
   for (auto &future : futures) {
@@ -46,10 +48,12 @@ uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs
   return total_gas.load();
 }
 
-uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
+state_api::ExecutionResult TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
                                                     std::optional<PbftPeriod> proposal_period) {
   if (trx->getGas() <= kEstimateGasLimit) {
-    return trx->getGas();
+    state_api::ExecutionResult result;
+    result.gas_used = trx->getGas();
+    return result;
   }
 
   trx_hash_t hash;
@@ -64,7 +68,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
     }
   }
 
-  const auto &result = final_chain_->call(
+  auto result = final_chain_->call(
       state_api::EVMTransaction{
           trx->getSender(),
           trx->getGasPrice(),
@@ -77,15 +81,11 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
       proposal_period);
 
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
-    if (proposal_period) {
-      estimations_cache_.insert(hash, 0);
-    }
-    return 0;
+    result.gas_used = 0;
   }
-  if (proposal_period) {
-    estimations_cache_.insert(hash, result.gas_used);
-  }
-  return result.gas_used;
+  
+  estimations_cache_.insert(hash, result);
+  return result;
 }
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
@@ -400,19 +400,33 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   std::vector<uint64_t> estimations;
   SharedTransactions trxs_to_propose;
   uint64_t total_weight = 0;
+  const uint32_t max_zero_gas_transactions_per_block = 2;
+  uint32_t zero_gas_transactions_count = 0;
   for (uint64_t i = 0; i < trxs.size(); i++) {
     // trx too big to fit, skip it
     if(total_weight + trxs[i]->getGas() > weight_limit) {
       continue;
     }
-    uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
-    if(weight == 0) {
-      continue;
+    auto estimate = estimateTransactionGas(trxs[i], proposal_period);
+    if (estimate.gas_used == 0) {
+      if(estimate.code_err == "out of gas") {
+        std::unique_lock transactions_lock(transactions_mutex_);
+        auto trx = trxs[i];
+        transactions_pool_.erase(trx);
+        transactions_pool_.insert(std::move(trx), false, final_chain_->lastBlockNumber());
+        continue;
+      }
+      else {
+        if(zero_gas_transactions_count > max_zero_gas_transactions_per_block) {
+          continue;
+        }
+        zero_gas_transactions_count++;
+      }
     }
 
-    total_weight += weight;
+    total_weight += estimate.gas_used;
     trxs_to_propose.push_back(trxs[i]);
-    estimations.push_back(weight);
+    estimations.push_back(estimate.gas_used);
     // stop if there is no space for even the smallest transaction
     if (weight_limit - total_weight <= kMinTxGas) {
       break;
