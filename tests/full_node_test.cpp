@@ -24,6 +24,7 @@
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
+#include "test_util/test_util.hpp"
 #include "transaction/transaction_manager.hpp"
 
 // TODO rename this namespace to `tests`
@@ -1558,6 +1559,111 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   // Should fail as trx pool should be full
   EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
   EXPECT_TRUE(node0->getTransactionManager()->transactionsDropped());
+}
+
+TEST_F(FullNodeTest, SoleiroliaHardfork) {
+  const auto call_data = "0xabbb061e000000000000000000000000000000000000000000000000000000000005a768";
+  const auto receiver_contract_code =
+      "6080604052348015600f57600080fd5b5063045d9f3b424302601081901c1802600155610578806100316000396000f3fe60806040523480"
+      "1561001057600080fd5b50600436106100935760003560e01c8063a5b4155011610066578063a5b41550146100f8578063abbb061e146101"
+      "0b578063b8dda9c71461011e578063f4ecb8dc1461013e578063ffb2c4791461015157600080fd5b80632f048afa146100985780637ea9ea"
+      "d3146100ad578063843b5e19146100d2578063a49cbc46146100e5575b600080fd5b6100ab6100a63660046104ee565b610164565b005b61"
+      "00c06100bb3660046104ee565b610195565b60405190815260200160405180910390f35b6100c06100e03660046104ee565b6101dc565b61"
+      "00ab6100f33660046104ee565b610249565b6100ab6101063660046104ee565b61028b565b6100c06101193660046104ee565b610366565b"
+      "6100c061012c3660046104ee565b60006020819052908152604090205481565b6100ab61014c3660046104ee565b6103ac565b6100c06101"
+      "5f3660046104ee565b610493565b60005b818110156101915760006101796104b9565b600081815260208190526040902055506001016101"
+      "67565b5050565b60006101a2600243610507565b6000036101b157506000919050565b6000805b838110156101d55760006101c76104b956"
+      "5b9290920191506001016101b5565b5092915050565b60006101e9600243610507565b6000036101f857506000919050565b600080805b84"
+      "8110156102405767a3b195354a39b70d6760bee2bee120fc1583019081026f1145efb08343750a52a767aff9508a35919091021892830192"
+      "91506001016101fd565b50909392505050565b610254600243610507565b60000361025e5750565b60005b81811015610191576000610273"
+      "6104b9565b60008181526020819052604090205550600101610261565b60015460005b8281101561035f576040516370a0823160e01b8152"
+      "6f1145efb08343750a52a767aff9508a357f60bee2bee120fc1560bee2bee120fc1560bee2bee120fc1560bee2bee120fc15939093019283"
+      "0267a3b195354a39b70d84028181186001600160a01b0381166004850181905290939192918491906370a082319060240160206040518083"
+      "0381865afa925050508015610348575060408051601f3d908101601f1916820190925261034591810190610529565b60015b1561034f5750"
+      "5b5050600190920191506102919050565b5060015550565b600080808084156102405767a3b195354a39b70d6760bee2bee120fc15830190"
+      "81026f1145efb08343750a52a767aff9508a3591909102189283019291506001016101fd565b60015460005b8281101561035f5760405163"
+      "70a0823160e01b8152439092017f60bee2bee120fc1560bee2bee120fc1560bee2bee120fc1560bee2bee120fc1501916f1145efb0834375"
+      "0a52a767aff9508a35830267a3b195354a39b70d84028181189290919083906001600160a01b038216906370a08231906104439084906004"
+      "016001600160a01b0391909116815260200190565b602060405180830381865afa92505050801561047c575060408051601f3d908101601f"
+      "1916820190925261047991810190610529565b60015b1561048357505b5050600190920191506103b29050565b60008060005b8381101561"
+      "01d55760006104ab6104b9565b929092019150600101610499565b600180546760bee2bee120fc1501908190556f1145efb08343750a52a7"
+      "67aff9508a35810267a3b195354a39b70d9091021890565b60006020828403121561050057600080fd5b5035919050565b60008261052457"
+      "634e487b7160e01b600052601260045260246000fd5b500690565b60006020828403121561053b57600080fd5b505191905056fea2646970"
+      "667358221220dc9174b3e76a9793588e608e7eb83322e3c86a0cac30ca520a374dc4e45cdc4d64736f6c634300081c0033";
+  {
+    auto node_cfgs = make_node_cfgs(1, 1, 5);
+    for (auto &cfg : node_cfgs) {
+      cfg.genesis.state.hardforks.soleirolia_hf.block_num = 999;
+      cfg.genesis.dag.gas_limit = 31500000;
+    }
+    auto nodes = launch_nodes(node_cfgs);
+
+    auto node0 = nodes.front();
+
+    node0->getDagBlockProposer()->stop();
+
+    auto nonce = 0;
+    auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, 10000000, dev::fromHex(receiver_contract_code),
+                                              node0->getSecretKey());
+    EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx1).first);
+
+    node0->getDagBlockProposer()->start();
+
+    EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
+      WAIT_EXPECT_TRUE(ctx, node0->getFinalChain()->transactionLocation(trx1->getHash()))
+    });
+
+    const auto trx_location = node0->getFinalChain()->transactionLocation(trx1->getHash());
+    EXPECT_TRUE(trx_location);
+    const auto recipe =
+        node0->getFinalChain()->transactionReceipt(trx_location->period, trx_location->position, trx1->getHash());
+    EXPECT_TRUE(recipe);
+
+    auto trx2 = std::make_shared<Transaction>(nonce++, 0, 0, 314369, dev::fromHex(call_data), node0->getSecretKey(),
+                                              recipe->new_contract_address);
+
+    EXPECT_EQ(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getFinalChain()->lastBlockNumber()).gas_used,
+              0);
+  }
+  CleanupDirs();
+  // After HF
+  {
+    auto node_cfgs = make_node_cfgs(1, 1, 5);
+    for (auto &cfg : node_cfgs) {
+      cfg.genesis.state.hardforks.soleirolia_hf.block_num = 0;
+      cfg.genesis.dag.gas_limit = 31500000;
+      cfg.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit = 31500000;
+      cfg.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price = 999;
+    }
+    auto nodes = launch_nodes(node_cfgs);
+
+    auto node0 = nodes.front();
+
+    node0->getDagBlockProposer()->stop();
+
+    auto nonce = 0;
+    auto trx1 = std::make_shared<Transaction>(nonce++, 0, 1000, 31000000, dev::fromHex(receiver_contract_code),
+                                              node0->getSecretKey());
+    EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx1).first);
+
+    node0->getDagBlockProposer()->start();
+
+    EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
+      WAIT_EXPECT_TRUE(ctx, node0->getFinalChain()->transactionLocation(trx1->getHash()))
+    });
+
+    const auto trx_location = node0->getFinalChain()->transactionLocation(trx1->getHash());
+    EXPECT_TRUE(trx_location);
+    const auto recipe =
+        node0->getFinalChain()->transactionReceipt(trx_location->period, trx_location->position, trx1->getHash());
+    EXPECT_TRUE(recipe);
+
+    auto trx2 = std::make_shared<Transaction>(nonce++, 0, 1000, 314369, dev::fromHex(call_data), node0->getSecretKey(),
+                                              recipe->new_contract_address);
+
+    EXPECT_GE(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize()).gas_used,
+              0);
+  }
 }
 
 TEST_F(FullNodeTest, transaction_pool_overflow_single_account) {

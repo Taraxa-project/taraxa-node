@@ -21,7 +21,7 @@ class DbStorage;
  */
 class GasPricer {
  public:
-  GasPricer(const GasPriceConfig &config, bool is_light_node = false, std::shared_ptr<DbStorage> db = {});
+  GasPricer(const GenesisConfig &config, bool is_light_node = false, std::shared_ptr<DbStorage> db = {});
   ~GasPricer();
 
   GasPricer(const GasPricer &) = delete;

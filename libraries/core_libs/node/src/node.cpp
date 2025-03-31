@@ -112,8 +112,8 @@ void FullNode::init() {
     LOG(log_nf_) << "Prometheus: config values aren't specified. Metrics collecting is disabled";
   }
 
-  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis.gas_price, conf_.is_light_node, db_);
   final_chain_ = std::make_shared<final_chain::FinalChain>(db_, conf_, node_addr);
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, db_);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
@@ -175,7 +175,7 @@ void FullNode::start() {
   }
 
   std::shared_ptr<metrics::JsonRpcMetrics> jsonrpc_metrics;
-    if(metrics_) jsonrpc_metrics = metrics_->getMetrics<metrics::JsonRpcMetrics>();
+  if (metrics_) jsonrpc_metrics = metrics_->getMetrics<metrics::JsonRpcMetrics>();
 
   // Inits rpc related members
   if (conf_.network.rpc) {
@@ -184,7 +184,7 @@ void FullNode::start() {
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
     eth_rpc_params.chain_id = conf_.genesis.chain_id;
-    eth_rpc_params.gas_limit = conf_.genesis.dag.gas_limit;
+    eth_rpc_params.gas_limit = conf_.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit;
     eth_rpc_params.final_chain = final_chain_;
     eth_rpc_params.gas_pricer = [gas_pricer = gas_pricer_]() { return gas_pricer->bid(); };
     eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
@@ -220,7 +220,8 @@ void FullNode::start() {
     std::shared_ptr<net::Debug> debug_json_rpc;
     if (conf_.enable_debug) {
       // TODO Because this object refers to FullNode, the lifecycle/dependency management is more complicated);
-      debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(), conf_.genesis.dag.gas_limit);
+      debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(),
+                                                    conf_.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit);
     }
 
     jsonrpc_api_ = std::make_unique<JsonRpcServer>(
@@ -242,7 +243,8 @@ void FullNode::start() {
     if (conf_.network.rpc->ws_port) {
       jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
           rpc_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->ws_port}, getAddress(), jsonrpc_metrics);
+          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->ws_port}, getAddress(),
+          jsonrpc_metrics);
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
@@ -291,8 +293,8 @@ void FullNode::start() {
     if (conf_.network.graphql->ws_port) {
       graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
           graphql_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->ws_port},
-          getAddress(), jsonrpc_metrics);
+          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->ws_port}, getAddress(),
+          jsonrpc_metrics);
       // graphql_ws_->run();
     }
 
@@ -302,7 +304,8 @@ void FullNode::start() {
           boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->http_port},
           getAddress(),
           std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, gas_pricer_,
-                                                      as_weak(network_), conf_.genesis.chain_id), jsonrpc_metrics);
+                                                      as_weak(network_), conf_.genesis.chain_id),
+          jsonrpc_metrics);
       graphql_http_->start();
     }
   }
