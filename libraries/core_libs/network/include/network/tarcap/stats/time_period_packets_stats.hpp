@@ -20,10 +20,15 @@ class TimePeriodPacketsStats {
   void addReceivedPacket(const std::string& packet_type, const dev::p2p::NodeID& node, const PacketStats& packet);
   void addSentPacket(const std::string& packet_type, const dev::p2p::NodeID& node, const PacketStats& packet);
 
+  void processPacket(const std::string& packet_type, const dev::p2p::NodeID& node);
+  void packetProcessed(const std::string& packet_type, const dev::p2p::NodeID& node);
+
   /**
    * @brief Logs both received as well as sent packets stats + updates max count/size and reset stats
    */
   void processStats(const std::vector<std::shared_ptr<TaraxaPeer>>& all_peers);
+
+  std::string getUnfinishedPacketsStatsJson() const;
 
  private:
   /**
@@ -41,9 +46,12 @@ class TimePeriodPacketsStats {
   // Interval during which are the peer stats supposed to be collected
   const std::chrono::milliseconds kResetTimePeriod;
 
+  using UnfinishedPacketsStatsByPeer =
+      std::unordered_map<dev::p2p::NodeID, std::unordered_map<std::string /*packet name*/, uint64_t /*count*/>>;
   // Collected packets stats during time period
   PacketsStats sent_packets_stats_;
   PacketsStats received_packets_stats_;
+  UnfinishedPacketsStatsByPeer unfinished_packets_stats_;
 
   // Max stats for all received packets combined per peer
   MaxStats peer_max_stats_;

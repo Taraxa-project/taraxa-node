@@ -37,6 +37,11 @@ void PacketHandler::processPacket(const threadpool::PacketData& packet_data) {
     checkPacketRlpIsList(packet_data);
     validatePacketRlpFormat(packet_data);
 
+    // TODO: add unfinished packets stats (without processing/tp_wait duration)
+    if (kConf.network.ddos_protection.log_packets_stats) {
+      packets_stats_->processPacket(packet_data.type_str_, packet_data.from_node_id_);
+    }
+
     // Main processing function
     process(packet_data, peer.first);
 
@@ -49,6 +54,7 @@ void PacketHandler::processPacket(const threadpool::PacketData& packet_data) {
     peer.first->addSentPacket(packet_data.type_str_, packet_stats);
 
     if (kConf.network.ddos_protection.log_packets_stats) {
+      packets_stats_->packetProcessed(packet_data.type_str_, packet_data.from_node_id_);
       packets_stats_->addReceivedPacket(packet_data.type_str_, packet_data.from_node_id_, packet_stats);
     }
 

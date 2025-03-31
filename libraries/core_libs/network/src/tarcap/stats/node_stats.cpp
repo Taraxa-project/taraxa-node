@@ -184,6 +184,7 @@ void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::
   LOG(log_dg_) << "High priority queue size: " << high_priority_queue_size;
   LOG(log_dg_) << "Mid priority queue size: " << mid_priority_queue_size;
   LOG(log_dg_) << "Low priority queue size: " << low_priority_queue_size;
+  // LOG(log_dg_) << "Unfinished packets stats: " << packets_stats_->getUnfinishedPacketsStatsJson();
 
   LOG(log_nf_) << "------------- tl;dr -------------";
 

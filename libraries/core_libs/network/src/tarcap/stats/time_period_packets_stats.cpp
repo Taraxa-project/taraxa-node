@@ -12,6 +12,26 @@ TimePeriodPacketsStats::TimePeriodPacketsStats(std::chrono::milliseconds reset_t
   LOG_OBJECTS_CREATE("NETPER");
 }
 
+void TimePeriodPacketsStats::processPacket(const std::string& packet_type, const dev::p2p::NodeID& node) {
+  LOG(log_tr_) << "Processing packet: " << packet_type << " from node: " << node;
+  unfinished_packets_stats_[node][packet_type]++;
+}
+
+void TimePeriodPacketsStats::packetProcessed(const std::string& packet_type, const dev::p2p::NodeID& node) {
+  LOG(log_tr_) << "Packet processed: " << packet_type << " from node: " << node;
+  unfinished_packets_stats_[node][packet_type]--;
+}
+
+std::string TimePeriodPacketsStats::getUnfinishedPacketsStatsJson() const {
+  Json::Value unfinished_packets_stats_json;
+  for (const auto& [node, packets_stats] : unfinished_packets_stats_) {
+    for (const auto& [packet_type, count] : packets_stats) {
+      unfinished_packets_stats_json[node.abridged()][packet_type] = count;
+    }
+  }
+  return jsonToUnstyledString(unfinished_packets_stats_json);
+}
+
 void TimePeriodPacketsStats::addReceivedPacket(const std::string& packet_type, const dev::p2p::NodeID& node,
                                                const PacketStats& packet) {
   received_packets_stats_.addPacket(packet_type, packet);
