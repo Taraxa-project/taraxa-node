@@ -1622,7 +1622,7 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
     auto trx2 = std::make_shared<Transaction>(nonce++, 0, 0, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
 
-    EXPECT_EQ(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getFinalChain()->lastBlockNumber()),
+    EXPECT_EQ(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getFinalChain()->lastBlockNumber()).gas_used,
               0);
   }
   CleanupDirs();
@@ -1661,7 +1661,7 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
     auto trx2 = std::make_shared<Transaction>(nonce++, 0, 1000, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
 
-    EXPECT_GE(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize()),
+    EXPECT_GE(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize()).gas_used,
               0);
   }
 }

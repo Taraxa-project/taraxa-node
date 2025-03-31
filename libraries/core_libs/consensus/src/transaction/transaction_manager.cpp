@@ -37,7 +37,7 @@ uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs
       total_gas += trx->getGas();
     } else {
       futures.emplace_back(
-          estimation_thread_pool_.post([&]() { total_gas += estimateTransactionGas(trx, proposal_period); }));
+          estimation_thread_pool_.post([&]() { total_gas += estimateTransactionGas(trx, proposal_period).gas_used; }));
     }
   }
   for (auto &future : futures) {
@@ -47,9 +47,11 @@ uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs
   return total_gas.load();
 }
 
-uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx, PbftPeriod proposal_period) {
+state_api::ExecutionResult TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx, PbftPeriod proposal_period) {
   if (trx->getGas() <= kEstimateGasLimit) {
-    return trx->getGas();
+    state_api::ExecutionResult result;
+    result.gas_used = trx->getGas();
+    return result;
   }
 
   dev::RLPStream hash_rlp(2);
@@ -72,16 +74,15 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
     evm_trx.gas = kDagBlockGasLimit;
   }
 
-  const auto &result = final_chain_->call(evm_trx, proposal_period);
-  estimations_cache_.insert(hash, result.gas_used);
-
+  auto result = final_chain_->call(evm_trx, proposal_period);
+  
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
     if (isBeforeSoleiroliaHF) {
-      estimations_cache_.insert(hash, 0);
-      return 0;
+      result.gas_used = 0;
     }
   }
-  return result.gas_used;
+  estimations_cache_.insert(hash, result);
+  return result;
 }
 
 std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx, bool from_dag) const {
@@ -404,6 +405,12 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
                                                                                   uint64_t weight_limit) {
   SharedTransactions trxs;
   const uint64_t max_transactions_in_block = weight_limit / kMinTxGas;
+  const auto isBeforeSoleiroliaHF = !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(proposal_period);
+  
+  //Remove after Soleirolia hardfork
+  const uint32_t max_zero_gas_transactions_per_block = 2;
+  uint32_t zero_gas_transactions_count = 0;
+  
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     trxs = transactions_pool_.getOrderedTransactions(max_transactions_in_block);
@@ -417,14 +424,39 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
     if (total_weight + trxs[i]->getGas() > weight_limit) {
       continue;
     }
-    uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
-    if (weight == 0) {
-      continue;
+
+    auto estimate = estimateTransactionGas(trxs[i], proposal_period);
+    if(isBeforeSoleiroliaHF) {
+      //Estimate 0 possible only before Soleirolia hardfork, remove after
+      if (estimate.gas_used < kMinTxGas) {
+        if(estimate.code_err == "out of gas") {
+          std::unique_lock transactions_lock(transactions_mutex_);
+          auto trx = trxs[i];
+          transactions_pool_.erase(trx);
+          transactions_pool_.insert(std::move(trx), false, final_chain_->lastBlockNumber());
+          continue;
+        }
+        else {
+          if(zero_gas_transactions_count > max_zero_gas_transactions_per_block) {
+            continue;
+          }
+          zero_gas_transactions_count++;
+        }
+      }
+    } else {
+      if (estimate.gas_used < kMinTxGas) {
+        LOG(log_er_) << "Transaction " << trxs[i]->getHash() << " has invalid estimation: " << estimate.gas_used;
+        std::unique_lock transactions_lock(transactions_mutex_);
+        auto trx = trxs[i];
+        transactions_pool_.erase(trx);
+        transactions_pool_.insert(std::move(trx), false, final_chain_->lastBlockNumber());
+        continue;
+      }
     }
 
-    total_weight += weight;
+    total_weight += estimate.gas_used;
     trxs_to_propose.push_back(trxs[i]);
-    estimations.push_back(weight);
+    estimations.push_back(estimate.gas_used);
     // stop if there is no space for even the smallest transaction
     if (weight_limit - total_weight <= kMinTxGas) {
       break;

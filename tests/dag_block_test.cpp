@@ -423,7 +423,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx->getHash());
-    const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, proposal_period);
+    const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, proposal_period).gas_used;
     estimations += e;
   }
 
@@ -453,8 +453,8 @@ TEST_F(DagBlockMgrTest, estimation_cache_test) {
   for (size_t i = 0; i <= count; ++i) {
     auto create_trx = std::make_shared<Transaction>(i + 1, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
                                                     node->getSecretKey());
-    const auto& estimation = node->getTransactionManager()->estimateTransactionGas(create_trx, 0);
-    const auto& cached_estimation = node->getTransactionManager()->estimateTransactionGas(create_trx, 0);
+    const auto& estimation = node->getTransactionManager()->estimateTransactionGas(create_trx, 0).gas_used;
+    const auto& cached_estimation = node->getTransactionManager()->estimateTransactionGas(create_trx, 0).gas_used;
     EXPECT_EQ(estimation, cached_estimation);
   }
 }
