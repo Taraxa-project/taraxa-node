@@ -550,6 +550,7 @@ void DagManager::recoverDag() {
     }
   }
   trx_mgr_->recoverNonfinalizedTransactions();
+  updateFrontier();
 }
 
 const std::pair<PbftPeriod, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks()
