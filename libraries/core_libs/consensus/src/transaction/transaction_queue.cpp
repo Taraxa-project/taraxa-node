@@ -21,6 +21,7 @@ void TransactionQueue::addTransaction(const SharedTransaction &transaction, bool
   if (proposable) {
     if (queue_transactions_.emplace(transaction->getHash(), transaction).second) {
       data_size_ += transaction->getData().size();
+      queue_transactions_gas_prices_[transaction->getGasPrice()] += transaction->getGas();
     }
   } else {
     if (non_proposable_transactions_
@@ -35,6 +36,11 @@ bool TransactionQueue::removeTransaction(const SharedTransaction &transaction, b
   if (proposable) {
     if (queue_transactions_.erase(transaction->getHash()) > 0) {
       data_size_ -= transaction->getData().size();
+      auto &gas_price_entry = queue_transactions_gas_prices_[transaction->getGasPrice()];
+      gas_price_entry -= transaction->getGas();
+      if (gas_price_entry == 0) {
+        queue_transactions_gas_prices_.erase(transaction->getGasPrice());
+      }
       return true;
     }
   } else {
@@ -261,5 +267,16 @@ bool TransactionQueue::nonProposableTransactionsOverTheLimit() const {
 void TransactionQueue::markTransactionKnown(const trx_hash_t &trx_hash) { known_txs_.insert(trx_hash); }
 
 bool TransactionQueue::isTransactionKnown(const trx_hash_t &trx_hash) const { return known_txs_.contains(trx_hash); }
+
+val_t TransactionQueue::getMinGasPriceForBlockInclusion(uint64_t limit) const {
+  uint64_t total_gas = 0;
+  for(const auto &gas_price : queue_transactions_gas_prices_) {
+    total_gas += gas_price.second;
+    if(total_gas >= limit) {
+      return gas_price.first + 1;
+    }
+  }
+  return 1;
+}
 
 }  // namespace taraxa

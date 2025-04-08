@@ -61,6 +61,9 @@ struct FullNodeConfig {
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
 
+  // Use blocks legacy gas pricer, if false gas pricer is based on transaction pool
+  bool blocks_gas_pricer = false;
+
   // Report malicious behaviour like double voting, etc... to slashing/jailing contract
   bool report_malicious_behaviour = false;
 
