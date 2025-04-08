@@ -104,7 +104,8 @@ TEST_F(RPCTest, eth_call) {
     trx["from"] = empty_address;
     trx["to"] = dev::KeyPair::create().address().toString();
     trx["value"] = "0x100";
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException, "insufficient balance for transfer");
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException,
+                      "insufficient balance for transfer");
   }
 
   {
@@ -149,7 +150,8 @@ TEST_F(RPCTest, eth_call) {
     trx["gas"] = "0x100000";
     trx["gasPrice"] = "0x241268485270";
     trx["data"] = get_total_eligible_method;
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException, "insufficient balance to pay for gas");
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), jsonrpc::JsonRpcException,
+                      "insufficient balance to pay for gas");
   }
 
   {
@@ -251,6 +253,30 @@ TEST_F(RPCTest, eip_1898) {
   Json::Value genesis_block(Json::objectValue);
   genesis_block["blockHash"] = dev::toJS(*nodes.front()->getFinalChain()->blockHash(0));
   EXPECT_EQ(eth_json_rpc->eth_getBalance(from, "0x0"), eth_json_rpc->eth_getBalance(from, genesis_block));
+}
+
+TEST_F(RPCTest, transaction_json) {
+  auto nonce = 0;
+  auto trx = std::make_shared<Transaction>(nonce, 100, 1, 100000, dev::bytes(), dev::KeyPair::create().secret(),
+                                           dev::KeyPair::create().address(), 841);
+  const auto loc = net::rpc::eth::TransactionLocationWithBlockHash{TransactionLocation{1, 1}, h256(123)};
+  const auto json = toJson(*trx, loc);
+
+  EXPECT_EQ(json["blockHash"], dev::toJS(loc.blk_h));
+  EXPECT_EQ(json["blockNumber"], dev::toJS(loc.period));
+  EXPECT_EQ(json["transactionIndex"], dev::toJS(loc.position));
+  EXPECT_EQ(json["from"], dev::toJS(trx->getSender()));
+  EXPECT_EQ(json["gas"], dev::toJS(trx->getGas()));
+  EXPECT_EQ(json["gasPrice"], dev::toJS(trx->getGasPrice()));
+  EXPECT_EQ(json["hash"], dev::toJS(trx->getHash()));
+  EXPECT_EQ(json["input"], dev::toJS(trx->getData()));
+  EXPECT_EQ(json["nonce"], dev::toJS(trx->getNonce()));
+  EXPECT_EQ(json["to"], dev::toJS(*trx->getReceiver()));
+  EXPECT_EQ(json["value"], dev::toJS(trx->getValue()));
+  EXPECT_EQ(json["v"], dev::toJS(trx->getVRS().v));
+  EXPECT_EQ(json["r"], dev::toJS(trx->getVRS().r));
+  EXPECT_EQ(json["s"], dev::toJS(trx->getVRS().s));
+  EXPECT_EQ(json["chainId"], dev::toJS(trx->getChainID()));
 }
 
 }  // namespace taraxa::core_tests

@@ -12,8 +12,6 @@
 #include "common/encoding_rlp.hpp"
 
 namespace taraxa {
-using namespace std;
-using namespace dev;
 
 uint64_t toChainID(const u256 &val) {
   if (val == 0 || std::numeric_limits<uint64_t>::max() < val) {
@@ -31,7 +29,7 @@ TransactionHashes hashes_from_transactions(const SharedTransactions &transaction
 }
 
 Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
-                         const secret_t &sk, const optional<addr_t> &receiver, uint64_t chain_id)
+                         const secret_t &sk, const std::optional<addr_t> &receiver, uint64_t chain_id)
     : nonce_(nonce),
       value_(value),
       gas_price_(gas_price),
@@ -42,7 +40,7 @@ Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val
       vrs_(sign(sk, hash_for_signature())),
       sender_initialized_(true),
       sender_valid_(vrs_.isValid()),
-      sender_(sender_valid_ ? toAddress(sk) : ZeroAddress) {
+      sender_(sender_valid_ ? toAddress(sk) : dev::ZeroAddress) {
   getSender();
 }
 
@@ -58,7 +56,7 @@ Transaction::Transaction(const bytes &_bytes, bool verify_strict) {
         "Can't parse transaction from RLP. Use legacy transactions because typed transactions aren't supported yet.";
     error_msg += "\nException details:\n";
     error_msg += e.what();
-    BOOST_THROW_EXCEPTION(RLPException() << errinfo_comment(error_msg));
+    BOOST_THROW_EXCEPTION(dev::RLPException() << dev::errinfo_comment(error_msg));
   }
 
   fromRLP(rlp, verify_strict);
@@ -157,17 +155,22 @@ trx_hash_t Transaction::hash_for_signature() const {
 Json::Value Transaction::toJSON() const {
   Json::Value res(Json::objectValue);
   res["hash"] = dev::toJS(getHash());
-  res["sender"] = dev::toJS(get_sender_());
+  res["from"] = dev::toJS(get_sender_());
   res["nonce"] = dev::toJS(getNonce());
   res["value"] = dev::toJS(getValue());
-  res["gas_price"] = dev::toJS(getGasPrice());
+  res["gasPrice"] = dev::toJS(getGasPrice());
   res["gas"] = dev::toJS(getGas());
   res["sig"] = dev::toJS((sig_t const &)getVRS());
-  res["receiver"] = dev::toJS(getReceiver().value_or(dev::ZeroAddress));
-  res["data"] = dev::toJS(getData());
-  if (auto v = getChainID()) {
-    res["chain_id"] = dev::toJS(v);
+  if (const auto to = getReceiver()) {
+    res["to"] = dev::toJS(to.value());
   }
+  res["input"] = dev::toJS(getData());
+  res["chainId"] = dev::toJS(getChainID());
+
+  const auto &vrs = getVRS();
+  res["r"] = dev::toJS(vrs.r);
+  res["s"] = dev::toJS(vrs.s);
+  res["v"] = dev::toJS(vrs.v);
   return res;
 }
 
