@@ -9,6 +9,7 @@
 namespace taraxa {
 
 class DbStorage;
+class TransactionManager;
 
 /** @addtogroup Transaction
  * @{
@@ -21,7 +22,8 @@ class DbStorage;
  */
 class GasPricer {
  public:
-  GasPricer(const GenesisConfig &config, bool is_light_node = false, std::shared_ptr<DbStorage> db = {});
+  GasPricer(const GenesisConfig &config, bool is_light_node = false, bool is_blocks_gas_pricer = false,
+            std::shared_ptr<TransactionManager> trx_mgr = nullptr, std::shared_ptr<DbStorage> db = {});
   ~GasPricer();
 
   GasPricer(const GasPricer &) = delete;
@@ -60,6 +62,8 @@ class GasPricer {
   boost::circular_buffer<u256> price_list_;
 
   std::unique_ptr<std::thread> init_daemon_;
+  const bool kBlocksGasPricer;
+  std::shared_ptr<TransactionManager> trx_mgr_;
 };
 
 /** @}*/
