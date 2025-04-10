@@ -84,8 +84,7 @@ TEST_F(P2PTest, p2p_discovery) {
     auto node = nodes.emplace_back(Host::make("TaraxaNode", dummy_capability_constructor, dev::KeyPair::create(),
                                               dev::p2p::NetworkConfig("127.0.0.1", 20002 + i, false, true)));
     tp.post_loop({}, [=] { node->do_work(); });
-    nodes[i]->addNode(
-        Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    nodes[i]->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::make_address("127.0.0.1"), 20001, 20001)));
   }
 
   wait({60s, 500ms}, [&](auto &ctx) {
@@ -119,11 +118,11 @@ TEST_F(P2PTest, multiple_capabilities) {
 
     const auto node1 = makeTestNode(20002, node1_tarcap_versions, "/tmp/nw1");
     std::cout << "node1->peer_count(): " << node1->peer_count() << std::endl;
-    node1->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    node1->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::make_address("127.0.0.1"), 20001, 20001)));
     tp.post_loop({}, [=] { node1->do_work(); });
 
     const auto node2 = makeTestNode(20003, node2_tarcap_versions, "/tmp/nw2");
-    node2->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    node2->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::make_address("127.0.0.1"), 20001, 20001)));
     tp.post_loop({}, [=] { node2->do_work(); });
 
     if (wait_for_connection) {
