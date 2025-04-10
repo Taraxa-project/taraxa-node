@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/encoding_rlp.hpp"
+#include "common/types.hpp"
 
 namespace taraxa::network::tarcap {
 

@@ -6,7 +6,6 @@
 
 namespace taraxa {
 
-using std::string;
 using VdfSortition = vdf_sortition::VdfSortition;
 
 /**
@@ -49,7 +48,7 @@ class DagBlock {
   DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, VdfSortition vdf,
            secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
-  explicit DagBlock(string const &json);
+  explicit DagBlock(std::string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
   explicit DagBlock(dev::RLP const &_rlp, vec_trx_t &&trxs);
   explicit DagBlock(dev::bytes const &_rlp) : DagBlock(dev::RLP(_rlp)) {}

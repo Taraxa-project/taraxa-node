@@ -10,11 +10,9 @@
 #include "common/init.hpp"
 #include "config/genesis.hpp"
 #include "final_chain/final_chain.hpp"
-#include "final_chain/trie_common.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
-#include "transaction/system_transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "transaction/transaction_queue.hpp"
 
@@ -76,7 +74,7 @@ TEST_F(TransactionTest, sig) {
                                           "4fb635e7237e0e8d3ea33bbea19c36ca0229e80d57ba91a0f347686"
                                           "30fd21ad86e4c403b307de9ac4550d0ccc81c90fe3")),
                Transaction::InvalidFormat);
-  std::vector<std::pair<uint64_t, string>> valid_cases{
+  std::vector<std::pair<uint64_t, std::string>> valid_cases{
       {0, "0xf647d1d47ce927ce2fb9f57e4e2a3c32b037c5e544b44611077f5cc6980b0bc2"},
       {1, "0x49c1cb845df5d3ed238ca37ad25ca96f417e4f22d7911224cf3c2a725985e7ff"},
       {uint64_t(1) << uint(32), "0xc1651c53d21ad6ddaac0af7ad93947074ef9f3b03479a36b29fa577b9faba8a9"},
@@ -638,7 +636,7 @@ TEST_F(TransactionTest, typed_deserialization) {
   } catch (const std::exception& e) {
     const std::string exception_str = e.what();
     EXPECT_TRUE(exception_str.find("Can't parse transaction from RLP. Use legacy transactions because typed "
-                                   "transactions aren't supported yet.") != string::npos);
+                                   "transactions aren't supported yet.") != std::string::npos);
     return;
   }
   // shouldn't reach this code

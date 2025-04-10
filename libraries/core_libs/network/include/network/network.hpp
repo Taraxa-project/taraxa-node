@@ -80,14 +80,14 @@ class Network {
 
   // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>
-  std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
+  std::shared_ptr<PacketHandlerType> getSpecificHandler(network::SubprotocolPacketType packet_type) const;
 
   dev::p2p::NodeID getNodeId() const;
   std::shared_ptr<network::tarcap::TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
   // END METHODS USED IN TESTS ONLY
 
  private:
-  static std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
+  static std::pair<bool, bi::tcp::endpoint> resolveHost(std::string const &addr, uint16_t port);
 
   /**
    * @brief Register period events, e.g. sending status packet, transaction packet etc...
@@ -117,6 +117,9 @@ class Network {
   // Syncing state
   std::shared_ptr<network::tarcap::PbftSyncingState> pbft_syncing_state_;
 
+  // Pbft manager
+  std::shared_ptr<PbftManager> pbft_mgr_;
+
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
 
@@ -135,8 +138,8 @@ class Network {
 };
 
 template <typename PacketHandlerType>
-std::shared_ptr<PacketHandlerType> Network::getSpecificHandler() const {
-  return tarcaps_.begin()->second->getSpecificHandler<PacketHandlerType>();
+std::shared_ptr<PacketHandlerType> Network::getSpecificHandler(network::SubprotocolPacketType packet_type) const {
+  return tarcaps_.begin()->second->getSpecificHandler<PacketHandlerType>(packet_type);
 }
 
 }  // namespace taraxa

@@ -13,11 +13,15 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<VoteManager> vote_mgr,
                                                    std::shared_ptr<SlashingManager> slashing_manager,
                                                    const addr_t &node_addr, const std::string &logs_prefix)
-    : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
-                            logs_prefix + "VOTES_BUNDLE_PH") {}
+    : IVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
+                         std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
+                         logs_prefix + "VOTES_BUNDLE_PH") {}
 
-void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::shared_ptr<TaraxaPeer> &peer) {
+void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
+                                       const std::shared_ptr<TaraxaPeer> &peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<VotesBundlePacket>(packet_data.rlp_);
+
   if (packet.votes_bundle.votes.size() == 0 || packet.votes_bundle.votes.size() > kMaxVotesInBundleRlp) {
     throw InvalidRlpItemsCountException("VotesBundlePacket", packet.votes_bundle.votes.size(), kMaxVotesInBundleRlp);
   }
@@ -76,31 +80,6 @@ void VotesBundlePacketHandler::process(VotesBundlePacket &&packet, const std::sh
                << ", peer pbft round " << reference_vote->getRound();
 
   onNewPbftVotesBundle(packet.votes_bundle.votes, false, peer->getId());
-}
-
-void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes,
-                                                    bool rebroadcast,
-                                                    const std::optional<dev::p2p::NodeID> &exclude_node) {
-  for (const auto &peer : peers_state_->getAllPeers()) {
-    if (peer.second->syncing_) {
-      continue;
-    }
-
-    if (exclude_node.has_value() && *exclude_node == peer.first) {
-      continue;
-    }
-
-    std::vector<std::shared_ptr<PbftVote>> peer_votes;
-    for (const auto &vote : votes) {
-      if (!rebroadcast && peer.second->isPbftVoteKnown(vote->getHash())) {
-        continue;
-      }
-
-      peer_votes.push_back(vote);
-    }
-
-    sendPbftVotesBundle(peer.second, std::move(peer_votes));
-  }
 }
 
 }  // namespace taraxa::network::tarcap

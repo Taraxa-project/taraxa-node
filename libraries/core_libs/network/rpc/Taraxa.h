@@ -4,18 +4,17 @@
 #include <jsonrpccpp/server.h>
 #include <libdevcore/Common.h>
 
-#include <iosfwd>
 #include <memory>
-#include <optional>
 
 #include "TaraxaFace.h"
-#include "node/node.hpp"
+#include "common/app_base.hpp"
+#include "libweb3jsonrpc/ModularServer.h"
 
 namespace taraxa::net {
 
 class Taraxa : public TaraxaFace {
  public:
-  explicit Taraxa(const std::shared_ptr<taraxa::FullNode>& _full_node);
+  explicit Taraxa(std::shared_ptr<taraxa::AppBase> app);
 
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"taraxa", "1.0"}}; }
 
@@ -36,13 +35,12 @@ class Taraxa : public TaraxaFace {
                                                 bool include_signatures) override;
 
  protected:
-  std::weak_ptr<taraxa::FullNode> full_node_;
+  std::weak_ptr<taraxa::AppBase> app_;
 
  private:
-  using NodePtr = decltype(full_node_.lock());
   Json::Value version;
 
-  NodePtr tryGetNode();
+  std::shared_ptr<taraxa::AppBase> tryGetApp();
 };
 
 }  // namespace taraxa::net

@@ -101,6 +101,17 @@ Json::Value toJson(const SyncStatus& obj) {
   return res;
 }
 
+DEV_SIMPLE_EXCEPTION(InvalidAddress);
+Address toAddress(const std::string& s) {
+  try {
+    if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, dev::WhenError::Throw); b.size() == Address::size) {
+      return Address(b);
+    }
+  } catch (dev::BadHexCharacter&) {
+  }
+  BOOST_THROW_EXCEPTION(InvalidAddress());
+}
+
 class EthImpl : public Eth, EthParams {
   Watches watches_;
 
@@ -456,17 +467,6 @@ class EthImpl : public Eth, EthParams {
     }
   }
 
-  DEV_SIMPLE_EXCEPTION(InvalidAddress);
-  static Address toAddress(const string& s) {
-    try {
-      if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, WhenError::Throw); b.size() == Address::size) {
-        return Address(b);
-      }
-    } catch (BadHexCharacter&) {
-    }
-    BOOST_THROW_EXCEPTION(InvalidAddress());
-  }
-
   static TransactionSkeleton toTransactionSkeleton(const Json::Value& _json) {
     TransactionSkeleton ret;
     if (!_json.isObject() || _json.empty()) {
@@ -531,8 +531,6 @@ class EthImpl : public Eth, EthParams {
   LogFilter parse_log_filter(const Json::Value& json) {
     EthBlockNumber from_block;
     optional<EthBlockNumber> to_block;
-    AddressSet addresses;
-    LogFilter::Topics topics;
     if (const auto& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
       from_block = parse_blk_num(fromBlock.asString());
     } else {
@@ -541,34 +539,7 @@ class EthImpl : public Eth, EthParams {
     if (const auto& toBlock = json["toBlock"]; !toBlock.empty()) {
       to_block = parse_blk_num_specific(toBlock.asString());
     }
-    if (const auto& address = json["address"]; !address.empty()) {
-      if (address.isArray()) {
-        for (const auto& obj : address) {
-          addresses.insert(toAddress(obj.asString()));
-        }
-      } else {
-        addresses.insert(toAddress(address.asString()));
-      }
-    }
-    if (const auto& topics_json = json["topics"]; !topics_json.empty()) {
-      if (topics_json.size() > 4) {
-        BOOST_THROW_EXCEPTION(jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS,
-                                                        "only up to four topic slots may be specified"));
-      }
-      for (uint32_t i = 0; i < topics_json.size(); i++) {
-        const auto& topic_json = topics_json[i];
-        if (topic_json.isArray()) {
-          for (const auto& t : topic_json) {
-            if (!t.isNull()) {
-              topics[i].insert(jsToFixed<32>(t.asString()));
-            }
-          }
-        } else if (!topic_json.isNull()) {
-          topics[i].insert(jsToFixed<32>(topic_json.asString()));
-        }
-      }
-    }
-    return LogFilter(from_block, to_block, std::move(addresses), std::move(topics));
+    return LogFilter(from_block, to_block, parse_addresses(json), parse_topics(json));
   }
 };
 

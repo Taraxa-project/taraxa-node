@@ -16,8 +16,6 @@
 #include "final_chain/data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "rocksdb/utilities/checkpoint.h"
-#include "storage/problematic_trx.hpp"
-#include "transaction/receipt.hpp"
 #include "transaction/system_transaction.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -32,7 +30,7 @@ static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 static constexpr uint16_t PILLAR_VOTES_POS_IN_PERIOD_DATA = 4;
 static constexpr uint16_t PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK = 0;
 
-DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
+DbStorage::DbStorage(const fs::path& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
                      uint32_t db_max_snapshots, PbftPeriod db_revert_to_period, addr_t node_addr, bool rebuild)
     : path_(path),
       handles_(Columns::all.size()),
@@ -431,7 +429,7 @@ std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(rocksdb::ColumnF
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
   if (status.ok()) return;
-  throw DbException(string("Db error. Status code: ") + std::to_string(status.code()) +
+  throw DbException(std::string("Db error. Status code: ") + std::to_string(status.code()) +
                     " SubCode: " + std::to_string(status.subcode()) + " Message:" + status.ToString());
 }
 
@@ -880,11 +878,6 @@ SharedTransactions DbStorage::getFinalizedTransactions(std::vector<trx_hash_t> c
   std::map<PbftPeriod, std::set<uint32_t>> period_map;
   trxs.reserve(trx_hashes.size());
   for (auto const& tx_hash : trx_hashes) {
-    // TODO remove after Cornus HF
-    if (tx_hash == kProblematicTrx->getHash()) {
-      trxs.emplace_back(kProblematicTrx);
-      continue;
-    }
     auto trx_period = getTransactionLocation(tx_hash);
     if (trx_period.has_value()) {
       period_map[trx_period->period].insert(trx_period->position);
@@ -1143,9 +1136,11 @@ bool DbStorage::pbftBlockInDb(blk_hash_t const& hash) {
   return exist(toSlice(hash.asBytes()), Columns::pbft_block_period);
 }
 
-string DbStorage::getPbftHead(blk_hash_t const& hash) { return lookup(toSlice(hash.asBytes()), Columns::pbft_head); }
+std::string DbStorage::getPbftHead(blk_hash_t const& hash) {
+  return lookup(toSlice(hash.asBytes()), Columns::pbft_head);
+}
 
-void DbStorage::savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str) {
+void DbStorage::savePbftHead(blk_hash_t const& hash, std::string const& pbft_chain_head_str) {
   insert(Columns::pbft_head, toSlice(hash.asBytes()), pbft_chain_head_str);
 }
 

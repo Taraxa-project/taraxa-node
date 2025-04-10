@@ -12,7 +12,7 @@
 
 namespace taraxa::core_tests::samples {
 
-static string const greeter_contract_code =
+static std::string const greeter_contract_code =
     // pragma solidity ^0.6.8;
     // contract Greeter {
     //    string public greeting;

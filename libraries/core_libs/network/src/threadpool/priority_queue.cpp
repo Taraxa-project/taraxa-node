@@ -1,9 +1,12 @@
 #include "network/threadpool/priority_queue.hpp"
 
+#include "pbft/pbft_manager.hpp"
+
 namespace taraxa::network::threadpool {
 
-PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
-    : blocked_packets_mask_(), MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
+PriorityQueue::PriorityQueue(size_t tp_workers_count, const std::shared_ptr<PbftManager>& pbft_mgr,
+                             const addr_t& node_addr)
+    : blocked_packets_mask_(pbft_mgr), MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
   // tp_workers_count value should be validated (>=3) after it is read from config
   assert(tp_workers_count >= 3);
@@ -24,8 +27,7 @@ PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
   packets_queues_[PacketData::PacketPriority::Mid].setMaxWorkersCount(mid_priority_queue_workers);
   packets_queues_[PacketData::PacketPriority::Low].setMaxWorkersCount(low_priority_queue_workers);
 
-  LOG(log_nf_) << "Priority queues initialized accordingly: "
-               << "total num of workers = " << MAX_TOTAL_WORKERS_COUNT
+  LOG(log_nf_) << "Priority queues initialized accordingly: " << "total num of workers = " << MAX_TOTAL_WORKERS_COUNT
                << ", High priority packets max num of workers = " << high_priority_queue_workers
                << ", Mid priority packets max num of workers = " << mid_priority_queue_workers
                << ", Low priority packets max num of workers = " << low_priority_queue_workers;
@@ -166,11 +168,18 @@ bool PriorityQueue::updateBlockingDependencies(const PacketData& packet, bool un
     //  GetPillarVotesBundlePacket -> serve pillar votes syncing data to only 1 node at the time
     //  PillarVotesBundlePacket -> process only 1 packet at a time. TODO[2744]: remove after protection mechanism is
     //  implemented PbftSyncPacket -> process sync pbft blocks synchronously
+    case SubprotocolPacketType::kPbftSyncPacket: {
+      if (!unblock_processing) {
+        blocked_packets_mask_.markPacketAsHardBlocked(packet, SubprotocolPacketType::kPbftBlocksBundlePacket);
+      } else {
+        blocked_packets_mask_.markPacketAsHardUnblocked(packet, SubprotocolPacketType::kPbftBlocksBundlePacket);
+      }
+    }
     case SubprotocolPacketType::kGetDagSyncPacket:
     case SubprotocolPacketType::kGetPbftSyncPacket:
     case SubprotocolPacketType::kGetPillarVotesBundlePacket:
     case SubprotocolPacketType::kPillarVotesBundlePacket:  // TODO[2744]: remove
-    case SubprotocolPacketType::kPbftSyncPacket: {
+    case SubprotocolPacketType::kPbftBlocksBundlePacket: {
       if (!unblock_processing) {
         blocked_packets_mask_.markPacketAsHardBlocked(packet, packet.type_);
       } else {

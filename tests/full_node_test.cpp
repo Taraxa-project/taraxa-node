@@ -4,6 +4,7 @@
 #include <libdevcore/CommonData.h>
 
 #include <atomic>
+#include <chrono>
 #include <iostream>
 #include <mutex>
 #include <shared_mutex>
@@ -21,7 +22,6 @@
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
-#include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
@@ -921,29 +921,33 @@ TEST_F(FullNodeTest, persist_counter) {
     auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
+    uint16_t count = 0;
     for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
       nodes[0]->getTransactionManager()->insertTransaction(trx);
+      count++;
     }
     for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
       nodes[1]->getTransactionManager()->insertTransaction(trx);
+      count++;
     }
 
     num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
     num_trx2 = nodes[1]->getTransactionManager()->getTransactionCount();
     // add more delay if sync is not done
     for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
-      if (num_trx1 == 1000 && num_trx2 == 1000) break;
+      if (num_trx1 == count && num_trx2 == count) break;
       taraxa::thisThreadSleepForMilliSeconds(500);
       num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
       num_trx2 = nodes[1]->getTransactionManager()->getTransactionCount();
     }
-    EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 1000);
-    EXPECT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), 1000);
+
     std::cout << "All 1000 trxs are received ..." << std::endl;
-    // time to make sure all transactions have been packed into block...
-    // taraxa::thisThreadSleepForSeconds(10);
-    taraxa::thisThreadSleepForMilliSeconds(2000);
     // send dummy trx to make sure all DAGs are ordered
+    ASSERT_HAPPENS({std::chrono::seconds(20), 500ms}, [&](auto &ctx) {
+      for (size_t i = 0; i < nodes.size(); ++i)
+        WAIT_EXPECT_EQ(ctx, nodes[i]->getTransactionManager()->getTransactionCount(), count);
+    });
+
     try {
       send_dummy_trx();
     } catch (std::exception &e) {
@@ -1101,9 +1105,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
   // Create and destroy to create network. So next time will be loaded from file
-  {
-    auto nodes = launch_nodes(node_cfgs);
-  }
+  { auto nodes = launch_nodes(node_cfgs); }
   {
     auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
@@ -1128,14 +1130,14 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   }
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
 
-  auto num_proposed_blk = node->getProposedBlocksCount();
+  auto num_proposed_blk = node->getDagBlockProposer()->getProposedBlocksCount();
   for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_proposed_blk > 0) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
-  EXPECT_GT(node->getProposedBlocksCount(), 0);
+  EXPECT_GT(node->getDagBlockProposer()->getProposedBlocksCount(), 0);
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
@@ -1622,7 +1624,9 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
     auto trx2 = std::make_shared<Transaction>(nonce++, 0, 0, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
 
-    EXPECT_EQ(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getFinalChain()->lastBlockNumber()).gas_used,
+    EXPECT_EQ(node0->getTransactionManager()
+                  ->estimateTransactionGas(trx2, node0->getFinalChain()->lastBlockNumber())
+                  .gas_used,
               0);
   }
   CleanupDirs();
@@ -1661,7 +1665,9 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
     auto trx2 = std::make_shared<Transaction>(nonce++, 0, 1000, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
 
-    EXPECT_GE(node0->getTransactionManager()->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize()).gas_used,
+    EXPECT_GE(node0->getTransactionManager()
+                  ->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize())
+                  .gas_used,
               0);
   }
 }

@@ -47,7 +47,8 @@ uint64_t TransactionManager::estimateTransactions(const SharedTransactions &trxs
   return total_gas.load();
 }
 
-state_api::ExecutionResult TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx, PbftPeriod proposal_period) {
+state_api::ExecutionResult TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
+                                                                      PbftPeriod proposal_period) {
   if (trx->getGas() <= kEstimateGasLimit) {
     state_api::ExecutionResult result;
     result.gas_used = trx->getGas();
@@ -75,7 +76,7 @@ state_api::ExecutionResult TransactionManager::estimateTransactionGas(std::share
   }
 
   auto result = final_chain_->call(evm_trx, proposal_period);
-  
+
   if (!result.code_err.empty() || !result.consensus_err.empty()) {
     if (isBeforeSoleiroliaHF) {
       result.gas_used = 0;
@@ -85,7 +86,8 @@ state_api::ExecutionResult TransactionManager::estimateTransactionGas(std::share
   return result;
 }
 
-std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx, bool from_dag) const {
+std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx,
+                                                                   bool from_dag) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
     return {true, ""};
@@ -98,7 +100,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
 
   const int64_t block_num = final_chain_->lastBlockNumber();
   const auto isOnSoleiroliaHF = kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(
-    std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), int64_t(0)));
+      std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), int64_t(0)));
 
   // Ensure the transaction doesn't exceed the current block limit gas.
   if (isOnSoleiroliaHF) {
@@ -218,6 +220,9 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
 
   const auto last_block_number = final_chain_->lastBlockNumber();
   LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
+  if (proposable) {
+    transaction_added_.emit(tx->getHash());
+  }
   return transactions_pool_.insert(std::move(tx), proposable, last_block_number);
 }
 
@@ -251,8 +256,6 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const
 }
 
 void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &trxs) {
-  std::vector<trx_hash_t> accepted_transactions;
-  accepted_transactions.reserve(trxs.size());
   auto write_batch = db_->createWriteBatch();
   vec_trx_t trx_hashes;
   std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
@@ -265,10 +268,10 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     std::unique_lock transactions_lock(transactions_mutex_);
 
     for (auto t : trxs) {
-      const auto tx_hash = t->getHash();
+      const auto trx_hash = t->getHash();
 
       bool transaction_in_dag_or_finalized =
-          nonfinalized_transactions_in_dag_.contains(tx_hash) || recently_finalized_transactions_.contains(tx_hash);
+          nonfinalized_transactions_in_dag_.contains(trx_hash) || recently_finalized_transactions_.contains(trx_hash);
       if (transaction_in_dag_or_finalized) {
         continue;
       }
@@ -279,25 +282,20 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
         // This is a very rare scenario but it can happen:
         // The check against database is needed because there is a possibility that transaction was executed within last
         // 100 period (dag proposal period) but it might not be part of recently_finalized_transactions_
-        transaction_in_dag_or_finalized = db_->transactionFinalized(tx_hash);
+        transaction_in_dag_or_finalized = db_->transactionFinalized(trx_hash);
       }
 
       if (!transaction_in_dag_or_finalized) {
         db_->addTransactionToBatch(*t, write_batch);
-        nonfinalized_transactions_in_dag_.emplace(tx_hash, t);
+        nonfinalized_transactions_in_dag_.emplace(trx_hash, t);
         if (transactions_pool_.erase(t)) {
-          LOG(log_dg_) << "Transaction " << tx_hash << " removed from trx pool ";
-          // Transactions are counted when included in DAG
-          accepted_transactions.emplace_back(tx_hash);
+          LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
         }
         trx_count_++;
       }
     }
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
     db_->commitWriteBatch(write_batch);
-  }
-  for (const auto &trx_hash : accepted_transactions) {
-    transaction_accepted_.emit(trx_hash);
   }
 }
 
@@ -406,11 +404,11 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   SharedTransactions trxs;
   const uint64_t max_transactions_in_block = weight_limit / kMinTxGas;
   const auto isBeforeSoleiroliaHF = !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(proposal_period);
-  
-  //Remove after Soleirolia hardfork
+
+  // Remove after Soleirolia hardfork
   const uint32_t max_zero_gas_transactions_per_block = 2;
   uint32_t zero_gas_transactions_count = 0;
-  
+
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     trxs = transactions_pool_.getOrderedTransactions(max_transactions_in_block);
@@ -426,18 +424,17 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
     }
 
     auto estimate = estimateTransactionGas(trxs[i], proposal_period);
-    if(isBeforeSoleiroliaHF) {
-      //Estimate 0 possible only before Soleirolia hardfork, remove after
+    if (isBeforeSoleiroliaHF) {
+      // Estimate 0 possible only before Soleirolia hardfork, remove after
       if (estimate.gas_used < kMinTxGas) {
-        if(estimate.code_err == "out of gas") {
+        if (estimate.code_err == "out of gas") {
           std::unique_lock transactions_lock(transactions_mutex_);
           auto trx = trxs[i];
           transactions_pool_.erase(trx);
           transactions_pool_.insert(std::move(trx), false, final_chain_->lastBlockNumber());
           continue;
-        }
-        else {
-          if(zero_gas_transactions_count > max_zero_gas_transactions_per_block) {
+        } else {
+          if (zero_gas_transactions_count > max_zero_gas_transactions_per_block) {
             continue;
           }
           zero_gas_transactions_count++;

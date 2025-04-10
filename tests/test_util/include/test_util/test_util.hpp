@@ -12,8 +12,8 @@
 #include <vector>
 
 #include "../../gtest.hpp"
+#include "common/app_base.hpp"
 #include "config/config.hpp"
-#include "node/node.hpp"
 #include "transaction/transaction_manager.hpp"
 
 // TODO rename this namespace to `util_test`
@@ -26,7 +26,6 @@ using std::filesystem::recursive_directory_iterator;
 using std::filesystem::remove_all;
 using namespace std::chrono;
 using expected_balances_map_t = std::map<addr_t, u256>;
-using shared_nodes_t = std::vector<std::shared_ptr<FullNode>>;
 
 const uint64_t TEST_TX_GAS_LIMIT = 500000;
 const uint64_t TEST_BLOCK_GAS_LIMIT = ((uint64_t)1 << 53) - 1;
@@ -34,7 +33,7 @@ const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000FE
 
 inline auto addr(const Secret& secret = Secret::random()) { return KeyPair(secret).address(); }
 
-inline auto addr(const string& secret_str) { return addr(Secret(secret_str)); }
+inline auto addr(const std::string& secret_str) { return addr(Secret(secret_str)); }
 
 struct wait_opts {
   nanoseconds timeout;
@@ -136,7 +135,7 @@ struct TransactionClient {
   };
 
  private:
-  std::shared_ptr<FullNode> node_;
+  std::shared_ptr<AppBase> node_;
   wait_opts wait_opts_;
   uint64_t nonce_{1};
   Secret secret_;
@@ -167,7 +166,7 @@ SharedTransaction make_undelegate_tx(const FullNodeConfig& sender_node_cfg, cons
 SharedTransaction make_redelegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, const Address& to,
                                      uint64_t nonce, const u256& gas_price);
 
-u256 own_balance(const std::shared_ptr<FullNode>& node);
+u256 own_balance(const std::shared_ptr<AppBase>& node);
 
 state_api::BalanceMap effective_initial_balances(const state_api::Config& cfg);
 
@@ -180,7 +179,7 @@ std::vector<blk_hash_t> getOrderedDagBlocks(const std::shared_ptr<DbStorage>& db
 
 addr_t make_addr(uint8_t i);
 
-void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& nodes, const expected_balances_map_t& balances,
+void wait_for_balances(const std::vector<std::shared_ptr<AppBase>>& nodes, const expected_balances_map_t& balances,
                        wait_opts to_wait = {10s, 500ms});
 
 std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
@@ -189,7 +188,7 @@ std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, Pb
 std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
                                        blk_hash_t block_hash = blk_hash_t(1));
 
-std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>>& nodes);
+std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<AppBase>>& nodes);
 
 struct NodesTest : virtual WithDataDir {
   NodesTest();
@@ -203,17 +202,19 @@ struct NodesTest : virtual WithDataDir {
 
   void CleanupDirs();
 
+  std::shared_ptr<AppBase> create_node(const FullNodeConfig& cfg, bool start);
+
   std::vector<taraxa::FullNodeConfig> make_node_cfgs(size_t total_count, size_t validators_count = 1,
                                                      uint tests_speed = 1, bool enable_rpc_http = false,
                                                      bool enable_rpc_ws = false);
 
-  bool wait_connect(const std::vector<std::shared_ptr<taraxa::FullNode>>& nodes);
+  bool wait_connect(const std::vector<std::shared_ptr<taraxa::AppBase>>& nodes);
 
-  shared_nodes_t create_nodes(uint count, bool start = false);
+  std::vector<std::shared_ptr<AppBase>> create_nodes(uint count, bool start = false);
 
-  shared_nodes_t create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start = false);
+  std::vector<std::shared_ptr<AppBase>> create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start = false);
 
-  shared_nodes_t launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs);
+  std::vector<std::shared_ptr<AppBase>> launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs);
 
   std::vector<taraxa::FullNodeConfig> node_cfgs;
 };

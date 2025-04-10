@@ -10,7 +10,6 @@ class Manager {
     migrations_.push_back(std::make_shared<T>(db_));
   }
   void applyAll();
-  void applyTransactionPeriod();
 
   void applyReceiptsByPeriod();
 
