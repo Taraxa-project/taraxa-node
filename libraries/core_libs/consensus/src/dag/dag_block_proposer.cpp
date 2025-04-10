@@ -28,10 +28,8 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
       vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk_)),
       kDagProposeGasLimit(
           std::min(config.propose_dag_gas_limit, config.genesis.getGasLimits(final_chain_->lastBlockNumber()).first)),
-      kPbftGasLimit(
-          config.genesis.getGasLimits(final_chain_->lastBlockNumber()).second),
-      kDagGasLimit(
-          config.genesis.getGasLimits(final_chain_->lastBlockNumber()).first),
+      kPbftGasLimit(config.genesis.getGasLimits(final_chain_->lastBlockNumber()).second),
+      kDagGasLimit(config.genesis.getGasLimits(final_chain_->lastBlockNumber()).first),
       kHardforks(config.genesis.state.hardforks),
       kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
                         config.genesis.state.dpos.vote_eligibility_balance_step) {
@@ -69,6 +67,11 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
+  if (*proposal_period + kDagExpiryLevelLimit < final_chain_->lastBlockNumber()) {
+    LOG(log_wr_) << "Trying to propose old block " << propose_level;
+    return false;
+  }
+
   if (!isValidDposProposer(*proposal_period)) {
     return false;
   }
@@ -85,6 +88,11 @@ bool DagBlockProposer::proposeDagBlock() {
     max_vote_count = final_chain_->dposEligibleTotalVoteCount(*proposal_period);
   } else {
     max_vote_count = kValidatorMaxVote;
+  }
+
+  if (max_vote_count == 0) {
+    LOG(log_er_) << "Total vote count 0 at proposal period:" << *proposal_period;
+    return false;
   }
 
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);

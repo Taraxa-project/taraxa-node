@@ -10,12 +10,15 @@ GetNextVotesBundlePacketHandler::GetNextVotesBundlePacketHandler(
     std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
     std::shared_ptr<SlashingManager> slashing_manager, const addr_t &node_addr, const std::string &logs_prefix)
-    : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
-                            logs_prefix + "GET_NEXT_VOTES_BUNDLE_PH") {}
+    : IVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
+                         std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
+                         logs_prefix + "GET_NEXT_VOTES_BUNDLE_PH") {}
 
-void GetNextVotesBundlePacketHandler::process(GetNextVotesBundlePacket &&packet,
+void GetNextVotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                               const std::shared_ptr<TaraxaPeer> &peer) {
+  // Decode packet rlp into packet object
+  auto packet = decodePacketRlp<GetNextVotesBundlePacket>(packet_data.rlp_);
+
   LOG(log_dg_) << "Received GetNextVotesSyncPacket request";
   const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 

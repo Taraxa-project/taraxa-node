@@ -8,11 +8,11 @@ set(HEADERS
     include/common/default_construct_copyable_movable.hpp
     include/common/encoding_rlp.hpp
     include/common/encoding_solidity.hpp
-    include/common/functional.hpp
     include/common/jsoncpp.hpp
     include/common/lazy.hpp
     include/common/thread_pool.hpp
     include/common/util.hpp
+    include/common/rpc_utils.hpp
 )
 
 set(SOURCES
@@ -21,6 +21,7 @@ set(SOURCES
     src/thread_pool.cpp
     src/util.cpp
     src/vrf_wrapper.cpp
+    src/rpc_utils.cpp
 )
 
 add_library(common ${SOURCES} ${HEADERS})

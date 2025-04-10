@@ -16,6 +16,7 @@
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "storage/uint_comparator.hpp"
+#include "transaction/receipt.hpp"
 #include "transaction/transaction.hpp"
 #include "vote/pillar_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -28,10 +29,6 @@ namespace pillar_chain {
 struct PillarBlockData;
 class PillarBlock;
 }  // namespace pillar_chain
-
-namespace final_chain {
-struct TransactionLocation;
-}  // namespace final_chain
 
 enum StatusDbField : uint8_t {
   ExecutedBlkCount = 0,
@@ -77,16 +74,16 @@ using OnEntry = std::function<void(Slice const&, Slice const&)>;
 class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
   class Column {
-    string const name_;
+    std::string const name_;
 
    public:
     size_t const ordinal_;
     const rocksdb::Comparator* comparator_;
 
-    Column(string name, size_t ordinal, const rocksdb::Comparator* comparator)
+    Column(std::string name, size_t ordinal, const rocksdb::Comparator* comparator)
         : name_(std::move(name)), ordinal_(ordinal), comparator_(comparator) {}
 
-    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal_(ordinal), comparator_(nullptr) {}
+    Column(std::string name, size_t ordinal) : name_(std::move(name)), ordinal_(ordinal), comparator_(nullptr) {}
 
     auto const& name() const { return ordinal_ ? name_ : rocksdb::kDefaultColumnFamilyName; }
   };
@@ -145,12 +142,18 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(system_transaction);
     // system transactions hashes by period
     COLUMN(period_system_transactions);
+    // final chain receipts by period
+    COLUMN_W_COMP(final_chain_receipt_by_period, getIntComparator<PbftPeriod>());
 
 #undef COLUMN
 #undef COLUMN_W_COMP
   };
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
+  rocksdb::ReadOptions read_options_;
+
+  rocksdb::WriteOptions async_write_;
+  rocksdb::WriteOptions sync_write_;
 
  private:
   fs::path path_;
@@ -160,8 +163,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   const std::string kStateDbDir = "state_db";
   std::unique_ptr<rocksdb::DB> db_;
   std::vector<rocksdb::ColumnFamilyHandle*> handles_;
-  rocksdb::ReadOptions read_options_;
-  rocksdb::WriteOptions write_options_;
   std::mutex dag_blocks_mutex_;
   std::atomic<uint64_t> dag_blocks_count_;
   std::atomic<uint64_t> dag_edge_count_;
@@ -191,8 +192,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   auto dbStoragePath() const { return db_path_; }
   auto stateDbStoragePath() const { return state_db_path_; }
   static Batch createWriteBatch();
-  void commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts);
-  void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, write_options_); }
+  void commitWriteBatch(Batch& write_batch, const rocksdb::WriteOptions& opts);
+  void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, async_write_); }
 
   void rebuildColumns(const rocksdb::Options& options);
   bool createSnapshot(PbftPeriod period);
@@ -223,12 +224,13 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
+  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep, PbftPeriod last_block_number);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PeriodData> getPeriodData(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<PbftVote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
+  SharedTransactions transactionsFromPeriodDataRlp(PbftPeriod period, const dev::RLP& period_data_rlp) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
   std::vector<std::shared_ptr<PillarVote>> getPeriodPillarVotes(PbftPeriod period) const;
 
@@ -258,7 +260,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(PbftPeriod period);
 
   // Transaction
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
+  std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash) const;
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
@@ -269,9 +271,12 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   void addTransactionLocationToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position,
                                      bool is_system = false);
-  std::optional<final_chain::TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
+  std::optional<TransactionLocation> getTransactionLocation(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
   uint64_t getTransactionCount(PbftPeriod period) const;
+  SharedTransactionReceipts getBlockReceipts(PbftPeriod period) const;
+  std::optional<TransactionReceipt> getTransactionReceipt(EthBlockNumber blk_n, uint64_t position) const;
+
   /**
    * @brief Gets finalized transactions from provided hashes
    *
@@ -311,8 +316,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<PbftBlock>> getProposedPbftBlocks();
 
   // pbft_blocks (head)
-  string getPbftHead(blk_hash_t const& hash);
-  void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
+  std::string getPbftHead(blk_hash_t const& hash);
+  void savePbftHead(blk_hash_t const& hash, std::string const& pbft_chain_head_str);
   void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str, Batch& write_batch);
 
   // status
@@ -365,7 +370,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   void compactColumn(Column const& column) { db_->CompactRange({}, handle(column), nullptr, nullptr); }
 
-  inline static bytes asBytes(string const& b) {
+  inline static bytes asBytes(std::string const& b) {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }
 
@@ -391,7 +396,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     return make_slice(&n, sizeof(N));
   }
 
-  inline static Slice toSlice(string const& str) { return make_slice(str.data(), str.size()); }
+  inline static Slice toSlice(std::string const& str) { return make_slice(str.data(), str.size()); }
 
   inline static auto const& toSlice(Slice const& s) { return s; }
 
@@ -446,12 +451,12 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   template <typename K, typename V>
   void insert(rocksdb::ColumnFamilyHandle* col, const K& k, const V& v) {
-    checkStatus(db_->Put(write_options_, col, toSlice(k), toSlice(v)));
+    checkStatus(db_->Put(async_write_, col, toSlice(k), toSlice(v)));
   }
 
   template <typename K, typename V>
   void insert(Column const& col, K const& k, V const& v) {
-    checkStatus(db_->Put(write_options_, handle(col), toSlice(k), toSlice(v)));
+    checkStatus(db_->Put(async_write_, handle(col), toSlice(k), toSlice(v)));
   }
 
   template <typename K, typename V>
@@ -466,7 +471,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   template <typename K>
   void remove(Column const& col, K const& k) {
-    checkStatus(db_->Delete(write_options_, handle(col), toSlice(k)));
+    checkStatus(db_->Delete(async_write_, handle(col), toSlice(k)));
   }
 
   template <typename K>

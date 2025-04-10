@@ -2,15 +2,10 @@
 
 namespace taraxa::net {
 
-HttpServer::HttpServer(std::shared_ptr<util::ThreadPool> thread_pool, boost::asio::ip::tcp::endpoint ep,
-                       const addr_t &node_addr, const std::shared_ptr<HttpProcessor> &request_processor,
-                       uint32_t max_pending_tasks)
-    : request_processor_(request_processor),
-      io_context_(thread_pool->unsafe_get_io_context()),
-      acceptor_(thread_pool->unsafe_get_io_context()),
-      ep_(std::move(ep)),
-      thread_pool_(thread_pool),
-      kMaxPendingTasks(max_pending_tasks) {
+HttpServer::HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, const addr_t &node_addr,
+                       const std::shared_ptr<HttpProcessor> &request_processor,
+                       std::shared_ptr<metrics::JsonRpcMetrics> metrics)
+    : request_processor_(request_processor), metrics_(metrics), io_context_(io), acceptor_(io), ep_(std::move(ep)) {
   LOG_OBJECTS_CREATE("HTTP");
   LOG(log_si_) << "Taraxa HttpServer started at port: " << ep_.port();
 }
@@ -72,14 +67,6 @@ bool HttpServer::stop() {
   return true;
 }
 
-uint32_t HttpServer::numberOfPendingTasks() const {
-  auto thread_pool = thread_pool_.lock();
-  if (thread_pool) {
-    return thread_pool->num_pending_tasks();
-  }
-  return 0;
-}
-
 std::shared_ptr<HttpConnection> HttpConnection::getShared() {
   try {
     return shared_from_this();
@@ -110,19 +97,31 @@ void HttpConnection::read() {
           LOG(server_->log_er_) << "Error! HttpConnection connection read fail ... " << ec.message() << std::endl;
           stop();
         } else {
+          std::string ip = request_["X-Real-IP"];
+          if (ip.empty()) {
+            try {
+              auto endpoint = socket_.remote_endpoint();
+              ip = endpoint.address().to_string();
+            } catch (...) {
+              ip = "Unknown";
+            }
+          }
+
           assert(server_->request_processor_);
           LOG(server_->log_dg_) << "Received: " << request_;
 
-          if (server_->pendingTasksOverLimit()) {
-            LOG(server_->log_er_) << "HttpConnection closed - pending tasks over the limit "
-                                  << server_->numberOfPendingTasks();
-            stop();
-          } else {
-            response_ = server_->request_processor_->process(request_);
-            boost::beast::http::async_write(
-                socket_, response_,
-                [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transferred*/) { this_sp->stop(); });
+          auto start_time = std::chrono::steady_clock::now();
+          response_ = server_->request_processor_->process(request_);
+          auto end_time = std::chrono::steady_clock::now();
+          auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+
+          if (server_->metrics_) {
+            server_->metrics_->report(request_.body(), ip, "HTTP", processing_time.count());
           }
+
+          boost::beast::http::async_write(
+              socket_, response_,
+              [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transferred*/) { this_sp->stop(); });
         }
       });
 }

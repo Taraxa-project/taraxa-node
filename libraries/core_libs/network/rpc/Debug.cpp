@@ -4,9 +4,11 @@
 #include <libdevcore/CommonJS.h>
 
 #include "common/jsoncpp.hpp"
+#include "common/rpc_utils.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "network/rpc/eth/data.hpp"
 #include "transaction/transaction.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 using namespace std;
 using namespace dev;
@@ -19,7 +21,7 @@ Json::Value Debug::debug_traceCall(const Json::Value& call_params, const std::st
   Json::Value res;
   const auto block = parse_blk_num(blk_num);
   auto trx = to_eth_trx(call_params, block);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(node->getFinalChain()->trace({}, {std::move(trx)}, block));
   }
   return res;
@@ -30,7 +32,7 @@ Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value&
   Json::Value res;
   const auto block = parse_blk_num(blk_num);
   auto params = parse_tracking_parms(trace_params);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(
         node->getFinalChain()->trace({}, {to_eth_trx(call_params, block)}, block, std::move(params)));
   }
@@ -39,17 +41,17 @@ Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value&
 
 std::tuple<std::vector<state_api::EVMTransaction>, state_api::EVMTransaction, uint64_t>
 Debug::get_transaction_with_state(const std::string& transaction_hash) {
-  auto node = full_node_.lock();
+  auto node = app_.lock();
   if (!node) {
     return {};
   }
-  const auto hash = jsToFixed<32>(transaction_hash);
 
-  auto loc = node->getFinalChain()->transactionLocation(hash);
+  auto final_chain = node->getFinalChain();
+  auto loc = final_chain->transactionLocation(jsToFixed<32>(transaction_hash));
   if (!loc) {
     throw std::runtime_error("Transaction not found");
   }
-  auto block_transactions = node->getFinalChain()->getTransactions(loc->period);
+  auto block_transactions = final_chain->transactions(loc->period);
 
   auto state_trxs = SharedTransactions(block_transactions.begin(), block_transactions.begin() + loc->position);
 
@@ -58,7 +60,7 @@ Debug::get_transaction_with_state(const std::string& transaction_hash) {
 Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
   auto [state_trxs, trx, period] = get_transaction_with_state(transaction_hash);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(node->getFinalChain()->trace({}, {trx}, period));
   }
   return res;
@@ -68,19 +70,28 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
   Json::Value res;
   auto params = parse_tracking_parms(trace_params);
   auto [state_trxs, trx, period] = get_transaction_with_state(transaction_hash);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     return util::readJsonFromString(node->getFinalChain()->trace(state_trxs, {trx}, period, params));
   }
   return res;
+}
+
+bool only_transfers(const SharedTransactions& trxs) {
+  return std::all_of(trxs.begin(), trxs.end(), [](const SharedTransaction& trx) {
+    return trx->getReceiver().has_value() && trx->getData().empty() && trx->getGas() <= 22000;
+  });
 }
 
 Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, const Json::Value& trace_params) {
   Json::Value res;
   const auto block = parse_blk_num(block_num);
   auto params = parse_tracking_parms(trace_params);
-  if (auto node = full_node_.lock()) {
+  if (auto node = app_.lock()) {
     auto transactions = node->getDB()->getPeriodTransactions(block);
     if (!transactions.has_value() || transactions->empty()) {
+      return Json::Value(Json::arrayValue);
+    }
+    if (only_transfers(*transactions)) {
       return Json::Value(Json::arrayValue);
     }
     std::vector<state_api::EVMTransaction> trxs = to_eth_trxs(*transactions);
@@ -89,41 +100,9 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
   return res;
 }
 
-template <class S, class FN>
-Json::Value transformToJsonParallel(const S& source, FN op) {
-  if (source.empty()) {
-    return Json::Value(Json::arrayValue);
-  }
-  static util::ThreadPool executor{std::thread::hardware_concurrency() / 2};
-
-  Json::Value out(Json::arrayValue);
-  out.resize(source.size());
-  std::atomic_uint processed = 0;
-  for (unsigned i = 0; i < source.size(); ++i) {
-    executor.post([&, i]() {
-      out[i] = op(source[i]);
-      ++processed;
-    });
-  }
-
-  while (true) {
-    if (processed == source.size()) {
-      break;
-    }
-  }
-  return out;
-}
-
-Json::Value mergeJsons(Json::Value&& o1, Json::Value&& o2) {
-  for (auto itr = o2.begin(); itr != o2.end(); ++itr) {
-    o1[itr.key().asString()] = *itr;
-  }
-  return o1;
-}
-
 Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -131,21 +110,31 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
     auto period = dev::jsToInt(_period);
     auto block_hash = final_chain->blockHash(period);
     auto trxs = node->getDB()->getPeriodTransactions(period);
-    if (!trxs.has_value()) {
+    if (!trxs.has_value() || trxs->empty()) {
       return Json::Value(Json::arrayValue);
     }
 
-    return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
+    auto receipts = final_chain->blockReceipts(period);
+
+    return util::transformToJsonParallel(*trxs, [&final_chain, &receipts, &block_hash, &period](const auto& trx,
+                                                                                                auto index) {
       auto hash = trx->getHash();
-      auto r = final_chain->transactionReceipt(hash);
-      auto location =
-          rpc::eth::ExtendedTransactionLocation{{*final_chain->transactionLocation(hash), *block_hash}, hash};
+
+      auto location = rpc::eth::ExtendedTransactionLocation{{TransactionLocation{period, index}, *block_hash}, hash};
       auto transaction = rpc::eth::LocalisedTransaction{trx, location};
-      auto receipt = rpc::eth::LocalisedTransactionReceipt{*r, location, trx->getSender(), trx->getReceiver()};
+      rpc::eth::LocalisedTransactionReceipt receipt;
+      if (!receipts) {
+        receipt = rpc::eth::LocalisedTransactionReceipt{final_chain->transactionReceipt(period, index, hash).value(),
+                                                        location, trx->getSender(), trx->getReceiver()};
+      } else {
+        receipt =
+            rpc::eth::LocalisedTransactionReceipt{receipts->at(index), location, trx->getSender(), trx->getReceiver()};
+      }
+
       auto receipt_json = rpc::eth::toJson(receipt);
       receipt_json.removeMember("transactionHash");
 
-      return mergeJsons(rpc::eth::toJson(transaction), std::move(receipt_json));
+      return util::mergeJsons(rpc::eth::toJson(transaction), std::move(receipt_json));
     });
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
@@ -154,7 +143,7 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
 
 Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -162,7 +151,7 @@ Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
     auto period = dev::jsToInt(_period);
     auto dags = node->getDB()->getFinalizedDagBlockByPeriod(period);
 
-    return transformToJsonParallel(dags, [&period](const auto& dag) {
+    return util::transformToJsonParallel(dags, [&period](const auto& dag, auto) {
       auto block_json = dag->getJson();
       block_json["period"] = toJS(period);
       return block_json;
@@ -174,7 +163,7 @@ Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
 
 Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -193,7 +182,7 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
     const auto votes_period = votes.front()->getPeriod();
     const uint64_t total_dpos_votes_count = final_chain->dposEligibleTotalVoteCount(votes_period - 1);
     res["total_votes_count"] = total_dpos_votes_count;
-    res["votes"] = transformToJsonParallel(votes, [&](const auto& vote) {
+    res["votes"] = util::transformToJsonParallel(votes, [&](const auto& vote, auto) {
       vote_manager->validateVote(vote);
       return vote->toJSON();
     });
@@ -205,7 +194,7 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
 
 Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -232,7 +221,7 @@ Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
 
 Json::Value Debug::debug_dposTotalAmountDelegated(const std::string& _period) {
   try {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
     if (!node) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
@@ -316,7 +305,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
   if (!json["nonce"].empty()) {
     trx.nonce = jsToU256(json["nonce"].asString());
   } else {
-    if (auto node = full_node_.lock()) {
+    if (auto node = app_.lock()) {
       trx.nonce = node->getFinalChain()->getAccount(trx.from, blk_num).value_or(state_api::ZeroAccount).nonce;
     }
   }
@@ -324,9 +313,9 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
   return trx;
 }
 
-EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
+EthBlockNumber Debug::parse_blk_num(const std::string& blk_num_str) {
   if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str.empty()) {
-    if (auto node = full_node_.lock()) {
+    if (auto node = app_.lock()) {
       return node->getFinalChain()->lastBlockNumber();
     }
   } else if (blk_num_str == "earliest") {
@@ -335,7 +324,7 @@ EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
   return jsToInt(blk_num_str);
 }
 
-Address Debug::to_address(const string& s) const {
+Address Debug::to_address(const std::string& s) const {
   try {
     if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, WhenError::Throw); b.size() == Address::size) {
       return Address(b);

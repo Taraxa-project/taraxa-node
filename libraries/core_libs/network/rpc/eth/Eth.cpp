@@ -7,8 +7,8 @@
 #include <stdexcept>
 
 #include "LogFilter.hpp"
+#include "common/rpc_utils.hpp"
 #include "common/types.hpp"
-
 using namespace std;
 using namespace dev;
 using namespace taraxa::final_chain;
@@ -27,20 +27,8 @@ void add(Json::Value& obj, const ExtendedTransactionLocation& info) {
 }
 
 Json::Value toJson(const Transaction& trx, const optional<TransactionLocationWithBlockHash>& loc) {
-  Json::Value res(Json::objectValue);
+  Json::Value res = trx.toJSON();
   add(res, loc);
-  res["hash"] = toJS(trx.getHash());
-  res["input"] = toJS(trx.getData());
-  res["to"] = toJson(trx.getReceiver());
-  res["from"] = toJS(trx.getSender());
-  res["gas"] = toJS(trx.getGas());
-  res["gasPrice"] = toJS(trx.getGasPrice());
-  res["nonce"] = toJS(trx.getNonce());
-  res["value"] = toJS(trx.getValue());
-  const auto& vrs = trx.getVRS();
-  res["r"] = toJS(u256(vrs.r));
-  res["s"] = toJS(u256(vrs.s));
-  res["v"] = toJS(vrs.v);
   return res;
 }
 
@@ -96,6 +84,7 @@ Json::Value toJson(const LocalisedTransactionReceipt& ltr) {
   res["cumulativeGasUsed"] = toJS(ltr.r.cumulative_gas_used);
   res["contractAddress"] = toJson(ltr.r.new_contract_address);
   res["logsBloom"] = toJS(ltr.r.bloom());
+
   auto& logs_json = res["logs"] = Json::Value(Json::arrayValue);
   uint log_i = 0;
   for (const auto& le : ltr.r.logs) {
@@ -110,6 +99,17 @@ Json::Value toJson(const SyncStatus& obj) {
   res["currentBlock"] = toJS(obj.current_block);
   res["highestBlock"] = toJS(obj.highest_block);
   return res;
+}
+
+DEV_SIMPLE_EXCEPTION(InvalidAddress);
+Address toAddress(const std::string& s) {
+  try {
+    if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, dev::WhenError::Throw); b.size() == Address::size) {
+      return Address(b);
+    }
+  } catch (dev::BadHexCharacter&) {
+  }
+  BOOST_THROW_EXCEPTION(InvalidAddress());
 }
 
 class EthImpl : public Eth, EthParams {
@@ -160,7 +160,8 @@ class EthImpl : public Eth, EthParams {
       if (ret.code_retval.empty()) {
         throw jsonrpc::JsonRpcException(ret.consensus_err.empty() ? ret.code_err : ret.consensus_err);
       }
-      throw jsonrpc::JsonRpcException(CALL_EXCEPTION, ret.consensus_err.empty() ? ret.code_err : ret.consensus_err, toJS(ret.code_retval));
+      throw jsonrpc::JsonRpcException(CALL_EXCEPTION, ret.consensus_err.empty() ? ret.code_err : ret.consensus_err,
+                                      toJS(ret.code_retval));
     }
     return toJS(ret.code_retval);
   }
@@ -254,11 +255,42 @@ class EthImpl : public Eth, EthParams {
 
   Json::Value eth_getTransactionByBlockNumberAndIndex(const string& _blockNumber,
                                                       const string& _transactionIndex) override {
-    return toJson(get_transaction(jsToInt(_transactionIndex), parse_blk_num(_blockNumber)));
+    return toJson(get_transaction(parse_blk_num(_blockNumber), jsToInt(_transactionIndex)));
   }
 
   Json::Value eth_getTransactionReceipt(const string& _transactionHash) override {
     return toJson(get_transaction_receipt(jsToFixed<32>(_transactionHash)));
+  }
+
+  Json::Value eth_getBlockReceipts(const Json::Value& _blockNumber) override {
+    auto blk_n = get_block_number_from_json(_blockNumber);
+    auto block_hash = final_chain->blockHash(blk_n);
+    if (!block_hash) {
+      return Json::Value(Json::arrayValue);
+    }
+    auto transactions = final_chain->transactions(blk_n);
+    if (transactions.empty()) {
+      return Json::Value(Json::arrayValue);
+    }
+
+    auto receipts = final_chain->blockReceipts(blk_n);
+    return util::transformToJsonParallel(
+        transactions, [this, &receipts, blk_n, &block_hash](const auto& trx, auto index) {
+          if (!receipts) {
+            return toJson(LocalisedTransactionReceipt{
+                final_chain->transactionReceipt(blk_n, index, trx->getHash()).value(),
+                ExtendedTransactionLocation{{{blk_n, index}, *block_hash}, trx->getHash()},
+                trx->getSender(),
+                trx->getReceiver(),
+            });
+          }
+          return toJson(LocalisedTransactionReceipt{
+              receipts->at(index),
+              ExtendedTransactionLocation{{{blk_n, index}, *block_hash}, trx->getHash()},
+              trx->getSender(),
+              trx->getReceiver(),
+          });
+        });
   }
 
   Json::Value eth_getUncleByBlockHashAndIndex(const string&, const string&) override { return Json::Value(); }
@@ -353,7 +385,7 @@ class EthImpl : public Eth, EthParams {
     };
   }
 
-  optional<LocalisedTransaction> get_transaction(uint32_t trx_pos, EthBlockNumber blk_n) const {
+  optional<LocalisedTransaction> get_transaction(EthBlockNumber blk_n, uint32_t trx_pos) const {
     const auto& trxs = final_chain->transactions(blk_n);
     if (trxs.size() <= trx_pos) {
       return {};
@@ -369,15 +401,22 @@ class EthImpl : public Eth, EthParams {
 
   optional<LocalisedTransaction> get_transaction(const h256& blk_h, uint64_t _i) const {
     auto blk_n = final_chain->blockNumber(blk_h);
-    return blk_n ? get_transaction(_i, *blk_n) : nullopt;
+    if (!blk_n) {
+      return {};
+    }
+    return get_transaction(*blk_n, _i);
   }
 
   optional<LocalisedTransactionReceipt> get_transaction_receipt(const h256& trx_h) const {
-    auto r = final_chain->transactionReceipt(trx_h);
+    auto location = final_chain->transactionLocation(trx_h);
+    if (!location) {
+      return {};
+    }
+    auto r = final_chain->transactionReceipt(location->period, location->position, trx_h);
     if (!r) {
       return {};
     }
-    auto loc_trx = get_transaction(trx_h);
+    auto loc_trx = get_transaction(location->period, location->position);
     const auto& trx = loc_trx->trx;
     return LocalisedTransactionReceipt{
         *r,
@@ -426,17 +465,6 @@ class EthImpl : public Eth, EthParams {
     if (!t.gas) {
       t.gas = gas_limit;
     }
-  }
-
-  DEV_SIMPLE_EXCEPTION(InvalidAddress);
-  static Address toAddress(const string& s) {
-    try {
-      if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, WhenError::Throw); b.size() == Address::size) {
-        return Address(b);
-      }
-    } catch (BadHexCharacter&) {
-    }
-    BOOST_THROW_EXCEPTION(InvalidAddress());
   }
 
   static TransactionSkeleton toTransactionSkeleton(const Json::Value& _json) {
@@ -503,8 +531,6 @@ class EthImpl : public Eth, EthParams {
   LogFilter parse_log_filter(const Json::Value& json) {
     EthBlockNumber from_block;
     optional<EthBlockNumber> to_block;
-    AddressSet addresses;
-    LogFilter::Topics topics;
     if (const auto& fromBlock = json["fromBlock"]; !fromBlock.empty()) {
       from_block = parse_blk_num(fromBlock.asString());
     } else {
@@ -513,34 +539,7 @@ class EthImpl : public Eth, EthParams {
     if (const auto& toBlock = json["toBlock"]; !toBlock.empty()) {
       to_block = parse_blk_num_specific(toBlock.asString());
     }
-    if (const auto& address = json["address"]; !address.empty()) {
-      if (address.isArray()) {
-        for (const auto& obj : address) {
-          addresses.insert(toAddress(obj.asString()));
-        }
-      } else {
-        addresses.insert(toAddress(address.asString()));
-      }
-    }
-    if (const auto& topics_json = json["topics"]; !topics_json.empty()) {
-      if (topics_json.size() > 4) {
-        BOOST_THROW_EXCEPTION(jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS,
-                                                        "only up to four topic slots may be specified"));
-      }
-      for (uint32_t i = 0; i < topics_json.size(); i++) {
-        const auto& topic_json = topics_json[i];
-        if (topic_json.isArray()) {
-          for (const auto& t : topic_json) {
-            if (!t.isNull()) {
-              topics[i].insert(jsToFixed<32>(t.asString()));
-            }
-          }
-        } else if (!topic_json.isNull()) {
-          topics[i].insert(jsToFixed<32>(topic_json.asString()));
-        }
-      }
-    }
-    return LogFilter(from_block, to_block, std::move(addresses), std::move(topics));
+    return LogFilter(from_block, to_block, parse_addresses(json), parse_topics(json));
   }
 };
 

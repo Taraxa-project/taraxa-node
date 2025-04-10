@@ -6,14 +6,13 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e48535ad4be12a as builder
 
 # deps versions
-ARG LLVM_VERSION=17
+ARG LLVM_VERSION=18
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install standard packages
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     && apt-get install -y \
     tar \
@@ -22,13 +21,10 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
     wget \
     python3-pip \
     lsb-release \
-    libgmp-dev \
-    libmpfr-dev \
-    libmicrohttpd-dev \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-# install solc for py_test if arch is not arm64 because it is not availiable
+# install solc for py_test if arch is not arm64 because it is not available
 
 # Install solc 0.8.24 as we do not support 0.8.25 yet
 RUN \
@@ -39,7 +35,7 @@ curl -L -o solc-0.8.25 https://github.com/ethereum/solidity/releases/download/v0
     && mv solc-0.8.25 /usr/bin/solc; \
 fi
 
-# install standart tools
+# install standard tools
 RUN add-apt-repository ppa:ethereum/ethereum \
     && apt-get update \
     && apt-get install -y \
@@ -53,7 +49,11 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     binutils \
     cmake \
     ccache \
-    # this libs are required for arm build by go part
+    libgmp-dev \
+    libmpfr-dev \
+    libmicrohttpd-dev \
+    libgoogle-perftools-dev \
+    # these libs are required for arm build by go part
     libzstd-dev \
     libsnappy-dev \
     # replace this with conan dependency
@@ -73,6 +73,8 @@ RUN pip3 install conan==1.64.1 --break-system-packages
 
 # Install conan deps
 WORKDIR /opt/taraxa/
+
+COPY CMakeModules/settings.yml /root/.conan/settings.yml
 COPY conanfile.py .
 
 RUN conan profile new clang --detect \
@@ -100,6 +102,7 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DTARAXA_ENABLE_LTO=OFF \
     -DTARAXA_STATIC_BUILD=OFF \
+    -DTARAXA_GPERF=ON \
     ../
 
 RUN cd $BUILD_OUTPUT_DIR && make -j$(nproc) all \
@@ -119,7 +122,13 @@ FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e4853
 
 # Install curl and jq
 RUN apt-get update \
-    && apt-get install -y curl jq python3 python3-pip python3-virtualenv \
+    && apt-get install -y \
+        curl \
+        jq \
+        python3 \
+        python3-pip \
+        python3-virtualenv \
+        libgoogle-perftools4t64 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required Python packages

@@ -1,5 +1,9 @@
 #include "LogFilter.hpp"
 
+#include <jsonrpccpp/common/exception.h>
+
+#include "Eth.h"
+
 namespace taraxa::net::rpc::eth {
 
 LogFilter::LogFilter(EthBlockNumber from_block, std::optional<EthBlockNumber> to_block, AddressSet addresses,
@@ -8,7 +12,8 @@ LogFilter::LogFilter(EthBlockNumber from_block, std::optional<EthBlockNumber> to
   if (!addresses_.empty()) {
     return;
   }
-  is_range_only_ = std::all_of(topics_.cbegin(), topics_.cend(), [](const auto& t) { return t.empty(); });
+  is_range_only_ =
+      addresses_.empty() && std::all_of(topics_.cbegin(), topics_.cend(), [](const auto& t) { return t.empty(); });
 }
 
 std::vector<LogBloom> LogFilter::bloomPossibilities() const {
@@ -125,10 +130,21 @@ std::vector<LocalisedLogEntry> LogFilter::match_all(const final_chain::FinalChai
   auto action = [&, this](EthBlockNumber blk_n) {
     ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.blockHash(blk_n)}};
     auto hashes = final_chain.transactionHashes(trx_loc.period);
-    for (const auto& hash : *hashes) {
-      trx_loc.trx_hash = hash;
-      match_one(trx_loc, *final_chain.transactionReceipt(hash), [&](const auto& lle) { ret.push_back(lle); });
-      ++trx_loc.position;
+    auto block_receipts = final_chain.blockReceipts(blk_n);
+
+    if (block_receipts && block_receipts->size() == hashes->size()) {
+      for (uint32_t i = 0; i < block_receipts->size(); i++) {
+        trx_loc.trx_hash = (*hashes)[i];
+        match_one(trx_loc, (*block_receipts)[i], [&](const auto& lle) { ret.push_back(lle); });
+        ++trx_loc.position;
+      }
+    } else {
+      for (const auto& hash : *hashes) {
+        trx_loc.trx_hash = hash;
+        match_one(trx_loc, *final_chain.transactionReceipt(trx_loc.period, trx_loc.position, hash),
+                  [&](const auto& lle) { ret.push_back(lle); });
+        ++trx_loc.position;
+      }
     }
   };
   // to_block can't be greater than the last executed block number
@@ -154,6 +170,42 @@ std::vector<LocalisedLogEntry> LogFilter::match_all(const final_chain::FinalChai
     action(blk_n);
   }
   return ret;
+}
+
+AddressSet parse_addresses(const Json::Value& json) {
+  AddressSet addresses;
+  if (const auto& address = json["address"]; !address.empty()) {
+    if (address.isArray()) {
+      for (const auto& obj : address) {
+        addresses.insert(toAddress(obj.asString()));
+      }
+    } else {
+      addresses.insert(toAddress(address.asString()));
+    }
+  }
+  return addresses;
+}
+LogFilter::Topics parse_topics(const Json::Value& json) {
+  LogFilter::Topics topics;
+  if (const auto& topics_json = json["topics"]; !topics_json.empty()) {
+    if (topics_json.size() > 4) {
+      BOOST_THROW_EXCEPTION(jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS,
+                                                      "only up to four topic slots may be specified"));
+    }
+    for (uint32_t i = 0; i < topics_json.size(); i++) {
+      const auto& topic_json = topics_json[i];
+      if (topic_json.isArray()) {
+        for (const auto& t : topic_json) {
+          if (!t.isNull()) {
+            topics[i].insert(dev::jsToFixed<32>(t.asString()));
+          }
+        }
+      } else if (!topic_json.isNull()) {
+        topics[i].insert(dev::jsToFixed<32>(topic_json.asString()));
+      }
+    }
+  }
+  return topics;
 }
 
 }  // namespace taraxa::net::rpc::eth

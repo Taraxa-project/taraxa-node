@@ -15,14 +15,14 @@ struct DBConfig {
   bool rebuild_db = false;
   bool prune_state_db = false;
   bool migrate_only = false;
-  bool fix_trx_period = false;
   PbftPeriod rebuild_db_period = 0;
+  bool migrate_receipts_by_period = false;
 };
 
 void dec_json(Json::Value const &json, DBConfig &db_config);
 
 struct FullNodeConfig {
-  static constexpr uint64_t kDefaultLightNodeHistoryDays = 7;
+  static constexpr uint64_t kDefaultLightNodeHistoryDays = 1;
 
   FullNodeConfig() = default;
   // The reason of using Json::Value as a union is that in the tests
@@ -36,7 +36,6 @@ struct FullNodeConfig {
 
   void overwriteConfigFromJson(const Json::Value &config_json);
   std::vector<logger::Config> loadLoggingConfigs(const Json::Value &logging);
-  void scheduleLoggingConfigUpdate();
   void InitLogging(const addr_t &node_address);
 
   std::string json_file_name;
@@ -55,8 +54,6 @@ struct FullNodeConfig {
   uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
   uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
-  bool enable_test_rpc = false;
-  bool enable_debug = false;
   uint32_t final_chain_cache_in_blocks = 5;
   uint64_t propose_dag_gas_limit = 0x1E0A6E0;
   uint64_t propose_pbft_gas_limit = 0x12C684C0;

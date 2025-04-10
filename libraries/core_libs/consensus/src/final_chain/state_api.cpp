@@ -22,7 +22,7 @@ void from_rlp(taraxa_evm_Bytes b, Result& result) {
   util::rlp(dev::RLP(map_bytes(b), 0), result);
 }
 
-void to_str(taraxa_evm_Bytes b, string& result) { result = {reinterpret_cast<char*>(b.Data), b.Len}; }
+void to_str(taraxa_evm_Bytes b, std::string& result) { result = {reinterpret_cast<char*>(b.Data), b.Len}; }
 
 void to_bytes(taraxa_evm_Bytes b, bytes& result) { result.assign(b.Data, b.Data + b.Len); }
 
@@ -48,20 +48,20 @@ class ErrorHandler {
       this,
       [](auto self, auto err_bytes) {
         auto& raise = decltype(this)(self)->raise_;
-        static string const delim = ": ";
+        static std::string const delim = ": ";
         static auto const delim_len = delim.size();
         std::string_view err_str((char*)err_bytes.Data, err_bytes.Len);
         auto delim_pos = err_str.find(delim);
-        string type(err_str.substr(0, delim_pos));
-        string msg(err_str.substr(delim_pos + delim_len));
+        std::string type(err_str.substr(0, delim_pos));
+        std::string msg(err_str.substr(delim_pos + delim_len));
 
         if (type == "github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock") {
           raise = [err = ErrFutureBlock(std::move(type), msg)] { BOOST_THROW_EXCEPTION(err); };
           return;
         }
 
-        string traceback;
-        taraxa_evm_traceback(decoder_cb_c<string, to_str>(traceback));
+        std::string traceback;
+        taraxa_evm_traceback(decoder_cb_c<std::string, to_str>(traceback));
         msg += "\nGo stack trace:\n" + traceback;
         raise = [err = TaraxaEVMError(std::move(type), msg)] { BOOST_THROW_EXCEPTION(err); };
       },

@@ -1,5 +1,8 @@
 #include "test_util/node_dag_creation_fixture.hpp"
 
+#include "dag/dag_manager.hpp"
+#include "test_util/samples.hpp"
+
 namespace taraxa::core_tests {
 
 void NodeDagCreationFixture::modifyConfig(FullNodeConfig &cfg) {
@@ -43,15 +46,15 @@ void NodeDagCreationFixture::deployContract() {
   nonce++;
 
   EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
-    WAIT_EXPECT_TRUE(ctx, node->getDB()->transactionFinalized(trx->getHash()));
+    auto loc = node->getFinalChain()->transactionLocation(trx->getHash());
+    WAIT_EXPECT_TRUE(ctx, loc.has_value());
 
     if (!contract_addr) {
-      auto receipt = node->getFinalChain()->transactionReceipt(trx->getHash());
+      auto receipt = node->getFinalChain()->transactionReceipt(loc->period, loc->position);
       WAIT_EXPECT_TRUE(ctx, receipt.has_value());
       WAIT_EXPECT_TRUE(ctx, receipt->new_contract_address.has_value());
       contract_addr = receipt->new_contract_address;
     }
-    auto r = node->getFinalChain()->transactionReceipt(trx->getHash());
 
     WAIT_EXPECT_TRUE(ctx, !node->getFinalChain()->getCode(contract_addr.value()).empty());
   });
@@ -61,7 +64,9 @@ void NodeDagCreationFixture::deployContract() {
 
 uint64_t NodeDagCreationFixture::trxEstimation() {
   const auto &transactions = makeTransactions(1);
-  static auto estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
+  static auto estimation = node->getTransactionManager()
+                               ->estimateTransactionGas(transactions.front(), node->getFinalChain()->lastBlockNumber())
+                               .gas_used;
   assert(estimation);
   return estimation;
 }
@@ -107,12 +112,14 @@ std::vector<NodeDagCreationFixture::DagBlockWithTxs> NodeDagCreationFixture::gen
     uint16_t levels, uint16_t blocks_per_level, uint16_t trx_per_block) {
   std::vector<DagBlockWithTxs> result;
   auto start_level = node->getDagManager()->getMaxLevel() + 1;
-  auto &db = node->getDB();
+  auto db = node->getDB();
   auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
   SortitionConfig vdf_config(node->getConfig().genesis.sortition);
 
   auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block + 1);
-  auto trx_estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
+  auto trx_estimation = node->getTransactionManager()
+                            ->estimateTransactionGas(transactions.front(), node->getFinalChain()->lastBlockNumber())
+                            .gas_used;
 
   blk_hash_t pivot = dag_genesis;
   vec_blk_t tips;

@@ -12,6 +12,11 @@ std::shared_ptr<TaraxaPeer> PbftSyncingState::syncingPeer() const {
   return peer_;
 }
 
+std::shared_ptr<TaraxaPeer> PbftSyncingState::lastSyncingPeer() const {
+  std::shared_lock lock(peer_mutex_);
+  return last_syncing_peer_;
+}
+
 void PbftSyncingState::setSyncStatePeriod(PbftPeriod period) {
   if (pbft_syncing_) {
     std::shared_lock lock(peer_mutex_);
@@ -32,9 +37,10 @@ bool PbftSyncingState::setPbftSyncing(bool syncing, PbftPeriod current_period,
   {
     std::unique_lock lock(peer_mutex_);
     pbft_syncing_ = syncing;
-    peer_ = std::move(peer);
+    peer_ = peer;
 
     if (syncing) {
+      last_syncing_peer_ = std::move(peer);
       // If pbft syncing, set dag synced state to false
       if (peer_->dagSyncingAllowed()) {
         peer_->peer_dag_synced_ = false;

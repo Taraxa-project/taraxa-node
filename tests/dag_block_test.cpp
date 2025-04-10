@@ -12,7 +12,6 @@
 #include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
-#include "node/node.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 #include "vdf/sortition.hpp"
@@ -411,19 +410,19 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   node_cfgs.front().genesis.dag.gas_limit = 500000;
   node_cfgs.front().propose_dag_gas_limit = 500000;
 
-  auto node = create_nodes(node_cfgs).front();
-  auto db = node->getDB();
+  const auto node = create_nodes(node_cfgs).front();
 
   std::vector<trx_hash_t> hashes;
   uint64_t estimations = 0;
   const size_t count = 5;
+  const auto proposal_period = node->getFinalChain()->lastBlockNumber();
   for (size_t i = 0; i <= count; ++i) {
     auto create_trx = std::make_shared<Transaction>(i + 1, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
                                                     node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx->getHash());
-    const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, std::nullopt);
+    const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, proposal_period).gas_used;
     estimations += e;
   }
 
@@ -441,6 +440,21 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
     auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, hashes, estimations, vdf1,
                                           node->getSecretKey());
     EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)).first, DagManager::VerifyBlockReturnType::BlockTooBig);
+  }
+}
+
+TEST_F(DagBlockMgrTest, estimation_cache_test) {
+  // make config
+  const auto node_cfgs = make_node_cfgs(1, 1, 20);
+  const auto node = create_nodes(node_cfgs).front();
+
+  const size_t count = 5;
+  for (size_t i = 0; i <= count; ++i) {
+    auto create_trx = std::make_shared<Transaction>(i + 1, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
+                                                    node->getSecretKey());
+    const auto& estimation = node->getTransactionManager()->estimateTransactionGas(create_trx, 0).gas_used;
+    const auto& cached_estimation = node->getTransactionManager()->estimateTransactionGas(create_trx, 0).gas_used;
+    EXPECT_EQ(estimation, cached_estimation);
   }
 }
 

@@ -1,9 +1,12 @@
 #include "final_chain/final_chain.hpp"
 
+#include <libdevcore/CommonData.h>
+
 #include <optional>
 #include <vector>
 
 #include "common/constants.hpp"
+#include "common/encoding_rlp.hpp"
 #include "common/encoding_solidity.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
@@ -105,8 +108,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.timestamp, pbft_block->getTimestamp());
     EXPECT_EQ(receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactions_root,
-              trieRootOver(
-                  trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return trxs[i]->rlp(); }));
+              trieRootOver(trxs.size(), [&](auto i) { return dev::rlp(i); }, [&](auto i) { return trxs[i]->rlp(); }));
     EXPECT_EQ(blk_h.receipts_root, trieRootOver(
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
@@ -127,7 +129,7 @@ struct FinalChainTest : WithDataDir {
       if (!opts.expect_to_fail) {
         EXPECT_TRUE(r.gas_used != 0);
       }
-      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transactionReceipt(trx->getHash())));
+      EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transactionReceipt(blk_h.number, i)));
       cumulative_gas_used_actual += r.gas_used;
       if (assume_only_toplevel_transfers && trx->getValue() != 0 && r.status_code == 1) {
         const auto& sender = trx->getSender();
@@ -482,7 +484,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
     // low nonce trx should fail and consume all gas
     auto balance_before = SUT->getAccount(addr)->balance;
     advance({trx2_1}, {false, false, true});
-    auto receipt = SUT->transactionReceipt(trx2_1->getHash());
+    auto loc = SUT->transactionLocation(trx2_1->getHash());
+    EXPECT_TRUE(loc.has_value());
+    auto receipt = SUT->transactionReceipt(loc->period, loc->position);
     EXPECT_EQ(receipt->gas_used, gas);
     EXPECT_EQ(balance_before - SUT->getAccount(addr)->balance, receipt->gas_used * trx2_1->getGasPrice());
   }
@@ -494,7 +498,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
     auto gas_price = 3;
     auto trx4 = std::make_shared<Transaction>(4, 100, gas_price, gas, dev::bytes(), sk, receiver);
     advance({trx4}, {false, false, true});
-    auto receipt = SUT->transactionReceipt(trx4->getHash());
+    auto loc = SUT->transactionLocation(trx4->getHash());
+    EXPECT_TRUE(loc.has_value());
+    auto receipt = SUT->transactionReceipt(loc->period, loc->position);
     EXPECT_GT(balance_before % gas_price, 0);
     EXPECT_EQ(receipt->gas_used, balance_before / gas_price);
     EXPECT_EQ(SUT->getAccount(addr)->balance, balance_before % gas_price);
@@ -543,7 +549,11 @@ TEST_F(FinalChainTest, revert_reason) {
     est["data"] = call_data;
     EXPECT_THROW_WITH(dev::jsToInt(eth_json_rpc->eth_estimateGas(est, "")), std::exception,
                       "execution reverted: arg required");
-    EXPECT_THROW_WITH(eth_json_rpc->eth_call(est, "latest"), std::exception, "Exception 3 : execution reverted: arg required, data: \"0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000c6172672072657175697265640000000000000000000000000000000000000000\"\n");
+    EXPECT_THROW_WITH(
+        eth_json_rpc->eth_call(est, "latest"), std::exception,
+        "Exception 3 : execution reverted: arg required, data: "
+        "\"0x08c379a000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000"
+        "00000000000000000000000000000c6172672072657175697265640000000000000000000000000000000000000000\"\n");
 
     auto gas = 100000;
     auto trx = std::make_shared<Transaction>(2, 0, 1, gas, dev::fromHex(call_data), sk, test_contract_addr);

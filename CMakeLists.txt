@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.20)
 
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
-set(TARAXA_MINOR_VERSION 12)
-set(TARAXA_PATCH_VERSION 7)
+set(TARAXA_MINOR_VERSION 13)
+set(TARAXA_PATCH_VERSION 1)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 4)
+set(TARAXA_NET_VERSION 5)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchain is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 1)
@@ -192,13 +192,13 @@ endif()
 # We are using clang from llvm toolchain as default compiler as well as clang-format and clang-tidy
 # It is possible to build taraxa-node also with other C++ compilers but to contribute to the official repo,
 # changes must pass clang-format/clang-tidy checks for which we internally use llvm version=LLVM_VERSION
-set(LLVM_VERSION "17")
+set(LLVM_VERSION "18")
 
 # clang-tidy
 include(CMakeModules/clang_tidy.cmake)
 
 # clang-format
-# include(CMakeModules/clang_format.cmake)
+include(CMakeModules/clang_format.cmake)
 
 # cppcheck
 include(CMakeModules/cppcheck.cmake)

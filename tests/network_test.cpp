@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 
-#include "common/encoding_rlp.hpp"
+#include "app/app.hpp"
 #include "common/init.hpp"
 #include "common/lazy.hpp"
 #include "config/config.hpp"
@@ -89,7 +89,9 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto nw2 = node2->getNetwork();
 
   auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+  const auto estimation = node1->getTransactionManager()
+                              ->estimateTransactionGas(trxs[0], node1->getFinalChain()->lastBlockNumber())
+                              .gas_used;
 
   // node1 add one valid block
   const auto proposal_level = 1;
@@ -134,8 +136,9 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto node1_period = node1->getPbftChain()->getPbftChainSize();
   const auto node2_period = node2->getPbftChain()->getPbftChainSize();
   std::cout << "node1 period " << node1_period << ", node2 period " << node2_period << std::endl;
-  nw1->getSpecificHandler<network::tarcap::GetDagSyncPacketHandler>()->sendBlocks(
-      nw2->getNodeId(), std::move(dag_blocks), std::move(trxs), node2_period, node1_period);
+  nw2->getSpecificHandler<network::tarcap::IDagBlockPacketHandler>(network::SubprotocolPacketType::kDagBlockPacket)
+      ->requestDagBlocks(nw2->getPeer(nw1->getNodeId()));
+
   std::cout << "Waiting Sync ..." << std::endl;
   wait({120s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
@@ -155,7 +158,9 @@ TEST_F(NetworkTest, propagate_block) {
   const auto dag_mgr1 = node1->getDagManager();
 
   auto trxs = samples::createSignedTrxSamples(0, 1, g_secret);
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+  const auto estimation = node1->getTransactionManager()
+                              ->estimateTransactionGas(trxs[0], node1->getFinalChain()->lastBlockNumber())
+                              .gas_used;
 
   // node1 add one valid block
   const auto proposal_level = 1;
@@ -220,7 +225,8 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node2_id = nw2->getNodeId();
 
   EXPECT_NE(nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size);
-  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
+  nw1->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
+      ->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
   EXPECT_HAPPENS({5s, 100ms},
                  [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size) });
 }
@@ -375,8 +381,9 @@ TEST_F(NetworkTest, transfer_transaction) {
   std::pair<SharedTransactions, std::vector<trx_hash_t>> transactions;
   transactions.first.push_back(g_signed_trx_samples[0]);
 
-  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
-                                                                                         std::move(transactions));
+  nw2->getSpecificHandler<network::tarcap::ITransactionPacketHandler>(
+         network::SubprotocolPacketType::kTransactionPacket)
+      ->sendTransactions(peer1, std::move(transactions));
   const auto tx_mgr1 = node1->getTransactionManager();
   EXPECT_HAPPENS({2s, 200ms},
                  [&](auto& ctx) { WAIT_EXPECT_TRUE(ctx, tx_mgr1->getTransaction(g_signed_trx_samples[0]->getHash())) });
@@ -422,7 +429,10 @@ TEST_F(NetworkTest, node_sync) {
   const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   const auto sk = node1->getSecretKey();
   const auto vrf_sk = node1->getVrfSecretKey();
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(g_signed_trx_samples[0], {});
+  const auto estimation =
+      node1->getTransactionManager()
+          ->estimateTransactionGas(g_signed_trx_samples[0], node1->getFinalChain()->lastBlockNumber())
+          .gas_used;
   SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
 
   auto propose_level = 1;
@@ -641,13 +651,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   EXPECT_TRUE(wait_connect({node1, node2}));
 
   std::cout << "Waiting Sync for max 2 minutes..." << std::endl;
-  for (int i = 0; i < 1200; i++) {
-    if (node2->getPbftChain()->getPbftChainSize() == expect_pbft_chain_size) {
-      break;
-    }
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  EXPECT_EQ(node2->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
+  EXPECT_HAPPENS({2min, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size)
+  });
   std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
   blk_hash_t second_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
   EXPECT_EQ(second_pbft_block_hash, pbft_block2.getBlockHash());
@@ -823,14 +829,12 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   const auto node_cfgs = make_node_cfgs(2, 1, 20);
 
-  const auto node1 = std::make_shared<FullNode>(node_cfgs[0]);
-  node1->start();
+  const auto node1 = create_node(node_cfgs[0], true /*start*/);
   const auto node1_pbft_mgr = node1->getPbftManager();
   const auto node1_vote_mgr = node1->getVoteManager();
   node1_pbft_mgr->stop();
 
-  const auto node2 = std::make_shared<FullNode>(node_cfgs[1]);
-  node2->start();
+  const auto node2 = create_node(node_cfgs[1], true /*start*/);
   const auto node2_pbft_mgr = node2->getPbftManager();
   const auto node2_vote_mgr = node2->getVoteManager();
   node2_pbft_mgr->stop();
@@ -889,7 +893,10 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   const auto sk = node1->getSecretKey();
   const auto vrf_sk = node1->getVrfSecretKey();
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(g_signed_trx_samples[0], {});
+  const auto estimation =
+      node1->getTransactionManager()
+          ->estimateTransactionGas(g_signed_trx_samples[0], node1->getFinalChain()->lastBlockNumber())
+          .gas_used;
 
   SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   auto propose_level = 1;
@@ -999,7 +1006,9 @@ TEST_F(NetworkTest, node_sync2) {
   const auto vrf_sk = node1->getVrfSecretKey();
   const SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   const auto transactions = samples::createSignedTrxSamples(0, 25, sk);
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(transactions[0], {});
+  const auto estimation = node1->getTransactionManager()
+                              ->estimateTransactionGas(transactions[0], node1->getFinalChain()->lastBlockNumber())
+                              .gas_used;
   // DAG block1
   auto propose_level = 1;
   const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
@@ -1659,8 +1668,7 @@ TEST_F(NetworkTest, node_full_sync) {
   }
 
   // Bootstrapping node5 join the network
-  nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[numberOfNodes - 1]));
-  nodes.back()->start();
+  nodes.emplace_back(create_node(node_cfgs[numberOfNodes - 1], true /*start*/));
   EXPECT_TRUE(wait_connect(nodes));
 
   std::cout << "Waiting Sync for node5..." << std::endl;
@@ -1829,9 +1837,6 @@ TEST_F(NetworkTest, peer_cache_test) {
     uint64_t expected_known_transactions_with_block_number =
         std::min(number_of_insertion, (max_block_to_keep_in_cache + 1) * transactions_in_block);
     EXPECT_EQ(known_transactions_with_block_number.size(), expected_known_transactions_with_block_number);
-
-    std::cout << block_number << " " << known_transactions_with_block_number.size() << " " << known_transactions.size()
-              << std::endl;
   }
 }
 

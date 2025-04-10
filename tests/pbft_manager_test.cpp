@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common/init.hpp"
+#include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "test_util/node_dag_creation_fixture.hpp"
@@ -9,7 +10,7 @@ namespace taraxa::core_tests {
 
 struct PbftManagerTest : NodesTest {
   val_t gas_price = 0;
-  std::vector<std::shared_ptr<FullNode>> nodes;
+  std::vector<std::shared_ptr<AppBase>> nodes;
   std::vector<uint64_t> nonces;
 
   void makeNodesWithNonces(const std::vector<taraxa::FullNodeConfig> &cfgs) {
@@ -445,13 +446,14 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   auto propose_vote = node1->getVoteManager()->generateVote(
       proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, proposed_pbft_block->getPeriod(),
       node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
-  pbft_mgr1->processProposedBlock(proposed_pbft_block, propose_vote);
+  pbft_mgr1->processProposedBlock(proposed_pbft_block);
 
   auto block1_from_node1 = pbft_mgr1->getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
   EXPECT_EQ(block1_from_node1->getJsonStr(), proposed_pbft_block->getJsonStr());
 
-  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(propose_vote, proposed_pbft_block);
+  nw1->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
+      ->onNewPbftVote(propose_vote, proposed_pbft_block);
 
   // Check node2 and node3 receive the PBFT block
   std::shared_ptr<PbftBlock> node2_synced_proposed_block = nullptr;
@@ -538,8 +540,8 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
 
 TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   auto node_cfgs = make_node_cfgs(1, 1, 5, true);
-  node_cfgs.front().genesis.dag.gas_limit = 500000;
-  node_cfgs.front().propose_dag_gas_limit = 500000;
+  node_cfgs.front().genesis.dag.gas_limit = 1000000;
+  node_cfgs.front().propose_dag_gas_limit = 1000000;
   makeNodeFromConfig(node_cfgs);
   deployContract();
 
@@ -573,7 +575,8 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   const uint32_t additional_trx_count = 30;
   insertTransactions(makeTransactions(additional_trx_count));
 
-  uint64_t should_be_in_one_dag_block = node->getConfig().genesis.dag.gas_limit / trxEstimation();
+  uint64_t should_be_in_one_dag_block =
+      (node->getConfig().genesis.dag.gas_limit - TEST_TX_GAS_LIMIT) / trxEstimation() + 1;
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + additional_trx_count)
     WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), trxs_before + additional_trx_count)

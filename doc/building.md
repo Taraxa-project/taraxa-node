@@ -21,9 +21,9 @@ will build out of the box without further effort:
         ccache \
         cmake \
         clang \
-        clang-format-17 \
-        clang-tidy-17 \
-        llvm-17 \
+        clang-format-18 \
+        clang-tidy-18 \
+        llvm-18 \
         golang-go \
         python3-full \
         libzstd-dev \
@@ -42,8 +42,8 @@ will build out of the box without further effort:
     sudo python3 -m pip install conan==1.64.1
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export CC="clang-17"
-    export CXX="clang++-17"
+    export CC="clang-18"
+    export CXX="clang++-18"
 
 ### Clone the Repository
 
@@ -53,16 +53,18 @@ will build out of the box without further effort:
 
 ### Compile
 
+    cp ./CMakeModules/settings.yml ~/.conan/settings.yml
+
     # Optional - one time action
     # Create clang profile
     # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect \
     && conan profile update settings.compiler=clang clang  \
-    && conan profile update settings.compiler.version=17 clang  \
+    && conan profile update settings.compiler.version=18 clang  \
     && conan profile update settings.compiler.libcxx=libstdc++11 clang \
     && conan profile update settings.build_type=RelWithDebInfo clang \
-    && conan profile update env.CC=clang-17 clang  \
-    && conan profile update env.CXX=clang++-17 clang
+    && conan profile update env.CC=clang-18 clang  \
+    && conan profile update env.CXX=clang++-18 clang
 
     # Compile project using cmake
     mkdir cmake-build
@@ -74,10 +76,10 @@ will build out of the box without further effort:
 
 ### Install taraxa-node dependencies:
 
-First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Clang-17 is used for compilation.
+First you need to get (Brew)[https://brew.sh/] package manager. After that you need to install dependencies with it. Clang-18 is used for compilation.
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool llvm@17 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
+    brew install coreutils go autoconf automake gflags git libtool llvm@18 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
 
 ### Clone the Repository
 
@@ -87,12 +89,14 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
 
 ### Compile
 
+    cp ./CMakeModules/settings.yml ~/.conan/settings.yml
+
     # Optional - one time action
     # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=17 clang && \
-    conan profile update settings.compiler.compiler.cppstd=17
+    conan profile update settings.compiler.version=18 clang && \
+    conan profile update settings.compiler.compiler.cppstd=18
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=clang clang && \
     conan profile update env.CXX=clang++ clang
@@ -156,13 +160,15 @@ You should be able to build project following default MacOS building process. Bu
 
 ### Compile
 
+    cp ./CMakeModules/settings.yml ~/.conan/settings.yml
+
     # Optional - one time action
     # It is recommended to use clang because on other compilers you could face some errors
     # Make sure that you executing this from x86_64 CLI. Could be verified with `arch` command
     # It output should be equal to `i386`
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=17 clang && \
+    conan profile update settings.compiler.version=18 clang && \
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
     conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang

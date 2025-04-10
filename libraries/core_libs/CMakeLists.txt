@@ -13,9 +13,6 @@ file(GLOB_RECURSE NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h)
 file(GLOB_RECURSE STORAGE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.hpp)
 file(GLOB_RECURSE STORAGE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.cpp)
 
-file(GLOB_RECURSE NODE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/node/*.hpp)
-file(GLOB_RECURSE NODE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/node/*.cpp)
-
 file(GLOB_RECURSE REWARDS_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/rewards/*.hpp)
 file(GLOB_RECURSE REWARDS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/rewards/*.cpp)
 
@@ -62,6 +59,10 @@ target_link_libraries(core_libs PUBLIC
   cppgraphqlgen::graphqlservice
   cppgraphqlgen::graphqljson
 )
+
+if(TCMALLOC_LIB)
+    target_link_libraries(core_libs INTERFACE ${TCMALLOC_LIB}) # MUST BE LINKED LAST!!!
+endif()
 
 install(TARGETS core_libs
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

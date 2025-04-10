@@ -6,9 +6,8 @@
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
 
-#include <vector>
-
 #include "common/init.hpp"
+#include "common/thread_pool.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "test_util/samples.hpp"
@@ -102,8 +101,8 @@ TEST_F(P2PTest, multiple_capabilities) {
   dev::p2p::NetworkConfig net_conf("127.0.0.1", 20001, false, true);
   TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
-  auto boot_node = Host::make(
-      "TaraxaNode", [](auto /*host*/) { return Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf);
+  auto boot_node =
+      Host::make("TaraxaNode", [](auto /*host*/) { return Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf);
   const auto &boot_node_key = boot_node->id();
 
   util::ThreadPool boot_node_tp;

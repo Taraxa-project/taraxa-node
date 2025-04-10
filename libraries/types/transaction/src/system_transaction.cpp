@@ -16,7 +16,7 @@ SystemTransaction::SystemTransaction(const trx_nonce_t &nonce, const val_t &valu
   sender_ = kTaraxaSystemAccount;
 }
 
-SystemTransaction::SystemTransaction(const bytes &_bytes, bool verify_strict, const h256 &hash) {
+SystemTransaction::SystemTransaction(const bytes &_bytes, bool verify_strict) {
   dev::RLP rlp;
   try {
     rlp = dev::RLP(_bytes);
@@ -29,12 +29,12 @@ SystemTransaction::SystemTransaction(const bytes &_bytes, bool verify_strict, co
     BOOST_THROW_EXCEPTION(dev::RLPException() << dev::errinfo_comment(error_msg));
   }
 
-  fromRLP(rlp, verify_strict, hash);
+  fromRLP(rlp, verify_strict);
   sender_ = kTaraxaSystemAccount;
 }
 
-SystemTransaction::SystemTransaction(const dev::RLP &_rlp, bool verify_strict, const h256 &hash) {
-  fromRLP(_rlp, verify_strict, hash);
+SystemTransaction::SystemTransaction(const dev::RLP &_rlp, bool verify_strict) {
+  fromRLP(_rlp, verify_strict);
   sender_ = kTaraxaSystemAccount;
 }
 
@@ -53,10 +53,7 @@ void SystemTransaction::streamRLP(dev::RLPStream &s, bool) const {
   s << chain_id_ << 0 << 0;
 }
 
-void SystemTransaction::fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash) {
-  hash_ = hash;
-  hash_initialized_ = !hash.isZero();
-
+void SystemTransaction::fromRLP(const dev::RLP &_rlp, bool verify_strict) {
   util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_, vrs_.v,
                   vrs_.r, vrs_.s);
 }

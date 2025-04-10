@@ -7,6 +7,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
+#include "transaction/receipt.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -19,8 +20,6 @@ namespace taraxa::final_chain {
  * @{
  */
 
-using LogBloom = dev::h2048;
-using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
 
 struct BlockHeaderData {
@@ -72,38 +71,6 @@ static constexpr auto c_bloomIndexSize = 16;
 static constexpr auto c_bloomIndexLevels = 2;
 
 using BlocksBlooms = std::array<LogBloom, c_bloomIndexSize>;
-
-struct LogEntry {
-  Address address;
-  h256s topics;
-  bytes data;
-
-  HAS_RLP_FIELDS
-
-  LogBloom bloom() const;
-};
-
-using LogEntries = std::vector<LogEntry>;
-
-struct TransactionReceipt {
-  uint8_t status_code = 0;
-  uint64_t gas_used = 0;
-  uint64_t cumulative_gas_used = 0;
-  LogEntries logs;
-  std::optional<Address> new_contract_address;
-
-  HAS_RLP_FIELDS
-
-  LogBloom bloom() const;
-};
-
-using TransactionReceipts = std::vector<TransactionReceipt>;
-
-struct TransactionLocation {
-  EthBlockNumber period = 0;
-  uint32_t position = 0;
-  bool is_system = false;
-};
 
 struct NewBlock {
   addr_t author;

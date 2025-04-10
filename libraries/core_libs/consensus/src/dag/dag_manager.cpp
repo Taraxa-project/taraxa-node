@@ -288,9 +288,9 @@ void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
   bool period_over_history_condition = period_ > light_node_history;
 
   auto last_block_number = final_chain_->lastBlockNumber();
-  auto earliest_block_to_keep = last_block_number - light_node_history * 1.5;
-  auto should_clear_history = final_chain_->blockHeader(earliest_block_to_keep);
-  if (!should_clear_history) {
+  auto earliest_block_to_keep = uint64_t(last_block_number - light_node_history * 1.1);
+  auto block_exists = db_->exist(DbStorage::toSlice(earliest_block_to_keep), DbStorage::Columns::period_data);
+  if (!block_exists) {
     LOG(log_si_) << "Cleanup was done recently, skipping clearLightNodeHistory";
     return;
   }
@@ -312,7 +312,7 @@ void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
       dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
     }
 
-    db_->clearPeriodDataHistory(end, dag_level_to_keep);
+    db_->clearPeriodDataHistory(end, dag_level_to_keep, last_block_number);
   }
 }
 
@@ -550,6 +550,7 @@ void DagManager::recoverDag() {
     }
   }
   trx_mgr_->recoverNonfinalizedTransactions();
+  updateFrontier();
 }
 
 const std::pair<PbftPeriod, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks()
@@ -710,26 +711,21 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
     return {VerifyBlockReturnType::NotEligible, {}};
   }
   {
-    u256 total_block_weight = 0;
-    auto block_gas_estimation = blk->getGasEstimation();
-    for (const auto &trx : all_block_trxs) {
-      total_block_weight += trx_mgr_->estimateTransactionGas(trx, propose_period);
-    }
+    const auto [dag_gas_limit, pbft_gas_limit] = kGenesis.getGasLimits(*propose_period);
 
+    auto block_gas_estimation = blk->getGasEstimation();
+    if (block_gas_estimation > dag_gas_limit) {
+      LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " gas_limit: " << dag_gas_limit
+                   << " block_gas_estimation " << block_gas_estimation << " current period "
+                   << final_chain_->lastBlockNumber();
+      return {VerifyBlockReturnType::BlockTooBig, {}};
+    }
+    auto total_block_weight = trx_mgr_->estimateTransactions(all_block_trxs, *propose_period);
     if (total_block_weight != block_gas_estimation) {
       LOG(log_er_) << "Invalid block_gas_estimation. DAG block " << blk->getHash()
                    << " block_gas_estimation: " << block_gas_estimation << " total_block_weight " << total_block_weight
                    << " current period " << final_chain_->lastBlockNumber();
       return {VerifyBlockReturnType::IncorrectTransactionsEstimation, {}};
-    }
-
-    const auto [dag_gas_limit, pbft_gas_limit] = kGenesis.getGasLimits(*propose_period);
-
-    if (total_block_weight > dag_gas_limit) {
-      LOG(log_er_) << "BlockTooBig. DAG block " << blk->getHash() << " gas_limit: " << dag_gas_limit
-                   << " total_block_weight " << total_block_weight << " current period "
-                   << final_chain_->lastBlockNumber();
-      return {VerifyBlockReturnType::BlockTooBig, {}};
     }
 
     if ((blk->getTips().size() + 1) > pbft_gas_limit / dag_gas_limit) {

@@ -125,6 +125,11 @@
       "delegation_locking_period": 5,
       "dag_gas_limit": "0x1908B100",
       "pbft_gas_limit": "0x7d2b7500"
+    },
+    "soleirolia_hf": {
+      "block_num": 0,
+      "trx_min_gas_price": "0x1",
+      "trx_max_gas_limit": "0x1E0A6E0"
     }
   }
 }

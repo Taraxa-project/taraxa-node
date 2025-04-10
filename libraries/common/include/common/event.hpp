@@ -5,7 +5,7 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include "common/functional.hpp"
+#include "common/thread_pool.hpp"
 
 namespace taraxa::util::event {
 
@@ -29,11 +29,11 @@ struct EventSubscriber {
   EventSubscriber() = default;
 
  public:
-  auto subscribe(Handler &&handler, task_executor_t &&execution_context = current_thread_executor()) const {
+  auto subscribe(Handler &&handler, std::shared_ptr<util::ThreadPool> execution_context) const {
     std::unique_lock l(state_.mu_);
     auto subscription_id = ++state_.next_subscription_id_;
     state_.subs_[subscription_id] = [exec = std::move(execution_context), h = std::move(handler)](auto const &payload) {
-      exec([&h, payload] { h(payload); });
+      exec->post([&h, payload] { h(payload); });
     };
     return subscription_id;
   }

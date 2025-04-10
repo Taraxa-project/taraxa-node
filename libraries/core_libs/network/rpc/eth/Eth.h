@@ -31,10 +31,11 @@ struct Eth : virtual ::taraxa::net::EthFace {
     return *this;
   }
   virtual void note_block_executed(const final_chain::BlockHeader&, const SharedTransactions&,
-                                   const final_chain::TransactionReceipts&) = 0;
+                                   const TransactionReceipts&) = 0;
   virtual void note_pending_transaction(const h256& trx_hash) = 0;
 };
 
 std::shared_ptr<Eth> NewEth(EthParams&&);
 
+Address toAddress(const std::string& s);
 }  // namespace taraxa::net::rpc::eth
