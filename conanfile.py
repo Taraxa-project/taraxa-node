@@ -1,4 +1,6 @@
-from conans import ConanFile, CMake, tools
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps
+import os
 
 class TaraxaConan(ConanFile):
     name = "taraxa-node"
@@ -10,49 +12,52 @@ class TaraxaConan(ConanFile):
     license = "MIT"
 
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
 
     def requirements(self):
+        self.requires("lz4/1.10.0", override=True)
         self.requires("boost/1.86.0")
         self.requires("cppcheck/2.16.0")
-        self.requires("openssl/3.3.2")
+        self.requires("openssl/3.4.1")
         self.requires("cryptopp/8.9.0")
-        self.requires("gtest/1.15.0")
-        self.requires("lz4/1.10.0")
-        self.requires("rocksdb/9.7.3")
-        self.requires("prometheus-cpp/1.2.4")
+        self.requires("gtest/1.16.0")
+        self.requires("rocksdb/9.10.0")
+        self.requires("prometheus-cpp/1.3.0")
         self.requires("jsoncpp/1.9.6")
+        self.requires("mpfr/4.2.1")
+        self.requires("gmp/6.3.0")
+        self.requires("rapidjson/1.1.0")
 
     def _configure_boost_libs(self):
-        self.options["boost"].without_atomic = False
-        self.options["boost"].without_chrono = False
-        self.options["boost"].without_container = False
-        self.options["boost"].without_context = True
-        self.options["boost"].without_contract = True
-        self.options["boost"].without_coroutine = True
-        self.options["boost"].without_date_time = False
-        self.options["boost"].without_exception = False
-        self.options["boost"].without_fiber = True
-        self.options["boost"].without_filesystem = False
-        self.options["boost"].without_graph = True
-        self.options["boost"].without_graph_parallel = True
-        self.options["boost"].without_iostreams = True
-        self.options["boost"].without_locale = False
-        self.options["boost"].without_log = False
-        self.options["boost"].without_math = False
-        self.options["boost"].without_mpi = True
-        self.options["boost"].without_program_options = False
-        self.options["boost"].without_python = True
-        self.options["boost"].without_random = False
-        self.options["boost"].without_regex = False
-        self.options["boost"].without_serialization = False
-        self.options["boost"].without_stacktrace = True
-        self.options["boost"].without_system = False
-        self.options["boost"].without_test = True
-        self.options["boost"].without_thread = False
-        self.options["boost"].without_timer = True
-        self.options["boost"].without_type_erasure = True
-        self.options["boost"].without_wave = True
+        self.options["boost/*"].without_atomic = False
+        self.options["boost/*"].without_chrono = False
+        self.options["boost/*"].without_container = False
+        self.options["boost/*"].without_context = False
+        self.options["boost/*"].without_cobalt = True
+        self.options["boost/*"].without_contract = True
+        self.options["boost/*"].without_coroutine = True
+        self.options["boost/*"].without_date_time = False
+        self.options["boost/*"].without_exception = False
+        self.options["boost/*"].without_fiber = True
+        self.options["boost/*"].without_filesystem = False
+        self.options["boost/*"].without_graph = True
+        self.options["boost/*"].without_graph_parallel = True
+        self.options["boost/*"].without_iostreams = True
+        self.options["boost/*"].without_locale = False
+        self.options["boost/*"].without_log = False
+        self.options["boost/*"].without_math = False
+        self.options["boost/*"].without_mpi = True
+        self.options["boost/*"].without_program_options = False
+        self.options["boost/*"].without_python = True
+        self.options["boost/*"].without_random = False
+        self.options["boost/*"].without_regex = False
+        self.options["boost/*"].without_serialization = False
+        self.options["boost/*"].without_stacktrace = True
+        self.options["boost/*"].without_system = False
+        self.options["boost/*"].without_test = True
+        self.options["boost/*"].without_thread = False
+        self.options["boost/*"].without_timer = True
+        self.options["boost/*"].without_type_erasure = True
+        self.options["boost/*"].without_wave = True
 
     def configure(self):
         # Configure boost
@@ -65,6 +70,9 @@ class TaraxaConan(ConanFile):
         self.options["rocksdb"].with_lz4 = True
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
+        # Configure OpenSSL
+        self.options["openssl"].no_tests = True
+
 
     def _configure_cmake(self):
         cmake = CMake(self)
@@ -82,3 +90,14 @@ class TaraxaConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = ["taraxa-node"]
+
+    def generate(self):
+        tc = CMakeToolchain(self)
+        tc.variables["OPENSSL_ROOT_DIR"] = self.dependencies["openssl"].package_folder
+        tc.variables["OPENSSL_INCLUDE_DIR"] = os.path.join(self.dependencies["openssl"].package_folder, "include")
+        tc.variables["LZ4_INCLUDE_DIR"] = os.path.join(self.dependencies["lz4"].package_folder, "include")
+        tc.variables["RAPIDJSON_INCLUDE_DIR"] = os.path.join(self.dependencies["rapidjson"].package_folder, "include")
+        tc.generate()
+
+        deps = CMakeDeps(self)
+        deps.generate()

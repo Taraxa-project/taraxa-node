@@ -46,6 +46,7 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/graphql/gen)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/graphql/include)
 
+find_package(RocksDB REQUIRED)
 target_link_libraries(core_libs PUBLIC
   cli
   pbft_block
@@ -53,7 +54,7 @@ target_link_libraries(core_libs PUBLIC
   p2p
   metrics
   Jsonrpccpp
-  CONAN_PKG::rocksdb
+  RocksDB::rocksdb
 
   # GraphQL
   cppgraphqlgen::graphqlservice
