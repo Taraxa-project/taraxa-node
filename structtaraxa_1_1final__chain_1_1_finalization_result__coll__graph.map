@@ -1,9 +1,7 @@
 <map id="taraxa::final_chain::FinalizationResult" name="taraxa::final_chain::FinalizationResult">
-<area shape="rect" id="Node000001" title=" " alt="" coords="105,183,252,223"/>
-<area shape="rect" id="Node000002" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block" title=" " alt="" coords="107,93,250,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,147,181,183,176,183,176,147"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="12,183,159,223"/>
+<area shape="rect" id="Node000002" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block" title=" " alt="" coords="14,93,157,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,147,88,183,83,183,83,147"/>
 <area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="108,38,162,91,158,95,104,42"/>
-<area shape="rect" id="Node000004" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="190,5,357,31"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="254,42,200,95,196,91,250,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,44,88,93,83,93,83,44"/>
 </map>

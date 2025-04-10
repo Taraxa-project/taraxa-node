@@ -1,6 +1,6 @@
 var classtaraxa_1_1net_1_1_http_server =
 [
-    [ "HttpServer", "classtaraxa_1_1net_1_1_http_server.html#a81df8c9232a970148cc8d97512e38468", null ],
+    [ "HttpServer", "classtaraxa_1_1net_1_1_http_server.html#aca7b48bb72af08b2a19c64730a45c7e5", null ],
     [ "~HttpServer", "classtaraxa_1_1net_1_1_http_server.html#abdd748d62f5aabadc68699952bfbcf53", null ],
     [ "accept", "classtaraxa_1_1net_1_1_http_server.html#ac741c2471b2c323ab9237e84926e1fac", null ],
     [ "createConnection", "classtaraxa_1_1net_1_1_http_server.html#a26de6dd55461a8bd14dae8eea0845eaa", null ],
@@ -13,6 +13,7 @@ var classtaraxa_1_1net_1_1_http_server =
     [ "HttpConnection", "classtaraxa_1_1net_1_1_http_server.html#a0b9aed8652f5316c2d4c04eabe3d1c0c", null ],
     [ "HttpHandler", "classtaraxa_1_1net_1_1_http_server.html#a00c15ddc2d81dbe5857c3bbcbef9a68e", null ],
     [ "io_context_", "classtaraxa_1_1net_1_1_http_server.html#ade8076edd12a33edea1ec57776a7ccfa", null ],
+    [ "metrics_", "classtaraxa_1_1net_1_1_http_server.html#ae77f17613429a80df7a598b3d8c7408d", null ],
     [ "request_processor_", "classtaraxa_1_1net_1_1_http_server.html#a49533d5ca4f5dfc77f2ade23044c0051", null ],
     [ "stopped_", "classtaraxa_1_1net_1_1_http_server.html#a6f1bfc66daf88e15a29e3046d52a6ff4", null ]
 ];

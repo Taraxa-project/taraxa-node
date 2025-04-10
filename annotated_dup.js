@@ -133,6 +133,7 @@ var annotated_dup =
         [ "Config", "classtaraxa_1_1logger_1_1_config.html", "classtaraxa_1_1logger_1_1_config" ]
       ] ],
       [ "metrics", "namespacetaraxa_1_1metrics.html", [
+        [ "JsonRpcMetrics", "classtaraxa_1_1metrics_1_1_json_rpc_metrics.html", "classtaraxa_1_1metrics_1_1_json_rpc_metrics" ],
         [ "MetricsGroup", "classtaraxa_1_1metrics_1_1_metrics_group.html", "classtaraxa_1_1metrics_1_1_metrics_group" ],
         [ "MetricsService", "classtaraxa_1_1metrics_1_1_metrics_service.html", "classtaraxa_1_1metrics_1_1_metrics_service" ],
         [ "NetworkMetrics", "classtaraxa_1_1metrics_1_1_network_metrics.html", "classtaraxa_1_1metrics_1_1_network_metrics" ],
@@ -378,6 +379,7 @@ var annotated_dup =
       [ "ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", "classtaraxa_1_1_proposed_blocks" ],
       [ "Redelegation", "namespacetaraxa.html#structtaraxa_1_1_redelegation", "namespacetaraxa_structtaraxa_1_1_redelegation_dup" ],
       [ "SlashingManager", "classtaraxa_1_1_slashing_manager.html", "classtaraxa_1_1_slashing_manager" ],
+      [ "SoleiroliaHardforkConfig", "namespacetaraxa.html#structtaraxa_1_1_soleirolia_hardfork_config", "namespacetaraxa_structtaraxa_1_1_soleirolia_hardfork_config_dup" ],
       [ "SortitionConfig", "structtaraxa_1_1_sortition_config.html", "structtaraxa_1_1_sortition_config" ],
       [ "SortitionParams", "structtaraxa_1_1_sortition_params.html", "structtaraxa_1_1_sortition_params" ],
       [ "SortitionParamsChange", "group___d_a_g.html#structtaraxa_1_1_sortition_params_change", "group___d_a_g_structtaraxa_1_1_sortition_params_change" ],

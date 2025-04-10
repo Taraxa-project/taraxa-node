@@ -8,7 +8,7 @@ var searchData=
   ['valuebyblockcache_5',['ValueByBlockCache',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],
   ['valuebyblockcache_3c_20const_20sharedtransactions_20_3e_6',['ValueByBlockCache&lt; const SharedTransactions &gt;',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],
   ['valuebyblockcache_3c_20sharedtransactionreceipts_20_3e_7',['ValueByBlockCache&lt; SharedTransactionReceipts &gt;',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],
-  ['valuebyblockcache_3c_20std_3a_3aoptional_3c_20const_20dev_3a_3afixedhash_20_3e_20_3e_8',['ValueByBlockCache&lt; std::optional&lt; const dev::FixedHash &gt; &gt;',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],
+  ['valuebyblockcache_3c_20std_3a_3aoptional_3c_20const_20h256_20_3e_20_3e_8',['ValueByBlockCache&lt; std::optional&lt; const h256 &gt; &gt;',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],
   ['valuebyblockcache_3c_20std_3a_3ashared_5fptr_3c_20const_20taraxa_3a_3afinal_5fchain_3a_3ablockheader_20_3e_20_3e_9',['ValueByBlockCache&lt; std::shared_ptr&lt; const taraxa::final_chain::BlockHeader &gt; &gt;',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],
   ['valuebyblockcache_3c_20std_3a_3ashared_5fptr_3c_20const_20transactionhashes_20_3e_20_3e_10',['ValueByBlockCache&lt; std::shared_ptr&lt; const TransactionHashes &gt; &gt;',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],
   ['valuebyblockcache_3c_20uint64_5ft_20_3e_11',['ValueByBlockCache&lt; uint64_t &gt;',['../classtaraxa_1_1_value_by_block_cache.html',1,'taraxa']]],

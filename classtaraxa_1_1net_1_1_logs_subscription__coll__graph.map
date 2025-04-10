@@ -1,7 +1,9 @@
 <map id="taraxa::net::LogsSubscription" name="taraxa::net::LogsSubscription">
-<area shape="rect" id="Node000001" title=" " alt="" coords="85,108,296,133"/>
-<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_subscription.html" title=" " alt="" coords="5,13,187,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,46,181,106,177,110,115,49"/>
-<area shape="rect" id="Node000003" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html" title=" " alt="" coords="211,5,362,45"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="259,57,205,110,201,106,256,53"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="12,196,223,221"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_subscription.html" title=" " alt="" coords="5,101,187,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,139,117,195,112,196,99,140"/>
+<area shape="rect" id="Node000003" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html" title=" " alt="" coords="211,93,362,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="242,142,139,198,137,194,239,138"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="239,5,334,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="289,44,289,93,284,93,284,44"/>
 </map>

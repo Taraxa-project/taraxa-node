@@ -312,13 +312,13 @@ network_t_plus_one_step {0}</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a3747de5ec38a001ef934c2764b539ef3" name="a3747de5ec38a001ef934c2764b539ef3"></a><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">map</a>&lt; <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>, <a class="el" href="namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes">StepVotes</a> &gt;</td>
+<a id="a3747de5ec38a001ef934c2764b539ef3" name="a3747de5ec38a001ef934c2764b539ef3"></a>map&lt; <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>, <a class="el" href="namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes">StepVotes</a> &gt;</td>
 <td class="fieldname">
 step_votes</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="adf04d5c498c76dd7cd8ec1e713dfb391" name="adf04d5c498c76dd7cd8ec1e713dfb391"></a><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">unordered_map</a>&lt; <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">pair</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> &gt; &gt;</td>
+<a id="adf04d5c498c76dd7cd8ec1e713dfb391" name="adf04d5c498c76dd7cd8ec1e713dfb391"></a>unordered_map&lt; <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a>, pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> &gt; &gt;</td>
 <td class="fieldname">
 two_t_plus_one_voted_blocks_</td>
 <td class="fielddoc">
@@ -341,13 +341,13 @@ two_t_plus_one_voted_blocks_</td>
 <div class="textblock"></div><table class="fieldtable">
 <tr><th colspan="3">Class Members</th></tr>
 <tr><td class="fieldtype">
-<a id="a93e7c6131557d9ff218a4c80b19507db" name="a93e7c6131557d9ff218a4c80b19507db"></a><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">unordered_map</a>&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">pair</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">shared_ptr</a>&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">shared_ptr</a>&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt; &gt;</td>
+<a id="a93e7c6131557d9ff218a4c80b19507db" name="a93e7c6131557d9ff218a4c80b19507db"></a>unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, pair&lt; shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;, shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt; &gt;</td>
 <td class="fieldname">
 unique_voters</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="add2731f05401c618d926c2ddc218ba82" name="add2731f05401c618d926c2ddc218ba82"></a><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">unordered_map</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">pair</a>&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">unordered_map</a>&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">shared_ptr</a>&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt; &gt; &gt;</td>
+<a id="add2731f05401c618d926c2ddc218ba82" name="add2731f05401c618d926c2ddc218ba82"></a>unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, pair&lt; uint64_t, unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt; &gt; &gt;</td>
 <td class="fieldname">
 votes</td>
 <td class="fielddoc">

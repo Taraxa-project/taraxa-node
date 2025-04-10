@@ -112,31 +112,31 @@ $(document).ready(function(){initNavTree('init_8hpp_source.html',''); initResiza
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
 <div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="namespacetaraxa.html#a72f9ee3b7086152f2ee1cacfce1640fe">   14</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="namespacetaraxa.html#a72f9ee3b7086152f2ee1cacfce1640fe">static_init</a>() {</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">sodium_init</a>() == -1) {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  <span class="keywordflow">if</span> (sodium_init() == -1) {</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;libsodium init failure&quot;</span>);</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  }</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>}</div>
 </div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
 <div class="foldopen" id="foldopen00020" data-start="{" data-end="}">
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="namespacetaraxa.html#a45813403423105615b6ab674f38197ab">   20</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacetaraxa.html#a45813403423105615b6ab674f38197ab">checkDiskSpace</a>(<span class="keyword">const</span> fs::path&amp; path, <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a> <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">required_space_MB</a>) {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="namespacetaraxa.html#a45813403423105615b6ab674f38197ab">   20</a></span><span class="keyword">inline</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="namespacetaraxa.html#a45813403423105615b6ab674f38197ab">checkDiskSpace</a>(<span class="keyword">const</span> fs::path&amp; path, uint64_t required_space_MB) {</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordflow">try</span> {</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    std::error_code <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">ec</a>;</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keywordflow">if</span> (!fs::exists(path) &amp;&amp; !fs::create_directories(path, <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">ec</a>)) {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;Error creating directory &quot;</span> &lt;&lt; path &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">ec</a>.message() &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    std::error_code ec;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keywordflow">if</span> (!fs::exists(path) &amp;&amp; !fs::create_directories(path, ec)) {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;Error creating directory &quot;</span> &lt;&lt; path &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; ec.message() &lt;&lt; std::endl;</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    }</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    <span class="comment">// Retrieve disk space information for the given path</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    fs::space_info <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">spaceInfo</a> = fs::space(path);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    fs::space_info spaceInfo = fs::space(path);</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="comment">// Convert the required space from MB to bytes</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a> <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">required_space_bytes</a> = <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">required_space_MB</a> * 1024 * 1024;</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    uint64_t required_space_bytes = required_space_MB * 1024 * 1024;</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="comment">// Compare the available bytes with the required amount</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">spaceInfo</a>.available &gt;= <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">required_space_bytes</a>;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> fs::filesystem_error&amp; <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">e</a>) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordflow">return</span> spaceInfo.available &gt;= required_space_bytes;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  } <span class="keywordflow">catch</span> (<span class="keyword">const</span> fs::filesystem_error&amp; e) {</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="comment">// If an error occurs (e.g., the path doesn&#39;t exist), print the error message.</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    std::cerr &lt;&lt; <span class="stringliteral">&quot;Filesystem error: &quot;</span> &lt;&lt; <a class="code hl_function" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">e</a>.what() &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    std::cerr &lt;&lt; <span class="stringliteral">&quot;Filesystem error: &quot;</span> &lt;&lt; e.what() &lt;&lt; std::endl;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="comment">// Depending on your application&#39;s requirements, you might choose to:</span></div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="comment">// - Return false (indicating not enough space)</span></div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="comment">// - Return true (to bypass the check)</span></div>
@@ -148,8 +148,7 @@ $(document).ready(function(){initNavTree('init_8hpp_source.html',''); initResiza
 </div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>}  <span class="comment">// namespace taraxa</span></div>
-<div class="ttc" id="anamespacedev_html_a23cea7314edae6ab1d68892f78e3f7d7"><div class="ttname"><a href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">dev::assertThrowAux</a></div><div class="ttdeci">void assertThrowAux(bool _condition, ::std::string const &amp;_errorDescription, unsigned _line, char const *_file, char const *_function)</div><div class="ttdef"><b>Definition</b> Assertions.h:53</div></div>
-<div class="ttc" id="anamespacetaraxa_html"><div class="ttname"><a href="namespacetaraxa.html">taraxa</a></div><div class="ttdef"><b>Definition</b> app.hpp:15</div></div>
+<div class="ttc" id="anamespacetaraxa_html"><div class="ttname"><a href="namespacetaraxa.html">taraxa</a></div><div class="ttdef"><b>Definition</b> app.hpp:16</div></div>
 <div class="ttc" id="anamespacetaraxa_html_a45813403423105615b6ab674f38197ab"><div class="ttname"><a href="namespacetaraxa.html#a45813403423105615b6ab674f38197ab">taraxa::checkDiskSpace</a></div><div class="ttdeci">bool checkDiskSpace(const fs::path &amp;path, uint64_t required_space_MB)</div><div class="ttdef"><b>Definition</b> init.hpp:20</div></div>
 <div class="ttc" id="anamespacetaraxa_html_a72f9ee3b7086152f2ee1cacfce1640fe"><div class="ttname"><a href="namespacetaraxa.html#a72f9ee3b7086152f2ee1cacfce1640fe">taraxa::static_init</a></div><div class="ttdeci">void static_init()</div><div class="ttdef"><b>Definition</b> init.hpp:14</div></div>
 </div><!-- fragment --></div><!-- contents -->

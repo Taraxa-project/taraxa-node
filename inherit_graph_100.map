@@ -1,9 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,23,220,63"/>
-<area shape="rect" id="Node000001" href="$class_modular_server.html" title=" " alt="" coords="268,5,439,31"/>
-<area shape="poly" id="edge65_Node000000_Node000001" title=" " alt="" coords="233,28,268,24,268,30,234,33"/>
-<area shape="rect" id="Node000003" href="$class_modular_server.html" title=" " alt="" coords="274,55,433,80"/>
-<area shape="poly" id="edge67_Node000000_Node000003" title=" " alt="" coords="234,53,274,57,274,62,233,58"/>
-<area shape="rect" id="Node000002" href="$class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html" title=" " alt="" coords="487,5,669,31"/>
-<area shape="poly" id="edge66_Node000001_Node000002" title=" " alt="" coords="453,15,486,15,486,21,453,21"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,104,120,129"/>
+<area shape="rect" id="Node000001" href="$classtaraxa_1_1net_1_1_debug_client.html" title=" " alt="" coords="169,5,350,31"/>
+<area shape="poly" id="edge60_Node000000_Node000001" title=" " alt="" coords="87,93,124,65,167,40,197,28,199,33,169,44,127,69,91,97"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_eth_client.html" title=" " alt="" coords="179,55,339,80"/>
+<area shape="poly" id="edge61_Node000000_Node000002" title=" " alt="" coords="126,98,207,77,209,83,128,103"/>
+<area shape="rect" id="Node000003" href="$classtaraxa_1_1net_1_1_net_client.html" title=" " alt="" coords="178,104,341,129"/>
+<area shape="poly" id="edge62_Node000000_Node000003" title=" " alt="" coords="134,114,178,114,178,119,134,119"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1net_1_1_taraxa_client.html" title=" " alt="" coords="168,153,351,179"/>
+<area shape="poly" id="edge63_Node000000_Node000004" title=" " alt="" coords="128,130,209,151,207,156,126,135"/>
+<area shape="rect" id="Node000005" href="$classtaraxa_1_1net_1_1_test_client.html" title=" " alt="" coords="177,203,342,228"/>
+<area shape="poly" id="edge64_Node000000_Node000005" title=" " alt="" coords="91,136,127,163,169,188,202,200,200,205,167,192,124,167,88,141"/>
 </map>

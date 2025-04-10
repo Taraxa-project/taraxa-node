@@ -198,6 +198,7 @@ var hierarchy =
     [ "ExpirationCache< dev::FixedHash >", "class_expiration_cache.html", null ],
     [ "ExpirationCacheMap< Key, Value >", "class_expiration_cache_map.html", null ],
     [ "ExpirationCacheMap< dev::FixedHash, std::shared_ptr< taraxa::DagBlock > >", "class_expiration_cache_map.html", null ],
+    [ "ExpirationCacheMap< dev::FixedHash, taraxa::state_api::ExecutionResult >", "class_expiration_cache_map.html", null ],
     [ "taraxa::FicusHardforkConfig", "structtaraxa_1_1_ficus_hardfork_config.html", null ],
     [ "taraxa::final_chain::FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", null ],
     [ "dev::FixedHash< N >", "classdev_1_1_fixed_hash.html", null ],
@@ -274,6 +275,7 @@ var hierarchy =
     [ "taraxa::MapByBlockCache< dev::FixedHash, uint64_t >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::network::tarcap::MaxStats", "classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html", null ],
     [ "taraxa::metrics::MetricsGroup", "classtaraxa_1_1metrics_1_1_metrics_group.html", [
+      [ "taraxa::metrics::JsonRpcMetrics", "classtaraxa_1_1metrics_1_1_json_rpc_metrics.html", null ],
       [ "taraxa::metrics::NetworkMetrics", "classtaraxa_1_1metrics_1_1_network_metrics.html", null ],
       [ "taraxa::metrics::PbftMetrics", "classtaraxa_1_1metrics_1_1_pbft_metrics.html", null ],
       [ "taraxa::metrics::TransactionQueueMetrics", "classtaraxa_1_1metrics_1_1_transaction_queue_metrics.html", null ]
@@ -411,6 +413,7 @@ var hierarchy =
     ] ],
     [ "dev::SignatureStruct", "structdev_1_1_signature_struct.html", null ],
     [ "taraxa::SlashingManager", "classtaraxa_1_1_slashing_manager.html", null ],
+    [ "taraxa::SoleiroliaHardforkConfig", "namespacetaraxa.html#structtaraxa_1_1_soleirolia_hardfork_config", null ],
     [ "taraxa::SortitionParams", "structtaraxa_1_1_sortition_params.html", [
       [ "taraxa::SortitionConfig", "structtaraxa_1_1_sortition_config.html", null ]
     ] ],
@@ -489,7 +492,7 @@ var hierarchy =
     [ "taraxa::ValueByBlockCache< Value >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< const SharedTransactions >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< SharedTransactionReceipts >", "classtaraxa_1_1_value_by_block_cache.html", null ],
-    [ "taraxa::ValueByBlockCache< std::optional< const dev::FixedHash > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
+    [ "taraxa::ValueByBlockCache< std::optional< const h256 > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< std::shared_ptr< const taraxa::final_chain::BlockHeader > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< std::shared_ptr< const TransactionHashes > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< uint64_t >", "classtaraxa_1_1_value_by_block_cache.html", null ],
@@ -515,8 +518,8 @@ var hierarchy =
     [ "taraxa::net::rpc::eth::Watches", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroup< WatchType::logs, std::pair< taraxa::net::rpc::eth::ExtendedTransactionLocation const &, taraxa::TransactionReceipt const & >, taraxa::net::rpc::eth::LocalisedLogEntry, taraxa::net::rpc::eth::LogFilter >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
-    [ "taraxa::net::rpc::eth::WatchGroup< WatchType::new_blocks, dev::FixedHash >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
-    [ "taraxa::net::rpc::eth::WatchGroup< WatchType::new_transactions, dev::FixedHash >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
+    [ "taraxa::net::rpc::eth::WatchGroup< WatchType::new_blocks, h256 >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
+    [ "taraxa::net::rpc::eth::WatchGroup< WatchType::new_transactions, h256 >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroupConfig", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config", null ],
     [ "taraxa::pillar_chain::PillarVotes::WeightVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#structtaraxa_1_1pillar__chain_1_1_pillar_votes_1_1_weight_votes", null ]
 ];

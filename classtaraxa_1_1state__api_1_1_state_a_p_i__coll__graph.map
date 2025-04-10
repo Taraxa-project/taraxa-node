@@ -1,11 +1,11 @@
 <map id="taraxa::state_api::StateAPI" name="taraxa::state_api::StateAPI">
-<area shape="rect" id="Node000001" title=" " alt="" coords="740,84,880,124"/>
-<area shape="rect" id="Node000002" href="$classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream." alt="" coords="332,31,456,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="470,43,586,52,717,71,756,81,754,86,715,76,586,57,469,49"/>
-<area shape="rect" id="Node000003" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result" title=" " alt="" coords="291,84,497,124"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="511,101,740,101,740,107,511,107"/>
-<area shape="rect" id="Node000004" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result" title=" " alt="" coords="297,148,491,188"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="505,163,608,154,715,136,761,122,763,127,717,141,608,159,505,168"/>
-<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,155,172,181"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="186,165,296,165,296,171,186,171"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="644,84,784,124"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream." alt="" coords="236,31,360,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="374,43,490,52,621,71,660,81,658,86,619,76,490,57,373,49"/>
+<area shape="rect" id="Node000003" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result" title=" " alt="" coords="195,84,401,124"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="415,101,644,101,644,107,415,107"/>
+<area shape="rect" id="Node000004" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result" title=" " alt="" coords="201,148,395,188"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="409,163,512,154,619,136,665,122,667,127,621,141,512,159,409,168"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,155,60,181"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="74,165,200,165,200,171,74,171"/>
 </map>

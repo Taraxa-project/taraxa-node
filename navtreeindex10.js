@@ -1,5 +1,16 @@
 var NAVTREEINDEX10 =
 {
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#ac34a827a152f72bbe6f9a24ca820a8ed":[16,0,3,4,0,0,13,5],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#ac5a4276effe3ab59eef55177ca2f5b63":[16,0,3,4,0,0,13,1],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[16,0,3,4,0,0,13,0,2],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[17,0,1,5,1,2,0,6,3,2],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[17,0,1,5,1,2,0,6,3],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[16,0,3,4,0,0,13,0],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html":[16,0,3,4,0,0,12],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a24d7ff724a8db34cb23d5fa8491f13a6":[16,0,3,4,0,0,12,11],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a31b2b25b494ed5a73471dc15ee89f9dc":[16,0,3,4,0,0,12,2],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a32522f09586ef4d37903905423777f11":[16,0,3,4,0,0,12,12],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a34e8bbd553b786615a90655af1f80895":[16,0,3,4,0,0,12,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a43501ccf5c0b6a8aaabefe31173fe13e":[16,0,3,4,0,0,12,4],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a53d8a20103e0f06d3c2e2e7dc798da09":[16,0,3,4,0,0,12,5],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a57287467ab81b27937e5e72c4951266f":[16,0,3,4,0,0,12,9],
@@ -238,16 +249,5 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a0133cde253f39258728a57ccd59d7524":[16,0,3,5,0,35,4],
 "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a09cc07c79d56e93ac1b97b92dc9f889b":[16,0,3,5,0,35,7],
 "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a177225ece939d698b0669ba4015546d9":[16,0,3,5,0,35,9],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a2254e736b6cc5ac7d1adc6ed81afae28":[16,0,3,5,0,35,20],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a289d872b1d82930d8e896151e3a6b90f":[16,0,3,5,0,35,14],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4cb1c53c949cceb37f64e472058c1493":[16,0,3,5,0,35,16],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a7407a2538dc0fc5725d7f7d6261d4751":[16,0,3,5,0,35,21],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a8e830ea3a4b10053c05a56bd50f99817":[16,0,3,5,0,35,2],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a920e985e24c86975431f10868d663ad9":[16,0,3,5,0,35,18],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9669efd89c04940fbd482d5f2a763a49":[16,0,3,5,0,35,13],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9678bce18100cde3672663029dac82e7":[16,0,3,5,0,35,8],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ab052327a21fab01c681f89d615123934":[16,0,3,5,0,35,17],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac23784afcf8dcf5ac073e3bcd4daf24c":[16,0,3,5,0,35,12],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac25194f31a099d18fbd164110072454d":[16,0,3,5,0,35,11],
-"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac4b6f259e553b8c42f0be7bb967f1c77":[16,0,3,5,0,35,3]
+"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a2254e736b6cc5ac7d1adc6ed81afae28":[16,0,3,5,0,35,20]
 };

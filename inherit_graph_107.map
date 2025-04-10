@@ -1,7 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_server_interface.html" title=" " alt="" coords="5,5,229,31"/>
-<area shape="rect" id="Node000001" href="$classtaraxa_1_1net_1_1_taraxa_face.html" title=" " alt="" coords="277,5,451,31"/>
-<area shape="poly" id="edge73_Node000000_Node000001" title=" " alt="" coords="243,15,277,15,277,21,243,21"/>
-<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_taraxa.html" title=" " alt="" coords="499,5,643,31"/>
-<area shape="poly" id="edge74_Node000001_Node000002" title=" " alt="" coords="465,15,498,15,498,21,465,21"/>
+<area shape="rect" id="Node000000" href="$class_server_interface.html" title=" " alt="" coords="5,5,209,31"/>
+<area shape="rect" id="Node000001" href="$classtaraxa_1_1net_1_1_net_face.html" title=" " alt="" coords="257,5,411,31"/>
+<area shape="poly" id="edge71_Node000000_Node000001" title=" " alt="" coords="223,15,257,15,257,21,223,21"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_net.html" title=" " alt="" coords="459,5,583,31"/>
+<area shape="poly" id="edge72_Node000001_Node000002" title=" " alt="" coords="424,15,458,15,458,21,424,21"/>
 </map>

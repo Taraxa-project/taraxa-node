@@ -14,5 +14,6 @@ var searchData=
   ['write_5fstrand_5f_11',['write_strand_',['../classtaraxa_1_1net_1_1_ws_session.html#abaaba7e484a516b329e9c21845c56b53',1,'taraxa::net::WsSession']]],
   ['ws_5f_12',['ws_',['../classtaraxa_1_1net_1_1_ws_session.html#a4ac54513fb8ab785257e0b9036d24586',1,'taraxa::net::WsSession']]],
   ['ws_5fport_13',['ws_port',['../structtaraxa_1_1_connection_config.html#af56373e330f688c74f33eb5f5da837d7',1,'taraxa::ConnectionConfig']]],
-  ['ws_5fserver_5f_14',['ws_server_',['../classtaraxa_1_1net_1_1_ws_session.html#adab966a3da09dca80949abb17b9cc9cc',1,'taraxa::net::WsSession']]]
+  ['ws_5fserver_5f_14',['ws_server_',['../classtaraxa_1_1net_1_1_ws_session.html#adab966a3da09dca80949abb17b9cc9cc',1,'taraxa::net::WsSession']]],
+  ['wssession_15',['WsSession',['../classtaraxa_1_1net_1_1_ws_server.html#abc7c8a4fb8afa6fabc6ff9223e6f5d8d',1,'taraxa::net::WsServer']]]
 ];

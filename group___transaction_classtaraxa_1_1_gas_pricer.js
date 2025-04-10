@@ -1,6 +1,6 @@
 var group___transaction_classtaraxa_1_1_gas_pricer =
 [
-    [ "GasPricer", "group___transaction.html#a050cf41412c4ca78a6a483db9c061d62", null ],
+    [ "GasPricer", "group___transaction.html#addf22088ab425ddbae0881eda211b971", null ],
     [ "~GasPricer", "group___transaction.html#acfb284f68bfcc72821afdd157be739ab", null ],
     [ "GasPricer", "group___transaction.html#a6b8cb01643ff2a20878b97e226a7a5a9", null ],
     [ "GasPricer", "group___transaction.html#ad9bd3d05e77b39cfaff5e14760fbb617", null ],

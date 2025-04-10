@@ -1,5 +1,6 @@
 var dir_5dc95fae824700fddfc45fe9b88c7954 =
 [
+    [ "jsonrpc_metrics.hpp", "jsonrpc__metrics_8hpp.html", "jsonrpc__metrics_8hpp" ],
     [ "metrics_group.hpp", "metrics__group_8hpp.html", "metrics__group_8hpp" ],
     [ "metrics_service.hpp", "metrics__service_8hpp.html", "metrics__service_8hpp" ],
     [ "network_metrics.hpp", "network__metrics_8hpp.html", "network__metrics_8hpp" ],

@@ -16,7 +16,7 @@ var searchData=
   ['handlerequest_13',['handlerequest',['../classtaraxa_1_1net_1_1_ws_session.html#afabf3296c1dabafc0047b4345fb918ca',1,'taraxa::net::WsSession::handleRequest()'],['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html#aff0a484c4d323e3565f3420fc55fead6',1,'taraxa::net::JsonRpcWsSession::handleRequest(const Json::Value &amp;req)']]],
   ['handlesubscription_14',['handleSubscription',['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html#a348e8eb9601e98a7c0824ed61e7fadb1',1,'taraxa::net::JsonRpcWsSession']]],
   ['handleunsubscription_15',['handleUnsubscription',['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html#a12a36be4e82361904f9f34764209c661',1,'taraxa::net::JsonRpcWsSession']]],
-  ['hash256_16',['hash256',['../namespacetaraxa_1_1final__chain.html#a41b2ec28d1ad728e6c4d190795391e6e',1,'taraxa::final_chain']]],
+  ['hash256_16',['hash256',['../namespacetaraxa_1_1final__chain.html#ae98a58c8ebf350eaa6ce36b2fd0d79d5',1,'taraxa::final_chain::hash256(BytesMap const &amp;_s)'],['../namespacetaraxa_1_1final__chain.html#a41b2ec28d1ad728e6c4d190795391e6e',1,'taraxa::final_chain::hash256(dev::BytesMap const &amp;_s)']]],
   ['hash256aux_17',['hash256aux',['../namespacetaraxa_1_1final__chain.html#aaaba8929089b332775874032190fb5e6',1,'taraxa::final_chain']]],
   ['hash256rlp_18',['hash256rlp',['../namespacetaraxa_1_1final__chain.html#a31a1e83861e1b14e99841d137c2da0a1',1,'taraxa::final_chain']]],
   ['hash_5ffor_5fsignature_19',['hash_for_signature',['../structtaraxa_1_1_transaction.html#af492cd79a6fcf8ff4403062401e10ae2',1,'taraxa::Transaction']]],
@@ -35,5 +35,5 @@ var searchData=
   ['host_32',['Host',['../structdev_1_1p2p_1_1_host.html#a3a67cb085cf2787e50abbeb15dd35cc1',1,'dev::p2p::Host']]],
   ['hostenr_33',['hostENR',['../classdev_1_1p2p_1_1_node_table.html#abb4a04a3067a97ed62e00b208894e0a4',1,'dev::p2p::NodeTable']]],
   ['httpconnection_34',['HttpConnection',['../classtaraxa_1_1net_1_1_http_connection.html#a4a9d0be7fedc6352e38a8bc88a2e7173',1,'taraxa::net::HttpConnection']]],
-  ['httpserver_35',['HttpServer',['../classtaraxa_1_1net_1_1_http_server.html#a81df8c9232a970148cc8d97512e38468',1,'taraxa::net::HttpServer']]]
+  ['httpserver_35',['HttpServer',['../classtaraxa_1_1net_1_1_http_server.html#aca7b48bb72af08b2a19c64730a45c7e5',1,'taraxa::net::HttpServer']]]
 ];

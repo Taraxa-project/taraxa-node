@@ -22,10 +22,11 @@ var searchData=
   ['ioc_5fw_5f_19',['ioc_w_',['../structdev_1_1p2p_1_1_host.html#ab383bea226fe2374d82e909e54b0c626',1,'dev::p2p::Host']]],
   ['ioc_5fwork_5f_20',['ioc_work_',['../classtaraxa_1_1util_1_1_thread_pool.html#a97bd0aeba43b2bb35aab77c6d92bd1f9',1,'taraxa::util::ThreadPool']]],
   ['ip_21',['ip',['../namespacetaraxa.html#ace279b5bb50e6cdeb99932ac0a0f3416',1,'taraxa::NodeConfig']]],
-  ['is_5fboot_5fnode_22',['is_boot_node',['../namespacedev_1_1p2p.html#a5fb1244b9ea3818995118c180a42d60c',1,'dev::p2p::TaraxaNetworkConfig']]],
-  ['is_5fboot_5fnode_5f_23',['is_boot_node_',['../classdev_1_1p2p_1_1_node_table.html#a7689da715d506749ce8e308266a1e645',1,'dev::p2p::NodeTable']]],
-  ['is_5flight_5fnode_24',['is_light_node',['../structtaraxa_1_1_full_node_config.html#ad1e384f37a3fbb2470149c985e458e1f',1,'taraxa::FullNodeConfig::is_light_node'],['../namespacetaraxa_1_1network_1_1tarcap.html#a385696bb1ace4285f2b3f5e1cb2175c1',1,'taraxa::network::tarcap::StatusPacket::InitialData::is_light_node']]],
-  ['is_5frange_5fonly_5f_25',['is_range_only_',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a8941b92efb95c5029e19574b4cb8c3b8',1,'taraxa::net::rpc::eth::LogFilter']]],
-  ['is_5fsystem_26',['is_system',['../structtaraxa_1_1_transaction_location.html#a0fd23a1b613f34cae4a4df2d043ec952',1,'taraxa::TransactionLocation']]],
-  ['is_5fzero_5f_27',['is_zero_',['../structtaraxa_1_1_transaction.html#ac9757f51915ac63d923b4d58d06f4f29',1,'taraxa::Transaction']]]
+  ['ip_5f_22',['ip_',['../classtaraxa_1_1net_1_1_ws_session.html#a55724f9bfd335e71adaf975d2fbe793d',1,'taraxa::net::WsSession']]],
+  ['is_5fboot_5fnode_23',['is_boot_node',['../namespacedev_1_1p2p.html#a5fb1244b9ea3818995118c180a42d60c',1,'dev::p2p::TaraxaNetworkConfig']]],
+  ['is_5fboot_5fnode_5f_24',['is_boot_node_',['../classdev_1_1p2p_1_1_node_table.html#a7689da715d506749ce8e308266a1e645',1,'dev::p2p::NodeTable']]],
+  ['is_5flight_5fnode_25',['is_light_node',['../structtaraxa_1_1_full_node_config.html#ad1e384f37a3fbb2470149c985e458e1f',1,'taraxa::FullNodeConfig::is_light_node'],['../namespacetaraxa_1_1network_1_1tarcap.html#a385696bb1ace4285f2b3f5e1cb2175c1',1,'taraxa::network::tarcap::StatusPacket::InitialData::is_light_node']]],
+  ['is_5frange_5fonly_5f_26',['is_range_only_',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a8941b92efb95c5029e19574b4cb8c3b8',1,'taraxa::net::rpc::eth::LogFilter']]],
+  ['is_5fsystem_27',['is_system',['../structtaraxa_1_1_transaction_location.html#a0fd23a1b613f34cae4a4df2d043ec952',1,'taraxa::TransactionLocation']]],
+  ['is_5fzero_5f_28',['is_zero_',['../structtaraxa_1_1_transaction.html#ac9757f51915ac63d923b4d58d06f4f29',1,'taraxa::Transaction']]]
 ];

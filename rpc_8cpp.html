@@ -99,6 +99,7 @@ $(document).ready(function(){initNavTree('rpc_8cpp.html',''); initResizable(); }
 <code>#include &lt;boost/program_options.hpp&gt;</code><br />
 <code>#include &quot;<a class="el" href="http__processor_8hpp_source.html">graphql/http_processor.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="graphql_2include_2graphql_2ws__server_8hpp_source.html">graphql/ws_server.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="metrics__service_8hpp_source.html">metrics/metrics_service.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_debug_8h_source.html">network/rpc/Debug.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_net_8h_source.html">network/rpc/Net.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_taraxa_8h_source.html">network/rpc/Taraxa.h</a>&quot;</code><br />
@@ -117,11 +118,11 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:afbffc75a37063b50d8c165a7db675c8b" id="r_afbffc75a37063b50d8c165a7db675c8b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">constexpr</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1plugin.html#afbffc75a37063b50d8c165a7db675c8b">taraxa::plugin::THREADS</a> = &quot;rpc.threads&quot;</td></tr>
+<tr class="memitem:afbffc75a37063b50d8c165a7db675c8b" id="r_afbffc75a37063b50d8c165a7db675c8b"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1plugin.html#afbffc75a37063b50d8c165a7db675c8b">taraxa::plugin::THREADS</a> = &quot;rpc.threads&quot;</td></tr>
 <tr class="separator:afbffc75a37063b50d8c165a7db675c8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a411c6a13aca0f54f57b505983f0afe42" id="r_a411c6a13aca0f54f57b505983f0afe42"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">constexpr</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1plugin.html#a411c6a13aca0f54f57b505983f0afe42">taraxa::plugin::ENABLE_TEST_RPC</a> = &quot;rpc.enable-<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">test</a>-<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">rpc&quot;</a></td></tr>
+<tr class="memitem:a411c6a13aca0f54f57b505983f0afe42" id="r_a411c6a13aca0f54f57b505983f0afe42"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1plugin.html#a411c6a13aca0f54f57b505983f0afe42">taraxa::plugin::ENABLE_TEST_RPC</a> = &quot;rpc.enable-test-rpc&quot;</td></tr>
 <tr class="separator:a411c6a13aca0f54f57b505983f0afe42"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2766369a455695565dca0d80b0fb922c" id="r_a2766369a455695565dca0d80b0fb922c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">constexpr</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1plugin.html#a2766369a455695565dca0d80b0fb922c">taraxa::plugin::ENABLE_DEBUG</a> = &quot;rpc.debug&quot;</td></tr>
+<tr class="memitem:a2766369a455695565dca0d80b0fb922c" id="r_a2766369a455695565dca0d80b0fb922c"><td class="memItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1plugin.html#a2766369a455695565dca0d80b0fb922c">taraxa::plugin::ENABLE_DEBUG</a> = &quot;rpc.debug&quot;</td></tr>
 <tr class="separator:a2766369a455695565dca0d80b0fb922c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

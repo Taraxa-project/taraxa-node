@@ -21,7 +21,7 @@ var searchData=
   ['verify_18',['verify',['../namespacedev.html#a3b4ed97e50a391bf2cc939fb7016141e',1,'dev::verify(Public const &amp;_k, Signature const &amp;_s, h256 const &amp;_hash)'],['../namespacedev.html#a52b001fb71447965bcfb9c5df0bbcb26',1,'dev::verify(PublicCompressed const &amp;_key, h512 const &amp;_signature, h256 const &amp;_hash)'],['../classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ae6c6f54f0fe48669ec83150763093d5c',1,'taraxa::vrf_wrapper::VrfSortitionBase::verify()'],['../group___vote.html#a0db07466f5bfb4cfe3c260d630174c96',1,'taraxa::VrfPbftSortition::verify()']]],
   ['verifyblock_19',['verifyBlock',['../group___d_a_g.html#a535caef1d40e5dd7ac90d4bcfbb47350',1,'taraxa::DagManager']]],
   ['verifysig_20',['verifySig',['../classtaraxa_1_1_dag_block.html#ab28ae9dda4c128c0e90e086f72d823d4',1,'taraxa::DagBlock']]],
-  ['verifytransaction_21',['verifyTransaction',['../group___transaction.html#a24fdc0d8b8877ca9859afb962aa4e6d3',1,'taraxa::TransactionManager']]],
+  ['verifytransaction_21',['verifyTransaction',['../group___transaction.html#acd71c9ceffe523a4992614ce619894e5',1,'taraxa::TransactionManager']]],
   ['verifytransactionsnotfinalized_22',['verifyTransactionsNotFinalized',['../group___transaction.html#a57511f64b55066d9760ee3fab135484b',1,'taraxa::TransactionManager']]],
   ['verifyvdf_23',['verifyvdf',['../classtaraxa_1_1_dag_block.html#a135230d7b9166efe6d2c2da5c4cf7ddb',1,'taraxa::DagBlock::verifyVdf()'],['../classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a30ed9ab3286ca6fb0c0b9c0d4f0218a4',1,'taraxa::vdf_sortition::VdfSortition::verifyVdf()']]],
   ['verifyvote_24',['verifyVote',['../group___vote.html#a6528bb14bb94e196d5ffb65693acda19',1,'taraxa::Vote']]],

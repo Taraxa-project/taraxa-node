@@ -1,0 +1,5 @@
+<map id="taraxa::GasPricer" name="taraxa::GasPricer">
+<area shape="rect" id="Node000001" title="Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_bl..." alt="" coords="5,108,140,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="45,5,100,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="75,45,75,108,70,108,70,45"/>
+</map>

@@ -2,7 +2,7 @@ var group___transaction =
 [
     [ "taraxa::final_chain", "namespacetaraxa_1_1final__chain.html", null ],
     [ "taraxa::GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", [
-      [ "GasPricer", "group___transaction.html#a050cf41412c4ca78a6a483db9c061d62", null ],
+      [ "GasPricer", "group___transaction.html#addf22088ab425ddbae0881eda211b971", null ],
       [ "~GasPricer", "group___transaction.html#acfb284f68bfcc72821afdd157be739ab", null ],
       [ "GasPricer", "group___transaction.html#a6b8cb01643ff2a20878b97e226a7a5a9", null ],
       [ "GasPricer", "group___transaction.html#ad9bd3d05e77b39cfaff5e14760fbb617", null ],
@@ -22,7 +22,8 @@ var group___transaction =
     [ "taraxa::TransactionManager", "group___transaction.html#classtaraxa_1_1_transaction_manager", [
       [ "TransactionManager", "group___transaction.html#af79c738b08f3b82b18d9b05c0a96c104", null ],
       [ "blockFinalized", "group___transaction.html#a5518e05109ea6a098343f4e2a0f58711", null ],
-      [ "estimateTransactionGas", "group___transaction.html#aa9a4b84564847186483c6e54c80e16c5", null ],
+      [ "estimateTransactionGas", "group___transaction.html#aa2a14e6d32b745373553750fc88f8bf4", null ],
+      [ "estimateTransactions", "group___transaction.html#aa39c14451f41f7e149f0e5b8853dc83d", null ],
       [ "excludeFinalizedTransactions", "group___transaction.html#a385cd5d97c6b15e819db9328db01fede", null ],
       [ "getAllPoolTrxs", "group___transaction.html#a2abcbb9c80d1dc8776bd61b4017f9a80", null ],
       [ "getBlockTransactions", "group___transaction.html#a9f0a1d39be0d0a4f7332d09c4c71fdcd", null ],
@@ -48,9 +49,11 @@ var group___transaction =
       [ "saveTransactionsFromDagBlock", "group___transaction.html#ae1e584cde38667d050293b51af85553d", null ],
       [ "transactionsDropped", "group___transaction.html#a9e1c50b1b2119fc0ddce1be200315aaa", null ],
       [ "updateFinalizedTransactionsStatus", "group___transaction.html#a8039ea2ebadfc5b9e21bb4b845bfc939", null ],
-      [ "verifyTransaction", "group___transaction.html#a24fdc0d8b8877ca9859afb962aa4e6d3", null ],
+      [ "verifyTransaction", "group___transaction.html#acd71c9ceffe523a4992614ce619894e5", null ],
       [ "verifyTransactionsNotFinalized", "group___transaction.html#a57511f64b55066d9760ee3fab135484b", null ],
       [ "db_", "group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec", null ],
+      [ "estimation_thread_pool_", "group___transaction.html#a40bea9ef85c200e62d71e9233b522193", null ],
+      [ "estimations_cache_", "group___transaction.html#a0c398cf10ef8cde231de81e60a620751", null ],
       [ "final_chain_", "group___transaction.html#a436ba8aeecf4a00b2644f60d272cbb2f", null ],
       [ "kConf", "group___transaction.html#a46b97c2f0e2b8830cc3207298b92d256", null ],
       [ "kDagBlockGasLimit", "group___transaction.html#acea2679465eaa2198cf68212c3626936", null ],

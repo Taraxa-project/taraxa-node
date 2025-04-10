@@ -41,8 +41,9 @@ var searchData=
   ['expirationcache_3c_20dev_3a_3afixedhash_20_3e_38',['ExpirationCache&lt; dev::FixedHash &gt;',['../class_expiration_cache.html',1,'']]],
   ['expirationcachemap_39',['ExpirationCacheMap',['../class_expiration_cache_map.html',1,'']]],
   ['expirationcachemap_3c_20dev_3a_3afixedhash_2c_20std_3a_3ashared_5fptr_3c_20taraxa_3a_3adagblock_20_3e_20_3e_40',['ExpirationCacheMap&lt; dev::FixedHash, std::shared_ptr&lt; taraxa::DagBlock &gt; &gt;',['../class_expiration_cache_map.html',1,'']]],
-  ['extendedtransactionlocation_41',['ExtendedTransactionLocation',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html',1,'taraxa::net::rpc::eth']]],
-  ['extpillarvotepackethandler_42',['ExtPillarVotePacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html',1,'taraxa::network::tarcap']]],
-  ['extsyncingpackethandler_43',['ExtSyncingPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html',1,'taraxa::network::tarcap']]],
-  ['extvotespackethandler_44',['ExtVotesPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html',1,'taraxa::network::tarcap']]]
+  ['expirationcachemap_3c_20dev_3a_3afixedhash_2c_20taraxa_3a_3astate_5fapi_3a_3aexecutionresult_20_3e_41',['ExpirationCacheMap&lt; dev::FixedHash, taraxa::state_api::ExecutionResult &gt;',['../class_expiration_cache_map.html',1,'']]],
+  ['extendedtransactionlocation_42',['ExtendedTransactionLocation',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html',1,'taraxa::net::rpc::eth']]],
+  ['extpillarvotepackethandler_43',['ExtPillarVotePacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_pillar_vote_packet_handler.html',1,'taraxa::network::tarcap']]],
+  ['extsyncingpackethandler_44',['ExtSyncingPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html',1,'taraxa::network::tarcap']]],
+  ['extvotespackethandler_45',['ExtVotesPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html',1,'taraxa::network::tarcap']]]
 ];

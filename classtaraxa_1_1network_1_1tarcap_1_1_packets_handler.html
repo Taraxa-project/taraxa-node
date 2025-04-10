@@ -104,11 +104,11 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1network_1_1tarcap_1_1_p
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a97d8035afcc19e8214d3625160ba1bde" id="r_a97d8035afcc19e8214d3625160ba1bde"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html">BasePacketHandler</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#a97d8035afcc19e8214d3625160ba1bde">getSpecificHandler</a> (<a class="el" href="namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9">SubprotocolPacketType</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">packet_type</a>) <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a></td></tr>
+<tr class="memitem:a97d8035afcc19e8214d3625160ba1bde" id="r_a97d8035afcc19e8214d3625160ba1bde"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html">BasePacketHandler</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#a97d8035afcc19e8214d3625160ba1bde">getSpecificHandler</a> (<a class="el" href="namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9">SubprotocolPacketType</a> packet_type) const</td></tr>
 <tr class="memdesc:a97d8035afcc19e8214d3625160ba1bde"><td class="mdescLeft">&#160;</td><td class="mdescRight">Factory method for getting specific packet handler based on packet type.  <br /></td></tr>
 <tr class="separator:a97d8035afcc19e8214d3625160ba1bde"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7ab3548a91f2fa364a3c96e193eff77" id="r_aa7ab3548a91f2fa364a3c96e193eff77"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">typename</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketHandlerType</a> , typename... Args&gt; </td></tr>
-<tr class="memitem:aa7ab3548a91f2fa364a3c96e193eff77"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#aa7ab3548a91f2fa364a3c96e193eff77">registerHandler</a> (<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">Args</a> &amp;&amp;... <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">args</a>)</td></tr>
+<tr class="memitem:aa7ab3548a91f2fa364a3c96e193eff77" id="r_aa7ab3548a91f2fa364a3c96e193eff77"><td class="memTemplParams" colspan="2">template&lt;typename PacketHandlerType , typename... Args&gt; </td></tr>
+<tr class="memitem:aa7ab3548a91f2fa364a3c96e193eff77"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#aa7ab3548a91f2fa364a3c96e193eff77">registerHandler</a> (Args &amp;&amp;... args)</td></tr>
 <tr class="memdesc:aa7ab3548a91f2fa364a3c96e193eff77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers packet handler.  <br /></td></tr>
 <tr class="separator:aa7ab3548a91f2fa364a3c96e193eff77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -127,7 +127,7 @@ Private Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html">BasePacketHandler</a> &gt; &amp; taraxa::network::tarcap::PacketsHandler::getSpecificHandler </td>
+          <td class="memname">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html">BasePacketHandler</a> &gt; &amp; taraxa::network::tarcap::PacketsHandler::getSpecificHandler </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9">SubprotocolPacketType</a>&#160;</td>
           <td class="paramname"><em>packet_type</em></td><td>)</td>
@@ -154,12 +154,12 @@ Private Attributes</h2></td></tr>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">typename</a> <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">PacketHandlerType</a> , typename... Args&gt; </div>
+template&lt;typename PacketHandlerType , typename... Args&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">void</a> taraxa::network::tarcap::PacketsHandler::registerHandler </td>
+          <td class="memname">void taraxa::network::tarcap::PacketsHandler::registerHandler </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">Args</a> &amp;&amp;...&#160;</td>
+          <td class="paramtype">Args &amp;&amp;...&#160;</td>
           <td class="paramname"><em>args</em></td><td>)</td>
           <td></td>
         </tr>

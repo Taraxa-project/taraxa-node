@@ -102,6 +102,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "kMaxLambda", "group___p_b_f_t.html#a9073936696977f4c5f09e421414ae278", null ],
     [ "kMinLambda", "group___p_b_f_t.html#a187e6bccc26ed73c376542ef2263e05b", null ],
     [ "kRebroadcastVotesLambdaTime", "group___p_b_f_t.html#af75c5530bf8d473c9213611ea6a3b9c4", null ],
+    [ "kSyncingThreadPoolSize", "group___p_b_f_t.html#a3b3876bcb7232011bf4d5a8edc1cea07", null ],
     [ "lambda_", "group___p_b_f_t.html#a4a9ad92258f3a06894de79875784e63b", null ],
     [ "last_placed_pillar_vote_period_", "group___p_b_f_t.html#a8def0b43fab2662fd5e418faad7a2fcd", null ],
     [ "loop_back_finish_state_", "group___p_b_f_t.html#ac223cb71b31a508a0be870366c48b877", null ],
@@ -124,6 +125,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "stop_mtx_", "group___p_b_f_t.html#a7c039fb4f8e57d9c6ed15b81f0d6b0a4", null ],
     [ "stopped_", "group___p_b_f_t.html#a59a9a8bd086c2f5ed76c823635475ab2", null ],
     [ "sync_queue_", "group___p_b_f_t.html#a942ae3e34e9c8a7c18fd90382fd013fb", null ],
+    [ "sync_thread_pool_", "group___p_b_f_t.html#a3207145532a96e246e01d7d535ec4485", null ],
     [ "trx_mgr_", "group___p_b_f_t.html#a30d700e5010e0eff63950310a1934e2f", null ],
     [ "vote_mgr_", "group___p_b_f_t.html#af14ed5b43a9c91c797d8847d7def4d01", null ]
 ];

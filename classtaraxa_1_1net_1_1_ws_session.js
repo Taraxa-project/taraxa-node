@@ -21,6 +21,7 @@ var classtaraxa_1_1net_1_1_ws_session =
     [ "run", "classtaraxa_1_1net_1_1_ws_session.html#af2f566ba5cf0a3ded131a8c93742c332", null ],
     [ "write", "classtaraxa_1_1net_1_1_ws_session.html#a8a48ac8e39610b60ec928a6bd350836b", null ],
     [ "closed_", "classtaraxa_1_1net_1_1_ws_session.html#a610cdf6736bacbe9a0997d1496d70685", null ],
+    [ "ip_", "classtaraxa_1_1net_1_1_ws_session.html#a55724f9bfd335e71adaf975d2fbe793d", null ],
     [ "read_buffer_", "classtaraxa_1_1net_1_1_ws_session.html#a2a44fe72e3ce54504a70760f549606b8", null ],
     [ "subscription_id_", "classtaraxa_1_1net_1_1_ws_session.html#a338533fe28369c28c6ee7384d0c92770", null ],
     [ "subscriptions_", "classtaraxa_1_1net_1_1_ws_session.html#a824c4281bbdef5714de08c18f9d5186f", null ],

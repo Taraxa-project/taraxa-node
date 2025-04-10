@@ -43,7 +43,7 @@ var searchData=
   ['hardforksconfig_40',['HardforksConfig',['../structtaraxa_1_1_hardforks_config.html',1,'taraxa']]],
   ['has_5frlp_5ffields_41',['HAS_RLP_FIELDS',['../encoding__rlp_8hpp.html#a0064bd5a28c05c265cc7f805e05a31e4',1,'encoding_rlp.hpp']]],
   ['hash_42',['hash',['../group___final_chain.html#a74bb648e6d8f03814ed5a5567c347be5',1,'taraxa::final_chain::NewBlock::hash'],['../structdev_1_1_fixed_hash_1_1hash.html',1,'dev::FixedHash&lt; N &gt;::hash'],['../group___final_chain.html#aa248d8ceb01bdb669ae3c64822dae150',1,'taraxa::final_chain::BlockHeader::hash']]],
-  ['hash256_43',['hash256',['../namespacetaraxa_1_1final__chain.html#a41b2ec28d1ad728e6c4d190795391e6e',1,'taraxa::final_chain']]],
+  ['hash256_43',['hash256',['../namespacetaraxa_1_1final__chain.html#a41b2ec28d1ad728e6c4d190795391e6e',1,'taraxa::final_chain::hash256(dev::BytesMap const &amp;_s)'],['../namespacetaraxa_1_1final__chain.html#ae98a58c8ebf350eaa6ce36b2fd0d79d5',1,'taraxa::final_chain::hash256(BytesMap const &amp;_s)']]],
   ['hash256aux_44',['hash256aux',['../namespacetaraxa_1_1final__chain.html#aaaba8929089b332775874032190fb5e6',1,'taraxa::final_chain']]],
   ['hash256requirementerror_45',['Hash256RequirementError',['../namespacedev.html#a5f310013fd2491ad3a83068b8c1cf0b1',1,'dev']]],
   ['hash256rlp_46',['hash256rlp',['../namespacetaraxa_1_1final__chain.html#a31a1e83861e1b14e99841d137c2da0a1',1,'taraxa::final_chain']]],
@@ -84,7 +84,7 @@ var searchData=
   ['highest_5fblock_81',['highest_block',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a8d904d39294192ba000300f708f4f9d1',1,'taraxa::net::rpc::eth::SyncStatus']]],
   ['hoc_20releases_20with_20bug_20fixes_82',['Ad-hoc releases with bug fixes',['../md_doc_2release__cycle.html#autotoc_md245',1,'']]],
   ['homebrew_83',['Install Homebrew',['../md_doc_2building.html#autotoc_md42',1,'']]],
-  ['host_84',['host',['../structdev_1_1p2p_1_1_host.html',1,'dev::p2p::Host'],['../namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89',1,'dev::p2p::PeerSessionInfo::host'],['../structdev_1_1p2p_1_1_host.html#a3a67cb085cf2787e50abbeb15dd35cc1',1,'dev::p2p::Host::Host()']]],
+  ['host_84',['host',['../structdev_1_1p2p_1_1_host.html',1,'dev::p2p::Host'],['../structdev_1_1p2p_1_1_host.html#a3a67cb085cf2787e50abbeb15dd35cc1',1,'dev::p2p::Host::Host()'],['../namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89',1,'dev::p2p::PeerSessionInfo::host']]],
   ['host_2ecpp_85',['Host.cpp',['../_host_8cpp.html',1,'']]],
   ['host_2eh_86',['Host.h',['../_host_8h.html',1,'']]],
   ['host_5f_87',['host_',['../classtaraxa_1_1_network.html#a9a17fef921508b0eedf68da85406660a',1,'taraxa::Network::host_'],['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4cb1c53c949cceb37f64e472058c1493',1,'taraxa::network::tarcap::PeersState::host_']]],
@@ -97,8 +97,8 @@ var searchData=
   ['http_5fprocessor_2ehpp_94',['http_processor.hpp',['../http__processor_8hpp.html',1,'']]],
   ['http_5fserver_2ecpp_95',['http_server.cpp',['../http__server_8cpp.html',1,'']]],
   ['http_5fserver_2ehpp_96',['http_server.hpp',['../http__server_8hpp.html',1,'']]],
-  ['httpconnection_97',['httpconnection',['../classtaraxa_1_1net_1_1_http_server.html#a0b9aed8652f5316c2d4c04eabe3d1c0c',1,'taraxa::net::HttpServer::HttpConnection'],['../classtaraxa_1_1net_1_1_http_connection.html#a4a9d0be7fedc6352e38a8bc88a2e7173',1,'taraxa::net::HttpConnection::HttpConnection()'],['../classtaraxa_1_1net_1_1_http_connection.html',1,'taraxa::net::HttpConnection']]],
+  ['httpconnection_97',['httpconnection',['../classtaraxa_1_1net_1_1_http_connection.html#a4a9d0be7fedc6352e38a8bc88a2e7173',1,'taraxa::net::HttpConnection::HttpConnection()'],['../classtaraxa_1_1net_1_1_http_server.html#a0b9aed8652f5316c2d4c04eabe3d1c0c',1,'taraxa::net::HttpServer::HttpConnection'],['../classtaraxa_1_1net_1_1_http_connection.html',1,'taraxa::net::HttpConnection']]],
   ['httphandler_98',['HttpHandler',['../classtaraxa_1_1net_1_1_http_server.html#a00c15ddc2d81dbe5857c3bbcbef9a68e',1,'taraxa::net::HttpServer']]],
   ['httpprocessor_99',['HttpProcessor',['../classtaraxa_1_1net_1_1_http_processor.html',1,'taraxa::net']]],
-  ['httpserver_100',['httpserver',['../classtaraxa_1_1net_1_1_http_server.html#a81df8c9232a970148cc8d97512e38468',1,'taraxa::net::HttpServer::HttpServer()'],['../classtaraxa_1_1net_1_1_http_server.html',1,'taraxa::net::HttpServer']]]
+  ['httpserver_100',['httpserver',['../classtaraxa_1_1net_1_1_http_server.html',1,'taraxa::net::HttpServer'],['../classtaraxa_1_1net_1_1_http_server.html#aca7b48bb72af08b2a19c64730a45c7e5',1,'taraxa::net::HttpServer::HttpServer()']]]
 ];

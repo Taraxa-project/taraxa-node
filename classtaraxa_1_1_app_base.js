@@ -9,6 +9,7 @@ var classtaraxa_1_1_app_base =
     [ "getDB", "classtaraxa_1_1_app_base.html#ad58c7d29b8a36e78d17f7a30e62e2f1c", null ],
     [ "getFinalChain", "classtaraxa_1_1_app_base.html#ad5ffbb9c56ebeadab80a93ffcebfd8f5", null ],
     [ "getGasPricer", "classtaraxa_1_1_app_base.html#a02c7d1cfb49c41a616514c6d536a5ad4", null ],
+    [ "getMetrics", "classtaraxa_1_1_app_base.html#aef7f53d7bb13ba20075a8085ed1c4193", null ],
     [ "getNetwork", "classtaraxa_1_1_app_base.html#acb9c13d4abf8782576954a9a7a08db91", null ],
     [ "getPbftChain", "classtaraxa_1_1_app_base.html#a05ffc2f8e450e11d7cefb065f80f3364", null ],
     [ "getPbftManager", "classtaraxa_1_1_app_base.html#a83c5198e783144da4df2f15b669eb35a", null ],
