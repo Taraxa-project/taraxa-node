@@ -27,20 +27,8 @@ void add(Json::Value& obj, const ExtendedTransactionLocation& info) {
 }
 
 Json::Value toJson(const Transaction& trx, const optional<TransactionLocationWithBlockHash>& loc) {
-  Json::Value res(Json::objectValue);
+  Json::Value res = trx.toJSON();
   add(res, loc);
-  res["hash"] = toJS(trx.getHash());
-  res["input"] = toJS(trx.getData());
-  res["to"] = toJson(trx.getReceiver());
-  res["from"] = toJS(trx.getSender());
-  res["gas"] = toJS(trx.getGas());
-  res["gasPrice"] = toJS(trx.getGasPrice());
-  res["nonce"] = toJS(trx.getNonce());
-  res["value"] = toJS(trx.getValue());
-  const auto& vrs = trx.getVRS();
-  res["r"] = toJS(u256(vrs.r));
-  res["s"] = toJS(u256(vrs.s));
-  res["v"] = toJS(vrs.v);
   return res;
 }
 
@@ -96,6 +84,7 @@ Json::Value toJson(const LocalisedTransactionReceipt& ltr) {
   res["cumulativeGasUsed"] = toJS(ltr.r.cumulative_gas_used);
   res["contractAddress"] = toJson(ltr.r.new_contract_address);
   res["logsBloom"] = toJS(ltr.r.bloom());
+
   auto& logs_json = res["logs"] = Json::Value(Json::arrayValue);
   uint log_i = 0;
   for (const auto& le : ltr.r.logs) {

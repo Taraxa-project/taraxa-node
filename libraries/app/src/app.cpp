@@ -111,13 +111,13 @@ void App::init(const cli::Config &cli_conf) {
     LOG(log_nf_) << "Prometheus: server started at " << config.address << ":" << config.listen_port
                  << ". Polling interval is " << config.polling_interval_ms << "ms";
     metrics_ =
-        std::make_unique<metrics::MetricsService>(config.address, config.listen_port, config.polling_interval_ms);
+        std::make_shared<metrics::MetricsService>(config.address, config.listen_port, config.polling_interval_ms);
   } else {
     LOG(log_nf_) << "Prometheus: config values aren't specified. Metrics collecting is disabled";
   }
 
-  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis.gas_price, conf_.is_light_node, db_);
   final_chain_ = std::make_shared<final_chain::FinalChain>(db_, conf_, node_addr);
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, db_);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 

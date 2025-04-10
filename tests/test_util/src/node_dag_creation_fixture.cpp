@@ -64,7 +64,9 @@ void NodeDagCreationFixture::deployContract() {
 
 uint64_t NodeDagCreationFixture::trxEstimation() {
   const auto &transactions = makeTransactions(1);
-  static auto estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
+  static auto estimation = node->getTransactionManager()
+                               ->estimateTransactionGas(transactions.front(), node->getFinalChain()->lastBlockNumber())
+                               .gas_used;
   assert(estimation);
   return estimation;
 }
@@ -115,7 +117,9 @@ std::vector<NodeDagCreationFixture::DagBlockWithTxs> NodeDagCreationFixture::gen
   SortitionConfig vdf_config(node->getConfig().genesis.sortition);
 
   auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block + 1);
-  auto trx_estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
+  auto trx_estimation = node->getTransactionManager()
+                            ->estimateTransactionGas(transactions.front(), node->getFinalChain()->lastBlockNumber())
+                            .gas_used;
 
   blk_hash_t pivot = dag_genesis;
   vec_blk_t tips;

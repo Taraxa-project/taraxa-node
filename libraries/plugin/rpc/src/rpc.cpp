@@ -4,6 +4,7 @@
 
 #include "graphql/http_processor.hpp"
 #include "graphql/ws_server.hpp"
+#include "metrics/metrics_service.hpp"
 #include "network/rpc/Debug.h"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
@@ -45,6 +46,8 @@ void Rpc::start() {
   if (threads_) {
     conf.network.rpc->threads_num = threads_;
   }
+  std::shared_ptr<metrics::JsonRpcMetrics> jsonrpc_metrics;
+  if (app()->getMetrics()) jsonrpc_metrics = app()->getMetrics()->getMetrics<metrics::JsonRpcMetrics>();
   // Inits rpc related members
   if (conf.network.rpc) {
     rpc_thread_pool_ = std::make_unique<util::ThreadPool>(conf.network.rpc->threads_num);
@@ -103,14 +106,15 @@ void Rpc::start() {
       jsonrpc_http_ = std::make_shared<net::HttpServer>(
           rpc_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf.network.rpc->address, *conf.network.rpc->http_port}, app()->getAddress(),
-          json_rpc_processor);
+          json_rpc_processor, jsonrpc_metrics);
       jsonrpc_api_->addConnector(json_rpc_processor);
       jsonrpc_http_->start();
     }
     if (conf.network.rpc->ws_port) {
       jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
           rpc_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf.network.rpc->address, *conf.network.rpc->ws_port}, app()->getAddress());
+          boost::asio::ip::tcp::endpoint{conf.network.rpc->address, *conf.network.rpc->ws_port}, app()->getAddress(),
+          jsonrpc_metrics);
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
@@ -169,7 +173,7 @@ void Rpc::start() {
       graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
           graphql_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf.network.graphql->address, *conf.network.graphql->ws_port},
-          app()->getAddress());
+          app()->getAddress(), jsonrpc_metrics);
       // graphql_ws_->run();
     }
 
@@ -180,7 +184,8 @@ void Rpc::start() {
           app()->getAddress(),
           std::make_shared<net::GraphQlHttpProcessor>(
               app()->getFinalChain(), app()->getDagManager(), app()->getPbftManager(), app()->getTransactionManager(),
-              app()->getDB(), app()->getGasPricer(), as_weak(app()->getNetwork()), conf.genesis.chain_id));
+              app()->getDB(), app()->getGasPricer(), as_weak(app()->getNetwork()), conf.genesis.chain_id),
+          jsonrpc_metrics);
       graphql_http_->start();
     }
   }

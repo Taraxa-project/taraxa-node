@@ -540,8 +540,8 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
 
 TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   auto node_cfgs = make_node_cfgs(1, 1, 5, true);
-  node_cfgs.front().genesis.dag.gas_limit = 500000;
-  node_cfgs.front().propose_dag_gas_limit = 500000;
+  node_cfgs.front().genesis.dag.gas_limit = 1000000;
+  node_cfgs.front().propose_dag_gas_limit = 1000000;
   makeNodeFromConfig(node_cfgs);
   deployContract();
 
@@ -575,7 +575,8 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   const uint32_t additional_trx_count = 30;
   insertTransactions(makeTransactions(additional_trx_count));
 
-  uint64_t should_be_in_one_dag_block = node->getConfig().genesis.dag.gas_limit / trxEstimation();
+  uint64_t should_be_in_one_dag_block =
+      (node->getConfig().genesis.dag.gas_limit - TEST_TX_GAS_LIMIT) / trxEstimation() + 1;
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + additional_trx_count)
     WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), trxs_before + additional_trx_count)

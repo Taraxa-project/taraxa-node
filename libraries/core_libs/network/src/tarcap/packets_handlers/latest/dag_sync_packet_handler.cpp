@@ -58,7 +58,7 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
       continue;
     }
 
-    auto [verified, reason] = trx_mgr_->verifyTransaction(trx);
+    auto [verified, reason] = trx_mgr_->verifyTransaction(trx, true);
     if (!verified) {
       std::ostringstream err_msg;
       err_msg << "DagBlock transaction " << tx_hash << " validation failed: " << reason;

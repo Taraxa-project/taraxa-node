@@ -10,6 +10,7 @@
 #include "transaction/transaction.hpp"
 
 namespace taraxa::net {
+namespace http = beast::http;
 
 void WsSession::run() {
   // Set suggested timeout settings for the websocket
@@ -23,8 +24,28 @@ void WsSession::run() {
     res.set(beast::http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
   }));
 
+  websocket::request_type upgrade_request;
+  beast::flat_buffer upgrade_request_buffer;
+  try {
+    http::read(ws_.next_layer(), upgrade_request_buffer, upgrade_request);
+  } catch (...) {
+    LOG(log_er_) << "Received WebSocket Upgrade Request: Exception";
+    close();
+    return;
+  }
+
+  ip_ = upgrade_request["X-Real-IP"];
+  if (ip_.empty()) {
+    try {
+      auto endpoint = ws_.next_layer().socket().remote_endpoint();
+      ip_ = endpoint.address().to_string();
+    } catch (...) {
+      ip_ = "Unknown";
+    }
+  }
+
   // Accept the websocket handshake
-  ws_.async_accept(beast::bind_front_handler(&WsSession::on_accept, shared_from_this()));
+  ws_.async_accept(upgrade_request, beast::bind_front_handler(&WsSession::on_accept, shared_from_this()));
 }
 
 void WsSession::on_accept(beast::error_code ec) {
@@ -77,7 +98,16 @@ void WsSession::handleRequest() {
 
   LOG(log_tr_) << "Before executor.post ";
   boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable {
-    self->do_write(self->processRequest(request));
+    auto ws_server = self->ws_server_.lock();
+    if (ws_server && ws_server->metrics_) {
+      auto start_time = std::chrono::steady_clock::now();
+      self->do_write(self->processRequest(request));
+      auto end_time = std::chrono::steady_clock::now();
+      auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+      ws_server->metrics_->report(request, self->ip_, "WebSocket", processing_time.count());
+    } else {
+      self->do_write(self->processRequest(request));
+    }
   });
   LOG(log_tr_) << "After executor.post ";
 }
@@ -160,8 +190,9 @@ void WsSession::newLogs(const final_chain::BlockHeader &header, TransactionHashe
   subscriptions_.processLogs(header, trx_hashes, receipts);
 }
 
-WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
-    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)) {
+WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr,
+                   std::shared_ptr<metrics::JsonRpcMetrics> metrics)
+    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)), metrics_(metrics) {
   LOG_OBJECTS_CREATE("WS_SERVER");
   beast::error_code ec;
 

@@ -51,6 +51,11 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
 
     const auto [verified, reason] = trx_mgr_->verifyTransaction(transaction);
     if (!verified) {
+      if (reason == "invalid gas" || reason == "gas_price too low") {  // remove after HF
+        LOG(log_dg_) << "Transaction " << transaction->getHash() << " has invalid gas or low gas price.";
+        trx_mgr_->insertValidatedTransaction(std::move(transaction));
+        continue;
+      }
       std::ostringstream err_msg;
       err_msg << "DagBlock transaction " << tx_hash << " validation failed: " << reason;
       throw MaliciousPeerException(err_msg.str());

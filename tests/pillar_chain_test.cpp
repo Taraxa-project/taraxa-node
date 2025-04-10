@@ -102,6 +102,7 @@ TEST_F(PillarChainTest, votes_count_changes) {
     node_cfg.genesis.state.dpos.delegation_delay = 1;
     node_cfg.genesis.state.hardforks.ficus_hf.block_num = 0;
     node_cfg.genesis.state.hardforks.ficus_hf.pillar_blocks_interval = 4;
+    node_cfg.genesis.state.hardforks.soleirolia_hf.block_num = 0;
   }
   auto nodes = launch_nodes(node_cfgs);
 

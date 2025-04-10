@@ -89,7 +89,9 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto nw2 = node2->getNetwork();
 
   auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+  const auto estimation = node1->getTransactionManager()
+                              ->estimateTransactionGas(trxs[0], node1->getFinalChain()->lastBlockNumber())
+                              .gas_used;
 
   // node1 add one valid block
   const auto proposal_level = 1;
@@ -156,7 +158,9 @@ TEST_F(NetworkTest, propagate_block) {
   const auto dag_mgr1 = node1->getDagManager();
 
   auto trxs = samples::createSignedTrxSamples(0, 1, g_secret);
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+  const auto estimation = node1->getTransactionManager()
+                              ->estimateTransactionGas(trxs[0], node1->getFinalChain()->lastBlockNumber())
+                              .gas_used;
 
   // node1 add one valid block
   const auto proposal_level = 1;
@@ -425,7 +429,10 @@ TEST_F(NetworkTest, node_sync) {
   const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   const auto sk = node1->getSecretKey();
   const auto vrf_sk = node1->getVrfSecretKey();
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(g_signed_trx_samples[0], {});
+  const auto estimation =
+      node1->getTransactionManager()
+          ->estimateTransactionGas(g_signed_trx_samples[0], node1->getFinalChain()->lastBlockNumber())
+          .gas_used;
   SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
 
   auto propose_level = 1;
@@ -886,7 +893,10 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   const auto sk = node1->getSecretKey();
   const auto vrf_sk = node1->getVrfSecretKey();
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(g_signed_trx_samples[0], {});
+  const auto estimation =
+      node1->getTransactionManager()
+          ->estimateTransactionGas(g_signed_trx_samples[0], node1->getFinalChain()->lastBlockNumber())
+          .gas_used;
 
   SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   auto propose_level = 1;
@@ -996,7 +1006,9 @@ TEST_F(NetworkTest, node_sync2) {
   const auto vrf_sk = node1->getVrfSecretKey();
   const SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   const auto transactions = samples::createSignedTrxSamples(0, 25, sk);
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(transactions[0], {});
+  const auto estimation = node1->getTransactionManager()
+                              ->estimateTransactionGas(transactions[0], node1->getFinalChain()->lastBlockNumber())
+                              .gas_used;
   // DAG block1
   auto propose_level = 1;
   const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);

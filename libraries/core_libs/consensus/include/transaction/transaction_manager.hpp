@@ -1,6 +1,10 @@
 #pragma once
 
+#include <cstddef>
+
 #include "common/event.hpp"
+#include "common/thread_pool.hpp"
+#include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
 #include "logger/logger.hpp"
 #include "storage/storage.hpp"
@@ -53,12 +57,20 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
                      std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr);
 
   /**
+   * @brief Estimates required gas value to execute transactions
+   * @param trxs transactions
+   * @param proposal_period proposal period
+   * @return estimated gas value for transactions
+   */
+  uint64_t estimateTransactions(const SharedTransactions &trxs, PbftPeriod proposal_period);
+
+  /**
    * @brief Estimates required gas value to execute transaction
    * @param trx transaction
    * @param proposal_period proposal period
    * @return estimated gas value for transaction
    */
-  uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<PbftPeriod> proposal_period) const;
+  state_api::ExecutionResult estimateTransactionGas(std::shared_ptr<Transaction> trx, PbftPeriod proposal_period);
 
   /**
    * @brief Gets transactions from pool to include in the block with specified weight limit
@@ -227,7 +239,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<Transaction> getNonFinalizedTransaction(const trx_hash_t &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
-  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
+  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx, bool from_dag = false) const;
 
  private:
   addr_t getFullNodeAddress() const;
@@ -242,6 +254,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
   std::unordered_map<PbftPeriod, std::vector<trx_hash_t>> recently_finalized_transactions_per_period_;
+  ExpirationCacheMap<trx_hash_t, state_api::ExecutionResult> estimations_cache_;
   uint64_t trx_count_ = 0;
 
   const uint64_t kDagBlockGasLimit;
@@ -250,6 +263,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   std::shared_ptr<DbStorage> db_{nullptr};
   std::shared_ptr<final_chain::FinalChain> final_chain_{nullptr};
+
+  util::ThreadPool estimation_thread_pool_;
 
   LOG_OBJECTS_DEFINE
 

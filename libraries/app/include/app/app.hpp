@@ -3,6 +3,7 @@
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
+#include <memory>
 
 #include "cli/config.hpp"
 #include "common/app_base.hpp"
@@ -13,10 +14,6 @@
 #include "plugin/plugin.hpp"
 
 namespace taraxa {
-
-namespace metrics {
-class MetricsService;
-}
 
 class Plugin;
 
@@ -40,6 +37,7 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   std::shared_ptr<VoteManager> getVoteManager() const { return vote_mgr_; }
   std::shared_ptr<PbftChain> getPbftChain() const { return pbft_chain_; }
   std::shared_ptr<final_chain::FinalChain> getFinalChain() const { return final_chain_; }
+  std::shared_ptr<metrics::MetricsService> getMetrics() const { return metrics_; }
   // used only in tests
   std::shared_ptr<DagBlockProposer> getDagBlockProposer() const { return dag_block_proposer_; }
   std::shared_ptr<GasPricer> getGasPricer() const { return gas_pricer_; }
@@ -108,7 +106,7 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
-  std::unique_ptr<metrics::MetricsService> metrics_;
+  std::shared_ptr<metrics::MetricsService> metrics_;
 
   std::map<std::string, std::shared_ptr<Plugin>> active_plugins_;
   std::map<std::string, std::shared_ptr<Plugin>> available_plugins_;

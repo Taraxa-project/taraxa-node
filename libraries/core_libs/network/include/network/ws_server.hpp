@@ -4,16 +4,17 @@
 
 #include "dag/dag_block.hpp"
 #include "final_chain/data.hpp"
+#include "metrics/jsonrpc_metrics.hpp"
 #include "network/ws_session.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa::net {
-
 class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
+  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr,
+           std::shared_ptr<metrics::JsonRpcMetrics> metrics);
   virtual ~WsServer();
 
   WsServer(const WsServer&) = delete;
@@ -50,6 +51,8 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
 
  protected:
   const addr_t node_addr_;
+  std::shared_ptr<metrics::JsonRpcMetrics> metrics_;
+  friend WsSession;
 };
 
 }  // namespace taraxa::net

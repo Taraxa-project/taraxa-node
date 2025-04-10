@@ -72,5 +72,6 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   boost::asio::strand<boost::asio::any_io_executor> write_strand_;
   beast::flat_buffer read_buffer_;
   std::atomic<bool> closed_ = false;
+  std::string ip_;
 };
 }  // namespace taraxa::net

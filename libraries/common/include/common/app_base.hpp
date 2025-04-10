@@ -26,6 +26,10 @@ namespace pillar_chain {
 class PillarChainManager;
 }
 
+namespace metrics {
+class MetricsService;
+}
+
 class AppBase {
  public:
   AppBase() {}
@@ -41,6 +45,7 @@ class AppBase {
   virtual std::shared_ptr<VoteManager> getVoteManager() const = 0;
   virtual std::shared_ptr<PbftChain> getPbftChain() const = 0;
   virtual std::shared_ptr<final_chain::FinalChain> getFinalChain() const = 0;
+  virtual std::shared_ptr<metrics::MetricsService> getMetrics() const = 0;
   // used only in tests
   virtual std::shared_ptr<DagBlockProposer> getDagBlockProposer() const = 0;
   virtual std::shared_ptr<GasPricer> getGasPricer() const = 0;
