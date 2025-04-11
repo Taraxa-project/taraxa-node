@@ -13,7 +13,7 @@ set(TARAXA_MAJOR_VERSION 1)
 set(TARAXA_MINOR_VERSION 13)
 set(TARAXA_PATCH_VERSION 1)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
-
+message(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 # Include Conan toolchain file
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
     message(FATAL_ERROR "The file conan_toolchain.cmake doesn't exist, you must run 'conan install' first")

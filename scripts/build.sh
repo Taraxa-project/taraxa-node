@@ -1,7 +1,10 @@
-./config.sh
+#!/bin/bash
+SCRIPTPATH=$(dirname $(realpath "$0"))
 
-SCRIPT=$(realpath "$0")
-SCRIPTPATH=$(dirname "$SCRIPT")
+# stop on ctrl+c
+trap "exit 1" INT
+
+source ${SCRIPTPATH}/config.sh
 
 if [ -z "$BUILD_DIR" ]; then
     echo 'BUILD_DIR is not specified. Defaulting to "./build"'
@@ -14,7 +17,7 @@ if [ -z "$SOURCE_DIR" ]; then
 fi
 
 # build and use conan deps in Release mode
-conan install ${SOURCE_DIR} -s "build_type=Release" -s "&:build_type=${CMAKE_BUILD_TYPE}" --profile:host=clang --profile:build=clang --build=missing --output-folder=$BUILD_DIR
+conan install ${SOURCE_DIR} -s "build_type=Release" -s "&:build_type=${CMAKE_BUILD_TYPE}" --profile:host=clang --profile:build=clang --build=missing --output-folder=${BUILD_DIR}
 
 export CPU_COUNT=$(scripts/cpu_count.sh)
 
