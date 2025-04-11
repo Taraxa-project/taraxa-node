@@ -72,14 +72,14 @@ RUN apt-get remove -y python3-distro
 RUN pip3 install conan --break-system-packages
 
 WORKDIR $WORKDIR
-COPY scripts/config.sh .
+COPY scripts scripts
 COPY conanfile.py .
 
 ARG BUILD_OUTPUT_DIR
 
 # Create directory before using it
 RUN mkdir -p $BUILD_OUTPUT_DIR
-RUN ./config.sh
+RUN ./scripts/config.sh
 ARG BUILD_TYPE
 RUN conan install . -s "build_type=Release" -s "&:build_type=$BUILD_TYPE" --profile:host=clang --profile:build=clang --build=missing --output-folder=$BUILD_OUTPUT_DIR
 
