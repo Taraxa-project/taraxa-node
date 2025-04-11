@@ -248,18 +248,18 @@ void Network::addBootNodes(bool initial) {
   auto resolveHost = [](const std::string &addr, uint16_t port) {
     static boost::asio::io_context s_resolverIoService;
     boost::system::error_code ec;
-    bi::address address = bi::address::from_string(addr, ec);
+    bi::address address = bi::make_address(addr, ec);
     bi::tcp::endpoint ep(bi::address(), port);
     if (!ec) {
       ep.address(address);
     } else {
       // resolve returns an iterator (host can resolve to multiple addresses)
       bi::tcp::resolver r(s_resolverIoService);
-      auto it = r.resolve({bi::tcp::v4(), addr, std::to_string(port)}, ec);
+      auto it = r.resolve(bi::tcp::v4(), addr, std::to_string(port), ec);
       if (ec) {
         return std::make_pair(false, bi::tcp::endpoint());
       } else {
-        ep = *it;
+        ep = *it.begin();
       }
     }
     return std::make_pair(true, ep);

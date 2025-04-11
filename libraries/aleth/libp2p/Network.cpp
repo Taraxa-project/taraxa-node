@@ -181,7 +181,7 @@ bi::tcp::endpoint Network::resolveHost(string const& _addr) {
       cnetlog << "Error resolving host address... " << _addr << " : " << ec.message();
       return bi::tcp::endpoint();
     } else
-      ep = *res;
+      ep = *res.begin();
   }
   return ep;
 }

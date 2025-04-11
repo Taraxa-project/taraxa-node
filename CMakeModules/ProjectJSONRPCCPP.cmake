@@ -4,7 +4,7 @@ set(include_path "${prefix}/include")
 
 ExternalProject_Add(jsonrpccpp
     PREFIX "${prefix}"
-    GIT_REPOSITORY https://github.com/MatusKysel/libjson-rpc-cpp.git
+    GIT_REPOSITORY https://github.com/Taraxa-project/libjson-rpc-cpp.git
     GIT_SHALLOW true
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=Release

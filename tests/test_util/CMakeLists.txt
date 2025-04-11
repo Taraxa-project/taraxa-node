@@ -13,7 +13,7 @@ set(SOURCES
 # Configure file with version
 add_library(test_util ${SOURCES} ${HEADERS})
 target_include_directories(test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(test_util PUBLIC app core_libs CONAN_PKG::gtest)
+target_link_libraries(test_util PUBLIC app core_libs gtest::gtest)
 
 install(TARGETS common
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}

@@ -3,5 +3,19 @@ file(GLOB headers "*.h")
 
 add_library(devcore ${sources} ${headers})
 
-target_link_libraries(devcore PUBLIC CONAN_PKG::boost CONAN_PKG::jsoncpp ethash)
-target_include_directories(devcore SYSTEM PUBLIC ../)
+find_package(Boost REQUIRED)
+find_package(JsonCpp REQUIRED)
+
+target_link_libraries(devcore 
+    PUBLIC 
+        boost::boost
+        JsonCpp::JsonCpp 
+        ethash
+)
+target_include_directories(devcore 
+    SYSTEM 
+    PUBLIC 
+        ../ 
+        ${Boost_INCLUDE_DIRS}
+        ${JsonCpp_INCLUDE_DIRS}
+)

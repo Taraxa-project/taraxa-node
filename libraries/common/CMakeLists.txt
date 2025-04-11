@@ -29,8 +29,8 @@ target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(common PUBLIC
     devcore
     taraxa-vrf
-    CONAN_PKG::openssl
-    CONAN_PKG::jsoncpp
+    openssl::openssl
+    JsonCpp::JsonCpp
 )
 
 install(TARGETS common

@@ -28,9 +28,6 @@ will build out of the box without further effort:
         python3-full \
         libzstd-dev \
         libsnappy-dev \
-        rapidjson-dev \
-        libgmp-dev \
-        libmpfr-dev \
         libmicrohttpd-dev
 
     # Optional. Needed to run py_test. This won't install on arm64 OS because package is missing in apt
@@ -79,7 +76,7 @@ will build out of the box without further effort:
 First you need to get (Brew)[https://brew.sh/] package manager. After that you need to install dependencies with it. Clang-18 is used for compilation.
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool llvm@18 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
+    brew install coreutils go autoconf automake gflags git libtool llvm@18 make pkg-config cmake conan snappy zstd libmicrohttpd
 
 ### Clone the Repository
 
@@ -150,7 +147,7 @@ You should be able to build project following default MacOS building process. Bu
 
 ### Install dependencies
 
-    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
+    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd  libmicrohttpd
 
 ### Clone the Repository
 

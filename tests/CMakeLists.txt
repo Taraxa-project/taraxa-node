@@ -1,3 +1,4 @@
+find_package(GTest REQUIRED)
 add_subdirectory(test_util)
 
 # Enable testing for current directory and below.
@@ -15,8 +16,8 @@ add_executable(crypto_test crypto_test.cpp)
 target_link_libraries(crypto_test
     config
     vote
-    ${MPFR_LIBRARIES}
-    CONAN_PKG::gtest
+    mpfr::mpfr
+    gtest::gtest
 )
 add_test(crypto_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypto_test)
 
