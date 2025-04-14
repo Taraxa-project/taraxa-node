@@ -1,7 +1,6 @@
 #!/bin/bash
 
 SCRIPTPATH=$(dirname $(realpath "$0"))
-echo "SCRIPTPATH: $SCRIPTPATH"
 
 source $SCRIPTPATH/sed_cmd.sh
 
