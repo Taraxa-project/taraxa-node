@@ -1,12 +1,5 @@
 var NAVTREEINDEX27 =
 {
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a68b2e0a2fce70993a89d2ccb78746e7e":[17,0,1,9,2,0,0,2,5],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a7d06996d287fdcc8938bb4662842c2ff":[17,0,1,9,2,0,0,2,6],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a8131c4cbf867897158c8c24dcc667fcb":[17,0,1,9,2,0,0,2,8],
-"types_2transaction_2include_2transaction_2transaction_8hpp_source.html":[17,0,1,9,2,0,0,2],
-"types_2transaction_2src_2transaction_8cpp.html":[17,0,1,9,2,1,2],
-"types_2transaction_2src_2transaction_8cpp.html#a56a4b00634ce4169847ac1bb10d57319":[17,0,1,9,2,1,2,1],
-"types_2transaction_2src_2transaction_8cpp.html#a8131c4cbf867897158c8c24dcc667fcb":[17,0,1,9,2,1,2,0],
 "types_2transaction_2src_2transaction_8cpp.html#a8c97bde12cd7dee3d7b90482ac1e702b":[17,0,1,9,2,1,2,2],
 "types_8hpp.html":[17,0,1,3,0,0,13],
 "types_8hpp.html#a0826926ee3a622c25c010d9004097ef8":[17,0,1,3,0,0,13,11],
