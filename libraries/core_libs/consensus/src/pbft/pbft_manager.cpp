@@ -1264,11 +1264,11 @@ PbftManager::proposePbftBlock() {
   // that case PBFT proposer should propose NULL BLOCK HASH anchor as their value
   if (dag_block_hash == last_period_dag_anchor_block_hash) {
     auto non_finalized_dag_blocks = dag_mgr_->getNonFinalizedBlocks();
-    if(non_finalized_dag_blocks.second.size() > 0) {
+    if (non_finalized_dag_blocks.second.size() > 0) {
       dag_block_hash = *non_finalized_dag_blocks.second.rbegin()->second.begin();
     } else {
       LOG(log_dg_) << "Last period DAG anchor block hash " << dag_block_hash
-                 << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
+                   << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
       LOG(log_dg_) << "Ghost: " << ghost;
       return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data);
     }
@@ -1393,7 +1393,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
     }
 
     if (leader_block->getPivotDagBlockHash() == kNullBlockHash) {
-      if(empty_leader_block == nullptr) {
+      if (empty_leader_block == nullptr) {
         empty_leader_block = leader_block;
       }
       continue;
