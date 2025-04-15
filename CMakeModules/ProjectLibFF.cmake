@@ -5,8 +5,6 @@ set(prefix "${CMAKE_BINARY_DIR}/deps")
 set(libff_library "${prefix}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ff${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set(libff_inlcude_dir "${prefix}/include/libff")
 
-# file(GLOB gmp_libs "${CONAN_LIB_DIRS_GMP}/*gmp.*")
-
 ExternalProject_Add(libff
     PREFIX "${prefix}"
     DOWNLOAD_NAME libff-0.2.1.tar.gz
@@ -17,15 +15,16 @@ ExternalProject_Add(libff
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-        -DGMP_INCLUDE_DIR=${GMP_INCLUDES}
-        -DGMP_LIBRARY=${GMP_LIBRARIES}
-        -DOPENSSL_INCLUDE_DIR=${CONAN_INCLUDE_DIRS_OPENSSL}
-        -DOPENSSL_ROOT_DIR=${CONAN_OPENSSL_ROOT}
+        -DOPENSSL_INCLUDE_DIR=${OPENSSL_INCLUDE_DIR}
+        -DOPENSSL_ROOT_DIR=${OPENSSL_ROOT_DIR}
+        -DGMP_INCLUDE_DIR=${gmp_INCLUDE_DIR}
+        -DGMP_LIBRARY=${gmp_LIBRARIES}
         -DCURVE=ALT_BN128 -DPERFORMANCE=Off -DWITH_PROCPS=Off
         -DUSE_PT_COMPRESSION=Off
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.10
     BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
     LOG_BUILD 1
     INSTALL_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target install

@@ -530,7 +530,7 @@ commands:
               --rm -v $PWD/tmp_docker:/tmp \
               --name ${IMAGE}-ctest-${VERSION} \
               ${IMAGE}-ctest:${VERSION} \
-              sh -c 'cd cmake-docker-build-debug/bin && ctest --output-on-failure'
+              sh -c 'cd cmake-docker-build/bin && ctest --output-on-failure'
       - run:
           name: Chmod core dump if fail
           command: |
@@ -770,21 +770,20 @@ jobs:
       - tag_builder
       - push_builder
 
-
   release-docker-image:
-      environment:
-        - IMAGE: taraxa-node
-        - CONAN_REVISIONS_ENABLED: 1
-      machine:
-        image: ubuntu-2204:2024.04.4
-        docker_layer_caching: true
-      resource_class: large
-      steps:
-        - checkout
-        - prepare
-        - build
-        - tag
-        - push_dockerhub
+    environment:
+      - IMAGE: taraxa-node
+      - CONAN_REVISIONS_ENABLED: 1
+    machine:
+      image: ubuntu-2204:2024.04.4
+      docker_layer_caching: true
+    resource_class: large
+    steps:
+      - checkout
+      - prepare
+      - build
+      - tag
+      - push_dockerhub
 
   create-and-push-builder:
     docker:
@@ -901,7 +900,7 @@ jobs:
   build-linux:
     environment:
       CONAN_REVISIONS_ENABLED: true
-      BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
+      BUILD_OUTPUT_DIR: "cmake-docker-build"
       LLVM_VERSION: "12"
       GO_VERSION: "1.16.3"
       CMAKE_VERSION: "3.16.3-1ubuntu1"
@@ -1033,24 +1032,24 @@ workflows:
             - GCR
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
       - build-linux:
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
           context:
             - TARAXA
             - GCR
       - build-mac:
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
           context:
             - TARAXA
             - GCR
@@ -1065,13 +1064,12 @@ workflows:
           path: release
           filters:
             branches:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
             tags:
-              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+              ignore: /.*/ # so far not working, so do not run (revisit at some point)
           requires:
             - build-linux
             - build-mac
-
 
   # ### workflows for builder image ### #
   # run this workflow for specific branches 'builder/*'
@@ -1110,7 +1108,6 @@ workflows:
           context:
             - DOCKERHUB
   # ### workflows for builder image ### #
-
 
   # ### workflows for taraxa-node image ### #
   # run this workflow for all branches apart those reserved for chart
@@ -1161,7 +1158,6 @@ workflows:
             - GCR
             - DOCKERHUB
 
-
   # run this workflow for tags, like vX.Y.Z and vX.Y.Z-beta
   release-docker-image:
     jobs:
@@ -1169,8 +1165,8 @@ workflows:
           filters:
             tags:
               only:
-              - /^v?\d+\.\d+\.\d+$/
-              - /^v?\d+\.\d+\.\d+-beta$/
+                - /^v?\d+\.\d+\.\d+$/
+                - /^v?\d+\.\d+\.\d+-beta$/
             branches:
               ignore: /.*/
           context:
@@ -1202,10 +1198,10 @@ workflows:
           filters:
             branches:
               only:
-              - /^chart\/.*/
-              - /^chore\/chart-.*/
-              - /^fix\/chart-.*/
-              - /^feature\/chart-.*/
+                - /^chart\/.*/
+                - /^chore\/chart-.*/
+                - /^fix\/chart-.*/
+                - /^feature\/chart-.*/
 
   # run this workflow for tags, like chart-vX.Y.Z
   release-helm-chart:

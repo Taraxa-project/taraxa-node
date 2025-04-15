@@ -69,7 +69,7 @@ endfunction()
 # Add taraxa-vdf
 set(VDF_LIBRARY_COMMAND "\
  ${CMAKE_MAKE_PROGRAM}\
- CPPFLAGS=\"-I./include -I${CONAN_INCLUDE_DIRS_OPENSSL} -I${GMP_INCLUDES} -I${MPFR_INCLUDES} -fPIC -std=c++20 -O3\"\
+ CPPFLAGS=\"-I./include -I${OPENSSL_INCLUDE_DIR} -I${gmp_INCLUDE_DIR} -I${mpfr_INCLUDE_DIR} -fPIC -std=c++20 -O3\"\
  lib/libvdf.a")
 add_make_target(vdf libvdf.a "${VDF_LIBRARY_COMMAND}")
 
@@ -84,12 +84,18 @@ add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} &
 # Add taraxa-evm
 set(EVM_BUILD_DIR ${BUILD_DIR_PREFIX}/taraxa-evm)
 ## add include of libs
-set(EVM_BUILD_INCLUDE -I${CONAN_INCLUDE_DIRS_ROCKSDB})
+find_package(RocksDB REQUIRED)
+if(TARGET RocksDB::rocksdb)
+    set(EVM_BUILD_INCLUDE -I${RocksDB_INCLUDE_DIRS})
+    set(ROCKSDB_LIB_DIR ${RocksDB_INCLUDE_DIRS}/../lib)
+    set(LZ4_LIB_DIR ${LZ4_INCLUDE_DIR}/../lib)
+    set(EVM_BUILD_LD -L${ROCKSDB_LIB_DIR} -lrocksdb -L${LZ4_LIB_DIR} -llz4)
+else()
+    message(FATAL_ERROR "RocksDB::rocksdb target not found")
+endif()
 ## set C flags
 set(EVM_BUILD_CGO_CFLAGS -O3 ${EVM_BUILD_INCLUDE})
-## add link of libs
-set(EVM_BUILD_LD -L${CONAN_LIB_DIRS_ROCKSDB} -lrocksdb -L${CONAN_LIB_DIRS_LZ4} -llz4)
-## add path to homebew installed libs on macos
+## add path to homebrew installed libs on macos
 if (APPLE)
     set(EVM_BUILD_LD ${EVM_BUILD_LD} -L/opt/homebrew/lib)
 endif()
@@ -130,7 +136,7 @@ add_custom_command(
     COMMENT "Building taraxa-evm library")
 
 add_custom_target(taraxa_evm_build DEPENDS ${EVM_BUILD_DIR}/lib/${EVM_LIBRARY_NAME})
-add_dependencies(taraxa_evm_build CONAN_PKG::rocksdb)
+add_dependencies(taraxa_evm_build RocksDB::rocksdb)
 
 add_library(taraxa-evm INTERFACE)
 add_dependencies(taraxa-evm taraxa_evm_build)
@@ -149,7 +155,8 @@ add_custom_target(run_go_test)
 
 add_custom_command(
     TARGET run_go_test
-    DEPENDS ${TARAXA_EVM_SOURCES}
+    # DEPENDS ${TARAXA_EVM_SOURCES}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND cd ./taraxa-evm && ${EVM_BUILD_ENV} go test ./...
-    COMMENT "Running Go EVM tests")
+    COMMENT "Running Go EVM tests"
+    POST_BUILD)
