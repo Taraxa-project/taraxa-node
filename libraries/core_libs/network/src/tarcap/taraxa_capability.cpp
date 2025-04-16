@@ -293,7 +293,7 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
       return packets_handlers;
     };
 
-const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitV4VersionHandlers =
+const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitV5VersionHandlers =
     [](const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
        const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
        const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,

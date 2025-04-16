@@ -161,7 +161,7 @@
       "pbft_gas_limit": "0x7d2b7500"
     },
     "soleirolia_hf": {
-      "block_num": 2164000,
+      "block_num": 2358000,
       "trx_min_gas_price": "0x3B9ACA00",
       "trx_max_gas_limit": "0x1E0A6E0"
     }

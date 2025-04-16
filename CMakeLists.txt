@@ -21,7 +21,7 @@ endif()
 include("${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 5)
+set(TARAXA_NET_VERSION 6)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchain is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 1)
