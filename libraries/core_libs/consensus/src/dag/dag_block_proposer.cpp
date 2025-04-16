@@ -134,10 +134,11 @@ bool DagBlockProposer::proposeDagBlock() {
 
   // Define distribution for delay
   std::uniform_int_distribution<> dist(100, 800);
-
-  // Generate random delay and sleep
-  int delay = dist(gen);
-  std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+  if (propose_level > 1000) {
+    // Generate random delay and sleep
+    int delay = dist(gen);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+  }
 
   auto [transactions, estimations] = getShardedTrxs(*proposal_period, kDagProposeGasLimit);
   if (transactions.empty()) {
