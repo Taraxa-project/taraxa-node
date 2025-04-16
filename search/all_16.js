@@ -62,7 +62,7 @@ var searchData=
   ['khighprioritypackets_59',['kHighPriorityPackets',['../namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9a8b9b6390968996a5cb0e58840a8aca10',1,'taraxa::network']]],
   ['kindex_60',['kIndex',['../classgraphql_1_1taraxa_1_1_log.html#a62c2c2baa256f97cf82eca6bb7d220be',1,'graphql::taraxa::Log']]],
   ['kinitlatestversionhandlers_61',['kInitLatestVersionHandlers',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a48c76b3acfc0c33fbde3a76794f17214',1,'taraxa::network::tarcap::TaraxaCapability']]],
-  ['kinitv4versionhandlers_62',['kInitV4VersionHandlers',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa4eb6471d7848cd01edc75b8c60a1439',1,'taraxa::network::tarcap::TaraxaCapability']]],
+  ['kinitv5versionhandlers_62',['kInitV5VersionHandlers',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a8e8295b2d558aadb4a3d984963b0d366',1,'taraxa::network::tarcap::TaraxaCapability']]],
   ['kislightnode_63',['kIsLightNode',['../group___transaction.html#acd761bb267c3c7bfa8a559ba776c2fa3',1,'taraxa::GasPricer']]],
   ['klevelposinrlp_64',['kLevelPosInRlp',['../classtaraxa_1_1_dag_block.html#a318413c5369c15dc8eeb91a573e971b1',1,'taraxa::DagBlock']]],
   ['klightnode_65',['kLightNode',['../group___final_chain.html#a89d14db8173ec009d2ab3ba5368b25d4',1,'taraxa::final_chain::FinalChain']]],
