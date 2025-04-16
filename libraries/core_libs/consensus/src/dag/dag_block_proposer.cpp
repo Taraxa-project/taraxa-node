@@ -129,6 +129,16 @@ bool DagBlockProposer::proposeDagBlock() {
     }
   }
 
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+
+  // Define distribution for delay
+  std::uniform_int_distribution<> dist(100, 800);
+
+  // Generate random delay and sleep
+  int delay = dist(gen);
+  std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+
   auto [transactions, estimations] = getShardedTrxs(*proposal_period, kDagProposeGasLimit);
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
