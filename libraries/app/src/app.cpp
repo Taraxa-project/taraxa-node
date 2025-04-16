@@ -46,7 +46,8 @@ bool App::isPluginEnabled(const std::string &name) const { return active_plugins
 
 void App::init(const cli::Config &cli_conf) {
   conf_ = cli_conf.getNodeConfiguration();
-  kp_ = std::make_shared<dev::KeyPair>(conf_.node_secret);
+  // TODO[3020]
+  kp_ = std::make_shared<dev::KeyPair>(conf_.getFirstWallet().node_secret);
 
   fs::create_directories(conf_.db_path);
   fs::create_directories(conf_.log_path);
@@ -59,10 +60,11 @@ void App::init(const cli::Config &cli_conf) {
 
   LOG_OBJECTS_CREATE("FULLND");
 
+  // TODO[3020]
   LOG(log_si_) << "Node public key: " << EthGreen << kp_->pub().toString() << std::endl
                << EthReset << "Node address: " << EthRed << node_addr.toString() << std::endl
                << EthReset << "Node VRF public key: " << EthGreen
-               << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString() << EthReset;
+               << vrf_wrapper::getVrfPublicKey(conf_.getFirstWallet().vrf_secret).toString() << EthReset;
 
   if (!conf_.genesis.dag_genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
@@ -218,7 +220,8 @@ void App::scheduleLoggingConfigUpdate() {
     return;
   }
 
-  static auto node_address = dev::KeyPair(conf_.node_secret).address();
+  // TODO[3020]
+  static auto node_address = conf_.getFirstWallet().node_addr;
   config_update_executor_.post([&]() {
     while (started_ && !stopped_) {
       auto path = std::filesystem::path(conf_.json_file_name);

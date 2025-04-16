@@ -57,8 +57,21 @@ enum class PbftStateRootValidation { Valid = 0, Missing, Invalid };
  */
 class PbftManager {
  public:
+  class EligibleWallets {
+   public:
+    EligibleWallets(const std::vector<WalletConfig> &wallets);
+    void updateWalletsEligibility(PbftPeriod period, const std::shared_ptr<final_chain::FinalChain> &final_chain);
+    const std::vector<std::pair<bool, WalletConfig>> &getWallets(PbftPeriod current_pbft_period) const;
+
+   private:
+    // Period, for which wallets eligibility is set
+    PbftPeriod period_{0};
+    std::vector<std::pair<bool /* dpos eligibility flag */, WalletConfig>> wallets_;
+  };
+
   using time_point = std::chrono::system_clock::time_point;
 
+ public:
   PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
               std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
@@ -411,14 +424,18 @@ class PbftManager {
   void secondFinish_();
 
   /**
-   * @brief Place (gossip) vote
-   * @param vote
-   * @param log_vote_id vote identifier for log msg
-   * @param voted_block voted block object - should be == vote->voted_block. In case we dont have block object, nullptr
-   *                    is provided
+   * @brief Generate and place(gossip) vote
+   *
+   * @param pbft_block
+   * @param vote_type
+   * @param period
+   * @param round
+   * @param step
+   * @param block_hash
+   * @return
    */
-  bool placeVote(const std::shared_ptr<PbftVote> &vote, std::string_view log_vote_id,
-                 const std::shared_ptr<PbftBlock> &voted_block);
+  bool genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, PbftRound round, PbftStep step,
+                       const blk_hash_t &block_hash, std::shared_ptr<PbftBlock> pbft_block = nullptr);
 
   /**
    * @brief Generate propose vote for provided block place (gossip) it
@@ -456,12 +473,10 @@ class PbftManager {
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
-   * @param round current pbft round
-   * @param period new pbft period (period == chain_size + 1)
+   * @param propose_votes
    * @return shared_ptr to leader identified leader block
    */
-  // TODO: exchange round <-> period
-  std::shared_ptr<PbftBlock> identifyLeaderBlock_(PbftRound round, PbftPeriod period);
+  std::shared_ptr<PbftBlock> identifyLeaderBlock(std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -586,12 +601,11 @@ class PbftManager {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
+  // TODO: remove kMinLambda, kGenesisConfig as kConfig can be used instead
+  const FullNodeConfig kConfig;
   const uint32_t kSyncingThreadPoolSize;
   std::shared_ptr<util::ThreadPool>
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks
-
-  const addr_t node_addr_;
-  const secret_t node_sk_;
 
   const std::chrono::milliseconds kMinLambda;         // [ms]
   std::chrono::milliseconds lambda_{0};               // [ms]
@@ -641,6 +655,9 @@ class PbftManager {
 
   // Proposed blocks based on received propose votes
   ProposedBlocks proposed_blocks_;
+
+  // Wallets with flag if they are/are not dpos eligible for specified period
+  EligibleWallets eligible_wallets_;
 
   LOG_OBJECTS_DEFINE
 };

@@ -14,18 +14,15 @@ namespace taraxa {
 VoteManager::VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
                          std::shared_ptr<KeyManager> key_manager, std::shared_ptr<SlashingManager> slashing_manager)
-    : kNodeAddr(dev::toAddress(config.node_secret)),
-      kPbftConfig(config.genesis.pbft),
-      kVrfSk(config.vrf_secret),
-      kNodeSk(config.node_secret),
-      kNodePub(dev::toPublic(kNodeSk)),
+    : kPbftConfig(config.genesis.pbft),
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
       key_manager_(std::move(key_manager)),
       slashing_manager_(std::move(slashing_manager)),
       already_validated_votes_(1000000, 1000) {
-  const auto& node_addr = kNodeAddr;
+  // Use first wallet as default node_addr
+  const auto& node_addr = dev::toAddress(config.getFirstWallet().node_secret);
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
   auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<PbftVote>>& votes,
@@ -200,7 +197,8 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
     if (auto vote_inserted = insertUniqueVote(vote); !vote_inserted.first) {
       LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
       // Create double voting proof
-      slashing_manager_->submitDoubleVotingProof(vote, vote_inserted.second);
+      // TODO[3020]: use first with funds to pay fees
+      // slashing_manager_->submitDoubleVotingProof(vote, vote_inserted.second, );
       return false;
     }
 
@@ -831,13 +829,14 @@ uint64_t VoteManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count,
 
 std::shared_ptr<PbftVote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash_t& blockhash,
                                                               PbftVoteTypes vote_type, PbftPeriod period,
-                                                              PbftRound round, PbftStep step) {
+                                                              PbftRound round, PbftStep step,
+                                                              const WalletConfig& wallet) {
   uint64_t voter_dpos_votes_count = 0;
   uint64_t total_dpos_votes_count = 0;
   uint64_t pbft_sortition_threshold = 0;
 
   try {
-    voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(period - 1, kNodeAddr);
+    voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(period - 1, wallet.node_addr);
     if (!voter_dpos_votes_count) {
       // No delegation
       return nullptr;
@@ -855,7 +854,7 @@ std::shared_ptr<PbftVote> VoteManager::generateVoteWithWeight(const taraxa::blk_
     return nullptr;
   }
 
-  auto vote = generateVote(blockhash, vote_type, period, round, step);
+  auto vote = generateVote(blockhash, vote_type, period, round, step, wallet);
   vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold);
 
   if (*vote->getWeight() == 0) {
@@ -867,10 +866,10 @@ std::shared_ptr<PbftVote> VoteManager::generateVoteWithWeight(const taraxa::blk_
 }
 
 std::shared_ptr<PbftVote> VoteManager::generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
-                                                    PbftRound round, PbftStep step) {
+                                                    PbftRound round, PbftStep step, const WalletConfig& wallet) {
   // sortition proof
-  VrfPbftSortition vrf_sortition(kVrfSk, {type, period, round, step});
-  return std::make_shared<PbftVote>(kNodeSk, std::move(vrf_sortition), blockhash);
+  VrfPbftSortition vrf_sortition(wallet.vrf_secret, {type, period, round, step});
+  return std::make_shared<PbftVote>(wallet.node_secret, std::move(vrf_sortition), blockhash);
 }
 
 std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<PbftVote>& vote, bool strict) const {
@@ -963,11 +962,12 @@ bool VoteManager::voteAlreadyValidated(const vote_hash_t& vote_hash) const {
   return already_validated_votes_.contains(vote_hash);
 }
 
-bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const {
-  VrfPbftSortition vrf_sortition(kVrfSk, {PbftVoteTypes::propose_vote, pbft_period, pbft_round, 1});
+bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round,
+                                             const WalletConfig& wallet) const {
+  VrfPbftSortition vrf_sortition(wallet.vrf_secret, {PbftVoteTypes::propose_vote, pbft_period, pbft_round, 1});
 
   try {
-    const uint64_t voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(pbft_period - 1, kNodeAddr);
+    const uint64_t voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(pbft_period - 1, wallet.node_addr);
     if (!voter_dpos_votes_count) {
       LOG(log_er_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
                    << " is invalid. Voter dpos vote count is zero";
@@ -979,7 +979,7 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
         getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote);
 
     if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold,
-                                       kNodePub)) {
+                                       wallet.node_pk)) {
       LOG(log_dg_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
                    << " is invalid. Vrf sortition is zero";
       return false;

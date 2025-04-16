@@ -52,7 +52,8 @@ class AppBase {
 
   const dev::Address &getAddress() const { return kp_->address(); }
   const Secret &getSecretKey() const { return kp_->secret(); }
-  vrf_wrapper::vrf_sk_t getVrfSecretKey() const { return conf_.vrf_secret; }
+  // TODO[3020]
+  vrf_wrapper::vrf_sk_t getVrfSecretKey() const { return conf_.getFirstWallet().vrf_secret; }
 
   virtual std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const = 0;
 

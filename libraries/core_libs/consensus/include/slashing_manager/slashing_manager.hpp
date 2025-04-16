@@ -14,7 +14,8 @@ class SlashingManager {
   SlashingManager &operator=(const SlashingManager &) = delete;
   SlashingManager &operator=(SlashingManager &&) = delete;
 
-  bool submitDoubleVotingProof(const std::shared_ptr<PbftVote> &vote_a, const std::shared_ptr<PbftVote> &vote_b);
+  bool submitDoubleVotingProof(const std::shared_ptr<PbftVote> &vote_a, const std::shared_ptr<PbftVote> &vote_b,
+                               const WalletConfig &wallet);
 
  private:
   std::shared_ptr<final_chain::FinalChain> final_chain_;
@@ -25,7 +26,5 @@ class SlashingManager {
   ExpirationCache<dev::h256> double_voting_proofs_;
 
   const FullNodeConfig &kConfig;
-  const addr_t kAddress;
-  const secret_t kPrivateKey;
 };
 }  // namespace taraxa

@@ -81,7 +81,7 @@ class Config {
   std::string data_dir;
   std::string genesis;
   std::string config;
-  std::string wallet;
+  std::vector<std::string> wallets;
 };
 
 }  // namespace taraxa::cli
