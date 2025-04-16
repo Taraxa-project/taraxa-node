@@ -161,9 +161,11 @@ class VoteManager {
    * @param round PBFT round
    * @param step PBFT step
    * @param step PBFT step
+   * @param wallet
    */
   std::shared_ptr<PbftVote> generateVoteWithWeight(const blk_hash_t& blockhash, PbftVoteTypes vote_type,
-                                                   PbftPeriod period, PbftRound round, PbftStep step);
+                                                   PbftPeriod period, PbftRound round, PbftStep step,
+                                                   const WalletConfig& wallet);
 
   /**
    * @brief Generate a vote
@@ -172,10 +174,11 @@ class VoteManager {
    * @param period PBFT period
    * @param round PBFT round
    * @param step PBFT step
+   * @param wallet
    * @return vote
    */
   std::shared_ptr<PbftVote> generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
-                                         PbftRound round, PbftStep step);
+                                         PbftRound round, PbftStep step, const WalletConfig& wallet);
 
   /**
    * @brief Validates vote
@@ -202,9 +205,10 @@ class VoteManager {
 
   /**
    * @brief Generates vrf sortition and calculates its weight
+   * @param wallet
    * @return true if sortition weight > 0, otherwise false
    */
-  bool genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const;
+  bool genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round, const WalletConfig& wallet) const;
 
   /**
    * @brief Get 2t+1 voted block for specific period, round and type, e.g. soft/cert/next voted block
@@ -271,11 +275,7 @@ class VoteManager {
   uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
 
  private:
-  const addr_t kNodeAddr;
   const PbftConfig& kPbftConfig;
-  const vrf_wrapper::vrf_sk_t kVrfSk;
-  const secret_t kNodeSk;
-  const dev::Public kNodePub;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
