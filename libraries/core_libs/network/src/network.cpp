@@ -81,13 +81,13 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
         pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr);
     capabilities.emplace_back(latest_tarcap);
 
-    // Register previous (v4) version of taraxa capability
-    assert(TARAXA_NET_VERSION - 1 == 4);
-    auto v4_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+    // Register previous (v5) version of taraxa capability
+    assert(TARAXA_NET_VERSION - 1 == 5);
+    auto v5_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
         TARAXA_NET_VERSION - 1, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_,
         db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr,
-        network::tarcap::TaraxaCapability::kInitV4VersionHandlers);
-    capabilities.emplace_back(v4_tarcap);
+        network::tarcap::TaraxaCapability::kInitV5VersionHandlers);
+    capabilities.emplace_back(v5_tarcap);
 
     return capabilities;
   };
@@ -101,7 +101,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
 
   addBootNodes(true);
 
-  // Register periodic events. Must be called after full init of tarcaps_
+  // Register periodic events. Must be called after full init of tarcaps
   registerPeriodicEvents(pbft_mgr, trx_mgr);
 
   for (uint i = 0; i < tp_.capacity(); ++i) {
@@ -248,18 +248,18 @@ void Network::addBootNodes(bool initial) {
   auto resolveHost = [](const std::string &addr, uint16_t port) {
     static boost::asio::io_context s_resolverIoService;
     boost::system::error_code ec;
-    bi::address address = bi::address::from_string(addr, ec);
+    bi::address address = bi::make_address(addr, ec);
     bi::tcp::endpoint ep(bi::address(), port);
     if (!ec) {
       ep.address(address);
     } else {
       // resolve returns an iterator (host can resolve to multiple addresses)
       bi::tcp::resolver r(s_resolverIoService);
-      auto it = r.resolve({bi::tcp::v4(), addr, std::to_string(port)}, ec);
+      auto it = r.resolve(bi::tcp::v4(), addr, std::to_string(port), ec);
       if (ec) {
         return std::make_pair(false, bi::tcp::endpoint());
       } else {
-        ep = *it;
+        ep = *it.begin();
       }
     }
     return std::make_pair(true, ep);

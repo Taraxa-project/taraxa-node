@@ -228,7 +228,7 @@ NodesTest::NodesTest() {
     log_cfg.verbosity = taraxa::logger::Verbosity::Error;
     cfg.log_configs.emplace_back(log_cfg);
     cfg.network.rpc.emplace();
-    cfg.network.rpc->address = boost::asio::ip::address::from_string("127.0.0.1");
+    cfg.network.rpc->address = boost::asio::ip::make_address("127.0.0.1");
     cfg.network.rpc->http_port = 7778 + i;
     cfg.network.rpc->ws_port = 8778 + i;
     cfg.node_secret = dev::KeyPair::create().secret();

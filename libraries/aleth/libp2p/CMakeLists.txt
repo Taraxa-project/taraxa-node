@@ -1,9 +1,9 @@
 file(GLOB sources "*.cpp" "*.h")
 
 add_library(p2p ${sources})
-target_link_libraries(p2p PUBLIC devcrypto CONAN_PKG::lz4)
-
-target_include_directories(p2p SYSTEM PUBLIC ../)
+find_package(lz4 REQUIRED)
+target_link_libraries(p2p PUBLIC devcrypto LZ4::lz4_static)
+target_include_directories(p2p SYSTEM PUBLIC ../ ${LZ4_INCLUDE_DIR})
 
 if(MINIUPNPC)
     target_link_libraries(p2p PUBLIC "${MINIUPNPC_LIBRARY}")
