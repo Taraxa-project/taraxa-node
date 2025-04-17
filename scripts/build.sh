@@ -7,9 +7,16 @@ SCRIPTPATH=$(dirname $(realpath "$0"))
 source ${SCRIPTPATH}/config.sh
 
 if [ -z "$BUILD_DIR" ]; then
+    mkdir -p ${SCRIPTPATH}/../build
     export BUILD_DIR=$(realpath ${SCRIPTPATH}/../build)
     echo 'BUILD_DIR is not specified. Defaulting to "'${BUILD_DIR}'"'
 fi
+if [ ! -d "${BUILD_DIR}" ]; then
+    echo "BUILD_DIR does not exist. Creating it now at '${BUILD_DIR}'"
+    mkdir -p ${BUILD_DIR}
+    export BUILD_DIR=$(realpath ${BUILD_DIR})
+fi
+echo "BUILD_DIR: ${BUILD_DIR}"
 
 if [ -z "$SOURCE_DIR" ]; then
     export SOURCE_DIR=$(realpath ${SCRIPTPATH}/../)
