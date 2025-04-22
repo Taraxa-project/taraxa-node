@@ -183,7 +183,8 @@ void wait_for_balances(const std::vector<std::shared_ptr<AppBase>>& nodes, const
                        wait_opts to_wait = {10s, 500ms});
 
 std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
-                                       blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr);
+                                       blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr,
+                                       const WalletConfig& wallet);
 
 std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
                                        blk_hash_t block_hash = blk_hash_t(1));

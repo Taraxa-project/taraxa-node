@@ -27,6 +27,8 @@ struct WalletConfig {
         node_addr(toAddress(node_secret)),
         vrf_secret(vrf_secret),
         vrf_pk(vrf_wrapper::getVrfPublicKey(vrf_secret)) {}
+  WalletConfig(const WalletConfig &) = default;
+  WalletConfig(WalletConfig &&) = default;
 
   const dev::Secret node_secret;
   const dev::Public node_pk;

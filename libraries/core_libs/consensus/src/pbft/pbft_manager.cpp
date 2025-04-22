@@ -338,7 +338,7 @@ bool PbftManager::advancePeriod() {
   const auto new_period = chain_size + 1;
 
   // Update wallets eligibility, call after resetPbftConsensus (waitForPeriodFinalization)
-  eligible_wallets_.updateWalletsEligibility(pbft_chain_->getPbftChainSize(), final_chain_);
+  eligible_wallets_.updateWalletsEligibility(chain_size, final_chain_);
 
   // Cleanup previous period votes in vote manager
   // !!!Important: we need previous period votes to get reward votes for current period block
@@ -696,7 +696,7 @@ void PbftManager::printVotingSummary() const {
 
 bool PbftManager::stateOperations_() {
   auto [round, period] = getPbftRoundAndPeriod();
-  LOG(log_tr_) << "PBFT current round: " << round << ", period: " << period << ", step " << step_;
+  LOG(log_tr_) << "PBFT current period: " << period << ", round: " << round << ", step " << step_;
 
   // Process synced blocks
   pushSyncedPbftBlocksIntoChain();
@@ -718,7 +718,8 @@ bool PbftManager::stateOperations_() {
     return true;
   }
 
-  const auto &wallets = eligible_wallets_.getWallets(period);
+  // Note: do not use local variable period as it might be outdated, always use getPbftPeriod()
+  const auto &wallets = eligible_wallets_.getWallets(getPbftPeriod());
   if (std::any_of(wallets.cbegin(), wallets.cend(), [](const auto &wallet) {
         return wallet.first; /* is dpos eligible */
       })) {
@@ -2277,6 +2278,7 @@ void PbftManager::EligibleWallets::updateWalletsEligibility(
     wallet.first = final_chain->dposIsEligible(period, wallet.second.node_addr);
   }
 
+  period_ = period;
   period_ = period;
 }
 

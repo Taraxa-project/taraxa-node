@@ -226,13 +226,15 @@ TEST_F(StateAPITest, slashing) {
   ASSERT_EQ(true, node->getFinalChain()->dposIsEligible(node->getFinalChain()->lastBlockNumber(), node->getAddress()));
 
   // Generate 2 cert votes for 2 different blocks
-  auto vote_a = node->getVoteManager()->generateVote(blk_hash_t{1}, PbftVoteTypes::cert_vote, 1, 1, 3);
-  auto vote_b = node->getVoteManager()->generateVote(blk_hash_t{2}, PbftVoteTypes::cert_vote, 1, 1, 3);
+  auto vote_a = node->getVoteManager()->generateVote(blk_hash_t{1}, PbftVoteTypes::cert_vote, 1, 1, 3,
+                                                     node_cfg->getFirstWallet());
+  auto vote_b = node->getVoteManager()->generateVote(blk_hash_t{2}, PbftVoteTypes::cert_vote, 1, 1, 3,
+                                                     node_cfg->getFirstWallet());
 
   // Commit double voting proof
   auto slashing_manager = std::make_shared<SlashingManager>(*node_cfg, node->getFinalChain(),
                                                             node->getTransactionManager(), node->getGasPricer());
-  ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b));
+  ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b, node_cfg->getFirstWallet()));
 
   // After few blocks malicious validator should be jailed
   ASSERT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
