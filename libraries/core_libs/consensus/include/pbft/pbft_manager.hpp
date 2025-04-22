@@ -69,6 +69,12 @@ class PbftManager {
     std::vector<std::pair<bool /* dpos eligibility flag */, WalletConfig>> wallets_;
   };
 
+  struct ProposedBlockData {
+    std::shared_ptr<PbftBlock> pbft_block;
+    std::vector<std::shared_ptr<PbftVote>> reward_votes;
+    std::shared_ptr<PbftVote> vote;
+  };
+
   using time_point = std::chrono::system_clock::time_point;
 
  public:
@@ -159,11 +165,13 @@ class PbftManager {
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
    * @param extra_data optional extra_data
-   * @return optional<pair<PBFT block, PBFT block reward votes>>
+   * @param eligible_wallets list of eligible wallets to generate pbft lock for propose_period
+   * @return optional<ProposedBlockData>
    */
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> generatePbftBlock(
-      PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-      const blk_hash_t &order_hash, const std::optional<PbftBlockExtraData> &extra_data);
+  std::optional<ProposedBlockData> generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
+                                                     const blk_hash_t &anchor_hash, const blk_hash_t &order_hash,
+                                                     const std::optional<PbftBlockExtraData> &extra_data,
+                                                     const std::vector<WalletConfig> &eligible_wallets);
 
   /**
    * @brief Get current total DPOS votes count
@@ -457,10 +465,9 @@ class PbftManager {
 
   /**
    * @brief Propose a new PBFT block
-   * @return optional<pair<PBFT block, PBFT block reward votes>> in case new block was proposed, otherwise empty
-   * optional
+   * @return optional<ProposedBlockData> in case new block was proposed, otherwise empty optional
    */
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<PbftVote>>>> proposePbftBlock();
+  std::optional<ProposedBlockData> proposePbftBlock();
 
   /**
    * @brief Creates pbft block extra data
@@ -474,9 +481,10 @@ class PbftManager {
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
    * @param propose_votes
-   * @return shared_ptr to leader identified leader block
+   * @return shared_ptr to leader identified leader block + propose vote
    */
-  std::shared_ptr<PbftBlock> identifyLeaderBlock(std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> identifyLeaderBlock(
+      std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
