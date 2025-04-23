@@ -197,8 +197,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
     if (auto vote_inserted = insertUniqueVote(vote); !vote_inserted.first) {
       LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
       // Create double voting proof
-      // TODO[3020]: use first with funds to pay fees
-      // slashing_manager_->submitDoubleVotingProof(vote, vote_inserted.second, );
+      slashing_manager_->submitDoubleVotingProof(vote, vote_inserted.second);
       return false;
     }
 

@@ -68,7 +68,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
 
  public:
   TaraxaCapability(TarcapVersion version, const FullNodeConfig &conf, const h256 &genesis_hash,
-                   std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
+                   std::weak_ptr<dev::p2p::Host> host,
                    std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool,
                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                    std::shared_ptr<PbftSyncingState> syncing_state, std::shared_ptr<DbStorage> db,

@@ -42,8 +42,8 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   std::shared_ptr<DagBlockProposer> getDagBlockProposer() const { return dag_block_proposer_; }
   std::shared_ptr<GasPricer> getGasPricer() const { return gas_pricer_; }
   std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
-
-  const dev::Address& getAddress() const { return kp_->address(); }
+  // TODO[3023]
+  const dev::Address& getAddress() const { return conf_.getFirstWallet().node_addr; }
 
   void rebuildDb();
 

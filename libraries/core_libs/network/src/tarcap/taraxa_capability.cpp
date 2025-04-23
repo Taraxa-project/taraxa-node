@@ -29,7 +29,7 @@ namespace taraxa::network::tarcap {
 
 TaraxaCapability::TaraxaCapability(
     TarcapVersion version, const FullNodeConfig &conf, const h256 &genesis_hash, std::weak_ptr<dev::p2p::Host> host,
-    const dev::KeyPair &key, std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool,
+    std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool,
     std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftSyncingState> syncing_state,
     std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
@@ -44,7 +44,7 @@ TaraxaCapability::TaraxaCapability(
       thread_pool_(std::move(threadpool)) {
   // const std::string logs_prefix = "V" + std::to_string(version) + "_";
   const std::string logs_prefix = "";
-  const auto &node_addr = key.address();
+  const auto &node_addr = kConf.getFirstWallet().node_addr;
 
   LOG_OBJECTS_CREATE(logs_prefix + "TARCAP");
 

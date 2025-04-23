@@ -19,7 +19,7 @@ SlashingManager::SlashingManager(const FullNodeConfig &config, std::shared_ptr<f
       kConfig(config) {}
 
 bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<PbftVote> &vote_a,
-                                              const std::shared_ptr<PbftVote> &vote_b, const WalletConfig &wallet) {
+                                              const std::shared_ptr<PbftVote> &vote_b) {
   if (!kConfig.report_malicious_behaviour) {
     return false;
   }
@@ -50,20 +50,24 @@ bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<PbftVote> &v
     return false;
   }
 
-  // Check the balance
-  const auto account = final_chain_->getAccount(wallet.node_addr).value_or(taraxa::state_api::ZeroAccount);
-  if (account.balance == 0) {
-    return false;
-  }
-
   auto input =
       util::EncodingSolidity::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(), vote_b->rlp());
-  const auto trx = std::make_shared<Transaction>(account.nonce, 0, gas_pricer_->bid(), 100000, std::move(input),
-                                                 wallet.node_secret, kContractAddress, kConfig.genesis.chain_id);
 
-  if (trx_manager_->insertTransaction(trx).first) {
-    double_voting_proofs_.insert(hash);
-    return true;
+  // Find first wallet with funds to submit proof
+  for (const auto &wallet : kConfig.wallets) {
+    // Check the balance
+    const auto account = final_chain_->getAccount(wallet.node_addr).value_or(taraxa::state_api::ZeroAccount);
+    if (account.balance == 0) {
+      continue;
+    }
+
+    const auto trx = std::make_shared<Transaction>(account.nonce, 0, gas_pricer_->bid(), 100000, std::move(input),
+                                                   wallet.node_secret, kContractAddress, kConfig.genesis.chain_id);
+
+    if (trx_manager_->insertTransaction(trx).first) {
+      double_voting_proofs_.insert(hash);
+      return true;
+    }
   }
 
   return false;

@@ -235,7 +235,6 @@ std::optional<uint64_t> PbftManager::getCurrentDposTotalVotesCount() const {
 }
 
 std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
-  // TODO[3020]
   try {
     uint64_t node_votes_count = 0;
     for (const auto &wallet : eligible_wallets_.getWallets(getPbftPeriod())) {

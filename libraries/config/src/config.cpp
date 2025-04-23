@@ -161,7 +161,15 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const std::v
       throw ConfigException(std::string("Could not parse vrf_public: ") + e.what());
     }
 
-    wallets.emplace_back(std::move(node_secret), vrf_secret);
+    auto wallet_config = WalletConfig(std::move(node_secret), vrf_secret);
+    // Check for duplicate wallets
+    if (std::any_of(wallets.cbegin(), wallets.cend(), [&wallet_config](const WalletConfig &wallet) {
+          return wallet_config.node_secret == wallet.node_secret || wallet_config.vrf_secret == wallet.vrf_secret;
+        })) {
+      throw ConfigException(std::string("Duplicate wallets"));
+    }
+
+    wallets.push_back(std::move(wallet_config));
   }
 
   // TODO configurable
