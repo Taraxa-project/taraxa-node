@@ -246,7 +246,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<Transaction> getNonFinalizedTransaction(const trx_hash_t &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
-  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx, bool from_dag = false) const;
+  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
  private:
   addr_t getFullNodeAddress() const;
