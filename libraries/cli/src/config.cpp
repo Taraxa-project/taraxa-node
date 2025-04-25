@@ -65,7 +65,8 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
       fs::create_directories(genesis_dir);
     }
 
-    for (const auto& wallet_dir : wallets) {
+    for (const auto& wallet : wallets) {
+      auto wallet_dir = dirNameFromFile(wallet);
       if (!wallet_dir.empty() && !fs::exists(wallet_dir)) {
         fs::create_directories(wallet_dir);
       }
