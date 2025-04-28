@@ -143,18 +143,18 @@ bool TransactionQueue::erase(const SharedTransaction &transaction) {
   return removeTransaction(transaction, true);
 }
 
-TransactionStatus TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, bool proposable,
-                                           uint64_t last_block_number) {
+std::pair<TransactionStatus, std::string> TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction,
+                                                                   bool proposable, uint64_t last_block_number) {
   assert(transaction);
   const auto tx_hash = transaction->getHash();
 
   if (contains(tx_hash)) {
-    return TransactionStatus::Known;
+    return {TransactionStatus::Known, "Transaction in pool already"};
   }
 
   if (data_size_ > kMaxDataSize) {
     transaction_overflow_time_ = std::chrono::system_clock::now();
-    return TransactionStatus::Overflow;
+    return {TransactionStatus::Overflow, "Transaction pool data size overflow"};
   }
 
   if (proposable) {
@@ -165,7 +165,7 @@ TransactionStatus TransactionQueue::insert(std::shared_ptr<Transaction> &&transa
     } else {
       if (account_it->second.size() == kMaxSingleAccountTransactionsSize) {
         transaction_overflow_time_ = std::chrono::system_clock::now();
-        return TransactionStatus::Overflow;
+        return {TransactionStatus::Overflow, "Transaction pool single account overflow"};
       }
       const auto &nonce_it = account_it->second.find(transaction->getNonce());
       if (nonce_it == account_it->second.end()) {
@@ -202,7 +202,7 @@ TransactionStatus TransactionQueue::insert(std::shared_ptr<Transaction> &&transa
         if (counter >= queue_size / 100) break;
       }
       if (!queue_transactions_.contains(tx_hash)) {
-        return TransactionStatus::Overflow;
+        return {TransactionStatus::Overflow, "Transaction pool overflow"};
       }
     }
     known_txs_.insert(tx_hash);
@@ -210,13 +210,13 @@ TransactionStatus TransactionQueue::insert(std::shared_ptr<Transaction> &&transa
     if (non_proposable_transactions_.size() <= kNonProposableTransactionsMaxSize) {
       addTransaction(transaction, false, last_block_number);
       known_txs_.insert(tx_hash);
-      return TransactionStatus::InsertedNonProposable;
+      return {TransactionStatus::InsertedNonProposable, "Transaction inserted as non proposable"};
     } else {
       transaction_overflow_time_ = std::chrono::system_clock::now();
-      return TransactionStatus::Overflow;
+      return {TransactionStatus::Overflow, "Transaction pool non proposable overflow"};
     }
   }
-  return TransactionStatus::Inserted;
+  return {TransactionStatus::Inserted, "Inserted"};
 }
 
 void TransactionQueue::blockFinalized(uint64_t block_number) {

@@ -155,20 +155,21 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
 
   const auto trx_hash = trx->getHash();
   auto trx_copy = trx;
-  if (insertValidatedTransaction(std::move(trx_copy), false) == TransactionStatus::Inserted) {
-    return {true, ""};
+  auto result = insertValidatedTransaction(std::move(trx_copy), false);
+  if (result.first == TransactionStatus::Inserted) {
+    return {true, result.second};
   } else {
     const auto location = db_->getTransactionLocation(trx_hash);
     if (location) {
       return {false, "Transaction already finalized in period" + std::to_string(location->period)};
     } else {
-      return {false, "Transaction could not be inserted"};
+      return {false, "Transaction could not be inserted: " + result.second};
     }
   }
 }
 
-TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr<Transaction> &&tx,
-                                                                 bool insert_non_proposable) {
+std::pair<TransactionStatus, std::string> TransactionManager::insertValidatedTransaction(
+    std::shared_ptr<Transaction> &&tx, bool insert_non_proposable) {
   const auto trx_hash = tx->getHash();
 
   // This lock synchronizes inserting and removing transactions from transactions memory pool.
@@ -177,11 +178,11 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
   std::unique_lock transactions_lock(transactions_mutex_);
 
   if (nonfinalized_transactions_in_dag_.contains(trx_hash)) {
-    return TransactionStatus::Known;
+    return {TransactionStatus::Known, "Transaction already in DAG"};
   }
 
   if (recently_finalized_transactions_.contains(trx_hash)) {
-    return TransactionStatus::Known;
+    return {TransactionStatus::Known, "Transaction already finalized"};
   }
 
   const auto account = final_chain_->getAccount(tx->getSender());
@@ -191,7 +192,7 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
     // Ensure the transaction adheres to nonce ordering
     if (account->nonce > tx->getNonce()) {
       if (!insert_non_proposable) {
-        return TransactionStatus::Known;
+        return {TransactionStatus::Known, "Transaction nonce used"};
       }
       proposable = false;
     }
@@ -200,20 +201,20 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
     // cost == V + GP * GL
     if (account->balance < tx->getCost()) {
       if (!insert_non_proposable) {
-        return TransactionStatus::Known;
+        return {TransactionStatus::Known, "Transaction account low balance"};
       }
       proposable = false;
     }
   } else {
     if (!insert_non_proposable) {
-      return TransactionStatus::Known;
+      return {TransactionStatus::Known, "Transaction account no balance"};
     }
     proposable = false;
   }
 
   if (kConf.propose_dag_gas_limit < tx->getGas()) {
     if (!insert_non_proposable) {
-      return TransactionStatus::Known;
+      return {TransactionStatus::Known, "Transaction gas over the limit"};
     }
     proposable = false;
   }

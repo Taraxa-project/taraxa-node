@@ -64,10 +64,10 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     received_trx_count_++;
 
     const auto status = trx_mgr_->insertValidatedTransaction(std::move(transaction));
-    if (status == TransactionStatus::Inserted) {
+    if (status.first == TransactionStatus::Inserted) {
       unique_received_trx_count_++;
     }
-    if (status == TransactionStatus::Overflow) {
+    if (status.first == TransactionStatus::Overflow) {
       // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
       if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
         std::ostringstream err_msg;
