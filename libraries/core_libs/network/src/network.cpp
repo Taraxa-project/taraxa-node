@@ -90,7 +90,6 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
     return capabilities;
   };
 
-  // TODO[3023]: check if all key pairs (wallets) should not be passed to Host
   host_ = dev::p2p::Host::make(net_version, constructCapabilities, dev::KeyPair(kConf.getFirstWallet().node_secret),
                                net_conf, taraxa_net_conf, network_file_path);
   for (const auto &cap : host_->getSupportedCapabilities()) {

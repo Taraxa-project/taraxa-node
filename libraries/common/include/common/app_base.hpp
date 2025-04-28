@@ -50,7 +50,6 @@ class AppBase {
   virtual std::shared_ptr<DagBlockProposer> getDagBlockProposer() const = 0;
   virtual std::shared_ptr<GasPricer> getGasPricer() const = 0;
 
-  // TODO[3023]
   const dev::Address &getAddress() const { return conf_.getFirstWallet().node_addr; }
   const Secret &getSecretKey() const { return conf_.getFirstWallet().node_secret; }
   vrf_wrapper::vrf_sk_t getVrfSecretKey() const { return conf_.getFirstWallet().vrf_secret; }
