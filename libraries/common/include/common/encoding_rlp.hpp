@@ -63,8 +63,8 @@ void rlp(RLPEncoderRef encoding, std::pair<T1, T2> const& target) {
 }
 
 template <typename Sequence>
-auto rlp(RLPEncoderRef encoding, Sequence const& target) -> decltype(target.size(), target.begin(), target.end(),
-                                                                     void()) {
+auto rlp(RLPEncoderRef encoding, Sequence const& target)
+    -> decltype(target.size(), target.begin(), target.end(), void()) {
   encoding.appendList(target.size());
   for (auto const& v : target) {
     rlp(encoding, v);

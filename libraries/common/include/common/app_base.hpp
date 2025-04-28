@@ -37,6 +37,7 @@ class AppBase {
   virtual ~AppBase() = default;
 
   virtual const FullNodeConfig &getConfig() const = 0;
+  virtual FullNodeConfig &getMutableConfig() = 0;
   virtual std::shared_ptr<Network> getNetwork() const = 0;
   virtual std::shared_ptr<TransactionManager> getTransactionManager() const = 0;
   virtual std::shared_ptr<DagManager> getDagManager() const = 0;

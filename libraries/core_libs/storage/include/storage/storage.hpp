@@ -150,6 +150,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   };
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
+
+  void DeleteRange(const Column& col, uint64_t begin, uint64_t end);
+  void CompactRange(const Column& col, uint64_t begin, uint64_t end);
   rocksdb::ReadOptions read_options_;
 
   rocksdb::WriteOptions async_write_;
@@ -225,7 +228,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep, PbftPeriod last_block_number);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PeriodData> getPeriodData(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
@@ -481,6 +483,50 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   template <typename K>
   void remove(Batch& batch, Column const& col, K const& k) {
     checkStatus(batch.Delete(handle(col), toSlice(k)));
+  }
+
+  template <typename K>
+  void remove(Batch& batch, Column const& col, std::unordered_set<K> const& keys) {
+    for (auto const& k : keys) {
+      checkStatus(batch.Delete(handle(col), toSlice(k)));
+    }
+  }
+
+  template <typename T>
+  void clearColumnHistoryOld(std::unordered_set<T>& to_keep, Column c) {
+    std::map<T, bytes> data_to_keep;
+    for (auto t : to_keep) {
+      auto raw = asBytes(lookup(t, c));
+      if (!raw.empty()) {
+        data_to_keep[t] = raw;
+      }
+    }
+
+    deleteColumnData(c);
+    auto batch = createWriteBatch();
+    for (auto data : data_to_keep) {
+      insert(batch, c, data.first, data.second);
+    }
+    commitWriteBatch(batch);
+    data_to_keep.clear();
+  }
+
+  template <typename T>
+  void clearColumnHistory(std::unordered_set<T>& to_keep, Column c) {
+    auto batch = createWriteBatch();
+    auto it = getColumnIterator(c);
+
+    // Iterate through all entries in the column
+    for (it->SeekToFirst(); it->Valid(); it->Next()) {
+      auto key = FromSlice<T>(it->key());
+
+      // If the key is not in the keep set, delete it
+      if (to_keep.find(key) == to_keep.end()) {
+        remove(batch, c, key);
+      }
+    }
+
+    commitWriteBatch(batch);
   }
 
   void forEach(Column const& col, OnEntry const& f);

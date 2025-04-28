@@ -441,6 +441,16 @@ void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const
   write_batch.Clear();
 }
 
+void DbStorage::DeleteRange(const Column& col, uint64_t begin, uint64_t end) {
+  checkStatus(db_->DeleteRange(async_write_, handle(col), toSlice(begin), toSlice(end)));
+}
+
+void DbStorage::CompactRange(const Column& col, uint64_t begin, uint64_t end) {
+  auto begin_slice = toSlice(begin);
+  auto end_slice = toSlice(end);
+  checkStatus(db_->CompactRange({}, handle(col), &begin_slice, &end_slice));
+}
+
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
   auto block_data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
   if (block_data.size() > 0) {
@@ -601,88 +611,6 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(PbftPer
 }
 
 uint64_t DbStorage::getEarliestBlockNumber() const { return earliest_block_number_; }
-
-void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level_to_keep,
-                                       PbftPeriod last_block_number) {
-  LOG(log_si_) << "Clear light node history";
-
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_data)));
-  // Find the first non-deleted period
-  it->SeekToFirst();
-  if (!it->Valid()) {
-    return;
-  }
-
-  uint64_t start_period;
-  memcpy(&start_period, it->key().data(), sizeof(uint64_t));
-  auto start_slice = toSlice(start_period);
-  auto end_slice = toSlice(end_period);
-
-  earliest_block_number_ = end_period;
-
-  db_->DeleteRange(async_write_, handle(Columns::period_data), start_slice, end_slice);
-  db_->DeleteRange(async_write_, handle(Columns::pillar_block), start_slice, end_slice);
-  db_->DeleteRange(async_write_, handle(Columns::final_chain_receipt_by_period), start_slice, end_slice);
-  db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
-  db_->CompactRange({}, handle(Columns::pillar_block), &start_slice, &end_slice);
-  db_->CompactRange({}, handle(Columns::final_chain_receipt_by_period), &start_slice, &end_slice);
-
-  std::unordered_set<trx_hash_t> trxs;
-  std::unordered_set<blk_hash_t> dag_blocks;
-  std::unordered_set<blk_hash_t> pbft_blocks;
-
-  const uint64_t periods_to_keep_non_block_data = 1000;
-  for (uint64_t period = last_block_number - periods_to_keep_non_block_data;; period++) {
-    auto period_data = getPeriodData(period);
-    if (!period_data.has_value()) {
-      break;
-    }
-    for (auto t : period_data->transactions) {
-      trxs.insert(t->getHash());
-    }
-    for (auto d : period_data->dag_blocks) {
-      dag_blocks.insert(d->getHash());
-    }
-    pbft_blocks.insert(period_data->pbft_blk->getBlockHash());
-  }
-
-  auto clearColumnHistory = [this]<typename T>(std::unordered_set<T>& to_keep, Column c) {
-    std::map<trx_hash_t, bytes> data_to_keep;
-    for (auto t : to_keep) {
-      auto raw = asBytes(lookup(t, c));
-      if (!raw.empty()) {
-        data_to_keep[t] = raw;
-      }
-    }
-
-    deleteColumnData(c);
-    auto batch = createWriteBatch();
-    for (auto data : data_to_keep) {
-      insert(batch, c, data.first, data.second);
-    }
-    commitWriteBatch(batch);
-    data_to_keep.clear();
-  };
-
-  clearColumnHistory(trxs, Columns::trx_period);
-  clearColumnHistory(trxs, Columns::final_chain_receipt_by_trx_hash);
-  clearColumnHistory(dag_blocks, Columns::dag_block_period);
-  clearColumnHistory(pbft_blocks, Columns::pbft_block_period);
-
-  it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_level)));
-  it->SeekToFirst();
-  if (!it->Valid()) {
-    return;
-  }
-
-  uint64_t start_level;
-  memcpy(&start_level, it->key().data(), sizeof(uint64_t));
-  start_slice = toSlice(start_level);
-  end_slice = toSlice(dag_level_to_keep - 1);
-  db_->DeleteRange(async_write_, handle(Columns::dag_blocks_level), start_slice, end_slice);
-  db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
-  LOG(log_si_) << "Clear light node history completed";
-}
 
 void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch) {
   const auto period = period_data.pbft_blk->getPeriod();

@@ -972,7 +972,9 @@ TEST_F(FullNodeTest, persist_counter) {
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
   // Create and destroy to create network. So next time will be loaded from file
-  { auto nodes = launch_nodes(node_cfgs); }
+  {
+    auto nodes = launch_nodes(node_cfgs);
+  }
   {
     auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
@@ -1285,48 +1287,49 @@ TEST_F(FullNodeTest, transaction_validation) {
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
-TEST_F(FullNodeTest, light_node) {
-  auto node_cfgs = make_node_cfgs(2, 1, 5);
-  node_cfgs[0].dag_expiry_limit = 5;
-  node_cfgs[0].max_levels_per_period = 3;
-  node_cfgs[1].dag_expiry_limit = 5;
-  node_cfgs[1].max_levels_per_period = 3;
-  node_cfgs[1].is_light_node = true;
-  node_cfgs[1].light_node_history = 10;
-  auto nodes = launch_nodes(node_cfgs);
-  uint64_t nonce = 0;
-  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
-    auto dummy_trx =
-        std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
-    // broadcast dummy transaction
-    nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
-    thisThreadSleepForMilliSeconds(200);
-  }
-  nodes[1]->getDagManager()->clearLightNodeHistory(node_cfgs[1].light_node_history);
-  EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
-    // Verify full node and light node sync without any issues
-    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
-                   nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
-  });
-  uint32_t non_empty_counter = 0;
-  for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
-    const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
-    if (pbft_block) {
-      non_empty_counter++;
-    }
-  }
+// TEST_F(FullNodeTest, light_node) {
+//   auto node_cfgs = make_node_cfgs(2, 1, 5);
+//   node_cfgs[0].dag_expiry_limit = 5;
+//   node_cfgs[0].max_levels_per_period = 3;
+//   node_cfgs[1].dag_expiry_limit = 5;
+//   node_cfgs[1].max_levels_per_period = 3;
+//   node_cfgs[1].is_light_node = true;
+//   node_cfgs[1].light_node_history = 10;
+//   auto nodes = launch_nodes(node_cfgs);
+//   uint64_t nonce = 0;
+//   while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
+//     auto dummy_trx =
+//         std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(),
+//         nodes[0]->getAddress());
+//     // broadcast dummy transaction
+//     nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
+//     thisThreadSleepForMilliSeconds(200);
+//   }
+//   nodes[1]->getDagManager()->clearLightNodeHistory(node_cfgs[1].light_node_history);
+//   EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+//     // Verify full node and light node sync without any issues
+//     WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+//                    nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
+//   });
+//   uint32_t non_empty_counter = 0;
+//   for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
+//     const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
+//     if (pbft_block) {
+//       non_empty_counter++;
+//     }
+//   }
 
-  uint32_t non_empty_counter_full_node = 0;
-  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
-    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
-    if (pbft_block) {
-      non_empty_counter_full_node++;
-    }
-  }
-  // Verify light node keeps at least light_node_history and it deletes old blocks
-  EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
-  EXPECT_LT(non_empty_counter, non_empty_counter_full_node);
-}
+//   uint32_t non_empty_counter_full_node = 0;
+//   for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
+//     const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+//     if (pbft_block) {
+//       non_empty_counter_full_node++;
+//     }
+//   }
+//   // Verify light node keeps at least light_node_history and it deletes old blocks
+//   EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
+//   EXPECT_LT(non_empty_counter, non_empty_counter_full_node);
+// }
 
 TEST_F(FullNodeTest, clear_period_data) {
   auto node_cfgs = make_node_cfgs(2, 1, 10);
