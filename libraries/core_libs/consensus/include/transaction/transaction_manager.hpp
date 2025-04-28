@@ -286,7 +286,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   logger::Logger logger_;
 
  public:
-  util::Event<TransactionManager, const trx_hash_t &> const transaction_added_{};
+  util::event::Event<TransactionManager, const trx_hash_t &> const transaction_added_{};
 };
 
 /** @}*/

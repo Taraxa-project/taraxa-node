@@ -191,11 +191,11 @@ void App::start() {
     logger_->info("DB migrated successfully, please restart the node without the flag");
     started_ = false;
     return;
-  } else {
-    network_->start();
-    dag_block_proposer_->setNetwork(network_);
-    dag_block_proposer_->start();
   }
+
+  network_->start();
+  dag_block_proposer_->setNetwork(network_);
+  dag_block_proposer_->start();
 
   pbft_mgr_->start();
 
