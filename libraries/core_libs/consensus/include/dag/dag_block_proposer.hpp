@@ -149,6 +149,7 @@ class DagBlockProposer {
 
   const HardforksConfig kHardforks;
   const uint64_t kValidatorMaxVote;
+  const uint64_t kShardProposePeriodInterval = 10;
 
   LOG_OBJECTS_DEFINE
 };
