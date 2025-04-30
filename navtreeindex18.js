@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"group___transaction.html#ac0ec8a96421d83cc3b8bfad7943c10bc":[14,4,2,7],
 "group___transaction.html#acd71c9ceffe523a4992614ce619894e5":[14,4,2,29],
 "group___transaction.html#acd761bb267c3c7bfa8a559ba776c2fa3":[14,4,1,10],
 "group___transaction.html#acdefbde1eb12afaee84cc72d315c4566":[14,4,1,13],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "interface_2dag__block__packet__handler_8hpp.html":[17,0,1,5,1,1,0,0,1,0,0],
 "interface_2dag__block__packet__handler_8hpp_source.html":[17,0,1,5,1,1,0,0,1,0,0],
 "interface_2get__pillar__votes__bundle__packet__handler_8cpp.html":[17,0,1,5,1,3,0,0,0,1],
-"interface_2get__pillar__votes__bundle__packet__handler_8hpp.html":[17,0,1,5,1,1,0,0,1,0,1],
-"interface_2get__pillar__votes__bundle__packet__handler_8hpp_source.html":[17,0,1,5,1,1,0,0,1,0,1]
+"interface_2get__pillar__votes__bundle__packet__handler_8hpp.html":[17,0,1,5,1,1,0,0,1,0,1]
 };

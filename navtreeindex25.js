@@ -1,5 +1,6 @@
 var NAVTREEINDEX25 =
 {
+"structdev_1_1p2p_1_1_session.html#ad7df2f6c683c28fcdee77b9d695cecce":[16,0,0,1,36,10],
 "structdev_1_1p2p_1_1_session.html#ae065f2dc1dd95913e3a39204fe8e198d":[16,0,0,1,36,28],
 "structdev_1_1p2p_1_1_session.html#ae5897e387a91a07fb6fb184dd454c391":[16,0,0,1,36,11],
 "structdev_1_1p2p_1_1_session.html#ae67dd4ee9119a39703bad7d4f73df269":[16,0,0,1,36,13],
@@ -248,6 +249,5 @@ var NAVTREEINDEX25 =
 "structtaraxa_1_1_transaction_location.html#a59e06674ec0027d63a8a8f861a8f20c7":[16,0,3,73,0],
 "structtaraxa_1_1_transaction_location.html#a7dca49c76b76d8e8480ad6102b4c294c":[16,0,3,73,3],
 "structtaraxa_1_1_transaction_location.html#ad0d03c760561444947239aae237bc4c9":[16,0,3,73,2],
-"structtaraxa_1_1_transaction_receipt.html":[16,0,3,76],
-"structtaraxa_1_1_transaction_receipt.html#a0227175158bf1e8e6bcf45444f15d756":[16,0,3,76,1]
+"structtaraxa_1_1_transaction_receipt.html":[16,0,3,76]
 };

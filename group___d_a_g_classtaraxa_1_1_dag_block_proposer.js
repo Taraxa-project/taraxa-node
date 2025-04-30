@@ -26,6 +26,7 @@ var group___d_a_g_classtaraxa_1_1_dag_block_proposer =
     [ "key_manager_", "group___d_a_g.html#a5a36c04f481e9c1dd344fd2af990a3cc", null ],
     [ "kHardforks", "group___d_a_g.html#afbabead5b9d3b67d6419adcf03f823f7", null ],
     [ "kPbftGasLimit", "group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84", null ],
+    [ "kShardProposePeriodInterval", "group___d_a_g.html#a297f47c5cf521c50f02108ae2872b27d", null ],
     [ "kValidatorMaxVote", "group___d_a_g.html#a7b45feab13cb8c4e3b7f933e74f8cc88", null ],
     [ "last_propose_level_", "group___d_a_g.html#a26dce41a1d3475e3458bf9947537bbaf", null ],
     [ "max_num_tries_", "group___d_a_g.html#ad2c8f8841a2703497fd4a6a6538ddb84", null ],

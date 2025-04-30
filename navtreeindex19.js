@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"interface_2get__pillar__votes__bundle__packet__handler_8hpp_source.html":[17,0,1,5,1,1,0,0,1,0,1],
 "interface_2pillar__vote__packet__handler_8cpp.html":[17,0,1,5,1,3,0,0,0,2],
 "interface_2pillar__vote__packet__handler_8hpp.html":[17,0,1,5,1,1,0,0,1,0,2],
 "interface_2pillar__vote__packet__handler_8hpp_source.html":[17,0,1,5,1,1,0,0,1,0,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a2d122190369b9e5bdf4e3f1e58e4ed3b":[17,0,1,0,2,2,19,3],
 "libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a63188ccd09406e3dfdbce38905fa0c10":[17,0,1,0,2,2,19,2],
 "libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7a6c88dafb542cdaeed44bf29e90d96a07":[17,0,1,0,2,2,19,1],
-"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7ab20ea711706aab720b7e438030ef8ead":[17,0,1,0,2,2,19,0],
-"libp2p_2_common_8h.html#adee410722fa45feb4acbab36d7704bb5":[17,0,1,0,2,2,21]
+"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7ab20ea711706aab720b7e438030ef8ead":[17,0,1,0,2,2,19,0]
 };
