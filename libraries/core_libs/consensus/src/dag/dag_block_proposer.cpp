@@ -65,16 +65,16 @@ bool DagBlockProposer::proposeDagBlock() {
   }
 
   // Try to propose dag block for each wallet
-  // TODO: optimize
+  bool block_proposed = false;
   for (auto& node_dag_proposer_data : nodes_dag_proposers_data_) {
     if (!isValidDposProposer(*proposal_period, node_dag_proposer_data.wallet.node_addr)) {
-      return false;
+      continue;
     }
 
     auto pk = key_manager_->getVrfKey(*proposal_period, node_dag_proposer_data.wallet.node_addr);
     if (pk && *pk != node_dag_proposer_data.wallet.vrf_pk) {
       LOG(log_er_) << "VRF public key mismatch " << *pk << " - " << node_dag_proposer_data.wallet.vrf_pk;
-      return false;
+      continue;
     }
 
     uint64_t max_vote_count = 0;
@@ -89,7 +89,7 @@ bool DagBlockProposer::proposeDagBlock() {
     if (max_vote_count == 0) {
       LOG(log_er_) << node_dag_proposer_data.wallet.node_addr
                    << " total vote count 0 at proposal period:" << *proposal_period;
-      return false;
+      continue;
     }
 
     const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
@@ -102,10 +102,11 @@ bool DagBlockProposer::proposeDagBlock() {
     auto anchor = dag_mgr_->getAnchors().second;
     if (frontier.pivot != anchor) {
       if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
-        return false;
+        continue;
       }
       if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty()&&
-        dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocksLowDifficulty) {return false;
+        dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocksLowDifficulty) {
+        continue;
       }
     }
 
@@ -116,7 +117,7 @@ bool DagBlockProposer::proposeDagBlock() {
                        << " will not propose DAG block. Get difficulty at stale, tried "
                        << node_dag_proposer_data.num_tries << " times.";
           node_dag_proposer_data.num_tries++;
-          return false;
+          continue;
         }
       } else {
         LOG(log_dg_) << node_dag_proposer_data.wallet.node_addr
@@ -125,7 +126,7 @@ bool DagBlockProposer::proposeDagBlock() {
                      << propose_level;
         node_dag_proposer_data.last_propose_level = propose_level;
         node_dag_proposer_data.num_tries = 0;
-        return false;
+        continue;
       }
     }
 
@@ -134,7 +135,7 @@ bool DagBlockProposer::proposeDagBlock() {
     if (transactions.empty()) {
       node_dag_proposer_data.last_propose_level = propose_level;
       node_dag_proposer_data.num_tries = 0;
-      return false;
+      continue;
     }
 
     dev::bytes vdf_msg = DagManager::getVdfMessage(frontier.pivot, transactions);
@@ -161,7 +162,8 @@ bool DagBlockProposer::proposeDagBlock() {
       node_dag_proposer_data.num_tries = 0;
       result.wait();
       // Since compute was canceled there is a chance to propose a new block immediately, return true to skip sleep
-      return true;
+      block_proposed = true;
+      continue;
     }
 
     if (vdf.isStale(sortition_params)) {
@@ -173,7 +175,7 @@ bool DagBlockProposer::proposeDagBlock() {
       if (latest_level > propose_level) {
         node_dag_proposer_data.last_propose_level = propose_level;
         node_dag_proposer_data.num_tries = 0;
-        return false;
+        continue;
       }
     }
     LOG(log_dg_) << node_dag_proposer_data.wallet.node_addr << " VDF computation time " << vdf.getComputationTime()
@@ -186,6 +188,7 @@ bool DagBlockProposer::proposeDagBlock() {
       LOG(log_nf_) << node_dag_proposer_data.wallet.node_addr << " proposed new DAG block " << dag_block->getHash()
                    << ", pivot " << dag_block->getPivot() << " , txs num " << dag_block->getTrxs().size();
       proposed_blocks_count_ += 1;
+      block_proposed = true;
     } else {
       LOG(log_er_) << "Failed to add newly proposed dag block " << dag_block->getHash() << ", proposed by "
                    << node_dag_proposer_data.wallet.node_addr << " into dag";
@@ -195,7 +198,7 @@ bool DagBlockProposer::proposeDagBlock() {
     node_dag_proposer_data.num_tries = 0;
   }
 
-  return true;
+  return block_proposed;
 }
 
 void DagBlockProposer::start() {
