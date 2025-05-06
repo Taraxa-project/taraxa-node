@@ -72,6 +72,7 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
       if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
         std::ostringstream err_msg;
         err_msg << "Suspicious packets over the limit on DagBlock transaction " << tx_hash << " validation: " << reason;
+        throw MaliciousPeerException(err_msg.str());
       }
     }
   }
