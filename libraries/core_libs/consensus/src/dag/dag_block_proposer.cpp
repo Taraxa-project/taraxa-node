@@ -107,7 +107,8 @@ bool DagBlockProposer::proposeDagBlock() {
     if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
       return false;
     }
-    if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty()) {
+    if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty() &&
+        dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocksLowDifficulty) {
       return false;
     }
   }
@@ -149,7 +150,7 @@ bool DagBlockProposer::proposeDagBlock() {
   while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
     const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
-    if (latest_level > propose_level && vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
+    if (latest_level > propose_level + 1 && vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
       cancellation_token = true;
       break;
     }
