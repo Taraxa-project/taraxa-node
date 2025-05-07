@@ -10,6 +10,7 @@ var constants_8hpp =
     [ "kMaxHashesInPacket", "constants_8hpp.html#ade9fa0fc45e6f13cba99bbb3da1bb6d4", null ],
     [ "kMaxLevelsPerPeriod", "constants_8hpp.html#ab2f5ec0c8b9d91b604a61ca8062d0505", null ],
     [ "kMaxNonFinalizedDagBlocks", "constants_8hpp.html#a28123a29b1fa339b2202fbef0ae1db77", null ],
+    [ "kMaxNonFinalizedDagBlocksLowDifficulty", "constants_8hpp.html#a0c66cfd9cdcb7698c91d80c3b823319e", null ],
     [ "kMaxNonFinalizedTransactions", "constants_8hpp.html#a362de53960470ae77608995191b6d53d", null ],
     [ "kMaxTransactionsInPacket", "constants_8hpp.html#ae8b2a4b2aa68f4fcb448a76b73dcc6c8", null ],
     [ "kMaxTransactionsSizeInPacket", "constants_8hpp.html#ad65adf9d7293cbc1a11e7ae0e22576a1", null ],
