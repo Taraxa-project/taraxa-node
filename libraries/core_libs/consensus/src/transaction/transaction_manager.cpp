@@ -585,4 +585,9 @@ bool TransactionManager::transactionsDropped() const {
   return transactions_pool_.transactionsDropped();
 }
 
+val_t TransactionManager::getMinGasPriceForBlockInclusion() const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.getMinGasPriceForBlockInclusion(kConf.propose_dag_gas_limit);
+}
+
 }  // namespace taraxa

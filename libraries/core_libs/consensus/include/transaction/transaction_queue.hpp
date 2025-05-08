@@ -134,6 +134,14 @@ class TransactionQueue {
    */
   bool nonProposableTransactionsOverTheLimit() const;
 
+  
+  /**
+   * @brief Returns minimum gas price needed for transaction to be included
+   *  in the next proposed dag block
+   * @return Gas price
+   */
+  val_t getMinGasPriceForBlockInclusion(uint64_t limit) const;
+
  private:
   /**
    * @brief add transaction to queue
@@ -165,6 +173,9 @@ class TransactionQueue {
 
   // Transactions in the queue per trx hash
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> queue_transactions_;
+
+  // Amount of gas per gas prices in queue
+  std::map<val_t, uint64_t, std::greater<val_t>> queue_transactions_gas_prices_;
 
   // Low nonce and insufficient balance transactions which should not be included in proposed dag blocks but it is
   // possible because of dag reordering that some dag block might arrive requiring these transactions.

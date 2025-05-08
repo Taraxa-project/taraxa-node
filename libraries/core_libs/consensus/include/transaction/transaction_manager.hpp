@@ -235,6 +235,13 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    */
   bool transactionsDropped() const;
 
+  /**
+   * @brief Returns minimum gas price needed for transaction to be included
+   *  in the next proposed dag block
+   * @return Gas price
+   */
+  val_t getMinGasPriceForBlockInclusion() const;
+
   std::shared_ptr<Transaction> getTransaction(const trx_hash_t &hash) const;
   std::shared_ptr<Transaction> getNonFinalizedTransaction(const trx_hash_t &hash) const;
   unsigned long getTransactionCount() const;
