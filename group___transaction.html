@@ -159,8 +159,8 @@ Collaboration diagram for taraxa::GasPricer:</div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:addf22088ab425ddbae0881eda211b971" id="r_addf22088ab425ddbae0881eda211b971"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#addf22088ab425ddbae0881eda211b971">GasPricer</a> (const <a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> &amp;config, bool is_light_node=false, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db={})</td></tr>
-<tr class="separator:addf22088ab425ddbae0881eda211b971"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a352f850e935a13e6e8a5265e7ab50909" id="r_a352f850e935a13e6e8a5265e7ab50909"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a352f850e935a13e6e8a5265e7ab50909">GasPricer</a> (const <a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> &amp;config, bool is_light_node=false, bool is_blocks_gas_pricer=false, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr=nullptr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db={})</td></tr>
+<tr class="separator:a352f850e935a13e6e8a5265e7ab50909"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfb284f68bfcc72821afdd157be739ab" id="r_acfb284f68bfcc72821afdd157be739ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#acfb284f68bfcc72821afdd157be739ab">~GasPricer</a> ()</td></tr>
 <tr class="separator:acfb284f68bfcc72821afdd157be739ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b8cb01643ff2a20878b97e226a7a5a9" id="r_a6b8cb01643ff2a20878b97e226a7a5a9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a6b8cb01643ff2a20878b97e226a7a5a9">GasPricer</a> (const <a class="el" href="group___transaction.html#classtaraxa_1_1_gas_pricer">GasPricer</a> &amp;)=delete</td></tr>
@@ -196,10 +196,14 @@ Collaboration diagram for taraxa::GasPricer:</div>
 <tr class="separator:a5fda2f7af43fa418f5735fe70284a677"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab713a1cf6b94439a72e087705062ce6a" id="r_ab713a1cf6b94439a72e087705062ce6a"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; std::thread &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ab713a1cf6b94439a72e087705062ce6a">init_daemon_</a></td></tr>
 <tr class="separator:ab713a1cf6b94439a72e087705062ce6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90203ceedad51b9720048ead51ef4ac0" id="r_a90203ceedad51b9720048ead51ef4ac0"><td class="memItemLeft" align="right" valign="top">const bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a90203ceedad51b9720048ead51ef4ac0">kBlocksGasPricer</a></td></tr>
+<tr class="separator:a90203ceedad51b9720048ead51ef4ac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9dd1d0696ce61704036dff6f24eed6e" id="r_ac9dd1d0696ce61704036dff6f24eed6e"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ac9dd1d0696ce61704036dff6f24eed6e">trx_mgr_</a></td></tr>
+<tr class="separator:ac9dd1d0696ce61704036dff6f24eed6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="addf22088ab425ddbae0881eda211b971" name="addf22088ab425ddbae0881eda211b971"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#addf22088ab425ddbae0881eda211b971">&#9670;&#160;</a></span>GasPricer() <span class="overload">[1/3]</span></h2>
+<a id="a352f850e935a13e6e8a5265e7ab50909" name="a352f850e935a13e6e8a5265e7ab50909"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a352f850e935a13e6e8a5265e7ab50909">&#9670;&#160;</a></span>GasPricer() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -215,6 +219,18 @@ Collaboration diagram for taraxa::GasPricer:</div>
           <td></td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>is_light_node</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>is_blocks_gas_pricer</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td>
+          <td class="paramname"><em>trx_mgr</em> = <code>nullptr</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -457,6 +473,28 @@ Collaboration diagram for taraxa::GasPricer:</div>
 
 </div>
 </div>
+<a id="a90203ceedad51b9720048ead51ef4ac0" name="a90203ceedad51b9720048ead51ef4ac0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90203ceedad51b9720048ead51ef4ac0">&#9670;&#160;</a></span>kBlocksGasPricer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const bool taraxa::GasPricer::kBlocksGasPricer</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="acd761bb267c3c7bfa8a559ba776c2fa3" name="acd761bb267c3c7bfa8a559ba776c2fa3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acd761bb267c3c7bfa8a559ba776c2fa3">&#9670;&#160;</a></span>kIsLightNode</h2>
 
@@ -578,6 +616,28 @@ Collaboration diagram for taraxa::GasPricer:</div>
       <table class="memname">
         <tr>
           <td class="memname">boost::circular_buffer&lt;u256&gt; taraxa::GasPricer::price_list_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac9dd1d0696ce61704036dff6f24eed6e" name="ac9dd1d0696ce61704036dff6f24eed6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac9dd1d0696ce61704036dff6f24eed6e">&#9670;&#160;</a></span>trx_mgr_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>&gt; taraxa::GasPricer::trx_mgr_</td>
         </tr>
       </table>
   </td>
@@ -797,6 +857,9 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="memitem:a9e1c50b1b2119fc0ddce1be200315aaa" id="r_a9e1c50b1b2119fc0ddce1be200315aaa"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a9e1c50b1b2119fc0ddce1be200315aaa">transactionsDropped</a> () const</td></tr>
 <tr class="memdesc:a9e1c50b1b2119fc0ddce1be200315aaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Have transactions been recently dropped due to queue reaching max size This call is thread-safe.  <br /></td></tr>
 <tr class="separator:a9e1c50b1b2119fc0ddce1be200315aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34a49632cb8fa9ae001163fca88605c3" id="r_a34a49632cb8fa9ae001163fca88605c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a34a49632cb8fa9ae001163fca88605c3">getMinGasPriceForBlockInclusion</a> () const</td></tr>
+<tr class="memdesc:a34a49632cb8fa9ae001163fca88605c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns minimum gas price needed for transaction to be included in the next proposed dag block.  <br /></td></tr>
+<tr class="separator:a34a49632cb8fa9ae001163fca88605c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d3caf313f51c016ec84786eb9e16f45" id="r_a2d3caf313f51c016ec84786eb9e16f45"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a2d3caf313f51c016ec84786eb9e16f45">getTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
 <tr class="separator:a2d3caf313f51c016ec84786eb9e16f45"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab43d62559b651a45fd802b2b3907857a" id="r_ab43d62559b651a45fd802b2b3907857a"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ab43d62559b651a45fd802b2b3907857a">getNonFinalizedTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
@@ -1094,6 +1157,26 @@ Collaboration diagram for taraxa::TransactionManager:</div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a34a49632cb8fa9ae001163fca88605c3" name="a34a49632cb8fa9ae001163fca88605c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a34a49632cb8fa9ae001163fca88605c3">&#9670;&#160;</a></span>getMinGasPriceForBlockInclusion()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a> taraxa::TransactionManager::getMinGasPriceForBlockInclusion </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns minimum gas price needed for transaction to be included in the next proposed dag block. </p>
+<dl class="section return"><dt>Returns</dt><dd>Gas price </dd></dl>
 
 </div>
 </div>
@@ -2070,6 +2153,9 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr class="memitem:a2e376c30fd56652f5c60acbb7f74be7b" id="r_a2e376c30fd56652f5c60acbb7f74be7b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a2e376c30fd56652f5c60acbb7f74be7b">nonProposableTransactionsOverTheLimit</a> () const</td></tr>
 <tr class="memdesc:a2e376c30fd56652f5c60acbb7f74be7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">return true if non proposable transactions are over the limit  <br /></td></tr>
 <tr class="separator:a2e376c30fd56652f5c60acbb7f74be7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a225a1d570986180cfe05a4b3878e1ce2" id="r_a225a1d570986180cfe05a4b3878e1ce2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a225a1d570986180cfe05a4b3878e1ce2">getMinGasPriceForBlockInclusion</a> (uint64_t limit) const</td></tr>
+<tr class="memdesc:a225a1d570986180cfe05a4b3878e1ce2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns minimum gas price needed for transaction to be included in the next proposed dag block.  <br /></td></tr>
+<tr class="separator:a225a1d570986180cfe05a4b3878e1ce2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
 <tr class="memitem:a248254d299d7d9d88860b26feae0d939" id="r_a248254d299d7d9d88860b26feae0d939"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a248254d299d7d9d88860b26feae0d939">addTransaction</a> (const <a class="el" href="namespacetaraxa.html#a1b37b05665a051ae2ceda7a2607c8e36">SharedTransaction</a> &amp;transaction, bool proposable, uint64_t last_block_number=0)</td></tr>
 <tr class="memdesc:a248254d299d7d9d88860b26feae0d939"><td class="mdescLeft">&#160;</td><td class="mdescRight">add transaction to queue  <br /></td></tr>
@@ -2085,6 +2171,8 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr class="separator:ad5ce6ffcfbe1569aaed07c45936c60d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc551595eb3423e40a3837ec25764c66" id="r_afc551595eb3423e40a3837ec25764c66"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#afc551595eb3423e40a3837ec25764c66">queue_transactions_</a></td></tr>
 <tr class="separator:afc551595eb3423e40a3837ec25764c66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58a56976151e78bb791dd697244d5e77" id="r_a58a56976151e78bb791dd697244d5e77"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, uint64_t, std::greater&lt; <a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a58a56976151e78bb791dd697244d5e77">queue_transactions_gas_prices_</a></td></tr>
+<tr class="separator:a58a56976151e78bb791dd697244d5e77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25bb53f8bb74f9d2619667c5b9701f7c" id="r_a25bb53f8bb74f9d2619667c5b9701f7c"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::pair&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a25bb53f8bb74f9d2619667c5b9701f7c">non_proposable_transactions_</a></td></tr>
 <tr class="separator:a25bb53f8bb74f9d2619667c5b9701f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29d5993a87536850600f144c4b2206a4" id="r_a29d5993a87536850600f144c4b2206a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a29d5993a87536850600f144c4b2206a4">known_txs_</a></td></tr>
@@ -2321,6 +2409,27 @@ false </dd></dl>
 
 <p>returns all transactions grouped by transactions author </p>
 <dl class="section return"><dt>Returns</dt><dd>std::vector&lt;SharedTransactions&gt; </dd></dl>
+
+</div>
+</div>
+<a id="a225a1d570986180cfe05a4b3878e1ce2" name="a225a1d570986180cfe05a4b3878e1ce2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a225a1d570986180cfe05a4b3878e1ce2">&#9670;&#160;</a></span>getMinGasPriceForBlockInclusion()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a> taraxa::TransactionQueue::getMinGasPriceForBlockInclusion </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>limit</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns minimum gas price needed for transaction to be included in the next proposed dag block. </p>
+<dl class="section return"><dt>Returns</dt><dd>Gas price </dd></dl>
 
 </div>
 </div>
@@ -2919,6 +3028,28 @@ false </dd></dl>
       <table class="memname">
         <tr>
           <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; taraxa::TransactionQueue::queue_transactions_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a58a56976151e78bb791dd697244d5e77" name="a58a56976151e78bb791dd697244d5e77"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58a56976151e78bb791dd697244d5e77">&#9670;&#160;</a></span>queue_transactions_gas_prices_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::map&lt;<a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, uint64_t, std::greater&lt;<a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>&gt; &gt; taraxa::TransactionQueue::queue_transactions_gas_prices_</td>
         </tr>
       </table>
   </td>

@@ -1,5 +1,11 @@
 var NAVTREEINDEX26 =
 {
+"structtaraxa_1_1_transaction_1_1_invalid_transaction.html#a5b66fae72abba7c859978116a5e2b646":[16,0,3,72,2,0],
+"structtaraxa_1_1_transaction_location.html":[16,0,3,73],
+"structtaraxa_1_1_transaction_location.html#a0fd23a1b613f34cae4a4df2d043ec952":[16,0,3,73,1],
+"structtaraxa_1_1_transaction_location.html#a59e06674ec0027d63a8a8f861a8f20c7":[16,0,3,73,0],
+"structtaraxa_1_1_transaction_location.html#a7dca49c76b76d8e8480ad6102b4c294c":[16,0,3,73,3],
+"structtaraxa_1_1_transaction_location.html#ad0d03c760561444947239aae237bc4c9":[16,0,3,73,2],
 "structtaraxa_1_1_transaction_receipt.html":[16,0,3,76],
 "structtaraxa_1_1_transaction_receipt.html#a0227175158bf1e8e6bcf45444f15d756":[16,0,3,76,1],
 "structtaraxa_1_1_transaction_receipt.html#a0854b146c891ace8d77a04f29ac8403d":[16,0,3,76,4],
@@ -243,11 +249,5 @@ var NAVTREEINDEX26 =
 "types_2dag__block_2src_2dag__block_8cpp.html":[17,0,1,9,0,1,0],
 "types_2transaction_2include_2transaction_2transaction_8hpp.html":[17,0,1,9,2,0,0,2],
 "types_2transaction_2include_2transaction_2transaction_8hpp.html#a1b37b05665a051ae2ceda7a2607c8e36":[17,0,1,9,2,0,0,2,4],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a316d23bc6a64185feb687281f3922f7c":[17,0,1,9,2,0,0,2,7],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a56a4b00634ce4169847ac1bb10d57319":[17,0,1,9,2,0,0,2,9],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a68b2e0a2fce70993a89d2ccb78746e7e":[17,0,1,9,2,0,0,2,5],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a7d06996d287fdcc8938bb4662842c2ff":[17,0,1,9,2,0,0,2,6],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a8131c4cbf867897158c8c24dcc667fcb":[17,0,1,9,2,0,0,2,8],
-"types_2transaction_2include_2transaction_2transaction_8hpp_source.html":[17,0,1,9,2,0,0,2],
-"types_2transaction_2src_2transaction_8cpp.html":[17,0,1,9,2,1,2]
+"types_2transaction_2include_2transaction_2transaction_8hpp.html#a316d23bc6a64185feb687281f3922f7c":[17,0,1,9,2,0,0,2,7]
 };

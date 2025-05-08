@@ -7,5 +7,6 @@ var searchData=
   ['queue_5fmutex_5f_4',['queue_mutex_',['../classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#ab64fdc298f3e6dcf67bc3d6e7836c7c6',1,'taraxa::network::threadpool::PacketsThreadPool']]],
   ['queue_5fover_5flimit_5f_5',['queue_over_limit_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#adacb5e77df8056f4088564e2c39d5a38',1,'taraxa::network::tarcap::TaraxaCapability']]],
   ['queue_5fover_5flimit_5fstart_5ftime_5f_6',['queue_over_limit_start_time_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a7ee5f5a669a17fcad1e3b12c5030c877',1,'taraxa::network::tarcap::TaraxaCapability']]],
-  ['queue_5ftransactions_5f_7',['queue_transactions_',['../group___transaction.html#afc551595eb3423e40a3837ec25764c66',1,'taraxa::TransactionQueue']]]
+  ['queue_5ftransactions_5f_7',['queue_transactions_',['../group___transaction.html#afc551595eb3423e40a3837ec25764c66',1,'taraxa::TransactionQueue']]],
+  ['queue_5ftransactions_5fgas_5fprices_5f_8',['queue_transactions_gas_prices_',['../group___transaction.html#a58a56976151e78bb791dd697244d5e77',1,'taraxa::TransactionQueue']]]
 ];

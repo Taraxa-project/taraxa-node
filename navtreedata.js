@@ -374,16 +374,16 @@ var NAVTREEINDEX =
 "group___d_a_g.html#a48dff2f0634ce367582074273414ce44",
 "group___final_chain.html#a79ae785d3b0ad95df6e2249f342cd332",
 "group___p_b_f_t.html#a9bcf6a30111ff74614b0976da9debd11",
-"group___transaction.html#ac01cc29b77c6bd416b24af2e1ae8b343",
-"interface_2get__pillar__votes__bundle__packet__handler_8hpp.html",
-"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7ab20ea711706aab720b7e438030ef8ead",
-"md_doc_2rewards__distribution.html#autotoc_md241",
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet",
-"state__config_8hpp.html#a2041ed7b7b90eb378c7ef916d761ce3b",
-"structdev_1_1p2p_1_1_host.html#ad918d3eff55c8d2357db166c7976f97d",
-"structdev_1_1p2p_1_1_session.html#ad754a6722b7947898e86b0f36ddd0f04",
-"structtaraxa_1_1_transaction_receipt.html",
-"types_2transaction_2src_2transaction_8cpp.html#a56a4b00634ce4169847ac1bb10d57319"
+"group___transaction.html#ab1bbd23ca70ba28308f46d8d7a1d75c9",
+"init_8hpp_source.html",
+"libp2p_2_common_8h.html#adabfa58f948d1c67b5d7951e7c4d04e7",
+"md_doc_2release__cycle.html#autotoc_md236",
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet",
+"state__config_8cpp.html#adc935939acc39b6b0cba881e134b1fa0",
+"structdev_1_1p2p_1_1_host.html#ac68d3ac5989d6af7792b176b98d3b017",
+"structdev_1_1p2p_1_1_session.html#ac54975fc1868fd83a53d6c2c6a1f10b5",
+"structtaraxa_1_1_transaction_1_1_invalid_transaction.html#a5b66fae72abba7c859978116a5e2b646",
+"types_2transaction_2include_2transaction_2transaction_8hpp.html#a56a4b00634ce4169847ac1bb10d57319"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

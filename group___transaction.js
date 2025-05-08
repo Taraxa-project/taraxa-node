@@ -2,7 +2,7 @@ var group___transaction =
 [
     [ "taraxa::final_chain", "namespacetaraxa_1_1final__chain.html", null ],
     [ "taraxa::GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", [
-      [ "GasPricer", "group___transaction.html#addf22088ab425ddbae0881eda211b971", null ],
+      [ "GasPricer", "group___transaction.html#a352f850e935a13e6e8a5265e7ab50909", null ],
       [ "~GasPricer", "group___transaction.html#acfb284f68bfcc72821afdd157be739ab", null ],
       [ "GasPricer", "group___transaction.html#a6b8cb01643ff2a20878b97e226a7a5a9", null ],
       [ "GasPricer", "group___transaction.html#ad9bd3d05e77b39cfaff5e14760fbb617", null ],
@@ -12,12 +12,14 @@ var group___transaction =
       [ "operator=", "group___transaction.html#a650577fcd7a150205321514e6e8178da", null ],
       [ "update", "group___transaction.html#a50f1bb894c6ebf89cff9d80a238d1492", null ],
       [ "init_daemon_", "group___transaction.html#ab713a1cf6b94439a72e087705062ce6a", null ],
+      [ "kBlocksGasPricer", "group___transaction.html#a90203ceedad51b9720048ead51ef4ac0", null ],
       [ "kIsLightNode", "group___transaction.html#acd761bb267c3c7bfa8a559ba776c2fa3", null ],
       [ "kMinimumPrice", "group___transaction.html#a66af96deef89cc0852e7f53d76e9765e", null ],
       [ "kPercentile", "group___transaction.html#adca26d8bc46adafaaa9611911735d41a", null ],
       [ "latest_price_", "group___transaction.html#acdefbde1eb12afaee84cc72d315c4566", null ],
       [ "mutex_", "group___transaction.html#a05c9e8a7af3e99b8939f39434615c8cb", null ],
-      [ "price_list_", "group___transaction.html#a5fda2f7af43fa418f5735fe70284a677", null ]
+      [ "price_list_", "group___transaction.html#a5fda2f7af43fa418f5735fe70284a677", null ],
+      [ "trx_mgr_", "group___transaction.html#ac9dd1d0696ce61704036dff6f24eed6e", null ]
     ] ],
     [ "taraxa::TransactionManager", "group___transaction.html#classtaraxa_1_1_transaction_manager", [
       [ "TransactionManager", "group___transaction.html#af79c738b08f3b82b18d9b05c0a96c104", null ],
@@ -28,6 +30,7 @@ var group___transaction =
       [ "getAllPoolTrxs", "group___transaction.html#a2abcbb9c80d1dc8776bd61b4017f9a80", null ],
       [ "getBlockTransactions", "group___transaction.html#a9f0a1d39be0d0a4f7332d09c4c71fdcd", null ],
       [ "getFullNodeAddress", "group___transaction.html#ac0ec8a96421d83cc3b8bfad7943c10bc", null ],
+      [ "getMinGasPriceForBlockInclusion", "group___transaction.html#a34a49632cb8fa9ae001163fca88605c3", null ],
       [ "getNonFinalizedTransaction", "group___transaction.html#ab43d62559b651a45fd802b2b3907857a", null ],
       [ "getNonfinalizedTrx", "group___transaction.html#a4653d2e1d13e18462cdf95c66392a5e3", null ],
       [ "getNonfinalizedTrxSize", "group___transaction.html#a2d7f41e217bf4f6084556eb64ba60192", null ],
@@ -75,6 +78,7 @@ var group___transaction =
       [ "erase", "group___transaction.html#a44d04e8911d220d473f4968ae577947c", null ],
       [ "get", "group___transaction.html#aec44e28210d47f379b6f01532b77945b", null ],
       [ "getAllTransactions", "group___transaction.html#a810c1b5b1029ba226f88f1cf65598efe", null ],
+      [ "getMinGasPriceForBlockInclusion", "group___transaction.html#a225a1d570986180cfe05a4b3878e1ce2", null ],
       [ "getOrderedTransactions", "group___transaction.html#a5a7dad897350041d7a5a11579666d666", null ],
       [ "insert", "group___transaction.html#a1cb51e6226a47c56ce40195973761414", null ],
       [ "isTransactionKnown", "group___transaction.html#a75da70a3a6f464bad8fb3a520dbfd3b2", null ],
@@ -99,6 +103,7 @@ var group___transaction =
       [ "kTransactionOverflowTimeLimit", "group___transaction.html#a969d168f23a648fe477f5709f86b2279", null ],
       [ "non_proposable_transactions_", "group___transaction.html#a25bb53f8bb74f9d2619667c5b9701f7c", null ],
       [ "queue_transactions_", "group___transaction.html#afc551595eb3423e40a3837ec25764c66", null ],
+      [ "queue_transactions_gas_prices_", "group___transaction.html#a58a56976151e78bb791dd697244d5e77", null ],
       [ "transaction_overflow_time_", "group___transaction.html#a1b25b8fff8d69dc48c82acc6a7c0015d", null ]
     ] ],
     [ "taraxa::TransactionStatus", "group___transaction.html#gae7551c287ae57b46d56d27de67df61e7", [

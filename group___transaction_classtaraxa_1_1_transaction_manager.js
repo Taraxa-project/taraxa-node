@@ -8,6 +8,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "getAllPoolTrxs", "group___transaction.html#a2abcbb9c80d1dc8776bd61b4017f9a80", null ],
     [ "getBlockTransactions", "group___transaction.html#a9f0a1d39be0d0a4f7332d09c4c71fdcd", null ],
     [ "getFullNodeAddress", "group___transaction.html#ac0ec8a96421d83cc3b8bfad7943c10bc", null ],
+    [ "getMinGasPriceForBlockInclusion", "group___transaction.html#a34a49632cb8fa9ae001163fca88605c3", null ],
     [ "getNonFinalizedTransaction", "group___transaction.html#ab43d62559b651a45fd802b2b3907857a", null ],
     [ "getNonfinalizedTrx", "group___transaction.html#a4653d2e1d13e18462cdf95c66392a5e3", null ],
     [ "getNonfinalizedTrxSize", "group___transaction.html#a2d7f41e217bf4f6084556eb64ba60192", null ],

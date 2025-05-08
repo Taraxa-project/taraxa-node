@@ -7,6 +7,7 @@ var structtaraxa_1_1_full_node_config =
     [ "net_file_path", "structtaraxa_1_1_full_node_config.html#ae79d1a5da89550572a64d0850f9bc845", null ],
     [ "overwriteConfigFromJson", "structtaraxa_1_1_full_node_config.html#a2c448f29c13e83cf18eb1108cdc75c9c", null ],
     [ "validate", "structtaraxa_1_1_full_node_config.html#aad4a40f97ab5a5dafcbc5909bd869c4d", null ],
+    [ "blocks_gas_pricer", "structtaraxa_1_1_full_node_config.html#a42c3d790fa146e8a3065d739805143ee", null ],
     [ "dag_expiry_limit", "structtaraxa_1_1_full_node_config.html#a6eb0f104bf3dcfaead265c1718809d89", null ],
     [ "data_path", "structtaraxa_1_1_full_node_config.html#a864347d8c0df47defc19d10ff4733d21", null ],
     [ "db_config", "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99", null ],

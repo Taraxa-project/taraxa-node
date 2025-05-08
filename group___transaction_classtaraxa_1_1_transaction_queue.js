@@ -7,6 +7,7 @@ var group___transaction_classtaraxa_1_1_transaction_queue =
     [ "erase", "group___transaction.html#a44d04e8911d220d473f4968ae577947c", null ],
     [ "get", "group___transaction.html#aec44e28210d47f379b6f01532b77945b", null ],
     [ "getAllTransactions", "group___transaction.html#a810c1b5b1029ba226f88f1cf65598efe", null ],
+    [ "getMinGasPriceForBlockInclusion", "group___transaction.html#a225a1d570986180cfe05a4b3878e1ce2", null ],
     [ "getOrderedTransactions", "group___transaction.html#a5a7dad897350041d7a5a11579666d666", null ],
     [ "insert", "group___transaction.html#a1cb51e6226a47c56ce40195973761414", null ],
     [ "isTransactionKnown", "group___transaction.html#a75da70a3a6f464bad8fb3a520dbfd3b2", null ],
@@ -31,5 +32,6 @@ var group___transaction_classtaraxa_1_1_transaction_queue =
     [ "kTransactionOverflowTimeLimit", "group___transaction.html#a969d168f23a648fe477f5709f86b2279", null ],
     [ "non_proposable_transactions_", "group___transaction.html#a25bb53f8bb74f9d2619667c5b9701f7c", null ],
     [ "queue_transactions_", "group___transaction.html#afc551595eb3423e40a3837ec25764c66", null ],
+    [ "queue_transactions_gas_prices_", "group___transaction.html#a58a56976151e78bb791dd697244d5e77", null ],
     [ "transaction_overflow_time_", "group___transaction.html#a1b25b8fff8d69dc48c82acc6a7c0015d", null ]
 ];
