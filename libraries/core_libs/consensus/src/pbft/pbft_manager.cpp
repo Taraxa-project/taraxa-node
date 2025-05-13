@@ -39,10 +39,8 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       dag_genesis_block_hash_(conf.genesis.dag_genesis_block.getHash()),
       kGenesisConfig(conf.genesis),
       proposed_blocks_(db_),
-      eligible_wallets_(kConfig.wallets) {
-  // Use first wallet as default node_addr
-  const auto &node_addr = dev::toAddress(kConfig.getFirstWallet().node_secret);
-  LOG_OBJECTS_CREATE("PBFT_MGR");
+      logger_(nullptr) {
+  logger_ = spdlogger::Logging::get().CreateChannelLogger("PBFT_MGR");
 
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {

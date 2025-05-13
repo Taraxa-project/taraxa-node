@@ -114,7 +114,6 @@ class PivotTree : public Dag {
 
   std::vector<blk_hash_t> getGhostPath(const blk_hash_t &vertex) const;
 };
-class DagBuffer;
 class KeyManager;
 
 // for graphviz

@@ -14,8 +14,6 @@ namespace taraxa {
  * @{
  */
 class Network;
-class DagBuffer;
-class FullNode;
 class KeyManager;
 struct DagConfig;
 

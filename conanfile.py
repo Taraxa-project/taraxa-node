@@ -26,6 +26,7 @@ class TaraxaConan(ConanFile):
         self.requires("mpfr/4.2.1")
         self.requires("gmp/6.3.0")
         self.requires("rapidjson/1.1.0")
+        self.requires("spdlog/1.15.1")
 
     def _configure_boost_libs(self):
         self.options["boost/*"].without_atomic = False
