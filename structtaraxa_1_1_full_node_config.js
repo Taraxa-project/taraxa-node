@@ -1,7 +1,8 @@
 var structtaraxa_1_1_full_node_config =
 [
     [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a335a372211671d427c5fd18ea0b390cd", null ],
-    [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a82539ddcbc6d23432896dcfbc4110829", null ],
+    [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#acc69364d2e6c098a4b46bd112f15f5e3", null ],
+    [ "getFirstWallet", "structtaraxa_1_1_full_node_config.html#ac52355de2dd2abcfb9a911d09e4f8eb0", null ],
     [ "InitLogging", "structtaraxa_1_1_full_node_config.html#ae98c2428e305229a166a4497c1ad0eeb", null ],
     [ "loadLoggingConfigs", "structtaraxa_1_1_full_node_config.html#a3c3a85b4c00e792f76588f75ba4ff19f", null ],
     [ "net_file_path", "structtaraxa_1_1_full_node_config.html#ae79d1a5da89550572a64d0850f9bc845", null ],
@@ -23,11 +24,10 @@ var structtaraxa_1_1_full_node_config =
     [ "log_path", "structtaraxa_1_1_full_node_config.html#a944aff6d1ac6d851475babe34c2cbcea", null ],
     [ "max_levels_per_period", "structtaraxa_1_1_full_node_config.html#a724641b971674ec5052d295a2e2ee5fc", null ],
     [ "network", "structtaraxa_1_1_full_node_config.html#aa92cfdd3c9bc4f4b6411ef9d4a735668", null ],
-    [ "node_secret", "structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1", null ],
     [ "opts_final_chain", "structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155", null ],
     [ "propose_dag_gas_limit", "structtaraxa_1_1_full_node_config.html#a720430b9f01e3623b29608be6864d1b9", null ],
     [ "propose_pbft_gas_limit", "structtaraxa_1_1_full_node_config.html#a3fce2190545b92e1fa22491f9c8b2843", null ],
     [ "report_malicious_behaviour", "structtaraxa_1_1_full_node_config.html#a4082ce47b5cd4c4950118c96a0286ef0", null ],
     [ "transactions_pool_size", "structtaraxa_1_1_full_node_config.html#a183825e3e024b1bf609c24325f01c437", null ],
-    [ "vrf_secret", "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe", null ]
+    [ "wallets", "structtaraxa_1_1_full_node_config.html#af6e0d924f0587ebaf81a7863b0f2278f", null ]
 ];

@@ -11,6 +11,7 @@ var config_2include_2config_2config_8hpp =
       [ "rebuild_db", "namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce", null ],
       [ "rebuild_db_period", "namespacetaraxa.html#abe73b7f0480b66b1d6f4e9b7b31ac2e1", null ]
     ] ],
+    [ "taraxa::WalletConfig", "structtaraxa_1_1_wallet_config.html", "structtaraxa_1_1_wallet_config" ],
     [ "taraxa::FullNodeConfig", "structtaraxa_1_1_full_node_config.html", "structtaraxa_1_1_full_node_config" ],
     [ "dec_json", "config_2include_2config_2config_8hpp.html#a4fe5a976d3d25a7348800b50b8d377b5", null ],
     [ "operator<<", "config_2include_2config_2config_8hpp.html#ae8c764ebb2b4085bbff52d37f6a1fefe", null ],

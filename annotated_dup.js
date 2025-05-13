@@ -376,6 +376,7 @@ var annotated_dup =
       [ "PivotTree", "group___d_a_g.html#classtaraxa_1_1_pivot_tree", "group___d_a_g_classtaraxa_1_1_pivot_tree" ],
       [ "Plugin", "classtaraxa_1_1_plugin.html", "classtaraxa_1_1_plugin" ],
       [ "PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", "namespacetaraxa_structtaraxa_1_1_prometheus_config_dup" ],
+      [ "ProposedBlockData", "namespacetaraxa.html#structtaraxa_1_1_proposed_block_data", "namespacetaraxa_structtaraxa_1_1_proposed_block_data_dup" ],
       [ "ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", "classtaraxa_1_1_proposed_blocks" ],
       [ "Redelegation", "namespacetaraxa.html#structtaraxa_1_1_redelegation", "namespacetaraxa_structtaraxa_1_1_redelegation_dup" ],
       [ "SlashingManager", "classtaraxa_1_1_slashing_manager.html", "classtaraxa_1_1_slashing_manager" ],
@@ -400,7 +401,8 @@ var annotated_dup =
       [ "VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", "group___vote_classtaraxa_1_1_vote_manager" ],
       [ "VrfParams", "structtaraxa_1_1_vrf_params.html", "structtaraxa_1_1_vrf_params" ],
       [ "VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", "group___vote_classtaraxa_1_1_vrf_pbft_msg" ],
-      [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", "group___vote_classtaraxa_1_1_vrf_pbft_sortition" ]
+      [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", "group___vote_classtaraxa_1_1_vrf_pbft_sortition" ],
+      [ "WalletConfig", "structtaraxa_1_1_wallet_config.html", "structtaraxa_1_1_wallet_config" ]
     ] ],
     [ "ExpirationBlockNumberCache", "class_expiration_block_number_cache.html", "class_expiration_block_number_cache" ],
     [ "ExpirationCache", "class_expiration_cache.html", "class_expiration_cache" ],

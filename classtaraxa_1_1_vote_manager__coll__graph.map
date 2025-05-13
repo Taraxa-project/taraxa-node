@@ -1,13 +1,9 @@
 <map id="taraxa::VoteManager" name="taraxa::VoteManager">
-<area shape="rect" id="Node000001" title="VoteManager class manage votes for PBFT consensus." alt="" coords="600,130,759,155"/>
-<area shape="rect" id="Node000002" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="217,57,377,82"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="391,74,481,86,577,104,648,127,646,132,575,109,480,91,390,80"/>
-<area shape="rect" id="Node000003" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="227,106,366,131"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="380,121,600,135,600,140,380,126"/>
-<area shape="rect" id="Node000004" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="215,156,379,196"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="392,168,576,153,599,151,600,156,576,159,393,173"/>
-<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,163,164,189"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="178,173,215,173,215,179,178,179"/>
-<area shape="rect" id="Node000006" href="$class_expiration_cache.html" title=" " alt="" coords="213,220,380,260"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="393,227,482,212,575,188,618,171,654,153,656,158,620,176,577,193,484,217,394,232"/>
+<area shape="rect" id="Node000001" title="VoteManager class manage votes for PBFT consensus." alt="" coords="169,123,327,148"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="5,13,144,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,45,129,71,165,96,216,120,214,125,163,101,126,75,95,49"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="168,13,328,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="251,52,251,122,245,122,245,52"/>
+<area shape="rect" id="Node000004" href="$class_expiration_cache.html" title=" " alt="" coords="353,5,519,45"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="424,59,410,81,390,101,360,117,328,127,327,122,358,112,386,97,405,78,420,56"/>
 </map>

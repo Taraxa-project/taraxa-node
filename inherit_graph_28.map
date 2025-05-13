@@ -1,9 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structdev_1_1_fixed_hash_1_1hash.html" title=" " alt="" coords="5,47,165,87"/>
-<area shape="rect" id="Node000001" href="$structstd_1_1hash_3_01dev_1_1h128_01_4.html" title=" " alt="" coords="213,5,388,31"/>
-<area shape="poly" id="edge14_Node000000_Node000001" title=" " alt="" coords="178,43,244,28,245,33,180,49"/>
-<area shape="rect" id="Node000002" href="$structstd_1_1hash_3_01dev_1_1h160_01_4.html" title=" " alt="" coords="213,55,388,80"/>
-<area shape="poly" id="edge15_Node000000_Node000002" title=" " alt="" coords="179,65,213,65,213,70,179,70"/>
-<area shape="rect" id="Node000003" href="$structstd_1_1hash_3_01dev_1_1h64_01_4.html" title="Forward std::hash&lt;dev::FixedHash&gt; to dev::FixedHash::hash." alt="" coords="217,104,384,129"/>
-<area shape="poly" id="edge16_Node000000_Node000003" title=" " alt="" coords="180,86,245,101,244,107,178,91"/>
+<area shape="rect" id="Node000000" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,42,164,67"/>
+<area shape="rect" id="Node000001" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="231,5,395,45"/>
+<area shape="poly" id="edge17_Node000000_Node000001" title=" " alt="" coords="177,40,231,33,231,38,178,45"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="212,70,415,95"/>
+<area shape="poly" id="edge18_Node000000_Node000002" title=" " alt="" coords="178,63,212,68,212,73,178,69"/>
 </map>

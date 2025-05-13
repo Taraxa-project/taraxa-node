@@ -1,13 +1,15 @@
 var NAVTREEINDEX22 =
 {
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet":[17,0,1,5,1,1,0,0,0,0,7,0],
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet":[17,0,1,5,1,1,0,0,0,0,8,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet":[17,0,1,5,1,1,0,0,0,0,9,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet":[17,0,1,5,1,1,0,0,0,0,10,0],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data":[17,0,1,5,1,1,0,0,0,0,10,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data":[17,0,1,5,1,1,0,0,0,0,10,1],
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data":[17,0,1,5,1,1,0,0,0,0,10,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_transaction_packet":[17,0,1,5,1,1,0,0,0,0,11,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet":[17,0,1,5,1,1,0,0,0,0,12,0],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet_1_1_optional_data":[17,0,1,5,1,1,0,0,0,0,12,1],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet_1_1_optional_data":[17,0,1,5,1,1,0,0,0,0,12,0,0],
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet_1_1_optional_data":[17,0,1,5,1,1,0,0,0,0,12,1],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet":[17,0,1,5,1,1,0,0,0,0,13,0],
 "namespacetaraxa_1_1pillar__chain.html":[14,2,0],
 "namespacetaraxa_1_1state__api.html#a07ec4cf31d69e169a6187e45821d86f4":[17,0,1,4,0,0,7,2,10],
@@ -128,9 +130,9 @@ var NAVTREEINDEX22 =
 "pbft__config_8hpp.html#aca5cc9aeb1d46dec9df51efa8f4f666f":[17,0,1,4,0,0,6,2],
 "pbft__config_8hpp_source.html":[17,0,1,4,0,0,6],
 "pbft__manager_8cpp.html":[17,0,1,5,0,1,3,1],
-"pbft__manager_8cpp.html#a568055ae86bee5e4c6bff09eff8c5336":[17,0,1,5,0,1,3,1,2],
-"pbft__manager_8cpp.html#aabafad8a9eda2b4f3a4dec9da77ace14":[17,0,1,5,0,1,3,1,1],
-"pbft__manager_8cpp.html#ac095842dd7cd07f06da85796b2f03d1d":[17,0,1,5,0,1,3,1,0],
+"pbft__manager_8cpp.html#a568055ae86bee5e4c6bff09eff8c5336":[17,0,1,5,0,1,3,1,3],
+"pbft__manager_8cpp.html#aabafad8a9eda2b4f3a4dec9da77ace14":[17,0,1,5,0,1,3,1,2],
+"pbft__manager_8cpp.html#ac095842dd7cd07f06da85796b2f03d1d":[17,0,1,5,0,1,3,1,1],
 "pbft__manager_8hpp.html":[17,0,1,5,0,0,3,1],
 "pbft__manager_8hpp_source.html":[17,0,1,5,0,0,3,1],
 "pbft__metrics_8hpp.html":[17,0,1,7,0,0,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX22 =
 "state__config_8cpp.html#a2041ed7b7b90eb378c7ef916d761ce3b":[17,0,1,4,1,7,8],
 "state__config_8cpp.html#a71678cb3f5feb67a738df3d7d2f45270":[17,0,1,4,1,7,2],
 "state__config_8cpp.html#a79474e94e8b7bddd9319b13a2bbb18d0":[17,0,1,4,1,7,0],
-"state__config_8cpp.html#a8430d4247900167bc1ac842c70484cc3":[17,0,1,4,1,7,3],
-"state__config_8cpp.html#a88679bd672ad12f8a2517728f1c1109f":[17,0,1,4,1,7,5],
-"state__config_8cpp.html#ad768d97fcf1d34681a2ef3bee3b0fad0":[17,0,1,4,1,7,6]
+"state__config_8cpp.html#a8430d4247900167bc1ac842c70484cc3":[17,0,1,4,1,7,3]
 };

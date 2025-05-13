@@ -239,6 +239,10 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_pbft_manager" id="r_classtaraxa_1_1_pbft_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">taraxa::PbftManager</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_pbft_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks...">PbftManager</a> class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks by using Practical Byzantine Fault Tolerance (PBFT) protocol.  <a href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_pbft_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html">taraxa::PbftManager::EligibleWallets</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1_pbft_manager_1_1_proposed_block_data" id="r_structtaraxa_1_1_pbft_manager_1_1_proposed_block_data"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#structtaraxa_1_1_pbft_manager_1_1_proposed_block_data">taraxa::PbftManager::ProposedBlockData</a></td></tr>
+<tr class="separator:structtaraxa_1_1_pbft_manager_1_1_proposed_block_data"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
@@ -265,6 +269,42 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="separator:ga39898c94848b6a52779d398d677f0a9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<hr/><h2 class="groupheader">Class Documentation</h2>
+<a name="structtaraxa_1_1_pbft_manager_1_1_proposed_block_data" id="structtaraxa_1_1_pbft_manager_1_1_proposed_block_data"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_pbft_manager_1_1_proposed_block_data">&#9670;&#160;</a></span>taraxa::PbftManager::ProposedBlockData</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct taraxa::PbftManager::ProposedBlockData</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="a6514c4bf3213b113ce6b9846daeb29cf" name="a6514c4bf3213b113ce6b9846daeb29cf"></a>shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;</td>
+<td class="fieldname">
+pbft_block</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="a09c3430143d051577080cf2d33d2157e" name="a09c3430143d051577080cf2d33d2157e"></a>vector&lt; shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt;</td>
+<td class="fieldname">
+reward_votes</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="a2a50eb4c4ca6075e4cc746931b53d038" name="a2a50eb4c4ca6075e4cc746931b53d038"></a>shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt;</td>
+<td class="fieldname">
+vote</td>
+<td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

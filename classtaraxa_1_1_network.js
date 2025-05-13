@@ -1,6 +1,6 @@
 var classtaraxa_1_1_network =
 [
-    [ "Network", "classtaraxa_1_1_network.html#a488f932f89ced2ab5496a77c0f676a14", null ],
+    [ "Network", "classtaraxa_1_1_network.html#acae86accea9fb3f434f13abcf6144883", null ],
     [ "~Network", "classtaraxa_1_1_network.html#a82e2d087554fb6a9ad796bf0cdf1306d", null ],
     [ "Network", "classtaraxa_1_1_network.html#a3eca30ac818e799ad5e4908ab6b552d1", null ],
     [ "Network", "classtaraxa_1_1_network.html#ad9faf0457b7ba90aacae80230a744376", null ],
@@ -37,7 +37,6 @@ var classtaraxa_1_1_network =
     [ "pbft_mgr_", "classtaraxa_1_1_network.html#ae1e2819512b3ae1935c7c8b5c8f64e6e", null ],
     [ "pbft_syncing_state_", "classtaraxa_1_1_network.html#a4758cd889b5c1a6ce207368d314c0cce", null ],
     [ "periodic_events_tp_", "classtaraxa_1_1_network.html#a5c92cdb7d374c024be84f66e4263f275", null ],
-    [ "pub_key_", "classtaraxa_1_1_network.html#a6fb98ce4c68ab8f98c637829662de859", null ],
     [ "tarcaps_", "classtaraxa_1_1_network.html#a86deb761d11fc98caa8fc659ea97bf0a", null ],
     [ "tp_", "classtaraxa_1_1_network.html#a9b3c20a6c78e8c1fe0d8900b551e309c", null ]
 ];

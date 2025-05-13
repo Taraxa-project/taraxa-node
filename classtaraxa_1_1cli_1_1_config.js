@@ -26,5 +26,5 @@ var classtaraxa_1_1cli_1_1_config =
     [ "overwrite_config", "classtaraxa_1_1cli_1_1_config.html#ad17a41b14530e08d78a276340da276d8", null ],
     [ "plugins_", "classtaraxa_1_1cli_1_1_config.html#a21ff1c6a87e3be1d186c548addd9d42a", null ],
     [ "plugins_options_", "classtaraxa_1_1cli_1_1_config.html#a59a3a6507107be6cd872577a41e411cf", null ],
-    [ "wallet", "classtaraxa_1_1cli_1_1_config.html#a0afc1fd769195183c88fc04114ea7191", null ]
+    [ "wallets", "classtaraxa_1_1cli_1_1_config.html#ae1235a7231ef75671e884a9fc71ab8aa", null ]
 ];

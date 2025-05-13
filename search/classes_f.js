@@ -49,5 +49,6 @@ var searchData=
   ['portbindexception_46',['PortBindException',['../structdev_1_1p2p_1_1_network_1_1_port_bind_exception.html',1,'dev::p2p::Network']]],
   ['priorityqueue_47',['PriorityQueue',['../classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html',1,'taraxa::network::threadpool']]],
   ['prometheusconfig_48',['PrometheusConfig',['../namespacetaraxa.html#structtaraxa_1_1_prometheus_config',1,'taraxa']]],
-  ['proposedblocks_49',['ProposedBlocks',['../classtaraxa_1_1_proposed_blocks.html',1,'taraxa']]]
+  ['proposedblockdata_49',['proposedblockdata',['../group___p_b_f_t.html#structtaraxa_1_1_pbft_manager_1_1_proposed_block_data',1,'taraxa::PbftManager::ProposedBlockData'],['../namespacetaraxa.html#structtaraxa_1_1_proposed_block_data',1,'taraxa::ProposedBlockData']]],
+  ['proposedblocks_50',['ProposedBlocks',['../classtaraxa_1_1_proposed_blocks.html',1,'taraxa']]]
 ];

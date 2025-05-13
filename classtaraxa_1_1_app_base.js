@@ -21,7 +21,6 @@ var classtaraxa_1_1_app_base =
     [ "isStarted", "classtaraxa_1_1_app_base.html#a64454422a1d0f6b26d365a67ffcae842", null ],
     [ "start", "classtaraxa_1_1_app_base.html#af6abe9a6d64f5b58938ae6d900dee748", null ],
     [ "conf_", "classtaraxa_1_1_app_base.html#a78edff7b0395416bb359ea0e4f1935ea", null ],
-    [ "kp_", "classtaraxa_1_1_app_base.html#a77fb67c24c263cf49f732cc505fe9846", null ],
     [ "started_", "classtaraxa_1_1_app_base.html#a8da7474d74829f1075db3ee1292fba8c", null ],
     [ "stopped_", "classtaraxa_1_1_app_base.html#a9f7dc3678522335042995c1823cb54d1", null ]
 ];

@@ -21,7 +21,7 @@ var searchData=
   ['last_5fpbft_5fblock_5fhash_5f_18',['last_pbft_block_hash_',['../group___p_b_f_t.html#a05fc8279766fa92c2acef6397068635b',1,'taraxa::PbftChain']]],
   ['last_5fpbft_5fblock_5fsync_5frequest_5ftime_5f_19',['last_pbft_block_sync_request_time_',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a06334d2f46c138d9b4396740a4548682',1,'taraxa::network::tarcap::ExtVotesPacketHandler']]],
   ['last_5fplaced_5fpillar_5fvote_5fperiod_5f_20',['last_placed_pillar_vote_period_',['../group___p_b_f_t.html#a8def0b43fab2662fd5e418faad7a2fcd',1,'taraxa::PbftManager']]],
-  ['last_5fpropose_5flevel_5f_21',['last_propose_level_',['../group___d_a_g.html#a26dce41a1d3475e3458bf9947537bbaf',1,'taraxa::DagBlockProposer']]],
+  ['last_5fpropose_5flevel_21',['last_propose_level',['../structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html#a300fcf136b5cb821a1258d82f2fe69f3',1,'taraxa::DagBlockProposer::NodeDagProposerData']]],
   ['last_5freceived_5fsync_5fpacket_5ftime_5f_22',['last_received_sync_packet_time_',['../classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a0faba1784a0e13bdb3edf804fb98bc19',1,'taraxa::network::tarcap::PbftSyncingState']]],
   ['last_5fstatus_5fpbft_5fchain_5fsize_5f_23',['last_status_pbft_chain_size_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ac8c8b77f658dc1f3fb059cad97d990b4',1,'taraxa::network::tarcap::TaraxaPeer']]],
   ['last_5fsyncing_5fpeer_5f_24',['last_syncing_peer_',['../classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a92f3c6d01b50e6a627d6902331e5398b',1,'taraxa::network::tarcap::PbftSyncingState']]],

@@ -1,28 +1,21 @@
 <map id="taraxa::DagBlockProposer" name="taraxa::DagBlockProposer">
-<area shape="rect" id="Node000001" title="DagBlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="1041,127,1232,153"/>
-<area shape="rect" id="Node000002" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="733,13,908,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="885,39,917,48,1018,83,1111,125,1109,130,1016,88,915,53,884,44"/>
+<area shape="rect" id="Node000001" title="DagBlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="1028,119,1219,145"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="727,53,901,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="888,78,1064,117,1063,122,886,84"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="387,5,582,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="596,23,733,23,733,28,596,28"/>
-<area shape="rect" id="Node000004" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="725,63,916,103"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="930,100,1066,125,1065,130,929,105"/>
-<area shape="rect" id="Node000005" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,153,165,178"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="179,156,189,156,668,142,1041,138,1041,143,669,148,189,161,179,162"/>
-<area shape="rect" id="Node000011" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="383,178,586,203"/>
-<area shape="poly" id="edge11_Node000011_Node000005" title=" " alt="" coords="179,170,190,171,383,183,383,188,189,176,179,175"/>
-<area shape="rect" id="Node000006" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="739,356,903,396"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="862,346,1016,237,1119,151,1122,155,1019,241,865,350"/>
-<area shape="rect" id="Node000007" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="405,441,564,466"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="577,444,639,436,701,423,741,409,778,394,780,399,743,414,702,428,639,441,578,450"/>
-<area shape="rect" id="Node000008" href="$structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="732,253,909,278"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="865,245,1102,150,1104,155,867,250"/>
-<area shape="rect" id="Node000009" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="390,227,579,253"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="594,246,732,256,731,261,593,251"/>
-<area shape="rect" id="Node000010" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="400,277,569,302"/>
-<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="583,287,701,281,749,275,749,281,702,287,583,292"/>
-<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="579,203,702,228,780,250,779,255,701,233,578,208"/>
-<area shape="rect" id="Node000012" href="$namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="377,326,592,351"/>
-<area shape="poly" id="edge12_Node000008_Node000012" title=" " alt="" coords="605,325,701,307,748,292,790,276,792,280,750,297,702,312,606,330"/>
-<area shape="rect" id="Node000013" href="$namespacetaraxa.html#structtaraxa_1_1_soleirolia_hardfork_config" title=" " alt="" coords="389,376,580,416"/>
-<area shape="poly" id="edge13_Node000008_Node000013" title=" " alt="" coords="593,376,647,362,700,343,758,310,803,276,806,280,761,314,702,348,649,367,594,381"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="596,36,727,52,726,57,596,41"/>
+<area shape="rect" id="Node000004" href="$structtaraxa_1_1_hardforks_config.html" title=" " alt="" coords="725,143,903,169"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="916,154,1004,149,1057,142,1058,147,1004,155,917,159"/>
+<area shape="rect" id="Node000005" href="$namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork" title=" " alt="" coords="390,70,579,95"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="579,95,702,120,775,141,773,146,701,125,578,100"/>
+<area shape="rect" id="Node000006" href="$namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork" title=" " alt="" coords="400,119,569,145"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="584,136,725,147,725,152,583,142"/>
+<area shape="rect" id="Node000007" href="$structtaraxa_1_1_ficus_hardfork_config.html" title=" " alt="" coords="383,169,586,194"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="600,173,701,165,725,163,725,168,702,171,600,178"/>
+<area shape="rect" id="Node000008" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,169,165,194"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="179,179,383,179,383,184,179,184"/>
+<area shape="rect" id="Node000009" href="$namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config" title=" " alt="" coords="377,218,592,243"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="596,213,701,192,780,166,781,171,702,197,597,218"/>
+<area shape="rect" id="Node000010" href="$namespacetaraxa.html#structtaraxa_1_1_soleirolia_hardfork_config" title=" " alt="" coords="389,268,580,308"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="593,266,647,251,700,231,755,199,796,167,800,171,758,203,702,236,649,256,594,271"/>
 </map>

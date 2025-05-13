@@ -7,7 +7,6 @@ var classtaraxa_1_1_app =
     [ "addAvailablePlugin", "classtaraxa_1_1_app.html#aaa0ec1db5484bca48b05570d21d4b603", null ],
     [ "close", "classtaraxa_1_1_app.html#aef925fdb037b18f27ef3c9642b48786c", null ],
     [ "enablePlugin", "classtaraxa_1_1_app.html#ac95a419b0f1750c141c97bb7a6328001", null ],
-    [ "getAddress", "classtaraxa_1_1_app.html#ac9ffb11e271845f809383e338c0c2162", null ],
     [ "getConfig", "classtaraxa_1_1_app.html#a3bed86f201f2425750680b66e6b8b612", null ],
     [ "getDagBlockProposer", "classtaraxa_1_1_app.html#a1cebf35ca070f44092e75fafcefc2b5d", null ],
     [ "getDagManager", "classtaraxa_1_1_app.html#a7d4ed27230d90cfcfb2e9005e5ee09eb", null ],

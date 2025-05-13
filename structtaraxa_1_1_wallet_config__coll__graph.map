@@ -1,0 +1,9 @@
+<map id="taraxa::WalletConfig" name="taraxa::WalletConfig">
+<area shape="rect" id="Node000001" title=" " alt="" coords="177,212,332,237"/>
+<area shape="rect" id="Node000002" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="5,80,208,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,116,149,151,183,186,225,210,222,214,180,190,145,155,119,119"/>
+<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="27,5,186,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="109,45,109,80,104,80,104,45"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="232,80,392,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="304,119,262,213,257,211,299,117"/>
+</map>

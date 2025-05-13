@@ -1,5 +1,11 @@
 var pbft__manager_8hpp =
 [
+    [ "taraxa::PbftManager::EligibleWallets", "classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html", "classtaraxa_1_1_pbft_manager_1_1_eligible_wallets" ],
+    [ "taraxa::PbftManager::ProposedBlockData", "group___p_b_f_t.html#structtaraxa_1_1_pbft_manager_1_1_proposed_block_data", [
+      [ "pbft_block", "group___p_b_f_t.html#a6514c4bf3213b113ce6b9846daeb29cf", null ],
+      [ "reward_votes", "group___p_b_f_t.html#a09c3430143d051577080cf2d33d2157e", null ],
+      [ "vote", "group___p_b_f_t.html#a2a50eb4c4ca6075e4cc746931b53d038", null ]
+    ] ],
     [ "PbftStateRootValidation", "pbft__manager_8hpp.html#ga39898c94848b6a52779d398d677f0a9b", [
       [ "Valid", "pbft__manager_8hpp.html#gga39898c94848b6a52779d398d677f0a9ba3ac705f2acd51a4613f9188c05c91d0d", null ],
       [ "Missing", "pbft__manager_8hpp.html#gga39898c94848b6a52779d398d677f0a9ba2aee0be2678ee90fd327cc186826438e", null ],

@@ -122,6 +122,7 @@ var hierarchy =
     [ "taraxa::util::DefaultConstructCopyableMovable< std::shared_mutex >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
     [ "taraxa::state_api::DPOSConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config", null ],
     [ "taraxa::edge_label_writer< Property >", "group___d_a_g.html#classtaraxa_1_1edge__label__writer", null ],
+    [ "taraxa::PbftManager::EligibleWallets", "classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html", null ],
     [ "std::enable_shared_from_this", null, [
       [ "dev::p2p::Host", "structdev_1_1p2p_1_1_host.html", null ],
       [ "dev::p2p::RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html", null ],
@@ -207,7 +208,6 @@ var hierarchy =
     [ "dev::FixedHash< crypto_vrf_OUTPUTBYTES >", "classdev_1_1_fixed_hash.html", null ],
     [ "dev::FixedHash< crypto_vrf_PROOFBYTES >", "classdev_1_1_fixed_hash.html", null ],
     [ "dev::FixedHash< crypto_vrf_PUBLICKEYBYTES >", "classdev_1_1_fixed_hash.html", null ],
-    [ "dev::FixedHash< crypto_vrf_SECRETKEYBYTES >", "classdev_1_1_fixed_hash.html", null ],
     [ "dev::FixedHash< T >", "classdev_1_1_fixed_hash.html", [
       [ "dev::SecureFixedHash< 32 >", "classdev_1_1_secure_fixed_hash.html", null ],
       [ "dev::SecureFixedHash< T >", "classdev_1_1_secure_fixed_hash.html", null ]
@@ -295,6 +295,7 @@ var hierarchy =
     ] ],
     [ "dev::p2p::NodeTable::NodeBucket", "classdev_1_1p2p_1_1_node_table.html#structdev_1_1p2p_1_1_node_table_1_1_node_bucket", null ],
     [ "taraxa::NodeConfig", "namespacetaraxa.html#structtaraxa_1_1_node_config", null ],
+    [ "taraxa::DagBlockProposer::NodeDagProposerData", "structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html", null ],
     [ "dev::p2p::NodeEntry", "structdev_1_1p2p_1_1_node_entry.html", null ],
     [ "dev::p2p::NodeInfo", "structdev_1_1p2p_1_1_node_info.html", null ],
     [ "dev::p2p::NodeIPEndpoint", "classdev_1_1p2p_1_1_node_i_p_endpoint.html", null ],
@@ -348,6 +349,8 @@ var hierarchy =
     ] ],
     [ "taraxa::network::threadpool::PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html", null ],
     [ "taraxa::PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", null ],
+    [ "taraxa::PbftManager::ProposedBlockData", "group___p_b_f_t.html#structtaraxa_1_1_pbft_manager_1_1_proposed_block_data", null ],
+    [ "taraxa::ProposedBlockData", "namespacetaraxa.html#structtaraxa_1_1_proposed_block_data", null ],
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],
     [ "taraxa::Redelegation", "namespacetaraxa.html#structtaraxa_1_1_redelegation", null ],
@@ -514,6 +517,7 @@ var hierarchy =
       [ "taraxa::VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", null ],
       [ "taraxa::vdf_sortition::VdfSortition", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html", null ]
     ] ],
+    [ "taraxa::WalletConfig", "structtaraxa_1_1_wallet_config.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >::Watch", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch", null ],
     [ "taraxa::net::rpc::eth::Watches", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html", null ],
     [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html", null ],

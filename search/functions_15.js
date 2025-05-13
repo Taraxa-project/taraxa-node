@@ -32,7 +32,8 @@ var searchData=
   ['updatemaxstats_29',['updateMaxStats',['../classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#a304c78c99de7158c575a4c34a53c335d',1,'taraxa::network::tarcap::MaxStats']]],
   ['updatepbftchain_30',['updatePbftChain',['../group___p_b_f_t.html#a81c9c909dc98960eae42e6b6d3126013',1,'taraxa::PbftChain']]],
   ['updatestateconfig_31',['updateStateConfig',['../group___final_chain.html#a98575a5df57cb51ddf929592a2d06b7f',1,'taraxa::final_chain::FinalChain']]],
-  ['updatewithget_32',['updateWithGet',['../class_expiration_cache_map.html#aa076f722bbbad79eb820e0bfcbf8253c',1,'ExpirationCacheMap']]],
-  ['upnp_33',['UPnP',['../classdev_1_1p2p_1_1_u_pn_p.html#a8d4479152b8720216a08ba2d5086333b',1,'dev::p2p::UPnP']]],
-  ['utctime_34',['utcTime',['../namespacedev.html#a9ec0fad72b75dc7e13ea0aebd51e3b0f',1,'dev']]]
+  ['updatewalletseligibility_32',['updateWalletsEligibility',['../classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#af7f74444c9921caaaf41044ae275e45e',1,'taraxa::PbftManager::EligibleWallets']]],
+  ['updatewithget_33',['updateWithGet',['../class_expiration_cache_map.html#aa076f722bbbad79eb820e0bfcbf8253c',1,'ExpirationCacheMap']]],
+  ['upnp_34',['UPnP',['../classdev_1_1p2p_1_1_u_pn_p.html#a8d4479152b8720216a08ba2d5086333b',1,'dev::p2p::UPnP']]],
+  ['utctime_35',['utcTime',['../namespacedev.html#a9ec0fad72b75dc7e13ea0aebd51e3b0f',1,'dev']]]
 ];
