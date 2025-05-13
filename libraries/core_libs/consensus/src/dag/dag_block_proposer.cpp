@@ -104,8 +104,8 @@ bool DagBlockProposer::proposeDagBlock() {
       if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
         continue;
       }
-      if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty()&&
-        dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocksLowDifficulty) {
+      if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty() &&
+          dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocksLowDifficulty) {
         continue;
       }
     }

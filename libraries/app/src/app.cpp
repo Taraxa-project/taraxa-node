@@ -127,7 +127,7 @@ void App::init(const cli::Config &cli_conf) {
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
   gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, conf_.blocks_gas_pricer, trx_mgr_, db_);
-  
+
   auto genesis_hash = conf_.genesis.genesisHash();
   auto genesis_hash_from_db = db_->getGenesisHash();
   if (!genesis_hash_from_db.has_value()) {

@@ -1344,7 +1344,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
                    << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
       LOG(log_dg_) << "Ghost: " << ghost;
       return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
-                             eligible_wallets);
+                               eligible_wallets);
     }
   }
 
