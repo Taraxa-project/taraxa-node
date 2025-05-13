@@ -18,7 +18,7 @@ NodeStats::NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::
                      std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                      std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                      std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                     std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const addr_t &node_addr)
+                     std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const FullNodeConfig &config)
     : pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
@@ -27,8 +27,12 @@ NodeStats::NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::
       trx_mgr_(std::move(trx_mgr)),
       packets_stats_(std::move(packets_stats)),
       thread_pool_(std::move(thread_pool)),
-      kNodeAddress(node_addr.toString()) {
+      node_addresses_("") {
+  const auto &node_addr = config.getFirstWallet().node_addr;
   LOG_OBJECTS_CREATE("SUMMARY");
+
+  std::for_each(config.wallets.begin(), config.wallets.end(),
+                [&](const WalletConfig &wallet) { node_addresses_ += wallet.node_addr.toString() + " "; });
 }
 
 uint64_t NodeStats::syncTimeSeconds() const { return syncing_duration_seconds; }
@@ -133,7 +137,7 @@ void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::
                << " dag levels)";
 
   LOG(log_nf_) << "Build version: " << TARAXA_COMMIT_HASH;
-  LOG(log_nf_) << "Node address: " << kNodeAddress;
+  LOG(log_nf_) << "Node addresses: [" << node_addresses_ << "]";
   LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
   LOG(log_dg_) << "Connected peers: [ " << connected_peers_str_with_ip << "]";
   LOG(log_nf_) << "Number of discovered peers: " << number_of_discov_peers;

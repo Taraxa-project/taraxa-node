@@ -134,7 +134,6 @@ class TransactionQueue {
    */
   bool nonProposableTransactionsOverTheLimit() const;
 
-  
   /**
    * @brief Returns minimum gas price needed for transaction to be included
    *  in the next proposed dag block

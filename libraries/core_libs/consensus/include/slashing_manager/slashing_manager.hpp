@@ -25,7 +25,5 @@ class SlashingManager {
   ExpirationCache<dev::h256> double_voting_proofs_;
 
   const FullNodeConfig &kConfig;
-  const addr_t kAddress;
-  const secret_t kPrivateKey;
 };
 }  // namespace taraxa

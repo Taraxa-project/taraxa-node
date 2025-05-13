@@ -22,31 +22,29 @@
 namespace taraxa {
 
 Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const std::filesystem::path &network_file_path,
-                 const dev::KeyPair &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+                 std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                  std::shared_ptr<SlashingManager> slashing_manager,
                  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr)
     : kConf(config),
-      pub_key_(key.pub()),
       all_packets_stats_(nullptr),
       node_stats_(nullptr),
       pbft_syncing_state_(std::make_shared<network::tarcap::PbftSyncingState>(config.network.deep_syncing_threshold)),
       pbft_mgr_(pbft_mgr),
       tp_(config.network.num_threads, false),
       packets_tp_(std::make_shared<network::threadpool::PacketsThreadPool>(config.network.packets_processing_threads,
-                                                                           pbft_mgr, key.address())),
+                                                                           pbft_mgr, kConf.getFirstWallet().node_addr)),
       periodic_events_tp_(kPeriodicEventsThreadCount, false) {
-  auto const &node_addr = key.address();
+  auto const &node_addr = kConf.getFirstWallet().node_addr;
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
 
   all_packets_stats_ = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
       kConf.network.ddos_protection.packets_stats_time_period_ms, node_addr);
 
-  node_stats_ =
-      std::make_shared<network::tarcap::NodeStats>(pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
-                                                   trx_mgr, all_packets_stats_, packets_tp_, node_addr);
+  node_stats_ = std::make_shared<network::tarcap::NodeStats>(pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
+                                                             vote_mgr, trx_mgr, all_packets_stats_, packets_tp_, kConf);
 
   // TODO make all these properties configurable
   dev::p2p::NetworkConfig net_conf;
@@ -77,22 +75,23 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
 
     // Register latest version of taraxa capability
     auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-        TARAXA_NET_VERSION, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+        TARAXA_NET_VERSION, config, genesis_hash, host, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
         pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr);
     capabilities.emplace_back(latest_tarcap);
 
     // Register previous (v5) version of taraxa capability
     assert(TARAXA_NET_VERSION - 1 == 5);
     auto v5_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-        TARAXA_NET_VERSION - 1, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_,
-        db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr,
+        TARAXA_NET_VERSION - 1, config, genesis_hash, host, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr,
         network::tarcap::TaraxaCapability::kInitV5VersionHandlers);
     capabilities.emplace_back(v5_tarcap);
 
     return capabilities;
   };
 
-  host_ = dev::p2p::Host::make(net_version, constructCapabilities, key, net_conf, taraxa_net_conf, network_file_path);
+  host_ = dev::p2p::Host::make(net_version, constructCapabilities, dev::KeyPair(kConf.getFirstWallet().node_secret),
+                               net_conf, taraxa_net_conf, network_file_path);
   for (const auto &cap : host_->getSupportedCapabilities()) {
     const auto tarcap_version = cap.second.ref->version();
     auto tarcap = std::static_pointer_cast<network::tarcap::TaraxaCapability>(cap.second.ref);
@@ -267,8 +266,10 @@ void Network::addBootNodes(bool initial) {
 
   for (auto const &node : kConf.network.boot_nodes) {
     dev::Public pub(node.id);
-    if (pub == pub_key_) {
-      LOG(log_wr_) << "not adding self to the boot node list";
+
+    if (std::any_of(kConf.wallets.begin(), kConf.wallets.end(),
+                    [&pub](const WalletConfig &wallet) { return pub == wallet.node_pk; })) {
+      LOG(log_wr_) << "not adding self to the boot node list ";
       continue;
     }
 

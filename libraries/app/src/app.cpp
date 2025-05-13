@@ -46,23 +46,30 @@ bool App::isPluginEnabled(const std::string &name) const { return active_plugins
 
 void App::init(const cli::Config &cli_conf) {
   conf_ = cli_conf.getNodeConfiguration();
-  kp_ = std::make_shared<dev::KeyPair>(conf_.node_secret);
 
   fs::create_directories(conf_.db_path);
   fs::create_directories(conf_.log_path);
 
   // Initialize logging
-  const auto &node_addr = kp_->address();
+  const auto &node_addr = conf_.getFirstWallet().node_addr;
   for (auto &logging : conf_.log_configs) {
     logging.InitLogging(node_addr);
   }
 
   LOG_OBJECTS_CREATE("FULLND");
 
-  LOG(log_si_) << "Node public key: " << EthGreen << kp_->pub().toString() << std::endl
-               << EthReset << "Node address: " << EthRed << node_addr.toString() << std::endl
-               << EthReset << "Node VRF public key: " << EthGreen
-               << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString() << EthReset;
+  std::string node_addresses;
+  std::string node_public_keys;
+  std::string node_vrf_public_keys;
+  std::for_each(conf_.wallets.begin(), conf_.wallets.end(), [&](const WalletConfig &wallet) {
+    node_addresses += wallet.node_addr.toString() + " ";
+    node_public_keys += wallet.node_pk.toString() + " ";
+    node_vrf_public_keys += wallet.vrf_pk.toString() + " ";
+  });
+
+  LOG(log_si_) << "Node public keys: " << EthGreen << "[" << node_public_keys << "]" << std::endl
+               << EthReset << "Node addresses: " << EthRed << "[" << node_addresses << "]" << std::endl
+               << EthReset << "Node VRF public keys: " << EthGreen << "[" << node_vrf_public_keys << "]" << EthReset;
 
   if (!conf_.genesis.dag_genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
@@ -120,7 +127,7 @@ void App::init(const cli::Config &cli_conf) {
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
   gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, conf_.blocks_gas_pricer, trx_mgr_, db_);
-  
+
   auto genesis_hash = conf_.genesis.genesisHash();
   auto genesis_hash_from_db = db_->getGenesisHash();
   if (!genesis_hash_from_db.has_value()) {
@@ -143,9 +150,8 @@ void App::init(const cli::Config &cli_conf) {
                                             pillar_chain_mgr_);
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(conf_, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_);
 
-  network_ =
-      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), *kp_, db_, pbft_mgr_, pbft_chain_,
-                                vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
+  network_ = std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), db_, pbft_mgr_, pbft_chain_,
+                                       vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
   auto cli_options = cli_conf.getCliOptions();
   for (auto &plugin : active_plugins_) {
     plugin.second->init(cli_options);
@@ -218,7 +224,6 @@ void App::scheduleLoggingConfigUpdate() {
     return;
   }
 
-  static auto node_address = dev::KeyPair(conf_.node_secret).address();
   config_update_executor_.post([&]() {
     while (started_ && !stopped_) {
       auto path = std::filesystem::path(conf_.json_file_name);
@@ -234,7 +239,7 @@ void App::scheduleLoggingConfigUpdate() {
       try {
         auto config = getJsonFromFileOrString(conf_.json_file_name);
         conf_.log_configs = conf_.loadLoggingConfigs(config["logging"]);
-        conf_.InitLogging(node_address);
+        conf_.InitLogging(conf_.getFirstWallet().node_addr);
       } catch (const ConfigException &e) {
         std::cerr << "FullNodeConfig: Failed to update logging config: " << e.what() << std::endl;
         continue;

@@ -1105,9 +1105,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
   // Create and destroy to create network. So next time will be loaded from file
-  {
-    auto nodes = launch_nodes(node_cfgs);
-  }
+  { auto nodes = launch_nodes(node_cfgs); }
   {
     auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
@@ -1783,6 +1781,24 @@ TEST_F(FullNodeTest, graphql_test) {
   auto transactionAt = service::ScalarArgument::require("transactionAt", block);
   const auto hash2 = service::StringArgument::require("hash", transactionAt);
   EXPECT_EQ(nodes[0]->getFinalChain()->transactionHashes(2)->at(0).toString(), hash2);
+}
+
+TEST_F(FullNodeTest, multiple_wallets_support) {
+  auto node_cfgs = make_node_cfgs(4, 3, 20);
+
+  // Take configs from all nodes and add wallets to the single node config
+  auto main_node_cfg = node_cfgs[0];
+  for (size_t idx = 1; idx < node_cfgs.size(); idx++) {
+    main_node_cfg.wallets.push_back(node_cfgs[idx].getFirstWallet());
+  }
+
+  // Run single node with 4 wallets(nodes)
+  auto node = launch_nodes({main_node_cfg}).front();
+
+  EXPECT_HAPPENS({5s, 200ms}, [&](auto &ctx) {
+    // Check if new chain progress
+    WAIT_EXPECT_GT(ctx, node->getPbftChain()->getPbftChainSize(), 1);
+  });
 }
 
 }  // namespace taraxa::core_tests

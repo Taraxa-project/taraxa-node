@@ -90,7 +90,7 @@ void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
       getConfigDataAsUInt(root, {"report_malicious_behaviour"}, true, report_malicious_behaviour);
 }
 
-FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::Value &wallet,
+FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const std::vector<Json::Value> &wallets_jsons,
                                const Json::Value &genesis_json, const std::string &config_file_path) {
   Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
   if (string_or_object.isString()) {
@@ -120,40 +120,56 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
                           " blocks (" + std::to_string(kDefaultLightNodeHistoryDays) + " days)");
   }
 
-  try {
-    node_secret = dev::Secret(wallet["node_secret"].asString(), dev::Secret::ConstructFromStringType::FromHex);
-    if (!wallet["node_public"].isNull()) {
-      auto node_public = dev::Public(wallet["node_public"].asString(), dev::Public::ConstructFromStringType::FromHex);
-      if (node_public != dev::KeyPair(node_secret).pub()) {
-        throw ConfigException(std::string("Node secret key and public key in wallet do not match"));
-      }
-    }
-    if (!wallet["node_address"].isNull()) {
-      auto node_address =
-          dev::Address(wallet["node_address"].asString(), dev::Address::ConstructFromStringType::FromHex);
-      if (node_address != dev::KeyPair(node_secret).address()) {
-        throw ConfigException(std::string("Node secret key and address in wallet do not match"));
-      }
-    }
-  } catch (const dev::Exception &e) {
-    throw ConfigException(std::string("Could not parse node_secret: ") + e.what());
-  }
+  for (const auto &wallet_json : wallets_jsons) {
+    dev::Secret node_secret;
+    vrf_wrapper::vrf_sk_t vrf_secret;
 
-  try {
-    vrf_secret = vrf_wrapper::vrf_sk_t(wallet["vrf_secret"].asString());
-  } catch (const dev::Exception &e) {
-    throw ConfigException(std::string("Could not parse vrf_secret: ") + e.what());
-  }
-
-  try {
-    if (!wallet["vrf_public"].isNull()) {
-      auto vrf_public = vrf_wrapper::vrf_pk_t(wallet["vrf_public"].asString());
-      if (vrf_public != taraxa::vrf_wrapper::getVrfPublicKey(vrf_secret)) {
-        throw ConfigException(std::string("Vrf secret key and public key in wallet do not match"));
+    try {
+      node_secret = dev::Secret(wallet_json["node_secret"].asString(), dev::Secret::ConstructFromStringType::FromHex);
+      if (!wallet_json["node_public"].isNull()) {
+        auto node_public =
+            dev::Public(wallet_json["node_public"].asString(), dev::Public::ConstructFromStringType::FromHex);
+        if (node_public != dev::KeyPair(node_secret).pub()) {
+          throw ConfigException(std::string("Node secret key and public key in wallet do not match"));
+        }
       }
+      if (!wallet_json["node_address"].isNull()) {
+        auto node_address =
+            dev::Address(wallet_json["node_address"].asString(), dev::Address::ConstructFromStringType::FromHex);
+        if (node_address != dev::KeyPair(node_secret).address()) {
+          throw ConfigException(std::string("Node secret key and address in wallet do not match"));
+        }
+      }
+    } catch (const dev::Exception &e) {
+      throw ConfigException(std::string("Could not parse node_secret: ") + e.what());
     }
-  } catch (const dev::Exception &e) {
-    throw ConfigException(std::string("Could not parse vrf_public: ") + e.what());
+
+    try {
+      vrf_secret = vrf_wrapper::vrf_sk_t(wallet_json["vrf_secret"].asString());
+    } catch (const dev::Exception &e) {
+      throw ConfigException(std::string("Could not parse vrf_secret: ") + e.what());
+    }
+
+    try {
+      if (!wallet_json["vrf_public"].isNull()) {
+        auto vrf_public = vrf_wrapper::vrf_pk_t(wallet_json["vrf_public"].asString());
+        if (vrf_public != taraxa::vrf_wrapper::getVrfPublicKey(vrf_secret)) {
+          throw ConfigException(std::string("Vrf secret key and public key in wallet do not match"));
+        }
+      }
+    } catch (const dev::Exception &e) {
+      throw ConfigException(std::string("Could not parse vrf_public: ") + e.what());
+    }
+
+    auto wallet_config = WalletConfig(std::move(node_secret), vrf_secret);
+    // Check for duplicate wallets
+    if (std::any_of(wallets.cbegin(), wallets.cend(), [&wallet_config](const WalletConfig &wallet) {
+          return wallet_config.node_secret == wallet.node_secret || wallet_config.vrf_secret == wallet.vrf_secret;
+        })) {
+      throw ConfigException(std::string("Duplicate wallets"));
+    }
+
+    wallets.push_back(std::move(wallet_config));
   }
 
   // TODO configurable
@@ -166,6 +182,8 @@ void FullNodeConfig::InitLogging(const addr_t &node_address) {
     logging.InitLogging(node_address);
   }
 }
+
+const WalletConfig &FullNodeConfig::getFirstWallet() const { return wallets.front(); }
 
 void FullNodeConfig::validate() const {
   genesis.validate();

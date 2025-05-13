@@ -270,9 +270,9 @@ bool TransactionQueue::isTransactionKnown(const trx_hash_t &trx_hash) const { re
 
 val_t TransactionQueue::getMinGasPriceForBlockInclusion(uint64_t limit) const {
   uint64_t total_gas = 0;
-  for(const auto &gas_price : queue_transactions_gas_prices_) {
+  for (const auto &gas_price : queue_transactions_gas_prices_) {
     total_gas += gas_price.second;
-    if(total_gas >= limit) {
+    if (total_gas >= limit) {
       return gas_price.first + 1;
     }
   }
