@@ -51,6 +51,8 @@ void App::init(const cli::Config &cli_conf) {
   fs::create_directories(conf_.log_path);
 
   // Initialize logging
+  spdlogger::Logging::get().Init();
+
   const auto &node_addr = conf_.getFirstWallet().node_addr;
   for (auto &logging : conf_.log_configs) {
     logging.InitLogging(node_addr);
