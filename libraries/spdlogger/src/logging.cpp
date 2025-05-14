@@ -1,8 +1,8 @@
 #include "spdlogger/logging.hpp"
 
 #include "spdlog/async.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace taraxa::spdlogger {
 
@@ -28,31 +28,15 @@ std::shared_ptr<spdlog::logger> Logging::CreateChannelLogger(const std::string& 
 
   // TODO: use subset of sinks_ based on config
 
-  auto logger = std::make_shared<spdlog::async_logger>(
-      channel,
-      sinks_.begin(),
-      sinks_.end(),
-      spdlog::thread_pool(),
-      spdlog::async_overflow_policy::block
-  );
+  auto logger = std::make_shared<spdlog::async_logger>(channel, sinks_.begin(), sinks_.end(), spdlog::thread_pool(),
+                                                       spdlog::async_overflow_policy::block);
   spdlog::register_logger(logger);
 
   return logger;
 }
 
-//
-// std::shared_ptr<spdlog::logger> createLogger(Verbosity verboseLevel, const std::string& channel,
-//                                             const addr_t& node_id) {
-//  Logger logger(boost::log::keywords::severity = verboseLevel, boost::log::keywords::channel = channel);
-//  std::string severity_str = verbosityToString(verboseLevel);
-//  logger.add_attribute("SeverityStr", boost::log::attributes::constant<std::string>(severity_str));
-//  logger.add_attribute("ShortNodeId", boost::log::attributes::constant<std::string>(node_id.abridged()));
-//  logger.add_attribute("NodeId", boost::log::attributes::constant<std::string>(node_id.toString()));
-//  return logger;
-//}
-//
 ////Config createDefaultLoggingConfig() { return Config(); }
 ////
 ////void InitLogging(Config& logging_config, const addr_t& node_id) { logging_config.InitLogging(node_id); }
 
-}  // namespace taraxa::Logging
+}  // namespace taraxa::spdlogger

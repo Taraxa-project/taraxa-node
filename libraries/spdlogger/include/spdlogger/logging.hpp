@@ -1,10 +1,12 @@
 #pragma once
 
+#include <fmt/ranges.h>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
 
+#include "common/types.hpp"
 #include "spdlogger/logging_config.hpp"
 
 namespace taraxa::spdlogger {
@@ -71,4 +73,33 @@ class Logging {
   bool initialized_{false};
 };
 
-}  // namespace taraxa::logger
+}  // namespace taraxa::spdlogger
+
+// Logger fmt::formatters for custom types
+
+// Specialize fmt::formatter for std::atomic<T>
+template <typename T>
+struct fmt::formatter<std::atomic<T>> : fmt::formatter<T> {
+  template <typename FormatContext>
+  auto format(const std::atomic<T>& atomic_val, FormatContext& ctx) const {
+    return fmt::formatter<T>::format(atomic_val.load(std::memory_order_relaxed), ctx);
+  }
+};
+
+// Specialize fmt::formatter for taraxa::blk_hash_t
+template <>
+struct fmt::formatter<taraxa::blk_hash_t> : fmt::formatter<std::string> {
+  template <typename FormatContext>
+  auto format(const taraxa::blk_hash_t& val, FormatContext& ctx) const {
+    return fmt::format_to(ctx.out(), "{}", val.abridged());
+  }
+};
+
+// Specialize fmt::formatter for taraxa::addr_t
+template <>
+struct fmt::formatter<taraxa::addr_t> : fmt::formatter<std::string> {
+  template <typename FormatContext>
+  auto format(const taraxa::addr_t& val, FormatContext& ctx) const {
+    return fmt::format_to(ctx.out(), "{}", val.abridged());
+  }
+};
