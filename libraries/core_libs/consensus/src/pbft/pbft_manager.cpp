@@ -39,6 +39,7 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       dag_genesis_block_hash_(conf.genesis.dag_genesis_block.getHash()),
       kGenesisConfig(conf.genesis),
       proposed_blocks_(db_),
+      eligible_wallets_(kConfig.wallets),
       logger_(nullptr) {
   logger_ = spdlogger::Logging::get().CreateChannelLogger("PBFT_MGR");
 
@@ -46,14 +47,14 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
        period <= curr_period; ++period) {
     auto period_data = db_->getPeriodData(period);
     if (!period_data.has_value()) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
+      logger_->error("DB corrupted - Cannot find PBFT block in period {} in PBFT chain DB pbft_blocks.", period);
       assert(false);
     }
 
     if (period_data->pbft_blk->getPeriod() != period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << period_data->pbft_blk->getBlockHash()
-                   << " has different period " << period_data->pbft_blk->getPeriod()
-                   << " in block data than in block order db: " << period;
+      logger_->error(
+          "DB corrupted - PBFT block hash {} has different period {} in block data than in block order db: {}",
+          period_data->pbft_blk->getBlockHash(), period_data->pbft_blk->getPeriod(), period);
       assert(false);
     }
 
@@ -74,7 +75,7 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
   for (PbftPeriod period = start_period; period <= pbft_chain_->getPbftChainSize(); period++) {
     auto period_data = db_->getPeriodData(period);
     if (!period_data.has_value()) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
+      logger_->error("DB corrupted - Cannot find PBFT block in period {} in PBFT chain DB pbft_blocks.", period);
       assert(false);
     }
     trx_mgr_->initializeRecentlyFinalizedTransactions(*period_data);
@@ -93,8 +94,9 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
     // There is a race condition where pbt block could have been saved and node stopped before saving pillar block
     if (current_pbft_period ==
         current_pillar_block->getPeriod() + kGenesisConfig.state.hardforks.ficus_hf.pillar_blocks_interval)
-      LOG(log_er_) << "Pillar block was not processed before restart, current period: " << current_pbft_period
-                   << ", current pillar block period: " << current_pillar_block->getPeriod();
+      logger_->error(
+          "Pillar block was not processed before restart, current period: {}, current pillar block period: {}",
+          current_pbft_period, current_pillar_block->getPeriod());
     processPillarBlock(current_pbft_period);
   }
 }
@@ -109,7 +111,7 @@ void PbftManager::start() {
   }
 
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
-  LOG(log_dg_) << "PBFT daemon initiated ...";
+  logger_->debug("PBFT daemon initiated ...");
 }
 
 void PbftManager::stop() {
@@ -125,7 +127,7 @@ void PbftManager::stop() {
   daemon_->join();
   final_chain_->stop();
 
-  LOG(log_dg_) << "PBFT daemon terminated ...";
+  logger_->debug("PBFT daemon terminated ...");
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -175,11 +177,11 @@ void PbftManager::run() {
         }
         break;
       default:
-        LOG(log_er_) << "Unknown PBFT state " << state_;
+        logger_->error("Unknown PBFT state {}", static_cast<int>(state_));
         assert(false);
     }
 
-    LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_.count() << ", step " << step_;
+    logger_->trace("next step time(ms): {}, step {}", next_step_time_ms_.count(), step_);
     sleep_();
   }
 }
@@ -225,9 +227,10 @@ std::optional<uint64_t> PbftManager::getCurrentDposTotalVotesCount() const {
   try {
     return final_chain_->dposEligibleTotalVoteCount(pbft_chain_->getPbftChainSize());
   } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_wr_) << "Unable to get CurrentDposTotalVotesCount for period: " << pbft_chain_->getPbftChainSize()
-                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
-                 << "). Err msg: " << e.what();
+    logger_->warn(
+        "Unable to get CurrentDposTotalVotesCount for period: {}. Period is too far ahead of actual finalized pbft "
+        "chain size ({}). Err msg: {}",
+        final_chain_->lastBlockNumber(), pbft_chain_->getPbftChainSize(), e.what());
   }
 
   return {};
@@ -261,9 +264,10 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
 
     return node_votes_count;
   } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_wr_) << "Unable to get CurrentNodeVotesCount for period: " << pbft_chain_->getPbftChainSize()
-                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
-                 << "). Err msg: " << e.what();
+    logger_->warn(
+        "Unable to get CurrentNodeVotesCount for period: {}. Period is too far ahead of actual finalized pbft chain "
+        "size ({}). Err msg: {}",
+        final_chain_->lastBlockNumber(), pbft_chain_->getPbftChainSize(), e.what());
   }
 
   return {};
@@ -289,9 +293,8 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
       // Reset it only if it was already increased compared to default value
       if (lambda_ != kMinLambda) {
         lambda_ = kMinLambda;
-        LOG(log_nf_) << "Node is " << network_next_voting_step - step_
-                     << " steps behind the rest of the network. Reset lambda to the default value " << lambda_.count()
-                     << " [ms]";
+        logger_->info("Node is {} steps behind the rest of the network. Reset lambda to the default value {} [ms]",
+                      network_next_voting_step - step_, lambda_.count());
       }
     } else if (lambda_ < kMaxLambda) {
       // Node is < kMaxSteps steps behind the rest (at least 1/3) of the network - start exponentially backing off
@@ -302,8 +305,8 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
         lambda_ = kMaxLambda;
       }
 
-      LOG(log_nf_) << "No round progress - exponentially backing off lambda to " << lambda_.count() << " [ms] in step "
-                   << step_;
+      logger_->info("No round progress - exponentially backing off lambda to {} [ms] in step {}", lambda_.count(),
+                    step_);
     }
   }
 }
@@ -323,12 +326,12 @@ bool PbftManager::tryPushCertVotesBlock() {
   }
   const blk_hash_t &certified_block_hash = cert_votes[0]->getBlockHash();
 
-  LOG(log_nf_) << "Found enough cert votes for PBFT block " << certified_block_hash << ", period "
-               << current_pbft_period << ", round " << current_pbft_round;
+  logger_->info("Found enough cert votes for PBFT block {}, period {}, round {}", certified_block_hash,
+                current_pbft_period, current_pbft_round);
 
   auto pbft_block = getValidPbftProposedBlock(current_pbft_period, certified_block_hash);
   if (!pbft_block) {
-    LOG(log_er_) << "Invalid certified block " << certified_block_hash;
+    logger_->error("Invalid certified block {}", certified_block_hash);
     return false;
   }
 
@@ -359,7 +362,7 @@ bool PbftManager::advancePeriod() {
   // Cleanup proposed blocks
   proposed_blocks_.cleanupProposedPbftBlocksByPeriod(new_period);
 
-  LOG(log_nf_) << "Period advanced to: " << new_period << ", round and step reset to 1";
+  logger_->info("Period advanced to: {}", new_period);
 
   // Restart while loop...
   return true;
@@ -377,7 +380,7 @@ bool PbftManager::advanceRound() {
   // Reset consensus
   resetPbftConsensus(*new_round);
 
-  LOG(log_nf_) << "Round advanced to: " << *new_round << ", period " << current_pbft_period << ", step " << step_;
+  logger_->info("Round advanced to: {}, period {}, step {}", *new_round, current_pbft_period, step_);
 
   // Restart while loop...
   return true;
@@ -390,7 +393,7 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   // Cleanup saved broadcasted votes for current round
   current_round_broadcasted_votes_.clear();
 
-  LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1";
+  logger_->debug("Reset PBFT consensus to: period {}, round {}, step 1", getPbftPeriod(), round);
 
   // Reset broadcast counters
   broadcast_votes_counter_ = 1;
@@ -451,8 +454,8 @@ void PbftManager::sleep_() {
 
     const auto time_to_sleep_for_ms = next_step_time_ms_ - round_elapsed_time;
     const auto [round, period] = getPbftRoundAndPeriod();
-    LOG(log_tr_) << "Sleep " << time_to_sleep_for_ms.count() << " [ms] before going into the next step. Period "
-                 << period << ", round " << round << ", step " << step_;
+    logger_->trace("Sleep {} [ms] before going into the next step. Period {}, round {}, step {}",
+                   time_to_sleep_for_ms.count(), period, round, step_);
     std::unique_lock<std::mutex> lock(stop_mtx_);
     stop_cv_.wait_for(lock, time_to_sleep_for_ms);
   }
@@ -484,7 +487,7 @@ void PbftManager::initialState() {
     state_ = finish_polling_state;
     second_finish_step_start_datetime_ = now;
   } else {
-    LOG(log_er_) << "Unexpected condition at round " << current_pbft_round << " step " << current_pbft_step;
+    logger_->error("Unexpected condition at round {} step {}", current_pbft_round, current_pbft_step);
     assert(false);
   }
 
@@ -498,24 +501,23 @@ void PbftManager::initialState() {
 
   // TODO[2840]: remove this check if case nodes do not log the err messages after restart
   if (const auto &err_msg = proposed_blocks_.checkOldBlocksPresence(current_pbft_period); err_msg.has_value()) {
-    LOG(log_er_) << "Old proposed blocks saved in db <period> -> <blocks count>: " << *err_msg;
+    logger_->error("Old proposed blocks saved in db <period> -> <blocks count>: {}", *err_msg);
   }
 
   // Process saved cert voted block from db
   if (auto cert_voted_block_data = db_->getCertVotedBlockInRound(); cert_voted_block_data.has_value()) {
     const auto [cert_voted_block_round, cert_voted_block] = *cert_voted_block_data;
     if (proposed_blocks_.pushProposedPbftBlock(cert_voted_block)) {
-      LOG(log_nf_) << "Last cert voted block " << cert_voted_block->getBlockHash() << " with period "
-                   << cert_voted_block->getPeriod() << ", round " << cert_voted_block_round
-                   << " pushed into proposed blocks";
+      logger_->info("Last cert voted block {} with period {}, round {} pushed into proposed blocks",
+                    cert_voted_block->getBlockHash(), cert_voted_block->getPeriod(), cert_voted_block_round);
     }
 
     // Set cert_voted_block_for_round_ only if round and period match. Note: could differ in edge case when node
     // crashed, new period/round was already saved in db but cert voted block was not cleared yet
     if (current_pbft_period == cert_voted_block->getPeriod() && current_pbft_round == cert_voted_block_round) {
       cert_voted_block_for_round_ = cert_voted_block;
-      LOG(log_nf_) << "Init last cert voted block in round to " << cert_voted_block->getBlockHash() << ", period "
-                   << current_pbft_period << ", round " << current_pbft_round;
+      logger_->info("Init last cert voted block in round to {}, period {}, round {}", cert_voted_block->getBlockHash(),
+                    current_pbft_period, current_pbft_round);
     }
   }
 
@@ -537,11 +539,11 @@ void PbftManager::initialState() {
   const auto previous_round_next_voted_null_block = vote_mgr_->getTwoTPlusOneVotedBlock(
       current_pbft_period, current_pbft_round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock);
 
-  LOG(log_nf_) << "Node initialize at period " << current_pbft_period << ", round " << current_pbft_round << ", step "
-               << current_pbft_step << ". Previous round 2t+1 next voted null block: " << std::boolalpha
-               << previous_round_next_voted_null_block.has_value() << ", previous round 2t+1 next voted block "
-               << (previous_round_next_voted_block.has_value() ? previous_round_next_voted_block->abridged()
-                                                               : "no value");
+  logger_->info(
+      "Node initialize at period {}, round {}, step {}. Previous round 2t+1 next voted null block: {}, previous round "
+      "2t+1 next voted block {}",
+      current_pbft_period, current_pbft_round, current_pbft_step, previous_round_next_voted_null_block.has_value(),
+      (previous_round_next_voted_block.has_value() ? previous_round_next_voted_block->abridged() : "no value"));
 }
 
 void PbftManager::setFilterState_() {
@@ -558,7 +560,7 @@ void PbftManager::setCertifyState_() {
 }
 
 void PbftManager::setFinishState_() {
-  LOG(log_dg_) << "Will go to first finish State";
+  logger_->debug("Will go to first finish State");
   state_ = finish_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 4 * lambda_;
@@ -593,7 +595,7 @@ void PbftManager::loopBackFinishState_() {
 void PbftManager::broadcastVotes() {
   auto net = network_.lock();
   if (!net) {
-    LOG(log_er_) << "Unable to broadcast votes -> cant obtain net ptr";
+    logger_->error("Unable to broadcast votes -> cant obtain net ptr");
     return;
   }
 
@@ -601,8 +603,8 @@ void PbftManager::broadcastVotes() {
   auto gossipVotes = [this, &net](const std::vector<std::shared_ptr<PbftVote>> &votes,
                                   const std::string &votes_type_str, bool rebroadcast) {
     if (!votes.empty()) {
-      LOG(log_dg_) << "Broadcast " << votes_type_str << " for period " << votes.back()->getPeriod() << ", round "
-                   << votes.back()->getRound();
+      logger_->debug("Broadcast {} for period {}, round {}", votes_type_str, votes.back()->getPeriod(),
+                     votes.back()->getRound());
       net->gossipVotesBundle(votes, rebroadcast);
     }
   };
@@ -634,7 +636,7 @@ void PbftManager::broadcastVotes() {
         net->gossipVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()), rebroadcast);
       }
 
-      LOG(log_dg_) << "Broadcast own votes for period " << period << ", round " << round;
+      logger_->debug("Broadcast own votes for period {}, round {}", period, round);
     }
 
     // Broadcast own pillar vote
@@ -703,12 +705,12 @@ void PbftManager::printVotingSummary() const {
     }
   }
 
-  LOG(log_nf_) << "Voting summary: " << jsonToUnstyledString(json_obj);
+  logger_->info("Voting summary: {}", jsonToUnstyledString(json_obj));
 }
 
 bool PbftManager::stateOperations_() {
   auto [round, period] = getPbftRoundAndPeriod();
-  LOG(log_tr_) << "PBFT current period: " << period << ", round: " << round << ", step " << step_;
+  logger_->trace("PBFT current period: {}, round: {}, step {}", period, round, step_);
 
   // Process synced blocks
   pushSyncedPbftBlocksIntoChain();
@@ -750,7 +752,7 @@ bool PbftManager::stateOperations_() {
 std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash) {
   const auto block_data = proposed_blocks_.getPbftProposedBlock(period, block_hash);
   if (!block_data.has_value()) {
-    LOG(log_er_) << "Unable to find proposed block " << block_hash << ", period " << period;
+    logger_->error("Unable to find proposed block {}, period {}", block_hash, period);
     return nullptr;
   }
 
@@ -760,7 +762,7 @@ std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod per
   // Block is not validated yet
   if (!block_data->second) {
     if (!validatePbftBlock(block)) {
-      LOG(log_er_) << "Proposed block " << block_hash << " failed validation, period " << period;
+      logger_->error("Proposed block {} failed validation, period {}", block_hash, period);
       return nullptr;
     }
 
@@ -803,14 +805,14 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
 
     const auto vote = vote_mgr_->generateVoteWithWeight(block_hash, vote_type, period, round, step, wallet.second);
     if (!vote) {
-      LOG(log_er_) << "Failed to generate vote for " << block_hash << ", period " << period << ", round " << round
-                   << ", step " << step << ", validator " << wallet.second.node_addr;
+      logger_->error("Failed to generate vote for {}, period {}, round {}, step {}, validator {}", block_hash, period,
+                     round, step, wallet.second.node_addr);
       continue;
     }
 
     if (!vote_mgr_->addVerifiedVote(vote)) {
-      LOG(log_er_) << "Unable to place vote " << vote->getHash() << " for block " << block_hash << ", period " << period
-                   << ", round " << round << ", step " << step << ", validator " << wallet.second.node_addr;
+      logger_->error("Unable to place vote {} for block {}, period {}, round {}, step {}, validator {}", vote->getHash(),
+                     block_hash, period, round, step, wallet.second.node_addr);
       continue;
     }
 
@@ -819,9 +821,8 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
     // Save own verified vote
     vote_mgr_->saveOwnVerifiedVote(vote);
 
-    LOG(log_nf_) << "Placed " << vote->getHash() << " vote for block " << block_hash << ", vote weight "
-                 << *vote->getWeight() << ", period " << period << ", round " << round << ", step " << step
-                 << ", validator " << wallet.second.node_addr;
+    logger_->info("Placed {} vote for block {}, vote weight {}, period {}, round {}, step {}, validator {}",
+                  vote->getHash(), block_hash, *vote->getWeight(), period, round, step, wallet.second.node_addr);
 
     if (place_pillar_vote_for_block.has_value()) {
       const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(period, *place_pillar_vote_for_block,
@@ -842,22 +843,21 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
   const auto current_pbft_step = getPbftStep();
 
   if (proposed_block->getPeriod() != current_pbft_period) {
-    LOG(log_er_) << "Propose block " << proposed_block->getBlockHash()
-                 << " has different period than current pbft period " << current_pbft_period;
+    logger_->error("Propose block {} has different period than current pbft period {}", proposed_block->getBlockHash(),
+                   current_pbft_period);
     return false;
   }
 
   // Broadcast reward votes - previous round 2t+1 cert votes
   if (auto net = network_.lock()) {
-    LOG(log_dg_) << "Broadcast propose block reward votes for block " << proposed_block->getBlockHash()
-                 << ", num of reward votes: " << reward_votes.size() << ", period " << current_pbft_period << ", round "
-                 << current_pbft_round;
+    logger_->debug("Broadcast propose block reward votes for block {}, num of reward votes: {}, period {}, round {}",
+                   proposed_block->getBlockHash(), reward_votes.size(), current_pbft_period, current_pbft_round);
     net->gossipVotesBundle(reward_votes, false);
   }
 
   if (!genAndPlaceVote(PbftVoteTypes::propose_vote, current_pbft_period, current_pbft_round, current_pbft_step,
                        proposed_block->getBlockHash(), proposed_block)) {
-    LOG(log_nf_) << "Unable to generate and place propose vote";
+    logger_->info("Unable to generate and place propose vote");
     return false;
   }
 
@@ -880,7 +880,7 @@ void PbftManager::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::s
 
   auto net = network_.lock();
   if (!net) {
-    LOG(log_er_) << "Could not obtain net - cannot gossip new vote";
+    logger_->error("Could not obtain net - cannot gossip new vote");
     // assert(false);
     return;
   }
@@ -891,21 +891,20 @@ void PbftManager::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::s
 void PbftManager::proposeBlock_() {
   // Value Proposal
   auto [round, period] = getPbftRoundAndPeriod();
-  LOG(log_dg_) << "PBFT value proposal state in period " << period << ", round " << round;
+  logger_->debug("PBFT value proposal state in period {}, round {}", period, round);
 
   if (round == 1 ||
       vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock)
           .has_value()) {
-    LOG(log_nf_) << " 2t+1 next voted kNullBlockHash in previous round " << round - 1;
+    logger_->info(" 2t+1 next voted kNullBlockHash in previous round {}", round - 1);
 
     // Propose new block
     if (auto proposed_block_data = proposePbftBlock(); proposed_block_data.has_value()) {
       // Broadcast reward votes - previous round 2t+1 cert votes
       if (auto net = network_.lock()) {
-        LOG(log_dg_) << "Broadcast propose block reward votes for block "
-                     << proposed_block_data->pbft_block->getBlockHash()
-                     << ", num of reward votes: " << proposed_block_data->reward_votes.size() << ", period " << period
-                     << ", round " << round;
+        logger_->debug(
+            "Broadcast propose block reward votes for block {}, num of reward votes: {}, period {}, round {}",
+            proposed_block_data->pbft_block->getBlockHash(), proposed_block_data->reward_votes.size(), period, round);
         net->gossipVotesBundle(proposed_block_data->reward_votes, false);
       }
 
@@ -931,22 +930,24 @@ void PbftManager::proposeBlock_() {
     const auto next_voted_block = getValidPbftProposedBlock(period, next_voted_block_hash);
     if (!next_voted_block) {
       // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
-      LOG(log_er_) << "Unable to re-propose previous round next voted block " << next_voted_block_hash << ", period "
-                   << period << ", round " << round;
+      logger_->error("Unable to re-propose previous round next voted block {}, period {}, round {}",
+                     next_voted_block_hash, period, round);
       return;
     }
 
     auto block_reward_votes = vote_mgr_->checkRewardVotes(next_voted_block, true);
     if (!block_reward_votes.first) {
-      LOG(log_er_) << "Unable to re-propose previous round next voted block " << next_voted_block_hash << ", period "
-                   << period << ", round " << round << ". Reward votes for this block were not found";
+      logger_->error(
+          "Unable to re-propose previous round next voted block {}, period {}, round {}. Reward votes for this block "
+          "were not found",
+          next_voted_block_hash, period, round);
       return;
     }
 
     genAndPlaceProposeVote(next_voted_block, std::move(block_reward_votes.second));
     return;
   } else {
-    LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes, period " << period;
+    logger_->error("Previous round {} doesn't have enough next votes, period {}", round - 1, period);
     assert(false);
   }
 }
@@ -954,7 +955,7 @@ void PbftManager::proposeBlock_() {
 void PbftManager::identifyBlock_() {
   // The Filtering Step
   auto [round, period] = getPbftRoundAndPeriod();
-  LOG(log_dg_) << "PBFT filtering state in period: " << period << ", round: " << round;
+  logger_->debug("PBFT filtering state in period: {}, round: {}", period, round);
 
   if (round == 1 ||
       vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock)
@@ -962,13 +963,13 @@ void PbftManager::identifyBlock_() {
     // Identity leader
     const auto leader_block_data = identifyLeaderBlock(vote_mgr_->getProposalVotes(period, round));
     if (!leader_block_data.has_value()) {
-      LOG(log_dg_) << "No leader block identified. Period " << period << ", round " << round;
+      logger_->debug("No leader block identified. Period {}, round {}", period, round);
       return;
     }
 
     assert(leader_block_data->first->getPeriod() == period);
-    LOG(log_dg_) << "Leader block identified " << leader_block_data->first->getBlockHash() << ", period " << period
-                 << ", round " << round;
+    logger_->debug("Leader block identified {}, period {}, round {}", leader_block_data->first->getBlockHash(), period,
+                   round);
 
     genAndPlaceVote(PbftVoteTypes::soft_vote, leader_block_data->first->getPeriod(), round, step_,
                     leader_block_data->first->getBlockHash(), leader_block_data->first);
@@ -979,8 +980,8 @@ void PbftManager::identifyBlock_() {
     const auto next_voted_block = getValidPbftProposedBlock(period, next_voted_block_hash);
     if (!next_voted_block) {
       // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
-      LOG(log_er_) << "Unable to soft-vote previous round next voted block " << next_voted_block_hash << ", period "
-                   << period << ", round " << round;
+      logger_->error("Unable to soft-vote previous round next voted block {}, period {}, round {}",
+                     next_voted_block_hash, period, round);
       return;
     }
 
@@ -993,27 +994,27 @@ void PbftManager::certifyBlock_() {
   auto [round, period] = getPbftRoundAndPeriod();
 
   if (printCertStepInfo_) {
-    LOG(log_dg_) << "PBFT certifying state in period " << period << ", round " << round;
+    logger_->debug("PBFT certifying state in period {}, round {}", period, round);
     printCertStepInfo_ = false;
   }
 
   const auto elapsed_time_in_round = elapsedTimeInMs(current_round_start_datetime_);
   go_finish_state_ = elapsed_time_in_round > 4 * lambda_ - kPollingIntervalMs;
   if (go_finish_state_) {
-    LOG(log_dg_) << "Step 3 expired, will go to step 4 in period " << period << ", round " << round;
+    logger_->debug("Step 3 expired, will go to step 4 in period {}, round {}", period, round);
     return;
   }
 
   // Should not happen, add log here for safety checking
   if (elapsed_time_in_round < 2 * lambda_) {
-    LOG(log_er_) << "PBFT Reached step 3 too quickly after only " << elapsed_time_in_round.count() << " [ms] in period "
-                 << period << ", round " << round;
+    logger_->error("PBFT Reached step 3 too quickly after only {} [ms] in period {}, round {}",
+                   elapsed_time_in_round.count(), period, round);
     return;
   }
 
   // Already sent cert voted in this round
   if (cert_voted_block_for_round_.has_value()) {
-    LOG(log_dg_) << "Already did cert vote in period " << period << ", round " << round;
+    logger_->debug("Already did cert vote in period {}, round {}", period, round);
     return;
   }
 
@@ -1021,22 +1022,22 @@ void PbftManager::certifyBlock_() {
   const auto soft_voted_block_hash =
       vote_mgr_->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock);
   if (!soft_voted_block_hash.has_value()) {
-    LOG(log_dg_) << "Certify: Not enough soft votes for current round yet. Period " << period << ",  round " << round;
+    logger_->debug("Certify: Not enough soft votes for current round yet. Period {}, round {}", period, round);
     return;
   }
 
   // Get 2t+1 soft voted bock
   const auto soft_voted_block = getValidPbftProposedBlock(period, *soft_voted_block_hash);
   if (soft_voted_block == nullptr) {
-    LOG(log_dg_) << "Certify: invalid 2t+1 soft voted block " << *soft_voted_block_hash << ". Period " << period
-                 << ",  round " << round;
+    logger_->debug("Certify: invalid 2t+1 soft voted block {}. Period {}, round {}", *soft_voted_block_hash, period,
+                   round);
     return;
   }
 
   // generate cert vote
   if (!genAndPlaceVote(PbftVoteTypes::cert_vote, soft_voted_block->getPeriod(), round, step_,
                        soft_voted_block->getBlockHash(), soft_voted_block)) {
-    LOG(log_dg_) << "Failed to generate and place cert vote for " << soft_voted_block->getBlockHash();
+    logger_->debug("Failed to generate and place cert vote for {}", soft_voted_block->getBlockHash());
     return;
   }
 
@@ -1047,7 +1048,7 @@ void PbftManager::certifyBlock_() {
 void PbftManager::firstFinish_() {
   // Even number steps from 4 are in first finish
   auto [round, period] = getPbftRoundAndPeriod();
-  LOG(log_dg_) << "PBFT first finishing state in period " << period << ", round " << round << ", step " << step_;
+  logger_->debug("PBFT first finishing state in period {}, round {}, step {}", period, round, step_);
 
   if (cert_voted_block_for_round_.has_value()) {
     const auto &cert_voted_block = *cert_voted_block_for_round_;
@@ -1074,8 +1075,8 @@ void PbftManager::firstFinish_() {
       auto block = getValidPbftProposedBlock(period, *previous_round_next_voted_value);
       if (!block) {
         // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
-        LOG(log_er_) << "Unable to first finish next-vote starting value " << *previous_round_next_voted_value
-                     << ". Period " << period << ", round " << round;
+        logger_->error("Unable to first finish next-vote starting value {}. Period {}, round {}",
+                       *previous_round_next_voted_value, period, round);
         return;
       }
 
@@ -1098,7 +1099,7 @@ void PbftManager::secondFinish_() {
   auto [round, period] = getPbftRoundAndPeriod();
 
   if (printSecondFinishStepInfo_) {
-    LOG(log_dg_) << "PBFT second finishing state in period " << period << ", round " << round << ", step " << step_;
+    logger_->debug("PBFT second finishing state in period {}, round {}, step {}", period, round, step_);
     printSecondFinishStepInfo_ = false;
   }
 
@@ -1112,16 +1113,15 @@ void PbftManager::secondFinish_() {
     const auto soft_voted_block_hash =
         vote_mgr_->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock);
     if (!soft_voted_block_hash.has_value()) {
-      LOG(log_tr_) << "Second finish: Not enough soft votes for current round yet. Period " << period << ",  round "
-                   << round;
+      logger_->trace("Second finish: Not enough soft votes for current round yet. Period {}, round {}", period, round);
       return;
     }
 
     // Get 2t+1 soft voted bock
     const auto soft_voted_block = getValidPbftProposedBlock(period, *soft_voted_block_hash);
     if (soft_voted_block == nullptr) {
-      LOG(log_dg_) << "Second finish: invalid 2t+1 soft voted block " << *soft_voted_block_hash << ". Period " << period
-                   << ",  round " << round;
+      logger_->debug("Second finish: invalid 2t+1 soft voted block {}. Period {}, round {}", *soft_voted_block_hash,
+                     period, round);
       return;
     }
 
@@ -1144,8 +1144,8 @@ void PbftManager::secondFinish_() {
     const auto next_voted_null_block_hash =
         vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock);
     if (!next_voted_null_block_hash.has_value()) {
-      LOG(log_tr_) << "Second finish: Not enough null next votes from previous round. Period " << period << ",  round "
-                   << round;
+      logger_->trace("Second finish: Not enough null next votes from previous round. Period {}, round {}", period,
+                     round);
       return;
     }
 
@@ -1171,8 +1171,8 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
   if (propose_period > 1) [[likely]] {
     assert(!reward_votes.empty());
     if (reward_votes[0]->getPeriod() != propose_period - 1) {
-      LOG(log_er_) << "Reward vote period(" << reward_votes[0]->getPeriod() << ") != propose_period - 1("
-                   << propose_period - 1 << ")";
+      logger_->error("Reward vote period({}) != propose_period - 1({})", reward_votes[0]->getPeriod(),
+                     propose_period - 1);
       assert(false);
       return {};
     }
@@ -1184,7 +1184,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
 
   auto final_chain_hash = final_chain_->finalChainHash(propose_period);
   if (!final_chain_hash) {
-    LOG(log_wr_) << "Block for period " << propose_period << " could not be proposed as we are behind";
+    logger_->warn("Block for period {} could not be proposed as we are behind", propose_period);
     return {};
   }
   try {
@@ -1198,16 +1198,16 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
       auto propose_vote = vote_mgr_->generateVoteWithWeight(block->getBlockHash(), PbftVoteTypes::propose_vote,
                                                             propose_period, round_, step_, wallet);
       if (!propose_vote) {
-        LOG(log_er_) << "Failed to generate propose vote for block " << block->getBlockHash() << ", period "
-                     << propose_period << ", round " << round_ << ", step " << step_ << ", validator "
-                     << wallet.node_addr << " when generating pbft block";
+        logger_->error(
+            "Failed to generate propose vote for block {}, period {}, round {}, step {}, validator {} when generating  "
+            "pbft block",
+            block->getBlockHash(), propose_period, round_, step_, wallet.node_addr);
         continue;
       }
 
       if (!vote_mgr_->addVerifiedVote(propose_vote)) {
-        LOG(log_er_) << "Unable to save propose vote " << propose_vote->getHash() << " for block "
-                     << block->getBlockHash() << ", period " << propose_period << ", round " << round_ << ", step "
-                     << step_ << ", validator " << wallet.node_addr;
+        logger_->error("Unable to save propose vote {} for block {}, period {}, round {}, step {}, validator {}",
+                       propose_vote->getHash(), block->getBlockHash(), propose_period, round_, step_, wallet.node_addr);
         continue;
       }
 
@@ -1227,7 +1227,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
     return PbftManager::ProposedBlockData{std::move(leader_block_data->first), std::move(reward_votes),
                                           std::move(leader_block_data->second)};
   } catch (const std::exception &e) {
-    LOG(log_er_) << "Block for period " << propose_period << " could not be proposed " << e.what();
+    logger_->error("Block for period {} could not be proposed {}", propose_period, e.what());
     return {};
   }
 }
@@ -1293,8 +1293,8 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
     }
 
     if (!vote_mgr_->genAndValidateVrfSortition(current_pbft_period, current_pbft_round, wallet.second)) {
-      LOG(log_dg_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                   << ", validator " << wallet.second.node_addr << ". Invalid vrf sortition";
+      logger_->debug("Unable to propose block for period {}, round {}, validator {}. Invalid vrf sortition",
+                     current_pbft_period, current_pbft_round, wallet.second.node_addr);
       continue;
     }
 
@@ -1312,17 +1312,17 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(current_pbft_period)) {
     extra_data = createPbftBlockExtraData(current_pbft_period);
     if (!extra_data.has_value()) {
-      LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                   << ". Empty extra data";
+      logger_->error("Unable to propose block for period {}, round {}. Empty extra data", current_pbft_period,
+                     current_pbft_round);
       return {};
     }
   }
 
   auto ghost = dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash);
-  LOG(log_dg_) << "GHOST size " << ghost.size();
+  logger_->debug("GHOST size {}", ghost.size());
   // Looks like ghost never empty, at least include the last period dag anchor block
   if (ghost.empty()) {
-    LOG(log_dg_) << "GHOST is empty. No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
+    logger_->debug("GHOST is empty. No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor");
     return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
                              eligible_wallets);
   }
@@ -1345,8 +1345,8 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   }
 
   if (dag_block_hash == dag_genesis_block_hash_) {
-    LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
-                 << " PBFT propose NULL BLOCK HASH anchor";
+    logger_->debug("No new DAG blocks generated. DAG only has genesis {} PBFT propose NULL BLOCK HASH anchor",
+                   dag_block_hash);
     return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
                              eligible_wallets);
   }
@@ -1358,9 +1358,10 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
     if (non_finalized_dag_blocks.second.size() > 0) {
       dag_block_hash = *non_finalized_dag_blocks.second.rbegin()->second.begin();
     } else {
-      LOG(log_dg_) << "Last period DAG anchor block hash " << dag_block_hash
-                   << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
-      LOG(log_dg_) << "Ghost: " << ghost;
+      logger_->debug(
+          "Last period DAG anchor block hash {} No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor",
+          dag_block_hash);
+      logger_->debug("Ghost: {}", ghost);
       return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
                                eligible_wallets);
     }
@@ -1370,7 +1371,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, current_pbft_period);
 
   if (dag_block_order.empty()) {
-    LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
+    logger_->error("DAG anchor block hash {} getDagBlockOrder failed in propose", dag_block_hash);
     assert(false);
   }
 
@@ -1379,8 +1380,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   for (auto const &blk_hash : dag_block_order) {
     auto dag_blk = dag_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
-      LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
-                   << blk_hash;
+      logger_->error("DAG anchor block hash {} getDagBlock failed in propose for block {}", dag_block_hash, blk_hash);
       assert(false);
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
@@ -1396,8 +1396,8 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   if (dag_blocks_included != dag_block_order.size()) {
     auto closest_anchor = findClosestAnchor(ghost, dag_block_order, dag_blocks_included);
     if (!closest_anchor) {
-      LOG(log_er_) << "Can't find closest anchor after block clipping. Ghost: " << ghost << ". Clipped block_order: "
-                   << vec_blk_t(dag_block_order.begin(), dag_block_order.begin() + dag_blocks_included);
+      logger_->error("Can't find closest anchor after block clipping. Ghost: {}. Clipped block_order: {}", ghost,
+                     vec_blk_t(dag_block_order.begin(), dag_block_order.begin() + dag_blocks_included));
       assert(false);
     }
 
@@ -1409,8 +1409,8 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   if (auto proposed_block_data = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash,
                                                    order_hash, extra_data, eligible_wallets);
       proposed_block_data.has_value()) {
-    LOG(log_nf_) << "Created PBFT block: " << proposed_block_data->pbft_block->getBlockHash()
-                 << ", order hash:" << order_hash << ", DAG order " << dag_block_order;
+    logger_->info("Created PBFT block: {}, order hash:{}, DAG order {}",
+                  proposed_block_data->pbft_block->getBlockHash(), order_hash, dag_block_order);
     return proposed_block_data;
   }
 
@@ -1423,12 +1423,12 @@ std::optional<PbftBlockExtraData> PbftManager::createPbftBlockExtraData(PbftPeri
     // Anchor pillar block hash into the pbft block
     const auto pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
     if (!pillar_block) {
-      LOG(log_er_) << "Missing pillar block, pbft period " << pbft_period;
+      logger_->error("Missing pillar block, pbft period {}", pbft_period);
       return {};
     }
 
     if (pillar_block->getPeriod() != pbft_period - 1) {
-      LOG(log_er_) << "Wrong pillar block period: " << pillar_block->getPeriod() << ", pbft period: " << pbft_period;
+      logger_->error("Wrong pillar block period: {}, pbft period: {}", pillar_block->getPeriod(), pbft_period);
       return {};
     }
 
@@ -1462,7 +1462,7 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> 
   for (auto &&v : propose_votes) {
     const auto proposed_block_hash = v->getBlockHash();
     if (proposed_block_hash == kNullBlockHash) {
-      LOG(log_er_) << "Propose block hash should not be NULL. Vote " << v;
+      logger_->error("Propose block hash should not be NULL. Vote {}", v->getHash());
       continue;
     }
 
@@ -1479,7 +1479,7 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> 
 
     auto leader_block = getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
     if (!leader_block) {
-      LOG(log_er_) << "Unable to get proposed block " << proposed_block_hash;
+      logger_->error("Unable to get proposed block {}", proposed_block_hash);
       continue;
     }
 
@@ -1503,12 +1503,12 @@ PbftStateRootValidation PbftManager::validateFinalChainHash(const std::shared_pt
 
   auto prev_final_chain_hash = final_chain_->finalChainHash(period);
   if (!prev_final_chain_hash) {
-    LOG(log_wr_) << "Block " << pbft_block_hash << " could not be validated as we are behind";
+    logger_->warn("Block {} could not be validated as we are behind", pbft_block_hash);
     return PbftStateRootValidation::Missing;
   }
   if (pbft_block->getFinalChainHash() != prev_final_chain_hash) {
-    LOG(log_er_) << "Block " << period << " hash " << pbft_block_hash << " state root "
-                 << pbft_block->getFinalChainHash() << " isn't matching actual " << prev_final_chain_hash.value();
+    logger_->error("Block {} hash {} state root {} isn't matching actual {}", period, pbft_block_hash,
+                   pbft_block->getFinalChainHash(), prev_final_chain_hash.value());
     return PbftStateRootValidation::Invalid;
   }
 
@@ -1520,8 +1520,7 @@ bool PbftManager::validatePbftBlockExtraData(const std::shared_ptr<PbftBlock> &p
   const auto block_period = pbft_block->getPeriod();
   if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(block_period)) {
     if (!extra_data.has_value()) {
-      LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << ", period " << block_period
-                   << " does not contain extra data";
+      logger_->error("PBFT block {}, period {} does not contain extra data", pbft_block->getBlockHash(), block_period);
       return false;
     }
 
@@ -1529,19 +1528,19 @@ bool PbftManager::validatePbftBlockExtraData(const std::shared_ptr<PbftBlock> &p
     const auto pillar_block_hash = extra_data->getPillarBlockHash();
     if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(block_period)) {
       if (!pillar_block_hash.has_value()) {
-        LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << ", period " << block_period
-                     << " does not contain pillar block hash";
+        logger_->error("PBFT block {}, period {} does not contain pillar block hash", pbft_block->getBlockHash(),
+                       block_period);
         return false;
       }
     } else if (pillar_block_hash.has_value()) {
-      LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << ", period " << block_period
-                   << " contains pillar block hash even though it should not";
+      logger_->error("PBFT block {}, period {} contains pillar block hash even though it should not",
+                     pbft_block->getBlockHash(), block_period);
       return false;
     }
 
   } else if (extra_data.has_value()) {
-    LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << ", period " << block_period
-                 << " contains extra data even though it should not";
+    logger_->error("PBFT block {}, period {} contains extra data even though it should not", pbft_block->getBlockHash(),
+                   block_period);
     return false;
   }
 
@@ -1558,13 +1557,13 @@ bool PbftManager::validatePillarDataInPeriodData(const PeriodData &period_data) 
   // Validate optional pillar votes presence
   if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(block_period)) {
     if (!period_data.pillar_votes_.has_value()) {
-      LOG(log_er_) << "Sync PBFT block " << period_data.pbft_blk->getBlockHash() << ", period " << block_period
-                   << " does not contain pillar votes";
+      logger_->error("Sync PBFT block {}, period {} does not contain pillar votes",
+                     period_data.pbft_blk->getBlockHash(), block_period);
       return false;
     }
   } else if (period_data.pillar_votes_.has_value()) {
-    LOG(log_er_) << "Sync PBFT block " << period_data.pbft_blk->getBlockHash() << ", period "
-                 << period_data.pbft_blk->getPeriod() << " contains pillar votes even though it should not";
+    logger_->error("Sync PBFT block {}, period {} contains pillar votes even though it should not",
+                   period_data.pbft_blk->getBlockHash(), period_data.pbft_blk->getPeriod());
     return false;
   }
 
@@ -1573,7 +1572,7 @@ bool PbftManager::validatePillarDataInPeriodData(const PeriodData &period_data) 
 
 bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const {
   if (!pbft_block) {
-    LOG(log_er_) << "Unable to validate pbft block - no block provided";
+    logger_->error("Unable to validate pbft block - no block provided");
     return false;
   }
 
@@ -1590,7 +1589,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   // Validates reward votes
   if (!vote_mgr_->checkRewardVotes(pbft_block, false).first) {
-    LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << pbft_block_hash;
+    logger_->error("Failed verifying reward votes for proposed PBFT block {}", pbft_block_hash);
     return false;
   }
 
@@ -1604,16 +1603,17 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
     if (!current_pillar_block) {
       // This should never happen
-      LOG(log_er_) << "Unable to validate PBFT block " << pbft_block_hash << ", period " << block_period
-                   << ". No current pillar block present in node";
+      logger_->error("Unable to validate PBFT block {}, period {}. No current pillar block present in node",
+                     pbft_block_hash, block_period);
       return false;
     }
 
     if (*pbft_block->getExtraData()->getPillarBlockHash() != current_pillar_block->getHash()) {
-      LOG(log_er_) << "PBFT block " << pbft_block_hash << " with period " << pbft_block->getPeriod()
-                   << " contains pillar block hash " << *pbft_block->getExtraData()->getPillarBlockHash()
-                   << ", which is different than the local current pillar block" << current_pillar_block->getHash()
-                   << " with period " << current_pillar_block->getPeriod();
+      logger_->error(
+          "PBFT block {} with period {} contains pillar block hash {}, which is different than the local current "
+          "pillar block {} with period {}",
+          pbft_block_hash, pbft_block->getPeriod(), *pbft_block->getExtraData()->getPillarBlockHash(),
+          current_pillar_block->getHash(), current_pillar_block->getPeriod());
       return false;
     }
   }
@@ -1630,15 +1630,14 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
   if (dag_blocks_order.empty()) {
-    LOG(log_er_) << "Missing dag blocks for proposed PBFT block " << pbft_block_hash;
+    logger_->error("Missing dag blocks for proposed PBFT block {}", pbft_block_hash);
     return false;
   }
 
   auto calculated_order_hash = calculateOrderHash(dag_blocks_order);
   if (calculated_order_hash != pbft_block->getOrderHash()) {
-    LOG(log_er_) << "Order hash incorrect. Pbft block: " << pbft_block_hash
-                 << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
-                 << ". Dag order: " << dag_blocks_order;
+    logger_->error("Order hash incorrect. Pbft block: {}. Order hash: {} . Calculated hash: {}. Dag order: {}",
+                   pbft_block_hash, pbft_block->getOrderHash(), calculated_order_hash, dag_blocks_order);
     return false;
   }
 
@@ -1655,7 +1654,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
     auto ghost = dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash());
     if (ghost.size() > 1 && anchor_hash != ghost[1]) {
       if (!checkBlockWeight(anchor_dag_block_order_cache_[anchor_hash], block_period)) {
-        LOG(log_er_) << "PBFT block " << pbft_block_hash << " weight exceeded max limit";
+        logger_->error("PBFT block {} weight exceeded max limit", pbft_block_hash);
         anchor_dag_block_order_cache_.erase(anchor_hash);
         return false;
       }
@@ -1688,13 +1687,13 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
 
   auto reward_votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true);
   if (!reward_votes.first) {
-    LOG(log_er_) << "Missing reward votes in cert voted block " << pbft_block->getBlockHash();
+    logger_->error("Missing reward votes in cert voted block {}", pbft_block->getBlockHash());
     return false;
   }
   period_data.previous_block_cert_votes = std::move(reward_votes.second);
 
   if (!pushPbftBlock_(std::move(period_data), std::move(current_round_cert_votes))) {
-    LOG(log_er_) << "Failed push cert voted block " << pbft_block->getBlockHash() << " into PBFT chain";
+    logger_->error("Failed push cert voted block {} into PBFT chain", pbft_block->getBlockHash());
     return false;
   }
 
@@ -1704,7 +1703,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
 void PbftManager::pushSyncedPbftBlocksIntoChain() {
   auto net = network_.lock();
   if (!net) {
-    LOG(log_er_) << "Failed to obtain net !";
+    logger_->error("Failed to obtain net !");
     return;
   }
 
@@ -1716,13 +1715,13 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
     auto period_data = std::move(*period_data_opt);
     const auto pbft_block_period = period_data.first.pbft_blk->getPeriod();
     const auto pbft_block_hash = period_data.first.pbft_blk->getBlockHash();
-    LOG(log_nf_) << "Picked sync block " << pbft_block_hash << " with period " << pbft_block_period;
+    logger_->info("Picked sync block {} with period {}", pbft_block_hash, pbft_block_period);
 
     if (pushPbftBlock_(std::move(period_data.first), std::move(period_data.second))) {
-      LOG(log_dg_) << "Pushed synced PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
+      logger_->debug("Pushed synced PBFT block {} with period {}", pbft_block_hash, pbft_block_period);
       net->setSyncStatePeriod(pbftSyncingPeriod());
     } else {
-      LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
+      logger_->error("Failed push PBFT block {} with period {}", pbft_block_hash, pbft_block_period);
       break;
     }
   }
@@ -1788,7 +1787,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
   if (const auto anchor = period_data.pbft_blk->getPivotDagBlockHash()) {
     anchor_block = dag_mgr_->getDagBlock(anchor);
     if (!anchor_block) {
-      LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor << " in DB.";
+      logger_->error("DB corrupted - Cannot find anchor block: {} in DB.", anchor);
       assert(false);
     }
   }
@@ -1804,10 +1803,10 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
 bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<PbftVote>> &&cert_votes) {
   auto const &pbft_block_hash = period_data.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
-    LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
+    logger_->info("PBFT block: {} in DB already.", pbft_block_hash);
     if (cert_voted_block_for_round_.has_value() && (*cert_voted_block_for_round_)->getBlockHash() == pbft_block_hash) {
-      LOG(log_er_) << "Last cert voted value should be kNullBlockHash. Block hash "
-                   << (*cert_voted_block_for_round_)->getBlockHash() << " has been pushed into chain already";
+      logger_->error("Last cert voted value should be kNullBlockHash. Block hash {} has been pushed into chain already",
+                     (*cert_voted_block_for_round_)->getBlockHash());
       assert(false);
     }
     return false;
@@ -1823,8 +1822,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
     // Finalize included pillar block
     auto above_threshold_pillar_votes = pillar_chain_mgr_->finalizePillarBlock(*pillar_block_hash);
     if (above_threshold_pillar_votes.empty()) {
-      LOG(log_er_) << "Cannot push PBFT block " << period_data.pbft_blk->getBlockHash() << ", period " << pbft_period
-                   << ": Unable to finalize included pillar block " << *pillar_block_hash;
+      logger_->error("Cannot push PBFT block {}, period {}: Unable to finalize included pillar block {}",
+                     period_data.pbft_blk->getBlockHash(), pbft_period, *pillar_block_hash);
       return false;
     }
 
@@ -1837,7 +1836,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   auto null_anchor = period_data.pbft_blk->getPivotDagBlockHash() == kNullBlockHash;
 
-  LOG(log_dg_) << "Storing pbft blk " << pbft_block_hash << " cert votes: " << cert_votes;
+  logger_->debug("Storing pbft blk {}", pbft_block_hash);
 
   // Update PBFT chain head block
   auto batch = db_->createWriteBatch();
@@ -1885,8 +1884,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   // anchor_dag_block_order_cache_ is valid in one period, clear when period changes
   anchor_dag_block_order_cache_.clear();
 
-  LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
-               << ", round: " << getPbftRound();
+  logger_->info("Pushed new PBFT block {} into chain. Period: {}, round: {}", pbft_block_hash, pbft_period,
+                getPbftRound());
 
   finalize_(std::move(period_data), std::move(dag_blocks_order));
 
@@ -1948,11 +1947,11 @@ PbftPeriod PbftManager::pbftSyncingPeriod() const {
 std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> PbftManager::processPeriodData() {
   auto [period_data, cert_votes, node_id] = sync_queue_.pop();
   auto pbft_block_hash = period_data.pbft_blk->getBlockHash();
-  LOG(log_dg_) << "Pop pbft block " << pbft_block_hash << " with period " << period_data.pbft_blk->getPeriod()
-               << " from synced queue";
+  logger_->debug("Pop pbft block {} with period {} from synced queue", pbft_block_hash,
+                 period_data.pbft_blk->getPeriod());
 
   if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
-    LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
+    logger_->debug("PBFT block {} already present in chain.", pbft_block_hash);
     return std::nullopt;
   }
 
@@ -1969,9 +1968,8 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
       return std::nullopt;
     }
 
-    LOG(log_er_) << "Invalid PBFT block " << pbft_block_hash
-                 << "; prevHash: " << period_data.pbft_blk->getPrevBlockHash() << " from peer " << node_id.abridged()
-                 << " received, stop syncing.";
+    logger_->error("Invalid PBFT block {}, prevHash: {} from peer {} received, stop syncing", pbft_block_hash,
+                   period_data.pbft_blk->getPrevBlockHash(), node_id.abridged());
     sync_queue_.clear();
 
     // Handle malicious peer on network level
@@ -1984,9 +1982,8 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     auto validation_result = validateFinalChainHash(period_data.pbft_blk);
     if (validation_result != PbftStateRootValidation::Missing) {
       if (validation_result == PbftStateRootValidation::Invalid) {
-        LOG(log_er_) << "Failed verifying block " << pbft_block_hash
-                     << " with invalid state root: " << period_data.pbft_blk->getFinalChainHash()
-                     << ". Disconnect malicious peer " << node_id.abridged();
+        logger_->error("Failed verifying block {} with invalid state root: {}. Disconnect malicious peer {}",
+                       pbft_block_hash, period_data.pbft_blk->getFinalChainHash(), node_id.abridged());
         sync_queue_.clear();
         net->handleMaliciousSyncPeer(node_id);
         return std::nullopt;
@@ -1996,8 +1993,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
     // If syncing and pbft manager is faster than execution a delay might be needed to allow EVM to catch up
     final_chain_->waitForFinalized();
     if (!retry_logged) {
-      LOG(log_wr_) << "PBFT block " << pbft_block_hash
-                   << " validation delayed, state root missing, execution is behind";
+      logger_->warn("PBFT block {} validation delayed, state root missing, execution is behind", pbft_block_hash);
       retry_logged = true;
     }
   }
@@ -2005,8 +2001,8 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
   // Check reward votes
   auto reward_votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true);
   if (!reward_votes.first) {
-    LOG(log_er_) << "Failed verifying reward votes for block " << pbft_block_hash << ". Disconnect malicious peer "
-                 << node_id.abridged();
+    logger_->error("Failed verifying reward votes for block {}. Disconnect malicious peer {}", pbft_block_hash,
+                   node_id.abridged());
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
@@ -2021,8 +2017,8 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
 
   // Validate cert votes
   if (!validatePbftBlockCertVotes(period_data.pbft_blk, cert_votes)) {
-    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
-                 << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
+    logger_->error("Synced PBFT block {} doesn't have enough valid cert votes. Clear synced PBFT blocks!",
+                   pbft_block_hash);
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
@@ -2047,13 +2043,13 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
   auto non_finalized_transactions = trx_mgr_->excludeFinalizedTransactions(finalized_transactions_to_check);
   if (non_finalized_transactions.size() > 0) {
     for (auto const &t : non_finalized_transactions) {
-      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has missing transaction " << t;
+      logger_->error("Synced PBFT block {} has missing transaction {}", pbft_block_hash, t);
     }
   }
 
   // Verify period data does not contain any finalized transactions
   if (!trx_mgr_->verifyTransactionsNotFinalized(period_data.transactions)) {
-    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has finalized transactions";
+    logger_->error("Synced PBFT block {} has finalized transactions", pbft_block_hash);
   }
 
   if (!validatePillarDataInPeriodData(period_data)) {
@@ -2066,8 +2062,8 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> Pbf
   // Validate pillar votes
   if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(block_period) &&
       !validatePbftBlockPillarVotes(period_data)) {
-    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << ", period " << block_period
-                 << " doesn't have enough valid pillar votes. Clear synced PBFT blocks!";
+    logger_->error("Synced PBFT block {}, period {} doesn't have enough valid pillar votes. Clear synced PBFT blocks!",
+                   pbft_block_hash, block_period);
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
@@ -2086,7 +2082,7 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
   const bool strict_validation = (pbft_block->getPeriod() % full_vote_validation_interval == 0);
 
   if (cert_votes.empty()) {
-    LOG(log_er_) << "No cert votes provided! The synced PBFT block comes from a malicious player";
+    logger_->error("No cert votes provided! The synced PBFT block comes from a malicious player");
     return false;
   }
 
@@ -2095,7 +2091,7 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
   auto first_vote_period = cert_votes[0]->getPeriod();
 
   if (pbft_block->getPeriod() != first_vote_period) {
-    LOG(log_er_) << "pbft block period " << pbft_block->getPeriod() << " != first_vote_period " << first_vote_period;
+    logger_->error("pbft block period {} != first_vote_period {}", pbft_block->getPeriod(), first_vote_period);
     return false;
   }
 
@@ -2103,40 +2099,40 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
     const auto &v = cert_votes[vote_counter];
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (v->getPeriod() != first_vote_period) {
-      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " period " << v->getPeriod() << ", PBFT block "
-                   << pbft_block->getBlockHash() << ", first_vote_period " << first_vote_period;
+      logger_->error("Invalid cert vote {} period {}, PBFT block {}, first_vote_period {}", v->getHash(),
+                     v->getPeriod(), pbft_block->getBlockHash(), first_vote_period);
       return false;
     }
 
     if (v->getRound() != first_vote_round) {
-      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " round " << v->getRound() << ", PBFT block "
-                   << pbft_block->getBlockHash() << ", first_vote_round " << first_vote_round;
+      logger_->error("Invalid cert vote {} round {}, PBFT block {}, first_vote_round {}", v->getHash(), v->getRound(),
+                     pbft_block->getBlockHash(), first_vote_round);
       return false;
     }
 
     if (v->getType() != PbftVoteTypes::cert_vote) {
-      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " type " << static_cast<uint8_t>(v->getType())
-                   << ", PBFT block " << pbft_block->getBlockHash();
+      logger_->error("Invalid cert vote {} type {}, PBFT block {}", v->getHash(), static_cast<uint8_t>(v->getType()),
+                     pbft_block->getBlockHash());
       return false;
     }
 
     if (v->getStep() != PbftStates::certify_state) {
-      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " step " << v->getStep() << ", PBFT block "
-                   << pbft_block->getBlockHash();
+      logger_->error("Invalid cert vote {} step {}, PBFT block {}", v->getHash(), v->getStep(),
+                     pbft_block->getBlockHash());
       return false;
     }
 
     if (v->getBlockHash() != pbft_block->getBlockHash()) {
-      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " block hash " << v->getBlockHash() << ", PBFT block "
-                   << pbft_block->getBlockHash();
+      logger_->error("Invalid cert vote {} block hash {}, PBFT block {}", v->getHash(), v->getBlockHash(),
+                     pbft_block->getBlockHash());
       return false;
     }
 
     bool strict = strict_validation || (vote_counter == vote_to_validate);
 
     if (const auto ret = vote_mgr_->validateVote(v, strict); !ret.first) {
-      LOG(log_er_) << "Cert vote " << v->getHash() << " validation failed. Err: " << ret.second << ", pbft block "
-                   << pbft_block->getBlockHash();
+      logger_->error("Cert vote {} validation failed. Err: {}, pbft block {}", v->getHash(), ret.second,
+                     pbft_block->getBlockHash());
       return false;
     }
 
@@ -2152,8 +2148,8 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
   }
 
   if (votes_weight < *two_t_plus_one) {
-    LOG(log_wr_) << "Invalid votes weight " << votes_weight << " < two_t_plus_one " << *two_t_plus_one
-                 << ", pbft block " << pbft_block->getBlockHash();
+    logger_->warn("Invalid votes weight {} < two_t_plus_one {}, pbft block {}", votes_weight, *two_t_plus_one,
+                  pbft_block->getBlockHash());
     return false;
   }
 
@@ -2162,8 +2158,9 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
 
 bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) const {
   if (!period_data.pillar_votes_.has_value() || period_data.pillar_votes_->empty()) {
-    LOG(log_er_) << "No pillar votes provided, pbft block period " << period_data.pbft_blk->getPeriod()
-                 << ". The synced PBFT block comes from a malicious player";
+    logger_->error(
+        "No pillar votes provided, pbft block period {}. The synced PBFT block comes from a malicious player",
+        period_data.pbft_blk->getPeriod());
     return false;
   }
 
@@ -2172,8 +2169,8 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
   if (current_pillar_block->getPeriod() + 1 != required_votes_period) {
-    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period
-                 << " != " << " current pillar block period " << current_pillar_block->getPeriod() << " + 1";
+    logger_->error("Sync pillar votes required period {} != current pillar block period {} + 1", required_votes_period,
+                   current_pillar_block->getPeriod());
     return false;
   }
 
@@ -2181,42 +2178,42 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
   for (auto &vote : *period_data.pillar_votes_) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (vote->getPeriod() != required_votes_period) {
-      LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash() << " period " << vote->getPeriod()
-                   << ", PBFT block " << pbft_block_hash << ", kRequiredVotesPeriod " << required_votes_period;
+      logger_->error("Invalid sync pillar vote {} period {}, PBFT block {}, kRequiredVotesPeriod {}", vote->getHash(),
+                     vote->getPeriod(), pbft_block_hash, required_votes_period);
       return false;
     }
 
     if (vote->getBlockHash() != current_pillar_block->getHash()) {
-      LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash() << ", vote period " << vote->getPeriod()
-                   << ", vote pillar block hash " << vote->getBlockHash()
-                   << ", current pillar block hash: " << current_pillar_block->getHash()
-                   << ", current pillar block period " << current_pillar_block->getPeriod()
-                   << ", full data: " << current_pillar_block->getJson();
+      logger_->error(
+          "Invalid sync pillar vote {}, vote period {}, vote pillar block hash {}, current pillar block hash: {}, "
+          "current pillar block period {}, full data: {}",
+          vote->getHash(), vote->getPeriod(), vote->getBlockHash(), current_pillar_block->getHash(),
+          current_pillar_block->getPeriod(), current_pillar_block->getJson().asString());
       return false;
     }
 
     if (!pillar_chain_mgr_->validatePillarVote(vote)) {
-      LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash();
+      logger_->error("Invalid sync pillar vote {}", vote->getHash());
       return false;
     }
 
     if (const auto vote_weight = pillar_chain_mgr_->addVerifiedPillarVote(vote); vote_weight) {
       votes_weight += vote_weight;
     } else {
-      LOG(log_er_) << "Unable to add sync pillar vote " << vote->getHash();
+      logger_->error("Unable to add sync pillar vote {}", vote->getHash());
       return false;
     }
   }
 
   const auto pillar_consensus_threshold = pillar_chain_mgr_->getPillarConsensusThreshold(required_votes_period - 1);
   if (!pillar_consensus_threshold.has_value()) {
-    LOG(log_er_) << "Unable to obtain pillar consensus threshold for period " << required_votes_period - 1;
+    logger_->error("Unable to obtain pillar consensus threshold for period {}", required_votes_period - 1);
     return false;
   }
 
   if (votes_weight < *pillar_consensus_threshold) {
-    LOG(log_wr_) << "Invalid sync pillar votes weight " << votes_weight << " < threshold "
-                 << *pillar_consensus_threshold << ", period " << required_votes_period - 1;
+    logger_->warn("Invalid sync pillar votes weight {} < threshold {}, period {}", votes_weight,
+                  *pillar_consensus_threshold, required_votes_period - 1);
     return false;
   }
 
@@ -2227,10 +2224,11 @@ bool PbftManager::canParticipateInConsensus(PbftPeriod period, const addr_t &nod
   try {
     return final_chain_->dposIsEligible(period, node_addr);
   } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_er_) << "Unable to decide if node is consensus node or not for period: " << period
-                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
-                 << "). Err msg: " << e.what()
-                 << ". Node is considered as not eligible to participate in consensus for period " << period;
+    logger_->error(
+        "Unable to decide if node is consensus node or not for period: {}. Period is too far ahead of actual finalized "
+        "pbft chain size ({}). Err msg: {}. Node is considered as not eligible to participate in consensus for period "
+        "{}",
+        period, final_chain_->lastBlockNumber(), e.what(), period);
   }
 
   return false;
@@ -2276,8 +2274,8 @@ void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID
 
   if (!sync_queue_.push(std::move(period_data), node_id, pbft_chain_->getPbftChainSize(),
                         std::move(current_block_cert_votes))) {
-    LOG(log_er_) << "Trying to push period data with " << period << " period, but current period is "
-                 << sync_queue_.getPeriod();
+    logger_->error("Trying to push period data with {} period, but current period is {}", period,
+                   sync_queue_.getPeriod());
   }
 }
 

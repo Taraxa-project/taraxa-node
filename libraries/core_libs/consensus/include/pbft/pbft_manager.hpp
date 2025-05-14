@@ -5,10 +5,10 @@
 #include "common/types.hpp"
 #include "config/config.hpp"
 #include "final_chain/final_chain.hpp"
-#include "spdlogger/logging.hpp"
 #include "network/network.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
+#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 
