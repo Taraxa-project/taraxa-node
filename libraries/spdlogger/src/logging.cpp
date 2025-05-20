@@ -26,6 +26,10 @@ std::shared_ptr<spdlog::logger> Logging::CreateChannelLogger(const std::string& 
     return nullptr;
   }
 
+  if (auto existing_logger = spdlog::get(channel); existing_logger) {
+    return existing_logger;  // Logger already exists
+  }
+
   // TODO: use subset of sinks_ based on config
 
   auto logger = std::make_shared<spdlog::async_logger>(channel, sinks_.begin(), sinks_.end(), spdlog::thread_pool(),

@@ -40,9 +40,7 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       kGenesisConfig(conf.genesis),
       proposed_blocks_(db_),
       eligible_wallets_(kConfig.wallets),
-      logger_(nullptr) {
-  logger_ = spdlogger::Logging::get().CreateChannelLogger("PBFT_MGR");
-
+      logger_(spdlogger::Logging::get().CreateChannelLogger("PBFT_MGR")) {
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {
     auto period_data = db_->getPeriodData(period);
@@ -911,10 +909,7 @@ void PbftManager::proposeBlock_() {
       // Broadcast new propose vote + proposed block
       gossipNewVote(proposed_block_data->vote, proposed_block_data->pbft_block);
 
-      LOG(log_nf_) << "Placed " << proposed_block_data->vote->getHash() << " propose vote for block "
-                   << proposed_block_data->pbft_block->getBlockHash() << ", vote weight "
-                   << *proposed_block_data->vote->getWeight() << ", period " << period << ", round " << round
-                   << ", step " << step_ << ", validator " << proposed_block_data->vote->getVoterAddr();
+      logger_->info("Placed {} propose vote for block {}, vote weight {}, period {}, round {}, step {}, validator {}", proposed_block_data->vote->getHash(), proposed_block_data->pbft_block->getBlockHash(), *proposed_block_data->vote->getWeight(), period, round, step_, proposed_block_data->vote->getVoterAddr());
     }
 
     return;

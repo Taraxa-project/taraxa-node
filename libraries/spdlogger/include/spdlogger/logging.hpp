@@ -36,7 +36,7 @@ class Logging {
   // Config createDefaultLoggingConfig();
 
   /**
-   * @brief Creates thread-safe severity channel logger
+   * @brief Creates (or returns existing) channel logger
    * @note To control logging in terms of where log messages are forwarded(console/file), severity filter etc..., see
    *       functions createDefaultLoggingConfig and InitLogging. Usage example:
    *
