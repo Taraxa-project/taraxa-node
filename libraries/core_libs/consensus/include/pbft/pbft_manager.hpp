@@ -63,6 +63,11 @@ class PbftManager {
     void updateWalletsEligibility(PbftPeriod period, const std::shared_ptr<final_chain::FinalChain> &final_chain);
     const std::vector<std::pair<bool, WalletConfig>> &getWallets(PbftPeriod current_pbft_period) const;
 
+    /*
+     * @return period, for which wallets eligibility was updated
+     */
+    PbftPeriod getWalletsEligiblePeriod() const;
+
    private:
     // Period, for which wallets eligibility is set
     PbftPeriod period_{0};

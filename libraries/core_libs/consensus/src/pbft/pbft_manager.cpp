@@ -214,7 +214,7 @@ void PbftManager::setPbftRound(PbftRound round) {
 
 void PbftManager::waitForPeriodFinalization() {
   do {
-    // we need to be sure we finalized at least block block with num lower by delegation_delay
+    // we need to be sure we finalized at least block with num lower by delegation_delay
     if (pbft_chain_->getPbftChainSize() <= final_chain_->lastBlockNumber() + final_chain_->delegationDelay()) {
       break;
     }
@@ -235,6 +235,20 @@ std::optional<uint64_t> PbftManager::getCurrentDposTotalVotesCount() const {
 }
 
 std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
+  // Note: There is a race condition in eligible_wallets_.getWalletsEligiblePeriod(). This method works only if
+  // wallets eligible period == pbft chain size. This race condition is handled within pbft manager but
+  // getCurrentNodeVotesCount() is called externally from standalone thread and in some edge cases we need to wait until
+  // period in eligible_wallets_ is updated according to the latest chain size
+  const auto wait_ms = 10;
+  // Wait max 1 second in total
+  for (size_t idx = 0; idx < 1000 / wait_ms; idx++) {
+    if (eligible_wallets_.getWalletsEligiblePeriod() == pbft_chain_->getPbftChainSize()) {
+      break;
+    }
+
+    thisThreadSleepForMilliSeconds(wait_ms);
+  }
+
   try {
     uint64_t node_votes_count = 0;
     for (const auto &wallet : eligible_wallets_.getWallets(getPbftPeriod())) {
@@ -2304,7 +2318,6 @@ void PbftManager::EligibleWallets::updateWalletsEligibility(
   }
 
   period_ = period;
-  period_ = period;
 }
 
 const std::vector<std::pair<bool, WalletConfig>> &PbftManager::EligibleWallets::getWallets(
@@ -2313,5 +2326,7 @@ const std::vector<std::pair<bool, WalletConfig>> &PbftManager::EligibleWallets::
 
   return wallets_;
 }
+
+PbftPeriod PbftManager::EligibleWallets::getWalletsEligiblePeriod() const { return period_; }
 
 }  // namespace taraxa
