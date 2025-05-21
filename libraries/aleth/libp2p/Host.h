@@ -313,10 +313,7 @@ struct Host final : std::enable_shared_from_this<Host> {
 
   std::atomic<uint64_t> peer_count_snapshot_ = 0;
 
-  // LOGGERS ARE THREAD SAFE
-  mutable Logger m_logger{createLogger(VerbosityDebug, "net")};
-  Logger m_detailsLogger{createLogger(VerbosityTrace, "net")};
-  Logger m_infoLogger{createLogger(VerbosityInfo, "net")};
+  taraxa::spdlogger::Logger net_logger_;
 };
 
 }  // namespace p2p

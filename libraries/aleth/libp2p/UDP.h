@@ -17,6 +17,7 @@
 #include <utility>
 
 #include "Common.h"
+#include "spdlogger/logging.hpp"
 
 namespace dev {
 namespace p2p {
@@ -98,14 +99,22 @@ class UDPSocket : UDPSocketFace, public std::enable_shared_from_this<UDPSocket<H
 
   /// Create socket for specific endpoint.
   UDPSocket(ba::strand<ba::io_context::executor_type>& _strand, UDPSocketEvents& _host, bi::udp::endpoint _endpoint)
-      : m_host(_host), m_endpoint(std::move(_endpoint)), m_socket(_strand.get_inner_executor()), strand_(_strand) {
+      : m_host(_host),
+        m_endpoint(std::move(_endpoint)),
+        m_socket(_strand.get_inner_executor()),
+        strand_(_strand),
+        net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")) {
     m_started.store(false);
     m_closed.store(true);
   }
 
   /// Create socket which listens to all ports.
   UDPSocket(ba::strand<ba::io_context::executor_type>& _strand, UDPSocketEvents& _host, unsigned _port)
-      : m_host(_host), m_endpoint(bi::udp::v4(), _port), m_socket(_strand.get_inner_executor()), strand_(_strand) {
+      : m_host(_host),
+        m_endpoint(bi::udp::v4(), _port),
+        m_socket(_strand.get_inner_executor()),
+        strand_(_strand),
+        net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")) {
     m_started.store(false);
     m_closed.store(true);
   }
@@ -149,6 +158,8 @@ class UDPSocket : UDPSocketFace, public std::enable_shared_from_this<UDPSocket<H
                                             ///< thread.
   boost::system::error_code m_socketError;  ///< Set when shut down due to error.
   ba::strand<ba::io_context::executor_type>& strand_;
+
+  taraxa::spdlogger::Logger net_logger_;
 };
 
 template <typename Handler, unsigned MaxDatagramSize>
@@ -193,7 +204,7 @@ void UDPSocket<Handler, MaxDatagramSize>::doRead() {
         if (m_closed) return disconnectWithError(_ec);
 
         if (_ec != boost::system::errc::success)
-          cnetlog << "Receiving UDP message failed. " << _ec.value() << " : " << _ec.message();
+          net_logger_->debug("Receiving UDP message failed. {} : {}", _ec.value(), _ec.message());
 
         if (_len) m_host.onPacketReceived(this, m_recvEndpoint, bytesConstRef(m_recvData.data(), _len));
         doRead();
@@ -212,7 +223,7 @@ void UDPSocket<Handler, MaxDatagramSize>::doWrite() {
                            if (m_closed) return disconnectWithError(_ec);
 
                            if (_ec != boost::system::errc::success)
-                             cnetlog << "Failed delivering UDP message. " << _ec.value() << " : " << _ec.message();
+                             net_logger_->debug("Failed delivering UDP message. {} : {}", _ec.value(), _ec.message());
 
                            Guard l(x_sendQ);
                            m_sendQ.pop_front();

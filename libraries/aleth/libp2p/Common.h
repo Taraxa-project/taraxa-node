@@ -66,17 +66,17 @@ struct NetworkRestartNotSupported : virtual dev::Exception {};
 /// The ECDHE agreement failed during RLPx handshake.
 struct ECDHEError : virtual Exception {};
 
-#define NET_GLOBAL_LOGGER(NAME, SEVERITY)                                  \
-  BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS(                                \
-      g_##NAME##Logger, boost::log::sources::severity_channel_logger_mt<>, \
-      (boost::log::keywords::severity = SEVERITY)(boost::log::keywords::channel = "net"))
-
-NET_GLOBAL_LOGGER(netnote, VerbosityInfo)
-#define cnetnote LOG(dev::p2p::g_netnoteLogger::get())
-NET_GLOBAL_LOGGER(netlog, VerbosityDebug)
-#define cnetlog LOG(dev::p2p::g_netlogLogger::get())
-NET_GLOBAL_LOGGER(netdetails, VerbosityTrace)
-#define cnetdetails LOG(dev::p2p::g_netdetailsLogger::get())
+//#define NET_GLOBAL_LOGGER(NAME, SEVERITY)                                  \
+//  BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS(                                \
+//      g_##NAME##Logger, boost::log::sources::severity_channel_logger_mt<>, \
+//      (boost::log::keywords::severity = SEVERITY)(boost::log::keywords::channel = "net"))
+//
+// NET_GLOBAL_LOGGER(netnote, VerbosityInfo)
+// #define cnetnote LOG(dev::p2p::g_netnoteLogger::get())
+// NET_GLOBAL_LOGGER(netlog, VerbosityDebug)
+// #define cnetlog LOG(dev::p2p::g_netlogLogger::get())
+// NET_GLOBAL_LOGGER(netdetails, VerbosityTrace)
+// #define cnetdetails LOG(dev::p2p::g_netdetailsLogger::get())
 
 enum P2pPacketType { HelloPacket = 0, DisconnectPacket, PingPacket, PongPacket, UserPacket = 0x10 };
 
@@ -255,8 +255,53 @@ inline boost::log::formatting_ostream& operator<<(boost::log::formatting_ostream
 
 /// Simple stream output for a NodeIPEndpoint.
 std::ostream& operator<<(std::ostream& _out, NodeIPEndpoint const& _ep);
+
 }  // namespace p2p
 }  // namespace dev
+
+//// Specialize fmt::formatter for PeerSessionInfo
+// template <>
+// struct fmt::formatter<dev::p2p::PeerSessionInfo> : fmt::formatter<std::string> {
+//   template <typename FormatContext>
+//   auto format(const dev::p2p::PeerSessionInfo& val, FormatContext& ctx) const {
+//     std::string str;
+//     boost::log::formatting_ostream os(str);
+//     os << val;
+//     return fmt::format_to(ctx.out(), "{}", str);
+//   }
+// };
+//
+//// Specialize fmt::formatter for dev::p2p::NodeIPEndpoint
+// template <>
+// struct fmt::formatter<dev::p2p::NodeIPEndpoint> : fmt::ostream_formatter {};
+//
+//// Specialize fmt::formatter for dev::p2p::NodeID
+// template <>
+// struct fmt::formatter<dev::p2p::NodeID> : fmt::ostream_formatter {};
+//
+//// Specialize fmt::formatter for Node
+// template <>
+// struct fmt::formatter<dev::p2p::Node> : fmt::formatter<std::string> {
+//   template <typename FormatContext>
+//   auto format(const dev::p2p::Node& val, FormatContext& ctx) const {
+//     std::string str;
+//     boost::log::formatting_ostream os(str);
+//     os << val;
+//     return fmt::format_to(ctx.out(), "{}", str);
+//   }
+// };
+//
+//// Specialize fmt::formatter for bi::tcp::endpoint
+// template <>
+// struct fmt::formatter<bi::tcp::endpoint> : fmt::formatter<std::string> {
+//   template <typename FormatContext>
+//   auto format(const bi::tcp::endpoint& val, FormatContext& ctx) const {
+//     std::string str;
+//     boost::log::formatting_ostream os(str);
+//     os << val;
+//     return fmt::format_to(ctx.out(), "{}", str);
+//   }
+// };
 
 /// std::hash for asio::adress
 #if !defined(BOOST_ASIO_HAS_STD_HASH)

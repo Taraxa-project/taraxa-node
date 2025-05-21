@@ -12,6 +12,7 @@
 
 #include "ENR.h"
 #include "EndpointTracker.h"
+#include "spdlogger/logging.hpp"
 
 namespace dev {
 namespace p2p {
@@ -376,7 +377,8 @@ class NodeTable : UDPSocketEvents {
   // Expiration time of sent discovery packets.
   const std::chrono::seconds m_requestTimeToLive;
 
-  mutable Logger m_logger{createLogger(VerbosityDebug, "discov")};
+  taraxa::spdlogger::Logger discov_logger_;
+  taraxa::spdlogger::Logger net_logger_;
 
   EndpointTracker m_endpointTracker;
 

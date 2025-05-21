@@ -11,6 +11,7 @@
 
 #include "Capability.h"
 #include "Common.h"
+#include "Logging.h"
 #include "RLPxHandshake.h"
 #include "Session.h"
 
@@ -36,7 +37,8 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
       m_listenPort(m_netConfig.listenPort),
       m_alias{kp},
       m_lastPing(chrono::steady_clock::time_point::min()),
-      m_lastPeerLogMessage(chrono::steady_clock::time_point::min()) {
+      m_lastPeerLogMessage(chrono::steady_clock::time_point::min()),
+      net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")) {
   assert(m_netConfig.listenPort);
   assert(1 <= taraxa_conf.expected_parallelism);
   // try to open acceptor (todo: ipv6)
@@ -84,7 +86,7 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
       m_nodeTable->addNode(*peer);
     }
   }
-  LOG(m_logger) << "devp2p started. Node id: " << id();
+  net_logger_->debug("devp2p started. Node id: {}", id());
   //!!! this needs to be post to session_ioc_ as main_loop_body handles peer/session related stuff
   // and it should not be execute for bootnodes, but it needs to bind with strand_
   // as it touching same structures as discovery part !!!
@@ -142,7 +144,7 @@ ba::io_context::count_type Host::do_work() {
       ret += ioc_.poll();
       ret += session_ioc_.poll();
     } catch (std::exception const& e) {
-      cerror << "Host::do_work exception: " << e.what();
+      net_logger_->error("Host::do_work exception: {}", e.what());
     }
   }
   return ret;
@@ -157,7 +159,7 @@ ba::io_context::count_type Host::do_discov() {
     try {
       ret += ioc_.poll();
     } catch (std::exception const& e) {
-      cerror << "Host::do_discov exception: " << e.what();
+      net_logger_->error("Host::do_discov exception: {}", e.what());
     }
   }
   return ret;
@@ -165,7 +167,7 @@ ba::io_context::count_type Host::do_discov() {
 
 void Host::addNode(Node const& _node) {
   if (_node.id == id()) {
-    cnetdetails << "Ignoring the request to connect to self " << _node;
+    net_logger_->trace("Ignoring the request to connect to self {}", _node);
     return;
   }
   if (_node.peerType == PeerType::Optional) {
@@ -229,7 +231,7 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
   auto const pub = _hello[4].toHash<Public>();
 
   if (pub != _id) {
-    cdebug << "Wrong ID: " << pub << " vs. " << _id;
+    net_logger_->debug("Wrong ID: {} vs. {}", pub, _id);
     return;
   }
 
@@ -250,8 +252,10 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
     capslog << "(" << cap.first << "," << dec << cap.second << ")";
   }
 
-  cnetlog << "Starting peer session with " << clientVersion << " (protocol: V" << protocolVersion << ") " << _id << " "
-          << showbase << "capabilities: " << capslog.str() << " " << dec << "port: " << listenPort;
+  net_logger_->debug(
+      "Starting peer session with {} (protocol: V{}) {} "
+      "capabilities: {} {}port: {}",
+      clientVersion, protocolVersion, _id, capslog.str(), dec, listenPort);
 
   std::optional<DisconnectReason> disconnect_reason;
   SessionCapabilities session_caps;
@@ -263,8 +267,8 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
       break;
     }
     session_caps.emplace(capDesc.first, SessionCapability(itCap->second, capDesc.second, cap_offset));
-    cnetlog << "New session for capability " << capDesc.first << "; idOffset: " << cap_offset << " with " << _id << "@"
-            << _s->remoteEndpoint();
+    net_logger_->debug("New session for capability {}); idOffset: {} with {}@{}", capDesc.first, cap_offset, _id,
+                       _s->remoteEndpoint());
     cap_offset += itCap->second.message_count;
   }
   if (!disconnect_reason && protocolVersion < dev::p2p::c_protocolVersion - 1) {
@@ -274,22 +278,24 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
     disconnect_reason = UselessPeer;
   }
   if (!disconnect_reason && m_netConfig.pin && peer->peerType != PeerType::Required) {
-    cdebug << "Unexpected identity from peer (peer is not marked required)";
+    net_logger_->debug("Unexpected identity from peer (peer is not marked required)");
     disconnect_reason = UnexpectedIdentity;
   }
   if (!disconnect_reason && m_sessions.contains(_id)) {
     if (auto s = m_sessions[_id].lock()) {
       if (s->isConnected()) {
         // Already connected.
-        cnetlog << "Session already exists for peer with id " << _id;
+        net_logger_->debug("Session already exists for peer with id {}", _id);
         disconnect_reason = DuplicatePeer;
       }
     }
   }
   auto is_trusted_node = m_netConfig.trustedNodes.contains(peer->address());
   if (!disconnect_reason && (!peerSlotsAvailable() && !is_trusted_node)) {
-    cnetdetails << "Too many peers, can't connect. peer count: " << peer_count_()
-                << " pending peers: " << m_pendingPeerConns.size();
+    net_logger_->trace(
+        "Too many peers, can't connect. peer count: {}"
+        " pending peers: {}",
+        peer_count_(), m_pendingPeerConns.size());
     disconnect_reason = TooManyPeers;
   }
   auto session = Session::make(session_caps, std::move(_io), _s, peer,
@@ -304,7 +310,7 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
                                disconnect_reason);
   if (!disconnect_reason) {
     m_sessions[_id] = session;
-    LOG(m_logger) << "Peer connection successfully established with " << _id << "@" << _s->remoteEndpoint();
+    net_logger_->debug("Peer connection successfully established with {}@{}", _id, _s->remoteEndpoint());
   }
 }
 
@@ -322,7 +328,7 @@ shared_ptr<Session> Host::peerSession(NodeID const& _id) const {
 
 void Host::onNodeTableEvent(NodeID const& _n, NodeTableEventType const& _e) {
   if (_e == NodeEntryAdded) {
-    LOG(m_logger) << "p2p.host.nodeTable.events.nodeEntryAdded " << _n;
+    net_logger_->debug("p2p.host.nodeTable.events.nodeEntryAdded {}", _n);
     if (Node n = nodeFromNodeTable(_n)) {
       shared_ptr<Peer> p;
       if (m_peers.contains(_n)) {
@@ -331,12 +337,12 @@ void Host::onNodeTableEvent(NodeID const& _n, NodeTableEventType const& _e) {
       } else {
         p = make_shared<Peer>(n);
         m_peers[_n] = p;
-        LOG(m_logger) << "p2p.host.peers.events.peerAdded " << _n << " " << p->get_endpoint();
+        net_logger_->debug("p2p.host.peers.events.peerAdded {} {}", _n, p->get_endpoint());
       }
       if (peerSlotsAvailable(Egress)) connect(p);
     }
   } else if (_e == NodeEntryDropped) {
-    LOG(m_logger) << "p2p.host.nodeTable.events.NodeEntryDropped " << _n;
+    net_logger_->debug("p2p.host.nodeTable.events.NodeEntryDropped {}", _n);
     if (m_peers.contains(_n) && m_peers[_n]->peerType == PeerType::Optional) m_peers.erase(_n);
   }
 }
@@ -363,10 +369,10 @@ bi::tcp::endpoint Host::determinePublic() const {
 
   bi::tcp::endpoint ep(bi::address(), m_listenPort);
   if (m_netConfig.traverseNAT && listenIsPublic) {
-    cnetnote << "Listen address set to Public address: " << laddr << ". UPnP disabled.";
+    net_logger_->info("Listen address set to Public address: {}. UPnP disabled.", laddr.to_string());
     ep.address(laddr);
   } else if (m_netConfig.traverseNAT && publicIsHost) {
-    cnetnote << "Public address set to Host configured address: " << paddr << ". UPnP disabled.";
+    net_logger_->info("Public address set to Host configured address: {}. UPnP disabled.", paddr.to_string());
     ep.address(paddr);
   } else if (m_netConfig.traverseNAT) {
     bi::address natIFAddr;
@@ -376,13 +382,16 @@ bi::tcp::endpoint Host::determinePublic() const {
     if (lset && natIFAddr != laddr)
       // if listen address is set, Host will use it, even if upnp returns
       // different
-      cwarn << "Listen address " << laddr << " differs from local address " << natIFAddr << " returned by UPnP!";
+      net_logger_->warn("Listen address {} differs from local address {} returned by UPnP!", laddr.to_string(),
+                        natIFAddr.to_string());
 
     if (pset && ep.address() != paddr) {
       // if public address is set, Host will advertise it, even if upnp returns
       // different
-      cwarn << "Specified public address " << paddr << " differs from external address " << ep.address()
-            << " returned by UPnP!";
+      net_logger_->warn(
+          "Specified public address {} differs from external address {}"
+          " returned by UPnP!",
+          paddr.to_string(), ep.address().to_string());
       ep.address(paddr);
     }
   } else if (pset)
@@ -398,7 +407,7 @@ ENR Host::updateENR(ENR const& _restoredENR, bi::tcp::endpoint const& _tcpPublic
     return _restoredENR;
 
   auto newENR = IdentitySchemeV4::updateENR(_restoredENR, m_alias.secret(), address, _listenPort, _listenPort);
-  LOG(m_infoLogger) << "ENR updated: " << newENR;
+  net_logger_->info("ENR updated: {}", newENR);
 
   return newENR;
 }
@@ -414,8 +423,8 @@ void Host::runAcceptor() {
         // Since a connecting peer might be a trusted node which should always connect allow up to max number of trusted
         // nodes above the limit
         if (peer_count_() > (peerSlots(Ingress) + m_netConfig.trustedNodes.size())) {
-          cnetdetails << "Dropping incoming connect due to maximum peer count (" << Ingress
-                      << " * ideal peer count): " << socket->remoteEndpoint();
+          net_logger_->trace("Dropping incoming connect due to maximum peer count ({}* ideal peer count): {}",
+                             static_cast<int>(Ingress), socket->remoteEndpoint());
           socket->close();
         } else {
           // incoming connection; we don't yet know nodeid
@@ -433,13 +442,13 @@ void Host::invalidateNode(NodeID const& _node) { m_nodeTable->invalidateNode(_no
 
 void Host::connect(shared_ptr<Peer> const& _p) {
   if (isHandshaking(_p->id)) {
-    cwarn << "Aborted connection. RLPX handshake with peer already in progress: " << _p->id << "@"
-          << _p->get_endpoint();
+    net_logger_->warn("Aborted connection. RLPX handshake with peer already in progress: {}@{}", _p->id,
+                      _p->get_endpoint());
     return;
   }
 
   if (havePeerSession(_p->id)) {
-    cnetdetails << "Aborted connection. Peer already connected: " << _p->id << "@" << _p->get_endpoint();
+    net_logger_->trace("Aborted connection. Peer already connected: {}@{}", _p->id, _p->get_endpoint());
     return;
   }
 
@@ -457,19 +466,18 @@ void Host::connect(shared_ptr<Peer> const& _p) {
   _p->m_lastAttempted = chrono::system_clock::now();
 
   bi::tcp::endpoint ep(_p->get_endpoint());
-  cnetdetails << "Attempting connection to " << _p->id << "@" << ep << " from " << id();
+  net_logger_->trace("Attempting connection to {}@{} from {}", _p->id, ep, id());
   auto socket = make_shared<RLPXSocket>(bi::tcp::socket(make_strand(session_ioc_)));
   socket->ref().async_connect(ep, ba::bind_executor(strand_, [=, this](boost::system::error_code const& ec) {
                                 _p->m_lastAttempted = chrono::system_clock::now();
                                 _p->m_failedAttempts++;
 
                                 if (ec) {
-                                  cnetdetails << "Connection refused to node " << _p->id << "@" << ep << " ("
-                                              << ec.message() << ")";
+                                  net_logger_->trace("Connection refused to node {}@{} ({})", _p->id, ep, ec.message());
                                   // Manually set error (session not present)
                                   _p->m_lastDisconnect = TCPError;
                                 } else {
-                                  cnetdetails << "Starting RLPX handshake with " << _p->id << "@" << ep;
+                                  net_logger_->trace("Starting RLPX handshake with {}@{}", _p->id, ep);
                                   auto handshake = make_shared<RLPXHandshake>(handshake_ctx_, socket, _p->id);
                                   m_connecting.push_back(handshake);
 
@@ -581,10 +589,10 @@ void Host::logActivePeers() {
     return;
   }
 
-  LOG(m_infoLogger) << "Active peer count: " << peer_count_();
-  if (m_netConfig.discovery) LOG(m_infoLogger) << "Looking for peers...";
+  net_logger_->info("Active peer count: {}", peer_count_());
+  if (m_netConfig.discovery) net_logger_->info("Looking for peers...");
 
-  LOG(m_logger) << "Peers: " << peerSessionInfos();
+  net_logger_->debug("Peers: {}", peerSessionInfos());
   m_lastPeerLogMessage = chrono::steady_clock::now();
 }
 
@@ -727,7 +735,7 @@ Node Host::nodeFromNodeTable(Public const& _id) const { return m_nodeTable->node
 
 bool Host::addKnownNodeToNodeTable(KnownNode const& node) {
   if (node.node.id == id()) {
-    cnetdetails << "Ignoring the request to connect to self " << node.node;
+    net_logger_->trace("Ignoring the request to connect to self {}", node.node);
     return false;
   }
   return m_nodeTable->addKnownNode(node.node, node.lastPongReceivedTime, node.lastPongSentTime);

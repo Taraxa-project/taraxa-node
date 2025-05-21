@@ -8,6 +8,7 @@
 #include <libdevcore/RLP.h>
 
 #include "Common.h"
+#include "spdlogger/logging.hpp"
 
 namespace dev {
 namespace p2p {
@@ -72,6 +73,7 @@ class Network {
 
     PortBindException(bi::address bind_addr, unsigned port, std::exception const& cause);
   };
+
   /// Try to bind and listen on _listenPort, else attempt net-allocated port.
   static void tcp4Listen(bi::tcp::acceptor& _acceptor, NetworkConfig const& _config);
 

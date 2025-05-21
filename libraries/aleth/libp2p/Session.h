@@ -16,6 +16,7 @@
 #include "Common.h"
 #include "Peer.h"
 #include "RLPXSocket.h"
+#include "spdlogger/logging.hpp"
 #include "taraxa.hpp"
 
 namespace dev {
@@ -148,12 +149,8 @@ struct Session final : std::enable_shared_from_this<Session> {
 
   std::string m_logSuffix;
 
-  Logger m_netLogger{createLogger(VerbosityDebug, "net")};
-  Logger m_netLoggerDetail{createLogger(VerbosityTrace, "net")};
-  Logger m_netLoggerError{createLogger(VerbosityError, "net")};
-
-  Logger m_capLogger{createLogger(VerbosityDebug, "p2pcap")};
-  Logger m_capLoggerDetail{createLogger(VerbosityTrace, "p2pcap")};
+  taraxa::spdlogger::Logger net_logger_;
+  taraxa::spdlogger::Logger p2p_logger_;
 };
 
 }  // namespace p2p

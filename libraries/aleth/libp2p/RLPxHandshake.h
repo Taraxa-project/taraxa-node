@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Common.h"
+#include "Logging.h"
 #include "RLPXFrameCoder.h"
 #include "RLPXSocket.h"
 
@@ -134,8 +135,7 @@ struct RLPXHandshake final : std::enable_shared_from_this<RLPXHandshake> {
 
   HandshakeFailureReason m_failureReason;
 
-  Logger m_logger{createLogger(VerbosityTrace, "rlpx")};
-  Logger m_errorLogger{createLogger(VerbosityError, "rlpx")};
+  taraxa::spdlogger::Logger m_logger;
 };
 
 }  // namespace p2p
