@@ -54,6 +54,11 @@ class PbftSyncingState {
   std::shared_ptr<TaraxaPeer> syncingPeer() const;
 
   /**
+   * @return last syncing peer, node might not be actively syncing from this peer anymore
+   */
+  std::shared_ptr<TaraxaPeer> lastSyncingPeer() const;
+
+  /**
    * @brief Set current time as last received sync packet time
    */
   void setLastSyncPacketTime();
@@ -80,6 +85,8 @@ class PbftSyncingState {
 
   // Peer that the node is syncing with
   std::shared_ptr<TaraxaPeer> peer_;
+  // Last syncing peer - it is not reset to null, it is only replaced when new syncing starts
+  std::shared_ptr<TaraxaPeer> last_syncing_peer_;
   mutable std::shared_mutex peer_mutex_;
 };
 

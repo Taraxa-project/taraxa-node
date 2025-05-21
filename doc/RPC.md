@@ -10,7 +10,7 @@
 
 ### Not implemented
 
-Taraxa protocol supports all Ethereum methods described on [this page](https://eth.wiki/json-rpc/API#json-rpc-methods) except:
+Taraxa protocol supports all Ethereum methods described on [this page](https://ethereum.org/en/developers/docs/apis/json-rpc/) except:
 
 - web3_clientVersion
 - web3_sha3
@@ -39,6 +39,235 @@ Taraxa protocol supports all Ethereum methods described on [this page](https://e
 - shh_getMessages
 
 All unimplemented methods will return a standard json-rpc error that the method is not present
+
+### eth_subscribe
+
+Creates a new subscription for particular events. The node returns a subscription ID. For each event that matches the subscription, a notification with relevant data is sent together with the subscription ID.
+
+#### Parameters
+
+1. `String` - The type of event you want to subscribe to (i.e. newHeads, newPendingTransactions).
+2. `Object` - Additional parameters for the subscription if needed
+
+#### Returns
+
+`QUANTITY` - The subscription ID
+
+### Subscription types 
+
+### newHeads
+
+Fires a notification when new header is appended to the chain
+
+#### Example
+
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newHeads"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x2"}
+
+// Subscription event 
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "result": "0x81b21bf43d12ddd97d0966c63d1260775d66dc0fdba5d6e62e9ddbddda20e391",
+    "subscription": "0x2"
+  }
+}
+```
+
+### newPendingTransactions
+
+Fires a notification with a transaction hash each time a pending transaction is added and is signed with a key that is available in the node
+
+#### Example 
+
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newPendingTransactions"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x3"}
+
+// Subscription event 
+{"jsonrpc":"2.0","method":"eth_subscription","params":{"result":"0x18e1a9a0b0ff48ebf3c52e760191e8d8f9ee76c0f802981548158feb16648a1e","subscription":"0x3"}}
+```
+
+### newDagBlocks
+
+Fires a notification when DAG block is added 
+
+#### Params
+
+1. `BOOLEAN` - returns full data if true. Only hash otherwise. Default is false
+
+#### Example
+
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newDagBlocks"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x4"}
+
+// Subscription event 
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "result": {
+      "hash": "0xbc98cf6164984f4c39e7818f18336c86450e0c239b65384d38b5bfc617509bef",
+      "level": "0x2ee53cb",
+      "pivot": "0x1c11ecfa257128c7852a0210550aa8b8af34aaf7758dffd727d27e01e89689ec",
+      "sender": "0xa9168bedce05924e0ce6dcb8df7136004250b223",
+      "sig": "0x27803541fa80afa1bedb67ddad5fa3f2e737bf4b4a448291b3e39e943fa6370e5734b0a30b611ebdbe2f4889af4ac42d3e2ede3dddccdefc129df063fce5fb8f00",
+      "timestamp": "0x6785083c",
+      "tips": [],
+      "transactions": [
+        ...
+      ],
+      "trx_estimations": "0x94ae8",
+      "vdf": {
+        "difficulty": "0x10",
+        "proof": "0x48d3dc922396db71ccc239207af7af17865ecfd1afc3a66e6da53bd114fd8120997ad492a4537a639a8ad75056eac71f3347911b5ce01a053c96c35cc9c389896a08b273192770887521bcd1dede9107",
+        "sol1": "0x01fcc185da2151d1f7cc1862a2c991946fc990c6a044376b1cc6ac0ed105e4dcc55f506e1f6f2def92b6c5cc8864be5e149bfb71a28cba88acb1f2ea71ef0f4f6e5bd90a8c826d14ce30f2ff63336a72bde2a2c4be2c8b6a164d96c9190fa75f755a424b9fd46f5ae1987c9e46e73c173bc026c24b78765b623bf8ff000c40f6dd18881d98c7e3c45a314fde04d37d43eaa85bd5b4ab4cab862ed6b9c1bc765e499a90b240207a6d9bbd487812f2ec1114b2034cb01283cc2543cc0808c5f5ed391b0cc97a9ba44c43386826a29843139e6dff4c00d6db7055e2b37e5f33f2018c00f1e72873440e95bc242c50da73df94b35cd9185bbbf7031ba8fb3585a60b",
+        "sol2": "0x06da940dd4a5335c8b0ea61386d22f8c338d38f7f2881a5ab1ed7d5a70e11947092096b2f25de8caaa607c4fc96e118d8cb61c47c34134acf29217b2c07ee9a08c56f6051230d0176c259a085f5b083973c0bdd385a741196d88107e8aa90499c154c7001399d6d0fb7b68c2b0302119fbad67fc8ebe9446a3a1dc94d3321cd5234a37d2dd6deeef1e6f499b96a11b5c52708c4fe20c774c55e1f57aa045bb04d805c1c9da3c6e70fc782402ebdec3d88b3217e49462c41531acbcfd24e1df8decb9edd37417ae54a6ba8f2663bc5b46999f069c3259bc0a17a300a4523449f47a2a784ab880f915c1077763d0c2fd5982c6d553648ae9bea439152f3d0c8826"
+      }
+    },
+    "subscription": "0x4"
+  }
+}
+```
+
+### logs
+
+Subscribe to logs notifications
+
+#### Params
+
+1. `Object` - Filter object
+* `address`: `DATA`, 20 Bytes - The address from which the log originated.
+* `topics`: `Array of DATA`, 32 Bytes - Array of 32 Bytes `DATA` topics. Topics are order-dependent. A log is matched if any of the topics in the array match. Look at filter documentation for more details
+
+#### Example
+```json
+// Request
+{"jsonrpc":"2.0","id": 1, "method": "eth_subscribe", "params": ["logs", {"address":"0x00000000000000000000000000000000000000FE", "topics": ["0x9310ccfcb8de723f578a9e4282ea9f521f05ae40dc08f3068dfad528a65ee3c7"]}]}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x5"}
+
+// Subscription event 
+{
+    "jsonrpc": "2.0",
+    "method": "eth_subscription",
+    "params": {
+        "result": {
+            "address": "0x00000000000000000000000000000000000000fe",
+            "blockHash": "0xa5e49eeb9e83aa481bf8a7dedda6ab527f2996c0877b0509024141e243efe7ce",
+            "blockNumber": "0x13dc5",
+            "data": "0x0000000000000000000000000000000000000000000000929ee692bd630fd73a",
+            "logIndex": "0x0",
+            "removed": false,
+            "topics": [
+                "0x9310ccfcb8de723f578a9e4282ea9f521f05ae40dc08f3068dfad528a65ee3c7",
+                "0x000000000000000000000000d56dc0e94776fbb167f4ac7de7db60ac61ff0764",
+                "0x000000000000000000000000702d581a73b1632a2240ef09a11468e2448f7e14"
+            ],
+            "transactionHash": "0xa52041e3e1b217b7076043d5eaf3393d95c2700090ed05053f24c545f53977a5",
+            "transactionIndex": "0x0"
+        },
+        "subscription": "0x5"
+    }
+}
+```
+
+### newDagBlocksFinalized
+
+Fires a notification when DAG block is finalized
+
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newDagBlocksFinalized"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x5"}
+
+// Subscription event 
+{"jsonrpc":"2.0","method":"eth_subscription","params":{"result":{"block":"0xae8237415925358af0668fecb999b3e5071ef472bd0d8daad7e880e991f7e4f2","period":"0xebb0fe"},"subscription":"0x5"}}
+```
+
+### newPbftBlocks
+
+Fires a notification each time a new PBFT block is added to the node
+
+#### Params
+
+1. `BOOLEAN` - returns full data if true. Only hash otherwise. Default is false
+
+#### Example
+
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newPbftBlocks"],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x6"}
+
+// Subscription event 
+{
+    "jsonrpc": "2.0",
+    "method": "eth_subscription",
+    "params": {
+        "result":"0x1227bee33c02ebac7c18a49381afc7ffabe4264611b7a7e5e980978ae1549360",  
+        "subscription": "0x6"
+    }
+}
+```
+
+### newPillarBlockData
+
+Fires a notification when Pillar block is added
+
+#### params
+
+1. `BOOLEAN` - if to include signatures in the notification. Default is false
+
+#### Example
+
+```json
+// Request
+{"jsonrpc":"2.0","method":"eth_subscribe","params":["newPillarBlockData", true],"id":1}
+
+// Result
+{"id":1,"jsonrpc":"2.0","result":"0x7"}
+
+// Subscription event 
+{
+    "jsonrpc": "2.0",
+    "method": "eth_subscription",
+    "params": {
+        "result": {
+            "pillar_block": {
+                "bridge_root": "0x139c8e505c4dd144b84a9d141b7040710eab17dfca0ae79db6aa75a6127a8520",
+                "epoch": "0x6f",
+                "hash": "0x2c2b553d5972287256df0c51cf25d9d6d8085f4cda24f615be160204d0d97e33",
+                "pbft_period": "0xeb9880",
+                "previous_pillar_block_hash": "0xb33b24bc01254d9ab69b1b72a1013f55597afca226e20d35e1ae3815400d0527",
+                "state_root": "0x71d78c731c07b502189b223ed3b30f4dd90af4a6467f50c9df566bfaad6e45e9",
+                "validators_vote_counts_changes": []
+            }, 
+            "signatures": [
+              ...
+            ]
+        },
+        "subscription": "0x7"
+    }
+}
+```
 
 ## Taraxa specific methods
 

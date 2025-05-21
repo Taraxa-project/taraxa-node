@@ -77,61 +77,6 @@ void PeriodData::clear() {
   pillar_votes_.reset();
 }
 
-PeriodData PeriodData::FromOldPeriodData(const dev::RLP& rlp) {
-  PeriodData period_data;
-  auto it = rlp.begin();
-  period_data.pbft_blk = std::make_shared<PbftBlock>(*it++);
-
-  const auto votes_bundle_rlp = *it++;
-  if (period_data.pbft_blk->getPeriod() > 1) [[likely]] {
-    period_data.previous_block_cert_votes = decodePbftVotesBundleRlp(votes_bundle_rlp);
-  }
-
-  for (auto const dag_block_rlp : *it++) {
-    period_data.dag_blocks.emplace_back(std::make_shared<DagBlock>(dag_block_rlp));
-  }
-
-  for (auto&& trx_rlp : *it++) {
-    period_data.transactions.emplace_back(std::make_shared<Transaction>(std::move(trx_rlp)));
-  }
-
-  // Pillar votes are optional data of period data since ficus hardfork
-  if (rlp.itemCount() == 5) {
-    period_data.pillar_votes_ = decodePillarVotesBundleRlp(*it);
-  }
-  return period_data;
-}
-
-bytes PeriodData::ToOldPeriodData(const bytes& rlp) {
-  PeriodData period_data(rlp);
-  const auto kRlpSize = period_data.pillar_votes_.has_value() ? kBaseRlpItemCount + 1 : kBaseRlpItemCount;
-  dev::RLPStream s(kRlpSize);
-  s.appendRaw(period_data.pbft_blk->rlp(true));
-
-  if (period_data.pbft_blk->getPeriod() > 1) [[likely]] {
-    s.appendRaw(encodePbftVotesBundleRlp(period_data.previous_block_cert_votes));
-  } else {
-    s.append("");
-  }
-
-  s.appendList(period_data.dag_blocks.size());
-  for (auto const& b : period_data.dag_blocks) {
-    s.appendRaw(b->rlp(true));
-  }
-
-  s.appendList(period_data.transactions.size());
-  for (auto const& t : period_data.transactions) {
-    s.appendRaw(t->rlp());
-  }
-
-  // Pillar votes are optional data of period data since ficus hardfork
-  if (period_data.pillar_votes_.has_value()) {
-    s.appendRaw(encodePillarVotesBundleRlp(*period_data.pillar_votes_));
-  }
-
-  return s.invalidate();
-}
-
 void PeriodData::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PeriodData(encoding.value); }
 
 void PeriodData::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }

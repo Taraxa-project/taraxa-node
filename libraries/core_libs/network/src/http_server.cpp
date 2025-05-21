@@ -3,7 +3,8 @@
 namespace taraxa::net {
 
 HttpServer::HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, const addr_t &node_addr,
-                       const std::shared_ptr<HttpProcessor> &request_processor, std::shared_ptr<metrics::JsonRpcMetrics> metrics)
+                       const std::shared_ptr<HttpProcessor> &request_processor,
+                       std::shared_ptr<metrics::JsonRpcMetrics> metrics)
     : request_processor_(request_processor), metrics_(metrics), io_context_(io), acceptor_(io), ep_(std::move(ep)) {
   LOG_OBJECTS_CREATE("HTTP");
   LOG(log_si_) << "Taraxa HttpServer started at port: " << ep_.port();
@@ -97,12 +98,11 @@ void HttpConnection::read() {
           stop();
         } else {
           std::string ip = request_["X-Real-IP"];
-          if(ip.empty()) {
+          if (ip.empty()) {
             try {
               auto endpoint = socket_.remote_endpoint();
               ip = endpoint.address().to_string();
-            }
-            catch(...) {
+            } catch (...) {
               ip = "Unknown";
             }
           }
@@ -115,10 +115,10 @@ void HttpConnection::read() {
           auto end_time = std::chrono::steady_clock::now();
           auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
-          if(server_->metrics_) {
+          if (server_->metrics_) {
             server_->metrics_->report(request_.body(), ip, "HTTP", processing_time.count());
           }
-          
+
           boost::beast::http::async_write(
               socket_, response_,
               [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transferred*/) { this_sp->stop(); });

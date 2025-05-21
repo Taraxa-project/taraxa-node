@@ -9,6 +9,7 @@
 #include "common/encoding_rlp.hpp"
 #include "slashing_manager/slashing_manager.hpp"
 #include "test_util/test_util.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::state_api {
 using boost::filesystem::create_directories;

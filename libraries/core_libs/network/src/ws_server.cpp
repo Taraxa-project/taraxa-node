@@ -6,10 +6,11 @@
 
 #include <boost/beast/websocket/rfc6455.hpp>
 
-#include "common/jsoncpp.hpp"
 #include "network/rpc/eth/data.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa::net {
+namespace http = beast::http;
 
 void WsSession::run() {
   // Set suggested timeout settings for the websocket
@@ -20,7 +21,7 @@ void WsSession::run() {
 
   // Set a decorator to change the Server of the handshake
   ws_.set_option(websocket::stream_base::decorator([](websocket::response_type &res) {
-    res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
+    res.set(beast::http::field::server, std::string(BOOST_BEAST_VERSION_STRING) + " websocket-server-async");
   }));
 
   websocket::request_type upgrade_request;
@@ -139,7 +140,6 @@ void WsSession::write(std::string &&message) {
     // LOG(log_nf_) << "WS closed in on_write " << e.what();
     return close(is_normal(e.code()));
   }
-  LOG(log_tr_) << "WS WRITE COMPLETE " << &ws_;
 }
 
 void WsSession::close(bool normal) {
@@ -164,91 +164,30 @@ bool WsSession::is_normal(const beast::error_code &ec) {
 
 bool WsSession::is_closed() const { return closed_ || !ws_.is_open(); }
 
-void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, const TransactionHashes &trx_hashes) {
-  if (new_heads_subscription_ != 0) {
-    Json::Value res, params;
-    res["jsonrpc"] = "2.0";
-    res["method"] = "eth_subscription";
-    params["result"] = rpc::eth::toJson(payload);
-    params["result"]["transactions"] = rpc::eth::toJsonArray(trx_hashes);
-    params["subscription"] = dev::toJS(new_heads_subscription_);
-    res["params"] = params;
-    auto response = util::to_string(res);
-    LOG(log_tr_) << "WS WRITE " << response.c_str();
-    do_write(std::move(response));
-  }
-}
-void WsSession::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
-  if (new_dag_blocks_subscription_) {
-    Json::Value res, params;
-    res["jsonrpc"] = "2.0";
-    res["method"] = "eth_subscription";
-    params["result"] = blk->getJson();
-    params["subscription"] = dev::toJS(new_dag_blocks_subscription_);
-    res["params"] = params;
-    auto response = util::to_string(res);
-    auto executor = ws_.get_executor();
-    if (!executor) {
-      LOG(log_tr_) << "Executor missing - WS closed";
-      return close(false);
-    }
-    do_write(std::move(response));
-  }
+void WsSession::newEthBlock(const Json::Value &payload) { subscriptions_.process(SubscriptionType::HEADS, payload); }
+void WsSession::newDagBlock(const Json::Value &payload) {
+  subscriptions_.process(SubscriptionType::DAG_BLOCKS, payload);
 }
 
-void WsSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
-  if (new_dag_block_finalized_subscription_) {
-    Json::Value res, params, result;
-    res["jsonrpc"] = "2.0";
-    res["method"] = "eth_subscription";
-    result["block"] = dev::toJS(blk);
-    result["period"] = dev::toJS(period);
-    params["result"] = result;
-    params["subscription"] = dev::toJS(new_dag_block_finalized_subscription_);
-    res["params"] = params;
-    auto response = util::to_string(res);
-    do_write(std::move(response));
-  }
+void WsSession::newDagBlockFinalized(const Json::Value &payload) {
+  subscriptions_.process(SubscriptionType::DAG_BLOCK_FINALIZED, payload);
 }
 
-void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
-  if (new_pbft_block_executed_subscription_) {
-    Json::Value res, params, result;
-    res["jsonrpc"] = "2.0";
-    res["method"] = "eth_subscription";
-    result["pbft_block"] = payload;
-    params["result"] = result;
-    params["subscription"] = dev::toJS(new_pbft_block_executed_subscription_);
-    res["params"] = params;
-    auto response = util::to_string(res);
-    do_write(std::move(response));
-  }
+void WsSession::newPbftBlockExecuted(const Json::Value &payload) {
+  subscriptions_.process(SubscriptionType::PBFT_BLOCK_EXECUTED, payload);
 }
 
-void WsSession::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_block_data) {
-  if (new_pillar_block_subscription_) {
-    Json::Value res, params;
-    params["result"] = pillar_block_data.getJson(include_pillar_block_signatures);
-    params["subscription"] = dev::toJS(new_pillar_block_subscription_);
-    res["jsonrpc"] = "2.0";
-    res["method"] = "eth_subscription";
-    res["params"] = params;
-    auto response = util::to_string(res);
-    do_write(std::move(response));
-  }
+void WsSession::newPillarBlockData(const Json::Value &payload) {
+  subscriptions_.process(SubscriptionType::PILLAR_BLOCK, payload);
 }
 
-void WsSession::newPendingTransaction(trx_hash_t const &trx_hash) {
-  if (new_transactions_subscription_) {
-    Json::Value res, params;
-    res["jsonrpc"] = "2.0";
-    res["method"] = "eth_subscription";
-    params["result"] = dev::toJS(trx_hash);
-    params["subscription"] = dev::toJS(new_transactions_subscription_);
-    res["params"] = params;
-    auto response = util::to_string(res);
-    do_write(std::move(response));
-  }
+void WsSession::newPendingTransaction(const Json::Value &payload) {
+  subscriptions_.process(SubscriptionType::TRANSACTIONS, payload);
+}
+
+void WsSession::newLogs(const final_chain::BlockHeader &header, TransactionHashes trx_hashes,
+                        const TransactionReceipts &receipts) {
+  subscriptions_.processLogs(header, trx_hashes, receipts);
 }
 
 WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr,
@@ -295,10 +234,10 @@ WsServer::~WsServer() {
   ioc_.stop();
   acceptor_.close();
   boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
-  for (auto const &session : sessions) {
+  for (auto const &session : sessions_) {
     if (!session->is_closed()) session->close();
   }
-  sessions.clear();
+  sessions_.clear();
 }
 
 void WsServer::do_accept() {
@@ -315,70 +254,108 @@ void WsServer::on_accept(beast::error_code ec, tcp::socket socket) {
   } else {
     boost::unique_lock<boost::shared_mutex> lock(sessions_mtx_);
     // Remove any close sessions
-    auto session = sessions.begin();
-    while (session != sessions.end()) {
+    auto session = sessions_.begin();
+    while (session != sessions_.end()) {
       if ((*session)->is_closed()) {
-        sessions.erase(session++);
+        sessions_.erase(session++);
       } else {
         session++;
       }
     }
     // Create the session and run it
-    sessions.push_back(createSession(std::move(socket)));
-    sessions.back()->run();
+    sessions_.push_back(createSession(std::move(socket)));
+    sessions_.back()->run();
   }
 
   // Accept another connection
   if (!stopped_) do_accept();
 }
 
+void WsServer::newEthBlock(const ::taraxa::final_chain::BlockHeader &header, const TransactionHashes &trx_hashes) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
+  if (sessions_.empty()) return;
+
+  auto payload = rpc::eth::toJson(header);
+  payload["transactions"] = rpc::eth::toJsonArray(trx_hashes);
+
+  for (auto const &session : sessions_) {
+    if (!session->is_closed()) {
+      session->newEthBlock(payload);
+    }
+  }
+}
+
+void WsServer::newLogs(const ::taraxa::final_chain::BlockHeader &header, TransactionHashes trx_hashes,
+                       const TransactionReceipts &receipts) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
+  if (sessions_.empty()) return;
+
+  for (auto const &session : sessions_) {
+    if (!session->is_closed()) {
+      session->newLogs(header, trx_hashes, receipts);
+    }
+  }
+}
+
 void WsServer::newDagBlock(const std::shared_ptr<DagBlock> &blk) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
-  for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newDagBlock(blk);
+  if (sessions_.empty()) return;
+
+  auto payload = blk->getJson();
+  for (auto const &session : sessions_) {
+    if (!session->is_closed()) session->newDagBlock(payload);
   }
 }
 
-void WsServer::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
+void WsServer::newDagBlockFinalized(const blk_hash_t &hash, uint64_t period) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
-  for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newDagBlockFinalized(blk, period);
+  if (sessions_.empty()) return;
+
+  Json::Value payload;
+  payload["block"] = dev::toJS(hash);
+  payload["period"] = dev::toJS(period);
+
+  for (auto const &session : sessions_) {
+    if (!session->is_closed()) session->newDagBlockFinalized(payload);
   }
 }
 
-void WsServer::newPbftBlockExecuted(PbftBlock const &pbft_blk,
-                                    std::vector<blk_hash_t> const &finalized_dag_blk_hashes) {
+void WsServer::newPbftBlockExecuted(const PbftBlock &pbft_blk,
+                                    const std::vector<blk_hash_t> &finalized_dag_blk_hashes) {
+  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
+  if (sessions_.empty()) return;
+
   auto payload = PbftBlock::toJson(pbft_blk, finalized_dag_blk_hashes);
-  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
-  for (auto const &session : sessions) {
+
+  for (auto const &session : sessions_) {
     if (!session->is_closed()) session->newPbftBlockExecuted(payload);
   }
 }
-
-void WsServer::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload, const TransactionHashes &trx_hashes) {
+void WsServer::newPendingTransaction(const trx_hash_t &trx_hash) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
-  for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newEthBlock(payload, trx_hashes);
-  }
-}
+  if (sessions_.empty()) return;
 
-void WsServer::newPendingTransaction(trx_hash_t const &trx_hash) {
-  boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
-  for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newPendingTransaction(trx_hash);
+  auto payload = dev::toJS(trx_hash);
+
+  for (auto const &session : sessions_) {
+    if (!session->is_closed()) session->newPendingTransaction(payload);
   }
 }
 
 void WsServer::newPillarBlockData(const pillar_chain::PillarBlockData &pillar_block_data) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
-  for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newPillarBlockData(pillar_block_data);
+  if (sessions_.empty()) return;
+
+  auto payload = pillar_block_data.getJson(true);
+
+  for (auto const &session : sessions_) {
+    if (!session->is_closed()) session->newPillarBlockData(payload);
   }
 }
 
 uint32_t WsServer::numberOfSessions() {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
-  return sessions.size();
+  return sessions_.size();
 }
 
 }  // namespace taraxa::net

@@ -8,7 +8,6 @@ set(HEADERS
     include/common/default_construct_copyable_movable.hpp
     include/common/encoding_rlp.hpp
     include/common/encoding_solidity.hpp
-    include/common/functional.hpp
     include/common/jsoncpp.hpp
     include/common/lazy.hpp
     include/common/thread_pool.hpp
@@ -30,8 +29,8 @@ target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(common PUBLIC
     devcore
     taraxa-vrf
-    CONAN_PKG::openssl
-    CONAN_PKG::jsoncpp
+    openssl::openssl
+    JsonCpp::JsonCpp
 )
 
 install(TARGETS common

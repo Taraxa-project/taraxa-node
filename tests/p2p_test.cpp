@@ -6,9 +6,8 @@
 #include <libp2p/Network.h>
 #include <libp2p/Session.h>
 
-#include <vector>
-
 #include "common/init.hpp"
+#include "common/thread_pool.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "test_util/samples.hpp"
@@ -85,8 +84,7 @@ TEST_F(P2PTest, p2p_discovery) {
     auto node = nodes.emplace_back(Host::make("TaraxaNode", dummy_capability_constructor, dev::KeyPair::create(),
                                               dev::p2p::NetworkConfig("127.0.0.1", 20002 + i, false, true)));
     tp.post_loop({}, [=] { node->do_work(); });
-    nodes[i]->addNode(
-        Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    nodes[i]->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::make_address("127.0.0.1"), 20001, 20001)));
   }
 
   wait({60s, 500ms}, [&](auto &ctx) {
@@ -102,8 +100,8 @@ TEST_F(P2PTest, multiple_capabilities) {
   dev::p2p::NetworkConfig net_conf("127.0.0.1", 20001, false, true);
   TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
-  auto boot_node = Host::make(
-      "TaraxaNode", [](auto /*host*/) { return Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf);
+  auto boot_node =
+      Host::make("TaraxaNode", [](auto /*host*/) { return Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf);
   const auto &boot_node_key = boot_node->id();
 
   util::ThreadPool boot_node_tp;
@@ -120,11 +118,11 @@ TEST_F(P2PTest, multiple_capabilities) {
 
     const auto node1 = makeTestNode(20002, node1_tarcap_versions, "/tmp/nw1");
     std::cout << "node1->peer_count(): " << node1->peer_count() << std::endl;
-    node1->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    node1->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::make_address("127.0.0.1"), 20001, 20001)));
     tp.post_loop({}, [=] { node1->do_work(); });
 
     const auto node2 = makeTestNode(20003, node2_tarcap_versions, "/tmp/nw2");
-    node2->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    node2->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::make_address("127.0.0.1"), 20001, 20001)));
     tp.post_loop({}, [=] { node2->do_work(); });
 
     if (wait_for_connection) {
@@ -140,8 +138,12 @@ TEST_F(P2PTest, multiple_capabilities) {
   };
 
   // At least 1 common tarcap version - connection should be established
-  { test_tarcaps({1}, {1}); }
-  { test_tarcaps({1, 2, 3}, {3, 4, 5}); }
+  {
+    test_tarcaps({1}, {1});
+  }
+  {
+    test_tarcaps({1, 2, 3}, {3, 4, 5});
+  }
 
   // No common tarcap version, connection should not be established
   {

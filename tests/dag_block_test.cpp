@@ -12,7 +12,6 @@
 #include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
-#include "node/node.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 #include "vdf/sortition.hpp"

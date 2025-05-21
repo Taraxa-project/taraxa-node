@@ -13,9 +13,6 @@ file(GLOB_RECURSE NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h)
 file(GLOB_RECURSE STORAGE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.hpp)
 file(GLOB_RECURSE STORAGE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.cpp)
 
-file(GLOB_RECURSE NODE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/node/*.hpp)
-file(GLOB_RECURSE NODE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/node/*.cpp)
-
 file(GLOB_RECURSE REWARDS_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/rewards/*.hpp)
 file(GLOB_RECURSE REWARDS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/rewards/*.cpp)
 
@@ -49,6 +46,7 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/graphql/gen)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/graphql/include)
 
+find_package(RocksDB REQUIRED)
 target_link_libraries(core_libs PUBLIC
   cli
   pbft_block
@@ -56,7 +54,7 @@ target_link_libraries(core_libs PUBLIC
   p2p
   metrics
   Jsonrpccpp
-  CONAN_PKG::rocksdb
+  RocksDB::rocksdb
 
   # GraphQL
   cppgraphqlgen::graphqlservice

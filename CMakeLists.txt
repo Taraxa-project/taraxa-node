@@ -1,13 +1,27 @@
 cmake_minimum_required(VERSION 3.20)
 
+# Set policy for package root variables
+cmake_policy(SET CMP0144 NEW)
+
+# Set the output directory for the binaries
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
 set(TARAXA_MINOR_VERSION 13)
-set(TARAXA_PATCH_VERSION 1)
+set(TARAXA_PATCH_VERSION 2)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
+message(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
+# Include Conan toolchain file
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
+    message(FATAL_ERROR "The file conan_toolchain.cmake doesn't exist, you must run 'conan install' first")
+endif()
+include("${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 5)
+set(TARAXA_NET_VERSION 6)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchain is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 1)
@@ -15,11 +29,9 @@ set(TARAXA_DB_MAJOR_VERSION 1)
 # basic tables
 set(TARAXA_DB_MINOR_VERSION 2)
 
+
 # Defines Taraxa library target.
 project(taraxa-node VERSION ${TARAXA_VERSION})
-
-# Set project properties like C++ standard, etc...
-set(CMAKE_CXX_STANDARD 20)
 
 # export compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -139,42 +151,6 @@ else (TARAXA_STATIC_BUILD)
     set(BUILD_SHARED_LIBS ON)
 endif (TARAXA_STATIC_BUILD)
 
-# fix for boost thread library on MacOS
-IF(APPLE)
-    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-    set(CMAKE_HAVE_THREADS_LIBRARY 1)
-    set(CMAKE_USE_WIN32_THREADS_INIT 0)
-    set(CMAKE_USE_PTHREADS_INIT 1)
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-ENDIF()
-
-# conan package manager
-if(CONAN_EXPORTED)
-    ## conan install already called
-    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup(TARGETS)
-else()
-    if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-        message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-        file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.16.1/conan.cmake"
-            "${CMAKE_BINARY_DIR}/conan.cmake"
-            TLS_VERIFY ON)
-    endif()
-
-    include(${CMAKE_BINARY_DIR}/conan.cmake)
-
-    conan_cmake_run(CONANFILE conanfile.py
-                    BUILD_TYPE ${CMAKE_BUILD_TYPE}
-                    CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-                    BASIC_SETUP
-                    CMAKE_TARGETS
-                    KEEP_RPATHS
-                    PROFILE ${CONAN_PROFILE}
-                    BUILD missing
-                    )
-    set(CONAN_EXPORTED true CACHE BOOL "Is conan already run on the project")
-endif()
-
 # Custom CMakeModules for finding libraries
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
@@ -192,13 +168,13 @@ endif()
 # We are using clang from llvm toolchain as default compiler as well as clang-format and clang-tidy
 # It is possible to build taraxa-node also with other C++ compilers but to contribute to the official repo,
 # changes must pass clang-format/clang-tidy checks for which we internally use llvm version=LLVM_VERSION
-set(LLVM_VERSION "17")
+set(LLVM_VERSION "18")
 
 # clang-tidy
 include(CMakeModules/clang_tidy.cmake)
 
 # clang-format
-# include(CMakeModules/clang_format.cmake)
+include(CMakeModules/clang_format.cmake)
 
 # cppcheck
 include(CMakeModules/cppcheck.cmake)
@@ -210,12 +186,14 @@ include(CMakeModules/git_info.cmake)
 
 include(ExternalProject)
 
-# find and include system libraries used in submodules and libraries
-find_package(GMP)
-find_package(MPFR)
+# find and include libraries used in submodules and libraries
+find_package(GMP REQUIRED)
+find_package(MPFR REQUIRED)
+find_package(jsoncpp REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # use JSONCPP library from conan for JSONRPCCPP build
-set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
+set(JSONCPP_INCLUDE_DIR ${jsoncpp_INCLUDE_DIRS})
 include(ProjectJSONRPCCPP)
 
 # Add sub-directories cmakes

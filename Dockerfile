@@ -1,12 +1,14 @@
-ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
+ARG BUILD_OUTPUT_DIR=cmake-docker-build
+ARG WORKDIR=/opt/taraxa
+ARG BUILD_TYPE=RelWithDebInfo
 
 #############################################
 # builder image - contains all dependencies #
 #############################################
-FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e48535ad4be12a as builder
+FROM ubuntu:24.04@sha256:e3f92abc0967a6c19d0dfa2d55838833e947b9d74edbcb0113e48535ad4be12a AS builder
 
 # deps versions
-ARG LLVM_VERSION=17
+ENV LLVM_VERSION=18
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -49,8 +51,6 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     binutils \
     cmake \
     ccache \
-    libgmp-dev \
-    libmpfr-dev \
     libmicrohttpd-dev \
     libgoogle-perftools-dev \
     # these libs are required for arm build by go part
@@ -69,35 +69,35 @@ RUN ln -s /usr/bin/clang++-${LLVM_VERSION} /usr/bin/clang++
 
 # Install conan
 RUN apt-get remove -y python3-distro
-RUN pip3 install conan==1.64.1 --break-system-packages
+RUN pip3 install conan --break-system-packages
 
-# Install conan deps
-WORKDIR /opt/taraxa/
+WORKDIR $WORKDIR
+COPY scripts scripts
 COPY conanfile.py .
 
-RUN conan profile new clang --detect \
-    && conan profile update settings.compiler=clang clang  \
-    && conan profile update settings.compiler.version=$LLVM_VERSION clang  \
-    && conan profile update settings.compiler.libcxx=libstdc++11 clang \
-    && conan profile update settings.build_type=RelWithDebInfo clang \
-    && conan profile update env.CC=clang-$LLVM_VERSION clang  \
-    && conan profile update env.CXX=clang++-$LLVM_VERSION clang  \
-    && conan install --build missing -pr=clang .
+ARG BUILD_OUTPUT_DIR
+
+# Create directory before using it
+RUN mkdir -p $BUILD_OUTPUT_DIR
+RUN ./scripts/config.sh
+ARG BUILD_TYPE
+RUN conan install . -s "build_type=Release" -s "&:build_type=$BUILD_TYPE" --profile:host=clang --profile:build=clang --build=missing --output-folder=$BUILD_OUTPUT_DIR
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
 ###################################################################
-FROM builder as build
+FROM builder AS build
 
 # Default output dir containing build artifacts
 ARG BUILD_OUTPUT_DIR
+ARG BUILD_TYPE
 
-# Build taraxa-node project
-WORKDIR /opt/taraxa/
+WORKDIR $WORKDIR
 COPY . .
 
-RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
-    && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+# Remove the duplicate mkdir and combine commands
+RUN cd $BUILD_OUTPUT_DIR \
+    && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DTARAXA_ENABLE_LTO=OFF \
     -DTARAXA_STATIC_BUILD=OFF \
     -DTARAXA_GPERF=ON \
@@ -136,9 +136,9 @@ ARG BUILD_OUTPUT_DIR
 WORKDIR /root/.taraxa
 
 # Copy required binaries
-COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin/taraxad /usr/local/bin/taraxad
-COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/bin/taraxa-bootnode /usr/local/bin/taraxa-bootnode
-COPY --from=build /opt/taraxa/$BUILD_OUTPUT_DIR/lib/*.so* /usr/local/lib/
+COPY --from=build $WORKDIR/$BUILD_OUTPUT_DIR/bin/taraxad /usr/local/bin/taraxad
+COPY --from=build $WORKDIR/$BUILD_OUTPUT_DIR/bin/taraxa-bootnode /usr/local/bin/taraxa-bootnode
+COPY --from=build $WORKDIR/$BUILD_OUTPUT_DIR/lib/*.so* /usr/local/lib/
 
 # Copy scripts
 COPY scripts/taraxa-sign.py /usr/local/bin/taraxa-sign

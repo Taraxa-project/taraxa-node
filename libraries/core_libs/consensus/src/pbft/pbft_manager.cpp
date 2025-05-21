@@ -702,7 +702,7 @@ bool PbftManager::stateOperations_() {
   // If node is not eligible to vote and create block, always return true so pbft state machine never enters specific
   // consensus steps (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just
   // observe 2t+1 cert votes to move to the next period or 2t+1 next votes to move to the next round
-  if (!canParticipateInConsensus(period - 1)) {
+  if (!canParticipateInConsensus(period - 1, node_addr_)) {
     // Check 2t+1 cert/next votes every kPollingIntervalMs
     std::this_thread::sleep_for(std::chrono::milliseconds(kPollingIntervalMs));
     return true;
@@ -810,7 +810,7 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     return false;
   }
 
-  proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
+  proposed_blocks_.pushProposedPbftBlock(proposed_block);
 
   return true;
 }
@@ -1161,13 +1161,12 @@ PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev
   }
 }
 
-void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
-                                       const std::shared_ptr<PbftVote> &propose_vote) {
-  if (proposed_blocks_.isInProposedBlocks(propose_vote->getPeriod(), propose_vote->getBlockHash())) {
+void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block) {
+  if (proposed_blocks_.isInProposedBlocks(proposed_block->getPeriod(), proposed_block->getBlockHash())) {
     return;
   }
 
-  proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
+  proposed_blocks_.pushProposedPbftBlock(proposed_block);
 }
 
 blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes) {
@@ -1382,9 +1381,9 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
       continue;
     }
 
-    auto leader_block = getValidPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
+    auto leader_block = getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
     if (!leader_block) {
-      LOG(log_er_) << "Unable to get valid proposed block " << proposed_block_hash;
+      LOG(log_er_) << "Unable to get proposed block " << proposed_block_hash;
       continue;
     }
 
@@ -2073,8 +2072,8 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
   const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
   if (current_pillar_block->getPeriod() + 1 != required_votes_period) {
-    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period << " != "
-                 << " current pillar block period " << current_pillar_block->getPeriod() << " + 1";
+    LOG(log_er_) << "Sync pillar votes required period " << required_votes_period
+                 << " != " << " current pillar block period " << current_pillar_block->getPeriod() << " + 1";
     return false;
   }
 
@@ -2089,8 +2088,10 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
 
     if (vote->getBlockHash() != current_pillar_block->getHash()) {
       LOG(log_er_) << "Invalid sync pillar vote " << vote->getHash() << ", vote period " << vote->getPeriod()
-                   << ", vote block hash " << vote->getBlockHash() << ", current pillar block "
-                   << current_pillar_block->getHash() << ", block period " << current_pillar_block->getPeriod();
+                   << ", vote pillar block hash " << vote->getBlockHash()
+                   << ", current pillar block hash: " << current_pillar_block->getHash()
+                   << ", current pillar block period " << current_pillar_block->getPeriod()
+                   << ", full data: " << current_pillar_block->getJson();
       return false;
     }
 
@@ -2122,9 +2123,9 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
   return true;
 }
 
-bool PbftManager::canParticipateInConsensus(PbftPeriod period) const {
+bool PbftManager::canParticipateInConsensus(PbftPeriod period, const addr_t &node_addr) const {
   try {
-    return final_chain_->dposIsEligible(period, node_addr_);
+    return final_chain_->dposIsEligible(period, node_addr);
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to decide if node is consensus node or not for period: " << period
                  << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
@@ -2133,6 +2134,10 @@ bool PbftManager::canParticipateInConsensus(PbftPeriod period) const {
   }
 
   return false;
+}
+
+std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> PbftManager::getProposedBlocks() const {
+  return proposed_blocks_.getProposedBlocks();
 }
 
 blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {
@@ -2148,21 +2153,20 @@ bool PbftManager::periodDataQueueEmpty() const { return sync_queue_.empty(); }
 void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
                                       std::vector<std::shared_ptr<PbftVote>> &&current_block_cert_votes) {
   const auto period = period_data.pbft_blk->getPeriod();
-  
-  //Only do parallel transactions retrieve for blocks bigger than 100 transactions
+
+  // Only do parallel transactions retrieve for blocks bigger than 100 transactions
   auto trx_size = period_data.transactions.size();
-  if(trx_size > 100) {
+  if (trx_size > 100) {
     auto chunk_size = trx_size / kSyncingThreadPoolSize;
-    
+
     std::vector<std::future<void>> futures;
     futures.reserve(kSyncingThreadPoolSize);
     // Launch tasks in parallel
     for (uint32_t i = 0; i < kSyncingThreadPoolSize; ++i) {
-      futures.push_back(sync_thread_pool_->post([&period_data, i, chunk_size, trx_size]() { 
+      futures.push_back(sync_thread_pool_->post([&period_data, i, chunk_size, trx_size]() {
         const uint32_t start = i * chunk_size;
         const uint32_t end = std::min((i + 1) * chunk_size, trx_size);
-          for(uint32_t j = start; j < end; j++)
-            period_data.transactions[j]->getSender();
+        for (uint32_t j = start; j < end; j++) period_data.transactions[j]->getSender();
       }));
     }
     for (uint32_t i = 0; i < kSyncingThreadPoolSize; ++i) {

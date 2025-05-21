@@ -14,7 +14,6 @@ namespace taraxa {
  */
 
 class DbStorage;
-class FullNode;
 class Vote;
 class DagBlock;
 struct Transaction;

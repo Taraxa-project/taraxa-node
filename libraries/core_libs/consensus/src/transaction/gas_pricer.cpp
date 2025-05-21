@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-GasPricer::GasPricer(const GenesisConfig &config, bool is_light_node, std::shared_ptr<DbStorage> db)
+GasPricer::GasPricer(const GenesisConfig& config, bool is_light_node, std::shared_ptr<DbStorage> db)
     : kPercentile(config.gas_price.percentile),
       kMinimumPrice(config.state.hardforks.soleirolia_hf.trx_min_gas_price),
       kIsLightNode(is_light_node),

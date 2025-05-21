@@ -1,9 +1,13 @@
 #include "test_util/test_util.hpp"
 
+#include <boost/program_options/variables_map.hpp>
 #include <fstream>
 
+#include "app/app.hpp"
+#include "common/app_base.hpp"
 #include "common/encoding_solidity.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "plugin/rpc.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
@@ -111,7 +115,7 @@ SharedTransaction make_redelegate_tx(const FullNodeConfig& sender_node_cfg, cons
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
 
-u256 own_balance(const std::shared_ptr<FullNode>& node) {
+u256 own_balance(const std::shared_ptr<AppBase>& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
 }
 
@@ -152,7 +156,8 @@ std::vector<blk_hash_t> getOrderedDagBlocks(const std::shared_ptr<DbStorage>& db
   return res;
 }
 
-void wait_for_balances(const shared_nodes_t& nodes, const expected_balances_map_t& balances, wait_opts to_wait) {
+void wait_for_balances(const std::vector<std::shared_ptr<AppBase>>& nodes, const expected_balances_map_t& balances,
+                       wait_opts to_wait) {
   wait(to_wait, [&](auto& ctx) {
     for (const auto& node : nodes) {
       for (const auto& b : balances) {
@@ -190,7 +195,7 @@ std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, Pb
   return vote;
 }
 
-std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>>& nodes) {
+std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<AppBase>>& nodes) {
   // Get highest round from all nodes
   PbftPeriod max_period = 0;
   PbftRound max_round = 1;
@@ -223,7 +228,7 @@ NodesTest::NodesTest() {
     log_cfg.verbosity = taraxa::logger::Verbosity::Error;
     cfg.log_configs.emplace_back(log_cfg);
     cfg.network.rpc.emplace();
-    cfg.network.rpc->address = boost::asio::ip::address::from_string("127.0.0.1");
+    cfg.network.rpc->address = boost::asio::ip::make_address("127.0.0.1");
     cfg.network.rpc->http_port = 7778 + i;
     cfg.network.rpc->ws_port = 8778 + i;
     cfg.node_secret = dev::KeyPair::create().secret();
@@ -352,13 +357,12 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
     if (!enable_rpc_ws) {
       cfg.network.rpc->ws_port = std::nullopt;
     }
-    cfg.enable_test_rpc = true;
   }
 
   return ret_configs;
 }
 
-bool NodesTest::wait_connect(const std::vector<std::shared_ptr<taraxa::FullNode>>& nodes) {
+bool NodesTest::wait_connect(const std::vector<std::shared_ptr<AppBase>>& nodes) {
   auto num_peers_connected = nodes.size() - 1;
   return wait({60s, 100ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
@@ -369,38 +373,56 @@ bool NodesTest::wait_connect(const std::vector<std::shared_ptr<taraxa::FullNode>
   });
 }
 
-shared_nodes_t NodesTest::create_nodes(uint count, bool start) {
-  auto cfgs = make_node_cfgs(count);
-  // TODO: call create_nodes(cfgs) instead of this...
-  auto node_count = cfgs.size();
-  shared_nodes_t nodes;
-  for (uint j = 0; j < node_count; ++j) {
-    if (j > 0) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-    nodes.emplace_back(std::make_shared<taraxa::FullNode>(cfgs[j]));
-    if (start) nodes.back()->start();
+class TestConfig : public cli::Config {
+ public:
+  TestConfig(const FullNodeConfig& cfg) : cli::Config() {
+    node_configured_ = true;
+    node_config_ = cfg;
+    enableTestRpc();
   }
-  return nodes;
+  void enableTestRpc() {
+    cli_options_.insert(std::make_pair("rpc.enable-test-rpc", cli::bpo::variable_value(true, false)));
+    cli_options_.insert(std::make_pair("rpc.debug", cli::bpo::variable_value(true, false)));
+  }
+};
+
+std::shared_ptr<AppBase> NodesTest::create_node(const FullNodeConfig& cfg, bool start) {
+  auto app = std::make_shared<App>();
+
+  TestConfig cli_conf(cfg);
+
+  auto rpc_plugin = app->registerPlugin<plugin::Rpc>(cli_conf);
+
+  if (cli_conf.nodeConfigured()) {
+    for (const auto& plugin : cli_conf.getEnabledPlugins()) {
+      app->enablePlugin(plugin);
+    }
+    app->init(cli_conf);
+  }
+  if (start) {
+    app->start();
+  }
+  return app;
 }
 
-shared_nodes_t NodesTest::create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start) {
+std::vector<std::shared_ptr<AppBase>> NodesTest::create_nodes(uint count, bool start) {
+  auto cfgs = make_node_cfgs(count);
+  return create_nodes(cfgs, start);
+}
+
+std::vector<std::shared_ptr<AppBase>> NodesTest::create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start) {
   auto node_count = cfgs.size();
-  shared_nodes_t nodes;
+  std::vector<std::shared_ptr<AppBase>> nodes;
   for (uint j = 0; j < node_count; ++j) {
     if (j > 0) {
       std::this_thread::sleep_for(500ms);
     }
-    nodes.emplace_back(std::make_shared<FullNode>(cfgs[j]));
-
-    if (start) {
-      nodes.back()->start();
-    }
+    nodes.emplace_back(create_node(cfgs[j], start));
   }
   return nodes;
 }
 
-shared_nodes_t NodesTest::launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs) {
+std::vector<std::shared_ptr<AppBase>> NodesTest::launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs) {
   constexpr auto RETRY_COUNT = 4;
   auto node_count = cfgs.size();
   for (auto i = RETRY_COUNT;; --i) {
