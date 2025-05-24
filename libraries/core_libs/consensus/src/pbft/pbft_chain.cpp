@@ -8,17 +8,18 @@ using namespace std;
 
 namespace taraxa {
 
-PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
-    : size_(0), non_empty_size_(0), db_(std::move(db)) {
-  LOG_OBJECTS_CREATE("PBFT_CHAIN");
-
+PbftChain::PbftChain(std::shared_ptr<DbStorage> db)
+    : size_(0),
+      non_empty_size_(0),
+      db_(std::move(db)),
+      logger_(spdlogger::Logging::get().CreateChannelLogger("PBFT_CHAIN")) {
   // Get PBFT head from DB
   auto pbft_head_str = db_->getPbftHead(head_hash_);
   if (pbft_head_str.empty()) {
     // Store PBFT HEAD to db
     auto head_json_str = getJsonStr();
     db_->savePbftHead(head_hash_, head_json_str);
-    LOG(log_nf_) << "Initialize PBFT chain head " << head_json_str;
+    logger_->info("Initialize PBFT chain head {}", head_json_str);
     return;
   }
 
@@ -41,7 +42,7 @@ PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
       last_non_null_pbft_dag_anchor_hash_ = prev_pbft_block.getPivotDagBlockHash();
     }
   }
-  LOG(log_nf_) << "Retrieve from DB, PBFT chain head " << getJsonStr();
+  logger_->info("Retrieve from DB, PBFT chain head {}", getJsonStr());
 }
 
 blk_hash_t PbftChain::getHeadHash() const {
@@ -76,7 +77,7 @@ bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) 
 PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_hash) {
   auto pbft_block = db_->getPbftBlock(pbft_block_hash);
   if (!pbft_block.has_value()) {
-    LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash << " in DB";
+    logger_->error("Cannot find PBFT block hash {} in DB", pbft_block_hash);
     assert(false);
   }
   return *pbft_block;
@@ -94,15 +95,15 @@ void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t co
 
 bool PbftChain::checkPbftBlockValidation(const std::shared_ptr<PbftBlock>& pbft_block) const {
   if (getPbftChainSize() + 1 != pbft_block->getPeriod()) {
-    LOG(log_er_) << "Pbft validation failed. PBFT chain size " << getPbftChainSize()
-                 << ". Pbft block period: " << pbft_block->getPeriod() << " for block " << pbft_block->getBlockHash();
+    logger_->error("Pbft validation failed. PBFT chain size {}. Pbft block period: {} for block {}", getPbftChainSize(),
+                   pbft_block->getPeriod(), pbft_block->getBlockHash());
     return false;
   }
 
   auto last_pbft_block_hash = getLastPbftBlockHash();
   if (pbft_block->getPrevBlockHash() != last_pbft_block_hash) {
-    LOG(log_er_) << "PBFT chain last block hash " << last_pbft_block_hash << " Invalid PBFT prev block hash "
-                 << pbft_block->getPrevBlockHash() << " in block " << pbft_block->getBlockHash();
+    logger_->error("PBFT chain last block hash {}. Invalid PBFT prev block hash {} in block {}", last_pbft_block_hash,
+                   pbft_block->getPrevBlockHash(), pbft_block->getBlockHash());
     return false;
   }
 

@@ -4,8 +4,8 @@
 #include <shared_mutex>
 #include <string>
 
-#include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
+#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 
@@ -23,7 +23,7 @@ struct Transaction;
  */
 class PbftChain {
  public:
-  explicit PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db);
+  explicit PbftChain(std::shared_ptr<DbStorage> db);
 
   /**
    * @brief Get PBFT chain head hash
@@ -109,7 +109,7 @@ class PbftChain {
 
   std::shared_ptr<DbStorage> db_ = nullptr;
 
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 
