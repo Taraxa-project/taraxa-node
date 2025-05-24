@@ -281,7 +281,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   const GenesisConfig kGenesis;
   const uint64_t kValidatorMaxVote;
 
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 
 /** @}*/

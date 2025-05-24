@@ -14,7 +14,7 @@
 #include <string>
 
 #include "common/types.hpp"
-#include "logger/logger.hpp"
+#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 
@@ -56,7 +56,7 @@ class Dag {
 
   friend DagManager;
 
-  explicit Dag(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr);
+  explicit Dag(blk_hash_t const &dag_genesis_block_hash);
   virtual ~Dag() = default;
 
   Dag(const Dag &) = default;
@@ -88,7 +88,7 @@ class Dag {
   graph_t graph_;
 
  protected:
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 
 /**
