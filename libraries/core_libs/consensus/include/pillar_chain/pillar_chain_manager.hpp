@@ -4,9 +4,9 @@
 
 #include "common/event.hpp"
 #include "final_chain/data.hpp"
-#include "logger/logger.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "pillar_chain/pillar_votes.hpp"
+#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 class DbStorage;
@@ -38,8 +38,7 @@ class PillarChainManager {
 
  public:
   PillarChainManager(const FicusHardforkConfig& ficus_hf_config, std::shared_ptr<DbStorage> db,
-                     std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
-                     addr_t node_addr);
+                     std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager);
 
   /**
    * @Process Creates new pillar block
@@ -176,8 +175,6 @@ class PillarChainManager {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<KeyManager> key_manager_;
 
-  const addr_t node_addr_;
-
   // Last finalized pillar block - saved into db together with > threshold votes
   std::shared_ptr<PillarBlock> last_finalized_pillar_block_;
   // Current pillar block
@@ -192,7 +189,7 @@ class PillarChainManager {
   // Protects last_finalized_pillar_block_ & current_pillar_block_
   mutable std::shared_mutex mutex_;
 
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 
 /** @}*/
