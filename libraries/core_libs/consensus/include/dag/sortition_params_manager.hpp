@@ -35,7 +35,7 @@ struct SortitionParamsChange {
  */
 class SortitionParamsManager {
  public:
-  SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
+  SortitionParamsManager(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
   SortitionParams getSortitionParams(std::optional<PbftPeriod> for_period = {}) const;
 
   /**
@@ -80,7 +80,7 @@ class SortitionParamsManager {
   int32_t getNewUpperRange(uint16_t efficiency) const;
   void cleanup();
 
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 /** @}*/
 
