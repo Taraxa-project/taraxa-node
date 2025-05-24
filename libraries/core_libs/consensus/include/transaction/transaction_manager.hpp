@@ -6,7 +6,7 @@
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
-#include "logger/logger.hpp"
+#include "spdlogger/logging.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"
 #include "transaction_queue.hpp"
@@ -54,7 +54,7 @@ class DagManager;
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:
   TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db,
-                     std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr);
+                     std::shared_ptr<final_chain::FinalChain> final_chain);
 
   /**
    * @brief Estimates required gas value to execute transactions
@@ -283,7 +283,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   util::ThreadPool estimation_thread_pool_;
 
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 
  public:
   util::Event<TransactionManager, const trx_hash_t &> const transaction_added_{};

@@ -8,20 +8,20 @@
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
-#include "logger/logger.hpp"
+#include "spdlogger/logging.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
 TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db,
-                                       std::shared_ptr<final_chain::FinalChain> final_chain, addr_t node_addr)
+                                       std::shared_ptr<final_chain::FinalChain> final_chain)
     : kConf(conf),
       transactions_pool_(final_chain, kConf.transactions_pool_size),
       estimations_cache_(kConf.transactions_pool_size / 10, kConf.transactions_pool_size / 100),
       kDagBlockGasLimit(kConf.genesis.dag.gas_limit),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)),
-      estimation_thread_pool_(std::thread::hardware_concurrency() / 2) {
-  LOG_OBJECTS_CREATE("TRXMGR");
+      estimation_thread_pool_(std::thread::hardware_concurrency() / 2),
+      logger_(spdlogger::Logging::get().CreateChannelLogger("TRXMGR")){
   {
     std::unique_lock transactions_lock(transactions_mutex_);
     trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
@@ -192,7 +192,7 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
   }
 
   const auto last_block_number = final_chain_->lastBlockNumber();
-  LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
+  logger_->debug("Transaction {} inserted in trx pool",trx_hash);
   if (proposable) {
     transaction_added_.emit(tx->getHash());
   }
@@ -262,7 +262,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
         db_->addTransactionToBatch(*t, write_batch);
         nonfinalized_transactions_in_dag_.emplace(trx_hash, t);
         if (transactions_pool_.erase(t)) {
-          LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
+          logger_->debug("Transaction {} removed from trx pool", trx_hash);
         }
         trx_count_++;
       }
@@ -350,7 +350,7 @@ bool TransactionManager::verifyTransactionsNotFinalized(const SharedTransactions
     const auto tx_hash = t->getHash();
 
     if (recently_finalized_transactions_.contains(tx_hash)) {
-      LOG(log_er_) << "Transaction " << tx_hash << " already finalized";
+      logger_->error("Transaction {} already finalized", tx_hash);
       return false;
     }
 
@@ -361,7 +361,7 @@ bool TransactionManager::verifyTransactionsNotFinalized(const SharedTransactions
       // The check against database is needed because there is a possibility that transaction was executed within last
       // 100 period (dag proposal period) but it might not be part of recently_finalized_transactions_
       if (db_->transactionFinalized(tx_hash)) {
-        LOG(log_er_) << "Transaction " << tx_hash << " already finalized in db";
+        logger_->error("Transaction {} already finalized in db",tx_hash);
         return false;
       }
     }
@@ -393,7 +393,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
 
     auto estimate = estimateTransactionGas(trxs[i], proposal_period);
     if (estimate.gas_used < kMinTxGas) {
-      LOG(log_er_) << "Transaction " << trxs[i]->getHash() << " has invalid estimation: " << estimate.gas_used;
+      logger_->error("Transaction {} has invalid estimation: {}",trxs[i]->getHash(), estimate.gas_used);
       std::unique_lock transactions_lock(transactions_mutex_);
       auto trx = trxs[i];
       transactions_pool_.erase(trx);
@@ -452,10 +452,10 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
       if (!nonfinalized_transactions_in_dag_.erase(hash)) {
         trx_count_++;
       } else {
-        LOG(log_dg_) << "Transaction " << hash << " removed from nonfinalized transactions";
+        logger_->debug("Transaction {} removed from nonfinalized transactions",hash);
       }
       if (transactions_pool_.erase(trx)) {
-        LOG(log_dg_) << "Transaction " << hash << " removed from transactions_pool_";
+        logger_->debug("Transaction {} removed from transactions_pool_",hash);
       }
     }
     db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
@@ -517,7 +517,7 @@ SharedTransactions TransactionManager::getTransactions(const vec_trx_t &trxs_has
     // Only include transactions with valid nonce at proposal period
     auto acc = final_chain_->getAccount(trx->getSender(), proposal_period);
     if (acc.has_value() && acc->nonce > trx->getNonce()) {
-      LOG(log_er_) << "Old transaction: " << trx->getHash();
+      logger_->error("Old transaction: {}", trx->getHash());
     } else {
       transactions.emplace_back(std::move(trx));
     }
