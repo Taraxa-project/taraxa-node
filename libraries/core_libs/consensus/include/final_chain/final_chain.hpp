@@ -35,7 +35,7 @@ class FinalChain {
   decltype(block_applying_emitter_)::Subscriber const& block_applying_ = block_applying_emitter_;
 
   ~FinalChain() = default;
-  FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr);
+  FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config);
   FinalChain(const FinalChain&) = delete;
   FinalChain(FinalChain&&) = delete;
   FinalChain& operator=(const FinalChain&) = delete;
@@ -346,7 +346,7 @@ class FinalChain {
   std::atomic<EthBlockNumber> last_block_number_;
 
   const FullNodeConfig& kConfig;
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 
 /** @} */

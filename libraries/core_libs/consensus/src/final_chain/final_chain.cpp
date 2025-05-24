@@ -14,8 +14,7 @@
 #include "transaction/system_transaction.hpp"
 
 namespace taraxa::final_chain {
-FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config,
-                       const addr_t& node_addr)
+FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullNodeConfig& config)
     : db_(db),
       kBlockGasLimit(config.genesis.pbft.gas_limit),
       state_api_([this](auto n) { return blockHash(n).value_or(ZeroHash()); },  //
@@ -45,8 +44,8 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
           config.final_chain_cache_in_blocks,
           [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
       block_receipts_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return getBlockReceipts(blk); }),
-      kConfig(config) {
-  LOG_OBJECTS_CREATE("EXECUTOR");
+      kConfig(config),
+      logger_(spdlogger::Logging::get().CreateChannelLogger("EXECUTOR")) {
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   auto state_db_descriptor = state_api_.get_last_committed_state_descriptor();
@@ -101,12 +100,12 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
     auto prune_block_num = *last_blk_num - kPruneStateDbThreshold;
     auto prune_block = getBlockHeader(prune_block_num);
     if (!prune_block) {
-      LOG(log_si_) << "Prune was done recently, skip state db pruning";
+      logger_->info("Prune was done recently, skip state db pruning");
       return;
     }
-    LOG(log_si_) << "Pruning state db, this might take several minutes";
+    logger_->info("Pruning state db, this might take several minutes");
     prune(prune_block_num);
-    LOG(log_si_) << "Pruning state db complete";
+    logger_->info("Pruning state db complete");
   }
 }
 
@@ -229,8 +228,9 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   if (!finalized_dag_blk_hashes.empty()) {
     db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
     db_->insert(batch, DbStorage::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
-    LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
-                 << num_executed_dag_blk_ - 1 << " , Transactions count: " << all_transactions.size();
+    logger_->info("Executed dag blocks #{}-{} , Transactions count: {}",
+                  num_executed_dag_blk_ - finalized_dag_blk_hashes.size(), num_executed_dag_blk_ - 1,
+                  all_transactions.size());
   }
 
   //// Update DAG lvl mapping
@@ -275,7 +275,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   block_headers_cache_.append(blk_header->number, blk_header);
   last_block_number_ = blk_header->number;
   block_finalized_emitter_.emit(result);
-  LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
+  logger_->info(" successful finalize block {} with number {}", result->hash, blk_header->number);
 
   // Creates snapshot if needed
   if (db_->createSnapshot(blk_header->number)) {
@@ -286,7 +286,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
 }
 
 void FinalChain::prune(EthBlockNumber blk_n) {
-  LOG(log_nf_) << "Pruning data older than " << blk_n;
+  logger_->info("Pruning data older than {}", blk_n);
   auto last_block_to_keep = getBlockHeader(blk_n);
   if (last_block_to_keep) {
     auto block_to_keep = last_block_to_keep;
