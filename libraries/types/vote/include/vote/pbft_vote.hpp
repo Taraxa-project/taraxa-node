@@ -112,15 +112,17 @@ class PbftVote : public Vote {
    */
   std::optional<uint64_t> getWeight() const;
 
-  friend std::ostream& operator<<(std::ostream& strm, PbftVote const& vote) {
+  std::string toString() const {
+    std::ostringstream strm;
     strm << "[Vote] " << std::endl;
-    strm << "  vote_hash: " << vote.vote_hash_ << std::endl;
-    strm << "  voter: " << vote.getVoter() << std::endl;
-    strm << "  vote_signature: " << vote.vote_signature_ << std::endl;
-    strm << "  blockhash: " << vote.block_hash_ << std::endl;
-    if (vote.weight_) strm << "  weight: " << vote.weight_.value() << std::endl;
-    strm << "  vrf_sortition: " << vote.vrf_sortition_ << std::endl;
-    return strm;
+    strm << "  vote_hash: " << vote_hash_ << std::endl;
+    strm << "  voter: " << getVoter() << std::endl;
+    strm << "  vote_signature: " << vote_signature_ << std::endl;
+    strm << "  blockhash: " << block_hash_ << std::endl;
+    if (weight_) strm << "  weight: " << weight_.value() << std::endl;
+    strm << "  vrf_sortition: " << vrf_sortition_ << std::endl;
+
+    return strm.str();
   }
 
   /**
