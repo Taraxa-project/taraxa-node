@@ -13,8 +13,8 @@
 
 #include "common/types.hpp"
 #include "final_chain/data.hpp"
-#include "logger/logger.hpp"
 #include "network/subscriptions.hpp"
+#include "spdlogger/logging.hpp"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
 namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
@@ -30,9 +30,8 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
       : ws_(std::move(socket)),
         ws_server_(ws_server),
         subscriptions_(std::bind(&WsSession::do_write, this, std::placeholders::_1)),
-        write_strand_(boost::asio::make_strand(ws_.get_executor())) {
-    LOG_OBJECTS_CREATE("WS_SESSION");
-  }
+        write_strand_(boost::asio::make_strand(ws_.get_executor())),
+        logger_(spdlogger::Logging::get().CreateChannelLogger("WS_SESSION")) {}
 
   // Start the asynchronous operation
   void run();
@@ -50,7 +49,6 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
                const TransactionReceipts& receipts);
 
-  LOG_OBJECTS_DEFINE
  private:
   static bool is_normal(const beast::error_code& ec);
   void on_close(beast::error_code ec);
@@ -73,5 +71,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   beast::flat_buffer read_buffer_;
   std::atomic<bool> closed_ = false;
   std::string ip_;
+
+  spdlogger::Logger logger_;
 };
 }  // namespace taraxa::net

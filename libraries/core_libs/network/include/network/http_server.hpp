@@ -5,8 +5,8 @@
 #include <boost/beast.hpp>
 
 #include "common/types.hpp"
-#include "logger/logger.hpp"
 #include "metrics/jsonrpc_metrics.hpp"
+#include "spdlogger/logging.hpp"
 
 namespace taraxa::net {
 
@@ -23,7 +23,7 @@ class HttpHandler;
 
 class HttpServer : public std::enable_shared_from_this<HttpServer> {
  public:
-  HttpServer(boost::asio::io_context& io, boost::asio::ip::tcp::endpoint ep, const addr_t& node_addr,
+  HttpServer(boost::asio::io_context& io, boost::asio::ip::tcp::endpoint ep,
              const std::shared_ptr<HttpProcessor>& request_processor, std::shared_ptr<metrics::JsonRpcMetrics> metrics);
 
   virtual ~HttpServer() { HttpServer::stop(); }
@@ -35,6 +35,7 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
   boost::asio::io_context& getIoContext() { return io_context_; }
   std::shared_ptr<HttpServer> getShared();
   std::shared_ptr<HttpConnection> createConnection();
+  spdlogger::Logger getLogger() const;
   friend HttpConnection;
   friend HttpHandler;
 
@@ -47,7 +48,7 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
   boost::asio::io_context& io_context_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::endpoint ep_;
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 // QQ:
 // Why RpcConnection and Rpc use different io_context?

@@ -29,7 +29,7 @@ void WsSession::run() {
   try {
     http::read(ws_.next_layer(), upgrade_request_buffer, upgrade_request);
   } catch (...) {
-    LOG(log_er_) << "Received WebSocket Upgrade Request: Exception";
+    logger_->error("Received WebSocket Upgrade Request: Exception");
     close();
     return;
   }
@@ -52,7 +52,7 @@ void WsSession::on_accept(beast::error_code ec) {
   if (is_closed()) return;
 
   if (ec) {
-    LOG(log_er_) << ec << " accept";
+    logger_->error("{} accept", ec.to_string());
     return close();
   }
 
@@ -71,11 +71,11 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   // For any error close the connection
   if (ec) {
-    LOG(log_nf_) << "WS closed in on_read " << ec;
+    logger_->info("WS closed in on_read {}", ec.to_string());
     return close(is_normal(ec));
   }
 
-  LOG(log_tr_) << "WS READ " << (static_cast<char *>(read_buffer_.data().data()));
+  logger_->trace("WS READ {}", (static_cast<char *>(read_buffer_.data().data())));
 
   handleRequest();
   // Do another read
@@ -87,16 +87,16 @@ void WsSession::handleRequest() {
 
   std::string request(static_cast<char *>(read_buffer_.data().data()), read_buffer_.size());
   read_buffer_.consume(read_buffer_.size());
-  LOG(log_tr_) << "processRequest " << request;
+  logger_->trace("processRequest {}", request);
 
   auto executor = ws_.get_executor();
   if (!executor) {
-    LOG(log_tr_) << "Executor missing - WS closed";
+    logger_->trace("Executor missing - WS closed");
     close();
     return;
   }
 
-  LOG(log_tr_) << "Before executor.post ";
+  logger_->trace("Before executor.post ");
   boost::asio::post(executor, [self = shared_from_this(), request = std::move(request)]() mutable {
     auto ws_server = self->ws_server_.lock();
     if (ws_server && ws_server->metrics_) {
@@ -109,25 +109,25 @@ void WsSession::handleRequest() {
       self->do_write(self->processRequest(request));
     }
   });
-  LOG(log_tr_) << "After executor.post ";
+  logger_->trace("After executor.post ");
 }
 
 void WsSession::do_write(std::string &&message) {
   if (is_closed()) return;
 
-  LOG(log_tr_) << "WS WRITE " << message.c_str();
+  logger_->trace("WS WRITE {}", message.c_str());
 
   if (const auto executor = ws_.get_executor(); !executor) {
-    LOG(log_tr_) << "Executor missing - WS closed";
+    logger_->trace("Executor missing - WS closed");
     close();
     return;
   }
 
-  LOG(log_tr_) << "Before async_write";
+  logger_->trace("Before async_write");
   boost::asio::post(write_strand_, [self = shared_from_this(), message = std::move(message)]() mutable {
     self->write(std::move(message));
   });
-  LOG(log_tr_) << "After async_write";
+  logger_->trace("After async_write");
 }
 
 void WsSession::write(std::string &&message) {
@@ -137,7 +137,7 @@ void WsSession::write(std::string &&message) {
     ws_.text(true);  // as we are using text msg here
     ws_.write(boost::asio::buffer(std::move(message)));
   } catch (const boost::system::system_error &e) {
-    // LOG(log_nf_) << "WS closed in on_write " << e.what();
+    // logger_->info("WS closed in on_write {}", e.what());
     return close(is_normal(e.code()));
   }
 }
@@ -152,9 +152,9 @@ void WsSession::close(bool normal) {
 
 void WsSession::on_close(beast::error_code ec) {
   if (ec) {
-    LOG(log_er_) << "Error during async_close: " << ec;
+    logger_->error("Error during async_close: {}", ec.to_string());
   } else {
-    LOG(log_tr_) << "Websocket closed successfully.";
+    logger_->trace("Websocket closed successfully.");
   }
 }
 
@@ -192,38 +192,41 @@ void WsSession::newLogs(const final_chain::BlockHeader &header, TransactionHashe
 
 WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr,
                    std::shared_ptr<metrics::JsonRpcMetrics> metrics)
-    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)), metrics_(metrics) {
-  LOG_OBJECTS_CREATE("WS_SERVER");
+    : ioc_(ioc),
+      acceptor_(ioc),
+      logger_(spdlogger::Logging::get().CreateChannelLogger("WS_SERVER")),
+      node_addr_(std::move(node_addr)),
+      metrics_(metrics) {
   beast::error_code ec;
 
   // Open the acceptor
   acceptor_.open(endpoint.protocol(), ec);
   if (ec) {
-    if (!stopped_) LOG(log_er_) << ec << " open";
+    if (!stopped_) logger_->error("{} open", ec.to_string());
     return;
   }
 
   // Allow address reuse
   acceptor_.set_option(boost::asio::socket_base::reuse_address(true), ec);
   if (ec) {
-    if (!stopped_) LOG(log_er_) << ec << " set_option";
+    if (!stopped_) logger_->error("{} set_option", ec.to_string());
     return;
   }
 
   // Bind to the server address
   acceptor_.bind(endpoint, ec);
   if (ec) {
-    if (!stopped_) LOG(log_er_) << ec << " bind";
+    if (!stopped_) logger_->error("{} bind", ec.to_string(), ec.to_string());
     return;
   }
 
   // Start listening for connections
   acceptor_.listen(boost::asio::socket_base::max_listen_connections, ec);
   if (ec) {
-    if (!stopped_) LOG(log_er_) << ec << " listen";
+    if (!stopped_) logger_->error("{} listen", ec.to_string());
     return;
   }
-  LOG(log_si_) << "Taraxa WS started at port: " << endpoint;
+  logger_->info("Taraxa WS started at port: {}", endpoint);
 }
 
 // Start accepting incoming connections
@@ -248,7 +251,7 @@ void WsServer::do_accept() {
 void WsServer::on_accept(beast::error_code ec, tcp::socket socket) {
   if (ec) {
     if (!stopped_) {
-      LOG(log_er_) << ec << " Error on server accept, WS server down, check port";
+      logger_->error("{} Error on server accept, WS server down, check port", ec.to_string());
       return;
     }
   } else {

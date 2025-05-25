@@ -42,12 +42,12 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
  private:
   void do_accept();
   void on_accept(beast::error_code ec, tcp::socket socket);
-  LOG_OBJECTS_DEFINE
   boost::asio::io_context& ioc_;
   tcp::acceptor acceptor_;
   std::list<std::shared_ptr<WsSession>> sessions_;
   std::atomic<bool> stopped_ = false;
   boost::shared_mutex sessions_mtx_;
+  spdlogger::Logger logger_;
 
  protected:
   const addr_t node_addr_;
