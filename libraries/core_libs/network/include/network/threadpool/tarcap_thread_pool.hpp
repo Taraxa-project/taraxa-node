@@ -5,9 +5,9 @@
 #include <thread>
 #include <vector>
 
-#include "logger/logger.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "priority_queue.hpp"
+#include "spdlogger/logging.hpp"
 
 namespace taraxa::network::tarcap {
 class PacketsHandler;
@@ -27,8 +27,7 @@ class PacketsThreadPool {
   /**
    * @param workers_num  Number of workers
    **/
-  PacketsThreadPool(size_t workers_num = 10, const std::shared_ptr<PbftManager>& pbft_mgr = nullptr,
-                    const addr_t& node_addr = {});
+  PacketsThreadPool(size_t workers_num = 10, const std::shared_ptr<PbftManager>& pbft_mgr = nullptr);
   ~PacketsThreadPool();
 
   PacketsThreadPool(const PacketsThreadPool&) = delete;
@@ -75,9 +74,6 @@ class PacketsThreadPool {
   std::tuple<size_t, size_t, size_t> getQueueSize() const;
 
  private:
-  // Declare logger instances
-  LOG_OBJECTS_DEFINE
-
   // Number of workers(threads)
   const size_t workers_num_;
 
@@ -101,6 +97,9 @@ class PacketsThreadPool {
 
   // Vector of worker threads - should be initialized as the last member
   std::vector<std::thread> workers_;
+
+  // Declare logger instances
+  spdlogger::Logger logger_;
 };
 
 }  // namespace taraxa::network::threadpool

@@ -5,18 +5,16 @@
 
 namespace taraxa::network::threadpool {
 
-PacketsThreadPool::PacketsThreadPool(size_t workers_num, const std::shared_ptr<PbftManager>& pbft_mgr,
-                                     const addr_t& node_addr)
+PacketsThreadPool::PacketsThreadPool(size_t workers_num, const std::shared_ptr<PbftManager>& pbft_mgr)
     : workers_num_(workers_num),
       packets_handlers_(),
       stopProcessing_(false),
       packets_count_(0),
-      queue_(workers_num, pbft_mgr, node_addr),
+      queue_(workers_num, pbft_mgr),
       queue_mutex_(),
       cond_var_(),
-      workers_() {
-  LOG_OBJECTS_CREATE("TARCAP_TP");
-}
+      workers_(),
+      logger_(spdlogger::Logging::get().CreateChannelLogger("TARCAP_TP")) {}
 
 PacketsThreadPool::~PacketsThreadPool() {
   stopProcessing();
@@ -35,7 +33,7 @@ PacketsThreadPool::~PacketsThreadPool() {
  **/
 std::optional<uint64_t> PacketsThreadPool::push(std::pair<tarcap::TarcapVersion, PacketData>&& packet_data) {
   if (stopProcessing_) {
-    LOG(log_wr_) << "Trying to push packet while tp processing is stopped";
+    logger_->warn("Trying to push packet while tp processing is stopped");
     return {};
   }
 
@@ -53,7 +51,7 @@ std::optional<uint64_t> PacketsThreadPool::push(std::pair<tarcap::TarcapVersion,
     cond_var_.notify_one();
   }
 
-  LOG(log_dg_) << "New packet pushed: " << packet_type_str << ", id(" << packet_unique_id << ")";
+  logger_->debug("New packet pushed: {}, id({})", packet_type_str, packet_unique_id);
   return {packet_unique_id};
 }
 
@@ -80,7 +78,7 @@ void PacketsThreadPool::stopProcessing() {
  * @brief Threadpool sycnchronized processing function, which calls user-defined custom processing function
  **/
 void PacketsThreadPool::processPacket(size_t worker_id) {
-  LOG(log_dg_) << "Worker (" << worker_id << ") started";
+  logger_->debug("Worker ({}) started", worker_id);
   std::unique_lock<std::mutex> lock(queue_mutex_, std::defer_lock);
 
   // Packet to be processed
@@ -95,15 +93,15 @@ void PacketsThreadPool::processPacket(size_t worker_id) {
     // is not empty but it would return empty optional as the second syncing packet is blocked by the first one
     while (!(packet = queue_.pop())) {
       if (stopProcessing_) {
-        LOG(log_dg_) << "Worker (" << worker_id << "): finished";
+        logger_->debug("Worker ({}): finished", worker_id);
         return;
       }
 
       cond_var_.wait(lock);
     }
 
-    LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
-                 << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first;
+    logger_->debug("Worker ({}) process packet: {}, id: {}, tarcap version: {}", worker_id, packet->second.type_str_,
+                   packet->second.id_, packet->first);
 
     queue_.updateDependenciesStart(packet->second);
     lock.unlock();
@@ -112,9 +110,8 @@ void PacketsThreadPool::processPacket(size_t worker_id) {
       // Get packets handler based on tarcap version
       const auto packets_handler = packets_handlers_.find(packet->first);
       if (packets_handler == packets_handlers_.end()) {
-        LOG(log_er_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
-                     << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first
-                     << " error: Unsupported tarcap version !";
+        logger_->error("Worker ({}) process packet: {}, id: {}, tarcap version: {} error: Unsupported tarcap version !",
+                       worker_id, packet->second.type_str_, packet->second.id_, packet->first);
         assert(false);
         throw std::runtime_error("Unsupported tarcap version " + std::to_string(packet->first));
       }
@@ -125,13 +122,11 @@ void PacketsThreadPool::processPacket(size_t worker_id) {
       // Process packet by specific packet type handler
       handler->processPacket(packet->second);
     } catch (const std::exception& e) {
-      LOG(log_er_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
-                   << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first
-                   << " processing exception caught: " << e.what();
+      logger_->error("Worker ({}) process packet: {}, id: {}, tarcap version: {} processing exception caught: {}",
+                     worker_id, packet->second.type_str_, packet->second.id_, packet->first, e.what());
     } catch (...) {
-      LOG(log_er_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
-                   << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first
-                   << " processing unknown exception caught";
+      logger_->error("Worker ({}) process packet: {}, id: {}, tarcap version: {} processing unknown exception caught",
+                     worker_id, packet->second.type_str_, packet->second.id_, packet->first);
     }
 
     // Once packet handler is done with processing, update priority queue dependencies
@@ -142,7 +137,7 @@ void PacketsThreadPool::processPacket(size_t worker_id) {
 void PacketsThreadPool::setPacketsHandlers(tarcap::TarcapVersion tarcap_version,
                                            std::shared_ptr<tarcap::PacketsHandler> packets_handlers) {
   if (!packets_handlers_.emplace(tarcap_version, std::move(packets_handlers)).second) {
-    LOG(log_er_) << "Packets handler for capability version " << tarcap_version << " already set";
+    logger_->error("Packets handler for capability version {} already set", tarcap_version);
     assert(false);
   }
 }
