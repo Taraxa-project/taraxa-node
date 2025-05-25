@@ -12,15 +12,15 @@ class Base {
 
   bool isApplied() { return db_->lookup_int<bool>(id(), DbStorage::Columns::migrations).has_value(); }
 
-  void apply(logger::Logger& log) {
-    migrate(log);
+  void apply(spdlogger::Logger& logger) {
+    migrate(logger);
     setApplied();
     db_->commitWriteBatch(batch_);
   }
 
  protected:
   // Method with custom logic. All db changes should be made using `batch_`
-  virtual void migrate(logger::Logger& log) = 0;
+  virtual void migrate(spdlogger::Logger& logger) = 0;
 
   void setApplied() { db_->insert(batch_, DbStorage::Columns::migrations, id(), true); }
 

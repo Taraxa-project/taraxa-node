@@ -18,7 +18,7 @@ std::string TransactionReceiptsByPeriod::id() { return "TransactionReceiptsByPer
 
 uint32_t TransactionReceiptsByPeriod::dbVersion() { return 1; }
 
-void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
+void TransactionReceiptsByPeriod::migrate(spdlogger::Logger& logger) {
   auto orig_col = DbStorage::Columns::final_chain_receipt_by_trx_hash;
   auto target_col = DbStorage::Columns::final_chain_receipt_by_period;
   db_->read_options_.async_io = true;
@@ -32,14 +32,14 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
     if (!target_it->Valid()) {
       it->SeekToLast();
       if (!it->Valid()) {
-        LOG(log) << "No period data found";
+        logger->info("No period data found");
         return;
       }
       memcpy(&start_period, it->key().data(), sizeof(uint64_t));
-      LOG(log) << "Migrating from period " << start_period;
+      logger->info("Migrating from period {}", start_period);
     } else {
       memcpy(&start_period, target_it->key().data(), sizeof(uint64_t));
-      LOG(log) << "Migrating from period " << start_period;
+      logger->info("Migrating from period {}", start_period);
       // Start from the smallest migrated period
       it->SeekForPrev(target_it->key());
       it->Prev();
@@ -52,7 +52,7 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
     uint64_t period;
     memcpy(&period, it->key().data(), sizeof(uint64_t));
     if (period % 10000 == 0) {
-      LOG(log) << "Migrating period " << period;
+      logger->info("Migrating period {}", period);
     }
     const auto transactions = db_->transactionsFromPeriodDataRlp(period, dev::RLP(it->value().ToString()));
     if (transactions.empty()) {
