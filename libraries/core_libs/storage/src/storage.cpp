@@ -31,11 +31,12 @@ static constexpr uint16_t PILLAR_VOTES_POS_IN_PERIOD_DATA = 4;
 static constexpr uint16_t PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK = 0;
 
 DbStorage::DbStorage(const fs::path& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
-                     uint32_t db_max_snapshots, PbftPeriod db_revert_to_period, addr_t node_addr, bool rebuild)
+                     uint32_t db_max_snapshots, PbftPeriod db_revert_to_period, bool rebuild)
     : path_(path),
       handles_(Columns::all.size()),
       kDbSnapshotsEachNblock(db_snapshot_each_n_pbft_block),
-      kDbSnapshotsMaxCount(db_max_snapshots) {
+      kDbSnapshotsMaxCount(db_max_snapshots),
+      logger_(spdlogger::Logging::get().CreateChannelLogger("DBS")) {
   db_path_ = (path / kDbDir);
   state_db_path_ = (path / kStateDbDir);
   async_write_.sync = false;
@@ -53,7 +54,6 @@ DbStorage::DbStorage(const fs::path& path, uint32_t db_snapshot_each_n_pbft_bloc
     db_path_ = backup_db_path;
     state_db_path_ = backup_state_db_path;
   }
-  LOG_OBJECTS_CREATE("DBS");
 
   fs::create_directories(db_path_);
   removeTempFiles();
@@ -123,11 +123,11 @@ void DbStorage::removeFilesWithPattern(const std::string& directory, const std::
       const std::string& filename = entry.path().filename().string();
       if (std::regex_match(filename, pattern)) {
         std::filesystem::remove(entry.path());
-        LOG(log_dg_) << "Removed file: " << filename << std::endl;
+        logger_->debug("Removed file: {}", filename);
       }
     }
   } catch (const std::filesystem::filesystem_error& e) {
-    LOG(log_dg_) << "Error accessing directory: " << e.what() << std::endl;
+    logger_->debug("Error accessing directory: {}", e.what());
   }
 }
 
@@ -138,12 +138,12 @@ void DbStorage::deleteTmpDirectories(const std::string& path) const {
         std::string dirName = entry.path().filename().string();
         if (dirName.size() >= 4 && dirName.substr(dirName.size() - 4) == ".tmp") {
           fs::remove_all(entry.path());
-          LOG(log_dg_) << "Deleted: " << entry.path() << std::endl;
+          logger_->debug("Deleted: {}", entry.path().string());
         }
       }
     }
   } catch (const fs::filesystem_error& e) {
-    LOG(log_er_) << "Error: " << e.what() << std::endl;
+    logger_->error("Error: {}", e.what());
   }
 }
 
@@ -206,8 +206,8 @@ void DbStorage::replaceColumn(const Column& to_be_replaced_col,
       copyColumn(replacing_col.get(), to_be_replaced_col.name(), true);
 
   if (!replaced_col) {
-    LOG(log_er_) << "Unable to replace column " << to_be_replaced_col.name() << " by " << replacing_col->GetName()
-                 << " due to failed copy";
+    logger_->error("Unable to replace column {} by {} due to failed copy", to_be_replaced_col.name(),
+                   replacing_col->GetName());
     return;
   }
 
@@ -231,7 +231,7 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
   std::vector<std::string> column_families;
   rocksdb::DB::ListColumnFamilies(options, db_path_.string(), &column_families);
   if (column_families.empty()) {
-    LOG(log_wr_) << "DB isn't initialized in rebuildColumns. Skip it";
+    logger_->warn("DB isn't initialized in rebuildColumns. Skip it");
     return;
   }
 
@@ -273,7 +273,7 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
           it_dag_level->Next();
         }
       }
-      LOG(log_si_) << "Removing column: " << handles[i]->GetName();
+      logger_->info("Removing column: {}", handles[i]->GetName());
       checkStatus(db->DropColumnFamily(handles[i]));
     }
   }
@@ -301,10 +301,10 @@ void DbStorage::loadSnapshots() {
     } catch (...) {
       // This should happen if there is a incorrect formatted folder, just skip
       // it
-      LOG(log_er_) << "Unexpected file: " << fileName;
+      logger_->error("Unexpected file: {}", fileName);
       continue;
     }
-    LOG(log_dg_) << "Found snapshot: " << fileName;
+    logger_->debug("Found snapshot: {}", fileName);
     snapshots_.insert(dir_period);
   }
 }
@@ -316,7 +316,7 @@ bool DbStorage::createSnapshot(PbftPeriod period) {
     return false;
   }
 
-  LOG(log_nf_) << "Creating DB snapshot on period: " << period;
+  logger_->info("Creating DB snapshot on period: {}", period);
 
   // Create rocksdb checkpoint/snapshot
   rocksdb::Checkpoint* checkpoint;
@@ -343,7 +343,7 @@ bool DbStorage::createSnapshot(PbftPeriod period) {
 }
 
 void DbStorage::recoverToPeriod(PbftPeriod period) {
-  LOG(log_nf_) << "Revet to snapshot from period: " << period;
+  logger_->info("Revet to snapshot from period: {}", period);
 
   // Construct the snapshot folder names
   auto period_path = db_path_;
@@ -352,15 +352,15 @@ void DbStorage::recoverToPeriod(PbftPeriod period) {
   period_state_path += std::to_string(period);
 
   if (fs::exists(period_path)) {
-    LOG(log_dg_) << "Deleting current db/state";
+    logger_->debug("Deleting current db/state");
     fs::remove_all(db_path_);
     fs::remove_all(state_db_path_);
-    LOG(log_dg_) << "Reverting to period: " << period;
+    logger_->debug("Reverting to period: {}", period);
     fs::rename(period_path, db_path_);
     fs::rename(period_state_path, state_db_path_);
     // Delete all the period snapshots that are after the snapshot we are
     // reverting to
-    LOG(log_dg_) << "Deleting newer periods:";
+    logger_->debug("Deleting newer periods:");
     for (auto snapshot = snapshots_.begin(); snapshot != snapshots_.end();) {
       if (*snapshot > period) {
         deleteSnapshot(*snapshot);
@@ -370,12 +370,12 @@ void DbStorage::recoverToPeriod(PbftPeriod period) {
       }
     }
   } else {
-    LOG(log_er_) << "Period snapshot missing";
+    logger_->error("Period snapshot missing");
   }
 }
 
 void DbStorage::deleteSnapshot(PbftPeriod period) {
-  LOG(log_nf_) << "Deleting " << period << "snapshot";
+  logger_->info("Deleting {} snapshot", period);
 
   // Construct the snapshot folder names
   auto period_path = db_path_;
@@ -385,9 +385,9 @@ void DbStorage::deleteSnapshot(PbftPeriod period) {
 
   // Delete both db and state_db folder
   fs::remove_all(period_path);
-  LOG(log_dg_) << "Deleted folder: " << period_path;
+  logger_->debug("Deleted folder: {}", period_path.string());
   fs::remove_all(period_state_path);
-  LOG(log_dg_) << "Deleted folder: " << period_path;
+  logger_->debug("Deleted folder: {}", period_path.string());
 }
 
 void DbStorage::disableSnapshots() { snapshots_enabled_ = false; }
@@ -602,7 +602,7 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(PbftPer
 
 void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level_to_keep,
                                        PbftPeriod last_block_number) {
-  LOG(log_si_) << "Clear light node history";
+  logger_->info("Clear light node history");
 
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_data)));
   // Find the first non-deleted period
@@ -677,7 +677,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
   end_slice = toSlice(dag_level_to_keep - 1);
   db_->DeleteRange(async_write_, handle(Columns::dag_blocks_level), start_slice, end_slice);
   db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
-  LOG(log_si_) << "Clear light node history completed";
+  logger_->info("Clear light node history completed");
 }
 
 void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch) {
