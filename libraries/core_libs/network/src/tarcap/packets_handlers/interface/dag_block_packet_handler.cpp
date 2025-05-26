@@ -8,9 +8,9 @@ IDagBlockPacketHandler::IDagBlockPacketHandler(const FullNodeConfig &conf, std::
                                                std::shared_ptr<PbftChain> pbft_chain,
                                                std::shared_ptr<PbftManager> pbft_mgr,
                                                std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
-                                               const addr_t &node_addr, const std::string &logs_prefix)
+                                               const std::string &logs_prefix)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db),
                               logs_prefix) {}
 
 void IDagBlockPacketHandler::onNewBlockVerified(const std::shared_ptr<DagBlock> &block, bool proposed,
@@ -22,7 +22,7 @@ void IDagBlockPacketHandler::onNewBlockVerified(const std::shared_ptr<DagBlock> 
   }
 
   const auto &block_hash = block->getHash();
-  LOG(log_tr_) << "Verified dag block " << block_hash.toString();
+  logger_->trace("Verified dag block {}", block_hash.toString());
 
   std::vector<dev::p2p::NodeID> peers_to_send;
   for (auto const &peer : peers_state_->getAllPeers()) {
@@ -63,8 +63,8 @@ void IDagBlockPacketHandler::onNewBlockVerified(const std::shared_ptr<DagBlock> 
     sendBlockWithTransactions(peer, block, std::move(transactions_to_send));
   }
 
-  LOG(log_dg_) << "Send DagBlock " << block->getHash() << " to peers: " << peer_and_transactions_to_log;
-  LOG(log_tr_) << "Sent block to " << peers_to_send.size() << " peers";
+  logger_->debug("Send DagBlock {} to peers: {}", block->getHash(), peer_and_transactions_to_log);
+  logger_->trace("Sent block to {} peers", peers_to_send.size());
 }
 
 void IDagBlockPacketHandler::requestDagBlocks(std::shared_ptr<TaraxaPeer> peer) { requestPendingDagBlocks(peer); }

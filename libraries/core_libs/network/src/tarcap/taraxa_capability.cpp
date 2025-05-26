@@ -41,12 +41,11 @@ TaraxaCapability::TaraxaCapability(
       peers_state_(nullptr),
       pbft_syncing_state_(std::move(syncing_state)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(std::move(threadpool)) {
+      thread_pool_(std::move(threadpool)),
+      logger_(spdlogger::Logging::get().CreateChannelLogger("TARCAP")) {
   // const std::string logs_prefix = "V" + std::to_string(version) + "_";
   const std::string logs_prefix = "";
   const auto &node_addr = kConf.getFirstWallet().node_addr;
-
-  LOG_OBJECTS_CREATE(logs_prefix + "TARCAP");
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
   packets_handlers_ = init_packets_handlers(logs_prefix, conf, genesis_hash, peers_state_, pbft_syncing_state_,
@@ -66,7 +65,7 @@ unsigned TaraxaCapability::messageCount() const { return SubprotocolPacketType::
 void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 const &) {
   const auto session_p = session.lock();
   if (!session_p) {
-    LOG(log_er_) << "Unable to obtain session ptr !";
+    logger_->error("Unable to obtain session ptr !");
     return;
   }
 
@@ -74,36 +73,48 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
 
   if (peers_state_->is_peer_malicious(node_id)) {
     session_p->disconnect(dev::p2p::UserReason);
-    LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
+    logger_->warn(
+        "Node {}"
+        " connection dropped - malicious node",
+        node_id);
     return;
   }
 
   // If queue is over the limit do not allow new nodes to connect until queue size is reduced
   if (queue_over_limit_ && peers_state_->getPeersCount() >= last_disconnect_number_of_peers_) {
     session_p->disconnect(dev::p2p::UserReason);
-    LOG(log_wr_) << "Node " << node_id << " connection dropped - queue over limit";
+    logger_->warn(
+        "Node {}"
+        " connection dropped - queue over limit",
+        node_id);
     return;
   }
 
   peers_state_->addPendingPeer(node_id, session_p->info().host + ":" + std::to_string(session_p->info().port));
-  LOG(log_nf_) << "Node " << node_id << " connected";
+  logger_->info(
+      "Node {}"
+      " connected",
+      node_id);
 
   auto status_packet_handler = getSpecificHandler<ISyncPacketHandler>(network::SubprotocolPacketType::kStatusPacket);
   status_packet_handler->sendStatus(node_id, true);
 }
 
 void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
-  LOG(log_nf_) << "Node " << _nodeID << " disconnected";
+  logger_->info(
+      "Node {}"
+      " disconnected",
+      _nodeID);
   peers_state_->erasePeer(_nodeID);
 
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
   if (pbft_syncing_state_->isPbftSyncing() && syncing_peer && syncing_peer->getId() == _nodeID) {
     pbft_syncing_state_->setPbftSyncing(false);
     if (peers_state_->getPeersCount() > 0) {
-      LOG(log_dg_) << "Restart PBFT/DAG syncing due to syncing peer disconnect.";
+      logger_->debug("Restart PBFT/DAG syncing due to syncing peer disconnect.");
       getSpecificHandler<ISyncPacketHandler>(network::SubprotocolPacketType::kPbftSyncPacket)->startSyncingPbft();
     } else {
-      LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
+      logger_->debug("Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.");
     }
   }
 }
@@ -116,7 +127,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
                                                  dev::RLP const &_r) {
   const auto session_p = session.lock();
   if (!session_p) {
-    LOG(log_er_) << "Unable to obtain session ptr !";
+    logger_->error("Unable to obtain session ptr !");
     return;
   }
 
@@ -124,7 +135,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
 
   auto host = peers_state_->host_.lock();
   if (!host) {
-    LOG(log_er_) << "Unable to process packet, host == nullptr";
+    logger_->error("Unable to process packet, host == nullptr");
     return;
   }
 
@@ -134,13 +145,16 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
   // and received initial status packet
   const auto peer = peers_state_->getPacketSenderPeer(node_id, packet_type);
   if (!peer.first) [[unlikely]] {
-    LOG(log_wr_) << "Unable to push packet into queue. Reason: " << peer.second;
+    logger_->warn("Unable to push packet into queue. Reason: {}", peer.second);
     host->disconnect(node_id, dev::p2p::UserReason);
     return;
   }
 
   if (pbft_syncing_state_->isDeepPbftSyncing() && filterSyncIrrelevantPackets(packet_type)) {
-    LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";
+    logger_->debug(
+        "Ignored {}"
+        " because we are still syncing",
+        convertPacketTypeToString(packet_type));
     return;
   }
 
@@ -158,16 +172,17 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     if (current_time_period <= kConf.network.ddos_protection.packets_stats_time_period_ms) {
       // Peer exceeded max allowed processing time for his packets
       if (peer_packets_stats.processing_duration_ > kConf.network.ddos_protection.peer_max_packets_processing_time_us) {
-        LOG(log_er_) << "Ignored " << convertPacketTypeToString(packet_type) << " from " << node_id
-                     << ". Peer's current packets processing time " << peer_packets_stats.processing_duration_.count()
-                     << " us, max allowed processing time "
-                     << kConf.network.ddos_protection.peer_max_packets_processing_time_us.count()
-                     << " us. Peer will be disconnected";
+        logger_->error(
+            "Ignored {}"
+            " from {}. Peer's current packets processing time {} us, max allowed processing time {} us. Peer will be "
+            "disconnected",
+            convertPacketTypeToString(packet_type), node_id, peer_packets_stats.processing_duration_.count(),
+            kConf.network.ddos_protection.peer_max_packets_processing_time_us.count());
         host->disconnect(node_id, dev::p2p::UserReason);
         return;
       }
     } else {
-      LOG(log_wr_) << "Unable to validate peer's max allowed packets processing time due to invalid time period";
+      logger_->warn("Unable to validate peer's max allowed packets processing time due to invalid time period");
     }
   }
 
@@ -215,9 +230,10 @@ void TaraxaCapability::handlePacketQueueOverLimit(std::shared_ptr<dev::p2p::Host
         }
 
         // Disconnect peer with the highest processing time
-        LOG(log_er_) << "Max allowed packets queue size " << kConf.network.ddos_protection.max_packets_queue_size
-                     << " exceeded: " << tp_queue_size << ". Peer with the highest processing time "
-                     << peer_max_processing_time.second << " will be disconnected";
+        logger_->error(
+            "Max allowed packets queue size {} exceeded: {}. Peer with the highest processing time {} will be "
+            "disconnected",
+            kConf.network.ddos_protection.max_packets_queue_size, tp_queue_size, peer_max_processing_time.second);
         host->disconnect(node_id, dev::p2p::UserReason);
         connected_peers.erase(node_id);
       }

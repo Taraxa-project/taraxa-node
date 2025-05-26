@@ -17,7 +17,7 @@ class GetDagSyncPacketHandler : public PacketHandler {
   GetDagSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagManager> dag_mgr,
-                          std::shared_ptr<DbStorage> db, const addr_t& node_addr, const std::string& logs_prefix = "");
+                          std::shared_ptr<DbStorage> db, const std::string& logs_prefix = "");
 
   void sendBlocks(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<DagBlock>>&& blocks,
                   SharedTransactions&& transactions, PbftPeriod request_period, PbftPeriod period);

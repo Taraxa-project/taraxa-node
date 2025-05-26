@@ -7,9 +7,9 @@ namespace taraxa::network::tarcap {
 PillarVotePacketHandler::PillarVotePacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                  std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
-                                                 const addr_t &node_addr, const std::string &logs_prefix)
+                                                 const std::string &logs_prefix)
     : IPillarVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pillar_chain_manager),
-                               node_addr, logs_prefix + "PILLAR_VOTE_PH") {}
+                               logs_prefix + "PILLAR_VOTE_PH") {}
 
 void PillarVotePacketHandler::process(const threadpool::PacketData &packet_data,
                                       const std::shared_ptr<TaraxaPeer> &peer) {
@@ -32,8 +32,7 @@ void PillarVotePacketHandler::sendPillarVote(const std::shared_ptr<TaraxaPeer> &
                                              const std::shared_ptr<PillarVote> &vote) {
   if (sealAndSend(peer->getId(), SubprotocolPacketType::kPillarVotePacket, encodePacketRlp(PillarVotePacket(vote)))) {
     peer->markPillarVoteAsKnown(vote->getHash());
-    LOG(log_dg_) << "Pillar vote " << vote->getHash() << ", period " << vote->getPeriod() << " sent to "
-                 << peer->getId();
+    logger_->debug("Pillar vote {}, period {} sent to {}", vote->getHash(), vote->getPeriod(), peer->getId());
   }
 }
 

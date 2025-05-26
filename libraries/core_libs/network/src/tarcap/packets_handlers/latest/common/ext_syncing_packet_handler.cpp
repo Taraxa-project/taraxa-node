@@ -15,7 +15,7 @@ ExtSyncingPacketHandler::ExtSyncingPacketHandler(const FullNodeConfig &conf, std
                                                  std::shared_ptr<PbftManager> pbft_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
                                                  const addr_t &node_addr, const std::string &log_channel_name)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), log_channel_name),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
@@ -31,19 +31,19 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
       return true;
     });
     if (!peer) {
-      LOG(this->log_nf_) << "requestPendingDagBlocks not possible since no peers are matching conditions";
+      logger_->info("requestPendingDagBlocks not possible since no peers are matching conditions");
       return;
     }
   }
 
   if (!peer) {
-    LOG(this->log_nf_) << "requestPendingDagBlocks not possible since no connected peers";
+    logger_->info("requestPendingDagBlocks not possible since no connected peers");
     return;
   }
 
   // This prevents ddos requesting dag blocks. We can only request this one time from one peer.
   if (peer->peer_dag_synced_) {
-    LOG(this->log_nf_) << "requestPendingDagBlocks not possible since already requested for peer";
+    logger_->info("requestPendingDagBlocks not possible since already requested for peer");
     return;
   }
 
@@ -52,10 +52,10 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
   if (pbft_sync_period == peer->pbft_chain_size_) {
     // This prevents parallel requests
     if (bool b = false; !peer->peer_dag_syncing_.compare_exchange_strong(b, !b)) {
-      LOG(this->log_nf_) << "requestPendingDagBlocks not possible since already requesting for peer";
+      logger_->info("requestPendingDagBlocks not possible since already requesting for peer");
       return;
     }
-    LOG(this->log_nf_) << "Request pending blocks from peer " << peer->getId();
+    logger_->info("Request pending blocks from peer {}", peer->getId());
     std::vector<blk_hash_t> known_non_finalized_blocks;
     auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
     for (auto &level_blocks : blocks) {

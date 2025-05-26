@@ -137,7 +137,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
   bool queue_over_limit_ = false;
   uint32_t last_disconnect_number_of_peers_ = 0;
 
-  LOG_OBJECTS_DEFINE
+  spdlogger::Logger logger_;
 };
 
 template <typename PacketHandlerType>

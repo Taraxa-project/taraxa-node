@@ -22,7 +22,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                           std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                           std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                          std::shared_ptr<DbStorage> db, const addr_t &node_addr, const std::string &log_channel_name);
+                          std::shared_ptr<DbStorage> db, const std::string &log_channel_name);
 
   virtual ~ExtSyncingPacketHandler() = default;
   ExtSyncingPacketHandler &operator=(const ExtSyncingPacketHandler &) = delete;

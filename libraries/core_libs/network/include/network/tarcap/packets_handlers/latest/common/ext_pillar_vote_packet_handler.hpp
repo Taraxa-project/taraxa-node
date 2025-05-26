@@ -10,7 +10,7 @@ class ExtPillarVotePacketHandler : public PacketHandler {
   ExtPillarVotePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                              std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
-                             const addr_t& node_addr, const std::string& log_channel);
+                             const std::string& log_channel);
 
  protected:
   bool processPillarVote(const std::shared_ptr<PillarVote>& vote, const std::shared_ptr<TaraxaPeer>& peer);

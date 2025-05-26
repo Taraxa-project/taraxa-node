@@ -8,17 +8,16 @@ IVotePacketHandler::IVotePacketHandler(const FullNodeConfig &conf, std::shared_p
                                        std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                                        std::shared_ptr<VoteManager> vote_mgr,
-                                       std::shared_ptr<SlashingManager> slashing_manager, const addr_t &node_addr,
+                                       std::shared_ptr<SlashingManager> slashing_manager,
                                        const std::string &logs_prefix)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
-                            logs_prefix) {}
+                            std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), logs_prefix) {}
 
 void IVotePacketHandler::onNewPbftVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
                                        bool rebroadcast) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
-      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
+      logger_->debug(" PBFT vote {}" vote->getHash() " not sent to {}" peer.first " peer syncing");
       continue;
     }
 
@@ -62,8 +61,8 @@ void IVotePacketHandler::onNewPbftVotesBundle(const std::vector<std::shared_ptr<
 void IVotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, const std::shared_ptr<PbftVote> &vote,
                                       const std::shared_ptr<PbftBlock> &block) {
   if (block && block->getBlockHash() != vote->getBlockHash()) {
-    LOG(log_er_) << "Vote " << vote->getHash().abridged() << " voted block " << vote->getBlockHash().abridged()
-                 << " != actual block " << block->getBlockHash().abridged();
+    logger_->error("Vote {} voted block {} != actual block {}", vote->getHash().abridged(),
+                   vote->getBlockHash().abridged(), block->getBlockHash().abridged());
     return;
   }
 
@@ -77,10 +76,10 @@ void IVotePacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, c
     peer->markPbftVoteAsKnown(vote->getHash());
     if (block) {
       peer->markPbftBlockAsKnown(block->getBlockHash());
-      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " together with block " << block->getBlockHash()
-                   << " sent to " << peer->getId();
+      logger_->debug(" PBFT vote {} together with block {} sent to ", vote->getHash(), block->getBlockHash(),
+                     peer->getId());
     } else {
-      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " sent to " << peer->getId();
+      logger_->debug(" PBFT vote {} sent to {}", vote->getHash(), peer->getId());
     }
   }
 }
@@ -94,8 +93,7 @@ void IVotePacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer> &
   auto sendVotes = [this, &peer](std::vector<std::shared_ptr<PbftVote>> &&votes) {
     auto packet = VotesBundlePacket{OptimizedPbftVotesBundle{.votes = std::move(votes)}};
     if (this->sealAndSend(peer->getId(), SubprotocolPacketType::kVotesBundlePacket, encodePacketRlp(packet))) {
-      LOG(this->log_dg_) << " Votes bundle with " << packet.votes_bundle.votes.size() << " votes sent to "
-                         << peer->getId();
+      logger_->debug(" Votes bundle with {} votes sent to {}", packet.votes_bundle.votes.size(), peer->getId());
       for (const auto &vote : packet.votes_bundle.votes) {
         peer->markPbftVoteAsKnown(vote->getHash());
       }

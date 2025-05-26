@@ -78,7 +78,7 @@ std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& n
   auto ret =
       pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id, kConf.transactions_pool_size, address));
   if (!ret.second) {
-    // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in pending peers list";
+    // logger_->error("Peer " << node_id.abridged() << " is already in pending peers list");
   }
 
   return ret.first->second;
@@ -102,7 +102,7 @@ std::shared_ptr<TaraxaPeer> PeersState::setPeerAsReadyToSendMessages(dev::p2p::N
   pending_peers_.erase(node_id);
   auto ret = peers_.emplace(node_id, std::move(peer));
   if (!ret.second) {
-    // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in peers list";
+    // logger_->error("Peer " << node_id.abridged() << " is already in peers list");
   }
 
   return ret.first->second;
@@ -167,9 +167,9 @@ std::shared_ptr<TaraxaPeer> PeersState::getMaxChainPeer(
       if (peer.second->peer_light_node &&
           pbft_mgr->pbftSyncingPeriod() + peer.second->peer_light_node_history < peer.second->pbft_chain_size_) {
         // TODO: do we neet this log ???
-        //        LOG(this->log_er_) << "Disconnecting from light node peer " << peer.first
+        //        logger_->error("Disconnecting from light node peer " << peer.first
         //                           << " History: " << peer.second->peer_light_node_history
-        //                           << " chain size: " << peer.second->pbft_chain_size_;
+        //                           << " chain size: " << peer.second->pbft_chain_size_);
         disconnectPeer(peer.first);
         continue;
       }
