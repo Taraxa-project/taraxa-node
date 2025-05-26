@@ -16,7 +16,7 @@
 #include <libdevcore/Exceptions.h>
 #include <libdevcore/Log.h>
 
-#include "Logging.h"
+#include <logger/logging.hpp>
 
 using namespace dev::p2p;
 
@@ -73,7 +73,7 @@ UPnP::UPnP()
   } else
 #endif
   {
-    taraxa::spdlogger::Logging::get().CreateChannelLogger("net")->info("UPnP device not found.");
+    taraxa::logger::Logging::get().CreateChannelLogger("net")->info("UPnP device not found.");
     BOOST_THROW_EXCEPTION(NoUPnPDevice());
   }
 }

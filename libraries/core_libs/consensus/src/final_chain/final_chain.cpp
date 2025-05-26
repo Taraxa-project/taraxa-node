@@ -45,7 +45,7 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
           [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
       block_receipts_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return getBlockReceipts(blk); }),
       kConfig(config),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("EXECUTOR")) {
+      logger_(logger::Logging::get().CreateChannelLogger("EXECUTOR")) {
   num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
   num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
   auto state_db_descriptor = state_api_.get_last_committed_state_descriptor();

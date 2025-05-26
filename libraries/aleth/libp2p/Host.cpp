@@ -6,12 +6,12 @@
 
 #include <chrono>
 #include <fstream>
+#include <logger/logging.hpp>
 #include <memory>
 #include <set>
 
 #include "Capability.h"
 #include "Common.h"
-#include "Logging.h"
 #include "RLPxHandshake.h"
 #include "Session.h"
 
@@ -38,7 +38,7 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
       m_alias{kp},
       m_lastPing(chrono::steady_clock::time_point::min()),
       m_lastPeerLogMessage(chrono::steady_clock::time_point::min()),
-      net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")) {
+      net_logger_(taraxa::logger::Logging::get().CreateChannelLogger("net")) {
   assert(m_netConfig.listenPort);
   assert(1 <= taraxa_conf.expected_parallelism);
   // try to open acceptor (todo: ipv6)

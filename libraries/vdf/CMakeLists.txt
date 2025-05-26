@@ -12,9 +12,9 @@ add_library(vdf ${SOURCES} ${HEADERS})
 target_include_directories(vdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(vdf PUBLIC
-    logger
     taraxa-vdf
     mpfr::mpfr
+    common
 )
 
 install(TARGETS vdf

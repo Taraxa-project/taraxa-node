@@ -12,7 +12,7 @@ PbftChain::PbftChain(std::shared_ptr<DbStorage> db)
     : size_(0),
       non_empty_size_(0),
       db_(std::move(db)),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("PBFT_CHAIN")) {
+      logger_(logger::Logging::get().CreateChannelLogger("PBFT_CHAIN")) {
   // Get PBFT head from DB
   auto pbft_head_str = db_->getPbftHead(head_hash_);
   if (pbft_head_str.empty()) {

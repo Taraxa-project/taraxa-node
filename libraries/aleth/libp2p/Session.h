@@ -16,7 +16,7 @@
 #include "Common.h"
 #include "Peer.h"
 #include "RLPXSocket.h"
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 #include "taraxa.hpp"
 
 namespace dev {
@@ -149,8 +149,8 @@ struct Session final : std::enable_shared_from_this<Session> {
 
   std::string m_logSuffix;
 
-  taraxa::spdlogger::Logger net_logger_;
-  taraxa::spdlogger::Logger p2p_logger_;
+  taraxa::logger::Logger net_logger_;
+  taraxa::logger::Logger p2p_logger_;
 };
 
 }  // namespace p2p

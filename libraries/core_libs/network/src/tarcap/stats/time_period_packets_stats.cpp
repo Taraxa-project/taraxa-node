@@ -8,7 +8,7 @@
 namespace taraxa::network::tarcap {
 
 TimePeriodPacketsStats::TimePeriodPacketsStats(std::chrono::milliseconds reset_time_period)
-    : kResetTimePeriod(reset_time_period), logger_(spdlogger::Logging::get().CreateChannelLogger("NETPER")) {}
+    : kResetTimePeriod(reset_time_period), logger_(logger::Logging::get().CreateChannelLogger("NETPER")) {}
 
 void TimePeriodPacketsStats::addReceivedPacket(const std::string& packet_type, const dev::p2p::NodeID& node,
                                                const PacketStats& packet) {

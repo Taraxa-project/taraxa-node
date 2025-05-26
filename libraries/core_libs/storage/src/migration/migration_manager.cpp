@@ -5,7 +5,7 @@
 namespace taraxa::storage::migration {
 
 Manager::Manager(std::shared_ptr<DbStorage> db)
-    : db_(db), logger_(spdlogger::Logging::get().CreateChannelLogger("MIGRATIONS")) {}
+    : db_(db), logger_(logger::Logging::get().CreateChannelLogger("MIGRATIONS")) {}
 void Manager::applyMigration(std::shared_ptr<migration::Base> m) {
   if (m->isApplied()) {
     logger_->info("Skip \"{}\" migration. It was already applied", m->id());

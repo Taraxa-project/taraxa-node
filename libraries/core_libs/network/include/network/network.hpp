@@ -130,7 +130,7 @@ class Network {
   // Threadpool for periodic and delayed events
   util::ThreadPool periodic_events_tp_;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 template <typename PacketHandlerType>

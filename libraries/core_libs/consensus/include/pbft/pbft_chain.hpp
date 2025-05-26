@@ -4,8 +4,8 @@
 #include <shared_mutex>
 #include <string>
 
+#include "logger/logging.hpp"
 #include "pbft/pbft_block.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 
@@ -109,7 +109,7 @@ class PbftChain {
 
   std::shared_ptr<DbStorage> db_ = nullptr;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
 

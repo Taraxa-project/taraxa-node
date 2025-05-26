@@ -42,15 +42,14 @@ TaraxaCapability::TaraxaCapability(
       pbft_syncing_state_(std::move(syncing_state)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::move(threadpool)),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("TARCAP")) {
+      logger_(logger::Logging::get().CreateChannelLogger("TARCAP")) {
   // const std::string logs_prefix = "V" + std::to_string(version) + "_";
   const std::string logs_prefix = "";
-  const auto &node_addr = kConf.getFirstWallet().node_addr;
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
   packets_handlers_ = init_packets_handlers(logs_prefix, conf, genesis_hash, peers_state_, pbft_syncing_state_,
                                             all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr,
-                                            slashing_manager, pillar_chain_mgr, version, node_addr);
+                                            slashing_manager, pillar_chain_mgr, version);
 
   // Must be called after init_packets_handlers
   thread_pool_->setPacketsHandlers(version, packets_handlers_);
@@ -261,51 +260,47 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
        const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
-       const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, TarcapVersion,
-       const addr_t &node_addr) {
+       const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, TarcapVersion) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
-                                                           vote_mgr, slashing_manager, node_addr, logs_prefix);
+                                                           vote_mgr, slashing_manager, logs_prefix);
       packets_handlers->registerHandler<GetNextVotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
-      packets_handlers->registerHandler<VotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, logs_prefix);
+      packets_handlers->registerHandler<VotesBundlePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
+                                                                  pbft_chain, vote_mgr, slashing_manager, logs_prefix);
 
       // Standard packets with mid processing priority
       packets_handlers->registerHandler<DagBlockPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
-                                                               logs_prefix);
+                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, logs_prefix);
 
       packets_handlers->registerHandler<TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                  node_addr, logs_prefix);
+                                                                  logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<StatusPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                             pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash, node_addr,
+                                                             pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash,
                                                              logs_prefix);
       packets_handlers->registerHandler<GetDagSyncPacketHandler>(config, peers_state, packets_stats, trx_mgr, dag_mgr,
-                                                                 db, node_addr, logs_prefix);
+                                                                 db, logs_prefix);
 
       packets_handlers->registerHandler<DagSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                              pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
-                                                              logs_prefix);
+                                                              pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, logs_prefix);
 
-      packets_handlers->registerHandler<GetPbftSyncPacketHandler>(config, peers_state, packets_stats,
-                                                                  pbft_syncing_state, pbft_mgr, pbft_chain, vote_mgr,
-                                                                  db, node_addr, logs_prefix);
+      packets_handlers->registerHandler<GetPbftSyncPacketHandler>(
+          config, peers_state, packets_stats, pbft_syncing_state, pbft_mgr, pbft_chain, vote_mgr, db, logs_prefix);
 
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,
+                                                               pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db,
                                                                logs_prefix);
       packets_handlers->registerHandler<PillarVotePacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
-                                                                 node_addr, logs_prefix);
+                                                                 logs_prefix);
       packets_handlers->registerHandler<GetPillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
-                                                                           pillar_chain_mgr, node_addr, logs_prefix);
+                                                                           pillar_chain_mgr, logs_prefix);
       packets_handlers->registerHandler<PillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
-                                                                        pillar_chain_mgr, node_addr, logs_prefix);
+                                                                        pillar_chain_mgr, logs_prefix);
       packets_handlers->registerHandler<PbftBlocksBundlePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
-                                                                       pbft_syncing_state, node_addr, logs_prefix);
+                                                                       pbft_syncing_state, logs_prefix);
       return packets_handlers;
     };
 
@@ -316,49 +311,45 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitV5VersionHand
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
        const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
-       const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, TarcapVersion,
-       const addr_t &node_addr) {
+       const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, TarcapVersion) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
-                                                           vote_mgr, slashing_manager, node_addr, logs_prefix);
+                                                           vote_mgr, slashing_manager, logs_prefix);
       packets_handlers->registerHandler<GetNextVotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
-      packets_handlers->registerHandler<VotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, logs_prefix);
+      packets_handlers->registerHandler<VotesBundlePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
+                                                                  pbft_chain, vote_mgr, slashing_manager, logs_prefix);
 
       // Standard packets with mid processing priority
       packets_handlers->registerHandler<DagBlockPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
-                                                               logs_prefix);
+                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, logs_prefix);
 
       packets_handlers->registerHandler<TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                  node_addr, logs_prefix);
+                                                                  logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<StatusPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                             pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash, node_addr,
+                                                             pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash,
                                                              logs_prefix);
       packets_handlers->registerHandler<GetDagSyncPacketHandler>(config, peers_state, packets_stats, trx_mgr, dag_mgr,
-                                                                 db, node_addr, logs_prefix);
+                                                                 db, logs_prefix);
 
       packets_handlers->registerHandler<DagSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                              pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
-                                                              logs_prefix);
+                                                              pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, logs_prefix);
 
-      packets_handlers->registerHandler<v4::GetPbftSyncPacketHandler>(config, peers_state, packets_stats,
-                                                                      pbft_syncing_state, pbft_mgr, pbft_chain,
-                                                                      vote_mgr, db, node_addr, logs_prefix);
+      packets_handlers->registerHandler<v4::GetPbftSyncPacketHandler>(
+          config, peers_state, packets_stats, pbft_syncing_state, pbft_mgr, pbft_chain, vote_mgr, db, logs_prefix);
 
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,
+                                                               pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db,
                                                                logs_prefix);
       packets_handlers->registerHandler<PillarVotePacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
-                                                                 node_addr, logs_prefix);
+                                                                 logs_prefix);
       packets_handlers->registerHandler<GetPillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
-                                                                           pillar_chain_mgr, node_addr, logs_prefix);
+                                                                           pillar_chain_mgr, logs_prefix);
       packets_handlers->registerHandler<PillarVotesBundlePacketHandler>(config, peers_state, packets_stats,
-                                                                        pillar_chain_mgr, node_addr, logs_prefix);
+                                                                        pillar_chain_mgr, logs_prefix);
       return packets_handlers;
     };
 

@@ -26,8 +26,8 @@ Session::Session(SessionCapabilities caps, std::unique_ptr<RLPXFrameCoder> _io, 
       m_info(std::move(_info)),
       m_ping(std::chrono::steady_clock::time_point::max()),
       immediate_disconnect_reason_(immediate_disconnect_reason),
-      net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")),
-      p2p_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("p2pcap")) {
+      net_logger_(taraxa::logger::Logging::get().CreateChannelLogger("net")),
+      p2p_logger_(taraxa::logger::Logging::get().CreateChannelLogger("p2pcap")) {
   std::stringstream remoteInfoStream;
   remoteInfoStream << "(" << m_info.id << "@" << m_socket->remoteEndpoint() << ")";
   m_logSuffix = remoteInfoStream.str();

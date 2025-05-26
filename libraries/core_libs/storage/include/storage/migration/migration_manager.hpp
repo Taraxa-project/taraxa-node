@@ -17,6 +17,6 @@ class Manager {
   void applyMigration(std::shared_ptr<migration::Base> m);
   std::shared_ptr<DbStorage> db_;
   std::vector<std::shared_ptr<migration::Base>> migrations_;
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 }  // namespace taraxa::storage::migration

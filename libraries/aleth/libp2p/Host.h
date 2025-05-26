@@ -313,7 +313,7 @@ struct Host final : std::enable_shared_from_this<Host> {
 
   std::atomic<uint64_t> peer_count_snapshot_ = 0;
 
-  taraxa::spdlogger::Logger net_logger_;
+  taraxa::logger::Logger net_logger_;
 };
 
 }  // namespace p2p

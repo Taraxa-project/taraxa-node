@@ -14,7 +14,7 @@
 #include <string>
 
 #include "common/types.hpp"
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 
 namespace taraxa {
 
@@ -88,7 +88,7 @@ class Dag {
   graph_t graph_;
 
  protected:
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 /**
@@ -99,8 +99,7 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  explicit PivotTree(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr)
-      : Dag(dag_genesis_block_hash, node_addr) {}
+  explicit PivotTree(blk_hash_t const &dag_genesis_block_hash) : Dag(dag_genesis_block_hash) {}
   virtual ~PivotTree() = default;
 
   PivotTree(const PivotTree &) = default;

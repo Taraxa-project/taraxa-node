@@ -27,7 +27,7 @@ RLPXHandshake::RLPXHandshake(std::shared_ptr<HostContext const> ctx, std::shared
       m_socket(_socket),
       m_idleTimer(m_socket->ref().get_executor()),
       m_failureReason{HandshakeFailureReason::NoFailure},
-      m_logger(taraxa::spdlogger::Logging::get().CreateChannelLogger("rlpx")) {
+      m_logger(taraxa::logger::Logging::get().CreateChannelLogger("rlpx")) {
   std::string prefix = connectionDirectionString();
 
   std::stringstream remoteInfoStream;

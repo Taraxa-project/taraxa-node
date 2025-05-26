@@ -4,8 +4,8 @@
 
 #include "common/types.hpp"
 #include "config/config.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/tarcap_version.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 class PbftChain;
@@ -61,7 +61,7 @@ class NodeStats {
   // List of node addresses running on this node
   std::string node_addresses_;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::tarcap

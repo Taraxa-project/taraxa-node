@@ -143,13 +143,13 @@ bi::tcp::endpoint Network::traverseNAT(std::set<bi::address> const& _ifAddresses
     auto eIP = upnp->externalIP();
     bi::address eIPAddr(bi::make_address(eIP));
     if (extPort && eIP != string("0.0.0.0") && !isPrivateAddress(eIPAddr)) {
-      taraxa::spdlogger::Logging::get().CreateChannelLogger("net")->info(
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->info(
           "Punched through NAT and mapped local port {} onto external port {}.", _listenPort, extPort);
-      taraxa::spdlogger::Logging::get().CreateChannelLogger("net")->info("External addr: {}", eIP);
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->info("External addr: {}", eIP);
       o_upnpInterfaceAddr = pAddr;
       upnpEP = bi::tcp::endpoint(eIPAddr, (unsigned short)extPort);
     } else
-      taraxa::spdlogger::Logging::get().CreateChannelLogger("net")->debug(
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->debug(
           "Couldn't punch through NAT (or no NAT in place).");
   }
 
@@ -179,8 +179,8 @@ bi::tcp::endpoint Network::resolveHost(string const& _addr) {
     bi::tcp::resolver r(s_resolverIoContext);
     auto res = r.resolve(bi::tcp::v4(), split[0], toString(port), ec);
     if (ec || res.empty()) {
-      taraxa::spdlogger::Logging::get().CreateChannelLogger("net")->debug("Error resolving host address... {} : {}",
-                                                                          _addr, ec.message());
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->debug("Error resolving host address... {} : {}", _addr,
+                                                                       ec.message());
       return bi::tcp::endpoint();
     } else
       ep = *res.begin();

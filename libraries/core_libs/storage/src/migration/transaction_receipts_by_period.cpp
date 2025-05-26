@@ -18,7 +18,7 @@ std::string TransactionReceiptsByPeriod::id() { return "TransactionReceiptsByPer
 
 uint32_t TransactionReceiptsByPeriod::dbVersion() { return 1; }
 
-void TransactionReceiptsByPeriod::migrate(spdlogger::Logger& logger) {
+void TransactionReceiptsByPeriod::migrate(logger::Logger& logger) {
   auto orig_col = DbStorage::Columns::final_chain_receipt_by_trx_hash;
   auto target_col = DbStorage::Columns::final_chain_receipt_by_period;
   db_->read_options_.async_io = true;

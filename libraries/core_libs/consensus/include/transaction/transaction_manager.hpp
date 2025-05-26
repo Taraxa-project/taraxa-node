@@ -6,7 +6,7 @@
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"
 #include "transaction_queue.hpp"
@@ -283,7 +283,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   util::ThreadPool estimation_thread_pool_;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 
  public:
   util::Event<TransactionManager, const trx_hash_t &> const transaction_added_{};

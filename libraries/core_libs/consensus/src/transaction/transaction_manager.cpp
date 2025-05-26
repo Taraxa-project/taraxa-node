@@ -8,7 +8,7 @@
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -21,7 +21,7 @@ TransactionManager::TransactionManager(const FullNodeConfig &conf, std::shared_p
       db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       estimation_thread_pool_(std::thread::hardware_concurrency() / 2),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("TRXMGR")){
+      logger_(logger::Logging::get().CreateChannelLogger("TRXMGR")) {
   {
     std::unique_lock transactions_lock(transactions_mutex_);
     trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
@@ -192,7 +192,7 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
   }
 
   const auto last_block_number = final_chain_->lastBlockNumber();
-  logger_->debug("Transaction {} inserted in trx pool",trx_hash);
+  logger_->debug("Transaction {} inserted in trx pool", trx_hash);
   if (proposable) {
     transaction_added_.emit(tx->getHash());
   }
@@ -361,7 +361,7 @@ bool TransactionManager::verifyTransactionsNotFinalized(const SharedTransactions
       // The check against database is needed because there is a possibility that transaction was executed within last
       // 100 period (dag proposal period) but it might not be part of recently_finalized_transactions_
       if (db_->transactionFinalized(tx_hash)) {
-        logger_->error("Transaction {} already finalized in db",tx_hash);
+        logger_->error("Transaction {} already finalized in db", tx_hash);
         return false;
       }
     }
@@ -393,7 +393,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
 
     auto estimate = estimateTransactionGas(trxs[i], proposal_period);
     if (estimate.gas_used < kMinTxGas) {
-      logger_->error("Transaction {} has invalid estimation: {}",trxs[i]->getHash(), estimate.gas_used);
+      logger_->error("Transaction {} has invalid estimation: {}", trxs[i]->getHash(), estimate.gas_used);
       std::unique_lock transactions_lock(transactions_mutex_);
       auto trx = trxs[i];
       transactions_pool_.erase(trx);
@@ -452,10 +452,10 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
       if (!nonfinalized_transactions_in_dag_.erase(hash)) {
         trx_count_++;
       } else {
-        logger_->debug("Transaction {} removed from nonfinalized transactions",hash);
+        logger_->debug("Transaction {} removed from nonfinalized transactions", hash);
       }
       if (transactions_pool_.erase(trx)) {
-        logger_->debug("Transaction {} removed from transactions_pool_",hash);
+        logger_->debug("Transaction {} removed from transactions_pool_", hash);
       }
     }
     db_->saveStatusField(StatusDbField::TrxCount, trx_count_);

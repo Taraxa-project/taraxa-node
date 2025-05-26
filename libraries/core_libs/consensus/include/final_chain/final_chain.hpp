@@ -346,7 +346,7 @@ class FinalChain {
   std::atomic<EthBlockNumber> last_block_number_;
 
   const FullNodeConfig& kConfig;
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 /** @} */

@@ -5,10 +5,10 @@
 #include <array>
 #include <utility>
 
+#include "logger/logging.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/packets_blocking_mask.hpp"
 #include "packets_queue.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 class PbftManager;
@@ -107,7 +107,7 @@ class PriorityQueue {
   std::atomic<size_t> act_total_workers_count_;
 
   // Declare logger instances
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::threadpool

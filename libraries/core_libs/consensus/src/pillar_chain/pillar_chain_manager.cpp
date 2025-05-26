@@ -24,7 +24,7 @@ PillarChainManager::PillarChainManager(const FicusHardforkConfig& ficus_hf_confi
       current_pillar_block_vote_counts_{},
       pillar_votes_{},
       mutex_{},
-      logger_(spdlogger::Logging::get().CreateChannelLogger("PILLAR_CHAIN")) {
+      logger_(logger::Logging::get().CreateChannelLogger("PILLAR_CHAIN")) {
   if (const auto vote = db_->getOwnPillarBlockVote(); vote) {
     addVerifiedPillarVote(vote);
   }

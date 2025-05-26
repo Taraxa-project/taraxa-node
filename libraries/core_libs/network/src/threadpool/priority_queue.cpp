@@ -8,7 +8,7 @@ PriorityQueue::PriorityQueue(size_t tp_workers_count, const std::shared_ptr<Pbft
     : blocked_packets_mask_(pbft_mgr),
       MAX_TOTAL_WORKERS_COUNT(tp_workers_count),
       act_total_workers_count_(0),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("PRIORITY_QUEUE")) {
+      logger_(logger::Logging::get().CreateChannelLogger("PRIORITY_QUEUE")) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
   // tp_workers_count value should be validated (>=3) after it is read from config
   assert(tp_workers_count >= 3);

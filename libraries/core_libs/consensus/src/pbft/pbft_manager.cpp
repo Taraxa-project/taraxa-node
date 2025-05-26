@@ -40,7 +40,7 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       kGenesisConfig(conf.genesis),
       proposed_blocks_(db_),
       eligible_wallets_(kConfig.wallets),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("PBFT_MGR")) {
+      logger_(logger::Logging::get().CreateChannelLogger("PBFT_MGR")) {
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {
     auto period_data = db_->getPeriodData(period);

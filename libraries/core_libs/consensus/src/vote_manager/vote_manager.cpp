@@ -21,7 +21,7 @@ VoteManager::VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage
       key_manager_(std::move(key_manager)),
       slashing_manager_(std::move(slashing_manager)),
       already_validated_votes_(1000000, 1000),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("VOTE_MGR")) {
+      logger_(logger::Logging::get().CreateChannelLogger("VOTE_MGR")) {
   auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<PbftVote>>& votes,
                                  bool set_reward_votes_info = false) {
     bool rewards_info_already_set = false;

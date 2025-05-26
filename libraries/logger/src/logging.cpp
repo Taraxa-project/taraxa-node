@@ -1,10 +1,10 @@
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 
 #include "spdlog/async.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-namespace taraxa::spdlogger {
+namespace taraxa::logger {
 
 void Logging::Init() {
   // 8k queue for messages, 1 worker thread.
@@ -43,4 +43,4 @@ std::shared_ptr<spdlog::logger> Logging::CreateChannelLogger(const std::string& 
 ////
 ////void InitLogging(Config& logging_config, const addr_t& node_id) { logging_config.InitLogging(node_id); }
 
-}  // namespace taraxa::spdlogger
+}  // namespace taraxa::logger

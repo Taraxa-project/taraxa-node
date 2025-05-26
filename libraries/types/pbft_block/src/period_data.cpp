@@ -81,9 +81,10 @@ void PeriodData::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PeriodDat
 
 void PeriodData::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
 
-std::ostream& operator<<(std::ostream& strm, PeriodData const& b) {
-  strm << "[PeriodData] : " << b.pbft_blk << " , num of votes " << b.previous_block_cert_votes.size() << std::endl;
-  return strm;
+std::string PeriodData::toString() const {
+  std::ostringstream strm;
+  strm << "[PeriodData] : " << pbft_blk << " , num of votes " << previous_block_cert_votes.size() << std::endl;
+  return strm.str();
 }
 
 }  // namespace taraxa

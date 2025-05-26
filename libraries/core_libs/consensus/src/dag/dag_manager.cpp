@@ -16,11 +16,11 @@
 
 namespace taraxa {
 
-DagManager::DagManager(const FullNodeConfig &config, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
+DagManager::DagManager(const FullNodeConfig &config, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
                        std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager) try
     : max_level_(db->getLastBlocksLevel()),
-      pivot_tree_(std::make_shared<PivotTree>(config.genesis.dag_genesis_block.getHash(), node_addr)),
+      pivot_tree_(std::make_shared<PivotTree>(config.genesis.dag_genesis_block.getHash())),
       total_dag_(std::make_shared<Dag>(config.genesis.dag_genesis_block.getHash())),
       trx_mgr_(std::move(trx_mgr)),
       pbft_chain_(std::move(pbft_chain)),
@@ -38,7 +38,7 @@ DagManager::DagManager(const FullNodeConfig &config, addr_t node_addr, std::shar
       kGenesis(config.genesis),
       kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
                         config.genesis.state.dpos.vote_eligibility_balance_step),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("DAGMGR")) {
+      logger_(logger::Logging::get().CreateChannelLogger("DAGMGR")) {
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;
     for (const auto &t : ret->second) {

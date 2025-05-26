@@ -3,7 +3,7 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/genesis.hpp"
 #include "config/network.hpp"
-#include "logger/logger_config.hpp"
+#include "logger/logging_config.hpp"
 
 namespace taraxa {
 
@@ -61,6 +61,8 @@ struct FullNodeConfig {
    */
   const WalletConfig &getFirstWallet() const;
 
+  std::string toString() const;
+
   std::string json_file_name;
   std::filesystem::file_time_type last_json_update_time;
   // Vector of wallets used by node
@@ -98,9 +100,5 @@ struct FullNodeConfig {
    */
   void validate() const;
 };
-
-std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);
 
 }  // namespace taraxa

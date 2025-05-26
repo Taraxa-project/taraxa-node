@@ -28,7 +28,7 @@ NodeStats::NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::
       packets_stats_(std::move(packets_stats)),
       thread_pool_(std::move(thread_pool)),
       node_addresses_(""),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("SUMMARY")) {
+      logger_(logger::Logging::get().CreateChannelLogger("SUMMARY")) {
   std::for_each(config.wallets.begin(), config.wallets.end(),
                 [&](const WalletConfig &wallet) { node_addresses_ += wallet.node_addr.toString() + " "; });
 }

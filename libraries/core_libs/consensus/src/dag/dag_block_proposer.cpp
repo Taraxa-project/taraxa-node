@@ -29,7 +29,7 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
       kHardforks(config.genesis.state.hardforks),
       kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
                         config.genesis.state.dpos.vote_eligibility_balance_step),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("DAG_PROPOSER")) {
+      logger_(logger::Logging::get().CreateChannelLogger("DAG_PROPOSER")) {
   for (const auto& wallet : config.wallets) {
     nodes_dag_proposers_data_.emplace_back(wallet, max_num_tries_, config.genesis.dag.block_proposer.shard);
   }

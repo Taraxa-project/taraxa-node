@@ -11,10 +11,10 @@
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
+#include "logger/logging.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_block.hpp"
-#include "spdlogger/logging.hpp"
 #include "storage/uint_comparator.hpp"
 #include "transaction/receipt.hpp"
 #include "transaction/transaction.hpp"
@@ -175,7 +175,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   bool major_version_changed_ = false;
   bool minor_version_changed_ = false;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 
  public:
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t max_open_files = 0,

@@ -5,7 +5,7 @@
 #include "Common.h"
 
 #include "Log.h"
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -20,7 +20,7 @@ std::string const EmptyString;
 TimerHelper::~TimerHelper() {
   auto e = std::chrono::high_resolution_clock::now() - m_t;
   if (!m_ms || e > chrono::milliseconds(m_ms))
-    taraxa::spdlogger::Logging::get().CreateChannelLogger("timer")->debug(
+    taraxa::logger::Logging::get().CreateChannelLogger("timer")->debug(
         "{} {} ms", m_id, chrono::duration_cast<chrono::milliseconds>(e).count());
 }
 

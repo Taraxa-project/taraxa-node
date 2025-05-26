@@ -58,9 +58,13 @@ class PeriodData {
    */
   void clear();
 
+  /**
+   * @return string representation of PeriodData
+   */
+  std::string toString() const;
+
   HAS_RLP_FIELDS
 };
-std::ostream& operator<<(std::ostream& strm, PeriodData const& b);
 
 /** @}*/
 

@@ -190,13 +190,9 @@ void WsSession::newLogs(const final_chain::BlockHeader &header, TransactionHashe
   subscriptions_.processLogs(header, trx_hashes, receipts);
 }
 
-WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr,
+WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint,
                    std::shared_ptr<metrics::JsonRpcMetrics> metrics)
-    : ioc_(ioc),
-      acceptor_(ioc),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("WS_SERVER")),
-      node_addr_(std::move(node_addr)),
-      metrics_(metrics) {
+    : ioc_(ioc), acceptor_(ioc), logger_(logger::Logging::get().CreateChannelLogger("WS_SERVER")), metrics_(metrics) {
   beast::error_code ec;
 
   // Open the acceptor

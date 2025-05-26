@@ -8,7 +8,7 @@
 #include <libdevcore/RLP.h>
 
 #include "Common.h"
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 
 namespace dev {
 namespace p2p {

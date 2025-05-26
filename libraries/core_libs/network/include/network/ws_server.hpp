@@ -13,8 +13,7 @@
 namespace taraxa::net {
 class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::AbstractServerConnector {
  public:
-  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr,
-           std::shared_ptr<metrics::JsonRpcMetrics> metrics);
+  WsServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, std::shared_ptr<metrics::JsonRpcMetrics> metrics);
   virtual ~WsServer();
 
   WsServer(const WsServer&) = delete;
@@ -47,10 +46,9 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
   std::list<std::shared_ptr<WsSession>> sessions_;
   std::atomic<bool> stopped_ = false;
   boost::shared_mutex sessions_mtx_;
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 
  protected:
-  const addr_t node_addr_;
   std::shared_ptr<metrics::JsonRpcMetrics> metrics_;
   friend WsSession;
 };

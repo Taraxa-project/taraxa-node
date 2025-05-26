@@ -15,7 +15,7 @@ HttpServer::HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoi
       io_context_(io),
       acceptor_(io),
       ep_(std::move(ep)),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("HTTP")) {
+      logger_(logger::Logging::get().CreateChannelLogger("HTTP")) {
   logger_->info("Taraxa HttpServer started at port: {}", ep_.port());
 }
 
@@ -30,7 +30,7 @@ std::shared_ptr<HttpServer> HttpServer::getShared() {
 
 std::shared_ptr<HttpConnection> HttpServer::createConnection() { return std::make_shared<HttpConnection>(getShared()); }
 
-spdlogger::Logger HttpServer::getLogger() const { return logger_; }
+logger::Logger HttpServer::getLogger() const { return logger_; }
 
 bool HttpServer::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {

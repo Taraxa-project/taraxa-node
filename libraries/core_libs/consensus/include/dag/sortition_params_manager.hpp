@@ -80,7 +80,7 @@ class SortitionParamsManager {
   int32_t getNewUpperRange(uint16_t efficiency) const;
   void cleanup();
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 /** @}*/
 

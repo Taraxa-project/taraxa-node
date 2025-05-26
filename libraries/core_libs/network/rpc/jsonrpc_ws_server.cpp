@@ -21,7 +21,7 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &req_str) {
   try {
     req = util::parse_json(req_str);
   } catch (Json::Exception const &e) {
-    LOG(log_er_) << "Failed to parse" << e.what();
+    logger_->error("Failed to parse {}", e.what());
     return {};
   }
 
@@ -38,7 +38,7 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &req_str) {
 
     return handleRequest(req);
   } catch (std::exception const &e) {
-    LOG(log_er_) << "Exception " << e.what();
+    logger_->error("Exception {}", e.what());
     Json::Value json_response;
     auto &res_json_error = json_response["error"] = Json::Value(Json::objectValue);
     res_json_error["code"] = jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR;
@@ -118,7 +118,7 @@ std::string JsonRpcWsSession::handleUnsubscription(const Json::Value &req) {
 }
 
 std::shared_ptr<WsSession> JsonRpcWsServer::createSession(tcp::socket &&socket) {
-  return std::make_shared<JsonRpcWsSession>(std::move(socket), node_addr_, shared_from_this());
+  return std::make_shared<JsonRpcWsSession>(std::move(socket), shared_from_this());
 }
 
 }  // namespace taraxa::net

@@ -5,8 +5,7 @@
 #include "NodeTable.h"
 
 #include <cstdint>
-
-#include "Logging.h"
+#include <logger/logging.hpp>
 
 namespace dev {
 namespace p2p {
@@ -47,8 +46,8 @@ NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint 
       m_secret{_alias.secret()},
       m_socket{make_shared<NodeSocket>(strand_, static_cast<UDPSocketEvents&>(*this), (bi::udp::endpoint)_endpoint)},
       m_requestTimeToLive{DiscoveryDatagram::c_timeToLiveS},
-      discov_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("discov")),
-      net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")),
+      discov_logger_(taraxa::logger::Logging::get().CreateChannelLogger("discov")),
+      net_logger_(taraxa::logger::Logging::get().CreateChannelLogger("net")),
       m_discoveryTimer{make_shared<ba::steady_timer>(_io)},
       m_timeoutsTimer{make_shared<ba::steady_timer>(_io)},
       m_endpointTrackingTimer{make_shared<ba::steady_timer>(_io)},
@@ -798,8 +797,8 @@ std::unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endp
   // h256 + Signature + type + RLP (smallest possible packet is empty neighbours
   // packet which is 3 bytes)
   if (_packet.size() < static_cast<size_t>(h256::size) + static_cast<size_t>(Signature::size) + 1 + 3) {
-    taraxa::spdlogger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (too small) from {}:{}",
-                                                                          _from.address().to_string(), _from.port());
+    taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (too small) from {}:{}",
+                                                                       _from.address().to_string(), _from.port());
     return decoded;
   }
   bytesConstRef hashedBytes(
@@ -811,14 +810,14 @@ std::unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endp
 
   h256 echo(sha3(hashedBytes));
   if (!_packet.cropped(0, static_cast<size_t>(h256::size)).contentsEqual(echo.asBytes())) {
-    taraxa::spdlogger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (bad hash) from {}:{}",
-                                                                          _from.address().to_string(), _from.port());
+    taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (bad hash) from {}:{}",
+                                                                       _from.address().to_string(), _from.port());
     return decoded;
   }
   Public sourceid(dev::recover(*(Signature const*)signatureBytes.data(), sha3(signedBytes)));
   if (!sourceid) {
-    taraxa::spdlogger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (bad signature) from {}:{}",
-                                                                          _from.address().to_string(), _from.port());
+    taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (bad signature) from {}:{}",
+                                                                       _from.address().to_string(), _from.port());
     return decoded;
   }
   switch (signedBytes[0]) {
@@ -841,7 +840,7 @@ std::unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endp
       decoded.reset(new ENRResponse(_from, sourceid, echo));
       break;
     default:
-      taraxa::spdlogger::Logging::get().CreateChannelLogger("discov")->warn(
+      taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn(
           "Invalid packet (unknown packet type) from {}:{}", _from.address().to_string(), _from.port());
       return decoded;
   }

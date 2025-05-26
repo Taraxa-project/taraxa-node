@@ -32,6 +32,7 @@ struct NodeConfig {
   std::string id;
   std::string ip;
   uint16_t port = 0;
+  std::string toString() const;
 };
 
 struct DdosProtectionConfig {
@@ -61,6 +62,7 @@ struct DdosProtectionConfig {
   std::chrono::milliseconds peer_disconnect_interval{5000};
 
   void validate(uint32_t delegation_delay) const;
+  std::string toString() const;
 };
 
 struct NetworkConfig {
@@ -88,6 +90,7 @@ struct NetworkConfig {
   std::optional<PrometheusConfig> prometheus;
 
   void validate(uint32_t delegation_delay) const;
+  std::string toString() const;
 };
 
 void dec_json(const Json::Value &json, NetworkConfig &network);

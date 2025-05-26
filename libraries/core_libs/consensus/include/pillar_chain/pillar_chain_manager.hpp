@@ -4,9 +4,9 @@
 
 #include "common/event.hpp"
 #include "final_chain/data.hpp"
+#include "logger/logging.hpp"
 #include "pillar_chain/pillar_block.hpp"
 #include "pillar_chain/pillar_votes.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 class DbStorage;
@@ -189,7 +189,7 @@ class PillarChainManager {
   // Protects last_finalized_pillar_block_ & current_pillar_block_
   mutable std::shared_mutex mutex_;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 /** @}*/

@@ -1,16 +1,17 @@
 set(HEADERS
-    include/logger/logger.hpp
-    include/logger/logger_config.hpp
+    include/logger/logging.hpp
+    include/logger/logging_config.hpp
 )
 
 set(SOURCES
-    src/logger.cpp
-    src/logger_config.cpp
+    src/logging.cpp
+    src/logging_config.cpp
 )
 
+find_package(spdlog REQUIRED)
 add_library(logger ${SOURCES} ${HEADERS})
 target_include_directories(logger PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(logger PUBLIC common)
+target_link_libraries(logger PUBLIC spdlog::spdlog common)
 
 install(TARGETS logger
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}

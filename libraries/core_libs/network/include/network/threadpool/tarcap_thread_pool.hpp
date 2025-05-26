@@ -5,9 +5,9 @@
 #include <thread>
 #include <vector>
 
+#include "logger/logging.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "priority_queue.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace taraxa::network::tarcap {
 class PacketsHandler;
@@ -99,7 +99,7 @@ class PacketsThreadPool {
   std::vector<std::thread> workers_;
 
   // Declare logger instances
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::threadpool

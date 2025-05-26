@@ -57,8 +57,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
       const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
       const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
       const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
-      const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, TarcapVersion version,
-      const addr_t &node_addr)>;
+      const std::shared_ptr<pillar_chain::PillarChainManager> &pillar_chain_mgr, TarcapVersion version)>;
 
   /**
    * @brief Default InitPacketsHandlers function definition with the latest version of packets handlers
@@ -137,7 +136,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
   bool queue_over_limit_ = false;
   uint32_t last_disconnect_number_of_peers_ = 0;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 template <typename PacketHandlerType>

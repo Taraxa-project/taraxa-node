@@ -28,7 +28,7 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
 SortitionParamsManager::SortitionParamsManager(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db)
     : config_(std::move(sort_conf)),
       db_(std::move(db)),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("SORT_MGR")) {
+      logger_(logger::Logging::get().CreateChannelLogger("SORT_MGR")) {
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
   if (params_changes_.empty()) {

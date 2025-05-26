@@ -7,8 +7,7 @@ namespace taraxa::network::tarcap {
 ExtPillarVotePacketHandler::ExtPillarVotePacketHandler(
     const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
     std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const addr_t &node_addr,
-    const std::string &log_channel)
+    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const std::string &log_channel)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), log_channel),
       pillar_chain_manager_{std::move(pillar_chain_manager)} {}
 

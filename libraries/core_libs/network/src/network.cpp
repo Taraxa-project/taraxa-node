@@ -34,14 +34,13 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
       pbft_mgr_(pbft_mgr),
       tp_(config.network.num_threads, false),
       packets_tp_(std::make_shared<network::threadpool::PacketsThreadPool>(config.network.packets_processing_threads,
-                                                                           pbft_mgr, kConf.getFirstWallet().node_addr)),
+                                                                           pbft_mgr)),
       periodic_events_tp_(kPeriodicEventsThreadCount, false),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("NETWORK")) {
-  auto const &node_addr = kConf.getFirstWallet().node_addr;
+      logger_(logger::Logging::get().CreateChannelLogger("NETWORK")) {
   logger_->info("Read Network Config: {}\n", config.network.toString());
 
   all_packets_stats_ = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
-      kConf.network.ddos_protection.packets_stats_time_period_ms, node_addr);
+      kConf.network.ddos_protection.packets_stats_time_period_ms);
 
   node_stats_ = std::make_shared<network::tarcap::NodeStats>(pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
                                                              vote_mgr, trx_mgr, all_packets_stats_, packets_tp_, kConf);

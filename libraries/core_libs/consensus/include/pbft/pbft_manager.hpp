@@ -5,10 +5,10 @@
 #include "common/types.hpp"
 #include "config/config.hpp"
 #include "final_chain/final_chain.hpp"
+#include "logger/logging.hpp"
 #include "network/network.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace taraxa {
 
@@ -671,7 +671,7 @@ class PbftManager {
   // Wallets with flag if they are/are not dpos eligible for specified period
   EligibleWallets eligible_wallets_;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 /** @}*/

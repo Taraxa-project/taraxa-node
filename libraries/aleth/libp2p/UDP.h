@@ -17,7 +17,7 @@
 #include <utility>
 
 #include "Common.h"
-#include "spdlogger/logging.hpp"
+#include "logger/logging.hpp"
 
 namespace dev {
 namespace p2p {
@@ -103,7 +103,7 @@ class UDPSocket : UDPSocketFace, public std::enable_shared_from_this<UDPSocket<H
         m_endpoint(std::move(_endpoint)),
         m_socket(_strand.get_inner_executor()),
         strand_(_strand),
-        net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")) {
+        net_logger_(taraxa::logger::Logging::get().CreateChannelLogger("net")) {
     m_started.store(false);
     m_closed.store(true);
   }
@@ -114,7 +114,7 @@ class UDPSocket : UDPSocketFace, public std::enable_shared_from_this<UDPSocket<H
         m_endpoint(bi::udp::v4(), _port),
         m_socket(_strand.get_inner_executor()),
         strand_(_strand),
-        net_logger_(taraxa::spdlogger::Logging::get().CreateChannelLogger("net")) {
+        net_logger_(taraxa::logger::Logging::get().CreateChannelLogger("net")) {
     m_started.store(false);
     m_closed.store(true);
   }
@@ -159,7 +159,7 @@ class UDPSocket : UDPSocketFace, public std::enable_shared_from_this<UDPSocket<H
   boost::system::error_code m_socketError;  ///< Set when shut down due to error.
   ba::strand<ba::io_context::executor_type>& strand_;
 
-  taraxa::spdlogger::Logger net_logger_;
+  taraxa::logger::Logger net_logger_;
 };
 
 template <typename Handler, unsigned MaxDatagramSize>

@@ -17,7 +17,7 @@ void IVotePacketHandler::onNewPbftVote(const std::shared_ptr<PbftVote> &vote, co
                                        bool rebroadcast) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
-      logger_->debug(" PBFT vote {}" vote->getHash() " not sent to {}" peer.first " peer syncing");
+      logger_->debug(" PBFT vote {} not sent to {} peer syncing", vote->getHash(), peer.first);
       continue;
     }
 

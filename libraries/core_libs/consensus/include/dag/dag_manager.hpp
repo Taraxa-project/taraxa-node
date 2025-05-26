@@ -45,7 +45,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     MissingTip
   };
 
-  explicit DagManager(const FullNodeConfig &config, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
+  explicit DagManager(const FullNodeConfig &config, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<final_chain::FinalChain> final_chain,
                       std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager);
 
@@ -281,7 +281,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   const GenesisConfig kGenesis;
   const uint64_t kValidatorMaxVote;
 
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 /** @}*/

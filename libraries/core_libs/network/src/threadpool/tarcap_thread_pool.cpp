@@ -14,7 +14,7 @@ PacketsThreadPool::PacketsThreadPool(size_t workers_num, const std::shared_ptr<P
       queue_mutex_(),
       cond_var_(),
       workers_(),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("TARCAP_TP")) {}
+      logger_(logger::Logging::get().CreateChannelLogger("TARCAP_TP")) {}
 
 PacketsThreadPool::~PacketsThreadPool() {
   stopProcessing();

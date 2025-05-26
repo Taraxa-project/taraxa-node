@@ -1,9 +1,9 @@
 #pragma once
 
 #include "common/types.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/stats/max_stats.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -49,7 +49,7 @@ class TimePeriodPacketsStats {
   MaxStats peer_max_stats_;
 
   // Declare logger instances
-  spdlogger::Logger logger_;
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::tarcap

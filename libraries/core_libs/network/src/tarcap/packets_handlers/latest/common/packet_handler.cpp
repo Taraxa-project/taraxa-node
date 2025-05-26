@@ -10,7 +10,7 @@ PacketHandler::PacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersSt
     : kConf(conf),
       peers_state_(std::move(peers_state)),
       packets_stats_(std::move(packets_stats)),
-      logger_(spdlogger::Logging::get().CreateChannelLogger(log_channel_name)) {}
+      logger_(logger::Logging::get().CreateChannelLogger(log_channel_name)) {}
 void PacketHandler::processPacket(const threadpool::PacketData& packet_data) {
   try {
     const auto begin = std::chrono::steady_clock::now();

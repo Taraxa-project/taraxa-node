@@ -33,8 +33,8 @@ Verbosity stringToVerbosity(std::string _verbosity);
 
 class Config {
  public:
-  template <class T>
-  using log_sink = boost::log::sinks::synchronous_sink<T>;
+  //  template <class T>
+  //  using log_sink = boost::log::sinks::synchronous_sink<T>;
 
   struct OutputConfig {
     OutputConfig() = default;
@@ -51,10 +51,10 @@ class Config {
   Config(fs::path log_path);
   ~Config();
 
-  Config(const Config& other);
-  Config& operator=(const Config& other);
-  Config(Config&& other) noexcept;
-  Config& operator=(Config&& other) noexcept;
+  Config(const Config& other) = default;
+  Config& operator=(const Config& other) = default;
+  Config(Config&& other) noexcept = default;
+  Config& operator=(Config&& other) noexcept = default;
 
   /**
    * @brief Init logging - creates boost sinks according to the Config
@@ -70,8 +70,8 @@ class Config {
   Verbosity verbosity{Verbosity::Error};
   std::map<std::string, uint16_t> channels;
   std::vector<OutputConfig> outputs;
-  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>> console_sinks;
-  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_file_backend>>> file_sinks;
+  //  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>> console_sinks;
+  //  std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_file_backend>>> file_sinks;
 
  private:
   bool logging_initialized_{false};

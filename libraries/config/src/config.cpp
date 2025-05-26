@@ -17,19 +17,20 @@ void dec_json(Json::Value const &json, DBConfig &db_config) {
   db_config.db_max_open_files = getConfigDataAsUInt(json, {"db_max_open_files"}, true, db_config.db_max_open_files);
 }
 
-std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value &logging) {
+// TODO: move this to logger class
+std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value &logging_json) {
   // could be empty if config loaded from json e.g. tests
   if (!json_file_name.empty()) {
     last_json_update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
   }
   std::vector<logger::Config> res;
-  if (!logging.isNull()) {
-    if (auto path = getConfigData(logging, {"log_path"}, true); !path.isNull()) {
+  if (!logging_json.isNull()) {
+    if (auto path = getConfigData(logging_json, {"log_path"}, true); !path.isNull()) {
       log_path = path.asString();
     } else {
       log_path = data_path / "logs";
     }
-    for (auto &item : logging["configurations"]) {
+    for (auto &item : logging_json["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});
       if (on) {
         logger::Config logging;
@@ -196,47 +197,50 @@ void FullNodeConfig::validate() const {
   // TODO: add validation of other config values
 }
 
-std::ostream &operator<<(std::ostream &strm, const NodeConfig &conf) {
+std::string NodeConfig::toString() const {
+  std::ostringstream strm;
   strm << "  [Node Config] " << std::endl;
-  strm << "    node_id: " << conf.id << std::endl;
-  strm << "    node_ip: " << conf.ip << std::endl;
-  strm << "    node_udp_port: " << conf.port << std::endl;
-  return strm;
+  strm << "    node_id: " << id << std::endl;
+  strm << "    node_ip: " << ip << std::endl;
+  strm << "    node_udp_port: " << port << std::endl;
+  return strm.str();
 }
 
-std::ostream &operator<<(std::ostream &strm, const DdosProtectionConfig &conf) {
+std::string DdosProtectionConfig::toString() const {
+  std::ostringstream strm;
   strm << "  [Ddos protection] " << std::endl;
-  strm << "    vote_accepting_periods: " << conf.vote_accepting_periods << std::endl;
-  strm << "    vote_accepting_rounds: " << conf.vote_accepting_rounds << std::endl;
-  strm << "    vote_accepting_steps: " << conf.vote_accepting_steps << std::endl;
-  strm << "    log_packets_stats: " << conf.log_packets_stats << std::endl;
-  strm << "    packets_stats_time_period_ms: " << conf.packets_stats_time_period_ms.count() << std::endl;
-  strm << "    peer_max_packets_processing_time_us: " << conf.peer_max_packets_processing_time_us.count() << std::endl;
-  strm << "    peer_max_packets_queue_size_limit: " << conf.peer_max_packets_queue_size_limit << std::endl;
-  strm << "    max_packets_queue_size: " << conf.max_packets_queue_size << std::endl;
-  return strm;
+  strm << "    vote_accepting_periods: " << vote_accepting_periods << std::endl;
+  strm << "    vote_accepting_rounds: " << vote_accepting_rounds << std::endl;
+  strm << "    vote_accepting_steps: " << vote_accepting_steps << std::endl;
+  strm << "    log_packets_stats: " << log_packets_stats << std::endl;
+  strm << "    packets_stats_time_period_ms: " << packets_stats_time_period_ms.count() << std::endl;
+  strm << "    peer_max_packets_processing_time_us: " << peer_max_packets_processing_time_us.count() << std::endl;
+  strm << "    peer_max_packets_queue_size_limit: " << peer_max_packets_queue_size_limit << std::endl;
+  strm << "    max_packets_queue_size: " << max_packets_queue_size << std::endl;
+  return strm.str();
 }
 
-std::ostream &operator<<(std::ostream &strm, const NetworkConfig &conf) {
+std::string NetworkConfig::toString() const {
+  std::ostringstream strm;
   strm << "[Network Config] " << std::endl;
-  strm << "  json_file_name: " << conf.json_file_name << std::endl;
-  strm << "  listen_ip: " << conf.listen_ip << std::endl;
-  strm << "  public_ip: " << conf.public_ip << std::endl;
-  strm << "  listen_port: " << conf.listen_port << std::endl;
-  strm << "  transaction_interval_ms: " << conf.transaction_interval_ms << std::endl;
-  strm << "  ideal_peer_count: " << conf.ideal_peer_count << std::endl;
-  strm << "  max_peer_count: " << conf.max_peer_count << std::endl;
-  strm << "  sync_level_size: " << conf.sync_level_size << std::endl;
-  strm << "  num_threads: " << conf.num_threads << std::endl;
-  strm << "  packets_processing_threads: " << conf.packets_processing_threads << std::endl;
-  strm << "  deep_syncing_threshold: " << conf.deep_syncing_threshold << std::endl;
-  strm << conf.ddos_protection << std::endl;
+  strm << "  json_file_name: " << json_file_name << std::endl;
+  strm << "  listen_ip: " << listen_ip << std::endl;
+  strm << "  public_ip: " << public_ip << std::endl;
+  strm << "  listen_port: " << listen_port << std::endl;
+  strm << "  transaction_interval_ms: " << transaction_interval_ms << std::endl;
+  strm << "  ideal_peer_count: " << ideal_peer_count << std::endl;
+  strm << "  max_peer_count: " << max_peer_count << std::endl;
+  strm << "  sync_level_size: " << sync_level_size << std::endl;
+  strm << "  num_threads: " << num_threads << std::endl;
+  strm << "  packets_processing_threads: " << packets_processing_threads << std::endl;
+  strm << "  deep_syncing_threshold: " << deep_syncing_threshold << std::endl;
+  strm << ddos_protection.toString() << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
-  for (const auto &c : conf.boot_nodes) {
-    strm << c << std::endl;
+  for (const auto &c : boot_nodes) {
+    strm << c.toString() << std::endl;
   }
-  return strm;
+  return strm.str();
 }
 
 std::ostream &operator<<(std::ostream &strm, const FullNodeConfig &conf) {

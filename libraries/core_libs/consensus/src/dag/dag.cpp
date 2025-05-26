@@ -14,7 +14,7 @@
 
 namespace taraxa {
 
-Dag::Dag(blk_hash_t const &dag_genesis_block_hash) : logger_(spdlogger::Logging::get().CreateChannelLogger("DAGMGR")) {
+Dag::Dag(blk_hash_t const &dag_genesis_block_hash) : logger_(logger::Logging::get().CreateChannelLogger("DAGMGR")) {
   std::vector<blk_hash_t> tips;
   // add genesis block
   addVEEs(dag_genesis_block_hash, {}, tips);

@@ -36,7 +36,7 @@ DbStorage::DbStorage(const fs::path& path, uint32_t db_snapshot_each_n_pbft_bloc
       handles_(Columns::all.size()),
       kDbSnapshotsEachNblock(db_snapshot_each_n_pbft_block),
       kDbSnapshotsMaxCount(db_max_snapshots),
-      logger_(spdlogger::Logging::get().CreateChannelLogger("DBS")) {
+      logger_(logger::Logging::get().CreateChannelLogger("DBS")) {
   db_path_ = (path / kDbDir);
   state_db_path_ = (path / kStateDbDir);
   async_write_.sync = false;

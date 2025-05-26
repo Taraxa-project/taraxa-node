@@ -13,8 +13,8 @@
 
 #include "common/types.hpp"
 #include "final_chain/data.hpp"
+#include "logger/logging.hpp"
 #include "network/subscriptions.hpp"
-#include "spdlogger/logging.hpp"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
 namespace websocket = beast::websocket;  // from <boost/beast/websocket.hpp>
@@ -26,12 +26,12 @@ class WsServer;
 class WsSession : public std::enable_shared_from_this<WsSession> {
  public:
   // Take ownership of the socket
-  explicit WsSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WsServer> ws_server)
+  explicit WsSession(tcp::socket&& socket, std::shared_ptr<WsServer> ws_server)
       : ws_(std::move(socket)),
         ws_server_(ws_server),
         subscriptions_(std::bind(&WsSession::do_write, this, std::placeholders::_1)),
-        write_strand_(boost::asio::make_strand(ws_.get_executor())),
-        logger_(spdlogger::Logging::get().CreateChannelLogger("WS_SESSION")) {}
+        logger_(logger::Logging::get().CreateChannelLogger("WS_SESSION")),
+        write_strand_(boost::asio::make_strand(ws_.get_executor())) {}
 
   // Start the asynchronous operation
   void run();
@@ -65,13 +65,12 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   std::atomic<int> subscription_id_ = 0;
   std::weak_ptr<WsServer> ws_server_;
   Subscriptions subscriptions_;
+  logger::Logger logger_;
 
  private:
   boost::asio::strand<boost::asio::any_io_executor> write_strand_;
   beast::flat_buffer read_buffer_;
   std::atomic<bool> closed_ = false;
   std::string ip_;
-
-  spdlogger::Logger logger_;
 };
 }  // namespace taraxa::net
