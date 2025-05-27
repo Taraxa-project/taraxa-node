@@ -3,7 +3,6 @@ var structtaraxa_1_1_hardforks_config =
     [ "RewardsDistributionMap", "structtaraxa_1_1_hardforks_config.html#aede826775ed678c89f33a3f499202cc6", null ],
     [ "isAspenHardforkPartOne", "structtaraxa_1_1_hardforks_config.html#af2847d7cfce5d2deb2e89934cbb93e09", null ],
     [ "isOnCornusHardfork", "structtaraxa_1_1_hardforks_config.html#a0da7f48294676336620ecd359c5d5de7", null ],
-    [ "isOnSoleiroliaHardfork", "structtaraxa_1_1_hardforks_config.html#a5e41e3514f43d3e7c0cb989ab17772c2", null ],
     [ "aspen_hf", "structtaraxa_1_1_hardforks_config.html#a4ce176bdcae032aa306d73dc2a826489", null ],
     [ "cornus_hf", "structtaraxa_1_1_hardforks_config.html#add6685fedcf60aa525aa0026273da092", null ],
     [ "ficus_hf", "structtaraxa_1_1_hardforks_config.html#aaaa932e728f84fa7908dac53a354d190", null ],

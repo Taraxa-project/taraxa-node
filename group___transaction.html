@@ -862,8 +862,9 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="separator:ad2bfb8b4d02451a503a0250ff8a85be1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37a2d427f8032d0bdf7dc120b356fcc7" id="r_a37a2d427f8032d0bdf7dc120b356fcc7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a37a2d427f8032d0bdf7dc120b356fcc7">recoverNonfinalizedTransactions</a> ()</td></tr>
 <tr class="separator:a37a2d427f8032d0bdf7dc120b356fcc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd71c9ceffe523a4992614ce619894e5" id="r_acd71c9ceffe523a4992614ce619894e5"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#acd71c9ceffe523a4992614ce619894e5">verifyTransaction</a> (const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;trx, bool from_dag=false) const</td></tr>
-<tr class="separator:acd71c9ceffe523a4992614ce619894e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24fdc0d8b8877ca9859afb962aa4e6d3" id="r_a24fdc0d8b8877ca9859afb962aa4e6d3"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a24fdc0d8b8877ca9859afb962aa4e6d3">verifyTransaction</a> (const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;trx) const</td></tr>
+<tr class="memdesc:a24fdc0d8b8877ca9859afb962aa4e6d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies a transaction.  <br /></td></tr>
+<tr class="separator:a24fdc0d8b8877ca9859afb962aa4e6d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
 <tr class="memitem:aa5cbbeba5ba91bd6bfea36083cc7517f" id="r_aa5cbbeba5ba91bd6bfea36083cc7517f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>, const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp; &gt; const&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aa5cbbeba5ba91bd6bfea36083cc7517f">transaction_added_</a> {}</td></tr>
 <tr class="separator:aa5cbbeba5ba91bd6bfea36083cc7517f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1698,8 +1699,8 @@ false </dd></dl>
 
 </div>
 </div>
-<a id="acd71c9ceffe523a4992614ce619894e5" name="acd71c9ceffe523a4992614ce619894e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd71c9ceffe523a4992614ce619894e5">&#9670;&#160;</a></span>verifyTransaction()</h2>
+<a id="a24fdc0d8b8877ca9859afb962aa4e6d3" name="a24fdc0d8b8877ca9859afb962aa4e6d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24fdc0d8b8877ca9859afb962aa4e6d3">&#9670;&#160;</a></span>verifyTransaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1708,21 +1709,21 @@ false </dd></dl>
           <td class="memname">std::pair&lt; bool, std::string &gt; taraxa::TransactionManager::verifyTransaction </td>
           <td>(</td>
           <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>trx</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>from_dag</em> = <code>false</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
+          <td class="paramname"><em>trx</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Verifies a transaction. </p>
+<p>This method checks the validity of a transaction by verifying its format, signature, chain ID, gas, nonce, and balance.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">trx</td><td>The transaction to verify </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pair containing a boolean indicating success or failure, and a string with an error message if verification fails </dd></dl>
 
 </div>
 </div>
