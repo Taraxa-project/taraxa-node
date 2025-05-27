@@ -368,9 +368,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       return issued_trx_count;
     }
 
-    void dummy_transaction() {
-      coin_transfer(0, nodes_[0]->getAddress(), 0, false);
-    }
+    void dummy_transaction() { coin_transfer(0, nodes_[0]->getAddress(), 0, false); }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
       {

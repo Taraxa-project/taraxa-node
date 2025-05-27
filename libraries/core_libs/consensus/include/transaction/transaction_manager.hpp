@@ -248,11 +248,13 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void recoverNonfinalizedTransactions();
   /**
    * @brief Verifies a transaction
-   * 
-   * This method checks the validity of a transaction by verifying its format, signature, chain ID, gas, nonce, and balance.
-   * 
+   *
+   * This method checks the validity of a transaction by verifying its format, signature, chain ID, gas, nonce, and
+   * balance.
+   *
    * @param trx The transaction to verify
-   * @return A pair containing a boolean indicating success or failure, and a string with an error message if verification fails
+   * @return A pair containing a boolean indicating success or failure, and a string with an error message if
+   * verification fails
    */
   std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
