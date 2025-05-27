@@ -64,30 +64,18 @@ state_api::ExecutionResult TransactionManager::estimateTransactionGas(std::share
     return cached_estimation;
   }
 
-  const auto isBeforeSoleiroliaHF = !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(proposal_period);
-
   auto evm_trx = state_api::EVMTransaction{
       trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
       trx->getValue(),  trx->getGas(),      trx->getData(),
   };
 
-  if (isBeforeSoleiroliaHF) {
-    evm_trx.gas = kDagBlockGasLimit;
-  }
-
   auto result = final_chain_->call(evm_trx, proposal_period);
-
-  if (!result.code_err.empty() || !result.consensus_err.empty()) {
-    if (isBeforeSoleiroliaHF) {
-      result.gas_used = 0;
-    }
-  }
   estimations_cache_.insert(hash, result);
+
   return result;
 }
 
-std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx,
-                                                                   bool from_dag) const {
+std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
     return {true, ""};
@@ -99,18 +87,9 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   const int64_t block_num = final_chain_->lastBlockNumber();
-  const auto isOnSoleiroliaHF = kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(
-      std::max(block_num - (from_dag ? kDagExpiryLevelLimit : 0), int64_t(0)));
-
   // Ensure the transaction doesn't exceed the current block limit gas.
-  if (isOnSoleiroliaHF) {
-    if (kConf.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit < trx->getGas()) {
-      return {false, "invalid gas"};
-    }
-  } else {
-    if (kDagBlockGasLimit < trx->getGas()) {
-      return {false, "invalid gas"};
-    }
+  if (kConf.genesis.state.hardforks.soleirolia_hf.trx_max_gas_limit < trx->getGas()) {
+    return {false, "invalid gas"};
   }
 
   if (kConf.genesis.state.hardforks.isOnCornusHardfork(block_num)) {
@@ -126,14 +105,8 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   }
 
   // gas_price in transaction must be greater than or equal to minimum value from config
-  if (isOnSoleiroliaHF) {
-    if (kConf.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price > trx->getGasPrice()) {
-      return {false, "gas_price too low"};
-    }
-  } else {
-    if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
-      return {false, "gas_price too low"};
-    }
+  if (kConf.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price > trx->getGasPrice()) {
+    return {false, "gas_price too low"};
   }
 
   return {true, ""};
@@ -403,11 +376,6 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
                                                                                   uint64_t weight_limit) {
   SharedTransactions trxs;
   const uint64_t max_transactions_in_block = weight_limit / kMinTxGas;
-  const auto isBeforeSoleiroliaHF = !kConf.genesis.state.hardforks.isOnSoleiroliaHardfork(proposal_period);
-
-  // Remove after Soleirolia hardfork
-  const uint32_t max_zero_gas_transactions_per_block = 2;
-  uint32_t zero_gas_transactions_count = 0;
 
   {
     std::shared_lock transactions_lock(transactions_mutex_);
@@ -424,31 +392,13 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
     }
 
     auto estimate = estimateTransactionGas(trxs[i], proposal_period);
-    if (isBeforeSoleiroliaHF) {
-      // Estimate 0 possible only before Soleirolia hardfork, remove after
-      if (estimate.gas_used < kMinTxGas) {
-        if (estimate.code_err == "out of gas") {
-          std::unique_lock transactions_lock(transactions_mutex_);
-          auto trx = trxs[i];
-          transactions_pool_.erase(trx);
-          transactions_pool_.insert(std::move(trx), false, final_chain_->lastBlockNumber());
-          continue;
-        } else {
-          if (zero_gas_transactions_count > max_zero_gas_transactions_per_block) {
-            continue;
-          }
-          zero_gas_transactions_count++;
-        }
-      }
-    } else {
-      if (estimate.gas_used < kMinTxGas) {
-        LOG(log_er_) << "Transaction " << trxs[i]->getHash() << " has invalid estimation: " << estimate.gas_used;
-        std::unique_lock transactions_lock(transactions_mutex_);
-        auto trx = trxs[i];
-        transactions_pool_.erase(trx);
-        transactions_pool_.insert(std::move(trx), false, final_chain_->lastBlockNumber());
-        continue;
-      }
+    if (estimate.gas_used < kMinTxGas) {
+      LOG(log_er_) << "Transaction " << trxs[i]->getHash() << " has invalid estimation: " << estimate.gas_used;
+      std::unique_lock transactions_lock(transactions_mutex_);
+      auto trx = trxs[i];
+      transactions_pool_.erase(trx);
+      transactions_pool_.insert(std::move(trx), false, final_chain_->lastBlockNumber());
+      continue;
     }
 
     total_weight += estimate.gas_used;

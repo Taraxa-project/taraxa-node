@@ -1647,7 +1647,7 @@ TEST_F(NetworkTest, node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 1000000000, TEST_TX_GAS_LIMIT, bytes(),
                                                    nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
@@ -1701,7 +1701,7 @@ TEST_F(NetworkTest, node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 1000000000, TEST_TX_GAS_LIMIT, bytes(),
                                                    nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);

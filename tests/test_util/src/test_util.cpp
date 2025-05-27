@@ -70,7 +70,7 @@ TransactionClient::Context TransactionClient::process(const std::shared_ptr<Tran
 }
 
 TransactionClient::Context TransactionClient::coinTransfer(const addr_t& to, const val_t& val, bool wait_executed) {
-  return process(std::make_shared<Transaction>(nonce_++, val, 0, TEST_TX_GAS_LIMIT, bytes(), secret_, to),
+  return process(std::make_shared<Transaction>(nonce_++, val, 1000000000, TEST_TX_GAS_LIMIT, bytes(), secret_, to),
                  wait_executed);
 }
 
