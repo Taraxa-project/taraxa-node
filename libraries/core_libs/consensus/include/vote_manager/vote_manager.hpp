@@ -85,7 +85,7 @@ class VoteManager {
   uint64_t getVerifiedVotesSize() const;
 
   /**
-   * @brief Cleanup votes for previous PBFT periods
+   * @brief Cleanup votes for specified PBFT period
    * @param pbft_period current PBFT period
    */
   void cleanupVotesByPeriod(PbftPeriod pbft_period);
@@ -282,13 +282,6 @@ class VoteManager {
   bool isPotentialRewardVote(const std::shared_ptr<PbftVote>& vote) const;
 
   /**
-   * @brief Inserts unique vote
-   * @param vote
-   * @return <true, nullptr> if vote is unique per round & step & voter, otherwise <false, existing vote>
-   */
-  std::pair<bool, std::shared_ptr<PbftVote>> insertUniqueVote(const std::shared_ptr<PbftVote>& vote);
-
-  /**
    * @brief Get PBFT sortition threshold for specific period
    * @param total_dpos_votes_count total votes count
    * @param vote_type vote type
@@ -312,8 +305,7 @@ class VoteManager {
   std::atomic<PbftRound> current_pbft_round_{0};
 
   // Main storage for all verified votes
-  std::map<PbftPeriod, std::map<PbftRound, VerifiedVotes>> verified_votes_;
-  mutable std::shared_mutex verified_votes_access_;
+  VerifiedVotes verified_votes_;
 
   // Last & second last pbft block info based on pbft manager
   PbftBlockInfo last_pbft_block_;
