@@ -13,7 +13,6 @@ namespace taraxa::core_tests {
 
 auto g_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                             dev::Secret::ConstructFromStringType::FromHex);
-auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 
 struct RewardsStatsTest : NodesTest {};
 
@@ -210,9 +209,10 @@ TEST_F(RewardsStatsTest, feeRewards) {
   uint64_t period = 1;
   uint64_t nonce = 1;
 
-  const auto trx_gas_fee = 1000000;
-  auto trx = std::make_shared<Transaction>(nonce++, 0, 1, trx_gas_fee, dev::fromHex(samples::greeter_contract_code),
-                                           pbft_proposer.secret());
+  const auto trx_gas_fee = 1000000000;
+  const auto gas_limit = 1000000;
+  auto trx = std::make_shared<Transaction>(nonce++, 0, trx_gas_fee, gas_limit,
+                                           dev::fromHex(samples::greeter_contract_code), pbft_proposer.secret());
 
   auto dag_blk = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, vec_trx_t{trx->getHash()}, 0,
                                             VdfSortition{}, dag_proposer.secret());
@@ -226,7 +226,7 @@ TEST_F(RewardsStatsTest, feeRewards) {
   period_data.dag_blocks.push_back(dag_blk);
   period_data.transactions = {trx};
 
-  auto stats = rewards_stats.processStats(period_data, {trx_gas_fee}, batch).front();
+  auto stats = rewards_stats.processStats(period_data, {gas_limit}, batch).front();
 
   auto testable_stats = reinterpret_cast<TestableBlockStats*>(&stats);
   auto validators_stats = testable_stats->getValidatorStats();
@@ -235,7 +235,7 @@ TEST_F(RewardsStatsTest, feeRewards) {
   for (const auto& vs : validators_stats) {
     if (vs.first == dag_proposer.address()) {
       ASSERT_EQ(vs.second.dag_blocks_count_, 1);
-      ASSERT_EQ(vs.second.fees_rewards_, trx_gas_fee);
+      ASSERT_EQ(vs.second.fees_rewards_, uint256_t(trx_gas_fee) * gas_limit);
     }
   }
 }

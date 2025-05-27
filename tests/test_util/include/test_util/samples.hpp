@@ -85,7 +85,7 @@ class TxGenerator {
                                   addr_t const &receiver = addr_t::random()) const {
     SharedTransactions trxs;
     for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
-      trxs.emplace_back(std::make_shared<Transaction>(i, value, 0, TEST_TX_GAS_LIMIT,
+      trxs.emplace_back(std::make_shared<Transaction>(i, value, 1000000000, TEST_TX_GAS_LIMIT,
                                                       dev::fromHex("00FEDCBA9876543210000000"),
                                                       getRandomUniqueSenderSecret(), receiver));
     }
@@ -96,10 +96,6 @@ class TxGenerator {
   mutable std::mutex mutex_;
   mutable std::unordered_set<dev::FixedHash<secret_t::size>> used_secrets_;
 };
-
-inline auto const TX_GEN = Lazy([] { return TxGenerator(); });
-
-bool sendTrx(uint64_t count, unsigned port, dev::Secret secret);
 
 SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk,
                                           bytes data = dev::fromHex("00FEDCBA9876543210000000"));

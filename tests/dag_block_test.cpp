@@ -417,8 +417,8 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   const size_t count = 5;
   const auto proposal_period = node->getFinalChain()->lastBlockNumber();
   for (size_t i = 0; i <= count; ++i) {
-    auto create_trx = std::make_shared<Transaction>(i + 1, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
-                                                    node->getSecretKey());
+    auto create_trx = std::make_shared<Transaction>(i + 1, 100, 1000000000, 200001,
+                                                    dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx->getHash());
