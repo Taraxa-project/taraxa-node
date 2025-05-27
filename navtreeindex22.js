@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet":[17,0,1,5,1,1,0,0,0,0,6,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet":[17,0,1,5,1,1,0,0,0,0,7,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet":[17,0,1,5,1,1,0,0,0,0,8,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet":[17,0,1,5,1,1,0,0,0,0,9,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "state__config_8cpp.html#a15046280f6cced1ba188ecded81bb15f":[17,0,1,4,1,7,9],
 "state__config_8cpp.html#a2041ed7b7b90eb378c7ef916d761ce3b":[17,0,1,4,1,7,8],
 "state__config_8cpp.html#a71678cb3f5feb67a738df3d7d2f45270":[17,0,1,4,1,7,2],
-"state__config_8cpp.html#a79474e94e8b7bddd9319b13a2bbb18d0":[17,0,1,4,1,7,0],
-"state__config_8cpp.html#a8430d4247900167bc1ac842c70484cc3":[17,0,1,4,1,7,3]
+"state__config_8cpp.html#a79474e94e8b7bddd9319b13a2bbb18d0":[17,0,1,4,1,7,0]
 };

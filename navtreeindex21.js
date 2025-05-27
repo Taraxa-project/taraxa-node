@@ -1,5 +1,6 @@
 var NAVTREEINDEX21 =
 {
+"md_doc_2release__cycle.html#autotoc_md237":[9,0,3],
 "md_doc_2release__cycle.html#autotoc_md238":[9,1],
 "md_doc_2rewards__distribution.html":[10],
 "md_doc_2rewards__distribution.html#autotoc_md240":[10,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX21 =
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet":[17,0,1,5,1,1,0,0,0,0,2,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet":[17,0,1,5,1,1,0,0,0,0,3,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet":[17,0,1,5,1,1,0,0,0,0,4,0],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet":[17,0,1,5,1,1,0,0,0,0,5,0],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_blocks_bundle_packet":[17,0,1,5,1,1,0,0,0,0,6,0]
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_get_pillar_votes_bundle_packet":[17,0,1,5,1,1,0,0,0,0,5,0]
 };

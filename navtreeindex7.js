@@ -29,11 +29,12 @@ var NAVTREEINDEX7 =
 "classtaraxa_1_1_packet_processing_exception.html#ac21e7ffb13b25f5146f3f8115f196792":[16,0,3,49,1],
 "classtaraxa_1_1_packet_processing_exception.html#ad938b8276ec6d0b57c64edca0ce93050":[16,0,3,49,2],
 "classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html":[14,2,2,0],
-"classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#a11bc402814a1b87c28ca8d3936c75fd7":[14,2,2,0,4],
+"classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#a11bc402814a1b87c28ca8d3936c75fd7":[14,2,2,0,5],
 "classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#a27d09beeac00c02256c20cb3cfe5e654":[14,2,2,0,1],
 "classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#a4ffa27806d737a310b7b2fc93181b164":[14,2,2,0,0],
-"classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#a619bf509ac29f4df3fd6cb03cfe535e1":[14,2,2,0,3],
-"classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#af7f74444c9921caaaf41044ae275e45e":[14,2,2,0,2],
+"classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#a619bf509ac29f4df3fd6cb03cfe535e1":[14,2,2,0,4],
+"classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#af7f74444c9921caaaf41044ae275e45e":[14,2,2,0,3],
+"classtaraxa_1_1_pbft_manager_1_1_eligible_wallets.html#afada9e74b1e834752c52a6f50bf4a686":[14,2,2,0,2],
 "classtaraxa_1_1_plugin.html":[16,0,3,60],
 "classtaraxa_1_1_plugin.html#a009365f0f318ea1acbd13a0c7958ec01":[16,0,3,60,9],
 "classtaraxa_1_1_plugin.html#a0c5f20d655cde296afcbce63effbfbd2":[16,0,3,60,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "classtaraxa_1_1net_1_1_debug_face.html#a86b4b016515907bd468cfd0a712ad074":[16,0,3,4,5,1],
 "classtaraxa_1_1net_1_1_debug_face.html#a924ebd853c809107e3ef422894b3b3fb":[16,0,3,4,5,3],
 "classtaraxa_1_1net_1_1_debug_face.html#a9722d9eb0ca131bd3600d9a93f1052dd":[16,0,3,4,5,18],
-"classtaraxa_1_1net_1_1_debug_face.html#a98418351794eabd6d46d450388a6db2e":[16,0,3,4,5,19],
-"classtaraxa_1_1net_1_1_debug_face.html#a9a6b353ac7a04ce57d80210ab8563f64":[16,0,3,4,5,17]
+"classtaraxa_1_1net_1_1_debug_face.html#a98418351794eabd6d46d450388a6db2e":[16,0,3,4,5,19]
 };
