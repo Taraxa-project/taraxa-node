@@ -3,7 +3,7 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/genesis.hpp"
 #include "config/network.hpp"
-#include "logger/logging_config.hpp"
+#include "logging_config.hpp"
 
 namespace taraxa {
 
@@ -53,8 +53,6 @@ struct FullNodeConfig {
                           const std::string &config_file_path = "");
 
   void overwriteConfigFromJson(const Json::Value &config_json);
-  std::vector<logger::Config> loadLoggingConfigs(const Json::Value &logging);
-  void InitLogging(const addr_t &node_address);
 
   /**
    * @return first (main) wallet from the list of wallets
@@ -64,7 +62,6 @@ struct FullNodeConfig {
   std::string toString() const;
 
   std::string json_file_name;
-  std::filesystem::file_time_type last_json_update_time;
   // Vector of wallets used by node
   std::vector<WalletConfig> wallets;
   fs::path data_path;
@@ -74,7 +71,7 @@ struct FullNodeConfig {
   DBConfig db_config;
   GenesisConfig genesis;
   state_api::Opts opts_final_chain;
-  std::vector<logger::Config> log_configs;
+  LoggingConfig logging;
   bool is_light_node = false;                            // Is light node
   uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only

@@ -4,13 +4,14 @@
 #include <fmt/ranges.h>
 #include <libp2p/Common.h>
 #include <libp2p/ENR.h>
+#include <spdlog/async.h>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
 
 #include "common/types.hpp"
-#include "logger/logging_config.hpp"
+#include "config/logging_config.hpp"
 
 namespace taraxa::logger {
 
@@ -28,38 +29,12 @@ class Logging {
    * @brief Initializes logging according to the provided logging_config
    *
    * @param logging_config
-   * @param node_id
    */
-  void Init(/* channels config, const addr_t& node_id*/);
-
-  ///**
-  // * @brief Creates default logging config
-  // *
-  // * @return logger::Config
-  // */
-  // Config createDefaultLoggingConfig();
+  void Init(const LoggingConfig& logging_config);
 
   /**
    * @brief Creates (or returns existing) channel logger
-   * @note To control logging in terms of where log messages are forwarded(console/file), severity filter etc..., see
-   *       functions createDefaultLoggingConfig and InitLogging. Usage example:
    *
-   *       // Creates logging config
-   *       auto logging_config = createDefaultLoggingConfig();
-   *       logging_config.verbosity = logger::Verbosity::Error;
-   *       logging_config.channels["SAMPLE_CHANNEL"] = logger::Verbosity::Error;
-   *
-   *       // Initializes logging according to the provided config
-   *       InitLogging(logging_config);
-   *
-   *       addr_t node_addr;
-   *
-   *       // Creates error logger
-   *       auto logger = createLogger(logger::Verbosity::Error, "SAMPLE_CHANNEL", node_addr)
-   *
-   *       LOG(logger) << "sample message";
-   *
-   * @note see macros LOG_OBJECTS_DEFINE, LOG_OBJECTS_CREATE, LOG
    * @param channel
    * @return Logger object
    */
@@ -67,15 +42,28 @@ class Logging {
 
  private:
   Logging() = default;
-  ~Logging() = default;
+  ~Logging();
   Logging(const Logging&) = delete;
   Logging& operator=(const Logging&) = delete;
 
-  // TODO: add channels/verbosity/sinks config
+  // Logging config
+  LoggingConfig logging_config_;
 
-  std::vector<spdlog::sink_ptr> sinks_;
+  // Logging threadpool
+  // Using one worker thread decouples the application's logging calls from the
+  // actual I/O, reducing blocking in the main application threads. However, the throughput is limited by the single
+  // worker thread's capacity
+  std::shared_ptr<spdlog::details::thread_pool> logging_tp_;
+
+  // Sinks for all loggers
+  std::vector<spdlog::sink_ptr> all_loggers_sinks_;
+  // Sinks only for specific loggers
+  std::unordered_map<std::string /* logger channel name*/, std::vector<spdlog::sink_ptr>> specific_loggers_sinks_;
+
   bool initialized_{false};
 };
+
+LoggingConfig CreateDefaultLoggingConfig();
 
 }  // namespace taraxa::logger
 

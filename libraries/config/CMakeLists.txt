@@ -8,6 +8,7 @@ set(HEADERS
   include/config/pbft_config.hpp
   include/config/state_config.hpp
   include/config/hardfork.hpp
+  include/config/logging_config.hpp
 )
 
 set(SOURCES
@@ -19,6 +20,7 @@ set(SOURCES
   src/pbft_config.cpp
   src/state_config.cpp
   src/hardfork.cpp
+  src/logging_config.cpp
 )
 
 # Configure file with version

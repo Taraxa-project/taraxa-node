@@ -17,56 +17,6 @@ void dec_json(Json::Value const &json, DBConfig &db_config) {
   db_config.db_max_open_files = getConfigDataAsUInt(json, {"db_max_open_files"}, true, db_config.db_max_open_files);
 }
 
-// TODO: move this to logger class
-std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value &logging_json) {
-  // could be empty if config loaded from json e.g. tests
-  if (!json_file_name.empty()) {
-    last_json_update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
-  }
-  std::vector<logger::Config> res;
-  if (!logging_json.isNull()) {
-    if (auto path = getConfigData(logging_json, {"log_path"}, true); !path.isNull()) {
-      log_path = path.asString();
-    } else {
-      log_path = data_path / "logs";
-    }
-    for (auto &item : logging_json["configurations"]) {
-      auto on = getConfigDataAsBoolean(item, {"on"});
-      if (on) {
-        logger::Config logging;
-        logging.name = getConfigDataAsString(item, {"name"});
-        logging.verbosity = logger::stringToVerbosity(getConfigDataAsString(item, {"verbosity"}));
-        for (auto &ch : item["channels"]) {
-          std::pair<std::string, uint16_t> channel;
-          channel.first = getConfigDataAsString(ch, {"name"});
-          if (ch["verbosity"].isNull()) {
-            channel.second = logging.verbosity;
-          } else {
-            channel.second = logger::stringToVerbosity(getConfigDataAsString(ch, {"verbosity"}));
-          }
-          logging.channels[channel.first] = channel.second;
-        }
-        for (auto &o : item["outputs"]) {
-          logger::Config::OutputConfig output;
-          output.type = getConfigDataAsString(o, {"type"});
-          output.format = getConfigDataAsString(o, {"format"});
-          if (output.type == "file") {
-            output.target = log_path;
-            output.file_name = (log_path / getConfigDataAsString(o, {"file_name"})).string();
-            output.format = getConfigDataAsString(o, {"format"});
-            output.max_size = getConfigDataAsUInt(o, {"max_size"});
-            output.rotation_size = getConfigDataAsUInt(o, {"rotation_size"});
-            output.time_based_rotation = getConfigDataAsString(o, {"time_based_rotation"});
-          }
-          logging.outputs.push_back(output);
-        }
-        res.push_back(logging);
-      }
-    }
-  }
-  return res;
-}
-
 void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
@@ -80,10 +30,8 @@ void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
   blocks_gas_pricer = getConfigDataAsBoolean(root, {"blocks_gas_pricer"}, true, blocks_gas_pricer);
 
   dec_json(root["network"], network);
-
   dec_json(root["db_config"], db_config);
-
-  log_configs = loadLoggingConfigs(root["logging"]);
+  dec_json(root["logging"], logging, data_path);
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, light_node_history);
@@ -176,12 +124,6 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const std::v
   // TODO configurable
   opts_final_chain.expected_max_trx_per_block = 1000;
   opts_final_chain.max_trie_full_node_levels_to_cache = 4;
-}
-
-void FullNodeConfig::InitLogging(const addr_t &node_address) {
-  for (auto &logging : log_configs) {
-    logging.InitLogging(node_address);
-  }
 }
 
 const WalletConfig &FullNodeConfig::getFirstWallet() const { return wallets.front(); }
