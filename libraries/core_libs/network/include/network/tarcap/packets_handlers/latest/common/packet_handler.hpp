@@ -73,7 +73,6 @@ class PacketHandler : public BasePacketHandler {
   // Shared packet stats
   std::shared_ptr<TimePeriodPacketsStats> packets_stats_;
 
-  // Declare logger instances
   logger::Logger logger_;
 };
 

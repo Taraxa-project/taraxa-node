@@ -48,7 +48,6 @@ class TimePeriodPacketsStats {
   // Max stats for all received packets combined per peer
   MaxStats peer_max_stats_;
 
-  // Declare logger instances
   logger::Logger logger_;
 };
 

@@ -51,12 +51,7 @@ void App::init(const cli::Config &cli_conf) {
   fs::create_directories(conf_.log_path);
 
   // Initialize logging
-  logger::Logging::get().Init();
-
-  const auto &node_addr = conf_.getFirstWallet().node_addr;
-  for (auto &logging : conf_.log_configs) {
-    logging.InitLogging(node_addr);
-  }
+  logger::Logging::get().Init(conf_.logging);
 
   // Note: call after InitLogging
   logger_ = logger::Logging::get().CreateChannelLogger("FULLND");
@@ -165,8 +160,6 @@ void App::start() {
     return;
   }
 
-  scheduleLoggingConfigUpdate();
-
   if (!conf_.db_config.rebuild_db) {
     // GasPricer updater
     final_chain_->block_finalized_.subscribe(
@@ -218,38 +211,6 @@ void App::start() {
   }
   started_ = true;
   logger_->info("Node started ... ");
-}
-
-void App::scheduleLoggingConfigUpdate() {
-  // no file to check updates for (e.g. tests)
-  if (conf_.json_file_name.empty()) {
-    return;
-  }
-
-  config_update_executor_.post([&]() {
-    while (started_ && !stopped_) {
-      auto path = std::filesystem::path(conf_.json_file_name);
-      if (path.empty()) {
-        std::cout << "FullNodeConfig: scheduleLoggingConfigUpdate: json_file_name is empty" << std::endl;
-        return;
-      }
-      auto update_time = std::filesystem::last_write_time(path);
-      if (conf_.last_json_update_time >= update_time) {
-        continue;
-      }
-      conf_.last_json_update_time = update_time;
-      try {
-        auto config = getJsonFromFileOrString(conf_.json_file_name);
-        conf_.log_configs = conf_.loadLoggingConfigs(config["logging"]);
-        conf_.InitLogging(conf_.getFirstWallet().node_addr);
-      } catch (const ConfigException &e) {
-        std::cerr << "FullNodeConfig: Failed to update logging config: " << e.what() << std::endl;
-        continue;
-      }
-      std::cout << "FullNodeConfig: Updated logging config" << std::endl;
-      std::this_thread::sleep_for(std::chrono::minutes(1));
-    }
-  });
 }
 
 void App::setupMetricsUpdaters() {

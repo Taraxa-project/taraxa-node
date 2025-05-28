@@ -106,7 +106,6 @@ class PriorityQueue {
   // How many workers are currently processing packets from all the queues at the same time
   std::atomic<size_t> act_total_workers_count_;
 
-  // Declare logger instances
   logger::Logger logger_;
 };
 

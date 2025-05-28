@@ -16,23 +16,6 @@
 
 namespace dev {
 
-// TODO: remove
-#define LOG BOOST_LOG
-enum Verbosity {
-  VerbositySilent = -1,
-  VerbosityError = 0,
-  VerbosityWarning = 1,
-  VerbosityInfo = 2,
-  VerbosityDebug = 3,
-  VerbosityTrace = 4,
-};
-struct LoggingOptions {
-  int verbosity = VerbosityWarning;
-  strings includeChannels;
-  strings excludeChannels;
-  std::string logfilename;
-};
-
 // Below overloads for both const and non-const references are needed, because
 // without overload for non-const reference generic
 // operator<<(formatting_ostream& _strm, T& _value) will be preferred by

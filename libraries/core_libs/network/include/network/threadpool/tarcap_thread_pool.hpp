@@ -98,7 +98,6 @@ class PacketsThreadPool {
   // Vector of worker threads - should be initialized as the last member
   std::vector<std::thread> workers_;
 
-  // Declare logger instances
   logger::Logger logger_;
 };
 

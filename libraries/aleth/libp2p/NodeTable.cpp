@@ -10,10 +10,6 @@
 namespace dev {
 namespace p2p {
 namespace {
-// global thread-safe logger for static methods
-BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS(g_discoveryWarnLogger, boost::log::sources::severity_channel_logger_mt<>,
-                                         (boost::log::keywords::severity = 0)(boost::log::keywords::channel = "discov"))
-
 // Cadence at which we timeout sent pings and evict unresponsive nodes
 constexpr std::chrono::milliseconds c_handleTimeoutsIntervalMs{5000};
 // Cadence at which we remove old records from EndpointTracker
