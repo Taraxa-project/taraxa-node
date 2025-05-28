@@ -33,6 +33,11 @@ class Logging {
   void Init(const LoggingConfig& logging_config);
 
   /**
+   * @brief Deinit logger
+   */
+  void Deinit();
+
+  /**
    * @brief Creates (or returns existing) channel logger
    *
    * @param channel
@@ -42,23 +47,23 @@ class Logging {
 
  private:
   Logging() = default;
-  ~Logging();
+  ~Logging() = default;
   Logging(const Logging&) = delete;
   Logging& operator=(const Logging&) = delete;
 
   // Logging config
   LoggingConfig logging_config_;
 
+  // Sinks for all loggers
+  std::vector<spdlog::sink_ptr> all_loggers_sinks_;
+  // Sinks only for specific loggers
+  std::unordered_map<std::string /* logger channel name*/, std::vector<spdlog::sink_ptr>> specific_loggers_sinks_;
+
   // Logging threadpool
   // Using one worker thread decouples the application's logging calls from the
   // actual I/O, reducing blocking in the main application threads. However, the throughput is limited by the single
   // worker thread's capacity
   std::shared_ptr<spdlog::details::thread_pool> logging_tp_;
-
-  // Sinks for all loggers
-  std::vector<spdlog::sink_ptr> all_loggers_sinks_;
-  // Sinks only for specific loggers
-  std::unordered_map<std::string /* logger channel name*/, std::vector<spdlog::sink_ptr>> specific_loggers_sinks_;
 
   bool initialized_{false};
 };

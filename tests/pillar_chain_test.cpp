@@ -577,14 +577,4 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
 
 }  // namespace taraxa::core_tests
 
-using namespace taraxa;
-int main(int argc, char** argv) {
-  taraxa::static_init();
-  auto logging_config = logger::CreateDefaultLoggingConfig();
-  logging_config.outputs.front().verbosity = spdlog::level::err;
-
-  logger::Logging::get().Init(logging_config);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

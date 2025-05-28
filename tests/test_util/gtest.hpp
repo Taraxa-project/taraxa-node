@@ -7,6 +7,7 @@
 #include "common/init.hpp"
 #include "common/lazy.hpp"
 #include "config/config.hpp"
+#include "logger/logging.hpp"
 
 namespace fs = std::filesystem;
 using ::taraxa::util::lazy::Lazy;
@@ -14,15 +15,22 @@ using ::taraxa::util::lazy::Lazy;
 inline auto const DIR = fs::path(__FILE__).parent_path();
 inline auto const DIR_CONF = DIR / "conf";
 
-#define TARAXA_TEST_MAIN(_extension)                          \
-  int main(int argc, char **argv) {                           \
-    taraxa::static_init();                                    \
-    std::function<void(int, char **)> extension = _extension; \
-    if (extension) {                                          \
-      extension(argc, argv);                                  \
-    }                                                         \
-    ::testing::InitGoogleTest(&argc, argv);                   \
-    return RUN_ALL_TESTS();                                   \
+#define TARAXA_TEST_MAIN(_extension)                                    \
+  int main(int argc, char **argv) {                                     \
+    taraxa::static_init();                                              \
+    std::function<void(int, char **)> extension = _extension;           \
+    if (extension) {                                                    \
+      extension(argc, argv);                                            \
+    }                                                                   \
+                                                                        \
+    auto logging_config = taraxa::logger::CreateDefaultLoggingConfig(); \
+    logging_config.outputs.front().verbosity = spdlog::level::err;      \
+    taraxa::logger::Logging::get().Init(logging_config);                \
+                                                                        \
+    ::testing::InitGoogleTest(&argc, argv);                             \
+    auto res = RUN_ALL_TESTS();                                         \
+    taraxa::logger::Logging::get().Deinit();                            \
+    return res;                                                         \
   }
 
 struct BaseTest : virtual testing::Test {

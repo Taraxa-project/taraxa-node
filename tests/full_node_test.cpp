@@ -27,7 +27,6 @@
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 #include "transaction/transaction_manager.hpp"
-#include "logger/logging.hpp"
 
 // TODO rename this namespace to `tests`
 namespace taraxa::core_tests {
@@ -1614,14 +1613,4 @@ TEST_F(FullNodeTest, multiple_wallets_support) {
 
 }  // namespace taraxa::core_tests
 
-int main(int argc, char **argv) {
-  taraxa::static_init();
-
-  auto logging_config = taraxa::logger::CreateDefaultLoggingConfig();
-  logging_config.outputs.front().verbosity = spdlog::level::err;
-
-  taraxa::logger::Logging::get().Init(logging_config);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

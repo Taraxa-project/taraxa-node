@@ -57,9 +57,14 @@ void Logging::Init(const LoggingConfig& logging_config) {
   initialized_ = true;
 }
 
-Logging::~Logging() {
+void Logging::Deinit() {
   if (initialized_) {
+    spdlog::drop_all();
     spdlog::shutdown();
+
+    all_loggers_sinks_.clear();
+    specific_loggers_sinks_.clear();
+    initialized_ = false;
   }
 }
 

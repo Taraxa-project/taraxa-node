@@ -248,6 +248,9 @@ void App::close() {
   dag_block_proposer_->stop();
   pbft_mgr_->stop();
   logger_->info("Node stopped ... ");
+
+  // Deinit logging
+  logger::Logging::get().Deinit();
 }
 
 void App::rebuildDb() {
