@@ -8,7 +8,7 @@
 
 #include "common/init.hpp"
 #include "common/thread_pool.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
@@ -156,11 +156,10 @@ TEST_F(P2PTest, multiple_capabilities) {
 using namespace taraxa;
 int main(int argc, char **argv) {
   static_init();
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
+  auto logging_config = logger::CreateDefaultLoggingConfig();
+  logging_config.outputs.front().verbosity = spdlog::level::err;
 
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
+  logger::Logging::get().Init(logging_config);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

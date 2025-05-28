@@ -12,7 +12,7 @@
 #include "config/config.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/packets/latest/pbft_sync_packet.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
@@ -1876,11 +1876,10 @@ TEST_F(NetworkTest, pbft_sync_packet_rlp_encoding) {
 using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
+  auto logging_config = logger::CreateDefaultLoggingConfig();
+  logging_config.outputs.front().verbosity = spdlog::level::err;
 
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
+  logger::Logging::get().Init(logging_config);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "common/init.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/test_util.hpp"
@@ -88,12 +88,10 @@ TEST_F(PbftChainTest, pbft_db_test) {
 using namespace taraxa;
 int main(int argc, char **argv) {
   taraxa::static_init();
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
-  logging.channels["PBFT_CHAIN"] = logger::Verbosity::Error;
+  auto logging_config = logger::CreateDefaultLoggingConfig();
+  logging_config.outputs.front().verbosity = spdlog::level::err;
 
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
+  logger::Logging::get().Init(logging_config);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

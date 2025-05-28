@@ -11,7 +11,7 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 #include "vdf/sortition.hpp"
@@ -150,7 +150,7 @@ TEST_F(DagBlockTest, sign_verify) {
                  {trx_hash_t(555),  // trxs
                   trx_hash_t(666)},
                  g_secret);
-  EXPECT_EQ(blk1.getSig(), blk1c.getSig()) << blk1 << std::endl << blk1c;
+  EXPECT_EQ(blk1.getSig(), blk1c.getSig()) << blk1.toString() << std::endl << blk1c.toString();
   EXPECT_EQ(blk1.getSender(), blk1c.getSender());
   EXPECT_EQ(blk1.getHash(), blk1c.getHash());
 
@@ -463,11 +463,10 @@ TEST_F(DagBlockMgrTest, estimation_cache_test) {
 using namespace taraxa;
 int main(int argc, char** argv) {
   static_init();
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
+  auto logging_config = logger::CreateDefaultLoggingConfig();
+  logging_config.outputs.front().verbosity = spdlog::level::err;
 
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
+  logger::Logging::get().Init(logging_config);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

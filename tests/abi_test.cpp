@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common/encoding_solidity.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "test_util/gtest.hpp"
 
 namespace taraxa::core_tests {
@@ -64,10 +64,10 @@ using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
 
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
-  addr_t node_addr;
-  logging.InitLogging(node_addr);
+  auto logging_config = logger::CreateDefaultLoggingConfig();
+  logging_config.outputs.front().verbosity = spdlog::level::err;
+
+  logger::Logging::get().Init(logging_config);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

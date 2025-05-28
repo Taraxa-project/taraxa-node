@@ -11,7 +11,7 @@
 #include "common/init.hpp"
 #include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "test_util/gtest.hpp"
 #include "vdf/sortition.hpp"
 #include "vote/vrf_sortition.hpp"
@@ -546,11 +546,10 @@ using namespace taraxa;
 int main(int argc, char** argv) {
   taraxa::static_init();
 
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
-  logging.channels["SORTITION"] = logger::Verbosity::Error;
-  addr_t node_addr;
-  logging.InitLogging(node_addr);
+  auto logging_config = logger::CreateDefaultLoggingConfig();
+  logging_config.outputs.front().verbosity = spdlog::level::err;
+
+  logger::Logging::get().Init(logging_config);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
