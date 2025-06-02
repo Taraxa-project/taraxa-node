@@ -536,3 +536,5 @@ TEST_F(SortitionTest, params_restart) {
 }
 
 }  // namespace taraxa::core_tests
+
+TARAXA_TEST_MAIN({})

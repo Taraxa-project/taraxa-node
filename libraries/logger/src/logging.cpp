@@ -6,7 +6,11 @@
 
 namespace taraxa::logger {
 
-void Logging::Init(const LoggingConfig& logging_config) {
+void Logging::Init(const LoggingConfig& logging_config, bool global_init) {
+  if (initialized_) {
+    return;
+  }
+
   logging_config_ = logging_config;
 
   // 8k queue for messages, 1 worker thread.
@@ -55,9 +59,15 @@ void Logging::Init(const LoggingConfig& logging_config) {
   }
 
   initialized_ = true;
+  global_initialized_ = global_init;
 }
 
-void Logging::Deinit() {
+void Logging::Deinit(bool global_init) {
+  // In case logging was initialized with global_init flag, Deinit only if called global_init flag too
+  if (global_initialized_ && !global_init) {
+    return;
+  }
+
   if (initialized_) {
     spdlog::drop_all();
     spdlog::shutdown();

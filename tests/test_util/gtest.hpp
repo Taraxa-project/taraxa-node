@@ -25,11 +25,11 @@ inline auto const DIR_CONF = DIR / "conf";
                                                                         \
     auto logging_config = taraxa::logger::CreateDefaultLoggingConfig(); \
     logging_config.outputs.front().verbosity = spdlog::level::err;      \
-    taraxa::logger::Logging::get().Init(logging_config);                \
+    taraxa::logger::Logging::get().Init(logging_config, true);          \
                                                                         \
     ::testing::InitGoogleTest(&argc, argv);                             \
     auto res = RUN_ALL_TESTS();                                         \
-    taraxa::logger::Logging::get().Deinit();                            \
+    taraxa::logger::Logging::get().Deinit(true);                        \
     return res;                                                         \
   }
 
