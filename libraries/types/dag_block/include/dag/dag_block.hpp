@@ -43,10 +43,11 @@ class DagBlock {
            blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
-  // fixme: used only in tests, Eliminate it
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
   DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, VdfSortition vdf,
            secret_t const &sk);
+  // fixme: used only in tests, Eliminate it
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(std::string const &json);
   explicit DagBlock(dev::RLP const &_rlp);

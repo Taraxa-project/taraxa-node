@@ -31,17 +31,20 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
                std::move(sender)) {}
 
 DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk)
-    : DagBlock(pivot, level, std::move(tips), std::move(trxs), {}, VdfSortition(), sk) {}
+    : DagBlock(pivot, level, std::move(tips), std::move(trxs), {}, sk) {}
+
+DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, VdfSortition,
+                   secret_t const &sk)
+    : DagBlock(pivot, level, std::move(tips), std::move(trxs), est, sk) {}
 
 DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est,
-                   VdfSortition vdf, secret_t const &sk)
+                   secret_t const &sk)
     : pivot_(pivot),
       level_(level),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
       gas_estimation_(std::move(est)),
-      timestamp_(dev::utcTime()),
-      vdf_(std::move(vdf)) {
+      timestamp_(dev::utcTime()) {
   sig_ = dev::sign(sk, sha3(false));
 }
 

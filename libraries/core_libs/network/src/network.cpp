@@ -178,9 +178,12 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   // Send new transactions
   auto sendTxs = [this, trx_mgr = trx_mgr]() {
     for (auto &tarcap : tarcaps_) {
-      auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::ITransactionPacketHandler>(
-          network::SubprotocolPacketType::kTransactionPacket);
-      tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
+      auto vote_count = pbft_mgr_->getCurrentNodeVotesCount();
+      if (!vote_count || *vote_count == 0) {
+        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::ITransactionPacketHandler>(
+            network::SubprotocolPacketType::kTransactionPacket);
+        tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
+      }
     }
   };
   periodic_events_tp_.post_loop({kConf.network.transaction_interval_ms}, sendTxs);

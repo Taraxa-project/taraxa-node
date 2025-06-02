@@ -1,8 +1,9 @@
 #include "transaction/gas_pricer.hpp"
-#include "config/config.hpp"
-#include "test_util/test_util.hpp"
 
 #include <gtest/gtest.h>
+
+#include "config/config.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 

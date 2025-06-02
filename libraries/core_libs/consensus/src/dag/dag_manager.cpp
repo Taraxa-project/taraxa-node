@@ -257,6 +257,7 @@ std::vector<blk_hash_t> DagManager::getGhostPath() const {
 // return {block order}, for pbft-pivot-blk proposing
 std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, PbftPeriod period) {
   std::shared_lock lock(mutex_);
+  LOG(log_nf_) << "getDagBlockOrder period " << period << " non_finalized_blks_ " << non_finalized_blks_.size();
   std::vector<blk_hash_t> blk_orders;
 
   if (period != period_ + 1) {
@@ -279,7 +280,7 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
 
   LOG(log_dg_) << "Get period " << new_period << " from " << anchor_ << " to " << anchor << " with "
                << blk_orders.size() << " blks" << std::endl;
-
+  LOG(log_nf_) << "getDagBlockOrder done";
   return blk_orders;
 }
 
@@ -675,24 +676,6 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
   if (!pk) {
     LOG(log_er_) << "DAG block " << blk->getHash() << " with " << blk->getLevel()
                  << " level is missing VRF key for sender " << blk->getSender();
-    return {VerifyBlockReturnType::FailedVdfVerification, {}};
-  }
-
-  try {
-    const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
-    uint64_t max_vote_count = 0;
-    const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk->getSender());
-    if (*propose_period < kGenesis.state.hardforks.magnolia_hf.block_num) {
-      max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
-    } else {
-      max_vote_count = kValidatorMaxVote;
-    }
-    blk->verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk, vote_count,
-                   max_vote_count);
-  } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
-    LOG(log_er_) << "DAG block " << block_hash << " with " << blk->getLevel()
-                 << " level failed on VDF verification with pivot hash " << blk->getPivot() << " reason " << e.what();
-    LOG(log_er_) << "period from map: " << *propose_period << " current: " << pbft_chain_->getPbftChainSize();
     return {VerifyBlockReturnType::FailedVdfVerification, {}};
   }
 

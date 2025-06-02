@@ -83,7 +83,7 @@ bool DagBlockProposer::proposeDagBlock() {
   }
 
   uint64_t max_vote_count = 0;
-  const auto vote_count = final_chain_->dposEligibleVoteCount(*proposal_period, node_addr_);
+  // const auto vote_count = final_chain_->dposEligibleVoteCount(*proposal_period, node_addr_);
   if (*proposal_period < kHardforks.magnolia_hf.block_num) {
     max_vote_count = final_chain_->dposEligibleTotalVoteCount(*proposal_period);
   } else {
@@ -95,91 +95,13 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
-  const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
-  // get sortition
-  const auto sortition_params = dag_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
-  vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
-                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), vote_count,
-                                  max_vote_count);
-
-  auto anchor = dag_mgr_->getAnchors().second;
-  if (frontier.pivot != anchor) {
-    if (dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocks) {
-      return false;
-    }
-    if (dag_mgr_->getNonFinalizedBlocksMinDifficulty() < vdf.getDifficulty() &&
-        dag_mgr_->getNonFinalizedBlocksSize().second > kMaxNonFinalizedDagBlocksLowDifficulty) {
-      return false;
-    }
-  }
-
-  if (vdf.isStale(sortition_params)) {
-    if (last_propose_level_ == propose_level) {
-      if (num_tries_ < max_num_tries_) {
-        LOG(log_dg_) << "Will not propose DAG block. Get difficulty at stale, tried " << num_tries_ << " times.";
-        num_tries_++;
-        return false;
-      }
-    } else {
-      LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. Get difficulty at stale , current "
-                      "propose level "
-                   << propose_level;
-      last_propose_level_ = propose_level;
-      num_tries_ = 0;
-      return false;
-    }
-  }
-
   auto [transactions, estimations] = getShardedTrxs(*proposal_period, kDagProposeGasLimit);
   if (transactions.empty()) {
     last_propose_level_ = propose_level;
     num_tries_ = 0;
     return false;
   }
-
-  dev::bytes vdf_msg = DagManager::getVdfMessage(frontier.pivot, transactions);
-
-  std::atomic_bool cancellation_token = false;
-  std::promise<void> sync;
-  executor_.post([&vdf, &sortition_params, &vdf_msg, cancel = std::ref(cancellation_token), &sync]() mutable {
-    vdf.computeVdfSolution(sortition_params, vdf_msg, cancel);
-    sync.set_value();
-  });
-
-  std::future<void> result = sync.get_future();
-  while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
-    auto latest_frontier = dag_mgr_->getDagFrontier();
-    const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
-    if (latest_level > propose_level + 1 && vdf.getDifficulty() > sortition_params.vdf.difficulty_min) {
-      cancellation_token = true;
-      break;
-    }
-  }
-
-  if (cancellation_token) {
-    last_propose_level_ = propose_level;
-    num_tries_ = 0;
-    result.wait();
-    // Since compute was canceled there is a chance to propose a new block immediately, return true to skip sleep
-    return true;
-  }
-
-  if (vdf.isStale(sortition_params)) {
-    // Computing VDF for a stale block is CPU extensive, there is a possibility that some dag blocks are in a queue,
-    // give it a second to process these dag blocks
-    thisThreadSleepForSeconds(1);
-    auto latest_frontier = dag_mgr_->getDagFrontier();
-    const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
-    if (latest_level > propose_level) {
-      last_propose_level_ = propose_level;
-      num_tries_ = 0;
-      return false;
-    }
-  }
-  LOG(log_dg_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
-
-  auto dag_block =
-      createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
+  auto dag_block = createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations));
 
   if (dag_mgr_->addDagBlock(dag_block, std::move(transactions), true).first) {
     LOG(log_nf_) << "Proposed new DAG block " << dag_block->getHash() << ", pivot " << dag_block->getPivot()
@@ -199,7 +121,7 @@ void DagBlockProposer::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-  const uint16_t min_proposal_delay = 100;
+  const uint16_t min_proposal_delay = 5;
 
   LOG(log_nf_) << "DagBlockProposer started ...";
 
@@ -217,9 +139,11 @@ void DagBlockProposer::start() {
       }
       // Only sleep if block was not proposed or if we are syncing or if packets queue is over the limit, if block is
       // proposed try to propose another block immediately
-      if (syncing || packets_over_the_limit || !proposeDagBlock()) {
+      if (syncing || packets_over_the_limit) {
         thisThreadSleepForMilliSeconds(min_proposal_delay);
+        continue;
       }
+      proposeDagBlock();
     }
   });
 }
@@ -347,8 +271,7 @@ vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips, u
 
 std::shared_ptr<DagBlock> DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
                                                            const SharedTransactions& trxs,
-                                                           std::vector<uint64_t>&& estimations,
-                                                           VdfSortition&& vdf) const {
+                                                           std::vector<uint64_t>&& estimations) const {
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   vec_trx_t trx_hashes;
@@ -364,7 +287,7 @@ std::shared_ptr<DagBlock> DagBlockProposer::createDagBlock(DagFrontier&& frontie
   }
 
   return std::make_shared<DagBlock>(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
-                                    block_estimation, std::move(vdf), node_sk_);
+                                    block_estimation, node_sk_);
 }
 
 bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period) const {
