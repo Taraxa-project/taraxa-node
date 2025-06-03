@@ -286,6 +286,9 @@ consensusnode:
     size: 30Gi
     storageClass: 
     annotations: {}
+  wallets:
+    enabled: false
+    secretName: "taraxa-wallets"
 
 consensusnodeLight:
   enabled: false

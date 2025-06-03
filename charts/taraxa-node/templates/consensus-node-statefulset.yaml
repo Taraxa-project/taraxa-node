@@ -169,6 +169,11 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /root/.taraxa
+            {{- if .Values.consensusnode.wallets.enabled }}
+            - name: wallets
+              mountPath: /root/.taraxa/wallets
+              readOnly: true
+            {{- end }}
           securityContext:
             capabilities:
               add:
@@ -205,6 +210,11 @@ spec:
           configMap:
             defaultMode: 0700
             name: {{ .Release.Name }}-node-status-script
+        {{- end }}
+        {{- if .Values.consensusnode.wallets.enabled }}
+        - name: wallets
+          secret:
+            secretName: {{ .Values.consensusnode.wallets.secretName }}
         {{- end }}
        {{- if not .Values.consensusnode.persistence.enabled }}
         - name: data
