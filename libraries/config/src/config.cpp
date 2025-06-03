@@ -232,20 +232,21 @@ void dec_json(const Json::Value &json, LoggingConfig &obj, std::filesystem::path
     output.verbosity = stringToVerbosity(getConfigDataAsString(o, {"verbosity"}));
     output.on = getConfigDataAsBoolean(o, {"on"});
 
-    if (auto channels = getConfigData(json, {"channels"}, true); !channels.isNull()) {
+    if (auto channels = getConfigData(o, {"channels"}, true); !channels.isNull()) {
+      output.channels = std::vector<std::string>{};
       for (auto &ch : channels) {
         output.channels->push_back(ch.asString());
       }
     }
 
     if (output.type == LoggingConfig::LoggingType::File) {
-      if (auto path = getConfigData(json, {"file_path"}, true); !path.isNull()) {
-        output.file_path = path.asString();
+      if (auto dir = getConfigData(o, {"file_dir"}, true); !dir.isNull()) {
+        output.file_dir = dir.asString();
       } else {
-        output.file_path = data_path / "logs";
+        output.file_dir = data_path / "logs";
       }
       output.file_name = getConfigDataAsString(o, {"file_name"});
-      output.file_full_path = *output.file_path / output.file_name;
+      output.file_full_path = *output.file_dir / output.file_name;
       output.rotation_size = getConfigDataAsUInt(o, {"rotation_size"});
       output.max_files_num = getConfigDataAsUInt(o, {"max_files_num"});
     }

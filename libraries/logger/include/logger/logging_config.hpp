@@ -25,7 +25,7 @@ struct LoggingConfig {
     LoggingType type{LoggingType::Console};
     std::string name{"console"};
     std::string file_name;
-    std::optional<std::filesystem::path> file_path;
+    std::optional<std::filesystem::path> file_dir;
     std::filesystem::path file_full_path;  // file_path(or default value) + file_name
     std::string format{"[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v"};
     spdlog::level::level_enum verbosity{spdlog::level::err};

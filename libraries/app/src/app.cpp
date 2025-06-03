@@ -48,7 +48,6 @@ void App::init(const cli::Config &cli_conf) {
   conf_ = cli_conf.getNodeConfiguration();
 
   fs::create_directories(conf_.db_path);
-  fs::create_directories(conf_.log_path);
 
   // Initialize logging
   logger::Logging::get().Init(conf_.logging);

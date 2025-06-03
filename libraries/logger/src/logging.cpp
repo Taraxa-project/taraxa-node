@@ -1,5 +1,7 @@
 #include "logger/logging.hpp"
 
+#include <filesystem>
+
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -46,6 +48,10 @@ void Logging::Init(const LoggingConfig& logging_config, bool global_init) {
       continue;
     }
 
+    if (output.file_dir.has_value()) {
+      std::filesystem::create_directories(*output.file_dir);
+    }
+
     // Custom sink for specified channels
     if (output.channels.has_value()) {
       auto sink = createSink(output);
@@ -57,6 +63,9 @@ void Logging::Init(const LoggingConfig& logging_config, bool global_init) {
       all_loggers_sinks_.push_back(createSink(output));
     }
   }
+
+  // Set up periodic flushing every 1 second
+  spdlog::flush_every(std::chrono::seconds(1));
 
   initialized_ = true;
   global_initialized_ = global_init;
@@ -96,6 +105,12 @@ std::shared_ptr<spdlog::logger> Logging::CreateChannelLogger(const std::string& 
 
   auto logger = std::make_shared<spdlog::async_logger>(channel, sinks.begin(), sinks.end(), logging_tp_,
                                                        spdlog::async_overflow_policy::block);
+
+  if (auto channel_verbosity = logging_config_.channels.find(channel);
+      channel_verbosity != logging_config_.channels.end()) {
+    logger->set_level(channel_verbosity->second);
+  }
+  logger->flush_on(spdlog::level::err);  // Flush immediately on error or higher
 
   spdlog::register_logger(logger);
 

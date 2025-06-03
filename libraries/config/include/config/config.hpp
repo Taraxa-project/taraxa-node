@@ -66,7 +66,6 @@ struct FullNodeConfig {
   std::vector<WalletConfig> wallets;
   fs::path data_path;
   fs::path db_path;
-  fs::path log_path;
   NetworkConfig network;
   DBConfig db_config;
   GenesisConfig genesis;

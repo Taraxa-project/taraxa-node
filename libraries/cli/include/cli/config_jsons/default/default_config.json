@@ -53,8 +53,8 @@
       {
         "type": "console",
         "name": "console",
-        "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
-        "verbosity": "ERROR",
+        "format" : "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v",
+        "verbosity": "INFO",
         "on": true
       },
       {
@@ -64,7 +64,7 @@
         "rotation_size": 10000000,
         "max_files_num": 20,
         "format": "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v",
-        "verbosity": "ERROR",
+        "verbosity": "INFO",
         "on": true
       },
       {
