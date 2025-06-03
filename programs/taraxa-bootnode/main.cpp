@@ -13,9 +13,9 @@
 #include "common/jsoncpp.hpp"
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
-#include "config/logging_config.hpp"
 #include "config/version.hpp"
 #include "logger/logging.hpp"
+#include "logger/logging_config.hpp"
 
 namespace po = boost::program_options;
 namespace bi = boost::asio::ip;

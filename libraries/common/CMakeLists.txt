@@ -13,6 +13,7 @@ set(HEADERS
     include/common/thread_pool.hpp
     include/common/util.hpp
     include/common/rpc_utils.hpp
+    include/common/logger_formatters.hpp
 )
 
 set(SOURCES

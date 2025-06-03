@@ -6,6 +6,7 @@
 #include <optional>
 #include <shared_mutex>
 
+#include "common/logger_formatters.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
 

@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 
+#include "common/logger_formatters.hpp"
 #include "config/version.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_manager.hpp"

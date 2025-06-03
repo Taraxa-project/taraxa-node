@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <logger/logging.hpp>
 
+#include "LoggerFormatters.hpp"
+
 namespace dev {
 namespace p2p {
 namespace {

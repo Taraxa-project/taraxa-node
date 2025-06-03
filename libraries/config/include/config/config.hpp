@@ -3,7 +3,7 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/genesis.hpp"
 #include "config/network.hpp"
-#include "logging_config.hpp"
+#include "logger/logging_config.hpp"
 
 namespace taraxa {
 
@@ -97,5 +97,7 @@ struct FullNodeConfig {
    */
   void validate() const;
 };
+
+void dec_json(const Json::Value &json, LoggingConfig &obj, std::filesystem::path data_path);
 
 }  // namespace taraxa

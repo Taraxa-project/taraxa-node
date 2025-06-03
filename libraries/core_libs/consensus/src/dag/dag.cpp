@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "common/logger_formatters.hpp"
 #include "dag/dag.hpp"
 
 namespace taraxa {

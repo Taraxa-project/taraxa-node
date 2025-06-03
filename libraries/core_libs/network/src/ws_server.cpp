@@ -6,6 +6,7 @@
 
 #include <boost/beast/websocket/rfc6455.hpp>
 
+#include "common/logger_formatters.hpp"
 #include "network/rpc/eth/data.hpp"
 #include "transaction/transaction.hpp"
 

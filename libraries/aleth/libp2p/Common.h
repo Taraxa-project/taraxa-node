@@ -247,50 +247,6 @@ std::ostream& operator<<(std::ostream& _out, NodeIPEndpoint const& _ep);
 }  // namespace p2p
 }  // namespace dev
 
-//// Specialize fmt::formatter for PeerSessionInfo
-// template <>
-// struct fmt::formatter<dev::p2p::PeerSessionInfo> : fmt::formatter<std::string> {
-//   template <typename FormatContext>
-//   auto format(const dev::p2p::PeerSessionInfo& val, FormatContext& ctx) const {
-//     std::string str;
-//     boost::log::formatting_ostream os(str);
-//     os << val;
-//     return fmt::format_to(ctx.out(), "{}", str);
-//   }
-// };
-//
-//// Specialize fmt::formatter for dev::p2p::NodeIPEndpoint
-// template <>
-// struct fmt::formatter<dev::p2p::NodeIPEndpoint> : fmt::ostream_formatter {};
-//
-//// Specialize fmt::formatter for dev::p2p::NodeID
-// template <>
-// struct fmt::formatter<dev::p2p::NodeID> : fmt::ostream_formatter {};
-//
-//// Specialize fmt::formatter for Node
-// template <>
-// struct fmt::formatter<dev::p2p::Node> : fmt::formatter<std::string> {
-//   template <typename FormatContext>
-//   auto format(const dev::p2p::Node& val, FormatContext& ctx) const {
-//     std::string str;
-//     boost::log::formatting_ostream os(str);
-//     os << val;
-//     return fmt::format_to(ctx.out(), "{}", str);
-//   }
-// };
-//
-//// Specialize fmt::formatter for bi::tcp::endpoint
-// template <>
-// struct fmt::formatter<bi::tcp::endpoint> : fmt::formatter<std::string> {
-//   template <typename FormatContext>
-//   auto format(const bi::tcp::endpoint& val, FormatContext& ctx) const {
-//     std::string str;
-//     boost::log::formatting_ostream os(str);
-//     os << val;
-//     return fmt::format_to(ctx.out(), "{}", str);
-//   }
-// };
-
 /// std::hash for asio::adress
 #if !defined(BOOST_ASIO_HAS_STD_HASH)
 namespace std {

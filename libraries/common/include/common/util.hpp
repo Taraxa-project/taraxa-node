@@ -17,6 +17,8 @@
 #include <string>
 #include <unordered_set>
 
+#include "logger_formatters.hpp"
+
 namespace taraxa {
 
 /**

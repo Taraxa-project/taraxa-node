@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/ostream.h>
 #include <libdevcore/Address.h>
 #include <libdevcore/FixedHash.h>
 #include <libdevcrypto/Common.h>

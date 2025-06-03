@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "common/constants.hpp"
+#include "common/logger_formatters.hpp"
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "logger/logging.hpp"

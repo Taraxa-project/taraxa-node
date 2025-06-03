@@ -9,6 +9,7 @@
 #include <libp2p/Capability.h>
 
 #include <chrono>
+#include <libp2p/LoggerFormatters.hpp>
 
 #include "RLPXFrameCoder.h"
 

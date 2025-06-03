@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "common/encoding_solidity.hpp"
+#include "common/logger_formatters.hpp"
 #include "common/types.hpp"
 #include "common/util.hpp"
 #include "final_chain/state_api_data.hpp"

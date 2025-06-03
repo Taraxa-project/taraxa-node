@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "common/logger_formatters.hpp"
 #include "config/config.hpp"
 #include "dag/dag.hpp"
 #include "key_manager/key_manager.hpp"

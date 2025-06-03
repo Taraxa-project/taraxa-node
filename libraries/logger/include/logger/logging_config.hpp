@@ -1,6 +1,5 @@
 #pragma once
 
-#include <json/json.h>
 #include <spdlog/common.h>
 
 #include <filesystem>
@@ -39,7 +38,5 @@ struct LoggingConfig {
   std::unordered_map<std::string, spdlog::level::level_enum> channels;
   std::vector<SinkConfig> outputs;
 };
-
-void dec_json(const Json::Value& json, LoggingConfig& obj, std::filesystem::path data_path);
 
 }  // namespace taraxa

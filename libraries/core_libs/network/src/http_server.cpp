@@ -1,9 +1,6 @@
 #include "network/http_server.hpp"
 
-// TODO: where to put this ?
-// Specialize fmt::formatter for boost::beast::http::request
-template <class Body, class Fields>
-struct fmt::formatter<boost::beast::http::request<Body, Fields>> : fmt::ostream_formatter {};
+#include "common/logger_formatters.hpp"
 
 namespace taraxa::net {
 

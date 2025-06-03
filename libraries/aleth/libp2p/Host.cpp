@@ -12,6 +12,7 @@
 
 #include "Capability.h"
 #include "Common.h"
+#include "LoggerFormatters.hpp"
 #include "RLPxHandshake.h"
 #include "Session.h"
 

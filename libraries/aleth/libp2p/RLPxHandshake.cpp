@@ -6,6 +6,8 @@
 
 #include <libdevcore/SHA3.h>
 
+#include <libp2p/LoggerFormatters.hpp>
+
 using namespace dev::p2p;
 
 constexpr std::chrono::milliseconds RLPXHandshake::c_timeout;
