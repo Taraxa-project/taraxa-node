@@ -30,21 +30,17 @@ RLPXHandshake::RLPXHandshake(std::shared_ptr<HostContext const> ctx, std::shared
       m_idleTimer(m_socket->ref().get_executor()),
       m_failureReason{HandshakeFailureReason::NoFailure},
       m_logger(taraxa::logger::Logging::get().CreateChannelLogger("rlpx")) {
-  std::string prefix = connectionDirectionString();
-
   std::stringstream remoteInfoStream;
   remoteInfoStream << "(" << _remote;
   if (remoteSocketConnected()) remoteInfoStream << "@" << m_socket->remoteEndpoint();
   remoteInfoStream << ")";
-  std::string suffix = remoteInfoStream.str();
-
-  m_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] " + prefix + " %v " + suffix);
+  suffix = std::string(connectionDirectionString()) + " -> " + remoteInfoStream.str();
 
   crypto::Nonce::get().ref().copyTo(m_nonce.ref());
 }
 
 void RLPXHandshake::writeAuth() {
-  m_logger->trace("auth to");
+  m_logger->trace("auth to {}", suffix);
   m_auth.resize(static_cast<size_t>(Signature::size) + static_cast<size_t>(h256::size) +
                 static_cast<size_t>(Public::size) + static_cast<size_t>(h256::size) + 1);
   bytesRef sig(&m_auth[0], Signature::size);
@@ -71,7 +67,7 @@ void RLPXHandshake::writeAuth() {
 }
 
 void RLPXHandshake::writeAck() {
-  m_logger->trace("ack to");
+  m_logger->trace("ack to {}", suffix);
   m_ack.resize(static_cast<size_t>(Public::size) + static_cast<size_t>(h256::size) + 1);
   bytesRef epubk(&m_ack[0], Public::size);
   bytesRef nonce(&m_ack[Public::size], h256::size);
@@ -86,7 +82,7 @@ void RLPXHandshake::writeAck() {
 }
 
 void RLPXHandshake::writeAckEIP8() {
-  m_logger->trace("EIP-8 ack to");
+  m_logger->trace("EIP-8 ack to {}", suffix);
   RLPStream rlp;
   rlp.appendList(3) << m_ecdheLocal.pub() << m_nonce << c_rlpxVersion;
   m_ack = rlp.out();
@@ -121,7 +117,7 @@ void RLPXHandshake::readAuth() {
                    if (ec)
                      transition(ec);
                    else if (decryptECIES(host_ctx_->key_pair.secret(), bytesConstRef(&m_authCipher), m_auth)) {
-                     m_logger->trace("auth from");
+                     m_logger->trace("auth from {}", suffix);
                      bytesConstRef data(&m_auth);
                      Signature sig(data.cropped(0, Signature::size));
                      Public pubk(data.cropped(static_cast<size_t>(Signature::size) + static_cast<size_t>(h256::size),
@@ -139,7 +135,7 @@ void RLPXHandshake::readAuth() {
 void RLPXHandshake::readAuthEIP8() {
   assert(m_authCipher.size() == c_authCipherSizeBytes);
   uint16_t const size(m_authCipher[0] << 8 | m_authCipher[1]);
-  m_logger->trace("{} bytes EIP-8 auth from", size);
+  m_logger->trace("{} bytes EIP-8 auth from {}", size, suffix);
   m_authCipher.resize((size_t)size + 2);
   auto rest = ba::buffer(ba::buffer(m_authCipher) + c_authCipherSizeBytes);
   auto self(shared_from_this());
@@ -170,7 +166,7 @@ void RLPXHandshake::readAck() {
                    if (ec)
                      transition(ec);
                    else if (decryptECIES(host_ctx_->key_pair.secret(), bytesConstRef(&m_ackCipher), m_ack)) {
-                     m_logger->trace("ack from");
+                     m_logger->trace("ack from {}", suffix);
                      bytesConstRef(&m_ack).cropped(0, Public::size).copyTo(m_ecdheRemote.ref());
                      bytesConstRef(&m_ack).cropped(Public::size, h256::size).copyTo(m_remoteNonce.ref());
                      m_remoteVersion = c_rlpxVersion;
@@ -183,7 +179,7 @@ void RLPXHandshake::readAck() {
 void RLPXHandshake::readAckEIP8() {
   assert(m_ackCipher.size() == c_ackCipherSizeBytes);
   uint16_t const size(m_ackCipher[0] << 8 | m_ackCipher[1]);
-  m_logger->trace("{} bytes EIP-8 ack from", size);
+  m_logger->trace("{} bytes EIP-8 ack from {}", size, suffix);
   m_ackCipher.resize((size_t)size + 2);
   auto rest = ba::buffer(ba::buffer(m_ackCipher) + c_ackCipherSizeBytes);
   auto self(shared_from_this());
@@ -220,9 +216,10 @@ void RLPXHandshake::error(boost::system::error_code _ech) {
   errorStream << "Handshake failed";
   if (_ech) errorStream << " (I/O error: " << _ech.message() << ")";
   if (remoteSocketConnected())
-    errorStream << ". Disconnecting from";
+    errorStream << ". Disconnecting from ";
   else
-    errorStream << " (Connection reset by peer)";
+    errorStream << " (Connection reset by peer) ";
+  errorStream << suffix;
 
   m_logger->trace(errorStream.str());
 
@@ -243,7 +240,7 @@ void RLPXHandshake::transition(boost::system::error_code _ech) {
   m_idleTimer.expires_after(c_timeout);
   m_idleTimer.async_wait([this, self](boost::system::error_code const& _ec) {
     if (!_ec) {
-      m_logger->trace("Disconnecting (Handshake Timeout) from");
+      m_logger->trace("Disconnecting (Handshake Timeout) from {}", suffix);
       m_failureReason = HandshakeFailureReason::Timeout;
       m_nextState = Error;
       transition();
@@ -270,7 +267,7 @@ void RLPXHandshake::transition(boost::system::error_code _ech) {
       writeAckEIP8();
   } else if (m_nextState == WriteHello) {
     // Send the p2p capability Hello frame
-    m_logger->trace("{} to", p2pPacketTypeToString(HelloPacket));
+    m_logger->trace("{} to {}", p2pPacketTypeToString(HelloPacket), suffix);
 
     m_nextState = ReadHello;
 
@@ -307,7 +304,7 @@ void RLPXHandshake::transition(boost::system::error_code _ech) {
               return;
             }
 
-            m_logger->trace("Frame header from");
+            m_logger->trace("Frame header from {}", suffix);
 
             /// authenticate and decrypt header
             if (!m_io->authAndDecryptHeader(bytesRef(m_handshakeInBuffer.data(), m_handshakeInBuffer.size()))) {
@@ -365,7 +362,7 @@ void RLPXHandshake::transition(boost::system::error_code _ech) {
                       transition();
                       return;
                     }
-                    m_logger->trace("Frame body from");
+                    m_logger->trace("Frame body from {}", suffix);
                     bytesRef frame(&m_handshakeInBuffer);
                     if (!m_io->authAndDecryptFrame(frame)) {
                       m_logger->trace("Frame body decrypt failed");

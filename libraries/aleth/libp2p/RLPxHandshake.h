@@ -135,6 +135,7 @@ struct RLPXHandshake final : std::enable_shared_from_this<RLPXHandshake> {
 
   HandshakeFailureReason m_failureReason;
 
+  std::string suffix;
   taraxa::logger::Logger m_logger;
 };
 

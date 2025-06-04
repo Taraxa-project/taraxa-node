@@ -32,8 +32,6 @@ Session::Session(SessionCapabilities caps, std::unique_ptr<RLPXFrameCoder> _io, 
   std::stringstream remoteInfoStream;
   remoteInfoStream << "(" << m_info.id << "@" << m_socket->remoteEndpoint() << ")";
   m_logSuffix = remoteInfoStream.str();
-  net_logger_->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v " + m_logSuffix);
-  p2p_logger_->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v " + m_logSuffix);
 
   m_peer->m_lastDisconnect = NoDisconnect;
 }
@@ -59,7 +57,7 @@ std::shared_ptr<Session> Session::make(SessionCapabilities caps, std::unique_ptr
 }
 
 Session::~Session() {
-  net_logger_->debug("Closing peer session with ");
+  net_logger_->debug("Closing peer session with {}", m_logSuffix);
   m_peer->m_lastConnected = m_peer->m_lastAttempted.load() - std::chrono::seconds(1);
   drop(ClientQuit);
 }
@@ -70,7 +68,7 @@ void Session::readPacket(unsigned _packetType, RLP const& _r) {
   }
   auto cap = capabilityFor(_packetType);
   auto packet_type_str = capabilityPacketTypeToString(cap, _packetType);
-  net_logger_->trace("Received {} ({}) from", packet_type_str, _packetType);
+  net_logger_->trace("Received {} ({}) from {}", packet_type_str, _packetType, m_logSuffix);
   if (_packetType < UserPacket) {
     std::string err_msg;
     try {
@@ -96,7 +94,7 @@ void Session::readPacket(unsigned _packetType, RLP const& _r) {
 }
 
 void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
-  p2p_logger_->trace("{} from", p2pPacketTypeToString(_t));
+  p2p_logger_->trace("{} from {}", p2pPacketTypeToString(_t), m_logSuffix);
   switch (_t) {
     case DisconnectPacket: {
       std::string reason = "Unspecified";
@@ -105,13 +103,13 @@ void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
         drop(BadProtocol);
       else {
         reason = reasonOf(r);
-        p2p_logger_->debug("Disconnect (reason: {}) from", reason);
+        p2p_logger_->debug("Disconnect (reason: {}) from {}", reason, m_logSuffix);
         drop(DisconnectRequested);
       }
       break;
     }
     case PingPacket: {
-      p2p_logger_->trace("Pong to");
+      p2p_logger_->trace("Pong to {}", m_logSuffix);
       RLPStream s;
       sealAndSend_(prep(s, PongPacket));
       break;
@@ -131,7 +129,7 @@ void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
 }
 
 void Session::ping_() {
-  p2p_logger_->debug("Ping to ");
+  p2p_logger_->debug("Ping to {}", m_logSuffix);
   RLPStream s;
   sealAndSend_(prep(s, PingPacket));
   m_ping = std::chrono::steady_clock::now();
@@ -158,7 +156,7 @@ bool Session::checkPacket(bytesConstRef _msg) {
 }
 
 void Session::send_(bytes _msg, std::function<void()> on_done) {
-  net_logger_->trace("{} to", capabilityPacketTypeToString(_msg[0]));
+  net_logger_->trace("{} to {}", capabilityPacketTypeToString(_msg[0]), m_logSuffix);
   if (!checkPacket(&_msg)) {
     net_logger_->error("Invalid packet constructed. Size: {} bytes, message: {}", _msg.size(), toHex(_msg));
   }
@@ -247,7 +245,7 @@ void Session::drop(DisconnectReason _reason) {
   if (socket.is_open()) {
     try {
       boost::system::error_code ec;
-      net_logger_->trace("Closing ({}) connection with", reasonOf(_reason));
+      net_logger_->trace("Closing ({}) connection with {}", reasonOf(_reason), m_logSuffix);
       socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
       socket.close();
     } catch (...) {
@@ -260,7 +258,7 @@ void Session::drop(DisconnectReason _reason) {
 void Session::disconnect_(DisconnectReason _reason) {
   muted_ = true;
   if (isConnected()) {
-    p2p_logger_->trace("Disconnecting (our reason: {}) from ", reasonOf(_reason));
+    p2p_logger_->trace("Disconnecting (our reason: {}) from {}", reasonOf(_reason), m_logSuffix);
     RLPStream s;
     prep(s, DisconnectPacket, 1) << (int)_reason;
     sealAndSend_(s);
