@@ -7,6 +7,52 @@
 
 namespace taraxa::logger {
 
+/*
+Config example:
+
+"logging": {
+  "channels": [
+    {
+      "name": "PBFT_CHAIN",
+      "verbosity": "ERROR"
+    },
+    {
+      "name": "EXECUTOR",
+      "verbosity": "ERROR"
+    }
+  ],
+  "outputs": [
+    {
+      "type": "console",
+      "name": "console",
+      "format" : "[%Y-%m-%d %H:%M:%S.%e] [%n] [%^%l%$] %v",
+      "verbosity": "INFO",
+      "on": true
+    },
+    {
+      "type": "file",
+      "name": "standard",
+      "file_name": "Taraxa.log",
+      "rotation_size": 10000000,
+      "max_files_num": 20,
+      "format": "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v",
+      "verbosity": "INFO",
+      "on": true,
+      "channels" : ["PBFT_MGR", "SUMMARY"]
+    }
+  ]
+}
+
+- specific channel verbosity level is set just once in logging.channels array, cannot be set differently per specific
+output
+- log is printed only if it passes both channel verbosity level as well as output verbosity level. If output verbosity
+is set to ERROR, no trace/debug/info logs are printed even if specific channel verbosity is set to TRACE/DEBUG/INFO and
+vice versa
+- default channel verbosity is debug if not specified otherwise in logging.channels
+- logging.outputs[].channels is optional field - if there are listed channels in there, only those channels are printed
+in such output, otherwise all channels are printed
+*/
+
 void Logging::Init(const LoggingConfig& logging_config, bool global_init) {
   if (initialized_) {
     return;
@@ -108,7 +154,10 @@ std::shared_ptr<spdlog::logger> Logging::CreateChannelLogger(const std::string& 
   if (auto channel_verbosity = logging_config_.channels.find(channel);
       channel_verbosity != logging_config_.channels.end()) {
     logger->set_level(channel_verbosity->second);
+  } else {
+    logger->set_level(spdlog::level::debug);
   }
+
   logger->flush_on(spdlog::level::err);  // Flush immediately on error or higher
 
   spdlog::register_logger(logger);

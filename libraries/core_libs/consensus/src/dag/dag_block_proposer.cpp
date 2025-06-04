@@ -50,18 +50,18 @@ bool DagBlockProposer::proposeDagBlock() {
   for (auto& node_dag_proposer_data : nodes_dag_proposers_data_) {
     auto frontier = dag_mgr_->getDagFrontier();
     logger_->debug(
-      "Get frontier with pivot: {}"
-      " tips: {}",
-      frontier.pivot, frontier.tips);
+        "Get frontier with pivot: {}"
+        " tips: {}",
+        frontier.pivot, frontier.tips);
     assert(!frontier.pivot.isZero());
     const auto propose_level = getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
     const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
     if (!proposal_period.has_value()) {
       logger_->warn(
-        "No proposal period for propose_level {}"
-        " found",
-        propose_level);
+          "No proposal period for propose_level {}"
+          " found",
+          propose_level);
       return false;
     }
 

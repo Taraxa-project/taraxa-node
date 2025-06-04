@@ -810,8 +810,8 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
     }
 
     if (!vote_mgr_->addVerifiedVote(vote)) {
-      logger_->error("Unable to place vote {} for block {}, period {}, round {}, step {}, validator {}", vote->getHash(),
-                     block_hash, period, round, step, wallet.second.node_addr);
+      logger_->error("Unable to place vote {} for block {}, period {}, round {}, step {}, validator {}",
+                     vote->getHash(), block_hash, period, round, step, wallet.second.node_addr);
       continue;
     }
 
@@ -910,7 +910,10 @@ void PbftManager::proposeBlock_() {
       // Broadcast new propose vote + proposed block
       gossipNewVote(proposed_block_data->vote, proposed_block_data->pbft_block);
 
-      logger_->info("Placed {} propose vote for block {}, vote weight {}, period {}, round {}, step {}, validator {}", proposed_block_data->vote->getHash(), proposed_block_data->pbft_block->getBlockHash(), *proposed_block_data->vote->getWeight(), period, round, step_, proposed_block_data->vote->getVoterAddr());
+      logger_->info("Placed {} propose vote for block {}, vote weight {}, period {}, round {}, step {}, validator {}",
+                    proposed_block_data->vote->getHash(), proposed_block_data->pbft_block->getBlockHash(),
+                    *proposed_block_data->vote->getWeight(), period, round, step_,
+                    proposed_block_data->vote->getVoterAddr());
     }
 
     return;
