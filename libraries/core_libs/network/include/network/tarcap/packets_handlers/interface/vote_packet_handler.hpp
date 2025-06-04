@@ -9,7 +9,7 @@ class IVotePacketHandler : public ExtVotesPacketHandler {
   IVotePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                      std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                     std::shared_ptr<SlashingManager> slashing_manager, const std::string& logs_prefix);
+                     std::shared_ptr<SlashingManager> slashing_manager, const std::string& log_channel_name);
 
   /**
    * @brief Sends pbft vote to connected peers

@@ -11,10 +11,10 @@ ISyncPacketHandler::ISyncPacketHandler(const FullNodeConfig& conf, std::shared_p
                                        std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                        std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
-                                       const std::string& logs_prefix)
+                                       const std::string& log_channel_name)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db),
-                              logs_prefix + "STATUS_PH"),
+                              log_channel_name),
       kGenesisHash(kConf.genesis.genesisHash()) {}
 
 void ISyncPacketHandler::startSyncingPbft() {
@@ -70,7 +70,7 @@ bool ISyncPacketHandler::syncPeerPbft(PbftPeriod request_period) {
     return false;
   }
 
-  logger_->info("Send GetPbftSyncPacket with period {} to node {}", request_period, syncing_peer->getId());
+  logger_->debug("Send GetPbftSyncPacket with period {} to node {}", request_period, syncing_peer->getId());
   return this->sealAndSend(syncing_peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
                            encodePacketRlp(GetPbftSyncPacket{request_period}));
 }

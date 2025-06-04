@@ -63,11 +63,11 @@ void GetPillarVotesBundlePacketHandler::process(const threadpool::PacketData &pa
         peer->markPillarVoteAsKnown(votes[votes_sent + i]->getHash());
       }
 
-      logger_->info("Pillar votes bundle for period {}, hash {} sent to {} (Chunk {}/{})", packet.period,
-                    packet.pillar_block_hash, peer->getId(),
-                    (votes_sent / PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp) + 1,
-                    (total_votes + PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp - 1) /
-                        PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp);
+      logger_->debug("Pillar votes bundle for period {}, hash {} sent to {} (Chunk {}/{})", packet.period,
+                     packet.pillar_block_hash, peer->getId(),
+                     (votes_sent / PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp) + 1,
+                     (total_votes + PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp - 1) /
+                         PillarVotesBundlePacketHandler::kMaxPillarVotesInBundleRlp);
     }
 
     // Update the votes_sent counter
@@ -79,8 +79,8 @@ void GetPillarVotesBundlePacketHandler::requestPillarVotesBundle(PbftPeriod peri
                                                                  const std::shared_ptr<TaraxaPeer> &peer) {
   if (sealAndSend(peer->getId(), SubprotocolPacketType::kGetPillarVotesBundlePacket,
                   encodePacketRlp(GetPillarVotesBundlePacket(period, pillar_block_hash)))) {
-    logger_->info("Requested pillar votes bundle for period {} and pillar block {} from peer {}", period,
-                  pillar_block_hash, peer->getId());
+    logger_->debug("Requested pillar votes bundle for period {} and pillar block {} from peer {}", period,
+                   pillar_block_hash, peer->getId());
   } else {
     logger_->error("Unable to send pillar votes bundle request for period {} and pillar block {} to peer {}", period,
                    pillar_block_hash, peer->getId());

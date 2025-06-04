@@ -5,9 +5,9 @@ namespace taraxa::network::tarcap {
 IPillarVotePacketHandler::IPillarVotePacketHandler(
     const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
     std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const std::string& logs_prefix)
+    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const std::string& log_channel_name)
     : ExtPillarVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats),
-                                 std::move(pillar_chain_manager), logs_prefix) {}
+                                 std::move(pillar_chain_manager), log_channel_name) {}
 
 void IPillarVotePacketHandler::onNewPillarVote(const std::shared_ptr<PillarVote>& vote, bool rebroadcast) {
   for (const auto& peer : peers_state_->getAllPeers()) {

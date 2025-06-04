@@ -24,7 +24,7 @@ void GetNextVotesBundlePacketHandler::process(const threadpool::PacketData &pack
 
   // Send votes only for current_period == peer_period && current_period >= peer_round
   if (pbft_period != packet.peer_pbft_period || pbft_round == 1 || pbft_round < packet.peer_pbft_round) {
-    logger_->info(
+    logger_->debug(
         "No previous round next votes sync packet will be sent. pbft_period {}, peer_pbft_period {}, pbft_round {}, "
         "peer_pbft_round {}",
         pbft_period, packet.peer_pbft_period, pbft_round, packet.peer_pbft_round);
@@ -66,12 +66,12 @@ void GetNextVotesBundlePacketHandler::process(const threadpool::PacketData &pack
   }
 
   if (!next_votes.empty()) {
-    logger_->info("Send next votes bundle with {} votes to {}", next_votes.size(), peer->getId());
+    logger_->debug("Send next votes bundle with {} votes to {}", next_votes.size(), peer->getId());
     sendPbftVotesBundle(peer, std::move(next_votes));
   }
 
   if (!next_null_votes.empty()) {
-    logger_->info("Send next null votes bundle with {} votes to {}", next_null_votes.size(), peer->getId());
+    logger_->debug("Send next null votes bundle with {} votes to {}", next_null_votes.size(), peer->getId());
     sendPbftVotesBundle(peer, std::move(next_null_votes));
   }
 }

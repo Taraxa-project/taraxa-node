@@ -78,9 +78,9 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
     processed_votes_count++;
   }
 
-  logger_->info("Received {} (processed {} ) sync votes from peer {} node current round {}, peer pbft round {}",
-                packet.votes_bundle.votes.size(), processed_votes_count, peer->getId(), current_pbft_round,
-                reference_vote->getRound());
+  logger_->debug("Received {} (processed {} ) sync votes from peer {} node current round {}, peer pbft round {}",
+                 packet.votes_bundle.votes.size(), processed_votes_count, peer->getId(), current_pbft_round,
+                 reference_vote->getRound());
 
   onNewPbftVotesBundle(packet.votes_bundle.votes, false, peer->getId());
 }

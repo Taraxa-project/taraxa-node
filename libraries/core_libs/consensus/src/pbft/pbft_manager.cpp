@@ -292,8 +292,8 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
       // Reset it only if it was already increased compared to default value
       if (lambda_ != kMinLambda) {
         lambda_ = kMinLambda;
-        logger_->info("Node is {} steps behind the rest of the network. Reset lambda to the default value {} [ms]",
-                      network_next_voting_step - step_, lambda_.count());
+        logger_->debug("Node is {} steps behind the rest of the network. Reset lambda to the default value {} [ms]",
+                       network_next_voting_step - step_, lambda_.count());
       }
     } else if (lambda_ < kMaxLambda) {
       // Node is < kMaxSteps steps behind the rest (at least 1/3) of the network - start exponentially backing off
@@ -325,8 +325,8 @@ bool PbftManager::tryPushCertVotesBlock() {
   }
   const blk_hash_t &certified_block_hash = cert_votes[0]->getBlockHash();
 
-  logger_->info("Found enough cert votes for PBFT block {}, period {}, round {}", certified_block_hash,
-                current_pbft_period, current_pbft_round);
+  logger_->debug("Found enough cert votes for PBFT block {}, period {}, round {}", certified_block_hash,
+                 current_pbft_period, current_pbft_round);
 
   auto pbft_block = getValidPbftProposedBlock(current_pbft_period, certified_block_hash);
   if (!pbft_block) {
@@ -507,16 +507,16 @@ void PbftManager::initialState() {
   if (auto cert_voted_block_data = db_->getCertVotedBlockInRound(); cert_voted_block_data.has_value()) {
     const auto [cert_voted_block_round, cert_voted_block] = *cert_voted_block_data;
     if (proposed_blocks_.pushProposedPbftBlock(cert_voted_block)) {
-      logger_->info("Last cert voted block {} with period {}, round {} pushed into proposed blocks",
-                    cert_voted_block->getBlockHash(), cert_voted_block->getPeriod(), cert_voted_block_round);
+      logger_->debug("Last cert voted block {} with period {}, round {} pushed into proposed blocks",
+                     cert_voted_block->getBlockHash(), cert_voted_block->getPeriod(), cert_voted_block_round);
     }
 
     // Set cert_voted_block_for_round_ only if round and period match. Note: could differ in edge case when node
     // crashed, new period/round was already saved in db but cert voted block was not cleared yet
     if (current_pbft_period == cert_voted_block->getPeriod() && current_pbft_round == cert_voted_block_round) {
       cert_voted_block_for_round_ = cert_voted_block;
-      logger_->info("Init last cert voted block in round to {}, period {}, round {}", cert_voted_block->getBlockHash(),
-                    current_pbft_period, current_pbft_round);
+      logger_->debug("Init last cert voted block in round to {}, period {}, round {}", cert_voted_block->getBlockHash(),
+                     current_pbft_period, current_pbft_round);
     }
   }
 
@@ -704,7 +704,7 @@ void PbftManager::printVotingSummary() const {
     }
   }
 
-  logger_->info("Voting summary: {}", jsonToUnstyledString(json_obj));
+  logger_->debug("Voting summary: {}", jsonToUnstyledString(json_obj));
 }
 
 bool PbftManager::stateOperations_() {
@@ -820,8 +820,8 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
     // Save own verified vote
     vote_mgr_->saveOwnVerifiedVote(vote);
 
-    logger_->info("Placed {} vote for block {}, vote weight {}, period {}, round {}, step {}, validator {}",
-                  vote->getHash(), block_hash, *vote->getWeight(), period, round, step, wallet.second.node_addr);
+    logger_->debug("Placed {} vote for block {}, vote weight {}, period {}, round {}, step {}, validator {}",
+                   vote->getHash(), block_hash, *vote->getWeight(), period, round, step, wallet.second.node_addr);
 
     if (place_pillar_vote_for_block.has_value()) {
       const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(period, *place_pillar_vote_for_block,
@@ -856,7 +856,7 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
 
   if (!genAndPlaceVote(PbftVoteTypes::propose_vote, current_pbft_period, current_pbft_round, current_pbft_step,
                        proposed_block->getBlockHash(), proposed_block)) {
-    logger_->info("Unable to generate and place propose vote");
+    logger_->debug("Unable to generate and place propose vote");
     return false;
   }
 
@@ -895,7 +895,7 @@ void PbftManager::proposeBlock_() {
   if (round == 1 ||
       vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock)
           .has_value()) {
-    logger_->info(" 2t+1 next voted kNullBlockHash in previous round {}", round - 1);
+    logger_->debug("2t+1 next voted kNullBlockHash in previous round {}", round - 1);
 
     // Propose new block
     if (auto proposed_block_data = proposePbftBlock(); proposed_block_data.has_value()) {
@@ -1405,8 +1405,8 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   if (auto proposed_block_data = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash,
                                                    order_hash, extra_data, eligible_wallets);
       proposed_block_data.has_value()) {
-    logger_->info("Created PBFT block: {}, order hash:{}, DAG order {}",
-                  proposed_block_data->pbft_block->getBlockHash(), order_hash, dag_block_order);
+    logger_->debug("Created PBFT block: {}, order hash:{}, DAG order {}",
+                   proposed_block_data->pbft_block->getBlockHash(), order_hash, dag_block_order);
     return proposed_block_data;
   }
 
@@ -1799,7 +1799,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
 bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<PbftVote>> &&cert_votes) {
   auto const &pbft_block_hash = period_data.pbft_blk->getBlockHash();
   if (db_->pbftBlockInDb(pbft_block_hash)) {
-    logger_->info("PBFT block: {} in DB already.", pbft_block_hash);
+    logger_->debug("PBFT block: {} in DB already.", pbft_block_hash);
     if (cert_voted_block_for_round_.has_value() && (*cert_voted_block_for_round_)->getBlockHash() == pbft_block_hash) {
       logger_->error("Last cert voted value should be kNullBlockHash. Block hash {} has been pushed into chain already",
                      (*cert_voted_block_for_round_)->getBlockHash());

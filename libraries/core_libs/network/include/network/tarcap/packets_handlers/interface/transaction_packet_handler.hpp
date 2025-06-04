@@ -8,7 +8,7 @@ namespace taraxa::network::tarcap {
 class ITransactionPacketHandler : public PacketHandler {
  public:
   ITransactionPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
-                            std::shared_ptr<TimePeriodPacketsStats> packets_stats, const std::string& logs_prefix);
+                            std::shared_ptr<TimePeriodPacketsStats> packets_stats, const std::string& log_channel_name);
 
   /**
    * @brief Sends batch of transactions to all connected peers

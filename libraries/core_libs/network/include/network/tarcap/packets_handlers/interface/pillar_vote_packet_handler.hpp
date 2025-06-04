@@ -9,7 +9,7 @@ class IPillarVotePacketHandler : public ExtPillarVotePacketHandler {
   IPillarVotePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                            std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager,
-                           const std::string& logs_prefix);
+                           const std::string& log_channel_name);
 
   void onNewPillarVote(const std::shared_ptr<PillarVote>& vote, bool rebroadcast = false);
   virtual void sendPillarVote(const std::shared_ptr<TaraxaPeer>& peer, const std::shared_ptr<PillarVote>& vote) = 0;

@@ -9,9 +9,10 @@ IVotePacketHandler::IVotePacketHandler(const FullNodeConfig &conf, std::shared_p
                                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                                        std::shared_ptr<VoteManager> vote_mgr,
                                        std::shared_ptr<SlashingManager> slashing_manager,
-                                       const std::string &logs_prefix)
+                                       const std::string &log_channel_name)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), logs_prefix) {}
+                            std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), log_channel_name) {
+}
 
 void IVotePacketHandler::onNewPbftVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &block,
                                        bool rebroadcast) {

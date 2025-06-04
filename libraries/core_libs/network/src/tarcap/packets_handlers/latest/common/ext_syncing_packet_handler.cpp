@@ -31,19 +31,19 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
       return true;
     });
     if (!peer) {
-      logger_->info("requestPendingDagBlocks not possible since no peers are matching conditions");
+      logger_->debug("requestPendingDagBlocks not possible since no peers are matching conditions");
       return;
     }
   }
 
   if (!peer) {
-    logger_->info("requestPendingDagBlocks not possible since no connected peers");
+    logger_->debug("requestPendingDagBlocks not possible since no connected peers");
     return;
   }
 
   // This prevents ddos requesting dag blocks. We can only request this one time from one peer.
   if (peer->peer_dag_synced_) {
-    logger_->info("requestPendingDagBlocks not possible since already requested for peer");
+    logger_->debug("requestPendingDagBlocks not possible since already requested for peer");
     return;
   }
 
@@ -52,10 +52,10 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
   if (pbft_sync_period == peer->pbft_chain_size_) {
     // This prevents parallel requests
     if (bool b = false; !peer->peer_dag_syncing_.compare_exchange_strong(b, !b)) {
-      logger_->info("requestPendingDagBlocks not possible since already requesting for peer");
+      logger_->debug("requestPendingDagBlocks not possible since already requesting for peer");
       return;
     }
-    logger_->info("Request pending blocks from peer {}", peer->getId());
+    logger_->debug("Request pending blocks from peer {}", peer->getId());
     std::vector<blk_hash_t> known_non_finalized_blocks;
     auto [period, blocks] = dag_mgr_->getNonFinalizedBlocks();
     for (auto &level_blocks : blocks) {

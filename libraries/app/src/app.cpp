@@ -2,8 +2,6 @@
 
 #include <libdevcore/CommonJS.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <memory>
 

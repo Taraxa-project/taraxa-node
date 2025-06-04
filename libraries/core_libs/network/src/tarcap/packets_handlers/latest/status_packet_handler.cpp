@@ -42,8 +42,8 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
 
     if (packet.initial_data->peer_chain_id != kConf.genesis.chain_id) {
       if (peers_state_->getPeersCount()) {
-        logger_->info("Incorrect network id {}, host {} will be disconnected", packet.initial_data->peer_chain_id,
-                      peer->getId().abridged());
+        logger_->debug("Incorrect network id {}, host {} will be disconnected", packet.initial_data->peer_chain_id,
+                       peer->getId().abridged());
       } else {
         logger_->error("Incorrect network id {}, host {} will be disconnected", packet.initial_data->peer_chain_id,
                        peer->getId().abridged());
@@ -70,7 +70,7 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
       selected_peer->peer_light_node_history = packet.initial_data->node_history;
       if (pbft_synced_period + packet.initial_data->node_history < packet.peer_pbft_chain_size) {
         if (peers_state_->getPeersCount()) {
-          logger_->info(
+          logger_->debug(
               "Light node {} would not be able to serve our syncing request. Current synced period {}, peer synced "
               "period {}, peer light node history {}. Peer will be disconnected",
               peer->getId().abridged(), pbft_synced_period, packet.peer_pbft_chain_size,

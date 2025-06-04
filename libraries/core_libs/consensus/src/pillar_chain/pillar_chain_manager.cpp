@@ -127,10 +127,10 @@ std::shared_ptr<PillarVote> PillarChainManager::genAndPlacePillarVote(PbftPeriod
 
   if (auto net = network_.lock(); net && broadcast_vote) {
     net->gossipPillarBlockVote(vote);
-    logger_->info("Placed pillar vote {} for block {}, period , weight {}", vote->getHash(), vote->getBlockHash(),
-                  vote->getPeriod(), vote_weight);
+    logger_->debug("Placed pillar vote {} for block {}, period , weight {}", vote->getHash(), vote->getBlockHash(),
+                   vote->getPeriod(), vote_weight);
   } else {
-    logger_->info(
+    logger_->debug(
         "Created pillar vote {} for block {}"
         ", period , weight {}",
         vote->getHash(), vote->getBlockHash(), vote->getPeriod(), vote_weight);
