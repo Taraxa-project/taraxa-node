@@ -40,7 +40,7 @@ void writeJsonToFile(const std::string& file_name, const Json::Value& json) {
     ofile << json;
   } else {
     std::stringstream err;
-    err << "Cannot open file " << file_name << std::endl;
+    err << "Cannot write to file " << file_name << std::endl;
     throw std::invalid_argument(err.str());
   }
 }
