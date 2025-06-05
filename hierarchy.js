@@ -14,7 +14,6 @@ var hierarchy =
     ] ],
     [ "taraxa::AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
-      [ "taraxa::storage::migration::FixSystemTrxLocation", "classtaraxa_1_1storage_1_1migration_1_1_fix_system_trx_location.html", null ],
       [ "taraxa::storage::migration::TransactionReceiptsByPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_receipts_by_period.html", null ]
     ] ],
     [ "taraxa::network::tarcap::BasePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_base_packet_handler.html", [

@@ -28,8 +28,8 @@
 <area shape="poly" id="edge100_Node000002_Node000111" title=" " alt="" coords="2092,156,2136,177,2156,191,2173,209,2189,238,2198,269,2201,327,2196,328,2193,270,2184,240,2169,212,2152,195,2133,181,2089,160"/>
 <area shape="rect" id="Node000112" href="$migration__base_8hpp.html" title=" " alt="" coords="4173,218,4395,273"/>
 <area shape="poly" id="edge104_Node000002_Node000112" title=" " alt="" coords="2091,135,2514,139,3111,150,3422,160,3714,172,3965,188,4155,208,4194,215,4193,221,4154,213,3965,193,3714,178,3422,165,3111,156,2514,144,2091,140"/>
-<area shape="rect" id="Node000118" href="$transaction__receipts__by__period_8cpp.html" title=" " alt="" coords="4419,211,4584,280"/>
-<area shape="poly" id="edge105_Node000002_Node000118" title=" " alt="" coords="2091,135,2603,143,3326,157,4010,179,4260,193,4408,208,4419,210,4418,215,4408,213,4260,198,4010,184,3325,163,2603,148,2091,141"/>
+<area shape="rect" id="Node000116" href="$transaction__receipts__by__period_8cpp.html" title=" " alt="" coords="4419,211,4584,280"/>
+<area shape="poly" id="edge105_Node000002_Node000116" title=" " alt="" coords="2091,135,2603,143,3326,157,4010,179,4260,193,4408,208,4419,210,4418,215,4408,213,4260,198,4010,184,3325,163,2603,148,2091,141"/>
 <area shape="rect" id="Node000004" href="$app_8cpp.html" title=" " alt="" coords="1684,665,1865,691"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1900,598,1794,667,1791,663,1897,593"/>
 <area shape="rect" id="Node000005" href="$dag__block__proposer_8cpp.html" title=" " alt="" coords="2336,651,2509,705"/>

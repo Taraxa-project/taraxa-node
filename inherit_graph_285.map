@@ -1,7 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
 <area shape="rect" id="Node000000" href="$group___vote.html#classtaraxa_1_1_vote" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="5,31,107,56"/>
 <area shape="rect" id="Node000001" href="$group___vote.html#classtaraxa_1_1_pbft_vote" title="PbftVote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="159,5,285,31"/>
-<area shape="poly" id="edge151_Node000000_Node000001" title=" " alt="" coords="120,31,158,25,159,30,121,36"/>
+<area shape="poly" id="edge150_Node000000_Node000001" title=" " alt="" coords="120,31,158,25,159,30,121,36"/>
 <area shape="rect" id="Node000002" href="$group___vote.html#classtaraxa_1_1_pillar_vote" title="PillarVote class." alt="" coords="155,55,289,80"/>
-<area shape="poly" id="edge152_Node000000_Node000002" title=" " alt="" coords="121,50,155,55,154,60,120,55"/>
+<area shape="poly" id="edge151_Node000000_Node000002" title=" " alt="" coords="121,50,155,55,154,60,120,55"/>
 </map>

@@ -11,6 +11,5 @@ var searchData=
   ['fixedhash_3c_20crypto_5fvrf_5fproofbytes_20_3e_8',['FixedHash&lt; crypto_vrf_PROOFBYTES &gt;',['../classdev_1_1_fixed_hash.html',1,'dev']]],
   ['fixedhash_3c_20crypto_5fvrf_5fpublickeybytes_20_3e_9',['FixedHash&lt; crypto_vrf_PUBLICKEYBYTES &gt;',['../classdev_1_1_fixed_hash.html',1,'dev']]],
   ['fixedhash_3c_20t_20_3e_10',['FixedHash&lt; T &gt;',['../classdev_1_1_fixed_hash.html',1,'dev']]],
-  ['fixsystemtrxlocation_11',['FixSystemTrxLocation',['../classtaraxa_1_1storage_1_1migration_1_1_fix_system_trx_location.html',1,'taraxa::storage::migration']]],
-  ['fullnodeconfig_12',['FullNodeConfig',['../structtaraxa_1_1_full_node_config.html',1,'taraxa']]]
+  ['fullnodeconfig_11',['FullNodeConfig',['../structtaraxa_1_1_full_node_config.html',1,'taraxa']]]
 ];

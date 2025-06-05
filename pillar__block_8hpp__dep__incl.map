@@ -77,8 +77,8 @@
 <area shape="poly" id="edge95_Node000028_Node000123" title=" " alt="" coords="2594,176,2578,328,2573,327,2589,176"/>
 <area shape="rect" id="Node000124" href="$migration__base_8hpp.html" title=" " alt="" coords="2733,218,2956,273"/>
 <area shape="poly" id="edge99_Node000028_Node000124" title=" " alt="" coords="2670,166,2785,215,2783,220,2668,171"/>
-<area shape="rect" id="Node000130" href="$transaction__receipts__by__period_8cpp.html" title=" " alt="" coords="2979,211,3145,280"/>
-<area shape="poly" id="edge100_Node000028_Node000130" title=" " alt="" coords="2699,150,2828,175,2969,208,2980,211,2979,216,2968,213,2827,180,2698,155"/>
+<area shape="rect" id="Node000128" href="$transaction__receipts__by__period_8cpp.html" title=" " alt="" coords="2979,211,3145,280"/>
+<area shape="poly" id="edge100_Node000028_Node000128" title=" " alt="" coords="2699,150,2828,175,2969,208,2980,211,2979,216,2968,213,2827,180,2698,155"/>
 <area shape="poly" id="edge31_Node000029_Node000003" title=" " alt="" coords="2797,623,2589,649,2446,660,2334,663,2224,671,2159,681,2084,697,2042,711,2005,726,2003,721,2040,706,2083,692,2158,676,2223,666,2334,658,2446,655,2588,644,2796,618"/>
 <area shape="poly" id="edge34_Node000029_Node000004" title=" " alt="" coords="2797,617,2251,663,1879,697,1841,712,1839,707,1877,692,2250,657,2796,612"/>
 <area shape="rect" id="Node000030" href="$dag__block__proposer_8cpp.html" title=" " alt="" coords="2534,709,2707,764"/>

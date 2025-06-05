@@ -1,13 +1,5 @@
 var NAVTREEINDEX27 =
 {
-"transaction__receipts__by__period_8cpp.html":[17,0,1,5,2,1,0,2],
-"transaction__receipts__by__period_8hpp.html":[17,0,1,5,2,0,0,0,3],
-"transaction__receipts__by__period_8hpp_source.html":[17,0,1,5,2,0,0,0,3],
-"trie__common_8cpp.html":[17,0,1,5,0,1,1,4],
-"trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[17,0,1,5,0,1,1,4,2],
-"trie__common_8cpp.html#aa0b5a88e3d820936d80621999c99726c":[17,0,1,5,0,1,1,4,3],
-"trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[17,0,1,5,0,1,1,4,1],
-"trie__common_8cpp.html#ae98a58c8ebf350eaa6ce36b2fd0d79d5":[17,0,1,5,0,1,1,4,0],
 "trie__common_8hpp.html":[17,0,1,5,0,0,1,5],
 "trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[17,0,1,5,0,0,1,5,0],
 "trie__common_8hpp_source.html":[17,0,1,5,0,0,1,5],

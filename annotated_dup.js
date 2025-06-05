@@ -302,7 +302,6 @@ var annotated_dup =
       [ "storage", "namespacetaraxa_1_1storage.html", [
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
-          [ "FixSystemTrxLocation", "classtaraxa_1_1storage_1_1migration_1_1_fix_system_trx_location.html", "classtaraxa_1_1storage_1_1migration_1_1_fix_system_trx_location" ],
           [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
           [ "TransactionReceiptsByPeriod", "classtaraxa_1_1storage_1_1migration_1_1_transaction_receipts_by_period.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_receipts_by_period" ]
         ] ]
