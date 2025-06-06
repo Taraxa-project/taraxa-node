@@ -118,7 +118,11 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
       assert(wallets_jsons.size() <= wallets.size());
       size_t idx = 0;
       for (const auto& wallet_json : wallets_jsons) {
-        util::writeJsonToFile(wallets[idx++], wallet_json);
+        try {
+          util::writeJsonToFile(wallets[idx++], wallet_json);
+        } catch (const std::exception& e) {
+          std::cerr << "Error writing wallet file " << wallets[idx - 1] << ": " << e.what() << std::endl;
+        }
       }
     };
 
