@@ -261,6 +261,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Transaction
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash) const;
+  std::shared_ptr<Transaction> getTransaction(PbftPeriod period, uint32_t position) const;
+
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
