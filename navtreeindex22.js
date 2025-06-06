@@ -1,5 +1,8 @@
 var NAVTREEINDEX22 =
 {
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data":[17,0,1,5,1,1,0,0,0,0,10,0,0],
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data":[17,0,1,5,1,1,0,0,0,0,10,1],
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_transaction_packet":[17,0,1,5,1,1,0,0,0,0,11,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet":[17,0,1,5,1,1,0,0,0,0,12,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet_1_1_optional_data":[17,0,1,5,1,1,0,0,0,0,12,0,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet_1_1_optional_data":[17,0,1,5,1,1,0,0,0,0,12,1],
@@ -246,8 +249,5 @@ var NAVTREEINDEX22 =
 "state__config_8cpp.html#a88679bd672ad12f8a2517728f1c1109f":[17,0,1,4,1,7,5],
 "state__config_8cpp.html#ad768d97fcf1d34681a2ef3bee3b0fad0":[17,0,1,4,1,7,6],
 "state__config_8cpp.html#adc935939acc39b6b0cba881e134b1fa0":[17,0,1,4,1,7,7],
-"state__config_8hpp.html":[17,0,1,4,0,0,7],
-"state__config_8hpp.html#a0cdba49b2802bab1d0da7a671714e77b":[17,0,1,4,0,0,7,8],
-"state__config_8hpp.html#a142767c95d8323471aee83d86833ee8c":[17,0,1,4,0,0,7,11],
-"state__config_8hpp.html#a15046280f6cced1ba188ecded81bb15f":[17,0,1,4,0,0,7,16]
+"state__config_8hpp.html":[17,0,1,4,0,0,7]
 };

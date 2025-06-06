@@ -7,6 +7,7 @@ var classtaraxa_1_1_value_by_block_cache =
     [ "ValueByBlockCache", "classtaraxa_1_1_value_by_block_cache.html#a45cb21699df657e2f814e0af0674a8c0", null ],
     [ "append", "classtaraxa_1_1_value_by_block_cache.html#a8dcfba3ad5111e23ec0ae2dc6a266b61", null ],
     [ "get", "classtaraxa_1_1_value_by_block_cache.html#a0a28b1c85d345912fa296dc8931eedaf", null ],
+    [ "getFromCache", "classtaraxa_1_1_value_by_block_cache.html#ac599731ddc9bd5cb3f0d8176b0b1d08f", null ],
     [ "last", "classtaraxa_1_1_value_by_block_cache.html#a8fa29567839a1f99cb836fbbf70c8f3a", null ],
     [ "lastBlockNum", "classtaraxa_1_1_value_by_block_cache.html#a873ce3cb424232eb8124f06a7ef66f7f", null ],
     [ "operator=", "classtaraxa_1_1_value_by_block_cache.html#abe9436097620a90d22558348c9de5a01", null ],

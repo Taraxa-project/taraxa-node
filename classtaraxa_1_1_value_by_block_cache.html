@@ -121,6 +121,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a45cb21699df657e2f814e0af0674a8c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8dcfba3ad5111e23ec0ae2dc6a266b61" id="r_a8dcfba3ad5111e23ec0ae2dc6a266b61"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_value_by_block_cache.html#a8dcfba3ad5111e23ec0ae2dc6a266b61">append</a> (uint64_t block_num, Value value) const</td></tr>
 <tr class="separator:a8dcfba3ad5111e23ec0ae2dc6a266b61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac599731ddc9bd5cb3f0d8176b0b1d08f" id="r_ac599731ddc9bd5cb3f0d8176b0b1d08f"><td class="memItemLeft" align="right" valign="top">std::optional&lt; Value &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_value_by_block_cache.html#ac599731ddc9bd5cb3f0d8176b0b1d08f">getFromCache</a> (uint64_t block_num) const</td></tr>
+<tr class="separator:ac599731ddc9bd5cb3f0d8176b0b1d08f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a28b1c85d345912fa296dc8931eedaf" id="r_a0a28b1c85d345912fa296dc8931eedaf"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_value_by_block_cache.html#a0a28b1c85d345912fa296dc8931eedaf">get</a> (uint64_t block_num) const</td></tr>
 <tr class="separator:a0a28b1c85d345912fa296dc8931eedaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fa29567839a1f99cb836fbbf70c8f3a" id="r_a8fa29567839a1f99cb836fbbf70c8f3a"><td class="memItemLeft" align="right" valign="top">Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_value_by_block_cache.html#a8fa29567839a1f99cb836fbbf70c8f3a">last</a> () const</td></tr>
@@ -319,6 +321,34 @@ template&lt;class Value &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">Value <a class="el" href="classtaraxa_1_1_value_by_block_cache.html">taraxa::ValueByBlockCache</a>&lt; Value &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>block_num</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac599731ddc9bd5cb3f0d8176b0b1d08f" name="ac599731ddc9bd5cb3f0d8176b0b1d08f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac599731ddc9bd5cb3f0d8176b0b1d08f">&#9670;&#160;</a></span>getFromCache()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Value &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; Value &gt; <a class="el" href="classtaraxa_1_1_value_by_block_cache.html">taraxa::ValueByBlockCache</a>&lt; Value &gt;::getFromCache </td>
           <td>(</td>
           <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>block_num</em></td><td>)</td>

@@ -1,5 +1,8 @@
 var NAVTREEINDEX21 =
 {
+"md_doc_2rewards__distribution.html#autotoc_md242":[10,2],
+"md_doc_2rewards__distribution.html#autotoc_md243":[10,2,0],
+"md_doc_2rewards__distribution.html#autotoc_md244":[10,2,1],
 "md_doc_2rewards__distribution.html#autotoc_md245":[10,2,2],
 "md_doc_2rewards__distribution.html#autotoc_md246":[10,3],
 "md_doc_2rewards__distribution.html#autotoc_md247":[10,4],
@@ -246,8 +249,5 @@ var NAVTREEINDEX21 =
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet":[17,0,1,5,1,1,0,0,0,0,7,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_vote_packet":[17,0,1,5,1,1,0,0,0,0,8,0],
 "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet":[17,0,1,5,1,1,0,0,0,0,9,0],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet":[17,0,1,5,1,1,0,0,0,0,10,0],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data":[17,0,1,5,1,1,0,0,0,0,10,0,0],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet_1_1_initial_data":[17,0,1,5,1,1,0,0,0,0,10,1],
-"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_transaction_packet":[17,0,1,5,1,1,0,0,0,0,11,0]
+"namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet":[17,0,1,5,1,1,0,0,0,0,10,0]
 };

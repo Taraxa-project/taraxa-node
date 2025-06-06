@@ -1,5 +1,8 @@
 var NAVTREEINDEX26 =
 {
+"structtaraxa_1_1_transaction_1_1_invalid_format.html#af18a914b0d068bd1c616071e04f8a462":[16,0,3,73,0,0],
+"structtaraxa_1_1_transaction_1_1_invalid_signature.html":[16,0,3,73,1],
+"structtaraxa_1_1_transaction_1_1_invalid_signature.html#a91e4a623c9edc3cdcf95b401751f0d8c":[16,0,3,73,1,0],
 "structtaraxa_1_1_transaction_1_1_invalid_transaction.html":[16,0,3,73,2],
 "structtaraxa_1_1_transaction_1_1_invalid_transaction.html#a5b66fae72abba7c859978116a5e2b646":[16,0,3,73,2,0],
 "structtaraxa_1_1_transaction_location.html":[16,0,3,74],
@@ -246,8 +249,5 @@ var NAVTREEINDEX26 =
 "transaction__receipts__by__period_8hpp.html":[17,0,1,5,2,0,0,0,2],
 "transaction__receipts__by__period_8hpp_source.html":[17,0,1,5,2,0,0,0,2],
 "trie__common_8cpp.html":[17,0,1,5,0,1,1,4],
-"trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[17,0,1,5,0,1,1,4,2],
-"trie__common_8cpp.html#aa0b5a88e3d820936d80621999c99726c":[17,0,1,5,0,1,1,4,3],
-"trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[17,0,1,5,0,1,1,4,1],
-"trie__common_8cpp.html#ae98a58c8ebf350eaa6ce36b2fd0d79d5":[17,0,1,5,0,1,1,4,0]
+"trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[17,0,1,5,0,1,1,4,2]
 };
