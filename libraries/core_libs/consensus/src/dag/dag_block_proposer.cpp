@@ -48,25 +48,25 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
-  auto frontier = dag_mgr_->getDagFrontier();
-  LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
-  assert(!frontier.pivot.isZero());
-  const auto propose_level = getProposeLevel(frontier.pivot, frontier.tips) + 1;
-
-  const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
-  if (!proposal_period.has_value()) {
-    LOG(log_wr_) << "No proposal period for propose_level " << propose_level << " found";
-    return false;
-  }
-
-  if (*proposal_period + kDagExpiryLevelLimit < final_chain_->lastBlockNumber()) {
-    LOG(log_wr_) << "Trying to propose old block " << propose_level;
-    return false;
-  }
-
   // Try to propose dag block for each wallet
   bool block_proposed = false;
   for (auto& node_dag_proposer_data : nodes_dag_proposers_data_) {
+    auto frontier = dag_mgr_->getDagFrontier();
+    LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
+    assert(!frontier.pivot.isZero());
+    const auto propose_level = getProposeLevel(frontier.pivot, frontier.tips) + 1;
+
+    const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
+    if (!proposal_period.has_value()) {
+      LOG(log_wr_) << "No proposal period for propose_level " << propose_level << " found";
+      return false;
+    }
+
+    if (*proposal_period + kDagExpiryLevelLimit < final_chain_->lastBlockNumber()) {
+      LOG(log_wr_) << "Trying to propose old block " << propose_level;
+      return false;
+    }
+
     if (!isValidDposProposer(*proposal_period, node_dag_proposer_data.wallet.node_addr)) {
       continue;
     }
@@ -178,6 +178,7 @@ bool DagBlockProposer::proposeDagBlock() {
         continue;
       }
     }
+
     LOG(log_dg_) << node_dag_proposer_data.wallet.node_addr << " VDF computation time " << vdf.getComputationTime()
                  << " difficulty " << vdf.getDifficulty();
 
