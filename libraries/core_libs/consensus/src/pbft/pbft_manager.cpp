@@ -805,13 +805,13 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
     const auto vote = vote_mgr_->generateVoteWithWeight(block_hash, vote_type, period, round, step, wallet.second);
     if (!vote) {
       LOG(log_er_) << "Failed to generate vote for " << block_hash << ", period " << period << ", round " << round
-                   << ", step " << step << ", wallet " << wallet.second.node_addr;
+                   << ", step " << step << ", validator " << wallet.second.node_addr;
       continue;
     }
 
     if (!vote_mgr_->addVerifiedVote(vote)) {
       LOG(log_er_) << "Unable to place vote " << vote->getHash() << " for block " << block_hash << ", period " << period
-                   << ", round " << round << ", step " << step << ", wallet " << wallet.second.node_addr;
+                   << ", round " << round << ", step " << step << ", validator " << wallet.second.node_addr;
       continue;
     }
 
@@ -822,7 +822,7 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
 
     LOG(log_nf_) << "Placed " << vote->getHash() << " vote for block " << block_hash << ", vote weight "
                  << *vote->getWeight() << ", period " << period << ", round " << round << ", step " << step
-                 << ", wallet " << wallet.second.node_addr;
+                 << ", validator " << wallet.second.node_addr;
 
     if (place_pillar_vote_for_block.has_value()) {
       const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(period, *place_pillar_vote_for_block,
@@ -912,6 +912,11 @@ void PbftManager::proposeBlock_() {
 
       // Broadcast new propose vote + proposed block
       gossipNewVote(proposed_block_data->vote, proposed_block_data->pbft_block);
+
+      LOG(log_nf_) << "Placed " << proposed_block_data->vote->getHash() << " propose vote for block "
+                   << proposed_block_data->pbft_block->getBlockHash() << ", vote weight "
+                   << *proposed_block_data->vote->getWeight() << ", period " << period << ", round " << round
+                   << ", step " << step_ << ", validator " << proposed_block_data->vote->getVoterAddr();
     }
 
     return;
@@ -1195,15 +1200,15 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
                                                             propose_period, round_, step_, wallet);
       if (!propose_vote) {
         LOG(log_er_) << "Failed to generate propose vote for block " << block->getBlockHash() << ", period "
-                     << propose_period << ", round " << round_ << ", step " << step_ << ", wallet " << wallet.node_addr
-                     << " when generating pbft block";
+                     << propose_period << ", round " << round_ << ", step " << step_ << ", validator "
+                     << wallet.node_addr << " when generating pbft block";
         continue;
       }
 
       if (!vote_mgr_->addVerifiedVote(propose_vote)) {
         LOG(log_er_) << "Unable to save propose vote " << propose_vote->getHash() << " for block "
                      << block->getBlockHash() << ", period " << propose_period << ", round " << round_ << ", step "
-                     << step_ << ", wallet " << wallet.node_addr;
+                     << step_ << ", validator " << wallet.node_addr;
         continue;
       }
 
@@ -1290,7 +1295,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
 
     if (!vote_mgr_->genAndValidateVrfSortition(current_pbft_period, current_pbft_round, wallet.second)) {
       LOG(log_dg_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                   << ", wallet " << wallet.second.node_addr << ". Invalid vrf sortition";
+                   << ", validator " << wallet.second.node_addr << ". Invalid vrf sortition";
       continue;
     }
 
