@@ -220,6 +220,8 @@ Json::Value enc_json(const HardforksConfig& obj) {
   json["ficus_hf"] = enc_json(obj.ficus_hf);
   // json["bamboo_hf"] = enc_json(obj.bamboo_hf);
   json["cornus_hf"] = enc_json(obj.cornus_hf);
+  json["soleirolia_hf"] = enc_json(obj.soleirolia_hf);
+  json["cacti_hf"] = enc_json(obj.cacti_hf);
 
   return json;
 }
@@ -252,8 +254,11 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   dec_json(json["ficus_hf"], obj.ficus_hf);
   // dec_json(json["bamboo_hf"], obj.bamboo_hf);
   dec_json(json["cornus_hf"], obj.cornus_hf);
+  dec_json(json["soleirolia_hf"], obj.soleirolia_hf);
+  dec_json(json["cacti_hf"], obj.cacti_hf);
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
-                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf, cacti_hf)
+                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf, soleirolia_hf,
+                  cacti_hf)
 }  // namespace taraxa
