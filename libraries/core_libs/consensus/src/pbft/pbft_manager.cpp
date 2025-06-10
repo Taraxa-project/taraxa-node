@@ -46,18 +46,7 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
   const auto &node_addr = dev::toAddress(kConfig.getFirstWallet().node_secret);
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
-  auto current_pbft_period = pbft_chain_->getPbftChainSize();
-  if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(current_pbft_period)) {
-    const auto current_pillar_block = pillar_chain_mgr_->getCurrentPillarBlock();
-    // There is a race condition where pbt block could have been saved and node stopped before saving pillar block
-    if (current_pbft_period ==
-        current_pillar_block->getPeriod() + kGenesisConfig.state.hardforks.ficus_hf.pillar_blocks_interval)
-      LOG(log_er_) << "Pillar block was not processed before restart, current period: " << current_pbft_period
-                   << ", current pillar block period: " << current_pillar_block->getPeriod();
-    processPillarBlock(current_pbft_period);
-  }
-
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(current_pbft_period)) {
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(pbft_chain_->getPbftChainSize())) {
     rounds_count_dynamic_lambda_ = db_->getRoundsCountDynamicLambda();
 
     dynamic_lambda_ = db_->getPbftMgrField(PbftMgrField::Lambda);
