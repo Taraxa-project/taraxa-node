@@ -852,11 +852,12 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   const auto votes_per_address =
       cfg.genesis.state.dpos.validator_maximum_stake / cfg.genesis.state.dpos.vote_eligibility_balance_step;
   const auto total_votes_before = SUT->dposEligibleTotalVoteCount(SUT->lastBlockNumber());
+  EXPECT_EQ(validator_keys.size() * votes_per_address, total_votes_before);
   for (const auto& vk : validator_keys) {
     const auto address_votes = SUT->dposEligibleVoteCount(SUT->lastBlockNumber(), vk.address());
     EXPECT_EQ(votes_per_address, address_votes);
-    EXPECT_EQ(validator_keys.size() * votes_per_address, total_votes_before);
   }
+
   advance({});
   // submit double votes for one validator
   const auto [vrf_key, vrf_sk] = taraxa::vrf_wrapper::getVrfKeyPair();
@@ -868,7 +869,7 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
 
   auto trx = makeDoubleVotingProofTx(vote_a, vote_b, 1, key);
   auto res = advance({trx}, {true});
-  for (size_t idx = 0; idx < 5; idx++) {
+  for (size_t idx = 0; idx < cfg.genesis.state.dpos.delegation_delay; idx++) {
     advance({});
   }
 
