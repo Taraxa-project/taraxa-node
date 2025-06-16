@@ -57,6 +57,7 @@ spec:
               readOnly: true
               subPath: entrypoint.sh
         {{- end }}
+        {{- if and (ne .Values.config.network 841) (ne .Values.config.network 842) (ne .Values.config.network 843) }}
         - name: config-adapter
           {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag }}
           image: "{{ .Values.consensusnode.image.repository }}:{{ .Values.consensusnode.image.tag }}"
@@ -88,6 +89,7 @@ spec:
               subPath: genconfig.py
             - name: data
               mountPath: /root/.taraxa
+        {{- end }}
       containers:
         {{- if .Values.slack.enabled }}
         - name: status
@@ -174,6 +176,11 @@ spec:
               mountPath: {{ .Values.consensusnode.wallets.mountPath }}
               readOnly: true
             {{- end }}
+            {{- if .Values.consensusnode.config.configMap.enabled }}
+            - name: configmap
+              mountPath: {{ .Values.consensusnode.config.configMap.mountPath }}
+              readOnly: true
+            {{- end }}
           securityContext:
             capabilities:
               add:
@@ -215,6 +222,11 @@ spec:
         - name: wallets
           secret:
             secretName: {{ .Values.consensusnode.wallets.secretName }}
+        {{- end }}
+        {{- if .Values.consensusnode.config.configMap.enabled }}
+        - name: configmap
+          configMap:
+            name: {{ .Values.consensusnode.config.configMap.name }}
         {{- end }}
        {{- if not .Values.consensusnode.persistence.enabled }}
         - name: data
