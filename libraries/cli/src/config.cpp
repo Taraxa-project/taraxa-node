@@ -115,7 +115,7 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
       try {
         util::writeJsonToFile(config, config_json);
       } catch (const std::exception& e) {
-        std::cerr << "Error writing config file " << config << ": " << e.what() << std::endl;
+        std::cerr << "Error writing to config file at path " << config << ": " << e.what() << std::endl;
       }
       util::writeJsonToFile(genesis, genesis_json);
 
