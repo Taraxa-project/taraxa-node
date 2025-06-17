@@ -130,13 +130,7 @@ data:
       fi
     fi
 
-    {{ if .Values.explorer.enabled }}
-    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-    NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-    curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
-    {{- end }}
-    {{- end }}
-
+    # generate config
     taraxad --command config \
       --chain-id {{ .Values.config.network }} \
       --node-secret ${KEY} \
@@ -156,12 +150,12 @@ data:
       --wallet $WALLET_PATH \
       --data-dir $DATA_PATH
 
+  
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     python3 /bin/genconfig.py $GENESIS_PATH > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
-    {{- end }}
-
-    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     {{ if .Values.explorer.enabled }}
+    NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+    curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
     export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
     cat $GENESIS_PATH | jq '.initial_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
     {{- end }}

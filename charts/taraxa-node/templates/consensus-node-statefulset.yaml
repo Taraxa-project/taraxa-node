@@ -57,7 +57,6 @@ spec:
               readOnly: true
               subPath: entrypoint.sh
         {{- end }}
-        {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
         - name: config-adapter
           {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag }}
           image: "{{ .Values.consensusnode.image.repository }}:{{ .Values.consensusnode.image.tag }}"
@@ -89,7 +88,6 @@ spec:
               subPath: genconfig.py
             - name: data
               mountPath: /root/.taraxa
-        {{- end }}
       containers:
         {{- if .Values.slack.enabled }}
         - name: status
