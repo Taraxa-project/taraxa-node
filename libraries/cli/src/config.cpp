@@ -112,7 +112,11 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     }
 
     auto write_config_and_wallet_files = [&]() {
-      util::writeJsonToFile(config, config_json);
+      try {
+        util::writeJsonToFile(config, config_json);
+      } catch (const std::exception& e) {
+        std::cerr << "Error writing to config file at path " << config << ": " << e.what() << std::endl;
+      }
       util::writeJsonToFile(genesis, genesis_json);
 
       assert(wallets_jsons.size() <= wallets.size());
