@@ -286,6 +286,17 @@ consensusnode:
     size: 30Gi
     storageClass: 
     annotations: {}
+  multiwallets:
+    enabled: false
+  wallets:
+    enabled: false
+    secretName: "taraxa-wallets"
+    mountPath: "/root/.taraxa/wallets"
+  config:
+    configMap:
+      enabled: false
+      name: "blockchain-config"
+      mountPath: "/root/.taraxa/configs"
 
 consensusnodeLight:
   enabled: false
