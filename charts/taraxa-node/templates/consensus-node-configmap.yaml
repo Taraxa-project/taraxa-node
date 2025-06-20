@@ -40,21 +40,17 @@ data:
       keys = []
       vrfs = []
 
-      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       keys = [
       {{- range $key, $value := .Values.config.consensusnode.keys }}
       "{{ $value }}",
       {{- end }}
       ]
-      {{- end }}
 
-      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       vrfs = [
       {{- range $key, $value := .Values.config.consensusnode.vrfs }}
       "{{ $value }}",
       {{- end }}
       ]
-      {{- end }}
 
       with open(config) as f:
         data = json.load(f)
