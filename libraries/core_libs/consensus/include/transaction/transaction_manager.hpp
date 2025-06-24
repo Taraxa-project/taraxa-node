@@ -114,7 +114,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param insert_non_proposable insert non proposable transactions
    * @return transaction status
    */
-  TransactionStatus insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, bool insert_non_proposable = true);
+  std::pair<TransactionStatus, std::string> insertValidatedTransaction(std::shared_ptr<Transaction> &&tx,
+                                                                       bool insert_non_proposable = true);
 
   /**
    * @param trx_hash transaction hash
