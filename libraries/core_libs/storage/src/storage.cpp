@@ -600,6 +600,8 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(PbftPer
   return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
 }
 
+uint64_t DbStorage::getEarliestBlockNumber() const { return earliest_block_number_; }
+
 void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level_to_keep,
                                        PbftPeriod last_block_number) {
   LOG(log_si_) << "Clear light node history";
@@ -615,6 +617,8 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
   memcpy(&start_period, it->key().data(), sizeof(uint64_t));
   auto start_slice = toSlice(start_period);
   auto end_slice = toSlice(end_period);
+
+  earliest_block_number_ = end_period;
 
   db_->DeleteRange(async_write_, handle(Columns::period_data), start_slice, end_slice);
   db_->DeleteRange(async_write_, handle(Columns::pillar_block), start_slice, end_slice);
