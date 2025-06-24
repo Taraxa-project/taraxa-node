@@ -57,6 +57,7 @@ void Rpc::start() {
     eth_rpc_params.gas_limit = conf.genesis.dag.gas_limit;
     eth_rpc_params.final_chain = app()->getFinalChain();
     eth_rpc_params.gas_pricer = [gas_pricer = app()->getGasPricer()]() { return gas_pricer->bid(); };
+    eth_rpc_params.get_earliest_block = [db = app()->getDB()]() { return db->getEarliestBlockNumber(); };
     eth_rpc_params.get_trx = [db = app()->getDB()](auto const &trx_hash) { return db->getTransaction(trx_hash); };
     eth_rpc_params.send_trx = [trx_manager = app()->getTransactionManager()](auto const &trx) {
       if (auto [ok, err_msg] = trx_manager->insertTransaction(trx); !ok) {

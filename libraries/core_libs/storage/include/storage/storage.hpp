@@ -170,6 +170,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::atomic<bool> snapshots_enabled_ = true;
   const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
+  uint64_t earliest_block_number_ = 0;
 
   uint32_t kMajorVersion_;
   bool major_version_changed_ = false;
@@ -233,6 +234,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   SharedTransactions transactionsFromPeriodDataRlp(PbftPeriod period, const dev::RLP& period_data_rlp) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
   std::vector<std::shared_ptr<PillarVote>> getPeriodPillarVotes(PbftPeriod period) const;
+  uint64_t getEarliestBlockNumber() const;
 
   // Pillar chain
   void savePillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& pillar_block);
