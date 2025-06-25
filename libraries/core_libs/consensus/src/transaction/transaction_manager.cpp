@@ -221,7 +221,7 @@ TransactionStatus TransactionManager::insertValidatedTransaction(std::shared_ptr
   const auto last_block_number = final_chain_->lastBlockNumber();
   LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
   if (proposable) {
-    transaction_added_.emit(tx->getHash());
+    transaction_added_.emit(trx_hash);
   }
   return transactions_pool_.insert(std::move(tx), proposable, last_block_number);
 }
