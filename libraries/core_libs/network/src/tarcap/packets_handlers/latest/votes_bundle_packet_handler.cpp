@@ -12,9 +12,9 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<PbftChain> pbft_chain,
                                                    std::shared_ptr<VoteManager> vote_mgr,
                                                    std::shared_ptr<SlashingManager> slashing_manager,
-                                                   const addr_t &node_addr, const std::string &logs_prefix)
+                                                   const std::string &logs_prefix)
     : IVotePacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                         std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager), node_addr,
+                         std::move(pbft_chain), std::move(vote_mgr), std::move(slashing_manager),
                          logs_prefix + "VOTES_BUNDLE_PH") {}
 
 void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
@@ -34,17 +34,20 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   // Votes sync bundles are allowed to cotain only votes bundles of the same type, period, round and step so if first
   // vote is irrelevant, all of them are
   if (!isPbftRelevantVote(packet.votes_bundle.votes[0])) {
-    LOG(log_wr_) << "Drop votes sync bundle as it is irrelevant for current pbft state. Votes (period, round, step) = ("
-                 << reference_vote->getPeriod() << ", " << reference_vote->getRound() << ", "
-                 << reference_vote->getStep() << "). Current PBFT (period, round, step) = (" << current_pbft_period
-                 << ", " << current_pbft_round << ", " << pbft_mgr_->getPbftStep() << ")";
+    logger_->warn(
+        "Drop votes sync bundle as it is irrelevant for current pbft state. Votes (period, round, step) = ({}, {}, "
+        "{}). Current PBFT (period, round, step) = ({}, {}, {})",
+        reference_vote->getPeriod(), reference_vote->getRound(), current_pbft_period, reference_vote->getStep(),
+        current_pbft_round, pbft_mgr_->getPbftStep());
     return;
   }
 
   // VotesBundlePacket does not support propose votes
   if (reference_vote->getType() == PbftVoteTypes::propose_vote) {
-    LOG(log_er_) << "Dropping votes bundle packet due to received \"propose\" votes from " << peer->getId()
-                 << ". The peer may be a malicious player, will be disconnected";
+    logger_->error(
+        "Dropping votes bundle packet due to received \"propose\" votes from {}. The peer may be a malicious player, "
+        "will be disconnected",
+        peer->getId());
     disconnect(peer->getId(), dev::p2p::UserReason);
     return;
   }
@@ -62,11 +65,11 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
 
     // Do not process vote that has already been validated
     if (vote_mgr_->voteAlreadyValidated(vote->getHash())) {
-      LOG(log_dg_) << "Received vote " << vote->getHash() << " has already been validated";
+      logger_->debug("Received vote {} has already been validated", vote->getHash());
       continue;
     }
 
-    LOG(log_dg_) << "Received sync vote " << vote->getHash().abridged();
+    logger_->debug("Received sync vote {}", vote->getHash().abridged());
 
     if (!processVote(vote, nullptr, peer, check_max_round_step)) {
       continue;
@@ -75,9 +78,9 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
     processed_votes_count++;
   }
 
-  LOG(log_nf_) << "Received " << packet.votes_bundle.votes.size() << " (processed " << processed_votes_count
-               << " ) sync votes from peer " << peer->getId() << " node current round " << current_pbft_round
-               << ", peer pbft round " << reference_vote->getRound();
+  logger_->debug("Received {} (processed {} ) sync votes from peer {} node current round {}, peer pbft round {}",
+                 packet.votes_bundle.votes.size(), processed_votes_count, peer->getId(), current_pbft_round,
+                 reference_vote->getRound());
 
   onNewPbftVotesBundle(packet.votes_bundle.votes, false, peer->getId());
 }

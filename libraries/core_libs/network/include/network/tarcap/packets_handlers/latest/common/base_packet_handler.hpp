@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/logger_formatters.hpp"
 #include "network/threadpool/packet_data.hpp"
 
 namespace taraxa::network::tarcap {

@@ -7,16 +7,15 @@ namespace taraxa::network::tarcap {
 ExtPillarVotePacketHandler::ExtPillarVotePacketHandler(
     const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
     std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const addr_t &node_addr,
-    const std::string &log_channel)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel),
+    std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_manager, const std::string &log_channel_name)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), log_channel_name),
       pillar_chain_manager_{std::move(pillar_chain_manager)} {}
 
 bool ExtPillarVotePacketHandler::processPillarVote(const std::shared_ptr<PillarVote> &vote,
                                                    const std::shared_ptr<TaraxaPeer> &peer) {
   if (!pillar_chain_manager_->isRelevantPillarVote(vote)) {
-    LOG(this->log_dg_) << "Drop irrelevant pillar vote " << vote->getHash() << ", period " << vote->getPeriod()
-                       << " from peer " << peer->getId();
+    logger_->debug("Drop irrelevant pillar vote {}, period {} from peer {}", vote->getHash(), vote->getPeriod(),
+                   peer->getId());
     return false;
   }
 

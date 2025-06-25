@@ -11,21 +11,21 @@ ISyncPacketHandler::ISyncPacketHandler(const FullNodeConfig& conf, std::shared_p
                                        std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                        std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
-                                       const addr_t& node_addr, const std::string& logs_prefix)
+                                       const std::string& log_channel_name)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
-                              logs_prefix + "STATUS_PH"),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db),
+                              log_channel_name),
       kGenesisHash(kConf.genesis.genesisHash()) {}
 
 void ISyncPacketHandler::startSyncingPbft() {
   if (pbft_syncing_state_->isPbftSyncing()) {
-    LOG(this->log_dg_) << "startSyncingPbft called but syncing_ already true";
+    logger_->debug("startSyncingPbft called but syncing_ already true");
     return;
   }
 
   std::shared_ptr<TaraxaPeer> peer = peers_state_->getMaxChainPeer(pbft_mgr_);
   if (!peer) {
-    LOG(this->log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
+    logger_->info("Restarting syncing PBFT not possible since no connected peers");
     return;
   }
 
@@ -34,11 +34,11 @@ void ISyncPacketHandler::startSyncingPbft() {
     auto peer_id = peer->getId().abridged();
     auto peer_pbft_chain_size = peer->pbft_chain_size_.load();
     if (!pbft_syncing_state_->setPbftSyncing(true, pbft_sync_period, std::move(peer))) {
-      LOG(this->log_dg_) << "startSyncingPbft called but syncing_ already true";
+      logger_->debug("startSyncingPbft called but syncing_ already true");
       return;
     }
-    LOG(this->log_si_) << "Restarting syncing PBFT from peer " << peer_id << ", peer PBFT chain size "
-                       << peer_pbft_chain_size << ", own PBFT chain synced at period " << pbft_sync_period;
+    logger_->info("Restarting syncing PBFT from peer {}, peer PBFT chain size {}, own PBFT chain synced at period {}",
+                  peer_id, peer_pbft_chain_size, pbft_sync_period);
 
     if (syncPeerPbft(pbft_sync_period + 1)) {
       // Disable snapshots only if are syncing from scratch
@@ -49,9 +49,10 @@ void ISyncPacketHandler::startSyncingPbft() {
       pbft_syncing_state_->setPbftSyncing(false);
     }
   } else {
-    LOG(this->log_nf_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period << "("
-                       << pbft_chain_->getPbftChainSize() << ")"
-                       << " is greater or equal than max node pbft chain size:" << peer->pbft_chain_size_;
+    logger_->info(
+        "Restarting syncing PBFT not needed since our pbft chain size: {}({}) is greater or equal than max node pbft "
+        "chain size:{}",
+        pbft_sync_period, pbft_chain_->getPbftChainSize(), peer->pbft_chain_size_);
     db_->enableSnapshots();
   }
 }
@@ -59,17 +60,17 @@ void ISyncPacketHandler::startSyncingPbft() {
 bool ISyncPacketHandler::syncPeerPbft(PbftPeriod request_period) {
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
   if (!syncing_peer) {
-    LOG(this->log_er_) << "Unable to send GetPbftSyncPacket. No syncing peer set.";
+    logger_->error("Unable to send GetPbftSyncPacket. No syncing peer set.");
     return false;
   }
 
   if (request_period > syncing_peer->pbft_chain_size_) {
-    LOG(this->log_wr_) << "Invalid syncPeerPbft argument. Node " << syncing_peer->getId() << " chain size "
-                       << syncing_peer->pbft_chain_size_ << ", requested period " << request_period;
+    logger_->warn("Invalid syncPeerPbft argument. Node {} chain size {}, requested period {}", syncing_peer->getId(),
+                  syncing_peer->pbft_chain_size_, request_period);
     return false;
   }
 
-  LOG(this->log_nf_) << "Send GetPbftSyncPacket with period " << request_period << " to node " << syncing_peer->getId();
+  logger_->debug("Send GetPbftSyncPacket with period {} to node {}", request_period, syncing_peer->getId());
   return this->sealAndSend(syncing_peer->getId(), SubprotocolPacketType::kGetPbftSyncPacket,
                            encodePacketRlp(GetPbftSyncPacket{request_period}));
 }
@@ -77,7 +78,7 @@ bool ISyncPacketHandler::syncPeerPbft(PbftPeriod request_period) {
 void ISyncPacketHandler::sendStatusToPeers() {
   auto host = peers_state_->host_.lock();
   if (!host) {
-    LOG(log_er_) << "Unavailable host during checkLiveness";
+    logger_->error("Unavailable host during checkLiveness");
     return;
   }
 
@@ -90,9 +91,8 @@ bool ISyncPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initia
   bool success = false;
   std::string status_packet_type = initial ? "initial" : "standard";
 
-  LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
-               << TARAXA_NET_VERSION << ", network id " << kConf.genesis.chain_id << ", genesis " << kGenesisHash
-               << ", node version " << TARAXA_VERSION;
+  logger_->debug("Sending {} status message to {}, protocol version {}, network id {}, genesis, node version {}",
+                 status_packet_type, node_id, TARAXA_NET_VERSION, kConf.genesis.chain_id, kGenesisHash, TARAXA_VERSION);
 
   auto dag_max_level = dag_mgr_->getMaxLevel();
   auto pbft_chain_size = pbft_chain_->getPbftChainSize();

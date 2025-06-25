@@ -10,7 +10,7 @@
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
 #include "key_manager/key_manager.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "plugin/plugin.hpp"
 
 namespace taraxa {
@@ -84,8 +84,6 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
 
   bool isPluginEnabled(const std::string& name) const;
 
-  void scheduleLoggingConfigUpdate();
-
  private:
   std::shared_ptr<util::ThreadPool> subscription_pool_ = std::make_shared<util::ThreadPool>(1);
   util::ThreadPool config_update_executor_{1};
@@ -118,7 +116,7 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   void setupMetricsUpdaters();
 
   // logging
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa

@@ -4,7 +4,7 @@
 
 #include "common/types.hpp"
 #include "config/config.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 
 namespace taraxa {
@@ -61,7 +61,7 @@ class NodeStats {
   // List of node addresses running on this node
   std::string node_addresses_;
 
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::tarcap

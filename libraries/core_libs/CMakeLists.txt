@@ -49,6 +49,7 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/
 find_package(RocksDB REQUIRED)
 target_link_libraries(core_libs PUBLIC
   cli
+  logger
   pbft_block
   taraxa-evm
   p2p

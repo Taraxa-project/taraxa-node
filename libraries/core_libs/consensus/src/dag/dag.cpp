@@ -10,12 +10,12 @@
 #include <utility>
 #include <vector>
 
+#include "common/logger_formatters.hpp"
 #include "dag/dag.hpp"
 
 namespace taraxa {
 
-Dag::Dag(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr) {
-  LOG_OBJECTS_CREATE("DAGMGR");
+Dag::Dag(blk_hash_t const &dag_genesis_block_hash) : logger_(logger::Logging::get().CreateChannelLogger("DAGMGR")) {
   std::vector<blk_hash_t> tips;
   // add genesis block
   addVEEs(dag_genesis_block_hash, {}, tips);
@@ -55,7 +55,7 @@ bool Dag::addVEEs(blk_hash_t const &new_vertex, blk_hash_t const &pivot, std::ve
       // TODO do we need this?
       // weight_map[edge] = 1;
       if (!res) {
-        LOG(log_wr_) << "Creating pivot edge \n" << pivot << "\n-->\n" << new_vertex << " \nunsuccessful!" << std::endl;
+        logger_->warn("Creating pivot edge \n{}\n-->\n{} \nunsuccessful!", pivot, new_vertex);
       }
     }
   }
@@ -66,7 +66,7 @@ bool Dag::addVEEs(blk_hash_t const &new_vertex, blk_hash_t const &pivot, std::ve
       // TODO do we need this?
       // weight_map[edge] = 0;
       if (!res2) {
-        LOG(log_wr_) << "Creating tip edge \n" << e << "\n-->\n" << new_vertex << " \nunsuccessful!" << std::endl;
+        logger_->warn("Creating tip edge \n{}\n-->\n{} \nunsuccessful!", e, new_vertex);
       }
     }
   }
@@ -105,7 +105,7 @@ bool Dag::computeOrder(const blk_hash_t &anchor, std::vector<blk_hash_t> &ordere
   vertex_t target = graph_.vertex(anchor);
 
   if (target == graph_.null_vertex()) {
-    LOG(log_wr_) << "Dag::ComputeOrder cannot find vertex (anchor) " << anchor << "\n";
+    logger_->warn("Dag::ComputeOrder cannot find vertex (anchor) {}", anchor);
     return false;
   }
   ordered_period_vertices.clear();
@@ -205,7 +205,7 @@ std::vector<blk_hash_t> PivotTree::getGhostPath(const blk_hash_t &vertex) const 
   vertex_t root = graph_.vertex(vertex);
 
   if (root == graph_.null_vertex()) {
-    LOG(log_wr_) << "Cannot find vertex (getGhostPath) " << vertex << std::endl;
+    logger_->warn("Cannot find vertex (getGhostPath) {}", vertex);
     return {};
   }
 

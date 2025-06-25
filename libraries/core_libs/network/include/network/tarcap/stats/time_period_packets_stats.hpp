@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/types.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/stats/max_stats.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
 
@@ -15,7 +15,7 @@ class TaraxaPeer;
  */
 class TimePeriodPacketsStats {
  public:
-  TimePeriodPacketsStats(std::chrono::milliseconds reset_time_period, const addr_t& node_addr = {});
+  TimePeriodPacketsStats(std::chrono::milliseconds reset_time_period);
 
   void addReceivedPacket(const std::string& packet_type, const dev::p2p::NodeID& node, const PacketStats& packet);
   void addSentPacket(const std::string& packet_type, const dev::p2p::NodeID& node, const PacketStats& packet);
@@ -48,8 +48,7 @@ class TimePeriodPacketsStats {
   // Max stats for all received packets combined per peer
   MaxStats peer_max_stats_;
 
-  // Declare logger instances
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::tarcap

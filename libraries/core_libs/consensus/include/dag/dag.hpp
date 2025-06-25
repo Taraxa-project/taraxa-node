@@ -14,7 +14,7 @@
 #include <string>
 
 #include "common/types.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 
 namespace taraxa {
 
@@ -56,7 +56,7 @@ class Dag {
 
   friend DagManager;
 
-  explicit Dag(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr);
+  explicit Dag(blk_hash_t const &dag_genesis_block_hash);
   virtual ~Dag() = default;
 
   Dag(const Dag &) = default;
@@ -88,7 +88,7 @@ class Dag {
   graph_t graph_;
 
  protected:
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 /**
@@ -99,8 +99,7 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  explicit PivotTree(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr)
-      : Dag(dag_genesis_block_hash, node_addr) {}
+  explicit PivotTree(blk_hash_t const &dag_genesis_block_hash) : Dag(dag_genesis_block_hash) {}
   virtual ~PivotTree() = default;
 
   PivotTree(const PivotTree &) = default;
@@ -114,7 +113,6 @@ class PivotTree : public Dag {
 
   std::vector<blk_hash_t> getGhostPath(const blk_hash_t &vertex) const;
 };
-class DagBuffer;
 class KeyManager;
 
 // for graphviz

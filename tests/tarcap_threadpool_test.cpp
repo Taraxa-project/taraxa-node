@@ -3,7 +3,7 @@
 #include "config/config.hpp"
 #include "config/version.hpp"
 #include "dag/dag_block.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/common/base_packet_handler.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
@@ -93,10 +93,9 @@ class DummyPacketHandler : public network::tarcap::BasePacketHandler {
  public:
   DummyPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
                      uint32_t processing_delay_ms)
-      : processing_delay_ms_(processing_delay_ms), packets_proc_info_(init_data.packets_processing_info) {
-    const auto node_addr = init_data.own_node_addr;
-    LOG_OBJECTS_CREATE(log_channel_name);
-  }
+      : processing_delay_ms_(processing_delay_ms),
+        packets_proc_info_(init_data.packets_processing_info),
+        logger_(taraxa::logger::Logging::get().CreateChannelLogger(log_channel_name)) {}
 
   virtual ~DummyPacketHandler() = default;
   DummyPacketHandler(const DummyPacketHandler&) = default;
@@ -120,18 +119,16 @@ class DummyPacketHandler : public network::tarcap::BasePacketHandler {
     std::this_thread::sleep_for(std::chrono::milliseconds(processing_delay_ms_));
     auto finish_time = std::chrono::steady_clock::now();
 
-    LOG(log_dg_) << "Processing packet: " << packet.type_str << ", id(" << packet.packet_id << ") finished. "
-                 << "Start time: " << start_time.time_since_epoch().count()
-                 << ", finish time: " << finish_time.time_since_epoch().count();
+    logger_->debug("Processing packet: {}, id({}) finished. Start time: {}, finish time: {}", packet.type_str,
+                   packet.packet_id, start_time.time_since_epoch().count(), finish_time.time_since_epoch().count());
 
     packets_proc_info_->addPacketProcessingTimes(packet.packet_id, {start_time, finish_time});
   }
 
-  // Declare logger instances
-  LOG_OBJECTS_DEFINE
-
   uint32_t processing_delay_ms_{0};
   std::shared_ptr<PacketsProcessingInfo> packets_proc_info_;
+
+  logger::Logger logger_;
 };
 
 class DummyTransactionPacketHandler : public DummyPacketHandler {
@@ -240,8 +237,7 @@ HandlersInitData createHandlersInitData() {
   ret_init_data.sender_node_id = dev::p2p::NodeID(1);
   ret_init_data.own_node_addr = addr_t(2);
   ret_init_data.peers_state = std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), FullNodeConfig());
-  ret_init_data.packets_stats =
-      std::make_shared<tarcap::TimePeriodPacketsStats>(std::chrono::milliseconds(0), ret_init_data.own_node_addr);
+  ret_init_data.packets_stats = std::make_shared<tarcap::TimePeriodPacketsStats>(std::chrono::milliseconds(0));
   ret_init_data.packets_processing_info = std::make_shared<PacketsProcessingInfo>();
 
   // Enable packets from sending peer to be processed
@@ -1040,17 +1036,4 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
 
 }  // namespace taraxa::core_tests
 
-int main(int argc, char** argv) {
-  using namespace taraxa;
-
-  auto logging = logger::createDefaultLoggingConfig();
-
-  // Set this to debug to see log msgs
-  logging.verbosity = logger::Verbosity::Debug;
-
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

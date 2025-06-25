@@ -50,7 +50,7 @@ struct FinalChainTest : WithDataDir {
   }
 
   void init() {
-    SUT = std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{});
+    SUT = std::make_shared<final_chain::FinalChain>(db, cfg);
     const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
     cfg.genesis.state.dpos.yield_percentage = 0;
     for (const auto& [addr, _] : cfg.genesis.state.initial_balances) {

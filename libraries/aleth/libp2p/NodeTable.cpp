@@ -5,14 +5,13 @@
 #include "NodeTable.h"
 
 #include <cstdint>
+#include <logger/logging.hpp>
+
+#include "LoggerFormatters.hpp"
 
 namespace dev {
 namespace p2p {
 namespace {
-// global thread-safe logger for static methods
-BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS(g_discoveryWarnLogger, boost::log::sources::severity_channel_logger_mt<>,
-                                         (boost::log::keywords::severity = 0)(boost::log::keywords::channel = "discov"))
-
 // Cadence at which we timeout sent pings and evict unresponsive nodes
 constexpr std::chrono::milliseconds c_handleTimeoutsIntervalMs{5000};
 // Cadence at which we remove old records from EndpointTracker
@@ -45,6 +44,8 @@ NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint 
       m_secret{_alias.secret()},
       m_socket{make_shared<NodeSocket>(strand_, static_cast<UDPSocketEvents&>(*this), (bi::udp::endpoint)_endpoint)},
       m_requestTimeToLive{DiscoveryDatagram::c_timeToLiveS},
+      discov_logger_(taraxa::logger::Logging::get().CreateChannelLogger("discov")),
+      net_logger_(taraxa::logger::Logging::get().CreateChannelLogger("net")),
       m_discoveryTimer{make_shared<ba::steady_timer>(_io)},
       m_timeoutsTimer{make_shared<ba::steady_timer>(_io)},
       m_endpointTrackingTimer{make_shared<ba::steady_timer>(_io)},
@@ -56,7 +57,7 @@ NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint 
   for (unsigned i = 0; i < s_bins; i++) m_buckets[i].distance = i;
 
   if (!_enabled) {
-    cwarn << "\"_enabled\" parameter is false, discovery is disabled";
+    discov_logger_->warn("\"_enabled\" parameter is false, discovery is disabled");
     return;
   }
   m_socket->connect();
@@ -70,7 +71,7 @@ void NodeTable::processEvents() {
 }
 
 bool NodeTable::addNode(Node const& _node) {
-  LOG(m_logger) << "Adding node " << _node;
+  discov_logger_->debug("Adding node {}", _node);
 
   if (!isValidNode(_node)) return false;
 
@@ -86,7 +87,7 @@ bool NodeTable::addNode(Node const& _node) {
   }
 
   if (needToPing) {
-    LOG(m_logger) << "Pending " << _node;
+    discov_logger_->debug("Pending {}", _node);
     schedulePing(_node);
   }
 
@@ -94,12 +95,12 @@ bool NodeTable::addNode(Node const& _node) {
 }
 
 bool NodeTable::addKnownNode(Node const& _node, uint32_t _lastPongReceivedTime, uint32_t _lastPongSentTime) {
-  LOG(m_logger) << "Adding known node " << _node;
+  discov_logger_->debug("Adding known node {}", _node);
 
   if (!isValidNode(_node)) return false;
 
   if (nodeEntry(_node.id)) {
-    LOG(m_logger) << "Node " << _node << " is already in the node table";
+    discov_logger_->debug("Node {} is already in the node table", _node);
     return true;
   }
 
@@ -107,10 +108,10 @@ bool NodeTable::addKnownNode(Node const& _node, uint32_t _lastPongReceivedTime, 
                                            _lastPongSentTime);
 
   if (entry->hasValidEndpointProof()) {
-    LOG(m_logger) << "Known " << _node;
+    discov_logger_->debug("Known {}", _node);
     noteActiveNode(std::move(entry));
   } else {
-    LOG(m_logger) << "Pending " << _node;
+    discov_logger_->debug("Pending {}", _node);
     schedulePing(_node);
   }
 
@@ -119,21 +120,25 @@ bool NodeTable::addKnownNode(Node const& _node, uint32_t _lastPongReceivedTime, 
 
 bool NodeTable::isValidNode(Node const& _node) const {
   if (!_node.get_endpoint() || !_node.id) {
-    LOG(m_logger) << "Supplied node " << _node
-                  << " has an invalid endpoint or id. Skipping adding node to "
-                     "node table.";
+    discov_logger_->debug(
+        "Supplied node {}"
+        " has an invalid endpoint or id. Skipping adding node to "
+        "node table.",
+        _node);
     return false;
   }
 
   if (!isAllowedEndpoint(_node.get_endpoint())) {
-    LOG(m_logger) << "Supplied node" << _node
-                  << " doesn't have an allowed endpoint. Skipping adding node "
-                     "to node table";
+    discov_logger_->debug(
+        "Supplied node{}"
+        " doesn't have an allowed endpoint. Skipping adding node "
+        "to node table",
+        _node);
     return false;
   }
 
   if (m_hostNodeID == _node.id) {
-    LOG(m_logger) << "Skip adding self to node table (" << _node.id << ")";
+    discov_logger_->debug("Skip adding self to node table ({})", _node.id);
     return false;
   }
 
@@ -188,7 +193,7 @@ void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round,
       // Avoid sending FindNode, if we have not sent a valid PONG lately.
       // This prevents being considered invalid node and FindNode being ignored.
       if (!nodeEntry->hasValidEndpointProof()) {
-        LOG(m_logger) << "Node " << nodeEntry->node << " endpoint proof expired.";
+        discov_logger_->debug("Node {} endpoint proof expired.", nodeEntry->node);
         ping(nodeEntry->node);
         continue;
       }
@@ -197,7 +202,7 @@ void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round,
       p.expiration = nextRequestExpirationTime();
       p.sign(m_secret);
       m_sentFindNodes.emplace_back(nodeEntry->id(), std::chrono::steady_clock::now());
-      LOG(m_logger) << p.typeName() << " to " << nodeEntry->node << " (target: " << _node << ")";
+      discov_logger_->debug("{} to {} (target: {})", p.typeName(), nodeEntry->node, _node);
       m_socket->send(p);
 
       _tried->emplace(nodeEntry);
@@ -206,7 +211,7 @@ void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round,
   }
 
   if (_round == s_maxSteps || newTriedCount == 0) {
-    LOG(m_logger) << "Terminating discover after " << _round << " rounds.";
+    discov_logger_->debug("Terminating discover after {} rounds.", _round);
     doDiscovery();
     return;
   }
@@ -218,10 +223,10 @@ void NodeTable::doDiscoveryRound(NodeID _node, unsigned _round,
         // We can't use m_logger here if there's an error because captured this
         // might already be destroyed
         if (_ec.value() == boost::asio::error::operation_aborted || discoveryTimer->expiry() == c_steadyClockMin) {
-          clog(VerbosityDebug, "discov") << "Discovery timer was probably cancelled";
+          discov_logger_->debug("Discovery timer was probably cancelled");
           return;
         } else if (_ec) {
-          clog(VerbosityDebug, "discov") << "Discovery timer error detected: " << _ec.value() << " " << _ec.message();
+          discov_logger_->debug("Discovery timer error detected: {} {}", _ec.value(), _ec.message());
           return;
         }
 
@@ -259,7 +264,7 @@ void NodeTable::ping(Node const& _node, std::shared_ptr<NodeEntry> _replacementN
 
   // Don't send Ping if one is already sent
   if (m_sentPings.find(_node.get_endpoint()) != m_sentPings.end()) {
-    LOG(m_logger) << "Ignoring request to ping " << _node << ", because it's already pinged";
+    discov_logger_->debug("Ignoring request to ping {}, because it's already pinged", _node);
     return;
   }
 
@@ -267,7 +272,7 @@ void NodeTable::ping(Node const& _node, std::shared_ptr<NodeEntry> _replacementN
   p.expiration = nextRequestExpirationTime();
   p.seq = m_hostENR.sequenceNumber();
   auto const pingHash = p.sign(m_secret);
-  LOG(m_logger) << p.typeName() << " to " << _node;
+  discov_logger_->debug("{} to {}", p.typeName(), _node);
   m_socket->send(p);
 
   NodeValidation const validation{
@@ -282,7 +287,7 @@ void NodeTable::schedulePing(Node const& _node) {
 
 void NodeTable::evict(NodeEntry const& _leastSeen, std::shared_ptr<NodeEntry> _replacement) {
   if (!m_socket->isOpen()) return;
-  LOG(m_logger) << "Evicting node " << _leastSeen.node;
+  discov_logger_->debug("Evicting node {}", _leastSeen.node);
   ping(_leastSeen.node, std::move(_replacement));
 
   if (m_nodeEventHandler) m_nodeEventHandler->appendEvent(_leastSeen.id(), NodeEntryScheduledForEviction);
@@ -292,17 +297,17 @@ void NodeTable::noteActiveNode(std::shared_ptr<NodeEntry> _nodeEntry) {
   assert(_nodeEntry);
 
   if (_nodeEntry->id() == m_hostNodeID) {
-    LOG(m_logger) << "Skipping making self active.";
+    discov_logger_->debug("Skipping making self active.");
     return;
   }
   if (!isAllowedEndpoint(_nodeEntry->endpoint())) {
-    LOG(m_logger) << "Skipping making node with unallowed endpoint active. Node " << _nodeEntry->node;
+    discov_logger_->debug("Skipping making node with unallowed endpoint active. Node {}", _nodeEntry->node);
     return;
   }
 
   if (!_nodeEntry->hasValidEndpointProof()) return;
 
-  LOG(m_logger) << "Active node " << _nodeEntry->node;
+  discov_logger_->debug("Active node {}", _nodeEntry->node);
 
   std::shared_ptr<NodeEntry> nodeToEvict;
   {
@@ -368,7 +373,7 @@ void NodeTable::dropNode(std::shared_ptr<NodeEntry> _n) {
   }
 
   // notify host
-  LOG(m_logger) << "p2p.nodes.drop " << _n->id();
+  discov_logger_->debug("p2p.nodes.drop {}", _n->id());
   if (m_nodeEventHandler) m_nodeEventHandler->appendEvent(_n->id(), NodeEntryDropped);
 }
 
@@ -386,10 +391,10 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
     std::unique_ptr<DiscoveryDatagram> packet = DiscoveryDatagram::interpretUDP(node_ip, _packet);
     if (!packet) return;
     if (packet->isExpired()) {
-      LOG(m_logger) << "Expired " << packet->typeName() << " from " << packet->sourceid << "@" << node_ip;
+      discov_logger_->debug("Expired {} from {}@{}", packet->typeName(), packet->sourceid, node_ip);
       return;
     }
-    LOG(m_logger) << packet->typeName() << " from " << packet->sourceid << "@" << node_ip;
+    discov_logger_->debug("{} from {}@{}", packet->typeName(), packet->sourceid, node_ip);
 
     std::shared_ptr<NodeEntry> sourceNodeEntry;
     switch (packet->packetType()) {
@@ -420,10 +425,12 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
 
     if (sourceNodeEntry) noteActiveNode(std::move(sourceNodeEntry));
   } catch (std::exception const& _e) {
-    LOG(m_logger) << "Exception processing message from " << node_ip.address().to_string() << ":" << node_ip.port()
-                  << ": " << _e.what();
+    discov_logger_->debug(
+        "Exception processing message from {}:{}"
+        ": {}",
+        node_ip.address().to_string(), node_ip.port(), _e.what());
   } catch (...) {
-    LOG(m_logger) << "Exception processing message from " << node_ip.address().to_string() << ":" << node_ip.port();
+    discov_logger_->debug("Exception processing message from {}:{}", node_ip.address().to_string(), node_ip.port());
   }
 }
 
@@ -431,14 +438,14 @@ std::shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from,
   // validate pong
   auto const sentPing = m_sentPings.find(_from);
   if (sentPing == m_sentPings.end()) {
-    LOG(m_logger) << "Unexpected PONG from " << _from.address().to_string() << ":" << _from.port();
+    discov_logger_->debug("Unexpected PONG from {}:{}", _from.address().to_string(), _from.port());
     return {};
   }
 
   auto const& pong = dynamic_cast<Pong const&>(_packet);
   auto const& nodeValidation = sentPing->second;
   if (pong.echo != nodeValidation.pingHash) {
-    LOG(m_logger) << "Invalid PONG from " << _from.address().to_string() << ":" << _from.port();
+    discov_logger_->debug("Invalid PONG from {}:{}", _from.address().to_string(), _from.port());
     return {};
   }
 
@@ -446,7 +453,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from,
   // NodeID
   auto const& sourceId = pong.sourceid;
   if (sourceId != nodeValidation.nodeID) {
-    LOG(m_logger) << "Node " << _from << " changed public key from " << nodeValidation.nodeID << " to " << sourceId;
+    discov_logger_->debug("Node {} changed public key from {} to {}", _from, nodeValidation.nodeID, sourceId);
     if (auto node = nodeEntry(nodeValidation.nodeID)) dropNode(std::move(node));
   }
 
@@ -485,7 +492,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from,
         m_hostENR = IdentitySchemeV4::updateENR(m_hostENR, m_secret, m_hostNodeEndpoint.address(),
                                                 m_hostNodeEndpoint.tcpPort(), m_hostNodeEndpoint.udpPort());
       }
-      clog(VerbosityInfo, "net") << "ENR updated: " << m_hostENR;
+      net_logger_->info("ENR updated: {}", m_hostENR);
     }
   }
 
@@ -496,13 +503,15 @@ std::shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& 
                                                        DiscoveryDatagram const& _packet) {
   std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
   if (!sourceNodeEntry) {
-    LOG(m_logger) << "Source node (" << _packet.sourceid << "@" << _from
-                  << ") not found in node table. Ignoring Neighbours packet.";
+    discov_logger_->debug(
+        "Source node ({}@{}"
+        ") not found in node table. Ignoring Neighbours packet.",
+        _packet.sourceid, _from);
     return {};
   }
   if (sourceNodeEntry->endpoint() != _from) {
-    LOG(m_logger) << "Neighbours packet from unexpected endpoint " << _from << " instead of "
-                  << sourceNodeEntry->endpoint();
+    discov_logger_->debug("Neighbours packet from unexpected endpoint {} instead of ", _from,
+                          sourceNodeEntry->endpoint());
     return {};
   }
 
@@ -516,8 +525,8 @@ std::shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& 
     return true;
   });
   if (!expected) {
-    LOG(m_logger) << "Dropping unsolicited neighbours packet from " << _packet.sourceid << "@" << _from.address() << ":"
-                  << _from.port();
+    discov_logger_->debug("Dropping unsolicited neighbours packet from {}@{}:", _packet.sourceid,
+                          _from.address().to_string(), _from.port());
     return sourceNodeEntry;
   }
 
@@ -529,22 +538,25 @@ std::shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& 
 std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _from, DiscoveryDatagram const& _packet) {
   std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
   if (!sourceNodeEntry) {
-    LOG(m_logger) << "Source node (" << _packet.sourceid << "@" << _from
-                  << ") not found in node table. Ignoring FindNode request.";
+    discov_logger_->debug(
+        "Source node ({}@{}"
+        ") not found in node table. Ignoring FindNode request.",
+        _packet.sourceid, _from);
     return {};
   }
   if (sourceNodeEntry->endpoint() != _from) {
-    LOG(m_logger) << "FindNode packet from unexpected endpoint " << _from << " instead of "
-                  << sourceNodeEntry->endpoint();
+    discov_logger_->debug("FindNode packet from unexpected endpoint {} instead of {}", _from,
+                          sourceNodeEntry->endpoint());
     return {};
   }
   if (!sourceNodeEntry->lastPongReceivedTime) {
-    LOG(m_logger) << "Unexpected FindNode packet! Endpoint proof hasn't been "
-                     "performed yet.";
+    discov_logger_->debug(
+        "Unexpected FindNode packet! Endpoint proof hasn't been "
+        "performed yet.");
     return {};
   }
   if (!sourceNodeEntry->hasValidEndpointProof()) {
-    LOG(m_logger) << "Unexpected FindNode packet! Endpoint proof has expired.";
+    discov_logger_->debug("Unexpected FindNode packet! Endpoint proof has expired.");
     return {};
   }
 
@@ -554,9 +566,9 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
   for (unsigned offset = 0; offset < nearest.size(); offset += nlimit) {
     Neighbours out(_from, nearest, offset, nlimit);
     out.expiration = nextRequestExpirationTime();
-    LOG(m_logger) << out.typeName() << " to " << in.sourceid << "@" << _from;
+    discov_logger_->debug("{} to {}@{}", out.typeName(), in.sourceid, _from);
     out.sign(m_secret);
-    if (out.data.size() > 1280) cnetlog << "Sending truncated datagram, size: " << out.data.size();
+    if (out.data.size() > 1280) net_logger_->debug("Sending truncated datagram, size: {}", out.data.size());
     m_socket->send(out);
   }
 
@@ -586,13 +598,13 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
   auto const& in = dynamic_cast<PingNode const&>(_packet);
 
   if (in.version != dev::p2p::c_protocolVersion) {
-    LOG(m_logger) << "Received a ping from a different protocol version node " << in.version << " from: " << _from;
+    discov_logger_->debug("Received a ping from a different protocol version node {} from: {}", in.version, _from);
     if (auto node = nodeEntry(_packet.sourceid)) dropNode(std::move(node));
     return nullptr;
   }
 
   if (in.chain_id != chain_id_) {
-    LOG(m_logger) << "Received a ping from a different network node " << in.chain_id << " from: " << _from;
+    discov_logger_->debug("Received a ping from a different network node {} from: {}", in.chain_id, _from);
     if (auto node = nodeEntry(_packet.sourceid)) dropNode(std::move(node));
     return nullptr;
   }
@@ -604,7 +616,7 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
 
   // Send PONG response.
   Pong p(sourceEndpoint);
-  LOG(m_logger) << p.typeName() << " to " << in.sourceid << "@" << sourceEndpoint;
+  discov_logger_->debug("{} to {}@{}", p.typeName(), in.sourceid, sourceEndpoint);
   p.expiration = nextRequestExpirationTime();
   p.echo = in.echo;
   p.seq = m_hostENR.sequenceNumber();
@@ -630,29 +642,32 @@ std::shared_ptr<NodeEntry> NodeTable::handleENRRequest(bi::udp::endpoint const& 
                                                        DiscoveryDatagram const& _packet) {
   std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
   if (!sourceNodeEntry) {
-    LOG(m_logger) << "Source node (" << _packet.sourceid << "@" << _from
-                  << ") not found in node table. Ignoring ENRRequest request.";
+    discov_logger_->debug(
+        "Source node ({}@{}"
+        ") not found in node table. Ignoring ENRRequest request.",
+        _packet.sourceid, _from);
     return {};
   }
   if (sourceNodeEntry->endpoint() != _from) {
-    LOG(m_logger) << "ENRRequest packet from unexpected endpoint " << _from << " instead of "
-                  << sourceNodeEntry->endpoint();
+    discov_logger_->debug("ENRRequest packet from unexpected endpoint {} instead of {}", _from,
+                          sourceNodeEntry->endpoint());
     return {};
   }
   if (!sourceNodeEntry->lastPongReceivedTime) {
-    LOG(m_logger) << "Unexpected ENRRequest packet! Endpoint proof hasn't been "
-                     "performed yet.";
+    discov_logger_->debug(
+        "Unexpected ENRRequest packet! Endpoint proof hasn't been "
+        "performed yet.");
     return {};
   }
   if (!sourceNodeEntry->hasValidEndpointProof()) {
-    LOG(m_logger) << "Unexpected ENRRequest packet! Endpoint proof has expired.";
+    discov_logger_->debug("Unexpected ENRRequest packet! Endpoint proof has expired.");
     return {};
   }
 
   auto const& in = dynamic_cast<ENRRequest const&>(_packet);
 
   ENRResponse response{_from, m_hostENR};
-  LOG(m_logger) << response.typeName() << " to " << in.sourceid << "@" << _from;
+  discov_logger_->debug("{} to {}@{}", response.typeName(), in.sourceid, _from);
   response.expiration = nextRequestExpirationTime();
   response.echo = in.echo;
   response.sign(m_secret);
@@ -665,18 +680,20 @@ std::shared_ptr<NodeEntry> NodeTable::handleENRResponse(bi::udp::endpoint const&
                                                         DiscoveryDatagram const& _packet) {
   std::shared_ptr<NodeEntry> sourceNodeEntry = nodeEntry(_packet.sourceid);
   if (!sourceNodeEntry) {
-    LOG(m_logger) << "Source node (" << _packet.sourceid << "@" << _from
-                  << ") not found in node table. Ignoring ENRResponse packet.";
+    discov_logger_->debug(
+        "Source node ({}@{}"
+        ") not found in node table. Ignoring ENRResponse packet.",
+        _packet.sourceid, _from);
     return {};
   }
   if (sourceNodeEntry->endpoint() != _from) {
-    LOG(m_logger) << "ENRResponse packet from unexpected endpoint " << _from << " instead of "
-                  << sourceNodeEntry->endpoint();
+    discov_logger_->debug("ENRResponse packet from unexpected endpoint {} instead of ", _from,
+                          sourceNodeEntry->endpoint());
     return {};
   }
 
   auto const& in = dynamic_cast<ENRResponse const&>(_packet);
-  LOG(m_logger) << "Received ENR: " << *in.enr;
+  discov_logger_->debug("Received ENR: {}", *in.enr);
 
   return sourceNodeEntry;
 }
@@ -689,10 +706,10 @@ void NodeTable::doDiscovery() {
         // We can't use m_logger if an error occurred because captured this
         // might be already destroyed
         if (_ec.value() == boost::asio::error::operation_aborted || discoveryTimer->expiry() == c_steadyClockMin) {
-          clog(VerbosityDebug, "discov") << "Discovery timer was cancelled";
+          discov_logger_->debug("Discovery timer was cancelled");
           return;
         } else if (_ec) {
-          clog(VerbosityDebug, "discov") << "Discovery timer error detected: " << _ec.value() << " " << _ec.message();
+          discov_logger_->debug("Discovery timer error detected: {} {}", _ec.value(), _ec.message());
           return;
         }
 
@@ -700,7 +717,7 @@ void NodeTable::doDiscovery() {
         crypto::Nonce::get().ref().copyTo(randNodeId.ref().cropped(0, static_cast<size_t>(h256::size)));
         crypto::Nonce::get().ref().copyTo(
             randNodeId.ref().cropped(static_cast<size_t>(h256::size), static_cast<size_t>(h256::size)));
-        LOG(m_logger) << "Starting discovery algorithm run for random node id: " << randNodeId;
+        discov_logger_->debug("Starting discovery algorithm run for random node id: {}", randNodeId);
         doDiscoveryRound(randNodeId, 0 /* round */, std::make_shared<std::set<std::shared_ptr<NodeEntry>>>());
       }));
 }
@@ -715,11 +732,13 @@ void NodeTable::doHandleTimeouts() {
             if (it->first == node->endpoint()) {
               dropNode(std::move(node));
             } else {
-              LOG(m_logger) << "Not dropping node " << it->second.nodeID << " on ping timeout for " << it->first << " "
-                            << " as previous endpoint still valid " << node->endpoint();
+              discov_logger_->debug(
+                  "Not dropping node {} on ping timeout for {} "
+                  " as previous endpoint still valid {}",
+                  it->second.nodeID, it->first, node->endpoint());
             }
           } else {
-            LOG(m_logger) << "Not dropping node " << it->second.nodeID << " " << it->first << " as it was updated";
+            discov_logger_->debug("Not dropping node {} {} as it was updated", it->second.nodeID, it->first);
           }
           // save the replacement node that should be activated
           if (it->second.replacementNodeEntry) nodesToActivate.emplace_back(std::move(it->second.replacementNodeEntry));
@@ -747,10 +766,10 @@ void NodeTable::runBackgroundTask(std::chrono::milliseconds const& _period, std:
     // We can't use m_logger if an error occurred because captured this
     // might be already destroyed
     if (_ec.value() == boost::asio::error::operation_aborted || _timer->expiry() == c_steadyClockMin) {
-      clog(VerbosityDebug, "discov") << "Timer was cancelled";
+      discov_logger_->debug("Timer was cancelled");
       return;
     } else if (_ec) {
-      clog(VerbosityDebug, "discov") << "Timer error detected: " << _ec.value() << " " << _ec.message();
+      discov_logger_->debug("Timer error detected: {} {}", _ec.value(), _ec.message());
       return;
     }
 
@@ -776,8 +795,8 @@ std::unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endp
   // h256 + Signature + type + RLP (smallest possible packet is empty neighbours
   // packet which is 3 bytes)
   if (_packet.size() < static_cast<size_t>(h256::size) + static_cast<size_t>(Signature::size) + 1 + 3) {
-    LOG(g_discoveryWarnLogger::get()) << "Invalid packet (too small) from " << _from.address().to_string() << ":"
-                                      << _from.port();
+    taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (too small) from {}:{}",
+                                                                       _from.address().to_string(), _from.port());
     return decoded;
   }
   bytesConstRef hashedBytes(
@@ -789,14 +808,14 @@ std::unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endp
 
   h256 echo(sha3(hashedBytes));
   if (!_packet.cropped(0, static_cast<size_t>(h256::size)).contentsEqual(echo.asBytes())) {
-    LOG(g_discoveryWarnLogger::get()) << "Invalid packet (bad hash) from " << _from.address().to_string() << ":"
-                                      << _from.port();
+    taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (bad hash) from {}:{}",
+                                                                       _from.address().to_string(), _from.port());
     return decoded;
   }
   Public sourceid(dev::recover(*(Signature const*)signatureBytes.data(), sha3(signedBytes)));
   if (!sourceid) {
-    LOG(g_discoveryWarnLogger::get()) << "Invalid packet (bad signature) from " << _from.address().to_string() << ":"
-                                      << _from.port();
+    taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn("Invalid packet (bad signature) from {}:{}",
+                                                                       _from.address().to_string(), _from.port());
     return decoded;
   }
   switch (signedBytes[0]) {
@@ -819,8 +838,8 @@ std::unique_ptr<DiscoveryDatagram> DiscoveryDatagram::interpretUDP(bi::udp::endp
       decoded.reset(new ENRResponse(_from, sourceid, echo));
       break;
     default:
-      LOG(g_discoveryWarnLogger::get()) << "Invalid packet (unknown packet type) from " << _from.address().to_string()
-                                        << ":" << _from.port();
+      taraxa::logger::Logging::get().CreateChannelLogger("discov")->warn(
+          "Invalid packet (unknown packet type) from {}:{}", _from.address().to_string(), _from.port());
       return decoded;
   }
   decoded->interpretRLP(bodyBytes);

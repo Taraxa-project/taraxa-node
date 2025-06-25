@@ -20,7 +20,7 @@
 #include "graphql/mutation.hpp"
 #include "graphql/query.hpp"
 #include "graphql/subscription.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
 #include "pbft/pbft_manager.hpp"
@@ -189,7 +189,7 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   // pbft_blocks (head)
-  PbftChain pbft_chain(addr_t(), db_ptr);
+  PbftChain pbft_chain(db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   batch = db.createWriteBatch();
@@ -1613,8 +1613,4 @@ TEST_F(FullNodeTest, multiple_wallets_support) {
 
 }  // namespace taraxa::core_tests
 
-int main(int argc, char **argv) {
-  taraxa::static_init();
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

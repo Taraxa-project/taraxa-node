@@ -28,11 +28,8 @@ DagBlockProposer::DagBlockProposer(const FullNodeConfig& config, std::shared_ptr
       kDagGasLimit(config.genesis.getGasLimits(final_chain_->lastBlockNumber()).first),
       kHardforks(config.genesis.state.hardforks),
       kValidatorMaxVote(config.genesis.state.dpos.validator_maximum_stake /
-                        config.genesis.state.dpos.vote_eligibility_balance_step) {
-  // Use first wallet as default node_addr
-  const auto& node_addr = dev::toAddress(config.getFirstWallet().node_secret);
-  LOG_OBJECTS_CREATE("DAG_PROPOSER");
-
+                        config.genesis.state.dpos.vote_eligibility_balance_step),
+      logger_(logger::Logging::get().CreateChannelLogger("DAG_PROPOSER")) {
   for (const auto& wallet : config.wallets) {
     nodes_dag_proposers_data_.emplace_back(wallet, max_num_tries_, config.genesis.dag.block_proposer.shard);
   }
@@ -52,18 +49,24 @@ bool DagBlockProposer::proposeDagBlock() {
   bool block_proposed = false;
   for (auto& node_dag_proposer_data : nodes_dag_proposers_data_) {
     auto frontier = dag_mgr_->getDagFrontier();
-    LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
+    logger_->debug(
+        "Get frontier with pivot: {}"
+        " tips: {}",
+        frontier.pivot, frontier.tips);
     assert(!frontier.pivot.isZero());
     const auto propose_level = getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
     const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
     if (!proposal_period.has_value()) {
-      LOG(log_wr_) << "No proposal period for propose_level " << propose_level << " found";
+      logger_->warn(
+          "No proposal period for propose_level {}"
+          " found",
+          propose_level);
       return false;
     }
 
     if (*proposal_period + kDagExpiryLevelLimit < final_chain_->lastBlockNumber()) {
-      LOG(log_wr_) << "Trying to propose old block " << propose_level;
+      logger_->warn("Trying to propose old block {}", propose_level);
       return false;
     }
 
@@ -73,7 +76,10 @@ bool DagBlockProposer::proposeDagBlock() {
 
     auto pk = key_manager_->getVrfKey(*proposal_period, node_dag_proposer_data.wallet.node_addr);
     if (pk && *pk != node_dag_proposer_data.wallet.vrf_pk) {
-      LOG(log_er_) << "VRF public key mismatch " << *pk << " - " << node_dag_proposer_data.wallet.vrf_pk;
+      logger_->error(
+          "VRF public key mismatch {}"
+          " - {}",
+          *pk, node_dag_proposer_data.wallet.vrf_pk);
       continue;
     }
 
@@ -87,8 +93,8 @@ bool DagBlockProposer::proposeDagBlock() {
     }
 
     if (max_vote_count == 0) {
-      LOG(log_er_) << node_dag_proposer_data.wallet.node_addr
-                   << " total vote count 0 at proposal period:" << *proposal_period;
+      logger_->error("{} total vote count 0 at proposal period: {}", node_dag_proposer_data.wallet.node_addr,
+                     *proposal_period);
       continue;
     }
 
@@ -113,17 +119,16 @@ bool DagBlockProposer::proposeDagBlock() {
     if (vdf.isStale(sortition_params)) {
       if (node_dag_proposer_data.last_propose_level == propose_level) {
         if (node_dag_proposer_data.num_tries < node_dag_proposer_data.max_num_tries) {
-          LOG(log_dg_) << node_dag_proposer_data.wallet.node_addr
-                       << " will not propose DAG block. Get difficulty at stale, tried "
-                       << node_dag_proposer_data.num_tries << " times.";
+          logger_->debug("{} will not propose DAG block. Get difficulty at stale, tried {} times.",
+                         node_dag_proposer_data.wallet.node_addr, node_dag_proposer_data.num_tries);
           node_dag_proposer_data.num_tries++;
           continue;
         }
       } else {
-        LOG(log_dg_) << node_dag_proposer_data.wallet.node_addr
-                     << " will not propose DAG block, will reset number of tries. Get difficulty at stale , current "
-                        "propose level "
-                     << propose_level;
+        logger_->debug(
+            "{} will not propose DAG block, will reset number of tries. Get difficulty at stale , current propose "
+            "level {}",
+            node_dag_proposer_data.wallet.node_addr, propose_level);
         node_dag_proposer_data.last_propose_level = propose_level;
         node_dag_proposer_data.num_tries = 0;
         continue;
@@ -179,20 +184,20 @@ bool DagBlockProposer::proposeDagBlock() {
       }
     }
 
-    LOG(log_dg_) << node_dag_proposer_data.wallet.node_addr << " VDF computation time " << vdf.getComputationTime()
-                 << " difficulty " << vdf.getDifficulty();
+    logger_->debug("{} VDF computation time {} difficulty {}", node_dag_proposer_data.wallet.node_addr,
+                   vdf.getComputationTime(), vdf.getDifficulty());
 
     auto dag_block = createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations),
                                     std::move(vdf), node_dag_proposer_data.wallet.node_secret);
 
     if (dag_mgr_->addDagBlock(dag_block, std::move(transactions), true).first) {
-      LOG(log_nf_) << node_dag_proposer_data.wallet.node_addr << " proposed new DAG block " << dag_block->getHash()
-                   << ", pivot " << dag_block->getPivot() << " , txs num " << dag_block->getTrxs().size();
+      logger_->info("{} proposed new DAG block {}, pivot {}, txs num {}", node_dag_proposer_data.wallet.node_addr,
+                    dag_block->getHash(), dag_block->getPivot(), dag_block->getTrxs().size());
       proposed_blocks_count_ += 1;
       block_proposed = true;
     } else {
-      LOG(log_er_) << "Failed to add newly proposed dag block " << dag_block->getHash() << ", proposed by "
-                   << node_dag_proposer_data.wallet.node_addr << " into dag";
+      logger_->error("Failed to add newly proposed dag block {}, proposed by {} into dag", dag_block->getHash(),
+                     node_dag_proposer_data.wallet.node_addr);
     }
 
     node_dag_proposer_data.last_propose_level = propose_level;
@@ -208,7 +213,7 @@ void DagBlockProposer::start() {
   }
   const uint16_t min_proposal_delay = 100;
 
-  LOG(log_nf_) << "DagBlockProposer started ...";
+  logger_->info("DagBlockProposer started ...");
 
   // reset number of proposed blocks
   proposed_blocks_count_ = 0;
@@ -237,7 +242,7 @@ void DagBlockProposer::stop() {
   }
   proposer_worker_->join();
 
-  LOG(log_nf_) << "DagBlockProposer stopped ...";
+  logger_->info("DagBlockProposer stopped ...");
 }
 
 std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getShardedTrxs(
@@ -256,7 +261,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
   auto [transactions, estimations] = trx_mgr_->packTrxs(proposal_period, weight_limit);
 
   if (transactions.empty()) {
-    LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;
+    logger_->trace("Skip block proposer, zero unpacked transactions ...");
     return {};
   }
   SharedTransactions sharded_trxs;
@@ -270,7 +275,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
     }
   }
   if (sharded_trxs.empty()) {
-    LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..." << std::endl;
+    logger_->trace("Skip block proposer, zero sharded transactions ...");
     return {};
   }
   return {sharded_trxs, sharded_estimations};
@@ -281,7 +286,7 @@ level_t DagBlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t con
   // get current level
   auto pivot_blk = dag_mgr_->getDagBlock(pivot);
   if (!pivot_blk) {
-    LOG(log_er_) << "Cannot find pivot dag block " << pivot;
+    logger_->error("Cannot find pivot dag block {}", pivot);
     return 0;
   }
   max_level = std::max(pivot_blk->getLevel(), max_level);
@@ -289,7 +294,7 @@ level_t DagBlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t con
   for (auto const& t : tips) {
     auto tip_blk = dag_mgr_->getDagBlock(t);
     if (!tip_blk) {
-      LOG(log_er_) << "Cannot find tip dag block " << t;
+      logger_->error("Cannot find tip dag block {}", t);
       return 0;
     }
     max_level = std::max(tip_blk->getLevel(), max_level);
@@ -311,7 +316,7 @@ vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips, u
     auto tip_block = dag_mgr_->getDagBlock(t);
     if (tip_block == nullptr) {
       // This could happen if a tip block has expired, exclude this tip
-      LOG(log_nf_) << "selectDagBlockTips, Cannot find tip dag block " << tip_block;
+      logger_->info("selectDagBlockTips, Cannot find tip dag block {}", tip_block->toString());
     } else {
       tips_blocks.insert({t, tip_block});
       if (!proposers.insert(tip_block->getSender()).second) {
@@ -376,15 +381,15 @@ std::shared_ptr<DagBlock> DagBlockProposer::createDagBlock(DagFrontier&& frontie
 
 bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period, const addr_t& node_addr) const {
   if (final_chain_->lastBlockNumber() < propose_period) {
-    LOG(log_wr_) << "Last finalized block period " << final_chain_->lastBlockNumber() << " < propose_period "
-                 << propose_period;
+    logger_->warn("Last finalized block period {} < propose_period {}", final_chain_->lastBlockNumber(),
+                  propose_period);
     return false;
   }
 
   try {
     return final_chain_->dposIsEligible(propose_period, node_addr);
   } catch (state_api::ErrFutureBlock& c) {
-    LOG(log_wr_) << "Proposal period " << propose_period << " is too far ahead of DPOS. " << c.what();
+    logger_->warn("Proposal period {} is too far ahead of DPOS. {}", propose_period, c.what());
     return false;
   }
 }

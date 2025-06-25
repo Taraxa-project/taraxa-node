@@ -8,10 +8,9 @@ namespace taraxa::network::tarcap {
 
 TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                                                   std::shared_ptr<TransactionManager> trx_mgr, const addr_t &node_addr,
+                                                   std::shared_ptr<TransactionManager> trx_mgr,
                                                    const std::string &logs_prefix)
-    : ITransactionPacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
-                                logs_prefix + "TRANSACTION_PH"),
+    : ITransactionPacketHandler(conf, std::move(peers_state), std::move(packets_stats), logs_prefix + "TRANSACTION_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
 inline void TransactionPacketHandler::process(const threadpool::PacketData &packet_data,
@@ -80,9 +79,9 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   }
 
   if (!packet.transactions.empty()) {
-    LOG(log_tr_) << "Received TransactionPacket with " << packet.transactions.size() << " transactions";
-    LOG(log_dg_) << "Received TransactionPacket with " << packet.transactions.size()
-                 << " unseen transactions:" << unseen_txs_count << " from: " << peer->getId().abridged();
+    logger_->trace("Received TransactionPacket with {} transactions", packet.transactions.size());
+    logger_->debug("Received TransactionPacket with {} unseen transactions: {} from: {}", packet.transactions.size(),
+                   unseen_txs_count, peer->getId().abridged());
   }
 }
 
@@ -91,7 +90,7 @@ void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer
   if (!peer) return;
   const auto peer_id = peer->getId();
 
-  LOG(log_tr_) << "sendTransactions " << transactions.first.size() << " to " << peer_id;
+  logger_->trace("sendTransactions {} to {}", transactions.first.size(), peer_id);
   TransactionPacket packet{.transactions = std::move(transactions.first),
                            .extra_transactions_hashes = std::move(transactions.second)};
 

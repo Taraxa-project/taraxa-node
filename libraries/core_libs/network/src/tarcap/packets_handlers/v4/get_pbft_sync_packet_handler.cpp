@@ -16,7 +16,7 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData& packet_data
   // Decode packet rlp into packet object
   auto packet = decodePacketRlp<GetPbftSyncPacket>(packet_data.rlp_);
 
-  LOG(log_tr_) << "Received GetPbftSyncPacket Block";
+  logger_->trace("Received GetPbftSyncPacket Block");
 
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
   const size_t my_chain_size = pbft_chain_->getPbftChainSize();
@@ -44,7 +44,7 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData& packet_data
   } else {
     blocks_to_transfer = kConf.network.sync_level_size;
   }
-  LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << peer->getId();
+  logger_->trace("Will send {} PBFT blocks to {}", blocks_to_transfer, peer->getId());
 
   sendPbftBlocks(peer, packet.height_to_sync, blocks_to_transfer, pbft_chain_synced);
 }

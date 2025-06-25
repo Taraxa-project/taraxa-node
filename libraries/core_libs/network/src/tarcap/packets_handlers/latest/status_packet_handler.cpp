@@ -15,9 +15,9 @@ StatusPacketHandler::StatusPacketHandler(const FullNodeConfig& conf, std::shared
                                          std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
-                                         h256 genesis_hash, const addr_t& node_addr, const std::string& logs_prefix)
+                                         h256 genesis_hash, const std::string& logs_prefix)
     : ISyncPacketHandler(conf, peers_state, packets_stats, std::move(pbft_syncing_state), std::move(pbft_chain),
-                         std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr, logs_prefix + "STATUS_PH"),
+                         std::move(pbft_mgr), std::move(dag_mgr), std::move(db), logs_prefix + "STATUS_PH"),
       kGenesisHash(genesis_hash) {}
 
 void StatusPacketHandler::process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
@@ -33,25 +33,33 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
     if (!selected_peer) {
       selected_peer = peers_state_->getPendingPeer(peer->getId());
       if (!selected_peer) {
-        LOG(log_wr_) << "Peer " << peer->getId().abridged()
-                     << " missing in both peers and pending peers map - will be disconnected.";
+        logger_->warn("Peer {} missing in both peers and pending peers map - will be disconnected.",
+                      peer->getId().abridged());
         disconnect(peer->getId(), dev::p2p::UserReason);
         return;
       }
     }
 
     if (packet.initial_data->peer_chain_id != kConf.genesis.chain_id) {
-      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
-          << "Incorrect network id " << packet.initial_data->peer_chain_id << ", host " << peer->getId().abridged()
-          << " will be disconnected";
+      if (peers_state_->getPeersCount()) {
+        logger_->debug("Incorrect network id {}, host {} will be disconnected", packet.initial_data->peer_chain_id,
+                       peer->getId().abridged());
+      } else {
+        logger_->error("Incorrect network id {}, host {} will be disconnected", packet.initial_data->peer_chain_id,
+                       peer->getId().abridged());
+      }
       disconnect(peer->getId(), dev::p2p::UserReason);
       return;
     }
 
     if (packet.initial_data->genesis_hash != kGenesisHash) {
-      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_wr_)
-          << "Incorrect genesis hash " << packet.initial_data->genesis_hash << ", host " << peer->getId().abridged()
-          << " will be disconnected";
+      if (peers_state_->getPeersCount()) {
+        logger_->info("Incorrect genesis hash {}, host {} will be disconnected", packet.initial_data->genesis_hash,
+                      peer->getId().abridged());
+      } else {
+        logger_->warn("Incorrect genesis hash {}, host {} will be disconnected", packet.initial_data->genesis_hash,
+                      peer->getId().abridged());
+      }
       disconnect(peer->getId(), dev::p2p::UserReason);
       return;
     }
@@ -61,10 +69,19 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
       selected_peer->peer_light_node = true;
       selected_peer->peer_light_node_history = packet.initial_data->node_history;
       if (pbft_synced_period + packet.initial_data->node_history < packet.peer_pbft_chain_size) {
-        LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
-            << "Light node " << peer->getId().abridged() << " would not be able to serve our syncing request. "
-            << "Current synced period " << pbft_synced_period << ", peer synced period " << packet.peer_pbft_chain_size
-            << ", peer light node history " << packet.initial_data->node_history << ". Peer will be disconnected";
+        if (peers_state_->getPeersCount()) {
+          logger_->debug(
+              "Light node {} would not be able to serve our syncing request. Current synced period {}, peer synced "
+              "period {}, peer light node history {}. Peer will be disconnected",
+              peer->getId().abridged(), pbft_synced_period, packet.peer_pbft_chain_size,
+              packet.initial_data->node_history);
+        } else {
+          logger_->error(
+              "Light node {} would not be able to serve our syncing request. Current synced period {}, peer synced "
+              "period {}, peer light node history {}. Peer will be disconnected",
+              peer->getId().abridged(), pbft_synced_period, packet.peer_pbft_chain_size,
+              packet.initial_data->node_history);
+        }
         disconnect(peer->getId(), dev::p2p::UserReason);
         return;
       }
@@ -78,19 +95,21 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
 
     peers_state_->setPeerAsReadyToSendMessages(peer->getId(), selected_peer);
 
-    LOG(log_dg_) << "Received initial status message from " << peer->getId() << ", network id "
-                 << packet.initial_data->peer_chain_id << ", peer DAG max level " << selected_peer->dag_level_
-                 << ", genesis " << packet.initial_data->genesis_hash << ", peer pbft chain size "
-                 << selected_peer->pbft_chain_size_ << ", peer syncing " << std::boolalpha << selected_peer->syncing_
-                 << ", peer pbft period " << selected_peer->pbft_period_ << ", peer pbft round "
-                 << selected_peer->pbft_round_ << ", node major version" << packet.initial_data->node_major_version
-                 << ", node minor version" << packet.initial_data->node_minor_version << ", node patch version"
-                 << packet.initial_data->node_patch_version;
+    logger_->debug(
+        "Received initial status message from {}, network id {}, peer DAG max level {}, genesis {}, peer pbft chain "
+        "size {}, peer syncing {}, peer pbft period {}, peer pbft round {}, node major version {}, node minor version "
+        "{}, node patch version {}",
+        peer->getId(), packet.initial_data->peer_chain_id, selected_peer->dag_level_, packet.initial_data->genesis_hash,
+        selected_peer->pbft_chain_size_, selected_peer->syncing_, selected_peer->pbft_period_,
+        selected_peer->pbft_round_, packet.initial_data->node_major_version, packet.initial_data->node_minor_version,
+        packet.initial_data->node_patch_version);
 
   } else {  // Standard status packet
     if (!selected_peer) {
-      LOG(log_er_) << "Received standard status packet from " << peer->getId().abridged()
-                   << ", without previously received initial status packet. Will be disconnected";
+      logger_->error(
+          "Received standard status packet from {}, without previously received initial status packet. Will be "
+          "disconnected",
+          peer->getId().abridged());
       disconnect(peer->getId(), dev::p2p::UserReason);
       return;
     }
@@ -104,8 +123,8 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
     // TODO: Address malicious status
     if (!pbft_syncing_state_->isPbftSyncing()) {
       if (pbft_synced_period < selected_peer->pbft_chain_size_) {
-        LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
-                     << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
+        logger_->info("Restart PBFT chain syncing. Own synced PBFT at period {}, peer PBFT chain size {}",
+                      pbft_synced_period, selected_peer->pbft_chain_size_);
         if (pbft_synced_period + 1 < selected_peer->pbft_chain_size_) {
           startSyncingPbft();
         } else {
@@ -131,10 +150,11 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
     }
     selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
 
-    LOG(log_dg_) << "Received status message from " << peer->getId() << ", peer DAG max level "
-                 << selected_peer->dag_level_ << ", peer pbft chain size " << selected_peer->pbft_chain_size_
-                 << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
-                 << selected_peer->pbft_round_;
+    logger_->debug(
+        "Received status message from {}, peer DAG max level {}, peer pbft chain size {}, peer syncing {}, peer pbft "
+        "round {}",
+        peer->getId(), selected_peer->dag_level_, selected_peer->pbft_chain_size_, selected_peer->syncing_,
+        selected_peer->pbft_round_);
   }
 }
 

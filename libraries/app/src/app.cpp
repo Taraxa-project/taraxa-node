@@ -2,8 +2,6 @@
 
 #include <libdevcore/CommonJS.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <memory>
 
@@ -48,15 +46,12 @@ void App::init(const cli::Config &cli_conf) {
   conf_ = cli_conf.getNodeConfiguration();
 
   fs::create_directories(conf_.db_path);
-  fs::create_directories(conf_.log_path);
 
   // Initialize logging
-  const auto &node_addr = conf_.getFirstWallet().node_addr;
-  for (auto &logging : conf_.log_configs) {
-    logging.InitLogging(node_addr);
-  }
+  logger::Logging::get().Init(conf_.logging);
 
-  LOG_OBJECTS_CREATE("FULLND");
+  // Note: call after InitLogging
+  logger_ = logger::Logging::get().CreateChannelLogger("FULLND");
 
   std::string node_addresses;
   std::string node_public_keys;
@@ -67,37 +62,36 @@ void App::init(const cli::Config &cli_conf) {
     node_vrf_public_keys += wallet.vrf_pk.toString() + " ";
   });
 
-  LOG(log_si_) << "Node public keys: " << EthGreen << "[" << node_public_keys << "]" << std::endl
-               << EthReset << "Node addresses: " << EthRed << "[" << node_addresses << "]" << std::endl
-               << EthReset << "Node VRF public keys: " << EthGreen << "[" << node_vrf_public_keys << "]" << EthReset;
+  logger_->info("Node public keys: [{}]\nNode addresses: [{}]\nNode VRF public keys: [{}]", node_public_keys,
+                node_addresses, node_vrf_public_keys);
 
   if (!conf_.genesis.dag_genesis_block.verifySig()) {
-    LOG(log_er_) << "Genesis block is invalid";
+    logger_->error("Genesis block is invalid");
     assert(false);
   }
   {
     if (conf_.db_config.rebuild_db) {
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                             conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
-                                            conf_.db_config.db_revert_to_period, node_addr, true);
+                                            conf_.db_config.db_revert_to_period, true);
     }
     db_ = std::make_shared<DbStorage>(conf_.db_path,
                                       // Snapshots should be disabled while rebuilding
                                       conf_.db_config.rebuild_db ? 0 : conf_.db_config.db_snapshot_each_n_pbft_block,
                                       conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
-                                      conf_.db_config.db_revert_to_period, node_addr, false);
+                                      conf_.db_config.db_revert_to_period, false);
 
     if (db_->hasMajorVersionChanged()) {
-      LOG(log_si_) << "Major DB version has changed. Rebuilding Db";
+      logger_->info("Major DB version has changed. Rebuilding Db");
       conf_.db_config.rebuild_db = true;
       db_ = nullptr;
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                             conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
-                                            conf_.db_config.db_revert_to_period, node_addr, true);
+                                            conf_.db_config.db_revert_to_period, true);
       db_ = std::make_shared<DbStorage>(conf_.db_path,
                                         0,  // Snapshots should be disabled while rebuilding
                                         conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
-                                        conf_.db_config.db_revert_to_period, node_addr);
+                                        conf_.db_config.db_revert_to_period);
     }
 
     db_->updateDbVersions();
@@ -111,41 +105,41 @@ void App::init(const cli::Config &cli_conf) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
   }
-  LOG(log_nf_) << "DB initialized ...";
+  logger_->info("DB initialized ...");
 
   if (conf_.network.prometheus) {
     auto &config = *conf_.network.prometheus;
-    LOG(log_nf_) << "Prometheus: server started at " << config.address << ":" << config.listen_port
-                 << ". Polling interval is " << config.polling_interval_ms << "ms";
+    logger_->info("Prometheus: server started at {}:{}. Polling interval is {} ms", config.address, config.listen_port,
+                  config.polling_interval_ms);
     metrics_ =
         std::make_shared<metrics::MetricsService>(config.address, config.listen_port, config.polling_interval_ms);
   } else {
-    LOG(log_nf_) << "Prometheus: config values aren't specified. Metrics collecting is disabled";
+    logger_->info("Prometheus: config values aren't specified. Metrics collecting is disabled");
   }
 
-  final_chain_ = std::make_shared<final_chain::FinalChain>(db_, conf_, node_addr);
+  final_chain_ = std::make_shared<final_chain::FinalChain>(db_, conf_);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
-  trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
+  trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_);
   gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, conf_.blocks_gas_pricer, trx_mgr_, db_);
 
   auto genesis_hash = conf_.genesis.genesisHash();
   auto genesis_hash_from_db = db_->getGenesisHash();
   if (!genesis_hash_from_db.has_value()) {
-    LOG(log_er_) << "Genesis hash was not found in DB. Something is wrong";
+    logger_->error("Genesis hash was not found in DB. Something is wrong");
     std::terminate();
   }
   if (genesis_hash != genesis_hash_from_db) {
-    LOG(log_er_) << "Genesis hash " << genesis_hash << " is different with "
-                 << (genesis_hash_from_db.has_value() ? *genesis_hash_from_db : h256(0)) << " in DB";
+    logger_->error("Genesis hash {} is different with {} in DB", genesis_hash,
+                   (genesis_hash_from_db.has_value() ? *genesis_hash_from_db : h256(0)));
     std::terminate();
   }
 
-  pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
-  dag_mgr_ = std::make_shared<DagManager>(conf_, node_addr, trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_);
+  pbft_chain_ = std::make_shared<PbftChain>(db_);
+  dag_mgr_ = std::make_shared<DagManager>(conf_, trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_);
   auto slashing_manager = std::make_shared<SlashingManager>(conf_, final_chain_, trx_mgr_, gas_pricer_);
   vote_mgr_ = std::make_shared<VoteManager>(conf_, db_, pbft_chain_, final_chain_, key_manager_, slashing_manager);
   pillar_chain_mgr_ = std::make_shared<pillar_chain::PillarChainManager>(conf_.genesis.state.hardforks.ficus_hf, db_,
-                                                                         final_chain_, key_manager_, node_addr);
+                                                                         final_chain_, key_manager_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_, db_, pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, final_chain_,
                                             pillar_chain_mgr_);
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(conf_, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_);
@@ -162,8 +156,6 @@ void App::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return;
   }
-
-  scheduleLoggingConfigUpdate();
 
   if (!conf_.db_config.rebuild_db) {
     // GasPricer updater
@@ -191,11 +183,11 @@ void App::start() {
 
   if (conf_.db_config.rebuild_db) {
     rebuildDb();
-    LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
+    logger_->info("Rebuild db completed successfully. Restart node without db_rebuild option");
     started_ = false;
     return;
   } else if (conf_.db_config.migrate_only) {
-    LOG(log_si_) << "DB migrated successfully, please restart the node without the flag";
+    logger_->info("DB migrated successfully, please restart the node without the flag");
     started_ = false;
     return;
   } else {
@@ -211,43 +203,11 @@ void App::start() {
     metrics_->start();
   }
   for (auto &plugin : active_plugins_) {
-    LOG(log_nf_) << "Starting plugin " << plugin.first;
+    logger_->info("Starting plugin {}", plugin.first);
     plugin.second->start();
   }
   started_ = true;
-  LOG(log_nf_) << "Node started ... ";
-}
-
-void App::scheduleLoggingConfigUpdate() {
-  // no file to check updates for (e.g. tests)
-  if (conf_.json_file_name.empty()) {
-    return;
-  }
-
-  config_update_executor_.post([&]() {
-    while (started_ && !stopped_) {
-      auto path = std::filesystem::path(conf_.json_file_name);
-      if (path.empty()) {
-        std::cout << "FullNodeConfig: scheduleLoggingConfigUpdate: json_file_name is empty" << std::endl;
-        return;
-      }
-      auto update_time = std::filesystem::last_write_time(path);
-      if (conf_.last_json_update_time >= update_time) {
-        continue;
-      }
-      conf_.last_json_update_time = update_time;
-      try {
-        auto config = getJsonFromFileOrString(conf_.json_file_name);
-        conf_.log_configs = conf_.loadLoggingConfigs(config["logging"]);
-        conf_.InitLogging(conf_.getFirstWallet().node_addr);
-      } catch (const ConfigException &e) {
-        std::cerr << "FullNodeConfig: Failed to update logging config: " << e.what() << std::endl;
-        continue;
-      }
-      std::cout << "FullNodeConfig: Updated logging config" << std::endl;
-      std::this_thread::sleep_for(std::chrono::minutes(1));
-    }
-  });
+  logger_->info("Node started ... ");
 }
 
 void App::setupMetricsUpdaters() {
@@ -284,7 +244,10 @@ void App::close() {
 
   dag_block_proposer_->stop();
   pbft_mgr_->stop();
-  LOG(log_nf_) << "Node stopped ... ";
+  logger_->info("Node stopped ... ");
+
+  // Deinit logging
+  logger::Logging::get().Deinit();
 }
 
 void App::rebuildDb() {
@@ -328,9 +291,8 @@ void App::rebuildDb() {
       cert_votes = next_period_data->previous_block_cert_votes;
     }
 
-    LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
-                 << " from old DB into syncing queue for processing, final chain size: "
-                 << final_chain_->lastBlockNumber();
+    logger_->info("Adding PBFT block {} from old DB into syncing queue for processing, final chain size: {}",
+                  period_data->pbft_blk->getBlockHash().toString(), final_chain_->lastBlockNumber());
 
     pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
     pbft_mgr_->waitForPeriodFinalization();
@@ -346,14 +308,14 @@ void App::rebuildDb() {
     }
 
     if (period % 10000 == 0) {
-      LOG(log_si_) << "Rebuilding period: " << period;
+      logger_->info("Rebuilding period: {}", period);
     }
   }
   stop_async = true;
   fut.wait();
   // Handles the race case if some blocks are still in the queue
   pbft_mgr_->pushSyncedPbftBlocksIntoChain();
-  LOG(log_si_) << "Rebuild completed";
+  logger_->info("Rebuild completed");
 }
 
 }  // namespace taraxa

@@ -14,9 +14,9 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(const FullNodeConfig &conf, std::sh
                                              std::shared_ptr<PbftManager> pbft_mgr,
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<VoteManager> vote_mgr,
-                                             std::shared_ptr<SlashingManager> slashing_manager, const addr_t &node_addr,
+                                             std::shared_ptr<SlashingManager> slashing_manager,
                                              const std::string &log_channel_name)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), log_channel_name),
       last_votes_sync_request_time_(std::chrono::system_clock::now()),
       last_pbft_block_sync_request_time_(std::chrono::system_clock::now()),
       pbft_mgr_(std::move(pbft_mgr)),
@@ -32,14 +32,13 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<PbftVote> &vote,
   }
 
   if (vote_mgr_->voteInVerifiedMap(vote)) {
-    LOG(this->log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue";
+    logger_->debug("Vote {} already inserted in verified queue", vote->getHash());
     return false;
   }
 
   // Validate vote's period, round and step min/max values
   if (const auto vote_valid = validateVotePeriodRoundStep(vote, peer, validate_max_round_step); !vote_valid.first) {
-    LOG(this->log_wr_) << "Vote period/round/step " << vote->getHash()
-                       << " validation failed. Err: " << vote_valid.second;
+    logger_->warn("Vote period/round/step {} validation failed. Err: {}", vote->getHash(), vote_valid.second);
     return false;
   }
 
@@ -53,12 +52,12 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<PbftVote> &vote,
 
   // Validate vote's signature, vrf, etc...
   if (const auto vote_valid = vote_mgr_->validateVote(vote); !vote_valid.first) {
-    LOG(this->log_wr_) << "Vote " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
+    logger_->warn("Vote {} validation failed. Err: {}", vote->getHash(), vote_valid.second);
     return false;
   }
 
   if (!vote_mgr_->addVerifiedVote(vote)) {
-    LOG(this->log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue(race condition)";
+    logger_->debug("Vote {} already inserted in verified queue(race condition)", vote->getHash());
     return false;
   }
 
@@ -154,14 +153,14 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
 bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<PbftVote> &vote,
                                                  const std::shared_ptr<PbftBlock> &pbft_block) const {
   if (pbft_block->getPeriod() != vote->getPeriod()) {
-    LOG(this->log_er_) << "Vote " << vote->getHash() << " period " << vote->getPeriod() << " != pbft block block "
-                       << pbft_block->getPeriod();
+    logger_->error("Vote {} period {} != pbft block block {}", vote->getHash(), vote->getPeriod(),
+                   pbft_block->getPeriod());
     return false;
   }
 
   if (pbft_block->getBlockHash() != vote->getBlockHash()) {
-    LOG(this->log_er_) << "Vote " << vote->getHash() << " voted block " << vote->getBlockHash() << " != actual block "
-                       << pbft_block->getBlockHash();
+    logger_->error("Vote {} voted block {} != actual block {}", vote->getHash(), vote->getBlockHash(),
+                   pbft_block->getBlockHash());
     return false;
   }
 
@@ -188,7 +187,7 @@ bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<PbftVote> &
 
 void ExtVotesPacketHandler::requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID &peerID, PbftPeriod pbft_period,
                                                               PbftRound pbft_round) {
-  LOG(log_dg_) << "Sending GetNextVotesSyncPacket with period:" << pbft_period << ", round:" << pbft_round;
+  logger_->debug("Sending GetNextVotesSyncPacket with period:{}, round:{}", pbft_period, pbft_round);
   const auto packet = GetNextVotesBundlePacket{.peer_pbft_period = pbft_period, .peer_pbft_round = pbft_round};
   sealAndSend(peerID, SubprotocolPacketType::kGetNextVotesSyncPacket, encodePacketRlp(packet));
 }

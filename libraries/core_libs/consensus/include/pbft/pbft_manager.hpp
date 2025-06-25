@@ -5,7 +5,7 @@
 #include "common/types.hpp"
 #include "config/config.hpp"
 #include "final_chain/final_chain.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/network.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
@@ -20,7 +20,6 @@ namespace pillar_chain {
 class PillarChainManager;
 }
 
-class FullNode;
 class VoteManager;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
@@ -672,7 +671,7 @@ class PbftManager {
   // Wallets with flag if they are/are not dpos eligible for specified period
   EligibleWallets eligible_wallets_;
 
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 /** @}*/

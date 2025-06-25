@@ -6,6 +6,7 @@
 #include <optional>
 #include <shared_mutex>
 
+#include "common/logger_formatters.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
 
@@ -20,11 +21,8 @@ VoteManager::VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage
       final_chain_(std::move(final_chain)),
       key_manager_(std::move(key_manager)),
       slashing_manager_(std::move(slashing_manager)),
-      already_validated_votes_(1000000, 1000) {
-  // Use first wallet as default node_addr
-  const auto& node_addr = dev::toAddress(config.getFirstWallet().node_secret);
-  LOG_OBJECTS_CREATE("VOTE_MGR");
-
+      already_validated_votes_(1000000, 1000),
+      logger_(logger::Logging::get().CreateChannelLogger("VOTE_MGR")) {
   auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<PbftVote>>& votes,
                                  bool set_reward_votes_info = false) {
     bool rewards_info_already_set = false;
@@ -48,7 +46,7 @@ VoteManager::VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage
       }
 
       addVerifiedVote(vote);
-      LOG(log_dg_) << "Vote " << vote->getHash() << " loaded from db to memory";
+      logger_->debug("Vote {} loaded from db to memory", vote->getHash());
     }
   };
 
@@ -137,8 +135,8 @@ void VoteManager::setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound
 
       const auto found_step_votes_it = found_round_it->second.step_votes.find(two_t_plus_one_voted_block_step);
       if (found_step_votes_it == found_round_it->second.step_votes.end()) {
-        LOG(log_er_) << "Unable to find 2t+1 votes in verified_votes for period " << pbft_period << ", round "
-                     << pbft_round << ", step " << two_t_plus_one_voted_block_step;
+        logger_->error("Unable to find 2t+1 votes in verified_votes for period {}, round {}, step {}", pbft_period,
+                       pbft_round, two_t_plus_one_voted_block_step);
         assert(false);
         return;
       }
@@ -146,9 +144,8 @@ void VoteManager::setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound
       // Find verified votes for specified block_hash based on found 2t+1 voted block of type "type"
       const auto found_verified_votes_it = found_step_votes_it->second.votes.find(two_t_plus_one_voted_block_hash);
       if (found_verified_votes_it == found_step_votes_it->second.votes.end()) {
-        LOG(log_er_) << "Unable to find 2t+1 votes in verified_votes for period " << pbft_period << ", round "
-                     << pbft_round << ", step " << two_t_plus_one_voted_block_step << ", block hash "
-                     << two_t_plus_one_voted_block_hash;
+        logger_->error("Unable to find 2t+1 votes in verified_votes for period {}, round {}, step {}, block hash {}",
+                       pbft_period, pbft_round, two_t_plus_one_voted_block_step, two_t_plus_one_voted_block_hash);
         assert(false);
         return;
       }
@@ -185,7 +182,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
   const auto hash = vote->getHash();
   const auto weight = *vote->getWeight();
   if (!weight) {
-    LOG(log_er_) << "Unable to add vote " << hash << " into the verified queue. Invalid vote weight";
+    logger_->error("Unable to add vote {} into the verified queue. Invalid vote weight", hash);
     return false;
   }
 
@@ -195,7 +192,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
     std::scoped_lock lock(verified_votes_access_);
 
     if (auto vote_inserted = insertUniqueVote(vote); !vote_inserted.first) {
-      LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
+      logger_->warn("Non unique vote {} (race condition)", vote->getHash().abridged());
       // Create double voting proof
       slashing_manager_->submitDoubleVotingProof(vote, vote_inserted.second);
       return false;
@@ -205,8 +202,10 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
     bool is_valid_potential_reward_vote = false;
     if (vote->getPeriod() < current_pbft_period_) {
       if (is_valid_potential_reward_vote = isValidRewardVote(vote); !is_valid_potential_reward_vote) {
-        LOG(log_tr_) << "Old vote " << vote->getHash().abridged() << " vote period" << vote->getPeriod()
-                     << " current period " << current_pbft_period_;
+        logger_->trace(
+            "Old vote {} vote period{}"
+            " current period {}",
+            vote->getHash().abridged(), vote->getPeriod(), current_pbft_period_);
         return false;
       }
     }
@@ -236,20 +235,20 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
     }
 
     if (found_voted_value_it->second.second.contains(hash)) {
-      LOG(log_dg_) << "Vote " << hash << " is in verified map already";
+      logger_->debug("Vote {} is in verified map already", hash);
       return false;
     }
 
     // Add vote hash
     if (!found_voted_value_it->second.second.insert({hash, vote}).second) {
       // This should never happen
-      LOG(log_dg_) << "Vote " << hash << " is in verified map already (race condition)";
+      logger_->debug("Vote {} is in verified map already (race condition)", hash);
       assert(false);
       return false;
     }
 
-    LOG(log_nf_) << "Added verified vote: " << hash;
-    LOG(log_dg_) << "Added verified vote: " << *vote;
+    logger_->info("Added verified vote: {}", hash);
+    logger_->debug("Added verified vote: {}", vote->toString());
 
     if (is_valid_potential_reward_vote) {
       extra_reward_votes_.emplace_back(vote->getHash());
@@ -261,7 +260,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
     // Unable to get 2t+1
     const auto two_t_plus_one = getPbftTwoTPlusOne(vote->getPeriod() - 1, vote->getType());
     if (!two_t_plus_one.has_value()) [[unlikely]] {
-      LOG(log_er_) << "Cannot set(or not) 2t+1 voted block as 2t+1 threshold is unavailable, vote " << vote->getHash();
+      logger_->error("Cannot set(or not) 2t+1 voted block as 2t+1 threshold is unavailable, vote {}", vote->getHash());
       return true;
     }
 
@@ -271,8 +270,10 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
     if (vote->getType() == PbftVoteTypes::next_vote && total_weight >= t_plus_one &&
         vote->getStep() > found_round_it->second.network_t_plus_one_step) {
       found_round_it->second.network_t_plus_one_step = vote->getStep();
-      LOG(log_nf_) << "Set t+1 next voted block " << vote->getHash() << " for period " << vote->getPeriod()
-                   << ", round " << vote->getRound() << ", step " << vote->getStep();
+      logger_->info(
+          "Set t+1 next voted block {} for period {}"
+          ", round {}, step {}",
+          vote->getHash(), vote->getPeriod(), vote->getRound(), vote->getStep());
     }
 
     // Not enough votes - do not set 2t+1 voted block for period,round and step
@@ -420,7 +421,7 @@ std::pair<bool, std::shared_ptr<PbftVote>> VoteManager::isUniqueVote(const std::
         << found_voter_it->second.second->getBlockHash().abridged() << ")";
   }
   err << ", round: " << vote->getRound() << ", step: " << vote->getStep() << ", voter: " << vote->getVoterAddr();
-  LOG(log_er_) << err.str();
+  logger_->error(err.str());
 
   // Return existing vote
   if (found_voter_it->second.second && vote->getHash() != found_voter_it->second.second->getHash()) {
@@ -487,7 +488,7 @@ std::pair<bool, std::shared_ptr<PbftVote>> VoteManager::insertUniqueVote(const s
     }
     err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep()
         << ", voter: " << vote->getVoterAddr();
-    LOG(log_er_) << err.str();
+    logger_->error(err.str());
 
     // Return existing vote
     if (inserted_vote.first->second.second && vote->getHash() != inserted_vote.first->second.second->getHash()) {
@@ -560,9 +561,9 @@ std::optional<PbftRound> VoteManager::determineNewRound(PbftPeriod current_pbft_
     }
 
     if (found_two_t_plus_one_voted_block != round_rit->second.two_t_plus_one_voted_blocks_.end()) {
-      LOG(log_nf_) << "New round " << round_rit->first + 1 << " determined for period " << current_pbft_period
-                   << ". Found 2t+1 votes for block " << found_two_t_plus_one_voted_block->second.first << " in round "
-                   << round_rit->first << ", step " << found_two_t_plus_one_voted_block->second.second;
+      logger_->info("New round {} determined for period {}. Found 2t+1 votes for block {} in round {}, step {}",
+                    round_rit->first + 1, current_pbft_period, found_two_t_plus_one_voted_block->second.first,
+                    round_rit->first, found_two_t_plus_one_voted_block->second.second);
 
       return round_rit->first + 1;
     }
@@ -589,38 +590,38 @@ void VoteManager::resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep 
   std::scoped_lock lock(verified_votes_access_);
   auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {
-    LOG(log_er_) << "resetRewardVotes missing period";
+    logger_->error("resetRewardVotes missing period");
     assert(false);
     return;
   }
   auto found_round_it = found_period_it->second.find(round);
   if (found_round_it == found_period_it->second.end()) {
-    LOG(log_er_) << "resetRewardVotes missing round" << round;
+    logger_->error("resetRewardVotes missing round{}", round);
     assert(false);
     return;
   }
   auto found_step_it = found_round_it->second.step_votes.find(step);
   if (found_step_it == found_round_it->second.step_votes.end()) {
-    LOG(log_er_) << "resetRewardVotes missing step" << step;
+    logger_->error("resetRewardVotes missing step{}", step);
     assert(false);
     return;
   }
   auto found_two_t_plus_one_voted_block =
       found_round_it->second.two_t_plus_one_voted_blocks_.find(TwoTPlusOneVotedBlockType::CertVotedBlock);
   if (found_two_t_plus_one_voted_block == found_round_it->second.two_t_plus_one_voted_blocks_.end()) {
-    LOG(log_er_) << "resetRewardVotes missing cert voted block";
+    logger_->error("resetRewardVotes missing cert voted block");
     assert(false);
     return;
   }
   if (found_two_t_plus_one_voted_block->second.first != block_hash) {
-    LOG(log_er_) << "resetRewardVotes incorrect block " << found_two_t_plus_one_voted_block->second.first
-                 << " expected " << block_hash;
+    logger_->error("resetRewardVotes incorrect block {} expected {}", found_two_t_plus_one_voted_block->second.first,
+                   block_hash);
     assert(false);
     return;
   }
   auto found_voted_value_it = found_step_it->second.votes.find(block_hash);
   if (found_voted_value_it == found_step_it->second.votes.end()) {
-    LOG(log_er_) << "resetRewardVotes missing vote block " << block_hash;
+    logger_->error("resetRewardVotes missing vote block {}", block_hash);
     assert(false);
     return;
   }
@@ -634,27 +635,25 @@ void VoteManager::resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep 
   db_->removeExtraRewardVotes(extra_reward_votes_, batch);
   extra_reward_votes_.clear();
 
-  LOG(log_dg_) << "Reward votes info reset to: block_hash: " << block_hash << ", period: " << period
-               << ", round: " << round;
+  logger_->debug("Reward votes info reset to: block_hash: {}, period: {}, round: {}", block_hash, period, round);
 }
 
 bool VoteManager::isValidRewardVote(const std::shared_ptr<PbftVote>& vote) const {
   std::shared_lock lock(reward_votes_info_mutex_);
   if (vote->getType() != PbftVoteTypes::cert_vote) {
-    LOG(log_tr_) << "Invalid reward vote: type " << static_cast<uint64_t>(vote->getType())
-                 << " is different from cert type";
+    logger_->trace("Invalid reward vote: type {} is different from cert type", static_cast<uint64_t>(vote->getType()));
     return false;
   }
 
   if (vote->getBlockHash() != reward_votes_block_hash_) {
-    LOG(log_tr_) << "Invalid reward vote: block hash " << vote->getBlockHash()
-                 << " is different from reward_votes_block_hash " << reward_votes_block_hash_;
+    logger_->trace("Invalid reward vote: block hash {} is different from reward_votes_block_hash {}",
+                   vote->getBlockHash(), reward_votes_block_hash_);
     return false;
   }
 
   if (vote->getPeriod() != reward_votes_period_) {
-    LOG(log_tr_) << "Invalid reward vote: period " << vote->getPeriod()
-                 << " is different from reward_votes_block_period " << reward_votes_period_;
+    logger_->trace("Invalid reward vote: period {} is different from reward_votes_block_period {}", vote->getPeriod(),
+                   reward_votes_period_);
     return false;
   }
 
@@ -663,8 +662,7 @@ bool VoteManager::isValidRewardVote(const std::shared_ptr<PbftVote>& vote) const
   // round Dummy round protection - if we pushed the block in round reward_votes_round_, the rest of the network should
   // push it shortly after - 100 rounds buffer
   if (vote->getRound() > reward_votes_round_ + 100) {
-    LOG(log_wr_) << "Invalid reward vote: round " << vote->getRound() << " exceeded max round "
-                 << reward_votes_round_ + 100;
+    logger_->warn("Invalid reward vote: round {} exceeded max round {}", vote->getRound(), reward_votes_round_ + 100);
     return false;
   }
 
@@ -685,15 +683,15 @@ std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkReward
     const auto found_step_votes_it =
         round_votes_it->second.step_votes.find(static_cast<PbftStep>(PbftVoteTypes::cert_vote));
     if (found_step_votes_it == round_votes_it->second.step_votes.end()) {
-      LOG(log_dg_) << "getRewardVotes: No votes found for certify step "
-                   << static_cast<PbftStep>(PbftVoteTypes::cert_vote);
+      logger_->debug("getRewardVotes: No votes found for certify step {}",
+                     static_cast<PbftStep>(PbftVoteTypes::cert_vote));
       return {false, {}};
     }
 
     // Find verified votes for specified block_hash
     const auto found_verified_votes_it = found_step_votes_it->second.votes.find(block_hash);
     if (found_verified_votes_it == found_step_votes_it->second.votes.end()) {
-      LOG(log_dg_) << "getRewardVotes: No votes found for block_hash " << block_hash;
+      logger_->debug("getRewardVotes: No votes found for block_hash {}", block_hash);
       return {false, {}};
     }
 
@@ -704,7 +702,7 @@ std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkReward
       const auto found_vote = potential_reward_votes.find(vote_hash);
       if (found_vote == potential_reward_votes.end()) {
         // Reward vote not found
-        LOG(log_tr_) << "getRewardVotes: Vote " << vote_hash << " not found";
+        logger_->trace("getRewardVotes: Vote {} not found", vote_hash);
         found_all_votes = false;
       }
 
@@ -733,14 +731,14 @@ std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkReward
 
   const auto found_period_it = verified_votes_.find(reward_votes_period);
   if (found_period_it == verified_votes_.end()) {
-    LOG(log_er_) << "No reward votes found for period " << reward_votes_period;
+    logger_->error("No reward votes found for period {}", reward_votes_period);
     assert(false);
     return {false, {}};
   }
 
   const auto found_round_it = found_period_it->second.find(reward_votes_round);
   if (found_round_it == found_period_it->second.end()) {
-    LOG(log_er_) << "No reward votes found for round " << reward_votes_round;
+    logger_->error("No reward votes found for round {}", reward_votes_round);
     assert(false);
     return {false, {}};
   }
@@ -759,21 +757,22 @@ std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkReward
   for (auto round_it = found_period_it->second.begin(); round_it != found_period_it->second.end(); round_it++) {
     const auto tmp_reward_votes = getRewardVotes(round_it, reward_votes_hashes, reward_votes_block_hash, copy_votes);
     if (!tmp_reward_votes.first) {
-      LOG(log_dg_) << "No (or not enough) reward votes found for block " << pbft_block->getBlockHash()
-                   << ", period: " << pbft_block->getPeriod()
-                   << ", prev. block hash: " << pbft_block->getPrevBlockHash()
-                   << ", reward_votes_period: " << reward_votes_period << ", reward_votes_round_: " << round_it->first
-                   << ", reward_votes_block_hash: " << reward_votes_block_hash;
+      logger_->debug(
+          "No (or not enough) reward votes found for block {}, period: {}, prev. block hash: {}, reward_votes_period: "
+          "{}, reward_votes_round_: {}, reward_votes_block_hash: {}",
+          pbft_block->getBlockHash(), pbft_block->getPeriod(), pbft_block->getPrevBlockHash(), reward_votes_period,
+          round_it->first, reward_votes_block_hash);
       continue;
     }
 
     return {true, std::move(tmp_reward_votes.second)};
   }
 
-  LOG(log_er_) << "No (or not enough) reward votes found for block " << pbft_block->getBlockHash()
-               << ", period: " << pbft_block->getPeriod() << ", prev. block hash: " << pbft_block->getPrevBlockHash()
-               << ", reward_votes_period: " << reward_votes_period << ", reward_votes_round_: " << reward_votes_round
-               << ", reward_votes_block_hash: " << reward_votes_block_hash;
+  logger_->error(
+      "No (or not enough) reward votes found for block {}, period: {}, prev. block hash: {}, reward_votes_period: {}, "
+      "reward_votes_round_: {}, reward_votes_block_hash: {}",
+      pbft_block->getBlockHash(), pbft_block->getPeriod(), pbft_block->getPrevBlockHash(), reward_votes_period,
+      reward_votes_round, reward_votes_block_hash);
   return {false, {}};
 }
 
@@ -793,8 +792,9 @@ std::vector<std::shared_ptr<PbftVote>> VoteManager::getRewardVotes() {
 
   if (!reward_votes.empty() && reward_votes[0]->getBlockHash() != reward_votes_block_hash) {
     // This should never happen
-    LOG(log_er_) << "Proposal reward votes block hash mismatch. reward_votes_block_hash " << reward_votes_block_hash
-                 << ", reward_votes[0]->getBlockHash() " << reward_votes[0]->getBlockHash();
+    logger_->error(
+        "Proposal reward votes block hash mismatch. reward_votes_block_hash {}, reward_votes[0]->getBlockHash() {}",
+        reward_votes_block_hash, reward_votes[0]->getBlockHash());
     assert(false);
     return {};
   }
@@ -845,10 +845,10 @@ std::shared_ptr<PbftVote> VoteManager::generateVoteWithWeight(const taraxa::blk_
     pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote_type);
 
   } catch (state_api::ErrFutureBlock& e) {
-    LOG(log_er_) << "Unable to place vote for period: " << period << ", round: " << round << ", step: " << step
-                 << ", voted block hash: " << blockhash.abridged() << ". "
-                 << "Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
-                 << "). Err msg: " << e.what();
+    logger_->error(
+        "Unable to place vote for period: {}, round: {}, step: {}, voted block hash: {}.Period is too far ahead of "
+        "actual finalized pbft chain size ({}). Err msg: {}",
+        period, round, step, blockhash.abridged(), final_chain_->lastBlockNumber(), e.what());
 
     return nullptr;
   }
@@ -940,9 +940,10 @@ std::optional<uint64_t> VoteManager::getPbftTwoTPlusOne(PbftPeriod pbft_period, 
   try {
     total_dpos_votes_count = final_chain_->dposEligibleTotalVoteCount(pbft_period);
   } catch (state_api::ErrFutureBlock& e) {
-    LOG(log_er_) << "Unable to calculate 2t + 1 for period: " << pbft_period
-                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
-                 << "). Err msg: " << e.what();
+    logger_->error(
+        "Unable to calculate 2t + 1 for period: {}. Period is too far ahead of actual finalized pbft chain size ({}). "
+        "Err msg: {}",
+        pbft_period, final_chain_->lastBlockNumber(), e.what());
     return {};
   }
 
@@ -968,8 +969,8 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
   try {
     const uint64_t voter_dpos_votes_count = final_chain_->dposEligibleVoteCount(pbft_period - 1, wallet.node_addr);
     if (!voter_dpos_votes_count) {
-      LOG(log_er_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
-                   << " is invalid. Voter dpos vote count is zero";
+      logger_->error("Generated vrf sortition for period {}, round {} is invalid. Voter dpos vote count is zero",
+                     pbft_period, pbft_round);
       return false;
     }
 
@@ -979,14 +980,15 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
 
     if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold,
                                        wallet.node_pk)) {
-      LOG(log_dg_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
-                   << " is invalid. Vrf sortition is zero";
+      logger_->debug("Generated vrf sortition for period {}, round {} is invalid. Vrf sortition is zero", pbft_period,
+                     pbft_round);
       return false;
     }
   } catch (state_api::ErrFutureBlock& e) {
-    LOG(log_er_) << "Unable to generate vrf sortition for period " << pbft_period << ", round " << pbft_round
-                 << ". Period is too far ahead of actual finalized pbft chain size (" << final_chain_->lastBlockNumber()
-                 << "). Err msg: " << e.what();
+    logger_->error(
+        "Unable to generate vrf sortition for period {}, round {}. Period is too far ahead of actual finalized pbft "
+        "chain size ({}). Err msg: {}",
+        pbft_period, pbft_round, final_chain_->lastBlockNumber(), e.what());
     return false;
   }
 

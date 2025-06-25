@@ -13,7 +13,7 @@
 
 #include "common/types.hpp"
 #include "final_chain/data.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/subscriptions.hpp"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
@@ -26,13 +26,12 @@ class WsServer;
 class WsSession : public std::enable_shared_from_this<WsSession> {
  public:
   // Take ownership of the socket
-  explicit WsSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WsServer> ws_server)
+  explicit WsSession(tcp::socket&& socket, std::shared_ptr<WsServer> ws_server)
       : ws_(std::move(socket)),
         ws_server_(ws_server),
         subscriptions_(std::bind(&WsSession::do_write, this, std::placeholders::_1)),
-        write_strand_(boost::asio::make_strand(ws_.get_executor())) {
-    LOG_OBJECTS_CREATE("WS_SESSION");
-  }
+        logger_(logger::Logging::get().CreateChannelLogger("WS_SESSION")),
+        write_strand_(boost::asio::make_strand(ws_.get_executor())) {}
 
   // Start the asynchronous operation
   void run();
@@ -50,7 +49,6 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newLogs(const final_chain::BlockHeader& header, TransactionHashes trx_hashes,
                const TransactionReceipts& receipts);
 
-  LOG_OBJECTS_DEFINE
  private:
   static bool is_normal(const beast::error_code& ec);
   void on_close(beast::error_code ec);
@@ -67,6 +65,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   std::atomic<int> subscription_id_ = 0;
   std::weak_ptr<WsServer> ws_server_;
   Subscriptions subscriptions_;
+  logger::Logger logger_;
 
  private:
   boost::asio::strand<boost::asio::any_io_executor> write_strand_;

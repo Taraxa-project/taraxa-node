@@ -90,119 +90,130 @@
     "db_max_snapshots": 1
   },
   "logging": {
-    "configurations": [
+    "channels": [
       {
+        "name": "PBFT_CHAIN",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "EXECUTOR",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "VOTE_MGR",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "DAGMGR",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "DAG_PROPOSER",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "DAGMGR",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "net",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "rlpx",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "p2pcap",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "TARCAP",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "TARCAP_TP",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "PRIORITY_QUEUE",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "PILLAR_CHAIN",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "TRXMGR",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "HTTP",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "NETWORK",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "WS_SESSION",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "WS_SERVER",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "HTTP",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "DBS",
+        "verbosity": "ERROR"
+      },
+      {
+        "name": "MIGRATIONS",
+        "verbosity": "ERROR"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "console",
+        "name": "console",
+        "format" : "[%Y-%m-%d %H:%M:%S.%e] [%n] [%^%l%$] %v",
+        "verbosity": "INFO",
+        "on": true
+      },
+      {
+        "type": "file",
         "name": "standard",
-        "on": true,
-        "verbosity": "ERROR",
-        "channels": [
-          {
-            "name": "SUMMARY",
-            "verbosity": "INFO"
-          }
-        ],
-        "outputs": [
-          {
-            "type": "console",
-            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
-          },
-          {
-            "type": "file",
-            "file_name": "Taraxa_N1_%m%d%Y_%H%M%S_%5N.log",
-            "rotation_size": 10000000,
-            "time_based_rotation": "0,0,0",
-            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
-            "max_size": 1000000000
-          }
-        ]
+        "file_name": "Taraxa.log",
+        "rotation_size": 10000000,
+        "max_files_num": 20,
+        "format": "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v",
+        "verbosity": "INFO",
+        "on": true
       },
       {
-        "name": "network",
-        "on": false,
-        "verbosity": "ERROR",
-        "channels": [
-          {
-            "name": "PBFT_CHAIN",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "PBFT_MGR",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "GET_PBFT_SYNC_PH",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "PBFT_SYNC_PH",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "GET_DAG_SYNC_PH",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "DAG_SYNC_PH",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "DAG_BLOCK_PH",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "PBFT_BLOCK_PH",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "TARCAP",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "NETWORK",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "TRANSACTION_PH",
-            "verbosity": "DEBUG"
-          },
-          {
-            "name": "DAGBLKMGR",
-            "verbosity": "INFO"
-          },
-          {
-            "name": "DAGMGR",
-            "verbosity": "INFO"
-          }
-        ],
-        "outputs": [
-          {
-            "type": "console",
-            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
-          },
-          {
-            "type": "file",
-            "file_name": "TaraxaNetwork_N1_%m%d%Y_%H%M%S_%5N.log",
-            "rotation_size": 10000000,
-            "time_based_rotation": "0,0,0",
-            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
-            "max_size": 1000000000
-          }
-        ]
-      },
-      {
+        "type": "file",
         "name": "debug",
-        "on": false,
+        "file_name": "Taraxa_debug.log",
+        "rotation_size": 10000000,
+        "max_files_num": 20,
+        "format": "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v",
         "verbosity": "DEBUG",
-        "outputs": [
-          {
-            "type": "file",
-            "file_name": "debug/TaraxaDebug_N1_%m%d%Y_%H%M%S_%5N.log",
-            "rotation_size": 10000000,
-            "time_based_rotation": "0,0,0",
-            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
-            "max_size": 1000000000
-          }
-        ]
+        "on": false
+      },
+      {
+        "type": "file",
+        "name": "network",
+        "file_name": "Taraxa_network.log",
+        "rotation_size": 10000000,
+        "max_files_num": 20,
+        "format": "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %v",
+        "verbosity": "DEBUG",
+        "on": false,
+        "channels": ["PBFT_CHAIN","PBFT_MGR","GET_PBFT_SYNC_PH","PBFT_SYNC_PH","GET_DAG_SYNC_PH","DAG_SYNC_PH","DAG_BLOCK_PH","PBFT_BLOCK_PH","TARCAP","NETWORK","net","rlpx","p2pcap","TRANSACTION_PH","DAGBLKMGR","DAGMGR"]
       }
     ]
   }

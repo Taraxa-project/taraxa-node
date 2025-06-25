@@ -19,9 +19,8 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<PbftManager> pbft_mgr,
                                                    std::shared_ptr<PbftChain> pbft_chain,
                                                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
-                                                   const addr_t &node_addr, const std::string &logs_prefix)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
-                    logs_prefix + "GET_PBFT_SYNC_PH"),
+                                                   const std::string &logs_prefix)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), logs_prefix + "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_mgr_(std::move(pbft_mgr)),
       pbft_chain_(std::move(pbft_chain)),
@@ -33,7 +32,7 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
   // Decode packet rlp into packet object
   auto packet = decodePacketRlp<GetPbftSyncPacket>(packet_data.rlp_);
 
-  LOG(log_tr_) << "Received GetPbftSyncPacket Block";
+  logger_->trace("Received GetPbftSyncPacket Block");
 
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
   const size_t my_chain_size = pbft_chain_->getPbftChainSize();
@@ -61,7 +60,7 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
   } else {
     blocks_to_transfer = kConf.network.sync_level_size;
   }
-  LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << peer->getId();
+  logger_->trace("Will send {} PBFT blocks to {}", blocks_to_transfer, peer->getId());
 
   sendPbftBlocks(peer, packet.height_to_sync, blocks_to_transfer, pbft_chain_synced);
 
@@ -93,15 +92,15 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
 void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> &peer, PbftPeriod from_period,
                                               size_t blocks_to_transfer, bool pbft_chain_synced) {
   const auto &peer_id = peer->getId();
-  LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << from_period << ", will send at most "
-               << blocks_to_transfer << " pbft blocks to " << peer_id;
+  logger_->trace("sendPbftBlocks: peer want to sync from pbft chain height {}, will send at most {} pbft blocks to {}",
+                 from_period, blocks_to_transfer, peer_id);
 
   for (auto block_period = from_period; block_period < from_period + blocks_to_transfer; block_period++) {
     bool last_block = (block_period == from_period + blocks_to_transfer - 1);
     auto period_data = db_->getPeriodDataRaw(block_period);
     if (period_data.empty()) {
       // This can happen when switching from light node to full node setting
-      LOG(log_er_) << "DB corrupted. Cannot find period " << block_period << " PBFT block in db";
+      logger_->error("DB corrupted. Cannot find period {} PBFT block in db", block_period);
       return;
     }
 
@@ -122,7 +121,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       pbft_sync_packet = std::make_shared<PbftSyncPacketRaw>(last_block, std::move(period_data));
     }
 
-    LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
+    logger_->debug("Sending PbftSyncPacket period {} to {}", block_period, peer_id);
     sealAndSend(peer_id, SubprotocolPacketType::kPbftSyncPacket, encodePacketRlp(pbft_sync_packet));
     if (pbft_chain_synced && last_block) {
       peer->syncing_ = false;

@@ -3,7 +3,7 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/genesis.hpp"
 #include "config/network.hpp"
-#include "logger/logger_config.hpp"
+#include "logger/logging_config.hpp"
 
 namespace taraxa {
 
@@ -53,26 +53,24 @@ struct FullNodeConfig {
                           const std::string &config_file_path = "");
 
   void overwriteConfigFromJson(const Json::Value &config_json);
-  std::vector<logger::Config> loadLoggingConfigs(const Json::Value &logging);
-  void InitLogging(const addr_t &node_address);
 
   /**
    * @return first (main) wallet from the list of wallets
    */
   const WalletConfig &getFirstWallet() const;
 
+  std::string toString() const;
+
   std::string json_file_name;
-  std::filesystem::file_time_type last_json_update_time;
   // Vector of wallets used by node
   std::vector<WalletConfig> wallets;
   fs::path data_path;
   fs::path db_path;
-  fs::path log_path;
   NetworkConfig network;
   DBConfig db_config;
   GenesisConfig genesis;
   state_api::Opts opts_final_chain;
-  std::vector<logger::Config> log_configs;
+  LoggingConfig logging;
   bool is_light_node = false;                            // Is light node
   uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
@@ -99,8 +97,6 @@ struct FullNodeConfig {
   void validate() const;
 };
 
-std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);
+void dec_json(const Json::Value &json, LoggingConfig &obj, std::filesystem::path data_path);
 
 }  // namespace taraxa

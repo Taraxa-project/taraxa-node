@@ -4,24 +4,25 @@
 
 namespace taraxa::storage::migration {
 
-Manager::Manager(std::shared_ptr<DbStorage> db, const addr_t& node_addr) : db_(db) { LOG_OBJECTS_CREATE("MIGRATIONS"); }
-
+Manager::Manager(std::shared_ptr<DbStorage> db)
+    : db_(db), logger_(logger::Logging::get().CreateChannelLogger("MIGRATIONS")) {}
 void Manager::applyMigration(std::shared_ptr<migration::Base> m) {
   if (m->isApplied()) {
-    LOG(log_si_) << "Skip \"" << m->id() << "\" migration. It was already applied";
+    logger_->info("Skip \"{}\" migration. It was already applied", m->id());
     return;
   }
 
   if (db_->getMajorVersion() != m->dbVersion()) {
-    LOG(log_si_) << "Skip \"" << m->id() << "\" migration as it was made for different major db version "
-                 << m->dbVersion() << ", current db major version " << db_->getMajorVersion()
-                 << ". Migration can be removed from the code";
+    logger_->info(
+        "Skip \"{}\" migration as it was made for different major db version {}, current db major version {}. "
+        "Migration can be removed from the code",
+        m->id(), m->dbVersion(), db_->getMajorVersion());
     return;
   }
 
-  LOG(log_si_) << "Applying migration " << m->id();
-  m->apply(log_si_);
-  LOG(log_si_) << "Migration applied " << m->id();
+  logger_->info("Applying migration {}", m->id());
+  m->apply(logger_);
+  logger_->info("Migration applied {}", m->id());
 }
 
 void Manager::applyAll() {

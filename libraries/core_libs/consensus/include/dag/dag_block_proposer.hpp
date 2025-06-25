@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "dag/dag_block.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/network.hpp"
 
 namespace taraxa {
@@ -168,7 +168,7 @@ class DagBlockProposer {
   const uint64_t kValidatorMaxVote;
   const uint64_t kShardProposePeriodInterval = 10;
 
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 /**

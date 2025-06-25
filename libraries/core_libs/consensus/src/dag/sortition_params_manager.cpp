@@ -25,10 +25,10 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   return p;
 }
 
-SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
-                                               std::shared_ptr<DbStorage> db)
-    : config_(std::move(sort_conf)), db_(std::move(db)) {
-  LOG_OBJECTS_CREATE("SORT_MGR");
+SortitionParamsManager::SortitionParamsManager(SortitionConfig sort_conf, std::shared_ptr<DbStorage> db)
+    : config_(std::move(sort_conf)),
+      db_(std::move(db)),
+      logger_(logger::Logging::get().CreateChannelLogger("SORT_MGR")) {
   // load cache values from db
   params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
   if (params_changes_.empty()) {
@@ -109,7 +109,7 @@ void SortitionParamsManager::pbftBlockPushed(const PeriodData& block, Batch& bat
     const auto dag_efficiency = calculateDagEfficiency(block);
     dag_efficiencies_.push_back(dag_efficiency);
     const auto period = block.pbft_blk->getPeriod();
-    LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
+    logger_->debug("{} pbftBlockPushed, efficiency: {} %", period, dag_efficiency / 100.);
 
     if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
       const auto params_change = calculateChange(period);
@@ -229,8 +229,8 @@ SortitionParamsChange SortitionParamsManager::calculateChange(PbftPeriod period)
   }
 
   config_.vrf.threshold_upper = new_upper_range;
-  LOG(log_nf_) << "Average interval efficiency: " << average_dag_efficiency / 100. << "%. Changing VRF params on "
-               << period << " period to (" << config_.vrf.threshold_upper << ")";
+  logger_->info("Average interval efficiency: {}%. Changing VRF params on {} period to ({})",
+                average_dag_efficiency / 100., period, config_.vrf.threshold_upper);
 
   return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
 }

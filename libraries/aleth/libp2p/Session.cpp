@@ -9,6 +9,7 @@
 #include <libp2p/Capability.h>
 
 #include <chrono>
+#include <libp2p/LoggerFormatters.hpp>
 
 #include "RLPXFrameCoder.h"
 
@@ -25,16 +26,12 @@ Session::Session(SessionCapabilities caps, std::unique_ptr<RLPXFrameCoder> _io, 
       m_peer(std::move(_n)),
       m_info(std::move(_info)),
       m_ping(std::chrono::steady_clock::time_point::max()),
-      immediate_disconnect_reason_(immediate_disconnect_reason) {
+      immediate_disconnect_reason_(immediate_disconnect_reason),
+      net_logger_(taraxa::logger::Logging::get().CreateChannelLogger("net")),
+      p2p_logger_(taraxa::logger::Logging::get().CreateChannelLogger("p2pcap")) {
   std::stringstream remoteInfoStream;
   remoteInfoStream << "(" << m_info.id << "@" << m_socket->remoteEndpoint() << ")";
   m_logSuffix = remoteInfoStream.str();
-  auto const attr = boost::log::attributes::constant<std::string>{remoteInfoStream.str()};
-  m_netLogger.add_attribute("Suffix", attr);
-  m_netLoggerDetail.add_attribute("Suffix", attr);
-  m_netLoggerError.add_attribute("Suffix", attr);
-  m_capLogger.add_attribute("Suffix", attr);
-  m_capLoggerDetail.add_attribute("Suffix", attr);
 
   m_peer->m_lastDisconnect = NoDisconnect;
 }
@@ -60,7 +57,7 @@ std::shared_ptr<Session> Session::make(SessionCapabilities caps, std::unique_ptr
 }
 
 Session::~Session() {
-  cnetlog << "Closing peer session with " << m_logSuffix;
+  net_logger_->debug("Closing peer session with {}", m_logSuffix);
   m_peer->m_lastConnected = m_peer->m_lastAttempted.load() - std::chrono::seconds(1);
   drop(ClientQuit);
 }
@@ -71,7 +68,7 @@ void Session::readPacket(unsigned _packetType, RLP const& _r) {
   }
   auto cap = capabilityFor(_packetType);
   auto packet_type_str = capabilityPacketTypeToString(cap, _packetType);
-  LOG(m_netLoggerDetail) << "Received " << packet_type_str << " (" << _packetType << ") from";
+  net_logger_->trace("Received {} ({}) from {}", packet_type_str, _packetType, m_logSuffix);
   if (_packetType < UserPacket) {
     std::string err_msg;
     try {
@@ -82,14 +79,14 @@ void Session::readPacket(unsigned _packetType, RLP const& _r) {
       err_msg = e.what();
     }
     if (!err_msg.empty()) {
-      LOG(m_netLogger) << "Exception caught in p2p::Session::interpretP2pPacket(): " << err_msg
-                       << ". PacketType: " << packet_type_str << " (" << _packetType << "). RLP: " << _r;
+      net_logger_->debug("Exception caught in p2p::Session::interpretP2pPacket(): {}. PacketType: {} ({}). RLP: {}",
+                         err_msg, packet_type_str, _packetType, _r.toString());
       disconnect_(BadProtocol);
     }
     return;
   }
   if (!cap) {
-    LOG(m_netLogger) << "Disconnecting cause no capability for packet type: " << _packetType;
+    net_logger_->debug("Disconnecting cause no capability for packet type: {}", _packetType);
     disconnect_(BadProtocol);
     return;
   }
@@ -97,7 +94,7 @@ void Session::readPacket(unsigned _packetType, RLP const& _r) {
 }
 
 void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
-  LOG(m_capLoggerDetail) << p2pPacketTypeToString(_t) << " from";
+  p2p_logger_->trace("{} from {}", p2pPacketTypeToString(_t), m_logSuffix);
   switch (_t) {
     case DisconnectPacket: {
       std::string reason = "Unspecified";
@@ -106,13 +103,13 @@ void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
         drop(BadProtocol);
       else {
         reason = reasonOf(r);
-        LOG(m_capLogger) << "Disconnect (reason: " << reason << ") from";
+        p2p_logger_->debug("Disconnect (reason: {}) from {}", reason, m_logSuffix);
         drop(DisconnectRequested);
       }
       break;
     }
     case PingPacket: {
-      LOG(m_capLoggerDetail) << "Pong to";
+      p2p_logger_->trace("Pong to {}", m_logSuffix);
       RLPStream s;
       sealAndSend_(prep(s, PongPacket));
       break;
@@ -120,8 +117,8 @@ void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
     case PongPacket: {
       std::unique_lock l(x_info);
       m_info.lastPing = std::chrono::steady_clock::now() - m_ping;
-      LOG(m_capLoggerDetail) << "Ping latency: "
-                             << std::chrono::duration_cast<std::chrono::milliseconds>(m_info.lastPing).count() << " ms";
+      p2p_logger_->trace("Ping latency: {} ms",
+                         std::chrono::duration_cast<std::chrono::milliseconds>(m_info.lastPing).count());
       break;
     }
     default:
@@ -132,7 +129,7 @@ void Session::interpretP2pPacket(P2pPacketType _t, RLP const& _r) {
 }
 
 void Session::ping_() {
-  clog(VerbosityTrace, "p2pcap") << "Ping to " << m_logSuffix;
+  p2p_logger_->debug("Ping to {}", m_logSuffix);
   RLPStream s;
   sealAndSend_(prep(s, PingPacket));
   m_ping = std::chrono::steady_clock::now();
@@ -159,10 +156,9 @@ bool Session::checkPacket(bytesConstRef _msg) {
 }
 
 void Session::send_(bytes _msg, std::function<void()> on_done) {
-  LOG(m_netLoggerDetail) << capabilityPacketTypeToString(_msg[0]) << " to";
+  net_logger_->trace("{} to {}", capabilityPacketTypeToString(_msg[0]), m_logSuffix);
   if (!checkPacket(&_msg)) {
-    clog(VerbosityError, "net") << "Invalid packet constructed. Size: " << _msg.size()
-                                << " bytes, message: " << toHex(_msg);
+    net_logger_->error("Invalid packet constructed. Size: {} bytes, message: {}", _msg.size(), toHex(_msg));
   }
   if (!isConnected()) {
     return;
@@ -216,7 +212,7 @@ void Session::write(uint16_t sequence_id, uint32_t sent_size) {
                     // must check queue, as write callback can occur following
                     // dropped()
                     if (ec) [[unlikely]] {
-                      LOG(m_netLogger) << "Error sending: " << ec.message();
+                      net_logger_->debug("Error sending: {}", ec.message());
                       drop(TCPError);
                       return;
                     }
@@ -249,7 +245,7 @@ void Session::drop(DisconnectReason _reason) {
   if (socket.is_open()) {
     try {
       boost::system::error_code ec;
-      LOG(m_netLoggerDetail) << "Closing (" << reasonOf(_reason) << ") connection with";
+      net_logger_->trace("Closing ({}) connection with {}", reasonOf(_reason), m_logSuffix);
       socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
       socket.close();
     } catch (...) {
@@ -262,7 +258,7 @@ void Session::drop(DisconnectReason _reason) {
 void Session::disconnect_(DisconnectReason _reason) {
   muted_ = true;
   if (isConnected()) {
-    clog(VerbosityTrace, "p2pcap") << "Disconnecting (our reason: " << reasonOf(_reason) << ") from " << m_logSuffix;
+    p2p_logger_->trace("Disconnecting (our reason: {}) from {}", reasonOf(_reason), m_logSuffix);
     RLPStream s;
     prep(s, DisconnectPacket, 1) << (int)_reason;
     sealAndSend_(s);
@@ -285,7 +281,7 @@ void Session::doRead() {
           return;
         }
         if (!m_io->authAndDecryptHeader(bytesRef(m_data.data(), length))) {
-          LOG(m_netLogger) << "Header decrypt failed";
+          net_logger_->debug("Header decrypt failed");
           drop(BadProtocol);  // todo: better error
           return;
         }
@@ -305,8 +301,8 @@ void Session::doRead() {
           hSequenceId = header.sequenceId;
           hTotalLength = header.totalLength;
         } catch (std::exception const& _e) {
-          LOG(m_netLogger) << "Exception decoding frame header RLP: " << _e.what() << " "
-                           << bytesConstRef(m_data.data(), h128::size).cropped(3);
+          net_logger_->debug("Exception decoding frame header RLP: {} {}", _e.what(),
+                             bytesConstRef(m_data.data(), h128::size).cropped(3));
           drop(BadProtocol);
           return;
         }
@@ -324,7 +320,7 @@ void Session::doRead() {
                 return;
               }
               if (!m_io->authAndDecryptFrame(bytesRef(m_data.data(), tlen))) {
-                LOG(m_netLogger) << "Frame decrypt failed";
+                net_logger_->debug("Frame decrypt failed");
                 drop(BadProtocol);  // todo: better error
                 return;
               }
@@ -332,7 +328,7 @@ void Session::doRead() {
               if (hProtocolId) {
                 packet_lenght = m_io->decompressFrame(bytesRef(m_data.data(), hLength), m_data);
                 if (packet_lenght <= 0) [[unlikely]] {
-                  LOG(m_netLogger) << "Frame decompress failed";
+                  net_logger_->debug("Frame decompress failed");
                   drop(BadProtocol);
                   return;
                 }
@@ -347,12 +343,11 @@ void Session::doRead() {
                       static_cast<P2pPacketType>(RLP(frame.cropped(0, 1), RLP::LaissezFaire).toInt<unsigned>());
                   if (!checkPacket(frame)) {
                     auto packet_type_str = capabilityPacketTypeToString(capabilityFor(packetType), packetType);
-                    LOG(m_netLogger) << "Received invalid packet. Packet type (possibly "
-                                        "corrupted): "
-                                     << packetType << " (" << packet_type_str << "). Frame Size: " << frame.size()
-                                     << ". Size encoded in RLP: "
-                                     << RLP(frame.cropped(1), RLP::LaissezFaire).actualSize()
-                                     << ". Message: " << toHex(frame) << std::endl;
+                    net_logger_->debug(
+                        "Received invalid packet. Packet type (possibly corrupted): {} ({}). Frame Size: {}. Size "
+                        "encoded in RLP: {}. Message: {}\n",
+                        static_cast<int>(packetType), packet_type_str, frame.size(),
+                        RLP(frame.cropped(1), RLP::LaissezFaire).actualSize(), toHex(frame));
                     disconnect_(BadProtocol);
                     return;
                   }
@@ -365,11 +360,11 @@ void Session::doRead() {
                     static_cast<P2pPacketType>(RLP(frame.cropped(0, 1), RLP::LaissezFaire).toInt<unsigned>());
                 if (!checkPacket(frame)) {
                   auto packet_type_str = capabilityPacketTypeToString(capabilityFor(packetType), packetType);
-                  LOG(m_netLogger) << "Received invalid packet. Packet type (possibly "
-                                      "corrupted): "
-                                   << packetType << " (" << packet_type_str << "). Frame Size: " << frame.size()
-                                   << ". Size encoded in RLP: " << RLP(frame.cropped(1), RLP::LaissezFaire).actualSize()
-                                   << ". Message: " << toHex(frame) << std::endl;
+                  net_logger_->debug(
+                      "Received invalid packet. Packet type (possibly corrupted): {} ({}). Frame Size: {}. Size "
+                      "encoded in RLP: {}. Message: {}\n",
+                      static_cast<int>(packetType), packet_type_str, frame.size(),
+                      RLP(frame.cropped(1), RLP::LaissezFaire).actualSize(), toHex(frame));
                   disconnect_(BadProtocol);
                   return;
                 }
@@ -382,21 +377,20 @@ void Session::doRead() {
 
 bool Session::checkRead(std::size_t expected, boost::system::error_code ec, std::size_t length) {
   if (ec && ec.category() != boost::asio::error::get_misc_category() && ec.value() != boost::asio::error::eof) {
-    LOG(m_netLogger) << "Error reading: " << ec.message();
+    net_logger_->debug("Error reading: {}", ec.message());
     drop(TCPError);
     return false;
   }
   if (ec && length < expected) {
-    LOG(m_netLogger) << "Error reading - Abrupt peer disconnect: " << ec.message();
+    net_logger_->debug("Error reading - Abrupt peer disconnect: {}", ec.message());
     drop(TCPError);
     return false;
   }
   if (length != expected) {
     // with static m_data-sized buffer this shouldn't happen unless there's a
     // regression sec recommends checking anyways (instead of assert)
-    LOG(m_netLoggerError) << "Error reading - TCP read buffer length differs "
-                             "from expected frame size ("
-                          << length << " != " << expected << ")";
+    net_logger_->error("Error reading - TCP read buffer length differs from expected frame size ({} != {})", length,
+                       expected);
     disconnect_(UserReason);
     return false;
   }

@@ -2,6 +2,8 @@ add_executable(taraxa-bootnode main.cpp)
 target_link_libraries(taraxa-bootnode PRIVATE
     cli
     p2p
+    logger
+    config
 )
 
 set(TARAXA_BOOTNODE_INSTALL_DIR "/usr/local/bin" CACHE PATH "Taraxa bootnode install directory")

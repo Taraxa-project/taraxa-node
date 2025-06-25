@@ -11,6 +11,7 @@ target_link_libraries(devcore
         boost::boost
         JsonCpp::JsonCpp 
         ethash
+        logger
 )
 target_include_directories(devcore 
     SYSTEM 

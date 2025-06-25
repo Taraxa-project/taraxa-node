@@ -6,11 +6,11 @@
 namespace taraxa::network::tarcap {
 
 PacketHandler::PacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
-                             std::shared_ptr<TimePeriodPacketsStats> packets_stats, const addr_t& node_addr,
-                             const std::string& log_channel_name)
-    : kConf(conf), peers_state_(std::move(peers_state)), packets_stats_(std::move(packets_stats)) {
-  LOG_OBJECTS_CREATE(log_channel_name);
-}
+                             std::shared_ptr<TimePeriodPacketsStats> packets_stats, const std::string& log_channel_name)
+    : kConf(conf),
+      peers_state_(std::move(peers_state)),
+      packets_stats_(std::move(packets_stats)),
+      logger_(logger::Logging::get().CreateChannelLogger(log_channel_name)) {}
 void PacketHandler::processPacket(const threadpool::PacketData& packet_data) {
   try {
     const auto begin = std::chrono::steady_clock::now();
@@ -19,7 +19,7 @@ void PacketHandler::processPacket(const threadpool::PacketData& packet_data) {
     // in the meantime the connection was lost and we started to process packet from such peer
     const auto peer = peers_state_->getPacketSenderPeer(packet_data.from_node_id_, packet_data.type_);
     if (!peer.first) [[unlikely]] {
-      LOG(log_wr_) << "Unable to process packet. Reason: " << peer.second;
+      logger_->warn("Unable to process packet. Reason: {}", peer.second);
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
@@ -67,9 +67,8 @@ void PacketHandler::processPacket(const threadpool::PacketData& packet_data) {
 void PacketHandler::handle_caught_exception(std::string_view exception_msg, const threadpool::PacketData& packet_data,
                                             const dev::p2p::NodeID& peer, dev::p2p::DisconnectReason disconnect_reason,
                                             bool set_peer_as_malicious) {
-  LOG(log_er_) << "Exception caught during packet processing: " << exception_msg << " ."
-               << "PacketData: " << jsonToUnstyledString(packet_data.getPacketDataJson())
-               << ", disconnect peer: " << peer.toString();
+  logger_->error("Exception caught during packet processing: {}, PacketData: {}, disconnect peer: {}", exception_msg,
+                 jsonToUnstyledString(packet_data.getPacketDataJson()), peer.toString());
 
   if (set_peer_as_malicious) {
     peers_state_->set_peer_malicious(peer);
@@ -82,12 +81,12 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
                                 dev::bytes&& rlp_bytes) {
   auto host = peers_state_->host_.lock();
   if (!host) {
-    LOG(log_er_) << "sealAndSend failed to obtain host";
+    logger_->error("sealAndSend failed to obtain host");
     return false;
   }
 
   if (const auto peer = peers_state_->getPacketSenderPeer(node_id, packet_type); !peer.first) [[unlikely]] {
-    LOG(log_wr_) << "Unable to send packet. Reason: " << peer.second;
+    logger_->warn("Unable to send packet. Reason: {}", peer.second);
     host->disconnect(node_id, dev::p2p::UserReason);
     return false;
   }
@@ -114,10 +113,10 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
 
 void PacketHandler::disconnect(const dev::p2p::NodeID& node_id, dev::p2p::DisconnectReason reason) {
   if (auto host = peers_state_->host_.lock(); host) {
-    LOG(log_nf_) << "Disconnect node " << node_id.abridged();
+    logger_->info("Disconnect node {}", node_id.abridged());
     host->disconnect(node_id, reason);
   } else {
-    LOG(log_er_) << "Unable to disconnect node " << node_id.abridged() << " due to invalid host.";
+    logger_->error("Unable to disconnect node {} due to invalid host.", node_id.abridged());
   }
 }
 

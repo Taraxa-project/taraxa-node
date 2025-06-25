@@ -11,9 +11,8 @@ PbftBlocksBundlePacketHandler::PbftBlocksBundlePacketHandler(const FullNodeConfi
                                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                              std::shared_ptr<PbftManager> pbft_mgr,
                                                              std::shared_ptr<PbftSyncingState> syncing_state,
-                                                             const addr_t &node_addr, const std::string &logs_prefix)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
-                    logs_prefix + "PBFT_BLOCKS_BUNDLE_PH"),
+                                                             const std::string &logs_prefix)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), logs_prefix + "PBFT_BLOCKS_BUNDLE_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       pbft_syncing_state_(syncing_state) {}
 
@@ -31,8 +30,8 @@ void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet
   std::unordered_map<PbftPeriod, std::unordered_set<addr_t>> unique_authors;
 
   if (pbft_syncing_state_->lastSyncingPeer()->getId() != peer->getId()) {
-    LOG(log_er_) << "PbftBlocksBundlePacket received from unexpected peer " << peer->getId().abridged()
-                 << " last syncing peer " << pbft_syncing_state_->lastSyncingPeer()->getId().abridged();
+    logger_->error("PbftBlocksBundlePacket received from unexpected peer {} last syncing peer {}",
+                   peer->getId().abridged(), pbft_syncing_state_->lastSyncingPeer()->getId().abridged());
     // Note: do not throw MaliciousPeerException as in some edge cases node could be already syncing with new peer.
     // In such case we can simply ignore this packet
     return;
@@ -46,10 +45,10 @@ void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet
     if (proposed_block_period < current_pbft_period || proposed_block_period > current_pbft_period + 5) {
       // This should not happen as sender sends PbftBlocksBundlePacket only after he sends last sync packet and
       // PbftBlocksBundlePacket processing is blocked until sync_queue is empty
-      LOG(log_er_)
-          << "Unable to validate proposed blocks bundle as sync packets were not processed yet. Current chain size "
-          << current_pbft_period << ", proposed block period " << proposed_block_period << ", proposed block hash "
-          << proposed_block->getBlockHash();
+      logger_->error(
+          "Unable to validate proposed blocks bundle as sync packets were not processed yet. Current chain size {}, "
+          "proposed block period {}, proposed block hash {}",
+          current_pbft_period, proposed_block_period, proposed_block->getBlockHash());
 
       continue;
     }
@@ -70,7 +69,7 @@ void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet
     }
 
     pbft_mgr_->processProposedBlock(proposed_block);
-    LOG(log_dg_) << "Processed received proposed block: " << proposed_block->getBlockHash();
+    logger_->debug("Processed received proposed block: {}", proposed_block->getBlockHash());
   }
 }
 

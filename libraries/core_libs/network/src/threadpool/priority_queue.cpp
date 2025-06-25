@@ -4,14 +4,14 @@
 
 namespace taraxa::network::threadpool {
 
-PriorityQueue::PriorityQueue(size_t tp_workers_count, const std::shared_ptr<PbftManager>& pbft_mgr,
-                             const addr_t& node_addr)
-    : blocked_packets_mask_(pbft_mgr), MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
+PriorityQueue::PriorityQueue(size_t tp_workers_count, const std::shared_ptr<PbftManager>& pbft_mgr)
+    : blocked_packets_mask_(pbft_mgr),
+      MAX_TOTAL_WORKERS_COUNT(tp_workers_count),
+      act_total_workers_count_(0),
+      logger_(logger::Logging::get().CreateChannelLogger("PRIORITY_QUEUE")) {
   assert(packets_queues_.size() == PacketData::PacketPriority::Count);
   // tp_workers_count value should be validated (>=3) after it is read from config
   assert(tp_workers_count >= 3);
-
-  LOG_OBJECTS_CREATE("PRIORITY_QUEUE");
 
   // high priority packets(consensus - votes) max concurrent workers - 40% of tp_workers_count
   // mid priority packets(dag/pbft blocks, txs) max concurrent workers - 40% of tp_workers_count
@@ -27,10 +27,10 @@ PriorityQueue::PriorityQueue(size_t tp_workers_count, const std::shared_ptr<Pbft
   packets_queues_[PacketData::PacketPriority::Mid].setMaxWorkersCount(mid_priority_queue_workers);
   packets_queues_[PacketData::PacketPriority::Low].setMaxWorkersCount(low_priority_queue_workers);
 
-  LOG(log_nf_) << "Priority queues initialized accordingly: " << "total num of workers = " << MAX_TOTAL_WORKERS_COUNT
-               << ", High priority packets max num of workers = " << high_priority_queue_workers
-               << ", Mid priority packets max num of workers = " << mid_priority_queue_workers
-               << ", Low priority packets max num of workers = " << low_priority_queue_workers;
+  logger_->info(
+      "Priority queues initialized accordingly: total num of workers = {}, High priority packets max num of workers = "
+      "{}, Mid priority packets max num of workers = {}, Low priority packets max num of workers = {}",
+      MAX_TOTAL_WORKERS_COUNT, high_priority_queue_workers, mid_priority_queue_workers, low_priority_queue_workers);
 }
 
 void PriorityQueue::pushBack(std::pair<tarcap::TarcapVersion, PacketData>&& packet) {
@@ -55,7 +55,7 @@ bool PriorityQueue::canBorrowThread() {
 
 std::optional<std::pair<tarcap::TarcapVersion, PacketData>> PriorityQueue::pop() {
   if (act_total_workers_count_ >= MAX_TOTAL_WORKERS_COUNT) {
-    LOG(log_dg_) << "MAX_TOTAL_WORKERS_COUNT(" << MAX_TOTAL_WORKERS_COUNT << ") reached, unable to pop data.";
+    logger_->debug("MAX_TOTAL_WORKERS_COUNT({}) reached, unable to pop data.", MAX_TOTAL_WORKERS_COUNT);
     return {};
   }
 
@@ -89,13 +89,14 @@ std::optional<std::pair<tarcap::TarcapVersion, PacketData>> PriorityQueue::pop()
   }
 
   if (!try_borrow_thread) {
-    LOG(log_dg_) << "No non-blocked packets to be processed.";
+    logger_->debug("No non-blocked packets to be processed.");
     return {};
   }
 
   if (!canBorrowThread()) {
-    LOG(log_dg_) << "No non-blocked packets to be processed + limits reached -> unable to borrow thread due to "
-                    "\"Always keep at least 1 reserved thread for each priority queue \" rule";
+    logger_->debug(
+        "No non-blocked packets to be processed + limits reached -> unable to borrow thread due to "
+        "\"Always keep at least 1 reserved thread for each priority queue \" rule");
     return {};
   }
 
@@ -106,7 +107,7 @@ std::optional<std::pair<tarcap::TarcapVersion, PacketData>> PriorityQueue::pop()
     }
 
     if (auto packet = queue.pop(blocked_packets_mask_); packet.has_value()) {
-      LOG(log_dg_) << "Thread for packet processing borrowed";
+      logger_->debug("Thread for packet processing borrowed");
       return packet;
     }
 
@@ -114,7 +115,7 @@ std::optional<std::pair<tarcap::TarcapVersion, PacketData>> PriorityQueue::pop()
   }
 
   // There was no unblocked packet to be processed in all queues
-  LOG(log_dg_) << "No non-blocked packets to be processed.";
+  logger_->debug("No non-blocked packets to be processed.");
   return {};
 }
 

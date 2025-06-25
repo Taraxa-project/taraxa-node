@@ -20,8 +20,7 @@ class ExtVotesPacketHandler : public PacketHandler {
   ExtVotesPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                         std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                        std::shared_ptr<SlashingManager> slashing_manager, const addr_t& node_addr,
-                        const std::string& log_channel_name);
+                        std::shared_ptr<SlashingManager> slashing_manager, const std::string& log_channel_name);
 
   virtual ~ExtVotesPacketHandler() = default;
   ExtVotesPacketHandler(const ExtVotesPacketHandler&) = delete;

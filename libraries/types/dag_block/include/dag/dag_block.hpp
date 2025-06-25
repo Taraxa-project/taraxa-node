@@ -69,20 +69,22 @@ class DagBlock {
    */
   static sig_t extract_signature_from_rlp(const dev::RLP &rlp);
 
-  friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
-    str << "	pivot		= " << u.pivot_.abridged() << std::endl;
-    str << "	level		= " << u.level_ << std::endl;
-    str << "	tips ( " << u.tips_.size() << " )	= ";
-    for (auto const &t : u.tips_) str << t.abridged() << " ";
-    str << std::endl;
-    str << "	trxs ( " << u.trxs_.size() << " )	= ";
-    for (auto const &t : u.trxs_) str << t.abridged() << " ";
-    str << std::endl;
-    str << "	signature	= " << u.sig_.abridged() << std::endl;
-    str << "	hash		= " << u.getHash().abridged() << std::endl;
-    str << "	sender		= " << u.getSender().abridged() << std::endl;
-    str << "  vdf = " << u.vdf_ << std::endl;
-    return str;
+  std::string toString() const {
+    std::ostringstream oss;
+    oss << "	pivot		= " << pivot_.abridged() << std::endl;
+    oss << "	level		= " << level_ << std::endl;
+    oss << "	tips ( " << tips_.size() << " )	= ";
+    for (auto const &t : tips_) oss << t.abridged() << " ";
+    oss << std::endl;
+    oss << "	trxs ( " << trxs_.size() << " )	= ";
+    for (auto const &t : trxs_) oss << t.abridged() << " ";
+    oss << std::endl;
+    oss << "	signature	= " << sig_.abridged() << std::endl;
+    oss << "	hash		= " << getHash().abridged() << std::endl;
+    oss << "	sender		= " << getSender().abridged() << std::endl;
+    oss << "  vdf = " << vdf_ << std::endl;
+
+    return oss.str();
   }
   bool operator==(DagBlock const &other) const { return this->sha3(true) == other.sha3(true); }
 

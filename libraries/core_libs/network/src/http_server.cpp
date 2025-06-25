@@ -1,13 +1,19 @@
 #include "network/http_server.hpp"
 
+#include "common/logger_formatters.hpp"
+
 namespace taraxa::net {
 
-HttpServer::HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep, const addr_t &node_addr,
+HttpServer::HttpServer(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint ep,
                        const std::shared_ptr<HttpProcessor> &request_processor,
                        std::shared_ptr<metrics::JsonRpcMetrics> metrics)
-    : request_processor_(request_processor), metrics_(metrics), io_context_(io), acceptor_(io), ep_(std::move(ep)) {
-  LOG_OBJECTS_CREATE("HTTP");
-  LOG(log_si_) << "Taraxa HttpServer started at port: " << ep_.port();
+    : request_processor_(request_processor),
+      metrics_(metrics),
+      io_context_(io),
+      acceptor_(io),
+      ep_(std::move(ep)),
+      logger_(logger::Logging::get().CreateChannelLogger("HTTP")) {
+  logger_->info("Taraxa HttpServer started at port: {}", ep_.port());
 }
 
 std::shared_ptr<HttpServer> HttpServer::getShared() {
@@ -21,6 +27,8 @@ std::shared_ptr<HttpServer> HttpServer::getShared() {
 
 std::shared_ptr<HttpConnection> HttpServer::createConnection() { return std::make_shared<HttpConnection>(getShared()); }
 
+logger::Logger HttpServer::getLogger() const { return logger_; }
+
 bool HttpServer::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {
     return true;
@@ -31,12 +39,12 @@ bool HttpServer::start() {
   boost::system::error_code ec;
   acceptor_.bind(ep_, ec);
   if (ec) {
-    LOG(log_er_) << "HttpServer cannot bind ... " << ec.message() << "\n";
+    logger_->error("HttpServer cannot bind ... {}", ec.message());
     throw std::runtime_error(ec.message());
   }
   acceptor_.listen();
 
-  LOG(log_nf_) << "HttpServer is listening on port " << ep_.port() << std::endl;
+  logger_->info("HttpServer is listening on port {}", ep_.port());
   accept();
   return true;
 }
@@ -49,7 +57,7 @@ void HttpServer::accept() {
     } else {
       if (stopped_) return;
 
-      LOG(log_er_) << "Error! HttpServer async_accept error ... " << ec.message() << "\n";
+      logger_->error("Error! HttpServer async_accept error ... {}", ec.message());
       throw std::runtime_error(ec.message());
     }
     if (stopped_) return;
@@ -63,7 +71,7 @@ bool HttpServer::stop() {
   }
   io_context_.stop();
   acceptor_.close();
-  LOG(log_tr_) << "stop";
+  logger_->trace("stop");
   return true;
 }
 
@@ -82,7 +90,7 @@ HttpConnection::HttpConnection(const std::shared_ptr<HttpServer> &http_server)
 void HttpConnection::stop() {
   if (socket_.is_open()) {
     try {
-      LOG(server_->log_dg_) << "Closing connection...";
+      server_->getLogger()->debug("Closing connection...");
       socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
       socket_.close();
     } catch (...) {
@@ -94,7 +102,7 @@ void HttpConnection::read() {
   boost::beast::http::async_read(
       socket_, buffer_, request_, [this, this_sp = getShared()](boost::system::error_code const &ec, size_t) {
         if (ec) {
-          LOG(server_->log_er_) << "Error! HttpConnection connection read fail ... " << ec.message() << std::endl;
+          server_->getLogger()->error("Error! HttpConnection connection read fail ... {}", ec.message());
           stop();
         } else {
           std::string ip = request_["X-Real-IP"];
@@ -108,7 +116,7 @@ void HttpConnection::read() {
           }
 
           assert(server_->request_processor_);
-          LOG(server_->log_dg_) << "Received: " << request_;
+          server_->getLogger()->debug("Received: ", request_);
 
           auto start_time = std::chrono::steady_clock::now();
           response_ = server_->request_processor_->process(request_);

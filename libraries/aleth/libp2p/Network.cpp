@@ -32,14 +32,14 @@ std::set<bi::address> Network::getInterfaceAddresses() {
 
   char ac[80];
   if (gethostname(ac, sizeof(ac)) == SOCKET_ERROR) {
-    cnetlog << "Error " << WSAGetLastError() << " when getting local host name.";
+    net_logger_->debug("Error {}" WSAGetLastError() " when getting local host name.");
     WSACleanup();
     BOOST_THROW_EXCEPTION(NoNetworking());
   }
 
   struct hostent* phe = gethostbyname(ac);
   if (phe == 0) {
-    cnetlog << "Bad host lookup.";
+    net_logger_->debug("Bad host lookup.");
     WSACleanup();
     BOOST_THROW_EXCEPTION(NoNetworking());
   }
@@ -143,13 +143,14 @@ bi::tcp::endpoint Network::traverseNAT(std::set<bi::address> const& _ifAddresses
     auto eIP = upnp->externalIP();
     bi::address eIPAddr(bi::make_address(eIP));
     if (extPort && eIP != string("0.0.0.0") && !isPrivateAddress(eIPAddr)) {
-      cnetnote << "Punched through NAT and mapped local port " << _listenPort << " onto external port " << extPort
-               << ".";
-      cnetnote << "External addr: " << eIP;
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->info(
+          "Punched through NAT and mapped local port {} onto external port {}.", _listenPort, extPort);
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->info("External addr: {}", eIP);
       o_upnpInterfaceAddr = pAddr;
       upnpEP = bi::tcp::endpoint(eIPAddr, (unsigned short)extPort);
     } else
-      cnetlog << "Couldn't punch through NAT (or no NAT in place).";
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->debug(
+          "Couldn't punch through NAT (or no NAT in place).");
   }
 
   return upnpEP;
@@ -178,7 +179,8 @@ bi::tcp::endpoint Network::resolveHost(string const& _addr) {
     bi::tcp::resolver r(s_resolverIoContext);
     auto res = r.resolve(bi::tcp::v4(), split[0], toString(port), ec);
     if (ec || res.empty()) {
-      cnetlog << "Error resolving host address... " << _addr << " : " << ec.message();
+      taraxa::logger::Logging::get().CreateChannelLogger("net")->debug("Error resolving host address... {} : {}", _addr,
+                                                                       ec.message());
       return bi::tcp::endpoint();
     } else
       ep = *res.begin();

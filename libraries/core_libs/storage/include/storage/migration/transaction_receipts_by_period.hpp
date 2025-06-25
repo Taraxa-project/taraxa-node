@@ -11,6 +11,6 @@ class TransactionReceiptsByPeriod : public migration::Base {
   uint32_t dbVersion() override;
 
  protected:
-  void migrate(logger::Logger& log) override;
+  void migrate(logger::Logger& logger) override;
 };
 }  // namespace taraxa::storage::migration

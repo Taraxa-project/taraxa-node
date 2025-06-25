@@ -2,7 +2,7 @@
 
 #include "common/encoding_solidity.hpp"
 #include "common/init.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 #include "test_util/test_util.hpp"
@@ -577,15 +577,4 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
 
 }  // namespace taraxa::core_tests
 
-using namespace taraxa;
-int main(int argc, char** argv) {
-  taraxa::static_init();
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
-
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

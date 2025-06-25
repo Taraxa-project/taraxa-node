@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/ostream.h>
 #include <libdevcore/Address.h>
 #include <libdevcore/FixedHash.h>
 #include <libdevcrypto/Common.h>
@@ -45,7 +46,6 @@ using trx_hash_t = uint256_hash_t;
 using gas_t = uint64_t;
 using level_t = uint64_t;
 using val_t = dev::u256;
-using root_t = dev::h256;
 
 using vec_blk_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;

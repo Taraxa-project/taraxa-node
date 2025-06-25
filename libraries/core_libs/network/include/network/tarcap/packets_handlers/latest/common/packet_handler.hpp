@@ -6,7 +6,7 @@
 #include <string_view>
 
 #include "exceptions.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/packet_types.hpp"
 #include "network/tarcap/packets_handlers/latest/common/base_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/common/exceptions.hpp"
@@ -33,8 +33,7 @@ dev::bytes encodePacketRlp(PacketType packet) {
 class PacketHandler : public BasePacketHandler {
  public:
   PacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
-                std::shared_ptr<TimePeriodPacketsStats> packets_stats, const addr_t& node_addr,
-                const std::string& log_channel_name);
+                std::shared_ptr<TimePeriodPacketsStats> packets_stats, const std::string& log_channel_name);
 
   virtual ~PacketHandler() = default;
   PacketHandler(const PacketHandler&) = default;
@@ -74,8 +73,7 @@ class PacketHandler : public BasePacketHandler {
   // Shared packet stats
   std::shared_ptr<TimePeriodPacketsStats> packets_stats_;
 
-  // Declare logger instances
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::tarcap

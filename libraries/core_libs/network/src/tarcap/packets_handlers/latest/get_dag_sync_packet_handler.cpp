@@ -10,8 +10,8 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(const FullNodeConfig &conf, std
                                                  std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
-                                                 const addr_t &node_addr, const std::string &logs_prefix)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, logs_prefix + "GET_DAG_SYNC_PH"),
+                                                 const std::string &logs_prefix)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), logs_prefix + "GET_DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
       db_(std::move(db)) {}
@@ -42,7 +42,7 @@ void GetDagSyncPacketHandler::process(const threadpool::PacketData &packet_data,
     }
   }
 
-  LOG(log_dg_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();
+  logger_->debug("Received GetDagSyncPacket: {} from {}", blocks_hashes_to_log, peer->getId());
 
   auto [period, blocks, transactions] = dag_mgr_->getNonFinalizedBlocksWithTransactions(blocks_hashes_set);
   if (packet.peer_period == period) {

@@ -5,6 +5,7 @@
 
 #include <libdevcrypto/Common.h>
 
+#include <logger/logging.hpp>
 #include <memory>
 
 #include "Common.h"
@@ -134,8 +135,8 @@ struct RLPXHandshake final : std::enable_shared_from_this<RLPXHandshake> {
 
   HandshakeFailureReason m_failureReason;
 
-  Logger m_logger{createLogger(VerbosityTrace, "rlpx")};
-  Logger m_errorLogger{createLogger(VerbosityError, "rlpx")};
+  std::string suffix;
+  taraxa::logger::Logger m_logger;
 };
 
 }  // namespace p2p

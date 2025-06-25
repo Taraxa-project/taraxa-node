@@ -2,7 +2,7 @@
 
 #include "common/init.hpp"
 #include "dag/dag_manager.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "test_util/node_dag_creation_fixture.hpp"
 
@@ -760,15 +760,4 @@ TEST_F(PbftManagerWithDagCreation, state_root_hash) {
 
 }  // namespace taraxa::core_tests
 
-using namespace taraxa;
-int main(int argc, char **argv) {
-  taraxa::static_init();
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
-
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

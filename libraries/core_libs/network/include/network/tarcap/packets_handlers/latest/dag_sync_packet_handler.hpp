@@ -16,7 +16,7 @@ class DagSyncPacketHandler : public ISyncPacketHandler {
                        std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                       const addr_t& node_addr, const std::string& logs_prefix = "");
+                       const std::string& logs_prefix = "");
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kDagSyncPacket;

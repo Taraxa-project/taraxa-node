@@ -15,8 +15,7 @@ class TransactionPacketHandler : public ITransactionPacketHandler {
  public:
   TransactionPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                           std::shared_ptr<TransactionManager> trx_mgr, const addr_t& node_addr,
-                           const std::string& logs_prefix = "");
+                           std::shared_ptr<TransactionManager> trx_mgr, const std::string& logs_prefix = "");
 
   /**
    * @brief Send transactions

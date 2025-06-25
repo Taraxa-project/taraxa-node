@@ -228,10 +228,7 @@ NodesTest::NodesTest() {
 
     cfg.data_path = "/tmp/taraxa" + std::to_string(i);
     cfg.db_path = cfg.data_path / "db";
-    cfg.log_path = cfg.data_path / "log";
-    taraxa::logger::Config log_cfg(cfg.log_path);
-    log_cfg.verbosity = taraxa::logger::Verbosity::Error;
-    cfg.log_configs.emplace_back(log_cfg);
+    cfg.logging = logger::CreateDefaultLoggingConfig();
     cfg.network.rpc.emplace();
     cfg.network.rpc->address = boost::asio::ip::make_address("127.0.0.1");
     cfg.network.rpc->http_port = 7778 + i;

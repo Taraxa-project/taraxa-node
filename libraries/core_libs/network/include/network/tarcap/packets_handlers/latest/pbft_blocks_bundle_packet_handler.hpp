@@ -15,7 +15,7 @@ class PbftBlocksBundlePacketHandler : public PacketHandler {
   PbftBlocksBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                 std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                 std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftSyncingState> syncing_state,
-                                const addr_t& node_addr, const std::string& logs_prefix = "");
+                                const std::string& logs_prefix = "");
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::kPbftBlocksBundlePacket;

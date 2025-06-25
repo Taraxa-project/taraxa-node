@@ -122,14 +122,9 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, const std::
     }
   }
 
-  // Override log channels
-  if (log_channels.size() > 0) {
-    conf["logging"]["configurations"][0u]["channels"] = Json::Value(Json::arrayValue);
-  }
-
   // Turn on logging configurations
   if (log_configurations.size() > 0) {
-    for (Json::Value& node : conf["logging"]["configurations"]) {
+    for (Json::Value& node : conf["logging"]["outputs"]) {
       for (const auto& log_conf : log_configurations) {
         if (node["name"].asString() == log_conf) {
           node["on"] = true;
@@ -137,27 +132,41 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, const std::
       }
     }
   }
-  if (log_channels_append.size() > 0) {
-    for (auto const& l : log_channels_append) {
+
+  auto appendChannels = [](Json::Value& channels_json, const std::vector<std::string>& new_channels) {
+    for (auto const& new_channel : new_channels) {
       vector<string> result;
-      boost::split(result, l, boost::is_any_of(":"));
+      boost::split(result, new_channel, boost::is_any_of(":"));
       if (result.size() != 2) throw invalid_argument("Log channel in log_channels not specified correctly");
 
       bool found = false;
-      for (Json::Value& node : conf["logging"]["configurations"][0u]["channels"]) {
+      for (Json::Value& node : channels_json) {
         if (node["name"].asString() == result[0]) {
           found = true;
           node["verbosity"] = result[1];
         }
       }
+
       if (!found) {
         Json::Value channel_node;
         channel_node["name"] = result[0];
         channel_node["verbosity"] = result[1];
-        conf["logging"]["configurations"][0u]["channels"].append(channel_node);
+        channels_json.append(channel_node);
       }
     }
+  };
+
+  // Override log channels
+  if (log_channels.size() > 0) {
+    conf["logging"]["channels"] = Json::Value(Json::arrayValue);
+    appendChannels(conf["logging"]["channels"], log_channels);
   }
+
+  // Append log channels
+  if (log_channels_append.size() > 0) {
+    appendChannels(conf["logging"]["channels"], log_channels_append);
+  }
+
   return conf;
 }
 

@@ -2,7 +2,7 @@
 #include <libdevcore/SHA3.h>
 
 #include "common/init.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -272,15 +272,4 @@ TEST_F(VoteTest, vote_count_compare) {
 
 }  // namespace taraxa::core_tests
 
-using namespace taraxa;
-int main(int argc, char **argv) {
-  taraxa::static_init();
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
-
-  addr_t node_addr;
-  logger::InitLogging(logging, node_addr);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

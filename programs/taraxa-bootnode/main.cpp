@@ -1,14 +1,9 @@
 #include <libp2p/Common.h>
 #include <libp2p/Host.h>
 
-#include <boost/core/null_deleter.hpp>
-#include <boost/log/attributes/clock.hpp>
-#include <boost/log/sources/severity_channel_logger.hpp>
-#include <boost/log/utility/exception_handler.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <condition_variable>
-#include <cstdint>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -19,6 +14,8 @@
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "config/version.hpp"
+#include "logger/logging.hpp"
+#include "logger/logging_config.hpp"
 
 namespace po = boost::program_options;
 namespace bi = boost::asio::ip;
@@ -28,46 +25,26 @@ std::string const kProgramName = "taraxa-bootnode";
 std::string const kNetworkConfigFileName = kProgramName + "-network.rlp";
 static constexpr unsigned kLineWidth = 160;
 
-BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", int)
+taraxa::LoggingConfig setupLogging(int logging_verbosity) {
+  taraxa::LoggingConfig logging_config;
 
-po::options_description createLoggingProgramOptions(dev::LoggingOptions& options) {
-  po::options_description options_descr("LOGGING OPTIONS", kLineWidth);
-  auto addLoggingOption = options_descr.add_options();
-  addLoggingOption("log-verbosity,v", po::value<int>(&options.verbosity)->value_name("<0 - 4>"),
-                   "Set the log verbosity from 0 to 4 (default: 2).");
-  return options_descr;
-}
+  taraxa::LoggingConfig::SinkConfig default_sink;
+  default_sink.on = true;
+  default_sink.verbosity = static_cast<spdlog::level::level_enum>(logging_verbosity);
 
-void setupLogging(dev::LoggingOptions const& options) {
-  auto sink = boost::make_shared<boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>>();
+  auto& console_sink = logging_config.outputs.emplace_back(default_sink);
+  console_sink.type = taraxa::LoggingConfig::LoggingType::Console;
+  console_sink.name = "console";
 
-  boost::shared_ptr<std::ostream> stream{&std::cout, boost::null_deleter{}};
-  sink->locked_backend()->add_stream(stream);
-  // Enable auto-flushing after each log record written
-  sink->locked_backend()->auto_flush(true);
+  auto& file_sink = logging_config.outputs.emplace_back(default_sink);
+  console_sink.type = taraxa::LoggingConfig::LoggingType::File;
+  console_sink.name = "file";
+  console_sink.file_name = "boot-node.log";
+  console_sink.file_full_path = console_sink.file_name;
+  file_sink.rotation_size = 10000000;
+  file_sink.max_files_num = 10;
 
-  sink->set_filter([options](boost::log::attribute_value_set const& set) {
-    if (set[severity] > options.verbosity) return false;
-    return true;
-  });
-
-  sink->set_formatter(boost::log::aux::acquire_formatter("%Channel% [%TimeStamp%] %SeverityStr%: %Message%"));
-
-  boost::log::core::get()->add_sink(sink);
-
-  auto file_sink = boost::log::add_file_log(boost::log::keywords::file_name = "boot-node.log",
-                                            boost::log::keywords::rotation_size = 10000000,
-                                            boost::log::keywords::max_size = 10000000l);
-
-  file_sink->set_formatter(boost::log::aux::acquire_formatter("%Channel% [%TimeStamp%] %SeverityStr%: %Message%"));
-  file_sink->locked_backend()->auto_flush(true);
-
-  boost::log::core::get()->add_sink(file_sink);
-
-  boost::log::core::get()->add_global_attribute("TimeStamp", boost::log::attributes::local_clock());
-
-  boost::log::core::get()->set_exception_handler(boost::log::make_exception_handler<std::exception>(
-      [](std::exception const& _ex) { std::cerr << "Exception from the logging library: " << _ex.what() << '\n'; }));
+  return logging_config;
 }
 
 dev::KeyPair getKey(std::string const& path) {
@@ -88,14 +65,17 @@ dev::KeyPair getKey(std::string const& path) {
 int main(int argc, char** argv) {
   bool denyLocalDiscovery;
   std::string wallet;
+  int logging_verbosity;
 
   po::options_description general_options("GENERAL OPTIONS", kLineWidth);
   auto addGeneralOption = general_options.add_options();
   addGeneralOption("help,h", "Show this help message and exit\n");
   addGeneralOption("version", "Print version of taraxad");
 
-  dev::LoggingOptions logging_options;
-  po::options_description logging_program_options(createLoggingProgramOptions(logging_options));
+  po::options_description logging_options("LOGGING OPTIONS", kLineWidth);
+  auto addLoggingOption = logging_options.add_options();
+  addLoggingOption("log-verbosity,v", po::value<int>(&logging_verbosity)->value_name("<0 - 4>"),
+                   "Set the log verbosity from 0 to 4 (default: 2).");
 
   po::options_description client_networking("NETWORKING", kLineWidth);
   auto addNetworkingOption = client_networking.add_options();
@@ -114,7 +94,7 @@ int main(int argc, char** argv) {
   addNetworkingOption("wallet", po::value<std::string>(&wallet),
                       "JSON wallet file, if not specified key random generated");
   po::options_description allowedOptions("Allowed options");
-  allowedOptions.add(general_options).add(logging_program_options).add(client_networking);
+  allowedOptions.add(general_options).add(logging_options).add(client_networking);
 
   po::variables_map vm;
   try {
@@ -131,7 +111,7 @@ int main(int argc, char** argv) {
               << "   " << kProgramName << std::endl
               << "USAGE:\n"
               << "   " << kProgramName << " [options]\n\n";
-    std::cout << general_options << client_networking << logging_program_options;
+    std::cout << general_options << client_networking << logging_options;
     return 0;
   }
 
@@ -154,16 +134,17 @@ int main(int argc, char** argv) {
   if (vm.count("listen")) listen_port = vm["listen"].as<uint16_t>();
   if (vm.count("number-of-threads")) num_of_threads = vm["number-of-threads"].as<uint32_t>();
 
-  setupLogging(logging_options);
-  if (logging_options.verbosity > 0)
-    std::cout << EthGrayBold << kProgramName << ", a Taraxa bootnode implementation" EthReset << std::endl;
+  const auto logging_config = setupLogging(logging_verbosity);
+  taraxa::logger::Logging::get().Init(logging_config);
+  auto logger = taraxa::logger::Logging::get().CreateChannelLogger("BOOTNODE");
+  logger->info("{}, a Taraxa bootnode implementation", kProgramName);
 
   auto key = dev::KeyPair(dev::Secret::random());
   if (!wallet.empty()) {
     try {
       key = getKey(wallet);
     } catch (std::exception const& e) {
-      std::cerr << e.what() << std::endl;
+      logger->error("Wallet key err: ", e.what());
       return 1;
     }
   }
@@ -189,7 +170,7 @@ int main(int argc, char** argv) {
   }
 
   if (boot_host->isRunning()) {
-    std::cout << "Node ID: " << boot_host->enode() << std::endl;
+    logger->info("Node ID: {}", boot_host->enode());
     if (static_cast<taraxa::cli::Config::ChainIdType>(chain_id) < taraxa::cli::Config::ChainIdType::LastNetworkId) {
       const auto conf = taraxa::cli::tools::getConfig(static_cast<taraxa::cli::Config::ChainIdType>(chain_id));
       for (auto const& bn : conf["network"]["boot_nodes"]) {
@@ -200,10 +181,13 @@ int main(int argc, char** argv) {
                            dev::p2p::PeerType::Required));
       }
     }
+
     // TODO graceful shutdown
     std::mutex mu;
     std::unique_lock l(mu);
     std::condition_variable().wait(l);
   }
+
+  taraxa::logger::Logging::get().Deinit();
   return 0;
 }

@@ -4,6 +4,7 @@
 #include "common/vrf_wrapper.hpp"
 #include "final_chain/final_chain.hpp"
 #include "key_manager/key_manager.hpp"
+#include "logger/logging.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "vote/pbft_vote.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -313,7 +314,7 @@ class VoteManager {
   // It is used as protection against ddos attack so we do no validate/process vote more than once
   mutable ExpirationCache<vote_hash_t> already_validated_votes_;
 
-  LOG_OBJECTS_DEFINE
+  logger::Logger logger_;
 };
 
 /** @}*/

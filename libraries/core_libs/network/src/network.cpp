@@ -34,14 +34,13 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
       pbft_mgr_(pbft_mgr),
       tp_(config.network.num_threads, false),
       packets_tp_(std::make_shared<network::threadpool::PacketsThreadPool>(config.network.packets_processing_threads,
-                                                                           pbft_mgr, kConf.getFirstWallet().node_addr)),
-      periodic_events_tp_(kPeriodicEventsThreadCount, false) {
-  auto const &node_addr = kConf.getFirstWallet().node_addr;
-  LOG_OBJECTS_CREATE("NETWORK");
-  LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
+                                                                           pbft_mgr)),
+      periodic_events_tp_(kPeriodicEventsThreadCount, false),
+      logger_(logger::Logging::get().CreateChannelLogger("NETWORK")) {
+  logger_->info("Read Network Config: {}\n", config.network.toString());
 
   all_packets_stats_ = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
-      kConf.network.ddos_protection.packets_stats_time_period_ms, node_addr);
+      kConf.network.ddos_protection.packets_stats_time_period_ms);
 
   node_stats_ = std::make_shared<network::tarcap::NodeStats>(pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
                                                              vote_mgr, trx_mgr, all_packets_stats_, packets_tp_, kConf);
@@ -107,8 +106,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
     tp_.post_loop({100 + i * 20}, [this] { while (0 < host_->do_work()); });
   }
 
-  LOG(log_nf_) << "Configured host. Listening on address: " << config.network.listen_ip << ":"
-               << config.network.listen_port;
+  logger_->info("Configured host. Listening on address: {}:{}", config.network.listen_ip, config.network.listen_port);
 }
 
 Network::~Network() {
@@ -122,7 +120,7 @@ void Network::start() {
   tp_.start();
   periodic_events_tp_.start();
 
-  LOG(log_nf_) << "Started Node id: " << host_->id() << ", listening on port " << host_->listenPort();
+  logger_->info("Started Node id: {}, listening on port {}", host_->id(), host_->listenPort());
 }
 
 bool Network::isStarted() { return tp_.is_running(); }
@@ -269,17 +267,17 @@ void Network::addBootNodes(bool initial) {
 
     if (std::any_of(kConf.wallets.begin(), kConf.wallets.end(),
                     [&pub](const WalletConfig &wallet) { return pub == wallet.node_pk; })) {
-      LOG(log_wr_) << "not adding self to the boot node list ";
+      logger_->warn("not adding self to the boot node list ");
       continue;
     }
 
     if (host_->nodeTableHasNode(pub)) {
-      LOG(log_dg_) << "skipping node " << node.id << " already in table";
+      logger_->debug("skipping node {} already in table", node.id);
       continue;
     }
 
     auto ip = resolveHost(node.ip, node.port);
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port << " " << ip.second.address().to_string();
+    logger_->info("Adding boot node:{}:{} {}", node.ip, node.port, ip.second.address().to_string());
     dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.port, node.port),
                              dev::p2p::PeerType::Required);
     host_->addNode(boot_node);

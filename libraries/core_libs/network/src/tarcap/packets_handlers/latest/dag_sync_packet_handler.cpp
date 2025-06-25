@@ -14,9 +14,9 @@ DagSyncPacketHandler::DagSyncPacketHandler(const FullNodeConfig& conf, std::shar
                                            std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                            std::shared_ptr<DagManager> dag_mgr,
                                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                                           const addr_t& node_addr, const std::string& logs_prefix)
+                                           const std::string& logs_prefix)
     : ISyncPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                         std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
+                         std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db),
                          logs_prefix + "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
@@ -26,8 +26,8 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
 
   // If the periods did not match restart syncing
   if (packet.response_period > packet.request_period) {
-    LOG(log_dg_) << "Received DagSyncPacket with mismatching periods: " << packet.response_period << " "
-                 << packet.request_period << " from " << peer->getId();
+    logger_->debug("Received DagSyncPacket with mismatching periods: {} {} from {}", packet.response_period,
+                   packet.request_period, peer->getId());
     if (peer->pbft_chain_size_ < packet.response_period) {
       peer->pbft_chain_size_ = packet.response_period;
     }
@@ -73,7 +73,7 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
     peer->markDagBlockAsKnown(block->getHash());
 
     if (dag_mgr_->isDagBlockKnown(block->getHash())) {
-      LOG(log_tr_) << "Received known DagBlock " << block->getHash() << "from: " << peer->getId();
+      logger_->trace("Received known DagBlock {}from: {}", block->getHash(), peer->getId());
       continue;
     }
 
@@ -103,8 +103,8 @@ void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, co
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   peer->peer_dag_syncing_ = false;
 
-  LOG(log_dg_) << "Received DagSyncPacket with blocks: " << dag_blocks_to_log
-               << " Transactions: " << transactions_to_log << " from " << peer->getId();
+  logger_->debug("Received DagSyncPacket with blocks: {} Transactions: {} from {}", dag_blocks_to_log,
+                 transactions_to_log, peer->getId());
 }
 
 }  // namespace taraxa::network::tarcap

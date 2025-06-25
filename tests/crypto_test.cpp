@@ -11,7 +11,7 @@
 #include "common/init.hpp"
 #include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "test_util/gtest.hpp"
 #include "vdf/sortition.hpp"
 #include "vote/vrf_sortition.hpp"
@@ -542,16 +542,4 @@ TEST_F(CryptoTest, leader_selection) {
 
 }  // namespace taraxa::core_tests
 
-using namespace taraxa;
-int main(int argc, char** argv) {
-  taraxa::static_init();
-
-  auto logging = logger::createDefaultLoggingConfig();
-  logging.verbosity = logger::Verbosity::Error;
-  logging.channels["SORTITION"] = logger::Verbosity::Error;
-  addr_t node_addr;
-  logging.InitLogging(node_addr);
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+TARAXA_TEST_MAIN({})

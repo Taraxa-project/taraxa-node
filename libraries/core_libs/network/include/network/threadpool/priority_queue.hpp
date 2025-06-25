@@ -5,7 +5,7 @@
 #include <array>
 #include <utility>
 
-#include "logger/logger.hpp"
+#include "logger/logging.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/packets_blocking_mask.hpp"
 #include "packets_queue.hpp"
@@ -18,8 +18,7 @@ namespace taraxa::network::threadpool {
 
 class PriorityQueue {
  public:
-  PriorityQueue(size_t tp_workers_count, const std::shared_ptr<PbftManager>& pbft_mgr = nullptr,
-                const addr_t& node_addr = {});
+  PriorityQueue(size_t tp_workers_count, const std::shared_ptr<PbftManager>& pbft_mgr = nullptr);
   ~PriorityQueue() = default;
 
   PriorityQueue(const PriorityQueue&) = delete;
@@ -91,9 +90,6 @@ class PriorityQueue {
   bool canBorrowThread();
 
  private:
-  // Declare logger instances
-  LOG_OBJECTS_DEFINE
-
   // Queues that group packets by it's priority.
   // All packets with PacketPriority::High go to packets_queues_[PacketPriority::High], etc...
   // TODO: make packets_queues_ const
@@ -109,6 +105,8 @@ class PriorityQueue {
 
   // How many workers are currently processing packets from all the queues at the same time
   std::atomic<size_t> act_total_workers_count_;
+
+  logger::Logger logger_;
 };
 
 }  // namespace taraxa::network::threadpool

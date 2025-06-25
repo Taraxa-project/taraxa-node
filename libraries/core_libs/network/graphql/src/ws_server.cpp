@@ -85,7 +85,7 @@ void GraphQlWsSession::triggerTestSubscribtion(unsigned int number) {
 }
 
 std::shared_ptr<WsSession> GraphQlWsServer::createSession(tcp::socket&& socket) {
-  return std::make_shared<GraphQlWsSession>(std::move(socket), node_addr_, shared_from_this());
+  return std::make_shared<GraphQlWsSession>(std::move(socket), shared_from_this());
 }
 
 }  // namespace taraxa::net

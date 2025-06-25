@@ -5,6 +5,7 @@
 #include "Common.h"
 
 #include "Log.h"
+#include "logger/logging.hpp"
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -19,7 +20,8 @@ std::string const EmptyString;
 TimerHelper::~TimerHelper() {
   auto e = std::chrono::high_resolution_clock::now() - m_t;
   if (!m_ms || e > chrono::milliseconds(m_ms))
-    clog(VerbosityDebug, "timer") << m_id << " " << chrono::duration_cast<chrono::milliseconds>(e).count() << " ms";
+    taraxa::logger::Logging::get().CreateChannelLogger("timer")->debug(
+        "{} {} ms", m_id, chrono::duration_cast<chrono::milliseconds>(e).count());
 }
 
 int64_t utcTime() {
