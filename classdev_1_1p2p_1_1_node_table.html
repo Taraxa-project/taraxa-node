@@ -293,8 +293,10 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:ae1d9a153f6d72f9fd7915952d55ec69f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92c64ace79e05f17576bcde63dd5e200" id="r_a92c64ace79e05f17576bcde63dd5e200"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">const</a> std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a92c64ace79e05f17576bcde63dd5e200">m_requestTimeToLive</a></td></tr>
 <tr class="separator:a92c64ace79e05f17576bcde63dd5e200"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afdbddbd02225acb05be4680c60725770" id="r_afdbddbd02225acb05be4680c60725770"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#afdbddbd02225acb05be4680c60725770">m_logger</a> {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a73f1cfe530632048dd623729258af859">VerbosityDebug</a>, &quot;discov&quot;)}</td></tr>
-<tr class="separator:afdbddbd02225acb05be4680c60725770"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fcf5b63a806b898554b909c402f2166" id="r_a2fcf5b63a806b898554b909c402f2166"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">taraxa::logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a2fcf5b63a806b898554b909c402f2166">discov_logger_</a></td></tr>
+<tr class="separator:a2fcf5b63a806b898554b909c402f2166"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7350baea2a70e95b6930537c012a366c" id="r_a7350baea2a70e95b6930537c012a366c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">taraxa::logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a7350baea2a70e95b6930537c012a366c">net_logger_</a></td></tr>
+<tr class="separator:a7350baea2a70e95b6930537c012a366c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5040a39ab412f595949822dc80854ded" id="r_a5040a39ab412f595949822dc80854ded"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1p2p_1_1_endpoint_tracker.html">EndpointTracker</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a5040a39ab412f595949822dc80854ded">m_endpointTracker</a></td></tr>
 <tr class="separator:a5040a39ab412f595949822dc80854ded"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2f9a2ca450752e1315377a8fd4252ff" id="r_ab2f9a2ca450752e1315377a8fd4252ff"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; ba::steady_timer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#ab2f9a2ca450752e1315377a8fd4252ff">m_discoveryTimer</a></td></tr>
@@ -1859,6 +1861,28 @@ nodes</td>
 
 </div>
 </div>
+<a id="a2fcf5b63a806b898554b909c402f2166" name="a2fcf5b63a806b898554b909c402f2166"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2fcf5b63a806b898554b909c402f2166">&#9670;&#160;</a></span>discov_logger_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">taraxa::logger::Logger</a> dev::p2p::NodeTable::discov_logger_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7689da715d506749ce8e308266a1e645" name="a7689da715d506749ce8e308266a1e645"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7689da715d506749ce8e308266a1e645">&#9670;&#160;</a></span>is_boot_node_</h2>
 
@@ -2196,28 +2220,6 @@ nodes</td>
 
 </div>
 </div>
-<a id="afdbddbd02225acb05be4680c60725770" name="afdbddbd02225acb05be4680c60725770"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afdbddbd02225acb05be4680c60725770">&#9670;&#160;</a></span>m_logger</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a> dev::p2p::NodeTable::m_logger {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a73f1cfe530632048dd623729258af859">VerbosityDebug</a>, &quot;discov&quot;)}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a0befe57f0dca2c986be36ed5dc2e39fa" name="a0befe57f0dca2c986be36ed5dc2e39fa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0befe57f0dca2c986be36ed5dc2e39fa">&#9670;&#160;</a></span>m_nodeEventHandler</h2>
 
@@ -2368,6 +2370,28 @@ nodes</td>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;ba::steady_timer&gt; dev::p2p::NodeTable::m_timeoutsTimer</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7350baea2a70e95b6930537c012a366c" name="a7350baea2a70e95b6930537c012a366c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7350baea2a70e95b6930537c012a366c">&#9670;&#160;</a></span>net_logger_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">taraxa::logger::Logger</a> dev::p2p::NodeTable::net_logger_</td>
         </tr>
       </table>
   </td>

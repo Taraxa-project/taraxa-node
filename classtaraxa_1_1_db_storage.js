@@ -2,7 +2,7 @@ var classtaraxa_1_1_db_storage =
 [
     [ "Column", "classtaraxa_1_1_db_storage_1_1_column.html", "classtaraxa_1_1_db_storage_1_1_column" ],
     [ "Columns", "classtaraxa_1_1_db_storage_1_1_columns.html", "classtaraxa_1_1_db_storage_1_1_columns" ],
-    [ "DbStorage", "classtaraxa_1_1_db_storage.html#aa41cccbaab43c81d7297013102e8f83c", null ],
+    [ "DbStorage", "classtaraxa_1_1_db_storage.html#acf7daa269e4a44489ce11c9389bf73e5", null ],
     [ "~DbStorage", "classtaraxa_1_1_db_storage.html#aa1e26b8951b25a1af8cdb312a2b36919", null ],
     [ "DbStorage", "classtaraxa_1_1_db_storage.html#af1708845f17561a106abe94391a964f7", null ],
     [ "DbStorage", "classtaraxa_1_1_db_storage.html#a79a9960113464b742cc432cd57415486", null ],
@@ -165,6 +165,7 @@ var classtaraxa_1_1_db_storage =
     [ "kDbSnapshotsMaxCount", "classtaraxa_1_1_db_storage.html#a38f8ba07d58403570c8fd6f319142e96", null ],
     [ "kMajorVersion_", "classtaraxa_1_1_db_storage.html#a372d35a6d09263ab93ae4203b078a53f", null ],
     [ "kStateDbDir", "classtaraxa_1_1_db_storage.html#a9eada0d4c8d369f4259bd90dfaf008de", null ],
+    [ "logger_", "classtaraxa_1_1_db_storage.html#a6fad3eb0fbd3f3baaa7dadd47ec6c250", null ],
     [ "major_version_changed_", "classtaraxa_1_1_db_storage.html#a6a7b32f849d254434a433f9ac4b674cb", null ],
     [ "minor_version_changed_", "classtaraxa_1_1_db_storage.html#a436aff92256ca1bb93c76443efaa7c10", null ],
     [ "path_", "classtaraxa_1_1_db_storage.html#a52ace18f00268bf8a3d4816172fcca01", null ],

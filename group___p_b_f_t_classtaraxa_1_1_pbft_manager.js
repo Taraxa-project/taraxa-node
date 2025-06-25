@@ -113,6 +113,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "kSyncingThreadPoolSize", "group___p_b_f_t.html#a3b3876bcb7232011bf4d5a8edc1cea07", null ],
     [ "lambda_", "group___p_b_f_t.html#a4a9ad92258f3a06894de79875784e63b", null ],
     [ "last_placed_pillar_vote_period_", "group___p_b_f_t.html#a8def0b43fab2662fd5e418faad7a2fcd", null ],
+    [ "logger_", "group___p_b_f_t.html#afc5547833aff64ce18a110aec67c06a0", null ],
     [ "loop_back_finish_state_", "group___p_b_f_t.html#ac223cb71b31a508a0be870366c48b877", null ],
     [ "network_", "group___p_b_f_t.html#ac7c6c733e7085039af62ccb5ba167da9", null ],
     [ "next_step_time_ms_", "group___p_b_f_t.html#a60b3092152bc8fc64ab68638ef6f39aa", null ],

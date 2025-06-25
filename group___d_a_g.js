@@ -17,7 +17,7 @@ var group___d_a_g =
       [ "vertex_period_map_t", "group___d_a_g.html#a262ea0431771b3a8e17b14d4639bb43c", null ],
       [ "vertex_property_t", "group___d_a_g.html#a0114e4a84e7e887892cf3df8eb89b8ca", null ],
       [ "vertex_t", "group___d_a_g.html#aedd4ab062b216be0eec87417a5ccb1ff", null ],
-      [ "Dag", "group___d_a_g.html#a7def37042439fa3c713ea8861d40b199", null ],
+      [ "Dag", "group___d_a_g.html#ab4dc8cb20eaedf4afb1a7d02bad39505", null ],
       [ "~Dag", "group___d_a_g.html#a4fa4e6e26fedaa5e1fc0fdb802c4a69a", null ],
       [ "Dag", "group___d_a_g.html#a6266d656a7eba53bac6fa8dc7e7eb5da", null ],
       [ "Dag", "group___d_a_g.html#a91d4f1eb81776e18f3908374d0eef614", null ],
@@ -34,13 +34,14 @@ var group___d_a_g =
       [ "operator=", "group___d_a_g.html#a849ad9e5c804fb23049cc0dcbf81fcbb", null ],
       [ "reachable", "group___d_a_g.html#a28322d856a13e424d0f4aa93a25690f3", null ],
       [ "DagManager", "group___d_a_g.html#a39d3bee9060aaa7149e6d979f1df125e", null ],
-      [ "graph_", "group___d_a_g.html#a0ea9e01202a61f80b3ed0175515db2bf", null ]
+      [ "graph_", "group___d_a_g.html#a0ea9e01202a61f80b3ed0175515db2bf", null ],
+      [ "logger_", "group___d_a_g.html#ab6f667c27e78d35da868bfde9117de67", null ]
     ] ],
     [ "taraxa::PivotTree", "group___d_a_g.html#classtaraxa_1_1_pivot_tree", [
       [ "vertex_adj_iter_t", "group___d_a_g.html#a25673c13616627747de49dfc52659715", null ],
       [ "vertex_index_map_const_t", "group___d_a_g.html#a1b2178eac432bfa3c314f03d8e603542", null ],
       [ "vertex_t", "group___d_a_g.html#aedd4ab062b216be0eec87417a5ccb1ff", null ],
-      [ "PivotTree", "group___d_a_g.html#aeb623a2dd2ca1842ae5cd609bdaa3a21", null ],
+      [ "PivotTree", "group___d_a_g.html#a6bd4f2c5c261ff4c86d8943a929c92c8", null ],
       [ "~PivotTree", "group___d_a_g.html#a07534cb54fc033a78ec54666c92fe0eb", null ],
       [ "PivotTree", "group___d_a_g.html#a7f00185a260406eb025c473f2f74da1c", null ],
       [ "PivotTree", "group___d_a_g.html#aece3a8463f93b0b4fd5c62d7830e6562", null ],
@@ -95,6 +96,7 @@ var group___d_a_g =
       [ "kPbftGasLimit", "group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84", null ],
       [ "kShardProposePeriodInterval", "group___d_a_g.html#a297f47c5cf521c50f02108ae2872b27d", null ],
       [ "kValidatorMaxVote", "group___d_a_g.html#a7b45feab13cb8c4e3b7f933e74f8cc88", null ],
+      [ "logger_", "group___d_a_g.html#a63ab90d2388b6444598ecbe0f89064d6", null ],
       [ "max_num_tries_", "group___d_a_g.html#a23e0ccf70794a829907c4217c4cc9568", null ],
       [ "network_", "group___d_a_g.html#a6b54b1b7cd643903a2db01197c60c234", null ],
       [ "nodes_dag_proposers_data_", "group___d_a_g.html#a6859232a1c3dcbd7a0bb9716e5a92a17", null ],
@@ -118,7 +120,7 @@ var group___d_a_g =
         [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ],
         [ "MissingTip", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484acd9ea5e61108c6f8d0592a48ffae5f36", null ]
       ] ],
-      [ "DagManager", "group___d_a_g.html#a6edff6db0901a776497428e7e9e10836", null ],
+      [ "DagManager", "group___d_a_g.html#afb809897ee97a2f5d621d0061d764059", null ],
       [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
       [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
       [ "addDagBlock", "group___d_a_g.html#ad1d9ec62d99134024e9be37fc55f1f53", null ],
@@ -176,6 +178,7 @@ var group___d_a_g =
       [ "key_manager_", "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f", null ],
       [ "kGenesis", "group___d_a_g.html#abed9109977775c77b7dcfee7d5e5db93", null ],
       [ "kValidatorMaxVote", "group___d_a_g.html#a17a0bbbef6aff32c2275c9915ec8aa8b", null ],
+      [ "logger_", "group___d_a_g.html#a906602dccb2fa38d573c7f6f5f6b5d0a", null ],
       [ "max_level_", "group___d_a_g.html#ab34b96991cbcfd2f72be34a8813ca335", null ],
       [ "max_levels_per_period_", "group___d_a_g.html#a07187ee4b316918016d048c7c48d14f7", null ],
       [ "mutex_", "group___d_a_g.html#a9a2851fc95fa8d2e023a3ba82d42610b", null ],
@@ -202,7 +205,7 @@ var group___d_a_g =
       [ "vrf_params", "group___d_a_g.html#a3f2a1470b5f24f2fc6bdf52b0dac9497", null ]
     ] ],
     [ "taraxa::SortitionParamsManager", "group___d_a_g.html#classtaraxa_1_1_sortition_params_manager", [
-      [ "SortitionParamsManager", "group___d_a_g.html#a01f7049f14fca2abe48f308af342e5e6", null ],
+      [ "SortitionParamsManager", "group___d_a_g.html#a9c24501fdeafeb1ed96821c3009aca6f", null ],
       [ "averageDagEfficiency", "group___d_a_g.html#ad5f6eb4c57da4b322cf14c6b519a2764", null ],
       [ "calculateChange", "group___d_a_g.html#a2f98a899beb3f25d6df4a4ed95836545", null ],
       [ "calculateDagEfficiency", "group___d_a_g.html#a35fef01437cc79fc14367aa1682ab841", null ],
@@ -216,6 +219,7 @@ var group___d_a_g =
       [ "dag_efficiencies_", "group___d_a_g.html#a09ec4df22fdff55c437c27d67b59cb9b", null ],
       [ "db_", "group___d_a_g.html#a7d2d20da7fc504c22810038aa83cd5db", null ],
       [ "ignored_efficiency_counter_", "group___d_a_g.html#ab62614d14c2cef62ba1ab1b82c0b68fb", null ],
+      [ "logger_", "group___d_a_g.html#ad6cd62ceea31d046d2e428d4bbbed5e1", null ],
       [ "params_changes_", "group___d_a_g.html#a819aa6076a9305d48ec7e18c2912a4c5", null ]
     ] ],
     [ "taraxa::decodeDAGBlockBundleRlp", "group___d_a_g.html#ga91f496e181660542c01639bf624a40e0", null ],

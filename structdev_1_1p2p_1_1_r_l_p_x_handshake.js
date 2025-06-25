@@ -44,18 +44,18 @@ var structdev_1_1p2p_1_1_r_l_p_x_handshake =
     [ "m_cancel", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a727121cb1a0f3c56f94e5d1ec39a8e56", null ],
     [ "m_ecdheLocal", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a88c5d23c260cab267d7a0ebcc9398e76", null ],
     [ "m_ecdheRemote", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a34c98fc05d267e74ef1bdbfe6b1e36d9", null ],
-    [ "m_errorLogger", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a91a2f68cbb38483b85b1892edc178fc7", null ],
     [ "m_failureReason", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ac0fb8f70c07ba38bc4b91286f796f59f", null ],
     [ "m_handshakeInBuffer", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ac76770dc15a8b13538d5b4a376557509", null ],
     [ "m_handshakeOutBuffer", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af677ddc7b72b51edda6f7ac4a6d966ea", null ],
     [ "m_idleTimer", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ab5bdb2745c15522703057b3c20d5e71c", null ],
     [ "m_io", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a01de9bf1eadc56da07ef560730ff10ec", null ],
-    [ "m_logger", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a073999ff7ede6f80c5e3104ef2cb5bc2", null ],
+    [ "m_logger", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a7468476bb39f3da5e93fd6e5f4df004b", null ],
     [ "m_nextState", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a475d630017de7095c6b825bf58599a41", null ],
     [ "m_nonce", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a5b1fc77d6a5fe8c90fbb4e5eba40c21b", null ],
     [ "m_originated", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a236bda527d8ba8b31c735940dc383d2f", null ],
     [ "m_remote", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#afa60c54a7c445e08d4076e0f37feae96", null ],
     [ "m_remoteNonce", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4e8ba825add826a7b2ac872dd3adb7e9", null ],
     [ "m_remoteVersion", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a8cd76622915a552757e1da4103514014", null ],
-    [ "m_socket", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a5dd0e6b4dc0a2b5c7d7f95c059077ccf", null ]
+    [ "m_socket", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a5dd0e6b4dc0a2b5c7d7f95c059077ccf", null ],
+    [ "suffix", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4ec6be0bcb0500c91c7873f60b019358", null ]
 ];

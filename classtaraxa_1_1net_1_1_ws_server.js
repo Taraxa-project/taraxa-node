@@ -1,6 +1,6 @@
 var classtaraxa_1_1net_1_1_ws_server =
 [
-    [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#afb50edc4afcd2853f5ab341c3443f853", null ],
+    [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#a6a138f7ac49cbbd0f3e6315bafc44f00", null ],
     [ "~WsServer", "classtaraxa_1_1net_1_1_ws_server.html#a0f7595a0385a6692be8d7604332a9a78", null ],
     [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#a6c2d5adc14099229bbfdcbd51724d808", null ],
     [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html#af725d56484b76ff7c1f99689ad9cd2f0", null ],
@@ -21,9 +21,9 @@ var classtaraxa_1_1net_1_1_ws_server =
     [ "StartListening", "classtaraxa_1_1net_1_1_ws_server.html#a4e4f4189d191b2bac25eaa985593c308", null ],
     [ "StopListening", "classtaraxa_1_1net_1_1_ws_server.html#a41d10e1caef6632f3c6acc269314fba4", null ],
     [ "acceptor_", "classtaraxa_1_1net_1_1_ws_server.html#acac9a394c6b6c13da0b2ac0b21831955", null ],
-    [ "ioc_", "classtaraxa_1_1net_1_1_ws_server.html#ac32da50e60f8daf8714beb8dd9ff95d6", null ],
+    [ "ioc_", "classtaraxa_1_1net_1_1_ws_server.html#ad32fc1b9b1fa473c373cc20c021834e4", null ],
+    [ "logger_", "classtaraxa_1_1net_1_1_ws_server.html#a2f241bd1e60177c85239954e3f2d64ff", null ],
     [ "metrics_", "classtaraxa_1_1net_1_1_ws_server.html#a7db49f48f3ae19d08f6a6d40a5ebcaff", null ],
-    [ "node_addr_", "classtaraxa_1_1net_1_1_ws_server.html#a33ae5c7a9f40a1315212e12e52875b54", null ],
     [ "sessions_", "classtaraxa_1_1net_1_1_ws_server.html#ae4c3bf2a36ff5d320fe51a8008d58c48", null ],
     [ "sessions_mtx_", "classtaraxa_1_1net_1_1_ws_server.html#a4dc59c273b111e6d71fc95ee706ff24c", null ],
     [ "stopped_", "classtaraxa_1_1net_1_1_ws_server.html#ae2fa1c3aebdb9d0d0973d545bf430136", null ],

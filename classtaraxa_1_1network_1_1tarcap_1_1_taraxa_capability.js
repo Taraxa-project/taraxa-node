@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
 [
-    [ "InitPacketsHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#afa8b86f86c100b4720d1afd85a3a0b28", null ],
+    [ "InitPacketsHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a4519b907e4d00ca2a76cfac343c50f51", null ],
     [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a29fbeaabda7bccdd99e9f5825ddd7a86", null ],
     [ "~TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a04c6c147929b39ccc4fba7a4fe3af361", null ],
     [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac3ba3188d8fdc5278972c8df2c93d183", null ],
@@ -24,6 +24,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "kInitV5VersionHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a8e8295b2d558aadb4a3d984963b0d366", null ],
     [ "last_ddos_disconnect_time_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#af13444051e94e656f457a1be88c928ce", null ],
     [ "last_disconnect_number_of_peers_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3c10363f0276200813c50a2b12d9a096", null ],
+    [ "logger_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac68153bc27a8d330bb552b0ef98825eb", null ],
     [ "packets_handlers_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa9133eace1c8ca9d5ff3ed760d8f671f", null ],
     [ "pbft_syncing_state_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3f781760904296d022e2c221854cbc3a", null ],
     [ "peers_state_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae3bd8b37fc085d21a4a3034b5b5f1cbd", null ],

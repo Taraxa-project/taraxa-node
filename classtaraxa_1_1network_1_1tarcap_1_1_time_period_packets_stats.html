@@ -120,8 +120,8 @@ Collaboration diagram for taraxa::network::tarcap::TimePeriodPacketsStats:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa81d7ccd99e0aa85b260526cd20dedc7" id="r_aa81d7ccd99e0aa85b260526cd20dedc7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#aa81d7ccd99e0aa85b260526cd20dedc7">TimePeriodPacketsStats</a> (std::chrono::milliseconds reset_time_period, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr={})</td></tr>
-<tr class="separator:aa81d7ccd99e0aa85b260526cd20dedc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9450900665dad39ed0de7fb5d1d9e4d" id="r_ad9450900665dad39ed0de7fb5d1d9e4d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#ad9450900665dad39ed0de7fb5d1d9e4d">TimePeriodPacketsStats</a> (std::chrono::milliseconds reset_time_period)</td></tr>
+<tr class="separator:ad9450900665dad39ed0de7fb5d1d9e4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e04ffc1e3a6c0388810ba488bbbff97" id="r_a8e04ffc1e3a6c0388810ba488bbbff97"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#a8e04ffc1e3a6c0388810ba488bbbff97">addReceivedPacket</a> (const std::string &amp;packet_type, const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node, const <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">PacketStats</a> &amp;packet)</td></tr>
 <tr class="separator:a8e04ffc1e3a6c0388810ba488bbbff97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83563dbdd2686673ed06f70f911f93be" id="r_a83563dbdd2686673ed06f70f911f93be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#a83563dbdd2686673ed06f70f911f93be">addSentPacket</a> (const std::string &amp;packet_type, const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node, const <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">PacketStats</a> &amp;packet)</td></tr>
@@ -146,12 +146,14 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a824707fea13d9f6d95543cb622c0e220"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa45dffa2aac24e5dccb93f7821c23e2" id="r_afa45dffa2aac24e5dccb93f7821c23e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html">MaxStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#afa45dffa2aac24e5dccb93f7821c23e2">peer_max_stats_</a></td></tr>
 <tr class="separator:afa45dffa2aac24e5dccb93f7821c23e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5aaad8b7bef516bad8289ac954a92cd2" id="r_a5aaad8b7bef516bad8289ac954a92cd2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#a5aaad8b7bef516bad8289ac954a92cd2">logger_</a></td></tr>
+<tr class="separator:a5aaad8b7bef516bad8289ac954a92cd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Stats for all received and sent packets of all types. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aa81d7ccd99e0aa85b260526cd20dedc7" name="aa81d7ccd99e0aa85b260526cd20dedc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa81d7ccd99e0aa85b260526cd20dedc7">&#9670;&#160;</a></span>TimePeriodPacketsStats()</h2>
+<a id="ad9450900665dad39ed0de7fb5d1d9e4d" name="ad9450900665dad39ed0de7fb5d1d9e4d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9450900665dad39ed0de7fb5d1d9e4d">&#9670;&#160;</a></span>TimePeriodPacketsStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -160,18 +162,8 @@ Private Attributes</h2></td></tr>
           <td class="memname">taraxa::network::tarcap::TimePeriodPacketsStats::TimePeriodPacketsStats </td>
           <td>(</td>
           <td class="paramtype">std::chrono::milliseconds&#160;</td>
-          <td class="paramname"><em>reset_time_period</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>reset_time_period</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>node_addr</em> = <code>{}</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -308,6 +300,28 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">const std::chrono::milliseconds taraxa::network::tarcap::TimePeriodPacketsStats::kResetTimePeriod</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5aaad8b7bef516bad8289ac954a92cd2" name="a5aaad8b7bef516bad8289ac954a92cd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5aaad8b7bef516bad8289ac954a92cd2">&#9670;&#160;</a></span>logger_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a> taraxa::network::tarcap::TimePeriodPacketsStats::logger_</td>
         </tr>
       </table>
   </td>

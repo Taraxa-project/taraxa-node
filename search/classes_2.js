@@ -5,7 +5,7 @@ var searchData=
   ['column_2',['Column',['../classtaraxa_1_1_db_storage_1_1_column.html',1,'taraxa::DbStorage']]],
   ['columns_3',['Columns',['../classtaraxa_1_1_db_storage_1_1_columns.html',1,'taraxa::DbStorage']]],
   ['compactsignaturestruct_4',['CompactSignatureStruct',['../structdev_1_1_compact_signature_struct.html',1,'dev']]],
-  ['config_5',['config',['../classtaraxa_1_1cli_1_1_config.html',1,'taraxa::cli::Config'],['../classtaraxa_1_1logger_1_1_config.html',1,'taraxa::logger::Config'],['../structtaraxa_1_1state__api_1_1_config.html',1,'taraxa::state_api::Config']]],
+  ['config_5',['config',['../classtaraxa_1_1cli_1_1_config.html',1,'taraxa::cli::Config'],['../structtaraxa_1_1state__api_1_1_config.html',1,'taraxa::state_api::Config']]],
   ['configchange_6',['ConfigChange',['../structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html',1,'taraxa::cli::ConfigUpdater']]],
   ['configexception_7',['ConfigException',['../structtaraxa_1_1_config_exception.html',1,'taraxa']]],
   ['configupdater_8',['ConfigUpdater',['../classtaraxa_1_1cli_1_1_config_updater.html',1,'taraxa::cli']]],

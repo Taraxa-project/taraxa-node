@@ -113,8 +113,8 @@ Collaboration diagram for taraxa::net::HttpServer:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aca7b48bb72af08b2a19c64730a45c7e5" id="r_aca7b48bb72af08b2a19c64730a45c7e5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#aca7b48bb72af08b2a19c64730a45c7e5">HttpServer</a> (boost::asio::io_context &amp;io, boost::asio::ip::tcp::endpoint ep, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr, const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_processor.html">HttpProcessor</a> &gt; &amp;request_processor, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1metrics_1_1_json_rpc_metrics.html">metrics::JsonRpcMetrics</a> &gt; metrics)</td></tr>
-<tr class="separator:aca7b48bb72af08b2a19c64730a45c7e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a496dad6c6db430a67d0a035a4d2e8215" id="r_a496dad6c6db430a67d0a035a4d2e8215"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a496dad6c6db430a67d0a035a4d2e8215">HttpServer</a> (boost::asio::io_context &amp;io, boost::asio::ip::tcp::endpoint ep, const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_processor.html">HttpProcessor</a> &gt; &amp;request_processor, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1metrics_1_1_json_rpc_metrics.html">metrics::JsonRpcMetrics</a> &gt; metrics)</td></tr>
+<tr class="separator:a496dad6c6db430a67d0a035a4d2e8215"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abdd748d62f5aabadc68699952bfbcf53" id="r_abdd748d62f5aabadc68699952bfbcf53"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#abdd748d62f5aabadc68699952bfbcf53">~HttpServer</a> ()</td></tr>
 <tr class="separator:abdd748d62f5aabadc68699952bfbcf53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40b77060c29848a581bee39055e94ac7" id="r_a40b77060c29848a581bee39055e94ac7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a40b77060c29848a581bee39055e94ac7">start</a> ()</td></tr>
@@ -129,6 +129,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8f04e576d497b83d75f9edd9c0fe17dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a26de6dd55461a8bd14dae8eea0845eaa" id="r_a26de6dd55461a8bd14dae8eea0845eaa"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_connection.html">HttpConnection</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a26de6dd55461a8bd14dae8eea0845eaa">createConnection</a> ()</td></tr>
 <tr class="separator:a26de6dd55461a8bd14dae8eea0845eaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b7c2fe9309f70afd3a073d76253df99" id="r_a2b7c2fe9309f70afd3a073d76253df99"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a2b7c2fe9309f70afd3a073d76253df99">getLogger</a> () const</td></tr>
+<tr class="separator:a2b7c2fe9309f70afd3a073d76253df99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -154,10 +156,12 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a8e1768eda1f34334670ac74d28659457"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3828a62d43e15f89403f53ce75240bd7" id="r_a3828a62d43e15f89403f53ce75240bd7"><td class="memItemLeft" align="right" valign="top">boost::asio::ip::tcp::endpoint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a3828a62d43e15f89403f53ce75240bd7">ep_</a></td></tr>
 <tr class="separator:a3828a62d43e15f89403f53ce75240bd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d7116741578ae91ba49a468abbf907e" id="r_a7d7116741578ae91ba49a468abbf907e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a7d7116741578ae91ba49a468abbf907e">logger_</a></td></tr>
+<tr class="separator:a7d7116741578ae91ba49a468abbf907e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aca7b48bb72af08b2a19c64730a45c7e5" name="aca7b48bb72af08b2a19c64730a45c7e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aca7b48bb72af08b2a19c64730a45c7e5">&#9670;&#160;</a></span>HttpServer()</h2>
+<a id="a496dad6c6db430a67d0a035a4d2e8215" name="a496dad6c6db430a67d0a035a4d2e8215"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a496dad6c6db430a67d0a035a4d2e8215">&#9670;&#160;</a></span>HttpServer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -173,12 +177,6 @@ Private Attributes</h2></td></tr>
           <td></td>
           <td class="paramtype">boost::asio::ip::tcp::endpoint&#160;</td>
           <td class="paramname"><em>ep</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>node_addr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -283,6 +281,23 @@ Private Attributes</h2></td></tr>
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2b7c2fe9309f70afd3a073d76253df99" name="a2b7c2fe9309f70afd3a073d76253df99"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b7c2fe9309f70afd3a073d76253df99">&#9670;&#160;</a></span>getLogger()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a> taraxa::net::HttpServer::getLogger </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
@@ -422,6 +437,28 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">boost::asio::io_context&amp; taraxa::net::HttpServer::io_context_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7d7116741578ae91ba49a468abbf907e" name="a7d7116741578ae91ba49a468abbf907e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d7116741578ae91ba49a468abbf907e">&#9670;&#160;</a></span>logger_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a> taraxa::net::HttpServer::logger_</td>
         </tr>
       </table>
   </td>

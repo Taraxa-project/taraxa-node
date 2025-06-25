@@ -13,7 +13,7 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
       [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ],
       [ "MissingTip", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484acd9ea5e61108c6f8d0592a48ffae5f36", null ]
     ] ],
-    [ "DagManager", "group___d_a_g.html#a6edff6db0901a776497428e7e9e10836", null ],
+    [ "DagManager", "group___d_a_g.html#afb809897ee97a2f5d621d0061d764059", null ],
     [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
     [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
     [ "addDagBlock", "group___d_a_g.html#ad1d9ec62d99134024e9be37fc55f1f53", null ],
@@ -71,6 +71,7 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
     [ "key_manager_", "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f", null ],
     [ "kGenesis", "group___d_a_g.html#abed9109977775c77b7dcfee7d5e5db93", null ],
     [ "kValidatorMaxVote", "group___d_a_g.html#a17a0bbbef6aff32c2275c9915ec8aa8b", null ],
+    [ "logger_", "group___d_a_g.html#a906602dccb2fa38d573c7f6f5f6b5d0a", null ],
     [ "max_level_", "group___d_a_g.html#ab34b96991cbcfd2f72be34a8813ca335", null ],
     [ "max_levels_per_period_", "group___d_a_g.html#a07187ee4b316918016d048c7c48d14f7", null ],
     [ "mutex_", "group___d_a_g.html#a9a2851fc95fa8d2e023a3ba82d42610b", null ],

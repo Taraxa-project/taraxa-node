@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler =
 [
-    [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a6f3b10968fc1b523c732f13a4280cb90", null ],
+    [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a9b6c7dacd6cb4ee8b6928b3d8ad846e7", null ],
     [ "~ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a6093dfd3a55632fcd05c2e4c3da06956", null ],
     [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a24a19569eb088bd75f9fb3a10c589998", null ],
     [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a63b09171549b48e930977951c574c15e", null ],

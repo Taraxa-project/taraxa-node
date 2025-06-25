@@ -32,6 +32,7 @@ var classtaraxa_1_1_network =
     [ "all_packets_stats_", "classtaraxa_1_1_network.html#a764270724e21708d3c8434a46f9d9aa7", null ],
     [ "host_", "classtaraxa_1_1_network.html#a9a17fef921508b0eedf68da85406660a", null ],
     [ "kConf", "classtaraxa_1_1_network.html#a0719a7380d1d765bba50ef89be603aab", null ],
+    [ "logger_", "classtaraxa_1_1_network.html#a166a91018eb5cae8ed2517f7f056ca28", null ],
     [ "node_stats_", "classtaraxa_1_1_network.html#a7f31878fec48990dcf7e070af512499a", null ],
     [ "packets_tp_", "classtaraxa_1_1_network.html#a5f93354e95fce546252cb64a1a41c545", null ],
     [ "pbft_mgr_", "classtaraxa_1_1_network.html#ae1e2819512b3ae1935c7c8b5c8f64e6e", null ],

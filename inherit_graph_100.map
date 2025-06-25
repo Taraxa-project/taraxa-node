@@ -1,9 +1,51 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,23,220,63"/>
-<area shape="rect" id="Node000001" href="$class_modular_server.html" title=" " alt="" coords="268,5,439,31"/>
-<area shape="poly" id="edge65_Node000000_Node000001" title=" " alt="" coords="233,28,268,24,268,30,234,33"/>
-<area shape="rect" id="Node000003" href="$class_modular_server.html" title=" " alt="" coords="274,55,433,80"/>
-<area shape="poly" id="edge67_Node000000_Node000003" title=" " alt="" coords="234,53,274,57,274,62,233,58"/>
-<area shape="rect" id="Node000002" href="$class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html" title=" " alt="" coords="487,5,669,31"/>
-<area shape="poly" id="edge66_Node000001_Node000002" title=" " alt="" coords="453,15,486,15,486,21,453,21"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,103,244,129"/>
+<area shape="rect" id="Node000001" href="$classtaraxa_1_1net_1_1_json_rpc_http_processor.html" title=" " alt="" coords="317,69,497,109"/>
+<area shape="poly" id="edge52_Node000000_Node000001" title=" " alt="" coords="258,101,317,95,317,100,258,106"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1net_1_1_ws_server.html" title=" " alt="" coords="326,134,489,159"/>
+<area shape="poly" id="edge53_Node000000_Node000004" title=" " alt="" coords="255,127,326,135,325,141,255,133"/>
+<area shape="rect" id="Node000005" href="$classtaraxa_1_1net_1_1_graph_ql_ws_server.html" title=" " alt="" coords="575,110,791,135"/>
+<area shape="poly" id="edge54_Node000004_Node000005" title=" " alt="" coords="502,136,574,129,575,135,503,141"/>
+<area shape="rect" id="Node000006" href="$classtaraxa_1_1net_1_1_json_rpc_ws_server.html" title=" " alt="" coords="575,159,790,185"/>
+<area shape="poly" id="edge55_Node000004_Node000006" title=" " alt="" coords="503,153,576,159,575,165,502,158"/>
+<area shape="rect" id="Node000015" href="$classtaraxa_1_1_app_base.html" title=" " alt="" coords="60,183,189,209"/>
+<area shape="rect" id="Node000014" href="$classtaraxa_1_1_app.html" title=" " alt="" coords="359,183,456,209"/>
+<area shape="poly" id="edge56_Node000015_Node000014" title=" " alt="" coords="203,193,358,193,358,199,203,199"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="52,463,197,503"/>
+<area shape="poly" id="edge68_Node000007_Node000004" title=" " alt="" coords="143,449,190,371,242,276,253,245,259,218,268,193,290,169,324,151,327,156,294,173,273,196,264,220,258,246,246,278,194,374,148,452"/>
+<area shape="poly" id="edge62_Node000007_Node000014" title=" " alt="" coords="142,449,222,315,263,253,290,219,323,203,358,196,359,201,325,208,294,223,267,256,227,318,147,452"/>
+<area shape="rect" id="Node000008" href="$structdev_1_1p2p_1_1_host.html" title="The Host class Capabilities should be registered prior to startNetwork, since m_capabilities is not t..." alt="" coords="350,495,465,521"/>
+<area shape="poly" id="edge57_Node000007_Node000008" title=" " alt="" coords="211,488,350,500,350,506,211,493"/>
+<area shape="rect" id="Node000009" href="$structdev_1_1p2p_1_1_r_l_p_x_handshake.html" title="Setup inbound or outbound connection for communication over RLPXFrameCoder. RLPx Spec: https://github..." alt="" coords="312,545,503,570"/>
+<area shape="poly" id="edge58_Node000007_Node000009" title=" " alt="" coords="201,504,293,531,341,542,340,547,291,536,199,509"/>
+<area shape="rect" id="Node000010" href="$structdev_1_1p2p_1_1_session.html" title="The Session class." alt="" coords="340,594,475,619"/>
+<area shape="poly" id="edge59_Node000007_Node000010" title=" " alt="" coords="166,509,224,546,293,580,341,594,339,599,291,585,222,551,163,513"/>
+<area shape="rect" id="Node000011" href="$classdev_1_1p2p_1_1_u_d_p_socket.html" title="UDP Interface Handler must implement UDPSocketEvents." alt="" coords="292,233,523,273"/>
+<area shape="poly" id="edge60_Node000007_Node000011" title=" " alt="" coords="142,449,167,411,201,366,243,321,291,283,314,271,316,276,293,288,246,325,205,369,172,414,147,452"/>
+<area shape="rect" id="Node000013" href="$classgraphql_1_1taraxa_1_1_transaction.html" title=" " alt="" coords="306,643,509,669"/>
+<area shape="poly" id="edge61_Node000007_Node000013" title=" " alt="" coords="153,511,213,572,251,604,293,630,322,641,320,646,291,634,248,608,209,576,149,515"/>
+<area shape="rect" id="Node000016" href="$group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="330,693,485,718"/>
+<area shape="poly" id="edge63_Node000007_Node000016" title=" " alt="" coords="145,513,170,552,204,597,245,642,293,679,331,694,329,699,291,684,242,646,199,601,166,555,141,516"/>
+<area shape="rect" id="Node000017" href="$classtaraxa_1_1_db_storage.html" title=" " alt="" coords="337,742,477,767"/>
+<area shape="poly" id="edge64_Node000007_Node000017" title=" " alt="" coords="141,514,163,563,196,622,239,680,265,706,293,728,315,739,338,746,336,751,313,744,291,733,262,710,235,684,191,624,158,565,136,517"/>
+<area shape="rect" id="Node000018" href="$group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="306,791,509,817"/>
+<area shape="poly" id="edge65_Node000007_Node000018" title=" " alt="" coords="137,515,156,573,188,645,209,682,233,717,262,750,294,778,313,789,310,793,290,782,258,754,229,721,204,685,183,647,151,575,132,517"/>
+<area shape="rect" id="Node000019" href="$classtaraxa_1_1net_1_1_http_connection.html" title=" " alt="" coords="306,298,509,323"/>
+<area shape="poly" id="edge66_Node000007_Node000019" title=" " alt="" coords="150,450,210,389,248,358,291,332,320,321,322,326,293,337,252,363,213,393,153,454"/>
+<area shape="rect" id="Node000020" href="$classtaraxa_1_1net_1_1_http_server.html" title=" " alt="" coords="322,347,493,373"/>
+<area shape="poly" id="edge67_Node000007_Node000020" title=" " alt="" coords="163,453,222,415,291,382,328,370,329,375,293,386,224,420,166,457"/>
+<area shape="rect" id="Node000021" href="$classtaraxa_1_1net_1_1_ws_session.html" title=" " alt="" coords="322,397,493,422"/>
+<area shape="poly" id="edge69_Node000007_Node000021" title=" " alt="" coords="204,456,291,432,345,419,346,425,293,437,206,461"/>
+<area shape="rect" id="Node000024" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="320,446,495,471"/>
+<area shape="poly" id="edge72_Node000007_Node000024" title=" " alt="" coords="211,473,320,463,320,469,211,478"/>
+<area shape="rect" id="Node000022" href="$classtaraxa_1_1net_1_1_graph_ql_ws_session.html" title=" " alt="" coords="571,373,795,398"/>
+<area shape="poly" id="edge70_Node000021_Node000022" title=" " alt="" coords="506,398,570,392,571,398,506,403"/>
+<area shape="rect" id="Node000023" href="$classtaraxa_1_1net_1_1_json_rpc_ws_session.html" title=" " alt="" coords="571,422,794,447"/>
+<area shape="poly" id="edge71_Node000021_Node000023" title=" " alt="" coords="507,416,571,422,571,427,506,421"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_http_processor.html" title=" " alt="" coords="29,50,221,75"/>
+<area shape="poly" id="edge74_Node000002_Node000001" title=" " alt="" coords="234,70,317,78,317,84,234,76"/>
+<area shape="rect" id="Node000003" href="$classtaraxa_1_1net_1_1_graph_ql_http_processor.html" title=" " alt="" coords="316,5,499,45"/>
+<area shape="poly" id="edge73_Node000002_Node000003" title=" " alt="" coords="234,46,315,35,316,40,235,51"/>
+<area shape="rect" id="Node000012" href="$structdev_1_1p2p_1_1_u_d_p_socket_face.html" title="Interface which UDPSocket will implement." alt="" coords="32,241,217,266"/>
+<area shape="poly" id="edge75_Node000012_Node000011" title=" " alt="" coords="231,251,292,251,292,256,231,256"/>
 </map>

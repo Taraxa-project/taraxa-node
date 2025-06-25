@@ -1,8 +1,4 @@
 var searchData=
 [
-  ['signedness_0',['Signedness',['../namespacedev.html#aad96800d822f47b289077fd0238ccda7',1,'dev']]],
-  ['state_1',['State',['../structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a708429ef7a5ed14e8ceee7ac8dfa3fcd',1,'dev::p2p::RLPXHandshake']]],
-  ['statusdbfield_2',['StatusDbField',['../namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901',1,'taraxa']]],
-  ['subprotocolpackettype_3',['SubprotocolPacketType',['../namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9',1,'taraxa::network']]],
-  ['subscriptiontype_4',['SubscriptionType',['../subscriptions_8hpp.html#ac4bb1f6dea914dce7c2649a3bd1c30a6',1,'subscriptions.hpp']]]
+  ['rlpappend_0',['RLPAppend',['../classdev_1_1p2p_1_1_node_i_p_endpoint.html#aa257254a683f3b8988d3e3a961191352',1,'dev::p2p::NodeIPEndpoint']]]
 ];

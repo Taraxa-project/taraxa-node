@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['log_0',['log',['../_log_8h.html#a159ca84d25a5487d8e81e4438725df19',1,'LOG:&#160;Log.h'],['../logger_8hpp.html#a159ca84d25a5487d8e81e4438725df19',1,'LOG:&#160;logger.hpp']]],
-  ['log_5fobjects_5fcreate_1',['LOG_OBJECTS_CREATE',['../logger_8hpp.html#af7bf8416f7eb14774c4148e3bce7a09b',1,'logger.hpp']]],
-  ['log_5fobjects_5fdefine_2',['LOG_OBJECTS_DEFINE',['../logger_8hpp.html#a41399a11426ea3272948aca283625fb5',1,'logger.hpp']]],
-  ['log_5fscoped_5fcontext_3',['LOG_SCOPED_CONTEXT',['../_log_8h.html#a558f746fc560acad9acc2d55b7379eee',1,'Log.h']]]
+  ['rlp_5ffields_5fdefine_0',['RLP_FIELDS_DEFINE',['../encoding__rlp_8hpp.html#a83230b9a613c0bd752120fc2c5629f2d',1,'encoding_rlp.hpp']]],
+  ['rlp_5ffields_5fdefine_5finplace_1',['RLP_FIELDS_DEFINE_INPLACE',['../encoding__rlp_8hpp.html#a51df72c14cb62803d333c53ca75cfed2',1,'encoding_rlp.hpp']]]
 ];

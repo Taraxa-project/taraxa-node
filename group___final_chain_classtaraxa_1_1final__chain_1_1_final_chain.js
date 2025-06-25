@@ -1,7 +1,7 @@
 var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
 [
     [ "~FinalChain", "group___final_chain.html#a2842ec83107483156296160e5b47013a", null ],
-    [ "FinalChain", "group___final_chain.html#a55a42e8e4457428e266e4350a64a1587", null ],
+    [ "FinalChain", "group___final_chain.html#ad15641da01601d6e5ae3b5d85832361c", null ],
     [ "FinalChain", "group___final_chain.html#a596dff53cf6de6397b5775c048f9a000", null ],
     [ "FinalChain", "group___final_chain.html#aae038c82ad09224f49a8645c209e45e9", null ],
     [ "appendBlock", "group___final_chain.html#abc6ac332556f6db92c462ce469b9ac8e", null ],
@@ -82,6 +82,7 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
     [ "kLightNode", "group___final_chain.html#a89d14db8173ec009d2ab3ba5368b25d4", null ],
     [ "kMaxLevelsPerPeriod", "group___final_chain.html#a74fb986cf6af9a2bff42ebddfc2f4348", null ],
     [ "last_block_number_", "group___final_chain.html#a642834515ef2554c73d88d5f8f7aad68", null ],
+    [ "logger_", "group___final_chain.html#a015fcd3ed151f5052ec4786aeab17719", null ],
     [ "num_executed_dag_blk_", "group___final_chain.html#a17631a95982f206fea0eac9a6060d5a2", null ],
     [ "num_executed_trx_", "group___final_chain.html#a4866badb18ccd11167522c35baded51b", null ],
     [ "rewards_", "group___final_chain.html#ab089a50476120d7ec3ca04b6cd6c823c", null ],

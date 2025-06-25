@@ -20,8 +20,8 @@ var group___vote_classtaraxa_1_1_pbft_vote =
     [ "rlp", "group___vote.html#a35304b5be8c4d485637815ff1728e46d", null ],
     [ "sha3", "group___vote.html#a424d4d6ce930d31755a20c1b4d5fad55", null ],
     [ "toJSON", "group___vote.html#a442303caeec4de50c06194d50e2b2d03", null ],
+    [ "toString", "group___vote.html#a9cebc732b1c062df04801fc9caf12265", null ],
     [ "verifyVrfSortition", "group___vote.html#a31853775f489173a499af7cf08503710", null ],
-    [ "operator<<", "group___vote.html#a71e3d2933460a8e55a207d4654cfa44a", null ],
     [ "vrf_sortition_", "group___vote.html#a2c0f754951467bbff1f946701422597e", null ],
     [ "weight_", "group___vote.html#a67108dc7db5be3e83f7cac577e676955", null ]
 ];

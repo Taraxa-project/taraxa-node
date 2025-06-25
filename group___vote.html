@@ -335,6 +335,8 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="separator:afe5c2a85f19780be66afa8c0f0ea3382"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfa06d654af953615950305eb24d00b0" id="r_abfa06d654af953615950305eb24d00b0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#abfa06d654af953615950305eb24d00b0">already_validated_votes_</a></td></tr>
 <tr class="separator:abfa06d654af953615950305eb24d00b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd1e417368001c05d09929319deaa819" id="r_acd1e417368001c05d09929319deaa819"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#acd1e417368001c05d09929319deaa819">logger_</a></td></tr>
+<tr class="separator:acd1e417368001c05d09929319deaa819"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
 <a id="aca725de2f586a37bfb3935f55a711046" name="aca725de2f586a37bfb3935f55a711046"></a>
@@ -1748,6 +1750,28 @@ Collaboration diagram for taraxa::VoteManager:</div>
 
 </div>
 </div>
+<a id="acd1e417368001c05d09929319deaa819" name="acd1e417368001c05d09929319deaa819"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd1e417368001c05d09929319deaa819">&#9670;&#160;</a></span>logger_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">logger::Logger</a> taraxa::VoteManager::logger_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab33a27ab32527293d1ce811318e68ae9" name="ab33a27ab32527293d1ce811318e68ae9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab33a27ab32527293d1ce811318e68ae9">&#9670;&#160;</a></span>network_</h2>
 
@@ -2058,6 +2082,8 @@ Collaboration diagram for taraxa::PbftVote:</div>
 <tr class="memitem:a89b4983e2357f851973e7def2d614121" id="r_a89b4983e2357f851973e7def2d614121"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a89b4983e2357f851973e7def2d614121">getWeight</a> () const</td></tr>
 <tr class="memdesc:a89b4983e2357f851973e7def2d614121"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get vote weight.  <br /></td></tr>
 <tr class="separator:a89b4983e2357f851973e7def2d614121"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cebc732b1c062df04801fc9caf12265" id="r_a9cebc732b1c062df04801fc9caf12265"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a9cebc732b1c062df04801fc9caf12265">toString</a> () const</td></tr>
+<tr class="separator:a9cebc732b1c062df04801fc9caf12265"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a442303caeec4de50c06194d50e2b2d03" id="r_a442303caeec4de50c06194d50e2b2d03"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a442303caeec4de50c06194d50e2b2d03">toJSON</a> () const</td></tr>
 <tr class="memdesc:a442303caeec4de50c06194d50e2b2d03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get vote in JSON representation.  <br /></td></tr>
 <tr class="separator:a442303caeec4de50c06194d50e2b2d03"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2098,9 +2124,6 @@ Collaboration diagram for taraxa::PbftVote:</div>
 <tr class="separator:a2c0f754951467bbff1f946701422597e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67108dc7db5be3e83f7cac577e676955" id="r_a67108dc7db5be3e83f7cac577e676955"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a67108dc7db5be3e83f7cac577e676955">weight_</a></td></tr>
 <tr class="separator:a67108dc7db5be3e83f7cac577e676955"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Friends</h3></td></tr>
-<tr class="memitem:a71e3d2933460a8e55a207d4654cfa44a" id="r_a71e3d2933460a8e55a207d4654cfa44a"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a71e3d2933460a8e55a207d4654cfa44a">operator&lt;&lt;</a> (std::ostream &amp;strm, <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> const &amp;vote)</td></tr>
-<tr class="separator:a71e3d2933460a8e55a207d4654cfa44a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -2637,6 +2660,31 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a9cebc732b1c062df04801fc9caf12265" name="a9cebc732b1c062df04801fc9caf12265"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cebc732b1c062df04801fc9caf12265">&#9670;&#160;</a></span>toString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string taraxa::PbftVote::toString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a31853775f489173a499af7cf08503710" name="a31853775f489173a499af7cf08503710"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a31853775f489173a499af7cf08503710">&#9670;&#160;</a></span>verifyVrfSortition()</h2>
 
@@ -2665,43 +2713,6 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Verify VRF sortition. </p>
 <dl class="section return"><dt>Returns</dt><dd>true if passed </dd></dl>
-
-</div>
-</div>
-<h4 class="groupheader">Friends And Related Symbol Documentation</h4>
-<a id="a71e3d2933460a8e55a207d4654cfa44a" name="a71e3d2933460a8e55a207d4654cfa44a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71e3d2933460a8e55a207d4654cfa44a">&#9670;&#160;</a></span>operator&lt;&lt;</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::ostream &amp; operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>strm</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> const &amp;&#160;</td>
-          <td class="paramname"><em>vote</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
 
 </div>
 </div>

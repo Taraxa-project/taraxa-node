@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$class_server_interface.html#struct_server_interface_1_1_r_p_c_module" title=" " alt="" coords="5,5,147,45"/>
+<area shape="rect" id="Node000000" href="$class_server_interface.html" title=" " alt="" coords="5,5,228,31"/>
+<area shape="rect" id="Node000001" href="$classtaraxa_1_1net_1_1_debug_face.html" title=" " alt="" coords="276,5,448,31"/>
+<area shape="poly" id="edge85_Node000000_Node000001" title=" " alt="" coords="242,15,276,15,276,21,242,21"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_debug.html" title=" " alt="" coords="496,5,639,31"/>
+<area shape="poly" id="edge86_Node000001_Node000002" title=" " alt="" coords="462,15,496,15,496,21,462,21"/>
 </map>

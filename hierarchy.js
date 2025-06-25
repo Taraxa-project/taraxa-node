@@ -79,7 +79,6 @@ var hierarchy =
       [ "taraxa::UintComparator< T >", "classtaraxa_1_1_uint_comparator.html", null ]
     ] ],
     [ "taraxa::cli::Config", "classtaraxa_1_1cli_1_1_config.html", null ],
-    [ "taraxa::logger::Config", "classtaraxa_1_1logger_1_1_config.html", null ],
     [ "taraxa::state_api::Config", "structtaraxa_1_1state__api_1_1_config.html", null ],
     [ "taraxa::cli::ConfigUpdater::ConfigChange", "structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html", null ],
     [ "taraxa::cli::ConfigUpdater", "classtaraxa_1_1cli_1_1_config_updater.html", null ],
@@ -211,6 +210,24 @@ var hierarchy =
       [ "dev::SecureFixedHash< 32 >", "classdev_1_1_secure_fixed_hash.html", null ],
       [ "dev::SecureFixedHash< T >", "classdev_1_1_secure_fixed_hash.html", null ]
     ] ],
+    [ "fmt::formatter", null, [
+      [ "BoostOstreamFormatter< bi::tcp::endpoint >", "struct_boost_ostream_formatter.html", [
+        [ "fmt::formatter< bi::tcp::endpoint >", "structfmt_1_1formatter_3_01bi_1_1tcp_1_1endpoint_01_4.html", null ]
+      ] ],
+      [ "BoostOstreamFormatter< bi::udp::endpoint >", "struct_boost_ostream_formatter.html", [
+        [ "fmt::formatter< bi::udp::endpoint >", "structfmt_1_1formatter_3_01bi_1_1udp_1_1endpoint_01_4.html", null ]
+      ] ],
+      [ "BoostOstreamFormatter< dev::p2p::Node >", "struct_boost_ostream_formatter.html", [
+        [ "fmt::formatter< dev::p2p::Node >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_01_4.html", null ]
+      ] ],
+      [ "BoostOstreamFormatter< dev::p2p::PeerSessionInfo >", "struct_boost_ostream_formatter.html", [
+        [ "fmt::formatter< dev::p2p::PeerSessionInfo >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_peer_session_info_01_4.html", null ]
+      ] ],
+      [ "BoostOstreamFormatter< T >", "struct_boost_ostream_formatter.html", null ],
+      [ "fmt::formatter< std::atomic< T > >", "structfmt_1_1formatter_3_01std_1_1atomic_3_01_t_01_4_01_4.html", null ],
+      [ "fmt::formatter< taraxa::addr_t >", "structfmt_1_1formatter_3_01taraxa_1_1addr__t_01_4.html", null ],
+      [ "fmt::formatter< taraxa::blk_hash_t >", "structfmt_1_1formatter_3_01taraxa_1_1blk__hash__t_01_4.html", null ]
+    ] ],
     [ "taraxa::FullNodeConfig", "structtaraxa_1_1_full_node_config.html", null ],
     [ "taraxa::GasPriceConfig", "structtaraxa_1_1_gas_price_config.html", null ],
     [ "taraxa::GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", null ],
@@ -266,6 +283,8 @@ var hierarchy =
     [ "graphql::taraxa::Log", "classgraphql_1_1taraxa_1_1_log.html", null ],
     [ "taraxa::LogEntry", "structtaraxa_1_1_log_entry.html", null ],
     [ "taraxa::net::rpc::eth::LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", null ],
+    [ "taraxa::logger::Logging", "classtaraxa_1_1logger_1_1_logging.html", null ],
+    [ "taraxa::LoggingConfig", "structtaraxa_1_1_logging_config.html", null ],
     [ "taraxa::state_api::LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", null ],
     [ "taraxa::MagnoliaHardfork", "namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork", null ],
     [ "taraxa::storage::migration::Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", null ],
@@ -293,7 +312,7 @@ var hierarchy =
       [ "dev::p2p::Peer", "classdev_1_1p2p_1_1_peer.html", null ]
     ] ],
     [ "dev::p2p::NodeTable::NodeBucket", "classdev_1_1p2p_1_1_node_table.html#structdev_1_1p2p_1_1_node_table_1_1_node_bucket", null ],
-    [ "taraxa::NodeConfig", "namespacetaraxa.html#structtaraxa_1_1_node_config", null ],
+    [ "taraxa::NodeConfig", "structtaraxa_1_1_node_config.html", null ],
     [ "taraxa::DagBlockProposer::NodeDagProposerData", "structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html", null ],
     [ "dev::p2p::NodeEntry", "structdev_1_1p2p_1_1_node_entry.html", null ],
     [ "dev::p2p::NodeInfo", "structdev_1_1p2p_1_1_node_info.html", null ],
@@ -312,7 +331,12 @@ var hierarchy =
     [ "taraxa::network::tarcap::VotePacket::OptionalData", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet_1_1_optional_data", null ],
     [ "taraxa::state_api::Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", null ],
     [ "taraxa::state_api::OptsDB", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b", null ],
-    [ "taraxa::logger::Config::OutputConfig", "structtaraxa_1_1logger_1_1_config_1_1_output_config.html", null ],
+    [ "fmt::ostream_formatter", null, [
+      [ "fmt::formatter< boost::beast::http::request< Body, Fields > >", "structfmt_1_1formatter_3_01boost_1_1beast_1_1http_1_1request_3_01_body_00_01_fields_01_4_01_4.html", null ],
+      [ "fmt::formatter< dev::p2p::ENR >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_e_n_r_01_4.html", null ],
+      [ "fmt::formatter< dev::p2p::NodeID >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_i_d_01_4.html", null ],
+      [ "fmt::formatter< dev::p2p::NodeIPEndpoint >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_i_p_endpoint_01_4.html", null ]
+    ] ],
     [ "taraxa::network::threadpool::PacketData", "classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html", null ],
     [ "taraxa::network::threadpool::PacketsBlockingMask", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html", null ],
     [ "taraxa::network::tarcap::PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", null ],
@@ -414,6 +438,7 @@ var hierarchy =
       ] ]
     ] ],
     [ "dev::SignatureStruct", "structdev_1_1_signature_struct.html", null ],
+    [ "taraxa::LoggingConfig::SinkConfig", "structtaraxa_1_1_logging_config_1_1_sink_config.html", null ],
     [ "taraxa::SlashingManager", "classtaraxa_1_1_slashing_manager.html", null ],
     [ "taraxa::SoleiroliaHardforkConfig", "namespacetaraxa.html#structtaraxa_1_1_soleirolia_hardfork_config", null ],
     [ "taraxa::SortitionParams", "structtaraxa_1_1_sortition_params.html", [

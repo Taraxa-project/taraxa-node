@@ -45,6 +45,7 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "final_chain_", "group___vote.html#a0c5262d542cdab8451d4620eb46c5eab", null ],
     [ "key_manager_", "group___vote.html#a7d6ef7f016e3e9870229a67ae64c1dfc", null ],
     [ "kPbftConfig", "group___vote.html#a48acd91ee1cfb71742b0c3d9bb7ee753", null ],
+    [ "logger_", "group___vote.html#acd1e417368001c05d09929319deaa819", null ],
     [ "network_", "group___vote.html#ab33a27ab32527293d1ce811318e68ae9", null ],
     [ "own_verified_votes_", "group___vote.html#ab652ce97eeea5fa3ec8343494c458c9b", null ],
     [ "pbft_chain_", "group___vote.html#a75e3b325d0f2a830383de09a7e1671a8", null ],

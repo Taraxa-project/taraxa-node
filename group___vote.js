@@ -48,6 +48,7 @@ var group___vote =
       [ "final_chain_", "group___vote.html#a0c5262d542cdab8451d4620eb46c5eab", null ],
       [ "key_manager_", "group___vote.html#a7d6ef7f016e3e9870229a67ae64c1dfc", null ],
       [ "kPbftConfig", "group___vote.html#a48acd91ee1cfb71742b0c3d9bb7ee753", null ],
+      [ "logger_", "group___vote.html#acd1e417368001c05d09929319deaa819", null ],
       [ "network_", "group___vote.html#ab33a27ab32527293d1ce811318e68ae9", null ],
       [ "own_verified_votes_", "group___vote.html#ab652ce97eeea5fa3ec8343494c458c9b", null ],
       [ "pbft_chain_", "group___vote.html#a75e3b325d0f2a830383de09a7e1671a8", null ],
@@ -80,8 +81,8 @@ var group___vote =
       [ "rlp", "group___vote.html#a35304b5be8c4d485637815ff1728e46d", null ],
       [ "sha3", "group___vote.html#a424d4d6ce930d31755a20c1b4d5fad55", null ],
       [ "toJSON", "group___vote.html#a442303caeec4de50c06194d50e2b2d03", null ],
+      [ "toString", "group___vote.html#a9cebc732b1c062df04801fc9caf12265", null ],
       [ "verifyVrfSortition", "group___vote.html#a31853775f489173a499af7cf08503710", null ],
-      [ "operator<<", "group___vote.html#a71e3d2933460a8e55a207d4654cfa44a", null ],
       [ "vrf_sortition_", "group___vote.html#a2c0f754951467bbff1f946701422597e", null ],
       [ "weight_", "group___vote.html#a67108dc7db5be3e83f7cac577e676955", null ]
     ] ],

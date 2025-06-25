@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_packet_handler =
 [
-    [ "PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ae4d38850b451ccdc21338ec4f68646f8", null ],
+    [ "PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aaf32451ade24eef404e2b68cbca0f60b", null ],
     [ "~PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab06ae64a92de5d4350a8429977b36b2f", null ],
     [ "PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a6bf5e1f5602478ca27cdccac219abbef", null ],
     [ "PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0b2d7afcbf210dbd66c7f23ba0d08e76", null ],
@@ -12,6 +12,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_packet_handler =
     [ "processPacket", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab58614822e7dd915db29c7e0563b0e99", null ],
     [ "sealAndSend", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a93b800876b4ed756e1abc6813090870c", null ],
     [ "kConf", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0bc0eb91a8941bd8d03eb55c41d06b2c", null ],
+    [ "logger_", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a8ec2764d080c84b6f3352cba4e6adaa0", null ],
     [ "packets_stats_", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a481d7860a8bc694182f20bc57067253a", null ],
     [ "peers_state_", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a9543214a6d87aeb9dbb1902fa2aa5ccf", null ]
 ];

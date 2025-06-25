@@ -94,6 +94,19 @@ var annotated_dup =
       [ "TimerHelper", "classdev_1_1_timer_helper.html", "classdev_1_1_timer_helper" ],
       [ "vector_ref", "classdev_1_1vector__ref.html", "classdev_1_1vector__ref" ]
     ] ],
+    [ "fmt", null, [
+      [ "formatter< bi::tcp::endpoint >", "structfmt_1_1formatter_3_01bi_1_1tcp_1_1endpoint_01_4.html", null ],
+      [ "formatter< bi::udp::endpoint >", "structfmt_1_1formatter_3_01bi_1_1udp_1_1endpoint_01_4.html", null ],
+      [ "formatter< boost::beast::http::request< Body, Fields > >", "structfmt_1_1formatter_3_01boost_1_1beast_1_1http_1_1request_3_01_body_00_01_fields_01_4_01_4.html", null ],
+      [ "formatter< dev::p2p::ENR >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_e_n_r_01_4.html", null ],
+      [ "formatter< dev::p2p::Node >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_01_4.html", null ],
+      [ "formatter< dev::p2p::NodeID >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_i_d_01_4.html", null ],
+      [ "formatter< dev::p2p::NodeIPEndpoint >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_i_p_endpoint_01_4.html", null ],
+      [ "formatter< dev::p2p::PeerSessionInfo >", "structfmt_1_1formatter_3_01dev_1_1p2p_1_1_peer_session_info_01_4.html", null ],
+      [ "formatter< std::atomic< T > >", "structfmt_1_1formatter_3_01std_1_1atomic_3_01_t_01_4_01_4.html", "structfmt_1_1formatter_3_01std_1_1atomic_3_01_t_01_4_01_4" ],
+      [ "formatter< taraxa::addr_t >", "structfmt_1_1formatter_3_01taraxa_1_1addr__t_01_4.html", "structfmt_1_1formatter_3_01taraxa_1_1addr__t_01_4" ],
+      [ "formatter< taraxa::blk_hash_t >", "structfmt_1_1formatter_3_01taraxa_1_1blk__hash__t_01_4.html", "structfmt_1_1formatter_3_01taraxa_1_1blk__hash__t_01_4" ]
+    ] ],
     [ "graphql", "namespacegraphql.html", [
       [ "taraxa", "namespacegraphql_1_1taraxa.html", [
         [ "Account", "classgraphql_1_1taraxa_1_1_account.html", "classgraphql_1_1taraxa_1_1_account" ],
@@ -130,7 +143,7 @@ var annotated_dup =
         [ "NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", "group___final_chain_structtaraxa_1_1final__chain_1_1_new_block" ]
       ] ],
       [ "logger", "namespacetaraxa_1_1logger.html", [
-        [ "Config", "classtaraxa_1_1logger_1_1_config.html", "classtaraxa_1_1logger_1_1_config" ]
+        [ "Logging", "classtaraxa_1_1logger_1_1_logging.html", "classtaraxa_1_1logger_1_1_logging" ]
       ] ],
       [ "metrics", "namespacetaraxa_1_1metrics.html", [
         [ "JsonRpcMetrics", "classtaraxa_1_1metrics_1_1_json_rpc_metrics.html", "classtaraxa_1_1metrics_1_1_json_rpc_metrics" ],
@@ -354,12 +367,13 @@ var annotated_dup =
       [ "InvalidRlpItemsCountException", "classtaraxa_1_1_invalid_rlp_items_count_exception.html", "classtaraxa_1_1_invalid_rlp_items_count_exception" ],
       [ "KeyManager", "classtaraxa_1_1_key_manager.html", "classtaraxa_1_1_key_manager" ],
       [ "LogEntry", "structtaraxa_1_1_log_entry.html", "structtaraxa_1_1_log_entry" ],
+      [ "LoggingConfig", "structtaraxa_1_1_logging_config.html", "structtaraxa_1_1_logging_config" ],
       [ "MagnoliaHardfork", "namespacetaraxa.html#structtaraxa_1_1_magnolia_hardfork", "namespacetaraxa_structtaraxa_1_1_magnolia_hardfork_dup" ],
       [ "MaliciousPeerException", "classtaraxa_1_1_malicious_peer_exception.html", "classtaraxa_1_1_malicious_peer_exception" ],
       [ "MapByBlockCache", "classtaraxa_1_1_map_by_block_cache.html", "classtaraxa_1_1_map_by_block_cache" ],
       [ "Network", "classtaraxa_1_1_network.html", "classtaraxa_1_1_network" ],
       [ "NetworkConfig", "structtaraxa_1_1_network_config.html", "structtaraxa_1_1_network_config" ],
-      [ "NodeConfig", "namespacetaraxa.html#structtaraxa_1_1_node_config", "namespacetaraxa_structtaraxa_1_1_node_config_dup" ],
+      [ "NodeConfig", "structtaraxa_1_1_node_config.html", "structtaraxa_1_1_node_config" ],
       [ "OptimizedPbftVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle", "group___vote_structtaraxa_1_1_optimized_pbft_votes_bundle" ],
       [ "OptimizedPillarVotesBundle", "group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle", "group___vote_structtaraxa_1_1_optimized_pillar_votes_bundle" ],
       [ "PacketProcessingException", "classtaraxa_1_1_packet_processing_exception.html", "classtaraxa_1_1_packet_processing_exception" ],
@@ -403,6 +417,7 @@ var annotated_dup =
       [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", "group___vote_classtaraxa_1_1_vrf_pbft_sortition" ],
       [ "WalletConfig", "structtaraxa_1_1_wallet_config.html", "structtaraxa_1_1_wallet_config" ]
     ] ],
+    [ "BoostOstreamFormatter", "struct_boost_ostream_formatter.html", "struct_boost_ostream_formatter" ],
     [ "ExpirationBlockNumberCache", "class_expiration_block_number_cache.html", "class_expiration_block_number_cache" ],
     [ "ExpirationCache", "class_expiration_cache.html", "class_expiration_cache" ],
     [ "ExpirationCacheMap", "class_expiration_cache_map.html", "class_expiration_cache_map" ],

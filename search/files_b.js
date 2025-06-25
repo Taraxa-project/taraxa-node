@@ -8,8 +8,9 @@ var searchData=
   ['log_2ehpp_5',['log.hpp',['../log_8hpp.html',1,'']]],
   ['logfilter_2ecpp_6',['LogFilter.cpp',['../_log_filter_8cpp.html',1,'']]],
   ['logfilter_2ehpp_7',['LogFilter.hpp',['../_log_filter_8hpp.html',1,'']]],
-  ['logger_2ecpp_8',['logger.cpp',['../logger_8cpp.html',1,'']]],
-  ['logger_2ehpp_9',['logger.hpp',['../logger_8hpp.html',1,'']]],
-  ['logger_5fconfig_2ecpp_10',['logger_config.cpp',['../logger__config_8cpp.html',1,'']]],
-  ['logger_5fconfig_2ehpp_11',['logger_config.hpp',['../logger__config_8hpp.html',1,'']]]
+  ['logger_5fformatters_2ehpp_8',['logger_formatters.hpp',['../logger__formatters_8hpp.html',1,'']]],
+  ['loggerformatters_2ehpp_9',['LoggerFormatters.hpp',['../_logger_formatters_8hpp.html',1,'']]],
+  ['logging_2ecpp_10',['logging.cpp',['../logging_8cpp.html',1,'']]],
+  ['logging_2ehpp_11',['logging.hpp',['../logging_8hpp.html',1,'']]],
+  ['logging_5fconfig_2ehpp_12',['logging_config.hpp',['../logging__config_8hpp.html',1,'']]]
 ];

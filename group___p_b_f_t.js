@@ -2,7 +2,7 @@ var group___p_b_f_t =
 [
     [ "taraxa::pillar_chain", "namespacetaraxa_1_1pillar__chain.html", null ],
     [ "taraxa::PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", [
-      [ "PbftChain", "group___p_b_f_t.html#a9437dee7bab66a6671a3baabfaa5d177", null ],
+      [ "PbftChain", "group___p_b_f_t.html#aa48fa1d5d73c26853ca554b1474683e3", null ],
       [ "checkPbftBlockValidation", "group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517", null ],
       [ "findPbftBlockInChain", "group___p_b_f_t.html#a068a96e0b08ed10fc6a08f412da6dd63", null ],
       [ "getHeadHash", "group___p_b_f_t.html#a665045b58c58cf6a8d43ecb9b983d8ad", null ],
@@ -19,6 +19,7 @@ var group___p_b_f_t =
       [ "head_hash_", "group___p_b_f_t.html#aaa81d91b429a66dfde206e07734d217f", null ],
       [ "last_non_null_pbft_dag_anchor_hash_", "group___p_b_f_t.html#a8b78847ba76f5d5060265adf8798a91c", null ],
       [ "last_pbft_block_hash_", "group___p_b_f_t.html#a05fc8279766fa92c2acef6397068635b", null ],
+      [ "logger_", "group___p_b_f_t.html#a37ab8b1fc9d98a20f35a6263550e39a9", null ],
       [ "non_empty_size_", "group___p_b_f_t.html#a069e96349475b2bbfc52998fd608e78c", null ],
       [ "size_", "group___p_b_f_t.html#a4cbac9a55aeb28e499888266e1988fd0", null ]
     ] ],
@@ -143,6 +144,7 @@ var group___p_b_f_t =
       [ "kSyncingThreadPoolSize", "group___p_b_f_t.html#a3b3876bcb7232011bf4d5a8edc1cea07", null ],
       [ "lambda_", "group___p_b_f_t.html#a4a9ad92258f3a06894de79875784e63b", null ],
       [ "last_placed_pillar_vote_period_", "group___p_b_f_t.html#a8def0b43fab2662fd5e418faad7a2fcd", null ],
+      [ "logger_", "group___p_b_f_t.html#afc5547833aff64ce18a110aec67c06a0", null ],
       [ "loop_back_finish_state_", "group___p_b_f_t.html#ac223cb71b31a508a0be870366c48b877", null ],
       [ "network_", "group___p_b_f_t.html#ac7c6c733e7085039af62ccb5ba167da9", null ],
       [ "next_step_time_ms_", "group___p_b_f_t.html#a60b3092152bc8fc64ab68638ef6f39aa", null ],
@@ -238,6 +240,7 @@ var group___p_b_f_t =
       [ "PeriodData", "group___p_b_f_t.html#a8e0cefe3c3e353a3512a6da620aafd62", null ],
       [ "clear", "group___p_b_f_t.html#a0dc7de87bfa14bd2ce793c19790ec0e6", null ],
       [ "rlp", "group___p_b_f_t.html#ac00e0b5f280f2f473834fa145ca72349", null ],
+      [ "toString", "group___p_b_f_t.html#a59e65bae227468483443c27e06f2f0f8", null ],
       [ "dag_blocks", "group___p_b_f_t.html#a7c3307d44a3088ae8eca4f3bf318e23f", null ],
       [ "kBaseRlpItemCount", "group___p_b_f_t.html#a05063276422fc45a4c2267ba5cfef634", null ],
       [ "kExtendedRlpItemCount", "group___p_b_f_t.html#ad3c470f9f7dd46d563a3d90a576ad1d1", null ],
@@ -259,6 +262,5 @@ var group___p_b_f_t =
       [ "taraxa::finish_polling_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcab30f0b5d1d37bed7deae36af1d8b3d14", null ]
     ] ],
     [ "taraxa::operator<<", "group___p_b_f_t.html#ga788b2a39c7312a656ddb0116585697b9", null ],
-    [ "taraxa::operator<<", "group___p_b_f_t.html#ga3fdeda8aaed53f4c24ef36e0642d819a", null ],
-    [ "taraxa::operator<<", "group___p_b_f_t.html#ga4eb5ae28c1fec5d7a7695d4545961ea0", null ]
+    [ "taraxa::operator<<", "group___p_b_f_t.html#ga3fdeda8aaed53f4c24ef36e0642d819a", null ]
 ];

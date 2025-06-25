@@ -95,7 +95,6 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1_dag_block.html',''); i
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#pri-static-attribs">Static Private Attributes</a> &#124;
-<a href="#friends">Friends</a> &#124;
 <a href="classtaraxa_1_1_dag_block-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">taraxa::DagBlock Class Reference</div></div>
 </div><!--header-->
@@ -154,6 +153,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7f053030792b718833d01b8a7a15c429"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a92d0d1d65b53c557b39f06aaae6f9b47" id="r_a92d0d1d65b53c557b39f06aaae6f9b47"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a92d0d1d65b53c557b39f06aaae6f9b47">DagBlock</a> (<a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> const &amp;_rlp)</td></tr>
 <tr class="separator:a92d0d1d65b53c557b39f06aaae6f9b47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef1093e840be3a82e5f123aaa540c2f7" id="r_aef1093e840be3a82e5f123aaa540c2f7"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#aef1093e840be3a82e5f123aaa540c2f7">toString</a> () const</td></tr>
+<tr class="separator:aef1093e840be3a82e5f123aaa540c2f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0189199e34da23df74249b38d7891c78" id="r_a0189199e34da23df74249b38d7891c78"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a0189199e34da23df74249b38d7891c78">operator==</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;other) const</td></tr>
 <tr class="separator:a0189199e34da23df74249b38d7891c78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abab17c6b2f62a3c122653d767f1ce878" id="r_abab17c6b2f62a3c122653d767f1ce878"><td class="memItemLeft" align="right" valign="top">auto const &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#abab17c6b2f62a3c122653d767f1ce878">getPivot</a> () const</td></tr>
@@ -239,11 +240,6 @@ Static Private Attributes</h2></td></tr>
 <tr class="separator:a318413c5369c15dc8eeb91a573e971b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe7ebe238d3b5cf6a0f90f40486961f8" id="r_abe7ebe238d3b5cf6a0f90f40486961f8"><td class="memItemLeft" align="right" valign="top">static const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#abe7ebe238d3b5cf6a0f90f40486961f8">kSigPosInRlp</a> {6}</td></tr>
 <tr class="separator:abe7ebe238d3b5cf6a0f90f40486961f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:a335c58b7f3a0e4358cf5d24b9fc363f8" id="r_a335c58b7f3a0e4358cf5d24b9fc363f8"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a335c58b7f3a0e4358cf5d24b9fc363f8">operator&lt;&lt;</a> (std::ostream &amp;str, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;u)</td></tr>
-<tr class="separator:a335c58b7f3a0e4358cf5d24b9fc363f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b...">DagBlock</a> class is a DAG block class which main data is a list of transaction hashes included in the block and hashes of pivot and tips blocks it points to. </p>
@@ -1096,6 +1092,31 @@ Friends</h2></td></tr>
 
 </div>
 </div>
+<a id="aef1093e840be3a82e5f123aaa540c2f7" name="aef1093e840be3a82e5f123aaa540c2f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef1093e840be3a82e5f123aaa540c2f7">&#9670;&#160;</a></span>toString()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string taraxa::DagBlock::toString </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab28ae9dda4c128c0e90e086f72d823d4" name="ab28ae9dda4c128c0e90e086f72d823d4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab28ae9dda4c128c0e90e086f72d823d4">&#9670;&#160;</a></span>verifySig()</h2>
 
@@ -1155,43 +1176,6 @@ Friends</h2></td></tr>
           <td></td><td> const</td>
         </tr>
       </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h2 class="groupheader">Friends And Related Symbol Documentation</h2>
-<a id="a335c58b7f3a0e4358cf5d24b9fc363f8" name="a335c58b7f3a0e4358cf5d24b9fc363f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a335c58b7f3a0e4358cf5d24b9fc363f8">&#9670;&#160;</a></span>operator&lt;&lt;</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::ostream &amp; operator&lt;&lt; </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>str</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;&#160;</td>
-          <td class="paramname"><em>u</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>

@@ -1,6 +1,6 @@
 var group___transaction_classtaraxa_1_1_transaction_manager =
 [
-    [ "TransactionManager", "group___transaction.html#af79c738b08f3b82b18d9b05c0a96c104", null ],
+    [ "TransactionManager", "group___transaction.html#a368578607257db2a44ffe4321311cc0e", null ],
     [ "blockFinalized", "group___transaction.html#a5518e05109ea6a098343f4e2a0f58711", null ],
     [ "estimateTransactionGas", "group___transaction.html#aa2a14e6d32b745373553750fc88f8bf4", null ],
     [ "estimateTransactions", "group___transaction.html#aa39c14451f41f7e149f0e5b8853dc83d", null ],
@@ -40,6 +40,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "kDagBlockGasLimit", "group___transaction.html#acea2679465eaa2198cf68212c3626936", null ],
     [ "kEstimateGasLimit", "group___transaction.html#a73ff8227a0b64365c57f054016400e6b", null ],
     [ "kRecentlyFinalizedTransactionsMax", "group___transaction.html#a4a14493411b6e059a45ed8ae906a23d5", null ],
+    [ "logger_", "group___transaction.html#adc2ecd05a113ae619442b03ce5ec3a2a", null ],
     [ "nonfinalized_transactions_in_dag_", "group___transaction.html#a16c4d3c1bfe64a804a3478319e77a2cf", null ],
     [ "recently_finalized_transactions_", "group___transaction.html#a8c55e3c5cdcbd8c82eaa772e2f85bbe1", null ],
     [ "recently_finalized_transactions_per_period_", "group___transaction.html#a7225a4fa9d77f5e3c8a9717b31dd97aa", null ],

@@ -332,12 +332,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ac0872ab2809853dbe973189108d545fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16fcf16448de6dbdd6e0d88decac18dd" id="r_a16fcf16448de6dbdd6e0d88decac18dd"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; <a class="el" href="namespacedev.html#a23cea7314edae6ab1d68892f78e3f7d7">uint64_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_host.html#a16fcf16448de6dbdd6e0d88decac18dd">peer_count_snapshot_</a> = 0</td></tr>
 <tr class="separator:a16fcf16448de6dbdd6e0d88decac18dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a071593a39c481a0cad338c976fe39786" id="r_a071593a39c481a0cad338c976fe39786"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_host.html#a071593a39c481a0cad338c976fe39786">m_logger</a> {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a73f1cfe530632048dd623729258af859">VerbosityDebug</a>, &quot;net&quot;)}</td></tr>
-<tr class="separator:a071593a39c481a0cad338c976fe39786"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aca6d02fb39902063f0ca8d0ac53eeaa7" id="r_aca6d02fb39902063f0ca8d0ac53eeaa7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_host.html#aca6d02fb39902063f0ca8d0ac53eeaa7">m_detailsLogger</a> {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491ab8ef256fd47f32f6f85121f0058147b0">VerbosityTrace</a>, &quot;net&quot;)}</td></tr>
-<tr class="separator:aca6d02fb39902063f0ca8d0ac53eeaa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf476df01ed6bed92fbb633c6c9e49c4" id="r_aaf476df01ed6bed92fbb633c6c9e49c4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_host.html#aaf476df01ed6bed92fbb633c6c9e49c4">m_infoLogger</a> {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a2101288a737776d2e6eb89d324e0ae23">VerbosityInfo</a>, &quot;net&quot;)}</td></tr>
-<tr class="separator:aaf476df01ed6bed92fbb633c6c9e49c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa46c23cffe0f774bece5f252ede00aaa" id="r_aa46c23cffe0f774bece5f252ede00aaa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">taraxa::logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_host.html#aa46c23cffe0f774bece5f252ede00aaa">net_logger_</a></td></tr>
+<tr class="separator:aa46c23cffe0f774bece5f252ede00aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="structdev_1_1p2p_1_1_host.html" title="The Host class Capabilities should be registered prior to startNetwork, since m_capabilities is not t...">Host</a> class Capabilities should be registered prior to startNetwork, since m_capabilities is not thread-safe. </p>
@@ -2023,28 +2019,6 @@ peers</td>
 
 </div>
 </div>
-<a id="aca6d02fb39902063f0ca8d0ac53eeaa7" name="aca6d02fb39902063f0ca8d0ac53eeaa7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aca6d02fb39902063f0ca8d0ac53eeaa7">&#9670;&#160;</a></span>m_detailsLogger</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a> dev::p2p::Host::m_detailsLogger {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491ab8ef256fd47f32f6f85121f0058147b0">VerbosityTrace</a>, &quot;net&quot;)}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ae22165e38e451d0e7142e5baf871e711" name="ae22165e38e451d0e7142e5baf871e711"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae22165e38e451d0e7142e5baf871e711">&#9670;&#160;</a></span>m_idealPeerCount</h2>
 
@@ -2066,28 +2040,6 @@ peers</td>
 </div><div class="memdoc">
 
 <p>Ideal number of peers to be connected to. </p>
-
-</div>
-</div>
-<a id="aaf476df01ed6bed92fbb633c6c9e49c4" name="aaf476df01ed6bed92fbb633c6c9e49c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf476df01ed6bed92fbb633c6c9e49c4">&#9670;&#160;</a></span>m_infoLogger</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a> dev::p2p::Host::m_infoLogger {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a2101288a737776d2e6eb89d324e0ae23">VerbosityInfo</a>, &quot;net&quot;)}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
 
 </div>
 </div>
@@ -2154,28 +2106,6 @@ peers</td>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a071593a39c481a0cad338c976fe39786" name="a071593a39c481a0cad338c976fe39786"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a071593a39c481a0cad338c976fe39786">&#9670;&#160;</a></span>m_logger</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a> dev::p2p::Host::m_logger {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a73f1cfe530632048dd623729258af859">VerbosityDebug</a>, &quot;net&quot;)}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -2385,6 +2315,28 @@ peers</td>
 </table>
 </div><div class="memdoc">
 <p>Our public listening endpoint. </p>
+
+</div>
+</div>
+<a id="aa46c23cffe0f774bece5f252ede00aaa" name="aa46c23cffe0f774bece5f252ede00aaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa46c23cffe0f774bece5f252ede00aaa">&#9670;&#160;</a></span>net_logger_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">taraxa::logger::Logger</a> dev::p2p::Host::net_logger_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
 
 </div>
 </div>

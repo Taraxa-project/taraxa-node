@@ -11,7 +11,6 @@ var types_8hpp =
     [ "PbftRound", "types_8hpp.html#a6339cbbf8f3eef50f67929876dd45b5f", null ],
     [ "PbftStep", "types_8hpp.html#a1b866c209a558125f9ca8e204144c215", null ],
     [ "public_t", "types_8hpp.html#a939db49e844b718c8ccc5ab4f5833f57", null ],
-    [ "root_t", "types_8hpp.html#a0826926ee3a622c25c010d9004097ef8", null ],
     [ "secret_t", "types_8hpp.html#aee86984b7cf218e6347737f4f6cb5d60", null ],
     [ "sig_t", "types_8hpp.html#ac413a96709236ee8b2a47c019f83ce37", null ],
     [ "trx_hash_t", "types_8hpp.html#a547380b2fdd6d759f86e4819e84ec314", null ],
