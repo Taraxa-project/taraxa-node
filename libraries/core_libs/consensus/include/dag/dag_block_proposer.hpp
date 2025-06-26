@@ -72,10 +72,11 @@ class DagBlockProposer {
 
   /**
    * @brief Tries to propose new dag block
+   * @param node_dag_proposer_data data for the node proposing the block
    *
    * @return true if successfully proposed, otherwise false
    */
-  bool proposeDagBlock();
+  bool proposeDagBlock(const std::shared_ptr<NodeDagProposerData>& node_dag_proposer_data);
 
   /**
    * @brief Sets network
@@ -155,10 +156,10 @@ class DagBlockProposer {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<std::thread> proposer_worker_;
+  std::vector<std::thread> proposer_workers_;
   std::weak_ptr<Network> network_;
 
-  std::vector<NodeDagProposerData> nodes_dag_proposers_data_;
+  std::vector<std::shared_ptr<NodeDagProposerData>> nodes_dag_proposers_data_;
 
   const uint64_t kDagProposeGasLimit;
   const uint64_t kPbftGasLimit;
