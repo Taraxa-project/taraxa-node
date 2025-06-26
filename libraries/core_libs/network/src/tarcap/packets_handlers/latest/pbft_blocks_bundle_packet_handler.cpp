@@ -1,5 +1,6 @@
 #include "network/tarcap/packets_handlers/latest/pbft_blocks_bundle_packet_handler.hpp"
 
+#include "final_chain/final_chain.hpp"
 #include "network/tarcap/packets/latest/pbft_blocks_bundle_packet.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -10,11 +11,13 @@ PbftBlocksBundlePacketHandler::PbftBlocksBundlePacketHandler(const FullNodeConfi
                                                              std::shared_ptr<PeersState> peers_state,
                                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                              std::shared_ptr<PbftManager> pbft_mgr,
+                                                             std::shared_ptr<final_chain::FinalChain> final_chain,
                                                              std::shared_ptr<PbftSyncingState> syncing_state,
                                                              const addr_t &node_addr, const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
                     logs_prefix + "PBFT_BLOCKS_BUNDLE_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
+      final_chain_(std::move(final_chain)),
       pbft_syncing_state_(syncing_state) {}
 
 void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet_data,
@@ -27,7 +30,6 @@ void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet
                                         kMaxBlocksInPacket);
   }
 
-  const auto current_pbft_period = pbft_mgr_->getPbftPeriod();
   std::unordered_map<PbftPeriod, std::unordered_set<addr_t>> unique_authors;
 
   if (pbft_syncing_state_->lastSyncingPeer()->getId() != peer->getId()) {
@@ -41,6 +43,7 @@ void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet
   for (const auto &proposed_block : packet.pbft_blocks) {
     const auto proposed_block_period = proposed_block->getPeriod();
     const auto proposed_block_author = proposed_block->getBeneficiary();
+    const auto current_pbft_period = pbft_mgr_->getPbftPeriod();
 
     // Check if proposed block period is relevant compared to the current node period
     if (proposed_block_period < current_pbft_period || proposed_block_period > current_pbft_period + 5) {
@@ -62,7 +65,8 @@ void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet
     }
 
     // Check if block author is dpos eligible
-    if (!pbft_mgr_->canParticipateInConsensus(proposed_block_period - 1, proposed_block_author)) {
+    if (final_chain_->lastBlockNumber() >= proposed_block_period - 1 &&
+        !pbft_mgr_->canParticipateInConsensus(proposed_block_period - 1, proposed_block_author)) {
       std::ostringstream err_msg;
       err_msg << "Proposed pbft blocks packet contains non-eligible block author " << proposed_block_author
               << " for period " << proposed_block_period - 1;

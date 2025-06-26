@@ -151,7 +151,8 @@ void App::init(const cli::Config &cli_conf) {
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(conf_, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_);
 
   network_ = std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), db_, pbft_mgr_, pbft_chain_,
-                                       vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
+                                       vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_,
+                                       final_chain_);
   auto cli_options = cli_conf.getCliOptions();
   for (auto &plugin : active_plugins_) {
     plugin.second->init(cli_options);
