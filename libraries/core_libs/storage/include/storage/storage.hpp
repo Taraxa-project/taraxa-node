@@ -493,7 +493,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   }
 
   template <typename T>
-  void clearColumnHistoryOld(std::unordered_set<T>& to_keep, Column c) {
+  void clearColumnHistory(std::unordered_set<T>& to_keep, Column c) {
     std::map<T, bytes> data_to_keep;
     for (auto t : to_keep) {
       auto raw = asBytes(lookup(t, c));
@@ -509,24 +509,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     }
     commitWriteBatch(batch);
     data_to_keep.clear();
-  }
-
-  template <typename T>
-  void clearColumnHistory(std::unordered_set<T>& to_keep, Column c) {
-    auto batch = createWriteBatch();
-    auto it = getColumnIterator(c);
-
-    // Iterate through all entries in the column
-    for (it->SeekToFirst(); it->Valid(); it->Next()) {
-      auto key = FromSlice<T>(it->key());
-
-      // If the key is not in the keep set, delete it
-      if (to_keep.find(key) == to_keep.end()) {
-        remove(batch, c, key);
-      }
-    }
-
-    commitWriteBatch(batch);
   }
 
   void forEach(Column const& col, OnEntry const& f);

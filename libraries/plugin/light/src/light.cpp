@@ -9,33 +9,36 @@ namespace taraxa::plugin {
 namespace bpo = boost::program_options;
 constexpr auto HISTORY = "light.history";
 constexpr auto NO_STATE_DB_PRUNING = "light.no_state_db_pruning";
+constexpr auto NO_LIVE_CLEANUP = "light.no_live_cleanup";
 
-Light::Light(std::shared_ptr<AppBase> app) : Plugin(app) {
+Light::Light(std::shared_ptr<AppBase> app) : Plugin(app), history_(app->getMutableConfig().light_node_history) {
   auto node_addr = app->getAddress();
   LOG_OBJECTS_CREATE("light");
 }
 
 void Light::init(const boost::program_options::variables_map &opts) {
   const auto &conf = app()->getConfig();
-  min_light_node_history_ = (conf.genesis.state.dpos.blocks_per_year * conf.kDefaultLightNodeHistoryDays) / 365;
   if (!opts[HISTORY].empty()) {
-    history_ = opts[HISTORY].as<uint32_t>();
+    history_ = opts[HISTORY].as<uint64_t>();
+    if (history_ < min_light_node_history_) {
+      throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history_) +
+                            " blocks (" + std::to_string(conf.kDefaultLightNodeHistoryDays) + " days)");
+    }
   } else {
+    min_light_node_history_ = (conf.genesis.state.dpos.blocks_per_year * conf.kDefaultLightNodeHistoryDays) / 365;
     history_ = min_light_node_history_;
-  }
-  if (history_ < min_light_node_history_) {
-    throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history_) +
-                          " blocks (" + std::to_string(conf.kDefaultLightNodeHistoryDays) + " days)");
   }
   state_db_pruning_ = !opts[NO_STATE_DB_PRUNING].as<bool>();
 
+  live_cleanup_ = !opts[NO_LIVE_CLEANUP].as<bool>();
+
   app()->getMutableConfig().is_light_node = true;
-  app()->getMutableConfig().light_node_history = history_;
 }
 
 void Light::addOptions(boost::program_options::options_description &opts) {
   opts.add_options()(HISTORY, bpo::value<uint32_t>(), "Number of blocks to keep in light node history");
-  opts.add_options()(NO_STATE_DB_PRUNING, bpo::bool_switch()->default_value(true), "Prune state_db");
+  opts.add_options()(NO_STATE_DB_PRUNING, bpo::bool_switch()->default_value(false), "Prune state_db");
+  opts.add_options()(NO_LIVE_CLEANUP, bpo::bool_switch()->default_value(false), "Disable live cleanup");
 }
 
 void Light::start() {
@@ -44,14 +47,19 @@ void Light::start() {
     pruneStateDb();
   }
   app()->getFinalChain()->block_finalized_.subscribe(
-      [this](std::shared_ptr<final_chain::FinalizationResult> res) {
-        const auto period = res->final_chain_blk->number;
-        clearPeriod(period - history_);
+      [this](std::shared_ptr<final_chain::FinalizationResult>) {
+        if (live_cleanup_) {
+          clearLightNodeHistory();
+        }
       },
       cleanup_pool_);
 }
 
 void Light::shutdown() {}
+
+uint64_t Light::getCleanupPeriod(uint64_t dag_period, std::optional<uint64_t> proposal_period) const {
+  return std::min(dag_period - history_, *proposal_period);
+}
 
 void Light::clearLightNodeHistory() {
   const auto dag_manager = app()->getDagManager();
@@ -61,14 +69,13 @@ void Light::clearLightNodeHistory() {
   const auto dag_expiry_level = dag_manager->getDagExpiryLevel();
   const auto max_levels_per_period = dag_manager->getMaxLevelsPerPeriod();
   bool dag_expiry_level_condition = dag_expiry_level > max_levels_per_period + 1;
-
   if (dag_period > history_ && dag_expiry_level_condition) {
     const auto proposal_period = db->getProposalPeriodForDagLevel(dag_expiry_level - max_levels_per_period - 1);
     assert(proposal_period);
 
     // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired
     // dag blocks
-    const uint64_t end = std::min(dag_period - history_, *proposal_period);
+    const uint64_t end = getCleanupPeriod(dag_period, proposal_period);
     uint64_t dag_level_to_keep = 1;
     if (dag_expiry_level > max_levels_per_period) {
       dag_level_to_keep = dag_expiry_level - max_levels_per_period;
@@ -76,41 +83,6 @@ void Light::clearLightNodeHistory() {
 
     clearHistory(end, dag_level_to_keep, dag_period);
   }
-}
-
-void Light::clearPeriod(PbftPeriod period) {
-  LOG(log_tr_) << "Clearing period: " << period;
-  auto db = app()->getDB();
-  auto batch = db->createWriteBatch();
-
-  db->remove(batch, DbStorage::Columns::period_data, period);
-  db->remove(batch, DbStorage::Columns::pillar_block, period);
-  db->remove(batch, DbStorage::Columns::final_chain_receipt_by_period, period);
-  db->commitWriteBatch(batch);
-  {
-    auto period_data = db->getPeriodData(period);
-    if (!period_data.has_value()) {
-      return;
-    }
-    for (auto t : period_data->transactions) {
-      db->remove(batch, DbStorage::Columns::trx_period, t->getHash());
-      db->remove(batch, DbStorage::Columns::final_chain_receipt_by_trx_hash, t->getHash());
-    }
-    for (auto d : period_data->dag_blocks) {
-      db->remove(batch, DbStorage::Columns::dag_block_period, d->getHash());
-    }
-    db->remove(batch, DbStorage::Columns::pbft_block_period, period_data->pbft_blk->getBlockHash());
-  }
-  db->commitWriteBatch(batch);
-
-  const auto dag_expiry_level = app()->getDagManager()->getDagExpiryLevel();
-
-  db->DeleteRange(DbStorage::Columns::dag_blocks_level, 0, dag_expiry_level);
-  db->CompactRange(DbStorage::Columns::dag_blocks_level, 0, dag_expiry_level);
-
-  db->CompactRange(DbStorage::Columns::period_data, period, period);
-  db->CompactRange(DbStorage::Columns::pillar_block, period, period);
-  db->CompactRange(DbStorage::Columns::final_chain_receipt_by_period, period, period);
 }
 
 void Light::clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, PbftPeriod last_block_number) {
@@ -126,6 +98,9 @@ void Light::clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, Pbft
 
   uint64_t start_period;
   memcpy(&start_period, it->key().data(), sizeof(uint64_t));
+  if (start_period >= end_period) {
+    return;
+  }
 
   db->DeleteRange(DbStorage::Columns::period_data, start_period, end_period);
   db->DeleteRange(DbStorage::Columns::pillar_block, start_period, end_period);

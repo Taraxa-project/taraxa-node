@@ -3,15 +3,12 @@
 #include <gtest/gtest.h>
 #include <libdevcore/CommonData.h>
 
-#include <atomic>
 #include <chrono>
 #include <iostream>
 #include <mutex>
 #include <shared_mutex>
 #include <vector>
 
-#include "cli/config.hpp"
-#include "cli/tools.hpp"
 #include "common/constants.hpp"
 #include "common/init.hpp"
 #include "common/types.hpp"
@@ -20,10 +17,7 @@
 #include "graphql/mutation.hpp"
 #include "graphql/query.hpp"
 #include "graphql/subscription.hpp"
-#include "logger/logger.hpp"
-#include "network/network.hpp"
-#include "network/rpc/Taraxa.h"
-#include "pbft/pbft_manager.hpp"
+#include "plugin/light.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -1287,49 +1281,52 @@ TEST_F(FullNodeTest, transaction_validation) {
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
-// TEST_F(FullNodeTest, light_node) {
-//   auto node_cfgs = make_node_cfgs(2, 1, 5);
-//   node_cfgs[0].dag_expiry_limit = 5;
-//   node_cfgs[0].max_levels_per_period = 3;
-//   node_cfgs[1].dag_expiry_limit = 5;
-//   node_cfgs[1].max_levels_per_period = 3;
-//   node_cfgs[1].is_light_node = true;
-//   node_cfgs[1].light_node_history = 10;
-//   auto nodes = launch_nodes(node_cfgs);
-//   uint64_t nonce = 0;
-//   while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
-//     auto dummy_trx =
-//         std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(),
-//         nodes[0]->getAddress());
-//     // broadcast dummy transaction
-//     nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
-//     thisThreadSleepForMilliSeconds(200);
-//   }
-//   nodes[1]->getDagManager()->clearLightNodeHistory(node_cfgs[1].light_node_history);
-//   EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
-//     // Verify full node and light node sync without any issues
-//     WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
-//                    nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
-//   });
-//   uint32_t non_empty_counter = 0;
-//   for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
-//     const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
-//     if (pbft_block) {
-//       non_empty_counter++;
-//     }
-//   }
+uint64_t count_non_empty_blocks(const std::shared_ptr<AppBase> &node) {
+  uint64_t non_empty_counter = 0;
+  for (uint64_t i = 0; i < node->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = node->getDB()->getPbftBlock(i);
+    if (pbft_block) {
+      non_empty_counter++;
+    }
+  }
+  return non_empty_counter;
+}
 
-//   uint32_t non_empty_counter_full_node = 0;
-//   for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
-//     const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
-//     if (pbft_block) {
-//       non_empty_counter_full_node++;
-//     }
-//   }
-//   // Verify light node keeps at least light_node_history and it deletes old blocks
-//   EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
-//   EXPECT_LT(non_empty_counter, non_empty_counter_full_node);
-// }
+TEST_F(FullNodeTest, light_node) {
+  auto cfgs = make_test_cfgs(make_node_cfgs(2, 1, 10));
+  const uint64_t history = 20;
+
+  cfgs[0].config().dag_expiry_limit = 5;
+  cfgs[0].config().max_levels_per_period = 3;
+  cfgs[1].config().dag_expiry_limit = 5;
+  cfgs[1].config().max_levels_per_period = 3;
+  cfgs[1].enableLightNode(history, false);
+  cfgs[1].config().is_light_node = true;
+
+  uint64_t nonce = 0;
+  auto nodes = launch_nodes(cfgs);
+
+  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 30) {
+    auto dummy_trx =
+        std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    // broadcast dummy transaction
+    nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
+    thisThreadSleepForMilliSeconds(200);
+  }
+
+  EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    // Verify full node and light node sync without any issues
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                   nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
+  });
+
+  uint32_t non_empty_counter_full_node = count_non_empty_blocks(nodes[0]);
+  uint32_t non_empty_counter_light_node = count_non_empty_blocks(nodes[1]);
+
+  // Verify light node keeps at least light_node_history and it deletes old blocks
+  EXPECT_GE(non_empty_counter_light_node, node_cfgs[1].light_node_history);
+  EXPECT_EQ(non_empty_counter_light_node, non_empty_counter_full_node);
+}
 
 TEST_F(FullNodeTest, clear_period_data) {
   auto node_cfgs = make_node_cfgs(2, 1, 10);
@@ -1418,31 +1415,56 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
 TEST_F(FullNodeTest, SoleiroliaHardfork) {
   const auto call_data = "0xabbb061e000000000000000000000000000000000000000000000000000000000005a768";
   const auto receiver_contract_code =
-      "6080604052348015600f57600080fd5b5063045d9f3b424302601081901c1802600155610578806100316000396000f3fe60806040523480"
-      "1561001057600080fd5b50600436106100935760003560e01c8063a5b4155011610066578063a5b41550146100f8578063abbb061e146101"
-      "0b578063b8dda9c71461011e578063f4ecb8dc1461013e578063ffb2c4791461015157600080fd5b80632f048afa146100985780637ea9ea"
-      "d3146100ad578063843b5e19146100d2578063a49cbc46146100e5575b600080fd5b6100ab6100a63660046104ee565b610164565b005b61"
-      "00c06100bb3660046104ee565b610195565b60405190815260200160405180910390f35b6100c06100e03660046104ee565b6101dc565b61"
-      "00ab6100f33660046104ee565b610249565b6100ab6101063660046104ee565b61028b565b6100c06101193660046104ee565b610366565b"
-      "6100c061012c3660046104ee565b60006020819052908152604090205481565b6100ab61014c3660046104ee565b6103ac565b6100c06101"
-      "5f3660046104ee565b610493565b60005b818110156101915760006101796104b9565b600081815260208190526040902055506001016101"
-      "67565b5050565b60006101a2600243610507565b6000036101b157506000919050565b6000805b838110156101d55760006101c76104b956"
-      "5b9290920191506001016101b5565b5092915050565b60006101e9600243610507565b6000036101f857506000919050565b600080805b84"
-      "8110156102405767a3b195354a39b70d6760bee2bee120fc1583019081026f1145efb08343750a52a767aff9508a35919091021892830192"
-      "91506001016101fd565b50909392505050565b610254600243610507565b60000361025e5750565b60005b81811015610191576000610273"
-      "6104b9565b60008181526020819052604090205550600101610261565b60015460005b8281101561035f576040516370a0823160e01b8152"
-      "6f1145efb08343750a52a767aff9508a357f60bee2bee120fc1560bee2bee120fc1560bee2bee120fc1560bee2bee120fc15939093019283"
-      "0267a3b195354a39b70d84028181186001600160a01b0381166004850181905290939192918491906370a082319060240160206040518083"
-      "0381865afa925050508015610348575060408051601f3d908101601f1916820190925261034591810190610529565b60015b1561034f5750"
-      "5b5050600190920191506102919050565b5060015550565b600080808084156102405767a3b195354a39b70d6760bee2bee120fc15830190"
-      "81026f1145efb08343750a52a767aff9508a3591909102189283019291506001016101fd565b60015460005b8281101561035f5760405163"
-      "70a0823160e01b8152439092017f60bee2bee120fc1560bee2bee120fc1560bee2bee120fc1560bee2bee120fc1501916f1145efb0834375"
-      "0a52a767aff9508a35830267a3b195354a39b70d84028181189290919083906001600160a01b038216906370a08231906104439084906004"
-      "016001600160a01b0391909116815260200190565b602060405180830381865afa92505050801561047c575060408051601f3d908101601f"
-      "1916820190925261047991810190610529565b60015b1561048357505b5050600190920191506103b29050565b60008060005b8381101561"
-      "01d55760006104ab6104b9565b929092019150600101610499565b600180546760bee2bee120fc1501908190556f1145efb08343750a52a7"
-      "67aff9508a35810267a3b195354a39b70d9091021890565b60006020828403121561050057600080fd5b5035919050565b60008261052457"
-      "634e487b7160e01b600052601260045260246000fd5b500690565b60006020828403121561053b57600080fd5b505191905056fea2646970"
+      "6080604052348015600f57600080fd5b5063045d9f3b424302601081901c1802600155610578806100316000396000f3fe6080604052"
+      "3480"
+      "1561001057600080fd5b50600436106100935760003560e01c8063a5b4155011610066578063a5b41550146100f8578063abbb061e14"
+      "6101"
+      "0b578063b8dda9c71461011e578063f4ecb8dc1461013e578063ffb2c4791461015157600080fd5b80632f048afa146100985780637e"
+      "a9ea"
+      "d3146100ad578063843b5e19146100d2578063a49cbc46146100e5575b600080fd5b6100ab6100a63660046104ee565b610164565b00"
+      "5b61"
+      "00c06100bb3660046104ee565b610195565b60405190815260200160405180910390f35b6100c06100e03660046104ee565b6101dc56"
+      "5b61"
+      "00ab6100f33660046104ee565b610249565b6100ab6101063660046104ee565b61028b565b6100c06101193660046104ee565b610366"
+      "565b"
+      "6100c061012c3660046104ee565b60006020819052908152604090205481565b6100ab61014c3660046104ee565b6103ac565b6100c0"
+      "6101"
+      "5f3660046104ee565b610493565b60005b818110156101915760006101796104b9565b60008181526020819052604090205550600101"
+      "6101"
+      "67565b5050565b60006101a2600243610507565b6000036101b157506000919050565b6000805b838110156101d55760006101c76104"
+      "b956"
+      "5b9290920191506001016101b5565b5092915050565b60006101e9600243610507565b6000036101f857506000919050565b60008080"
+      "5b84"
+      "8110156102405767a3b195354a39b70d6760bee2bee120fc1583019081026f1145efb08343750a52a767aff9508a3591909102189283"
+      "0192"
+      "91506001016101fd565b50909392505050565b610254600243610507565b60000361025e5750565b60005b8181101561019157600061"
+      "0273"
+      "6104b9565b60008181526020819052604090205550600101610261565b60015460005b8281101561035f576040516370a0823160e01b"
+      "8152"
+      "6f1145efb08343750a52a767aff9508a357f60bee2bee120fc1560bee2bee120fc1560bee2bee120fc1560bee2bee120fc1593909301"
+      "9283"
+      "0267a3b195354a39b70d84028181186001600160a01b0381166004850181905290939192918491906370a08231906024016020604051"
+      "8083"
+      "0381865afa925050508015610348575060408051601f3d908101601f1916820190925261034591810190610529565b60015b1561034f"
+      "5750"
+      "5b5050600190920191506102919050565b5060015550565b600080808084156102405767a3b195354a39b70d6760bee2bee120fc1583"
+      "0190"
+      "81026f1145efb08343750a52a767aff9508a3591909102189283019291506001016101fd565b60015460005b8281101561035f576040"
+      "5163"
+      "70a0823160e01b8152439092017f60bee2bee120fc1560bee2bee120fc1560bee2bee120fc1560bee2bee120fc1501916f1145efb083"
+      "4375"
+      "0a52a767aff9508a35830267a3b195354a39b70d84028181189290919083906001600160a01b038216906370a0823190610443908490"
+      "6004"
+      "016001600160a01b0391909116815260200190565b602060405180830381865afa92505050801561047c575060408051601f3d908101"
+      "601f"
+      "1916820190925261047991810190610529565b60015b1561048357505b5050600190920191506103b29050565b60008060005b838110"
+      "1561"
+      "01d55760006104ab6104b9565b929092019150600101610499565b600180546760bee2bee120fc1501908190556f1145efb08343750a"
+      "52a7"
+      "67aff9508a35810267a3b195354a39b70d9091021890565b60006020828403121561050057600080fd5b5035919050565b6000826105"
+      "2457"
+      "634e487b7160e01b600052601260045260246000fd5b500690565b60006020828403121561053b57600080fd5b505191905056fea264"
+      "6970"
       "667358221220dc9174b3e76a9793588e608e7eb83322e3c86a0cac30ca520a374dc4e45cdc4d64736f6c634300081c0033";
   {
     auto node_cfgs = make_node_cfgs(1, 1, 5);
