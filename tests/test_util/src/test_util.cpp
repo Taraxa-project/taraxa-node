@@ -7,6 +7,7 @@
 #include "common/app_base.hpp"
 #include "common/encoding_solidity.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "plugin/light.hpp"
 #include "plugin/rpc.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -379,31 +380,17 @@ bool NodesTest::wait_connect(const std::vector<std::shared_ptr<AppBase>>& nodes)
   });
 }
 
-class TestConfig : public cli::Config {
- public:
-  TestConfig(const FullNodeConfig& cfg) : cli::Config() {
-    node_configured_ = true;
-    node_config_ = FullNodeConfig(cfg);
-    enableTestRpc();
-  }
-  void enableTestRpc() {
-    cli_options_.insert(std::make_pair("rpc.enable-test-rpc", cli::bpo::variable_value(true, false)));
-    cli_options_.insert(std::make_pair("rpc.debug", cli::bpo::variable_value(true, false)));
-  }
-};
-
-std::shared_ptr<AppBase> NodesTest::create_node(const FullNodeConfig& cfg, bool start) {
+std::shared_ptr<AppBase> NodesTest::create_node(TestConfig& cfg, bool start) {
   auto app = std::make_shared<App>();
 
-  TestConfig cli_conf(cfg);
+  app->registerPlugin<plugin::Rpc>(cfg);
+  app->registerPlugin<plugin::Light>(cfg);
 
-  auto rpc_plugin = app->registerPlugin<plugin::Rpc>(cli_conf);
-
-  if (cli_conf.nodeConfigured()) {
-    for (const auto& plugin : cli_conf.getEnabledPlugins()) {
+  if (cfg.nodeConfigured()) {
+    for (const auto& plugin : cfg.getEnabledPlugins()) {
       app->enablePlugin(plugin);
     }
-    app->init(cli_conf);
+    app->init(cfg);
   }
   if (start) {
     app->start();
@@ -411,24 +398,39 @@ std::shared_ptr<AppBase> NodesTest::create_node(const FullNodeConfig& cfg, bool 
   return app;
 }
 
+std::vector<TestConfig> NodesTest::make_test_cfgs(const std::vector<FullNodeConfig>& cfgs) {
+  std::vector<TestConfig> test_cfgs;
+  for (const auto& cfg : cfgs) {
+    test_cfgs.emplace_back(cfg);
+  }
+  return test_cfgs;
+}
+
+std::shared_ptr<AppBase> NodesTest::create_node(const FullNodeConfig& cfg, bool start) {
+  TestConfig test_cfg(cfg);
+  return create_node(test_cfg, start);
+}
+
 std::vector<std::shared_ptr<AppBase>> NodesTest::create_nodes(uint count, bool start) {
   auto cfgs = make_node_cfgs(count);
   return create_nodes(cfgs, start);
 }
 
-std::vector<std::shared_ptr<AppBase>> NodesTest::create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start) {
+std::vector<std::shared_ptr<AppBase>> NodesTest::create_nodes(std::vector<TestConfig>& cfgs, bool start) {
   auto node_count = cfgs.size();
   std::vector<std::shared_ptr<AppBase>> nodes;
   for (uint j = 0; j < node_count; ++j) {
-    if (j > 0) {
-      std::this_thread::sleep_for(500ms);
-    }
     nodes.emplace_back(create_node(cfgs[j], start));
   }
   return nodes;
 }
 
-std::vector<std::shared_ptr<AppBase>> NodesTest::launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs) {
+std::vector<std::shared_ptr<AppBase>> NodesTest::create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start) {
+  auto test_cfgs = make_test_cfgs(cfgs);
+  return create_nodes(test_cfgs, start);
+}
+
+std::vector<std::shared_ptr<AppBase>> NodesTest::launch_nodes(std::vector<taraxa::TestConfig>& cfgs) {
   constexpr auto RETRY_COUNT = 4;
   auto node_count = cfgs.size();
   for (auto i = RETRY_COUNT;; --i) {
@@ -446,6 +448,11 @@ std::vector<std::shared_ptr<AppBase>> NodesTest::launch_nodes(const std::vector<
       return nodes;
     }
   }
+}
+
+std::vector<std::shared_ptr<AppBase>> NodesTest::launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs) {
+  auto test_cfgs = make_test_cfgs(cfgs);
+  return launch_nodes(test_cfgs);
 }
 
 }  // namespace taraxa

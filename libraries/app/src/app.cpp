@@ -33,6 +33,14 @@ App::~App() { close(); }
 
 void App::addAvailablePlugin(std::shared_ptr<Plugin> plugin) { available_plugins_[plugin->name()] = plugin; }
 
+std::shared_ptr<Plugin> App::getPlugin(const std::string &name) const {
+  auto it = active_plugins_.find(name);
+  if (it != active_plugins_.end()) {
+    return it->second;
+  }
+  return nullptr;
+}
+
 void App::enablePlugin(const std::string &name) {
   if (available_plugins_[name] == nullptr) {
     throw std::runtime_error("Plugin " + name + " not found");
