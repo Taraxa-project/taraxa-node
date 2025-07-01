@@ -1,0 +1,44 @@
+{{- if or (and .Values.node.enabled .Values.node.snapshot.enabled .Values.node.snapshot.url) (and .Values.consensusnode.enabled .Values.consensusnode.snapshot.enabled .Values.consensusnode.snapshot.url) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-snapshot-init-script
+data:
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
+    
+    DB_PATH="/root/.taraxa/db"
+    SNAPSHOT_URL="$1"
+    
+    echo "Snapshot init container starting..."
+    echo "DB path: $DB_PATH"
+    echo "Snapshot URL: $SNAPSHOT_URL"
+    
+    # Check if db directory exists
+    if [ -d "$DB_PATH" ]; then
+        echo "Database directory $DB_PATH already exists. Skipping snapshot download."
+        exit 0
+    fi
+    
+    # Install required packages
+    echo "Installing required packages..."
+    apk add --no-cache wget pigz
+    
+    echo "Database directory does not exist. Downloading snapshot from $SNAPSHOT_URL"
+    
+    # Download and extract snapshot on the fly
+    echo "Downloading and extracting snapshot..."
+    cd /root/.taraxa
+    wget -O - "$SNAPSHOT_URL" | tar --use-compress-program="pigz -d" -xf -
+    
+    echo "Snapshot extraction completed successfully"
+    
+    # Verify db directory was created
+    if [ ! -d "$DB_PATH" ]; then
+        echo "ERROR: Database directory $DB_PATH was not found after extraction"
+        exit 1
+    fi
+    
+    echo "Snapshot initialization completed successfully"
+{{- end }} 
