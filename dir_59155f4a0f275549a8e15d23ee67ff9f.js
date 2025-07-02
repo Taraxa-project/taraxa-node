@@ -10,7 +10,7 @@ var dir_59155f4a0f275549a8e15d23ee67ff9f =
     [ "Host.cpp", "_host_8cpp.html", null ],
     [ "Host.h", "_host_8h.html", "_host_8h" ],
     [ "LoggerFormatters.hpp", "_logger_formatters_8hpp.html", "_logger_formatters_8hpp" ],
-    [ "Network.cpp", "aleth_2libp2p_2_network_8cpp.html", null ],
+    [ "Network.cpp", "aleth_2libp2p_2network_8cpp.html", null ],
     [ "Network.h", "_network_8h.html", "_network_8h" ],
     [ "NodeTable.cpp", "_node_table_8cpp.html", "_node_table_8cpp" ],
     [ "NodeTable.h", "_node_table_8h.html", "_node_table_8h" ],

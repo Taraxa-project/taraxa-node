@@ -1,5 +1,7 @@
 var NAVTREEINDEX26 =
 {
+"structtaraxa_1_1_transaction.html#a9764d1781dcfa669a9a2c062fe752368":[16,0,4,74,7],
+"structtaraxa_1_1_transaction.html#ab1d1cf3ac836c41e86babfc6c59a0fb3":[16,0,4,74,25],
 "structtaraxa_1_1_transaction.html#aba2fab99fb15b82b14affed848894469":[16,0,4,74,40],
 "structtaraxa_1_1_transaction.html#ac01847a061aae8c94391cc9a0a50333e":[16,0,4,74,23],
 "structtaraxa_1_1_transaction.html#ac16ab2ed11f0b89d883898909fc0d278":[16,0,4,74,43],
@@ -59,13 +61,14 @@ var NAVTREEINDEX26 =
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth.html#aea1f096c5150497b4d099bb716c9e86a":[16,0,4,4,0,0,0,0],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html":[16,0,4,4,0,0,2],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a0d18ec3580ee276d2329cde2b29d251c":[16,0,4,4,0,0,2,0],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5746a05dad54b422b97235b6242f1a9d":[16,0,4,4,0,0,2,7],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5746a05dad54b422b97235b6242f1a9d":[16,0,4,4,0,0,2,8],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a62aeb6d36e6c6df101ce8065ccf2e8ff":[16,0,4,4,0,0,2,4],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ac1e12f5cd49fcd8c979096a61df49316":[16,0,4,4,0,0,2,6],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ab142f3ce550c3a1e019c5168b6b1651b":[16,0,4,4,0,0,2,5],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ac1e12f5cd49fcd8c979096a61df49316":[16,0,4,4,0,0,2,7],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#acb03b669b1e474b1068baf3df6d36e1c":[16,0,4,4,0,0,2,3],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#acfd4e5f89cbb42e99df6de9a3c0704ed":[16,0,4,4,0,0,2,2],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ad14962b6e30bc32340b2bdf502534931":[16,0,4,4,0,0,2,5],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#adf4c926338f30990776ef3ceeda26d8d":[16,0,4,4,0,0,2,8],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ad14962b6e30bc32340b2bdf502534931":[16,0,4,4,0,0,2,6],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#adf4c926338f30990776ef3ceeda26d8d":[16,0,4,4,0,0,2,9],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#afb89235aa014f0696f703080a83fa35f":[16,0,4,4,0,0,2,1],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html":[16,0,4,4,0,0,3],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html#ad0807ea5975d5ea3c46849623dd5e472":[16,0,4,4,0,0,3,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX26 =
 "transaction__packet_8hpp_source.html":[17,0,1,5,1,1,0,0,0,0,11],
 "transaction__queue_8cpp.html":[17,0,1,5,0,1,7,2],
 "transaction__queue_8hpp.html":[17,0,1,5,0,0,7,2],
-"transaction__queue_8hpp_source.html":[17,0,1,5,0,0,7,2],
-"transaction__queue__metrics_8hpp.html":[17,0,1,7,0,0,5],
-"transaction__queue__metrics_8hpp_source.html":[17,0,1,7,0,0,5],
-"transaction__receipts__by__period_8cpp.html":[17,0,1,5,2,1,0,1]
+"transaction__queue_8hpp_source.html":[17,0,1,5,0,0,7,2]
 };

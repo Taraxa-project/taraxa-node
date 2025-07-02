@@ -205,6 +205,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8b26ad95106e0603d9c10768140e0d14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0cdcc36612e567cc619b7b3333d2db7" id="r_ab0cdcc36612e567cc619b7b3333d2db7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pillar_vote">PillarVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab0cdcc36612e567cc619b7b3333d2db7">getPeriodPillarVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
 <tr class="separator:ab0cdcc36612e567cc619b7b3333d2db7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50997a0d0e3cc64372566fa1f678afc7" id="r_a50997a0d0e3cc64372566fa1f678afc7"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a50997a0d0e3cc64372566fa1f678afc7">getEarliestBlockNumber</a> () const</td></tr>
+<tr class="separator:a50997a0d0e3cc64372566fa1f678afc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6af33f691736f9419e4ac4bed99166d0" id="r_a6af33f691736f9419e4ac4bed99166d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6af33f691736f9419e4ac4bed99166d0">savePillarBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt; &amp;pillar_block)</td></tr>
 <tr class="separator:a6af33f691736f9419e4ac4bed99166d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a206fc78408662c1f1496d8085bb3d22d" id="r_a206fc78408662c1f1496d8085bb3d22d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_block">pillar_chain::PillarBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a206fc78408662c1f1496d8085bb3d22d">getPillarBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
@@ -482,6 +484,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a38f8ba07d58403570c8fd6f319142e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79f683cf51d266e66208086af806fa55" id="r_a79f683cf51d266e66208086af806fa55"><td class="memItemLeft" align="right" valign="top">std::set&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a79f683cf51d266e66208086af806fa55">snapshots_</a></td></tr>
 <tr class="separator:a79f683cf51d266e66208086af806fa55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa596a59e4ae4043a604779d3919fa30" id="r_afa596a59e4ae4043a604779d3919fa30"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afa596a59e4ae4043a604779d3919fa30">earliest_block_number_</a> = 0</td></tr>
+<tr class="separator:afa596a59e4ae4043a604779d3919fa30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a372d35a6d09263ab93ae4203b078a53f" id="r_a372d35a6d09263ab93ae4203b078a53f"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a372d35a6d09263ab93ae4203b078a53f">kMajorVersion_</a></td></tr>
 <tr class="separator:a372d35a6d09263ab93ae4203b078a53f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a7b32f849d254434a433f9ac4b674cb" id="r_a6a7b32f849d254434a433f9ac4b674cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6a7b32f849d254434a433f9ac4b674cb">major_version_changed_</a> = false</td></tr>
@@ -1737,6 +1741,23 @@ template&lt;typename K &gt; </div>
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a50997a0d0e3cc64372566fa1f678afc7" name="a50997a0d0e3cc64372566fa1f678afc7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50997a0d0e3cc64372566fa1f678afc7">&#9670;&#160;</a></span>getEarliestBlockNumber()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::DbStorage::getEarliestBlockNumber </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
@@ -4283,6 +4304,28 @@ template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">fs::path taraxa::DbStorage::db_path_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afa596a59e4ae4043a604779d3919fa30" name="afa596a59e4ae4043a604779d3919fa30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa596a59e4ae4043a604779d3919fa30">&#9670;&#160;</a></span>earliest_block_number_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::DbStorage::earliest_block_number_ = 0</td>
         </tr>
       </table>
   </td>

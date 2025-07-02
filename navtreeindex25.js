@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"structdev_1_1p2p_1_1_u_d_p_socket_face.html":[16,0,0,1,42],
+"structdev_1_1p2p_1_1_u_d_p_socket_face.html#a9106e4f9a26c0cda3b865c638a7788ed":[16,0,0,1,42,1],
 "structdev_1_1p2p_1_1_u_d_p_socket_face.html#ac35c32537a1f553fae7690aec96df087":[16,0,0,1,42,0],
 "structfmt_1_1formatter_3_01bi_1_1tcp_1_1endpoint_01_4.html":[16,0,1,0],
 "structfmt_1_1formatter_3_01bi_1_1udp_1_1endpoint_01_4.html":[16,0,1,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX25 =
 "structtaraxa_1_1_transaction.html#a7067923311b41368c708835f898d808b":[16,0,4,74,5],
 "structtaraxa_1_1_transaction.html#a798255ffdb21876ddd0f6b6cb208c60d":[16,0,4,74,13],
 "structtaraxa_1_1_transaction.html#a7b82e66ad83dcbd693e9ad4638a95884":[16,0,4,74,10],
-"structtaraxa_1_1_transaction.html#a8ca76c9b899fe302fb338da46f5e36a0":[16,0,4,74,41],
-"structtaraxa_1_1_transaction.html#a9764d1781dcfa669a9a2c062fe752368":[16,0,4,74,7],
-"structtaraxa_1_1_transaction.html#ab1d1cf3ac836c41e86babfc6c59a0fb3":[16,0,4,74,25]
+"structtaraxa_1_1_transaction.html#a8ca76c9b899fe302fb338da46f5e36a0":[16,0,4,74,41]
 };

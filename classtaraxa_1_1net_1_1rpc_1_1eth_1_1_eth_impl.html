@@ -224,6 +224,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab8ef41e10626d3651ebb32f5fc93fee6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81ac46039a6652d55cf81bc72e6d66c5" id="r_a81ac46039a6652d55cf81bc72e6d66c5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a81ac46039a6652d55cf81bc72e6d66c5">prepare_transaction_for_call</a> (<a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton">TransactionSkeleton</a> &amp;t, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n)</td></tr>
 <tr class="separator:a81ac46039a6652d55cf81bc72e6d66c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac122d4e98535dd5313d46725586c285d" id="r_ac122d4e98535dd5313d46725586c285d"><td class="memItemLeft" align="right" valign="top">optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#ac122d4e98535dd5313d46725586c285d">parse_blk_num_specific</a> (const string &amp;blk_num_str)</td></tr>
+<tr class="separator:ac122d4e98535dd5313d46725586c285d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a196603a548bb3583a8f25410474f6589" id="r_a196603a548bb3583a8f25410474f6589"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a196603a548bb3583a8f25410474f6589">parse_blk_num</a> (const string &amp;blk_num_str)</td></tr>
 <tr class="separator:a196603a548bb3583a8f25410474f6589"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4da8c49abd76c042799e3f3bb384a53" id="r_aa4da8c49abd76c042799e3f3bb384a53"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aa4da8c49abd76c042799e3f3bb384a53">get_block_number_from_json</a> (const Json::Value &amp;json)</td></tr>
@@ -374,8 +376,6 @@ Public Member Functions</h2></td></tr>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a9c594f6f826c98befe9a1c31738fc498" id="r_a9c594f6f826c98befe9a1c31738fc498"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton">TransactionSkeleton</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a9c594f6f826c98befe9a1c31738fc498">toTransactionSkeleton</a> (const Json::Value &amp;_json)</td></tr>
 <tr class="separator:a9c594f6f826c98befe9a1c31738fc498"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea1a8d9e0557c027a566d65e44197514" id="r_aea1a8d9e0557c027a566d65e44197514"><td class="memItemLeft" align="right" valign="top">static optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aea1a8d9e0557c027a566d65e44197514">parse_blk_num_specific</a> (const string &amp;blk_num_str)</td></tr>
-<tr class="separator:aea1a8d9e0557c027a566d65e44197514"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -396,6 +396,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ac1e12f5cd49fcd8c979096a61df49316 inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62aeb6d36e6c6df101ce8065ccf2e8ff inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params" id="r_a62aeb6d36e6c6df101ce8065ccf2e8ff"><td class="memItemLeft" align="right" valign="top">std::function&lt; u256()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a62aeb6d36e6c6df101ce8065ccf2e8ff">gas_pricer</a> = [] { return u256(0); }</td></tr>
 <tr class="separator:a62aeb6d36e6c6df101ce8065ccf2e8ff inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab142f3ce550c3a1e019c5168b6b1651b inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params" id="r_ab142f3ce550c3a1e019c5168b6b1651b"><td class="memItemLeft" align="right" valign="top">std::function&lt; uint64_t()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ab142f3ce550c3a1e019c5168b6b1651b">get_earliest_block</a> = [] { return uint64_t(0); }</td></tr>
+<tr class="separator:ab142f3ce550c3a1e019c5168b6b1651b inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5746a05dad54b422b97235b6242f1a9d inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params" id="r_a5746a05dad54b422b97235b6242f1a9d"><td class="memItemLeft" align="right" valign="top">std::function&lt; std::optional&lt; <a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status">SyncStatus</a> &gt;()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5746a05dad54b422b97235b6242f1a9d">syncing_probe</a> = [] { return std::nullopt; }</td></tr>
 <tr class="separator:a5746a05dad54b422b97235b6242f1a9d inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf4c926338f30990776ef3ceeda26d8d inherit pub_attribs_structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params" id="r_adf4c926338f30990776ef3ceeda26d8d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#acff653f7fb7bee54990e7ef3d29a7d87">WatchesConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#adf4c926338f30990776ef3ceeda26d8d">watches_cfg</a></td></tr>
@@ -1861,8 +1863,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="aea1a8d9e0557c027a566d65e44197514" name="aea1a8d9e0557c027a566d65e44197514"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea1a8d9e0557c027a566d65e44197514">&#9670;&#160;</a></span>parse_blk_num_specific()</h2>
+<a id="ac122d4e98535dd5313d46725586c285d" name="ac122d4e98535dd5313d46725586c285d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac122d4e98535dd5313d46725586c285d">&#9670;&#160;</a></span>parse_blk_num_specific()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1871,7 +1873,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; taraxa::net::rpc::eth::EthImpl::parse_blk_num_specific </td>
+          <td class="memname">optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; taraxa::net::rpc::eth::EthImpl::parse_blk_num_specific </td>
           <td>(</td>
           <td class="paramtype">const string &amp;&#160;</td>
           <td class="paramname"><em>blk_num_str</em></td><td>)</td>
@@ -1880,7 +1882,7 @@ Additional Inherited Members</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
