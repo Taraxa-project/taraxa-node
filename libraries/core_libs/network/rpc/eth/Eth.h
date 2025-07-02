@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "data.hpp"
 #include "final_chain/final_chain.hpp"
 #include "network/rpc/EthFace.h"
@@ -15,6 +17,7 @@ struct EthParams {
   std::function<std::shared_ptr<Transaction>(const h256&)> get_trx;
   std::function<void(const std::shared_ptr<Transaction>& trx)> send_trx;
   std::function<u256()> gas_pricer = [] { return u256(0); };
+  std::function<uint64_t()> get_earliest_block = [] { return uint64_t(0); };
   std::function<std::optional<SyncStatus>()> syncing_probe = [] { return std::nullopt; };
   WatchesConfig watches_cfg;
 };
