@@ -75,6 +75,8 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
   boost::beast::flat_buffer buffer_;
   boost::beast::http::request<boost::beast::http::string_body> request_;
   boost::beast::http::response<boost::beast::http::string_body> response_;
+  boost::asio::deadline_timer timer_;
+  const boost::posix_time::seconds kTimeout{5};
 };
 
 }  // namespace taraxa::net

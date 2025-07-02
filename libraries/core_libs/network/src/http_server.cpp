@@ -85,7 +85,7 @@ std::shared_ptr<HttpConnection> HttpConnection::getShared() {
 }
 
 HttpConnection::HttpConnection(const std::shared_ptr<HttpServer> &http_server)
-    : server_(http_server), socket_(http_server->getIoContext()) {}
+    : server_(http_server), socket_(http_server->getIoContext()), timer_(http_server->getIoContext()) {}
 
 void HttpConnection::stop() {
   if (socket_.is_open()) {
@@ -93,12 +93,21 @@ void HttpConnection::stop() {
       server_->getLogger()->debug("Closing connection...");
       socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
       socket_.close();
+      timer_.cancel();
     } catch (...) {
     }
   }
 }
 
 void HttpConnection::read() {
+  timer_.expires_from_now(kTimeout);
+  timer_.async_wait([this, this_sp = getShared()](boost::system::error_code ec) {
+    if (ec != boost::asio::error::operation_aborted) return;
+    server_->getLogger()->debug("Read timeout, closing connection ...");
+    socket_.cancel();
+    stop();
+  });
+
   boost::beast::http::async_read(
       socket_, buffer_, request_, [this, this_sp = getShared()](boost::system::error_code const &ec, size_t) {
         if (ec) {
@@ -120,10 +129,10 @@ void HttpConnection::read() {
 
           auto start_time = std::chrono::steady_clock::now();
           response_ = server_->request_processor_->process(request_);
-          auto end_time = std::chrono::steady_clock::now();
-          auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
           if (server_->metrics_) {
+            auto end_time = std::chrono::steady_clock::now();
+            auto processing_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
             server_->metrics_->report(request_.body(), ip, "HTTP", processing_time.count());
           }
 
