@@ -30,7 +30,7 @@ data:
     # Download and extract snapshot on the fly
     echo "Downloading and extracting snapshot..."
     cd /root/.taraxa
-    wget -O - "$SNAPSHOT_URL" | tar --use-compress-program="pigz -d" -xf -
+    wget -O - "$SNAPSHOT_URL" | pigz -d | tar -xf -
     
     echo "Snapshot extraction completed successfully"
     
