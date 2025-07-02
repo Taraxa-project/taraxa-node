@@ -1,5 +1,6 @@
 var NAVTREEINDEX26 =
 {
+"structtaraxa_1_1_transaction.html#a8ca76c9b899fe302fb338da46f5e36a0":[16,0,4,74,41],
 "structtaraxa_1_1_transaction.html#a9764d1781dcfa669a9a2c062fe752368":[16,0,4,74,7],
 "structtaraxa_1_1_transaction.html#ab1d1cf3ac836c41e86babfc6c59a0fb3":[16,0,4,74,25],
 "structtaraxa_1_1_transaction.html#aba2fab99fb15b82b14affed848894469":[16,0,4,74,40],
@@ -248,6 +249,5 @@ var NAVTREEINDEX26 =
 "transaction__packet_8hpp.html":[17,0,1,5,1,1,0,0,0,0,11],
 "transaction__packet_8hpp_source.html":[17,0,1,5,1,1,0,0,0,0,11],
 "transaction__queue_8cpp.html":[17,0,1,5,0,1,7,2],
-"transaction__queue_8hpp.html":[17,0,1,5,0,0,7,2],
-"transaction__queue_8hpp_source.html":[17,0,1,5,0,0,7,2]
+"transaction__queue_8hpp.html":[17,0,1,5,0,0,7,2]
 };

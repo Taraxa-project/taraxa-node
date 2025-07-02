@@ -1,5 +1,6 @@
 var NAVTREEINDEX11 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a8e830ea3a4b10053c05a56bd50f99817":[16,0,4,5,0,35,2],
 "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a920e985e24c86975431f10868d663ad9":[16,0,4,5,0,35,18],
 "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9669efd89c04940fbd482d5f2a763a49":[16,0,4,5,0,35,13],
 "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9678bce18100cde3672663029dac82e7":[16,0,4,5,0,35,8],
@@ -30,6 +31,7 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a9a44dd76c1e6d3d6de58bb18bebf3e32":[16,0,4,5,0,41,0],
 "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#af906835405b5d8132ced3ab6b1685918":[16,0,4,5,0,41,3],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html":[16,0,4,5,0,42],
+"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a0020cead3c21dd1cf71e4dc083c01426":[16,0,4,5,0,42,0],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a019cad08c10ef2af5b9e2bd639f2de00":[16,0,4,5,0,42,16],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a04c6c147929b39ccc4fba7a4fe3af361":[16,0,4,5,0,42,2],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a0594c16d6d4e55cb14ffb1a3e5a0c843":[16,0,4,5,0,42,31],
@@ -37,12 +39,10 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a15b1d449b13b1e81aeb4a187d09b0f4e":[16,0,4,5,0,42,13],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a18a9939da7326c9c5f288c1e5935bd4e":[16,0,4,5,0,42,8],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1d83c18dcaae2cb7bc166664f2fd5240":[16,0,4,5,0,42,19],
-"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a29fbeaabda7bccdd99e9f5825ddd7a86":[16,0,4,5,0,42,1],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a2cc7bad03168b4c081ef691be5ebf817":[16,0,4,5,0,42,14],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3c10363f0276200813c50a2b12d9a096":[16,0,4,5,0,42,23],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3f781760904296d022e2c221854cbc3a":[16,0,4,5,0,42,26],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a44e9ae3b23f5f0fda35ba53396d58e37":[16,0,4,5,0,42,7],
-"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a4519b907e4d00ca2a76cfac343c50f51":[16,0,4,5,0,42,0],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a48c76b3acfc0c33fbde3a76794f17214":[16,0,4,5,0,42,20],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a7ee5f5a669a17fcad1e3b12c5030c877":[16,0,4,5,0,42,29],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a8e8295b2d558aadb4a3d984963b0d366":[16,0,4,5,0,42,21],
@@ -60,6 +60,7 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#adacb5e77df8056f4088564e2c39d5a38":[16,0,4,5,0,42,28],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae3bd8b37fc085d21a4a3034b5b5f1cbd":[16,0,4,5,0,42,27],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae7b9a80aedd5f191c43f554a34531b98":[16,0,4,5,0,42,10],
+"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae8c473ff2310ef0194cab05380a23327":[16,0,4,5,0,42,1],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae943e5cd74d383e06f7e7d9c64189d46":[16,0,4,5,0,42,5],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#af13444051e94e656f457a1be88c928ce":[16,0,4,5,0,42,22],
 "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html":[16,0,4,5,0,43],
@@ -248,6 +249,5 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#ad386d57320bb983a1afec3b65912dec2":[16,0,4,5,1,4,10],
 "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#ad75b2e90fa3b14a9f981ec98ecfc07fe":[16,0,4,5,1,4,9],
 "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#ae556cede3fd9be14bf714ecb9a687f01":[16,0,4,5,1,4,11],
-"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html":[16,0,4,6,4],
-"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a097db60f8bab5275de012929ec64b48e":[16,0,4,6,4,9]
+"classtaraxa_1_1pillar__chain_1_1_pillar_votes.html":[16,0,4,6,4]
 };

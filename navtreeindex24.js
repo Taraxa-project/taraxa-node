@@ -1,5 +1,6 @@
 var NAVTREEINDEX24 =
 {
+"structdev_1_1p2p_1_1_host.html#af5f30d38696533a1f32dcd4433ccb91d":[16,0,0,1,9,38],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[16,0,0,1,9,0],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[17,0,1,0,2,8,3],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[17,0,1,0,2,8,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX24 =
 "structdev_1_1p2p_1_1_session_capability.html#ad43750aa3e037ab1e90fc18278c1817d":[16,0,0,1,37,0],
 "structdev_1_1p2p_1_1_u_d_p_socket_events.html":[16,0,0,1,41],
 "structdev_1_1p2p_1_1_u_d_p_socket_events.html#a6436020c013be35bd9f912b6ee0c0c91":[16,0,0,1,41,1],
-"structdev_1_1p2p_1_1_u_d_p_socket_events.html#a74eaf5f1786a3352276151a9d4f91db5":[16,0,0,1,41,0],
-"structdev_1_1p2p_1_1_u_d_p_socket_events.html#af6ba3388128a8ca63ec7243569eef939":[16,0,0,1,41,2]
+"structdev_1_1p2p_1_1_u_d_p_socket_events.html#a74eaf5f1786a3352276151a9d4f91db5":[16,0,0,1,41,0]
 };

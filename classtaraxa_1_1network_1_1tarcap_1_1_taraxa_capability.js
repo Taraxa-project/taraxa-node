@@ -1,7 +1,7 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
 [
-    [ "InitPacketsHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a4519b907e4d00ca2a76cfac343c50f51", null ],
-    [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a29fbeaabda7bccdd99e9f5825ddd7a86", null ],
+    [ "InitPacketsHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a0020cead3c21dd1cf71e4dc083c01426", null ],
+    [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae8c473ff2310ef0194cab05380a23327", null ],
     [ "~TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a04c6c147929b39ccc4fba7a4fe3af361", null ],
     [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac3ba3188d8fdc5278972c8df2c93d183", null ],
     [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a984544272e48490629e33c8e866c94ff", null ],
