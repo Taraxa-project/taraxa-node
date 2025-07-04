@@ -161,6 +161,9 @@ node:
     size: 30Gi
     storageClass: 
     annotations: {}
+  snapshot:
+    enabled: false
+    url: ""
   indexer:
     enabled: false
     syncQueueLimit: "10"
@@ -286,6 +289,9 @@ consensusnode:
     size: 30Gi
     storageClass: 
     annotations: {}
+  snapshot:
+    enabled: false
+    url: ""
 
 consensusnodeLight:
   enabled: false
