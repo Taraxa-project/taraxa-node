@@ -37,7 +37,7 @@ Specifies whether to build with or without optimization and without or with the 
 
 #### [MacOS]
 
-First you need to get (Brew)[https://brew.sh/] package manager. After that you need to install dependencies with it. Clang-18 is used for compilation.
+First you need to get [Homebrew](https://brew.sh/) package manager. After that you need to install dependencies with it. Clang-18 is used for compilation.
 
     brew update
     brew install coreutils go autoconf automake gflags git libtool llvm@18 make pkg-config cmake conan snappy zstd libmicrohttpd
