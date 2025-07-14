@@ -102,6 +102,10 @@ node:
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
     # ingressClassName: nginx
     enabled: false
+    cache:
+      enabled: false
+      serviceName: "erpc"
+      servicePort: 4444
     annotationsRpc: {}
     annotationsRpcWS: {}
     annotationsGraphQl: {}

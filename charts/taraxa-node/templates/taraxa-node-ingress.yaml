@@ -5,6 +5,8 @@
 {{- $apiIsStable := eq (include "taraxa-node.ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "taraxa-node.ingress.supportsPathType" .) "true" -}}
 {{- $serviceName := printf "%s-%s" (include "taraxa-node.fullname" .) "head" -}}
+{{- $cacheServiceName := .Values.node.ingress.cache.serviceName -}}
+{{- $cacheServicePort := .Values.node.ingress.cache.servicePort -}}
 
 {{- $servicePortRpc := 7777 -}}
 {{- $servicePortRpcWs := 8777 -}}
@@ -57,12 +59,23 @@ spec:
             backend:
               {{- if $apiIsStable }}
               service:
+                {{- if .Values.node.ingress.cache.enabled }}
+                name: {{ $cacheServiceName }}
+                port:
+                  number: {{ $cacheServicePort }}
+                {{- else }}
                 name: {{ $serviceName }}
                 port:
                   number: {{ $servicePortRpc }}
+                {{- end }}
+              {{- else }}
+              {{- if .Values.node.ingress.cache.enabled }}
+              serviceName: {{ $cacheServiceName }}
+              servicePort: {{ $cacheServicePort }}
               {{- else }}
               serviceName: {{ $serviceName }}
               servicePort: {{ $servicePortRpc }}
+              {{- end }}
               {{- end }}
 ---
 apiVersion: {{ include "taraxa-node.ingress.apiVersion" . }}
