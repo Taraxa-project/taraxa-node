@@ -19,13 +19,15 @@ class Light : public Plugin {
   void start() override;
   void shutdown() override;
 
-  void clearLightNodeHistory();
+  void clearLightNodeHistory(bool live_cleanup = false);
 
  private:
   /**
    * @brief Clears light node history
    */
-  void clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, PbftPeriod last_block_number);
+  void clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, bool live_cleanup);
+  void clearNonBlockData(PbftPeriod start, PbftPeriod end, bool live_cleanup);
+  void recreateNonBlockData(PbftPeriod last_block_number);
   void pruneStateDb();
 
   uint64_t getCleanupPeriod(uint64_t dag_period, std::optional<uint64_t> proposal_period) const;
@@ -36,6 +38,7 @@ class Light : public Plugin {
   uint64_t min_light_node_history_ = 0;
   bool state_db_pruning_;
   bool live_cleanup_;
+  std::atomic<bool> live_cleanup_in_progress_ = false;
 
   logger::Logger logger_;
 };

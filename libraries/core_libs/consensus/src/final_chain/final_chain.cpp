@@ -280,7 +280,18 @@ void FinalChain::prune(EthBlockNumber blk_n) {
       state_root_to_keep.push_back(block_to_keep->state_root);
       block_to_keep = getBlockHeader(block_to_keep->number + 1);
     }
-    auto block_to_prune = getBlockHeader(last_block_to_keep->number - 1);
+
+    auto state_db_promise = std::make_shared<std::promise<void>>();
+    // execute state_db prune in a separate thread.
+    // We could use executor_thread_ here because finalize won't be called during the pruning
+    auto last_block_number_to_keep = last_block_to_keep->number;
+    boost::asio::post(executor_thread_, [this, state_root_to_keep = std::move(state_root_to_keep),
+                                         last_block_number_to_keep, state_db_promise]() mutable {
+      state_api_.prune(state_root_to_keep, last_block_number_to_keep);
+      state_db_promise->set_value();
+    });
+
+    auto block_to_prune = getBlockHeader(last_block_number_to_keep - 1);
     auto batch = db_->createWriteBatch();
     while (block_to_prune && block_to_prune->number > 0) {
       db_->remove(batch, DbStorage::Columns::final_chain_blk_by_number, block_to_prune->number);
@@ -294,7 +305,8 @@ void FinalChain::prune(EthBlockNumber blk_n) {
     db_->compactColumn(DbStorage::Columns::final_chain_blk_hash_by_number);
     db_->compactColumn(DbStorage::Columns::final_chain_blk_number_by_hash);
 
-    state_api_.prune(state_root_to_keep, last_block_to_keep->number);
+    // wait for the state_db prune to finish
+    state_db_promise->get_future().wait();
   }
 }
 

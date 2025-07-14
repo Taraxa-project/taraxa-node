@@ -2187,7 +2187,7 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
           "Invalid sync pillar vote {}, vote period {}, vote pillar block hash {}, current pillar block hash: {}, "
           "current pillar block period {}, full data: {}",
           vote->getHash(), vote->getPeriod(), vote->getBlockHash(), current_pillar_block->getHash(),
-          current_pillar_block->getPeriod(), current_pillar_block->getJson().asString());
+          current_pillar_block->getPeriod(), current_pillar_block->getJson().toStyledString());
       return false;
     }
 

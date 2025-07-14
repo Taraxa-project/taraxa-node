@@ -30,7 +30,11 @@ void PbftBlocksBundlePacketHandler::process(const threadpool::PacketData &packet
   }
 
   std::unordered_map<PbftPeriod, std::unordered_set<addr_t>> unique_authors;
-
+  if (!pbft_syncing_state_->lastSyncingPeer()) {
+    logger_->error("PbftBlocksBundlePacket received from unexpected peer {} but there is no current syncing peer set",
+                   peer->getId().abridged());
+    return;
+  }
   if (pbft_syncing_state_->lastSyncingPeer()->getId() != peer->getId()) {
     logger_->error("PbftBlocksBundlePacket received from unexpected peer {} last syncing peer {}",
                    peer->getId().abridged(), pbft_syncing_state_->lastSyncingPeer()->getId().abridged());
