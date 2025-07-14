@@ -35,7 +35,7 @@ var searchData=
   ['nodeid_32',['nodeID',['../structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#ac1ed1c28d457a35f062dba42f7de3631',1,'dev::p2p::NodeTable::NodeValidation']]],
   ['nodeidhash_33',['nodeIDHash',['../structdev_1_1p2p_1_1_node_entry.html#aede1df9630f9bb1c1b0329b9de29a092',1,'dev::p2p::NodeEntry']]],
   ['nodes_34',['nodes',['../classdev_1_1p2p_1_1_node_table.html#a91b5abd654f05e02a0152282c1070c13',1,'dev::p2p::NodeTable::NodeBucket']]],
-  ['nodes_5fdag_5fproposers_5fdata_5f_35',['nodes_dag_proposers_data_',['../group___d_a_g.html#a6859232a1c3dcbd7a0bb9716e5a92a17',1,'taraxa::DagBlockProposer']]],
+  ['nodes_5fdag_5fproposers_5fdata_5f_35',['nodes_dag_proposers_data_',['../group___d_a_g.html#a486af009877ab460397bdaa50bebc3a8',1,'taraxa::DagBlockProposer']]],
   ['non_5fempty_5fsize_5f_36',['non_empty_size_',['../group___p_b_f_t.html#a069e96349475b2bbfc52998fd608e78c',1,'taraxa::PbftChain']]],
   ['non_5ffinalized_5fblks_5f_37',['non_finalized_blks_',['../group___d_a_g.html#a9b4105dc415f6f1169f537a9c662c914',1,'taraxa::DagManager']]],
   ['non_5ffinalized_5fblks_5fmin_5fdifficulty_5f_38',['non_finalized_blks_min_difficulty_',['../group___d_a_g.html#aca067f674506a6dcc267d86414ab728d',1,'taraxa::DagManager']]],

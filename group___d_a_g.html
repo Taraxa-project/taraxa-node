@@ -1574,9 +1574,9 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 <tr class="memitem:a08cc3adaaf8e20414ae8d7fe01837ebd" id="r_a08cc3adaaf8e20414ae8d7fe01837ebd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a08cc3adaaf8e20414ae8d7fe01837ebd">stop</a> ()</td></tr>
 <tr class="memdesc:a08cc3adaaf8e20414ae8d7fe01837ebd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop the worker thread.  <br /></td></tr>
 <tr class="separator:a08cc3adaaf8e20414ae8d7fe01837ebd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00f3ec13b42c2ce2c232642c661ac736" id="r_a00f3ec13b42c2ce2c232642c661ac736"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a00f3ec13b42c2ce2c232642c661ac736">proposeDagBlock</a> ()</td></tr>
-<tr class="memdesc:a00f3ec13b42c2ce2c232642c661ac736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to propose new dag block.  <br /></td></tr>
-<tr class="separator:a00f3ec13b42c2ce2c232642c661ac736"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a252b14a52d033afe122609bb9ea1440e" id="r_a252b14a52d033afe122609bb9ea1440e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a252b14a52d033afe122609bb9ea1440e">proposeDagBlock</a> (const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html">NodeDagProposerData</a> &gt; &amp;node_dag_proposer_data)</td></tr>
+<tr class="memdesc:a252b14a52d033afe122609bb9ea1440e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to propose new dag block.  <br /></td></tr>
+<tr class="separator:a252b14a52d033afe122609bb9ea1440e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2a8095b889d4c06237b440ee683991c" id="r_ac2a8095b889d4c06237b440ee683991c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ac2a8095b889d4c06237b440ee683991c">setNetwork</a> (std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt; network)</td></tr>
 <tr class="memdesc:ac2a8095b889d4c06237b440ee683991c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets network.  <br /></td></tr>
 <tr class="separator:ac2a8095b889d4c06237b440ee683991c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1619,12 +1619,12 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 <tr class="separator:a5a36c04f481e9c1dd344fd2af990a3cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a490e4d8542120699c12f821d1f7ce808" id="r_a490e4d8542120699c12f821d1f7ce808"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a490e4d8542120699c12f821d1f7ce808">db_</a></td></tr>
 <tr class="separator:a490e4d8542120699c12f821d1f7ce808"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8e8147ea54d72a8db66a06fb7546beb" id="r_ae8e8147ea54d72a8db66a06fb7546beb"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; std::thread &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae8e8147ea54d72a8db66a06fb7546beb">proposer_worker_</a></td></tr>
-<tr class="separator:ae8e8147ea54d72a8db66a06fb7546beb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04ca33cf59b6387c81ad2c6ab1eed4b5" id="r_a04ca33cf59b6387c81ad2c6ab1eed4b5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::thread &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a04ca33cf59b6387c81ad2c6ab1eed4b5">proposer_workers_</a></td></tr>
+<tr class="separator:a04ca33cf59b6387c81ad2c6ab1eed4b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b54b1b7cd643903a2db01197c60c234" id="r_a6b54b1b7cd643903a2db01197c60c234"><td class="memItemLeft" align="right" valign="top">std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6b54b1b7cd643903a2db01197c60c234">network_</a></td></tr>
 <tr class="separator:a6b54b1b7cd643903a2db01197c60c234"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6859232a1c3dcbd7a0bb9716e5a92a17" id="r_a6859232a1c3dcbd7a0bb9716e5a92a17"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html">NodeDagProposerData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6859232a1c3dcbd7a0bb9716e5a92a17">nodes_dag_proposers_data_</a></td></tr>
-<tr class="separator:a6859232a1c3dcbd7a0bb9716e5a92a17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a486af009877ab460397bdaa50bebc3a8" id="r_a486af009877ab460397bdaa50bebc3a8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html">NodeDagProposerData</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a486af009877ab460397bdaa50bebc3a8">nodes_dag_proposers_data_</a></td></tr>
+<tr class="separator:a486af009877ab460397bdaa50bebc3a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a612a3b2c45fbc87a417346fd4d568dc0" id="r_a612a3b2c45fbc87a417346fd4d568dc0"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a612a3b2c45fbc87a417346fd4d568dc0">kDagProposeGasLimit</a></td></tr>
 <tr class="separator:a612a3b2c45fbc87a417346fd4d568dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90ad08747b1ddb6fdfc415d7c9fafb84" id="r_a90ad08747b1ddb6fdfc415d7c9fafb84"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84">kPbftGasLimit</a></td></tr>
@@ -2067,8 +2067,8 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 
 </div>
 </div>
-<a id="a00f3ec13b42c2ce2c232642c661ac736" name="a00f3ec13b42c2ce2c232642c661ac736"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00f3ec13b42c2ce2c232642c661ac736">&#9670;&#160;</a></span>proposeDagBlock()</h2>
+<a id="a252b14a52d033afe122609bb9ea1440e" name="a252b14a52d033afe122609bb9ea1440e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a252b14a52d033afe122609bb9ea1440e">&#9670;&#160;</a></span>proposeDagBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2076,13 +2076,20 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
         <tr>
           <td class="memname">bool taraxa::DagBlockProposer::proposeDagBlock </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html">NodeDagProposerData</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>node_dag_proposer_data</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Tries to propose new dag block. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node_dag_proposer_data</td><td>data for the node proposing the block</td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="section return"><dt>Returns</dt><dd>true if successfully proposed, otherwise false </dd></dl>
 
 </div>
@@ -2498,8 +2505,8 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 
 </div>
 </div>
-<a id="a6859232a1c3dcbd7a0bb9716e5a92a17" name="a6859232a1c3dcbd7a0bb9716e5a92a17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6859232a1c3dcbd7a0bb9716e5a92a17">&#9670;&#160;</a></span>nodes_dag_proposers_data_</h2>
+<a id="a486af009877ab460397bdaa50bebc3a8" name="a486af009877ab460397bdaa50bebc3a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a486af009877ab460397bdaa50bebc3a8">&#9670;&#160;</a></span>nodes_dag_proposers_data_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2508,7 +2515,7 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html">NodeDagProposerData</a>&gt; taraxa::DagBlockProposer::nodes_dag_proposers_data_</td>
+          <td class="memname">std::vector&lt;std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html">NodeDagProposerData</a>&gt; &gt; taraxa::DagBlockProposer::nodes_dag_proposers_data_</td>
         </tr>
       </table>
   </td>
@@ -2542,8 +2549,8 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 
 </div>
 </div>
-<a id="ae8e8147ea54d72a8db66a06fb7546beb" name="ae8e8147ea54d72a8db66a06fb7546beb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae8e8147ea54d72a8db66a06fb7546beb">&#9670;&#160;</a></span>proposer_worker_</h2>
+<a id="a04ca33cf59b6387c81ad2c6ab1eed4b5" name="a04ca33cf59b6387c81ad2c6ab1eed4b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04ca33cf59b6387c81ad2c6ab1eed4b5">&#9670;&#160;</a></span>proposer_workers_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2552,7 +2559,7 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt;std::thread&gt; taraxa::DagBlockProposer::proposer_worker_</td>
+          <td class="memname">std::vector&lt;std::thread&gt; taraxa::DagBlockProposer::proposer_workers_</td>
         </tr>
       </table>
   </td>

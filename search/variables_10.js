@@ -118,7 +118,7 @@ var searchData=
   ['proposed_5fblocks_5fcount_5f_115',['proposed_blocks_count_',['../group___d_a_g.html#acc135f2065fa3cb9ecbcd83069cf71a5',1,'taraxa::DagBlockProposer']]],
   ['proposed_5fblocks_5fmutex_5f_116',['proposed_blocks_mutex_',['../classtaraxa_1_1_proposed_blocks.html#aba4756331e897c3d5f5c470583fcd1eb',1,'taraxa::ProposedBlocks']]],
   ['proposer_5fwallet_117',['proposer_wallet',['../namespacetaraxa.html#aea0f01a7f1dea8423ddec73a6f668852',1,'taraxa::ProposedBlockData']]],
-  ['proposer_5fworker_5f_118',['proposer_worker_',['../group___d_a_g.html#ae8e8147ea54d72a8db66a06fb7546beb',1,'taraxa::DagBlockProposer']]],
+  ['proposer_5fworkers_5f_118',['proposer_workers_',['../group___d_a_g.html#a04ca33cf59b6387c81ad2c6ab1eed4b5',1,'taraxa::DagBlockProposer']]],
   ['protocolid_119',['protocolId',['../structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#ae9abdd306b6740bc3b07b422212333b0',1,'dev::p2p::RLPXFrameInfo']]],
   ['provider_5f_120',['provider_',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html#a347f8adc03302c21b1375ddb6853fbc4',1,'taraxa::util::lazy::Lazy']]],
   ['prune_5fstate_5fdb_121',['prune_state_db',['../namespacetaraxa.html#abdd62bbac265c8653d3c403952b8175d',1,'taraxa::DBConfig::prune_state_db'],['../namespacetaraxa_1_1cli.html#abd3252943bd7a738cd118fe8a6a565de',1,'taraxa::cli::PRUNE_STATE_DB']]],
