@@ -26,7 +26,8 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                  std::shared_ptr<SlashingManager> slashing_manager,
-                 std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr)
+                 std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr,
+                 std::shared_ptr<final_chain::FinalChain> final_chain)
     : kConf(config),
       all_packets_stats_(nullptr),
       node_stats_(nullptr),
@@ -75,14 +76,14 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
     // Register latest version of taraxa capability
     auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
         TARAXA_NET_VERSION, config, genesis_hash, host, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr);
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr, final_chain);
     capabilities.emplace_back(latest_tarcap);
 
     // Register previous (v5) version of taraxa capability
     assert(TARAXA_NET_VERSION - 1 == 5);
     auto v5_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
         TARAXA_NET_VERSION - 1, config, genesis_hash, host, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr,
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, pillar_chain_mgr, final_chain,
         network::tarcap::TaraxaCapability::kInitV5VersionHandlers);
     capabilities.emplace_back(v5_tarcap);
 
