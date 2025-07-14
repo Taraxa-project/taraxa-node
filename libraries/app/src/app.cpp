@@ -209,6 +209,11 @@ void App::start() {
     return;
   }
 
+  for (auto &plugin : active_plugins_) {
+    LOG(log_nf_) << "Starting plugin " << plugin.first;
+    plugin.second->start();
+  }
+
   network_->start();
   dag_block_proposer_->setNetwork(network_);
   dag_block_proposer_->start();
@@ -218,10 +223,6 @@ void App::start() {
   if (metrics_) {
     setupMetricsUpdaters();
     metrics_->start();
-  }
-  for (auto &plugin : active_plugins_) {
-    LOG(log_nf_) << "Starting plugin " << plugin.first;
-    plugin.second->start();
   }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";

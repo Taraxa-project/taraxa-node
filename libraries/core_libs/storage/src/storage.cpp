@@ -428,8 +428,11 @@ std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(rocksdb::ColumnF
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {
-  if (status.ok()) return;
-  throw DbException(std::string("Db error. Status code: ") + std::to_string(status.code()) +
+  if (status.ok()) {
+    return;
+  }
+
+  throw DbException("Db error. Status code: " + std::to_string(status.code()) +
                     " SubCode: " + std::to_string(status.subcode()) + " Message:" + status.ToString());
 }
 

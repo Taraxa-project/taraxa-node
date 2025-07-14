@@ -1294,7 +1294,7 @@ uint64_t count_non_empty_blocks(const std::shared_ptr<AppBase> &node) {
 
 TEST_F(FullNodeTest, light_node) {
   auto cfgs = make_test_cfgs(make_node_cfgs(2, 1, 10));
-  const uint64_t history = 20;
+  const uint64_t history = 10;
 
   cfgs[0].config().dag_expiry_limit = 5;
   cfgs[0].config().max_levels_per_period = 3;
@@ -1306,7 +1306,7 @@ TEST_F(FullNodeTest, light_node) {
   uint64_t nonce = 0;
   auto nodes = launch_nodes(cfgs);
 
-  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 30) {
+  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
     auto dummy_trx =
         std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
@@ -1319,13 +1319,18 @@ TEST_F(FullNodeTest, light_node) {
     WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
                    nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
   });
+  for (auto &node : nodes) {
+    node->getPbftManager()->stop();
+  }
+  auto plug = nodes[1]->getPlugin("light");
+  std::dynamic_pointer_cast<plugin::Light>(plug)->clearLightNodeHistory();
 
   uint32_t non_empty_counter_full_node = count_non_empty_blocks(nodes[0]);
   uint32_t non_empty_counter_light_node = count_non_empty_blocks(nodes[1]);
 
   // Verify light node keeps at least light_node_history and it deletes old blocks
   EXPECT_GE(non_empty_counter_light_node, node_cfgs[1].light_node_history);
-  EXPECT_EQ(non_empty_counter_light_node, non_empty_counter_full_node);
+  EXPECT_LE(non_empty_counter_light_node, non_empty_counter_full_node);
 }
 
 TEST_F(FullNodeTest, clear_period_data) {

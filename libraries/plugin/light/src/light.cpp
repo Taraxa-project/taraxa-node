@@ -46,10 +46,16 @@ void Light::start() {
   if (state_db_pruning_) {
     pruneStateDb();
   }
+  LOG(log_er_) << "Light::start, live_cleanup_=" << live_cleanup_ << ", state_db_pruning_=" << state_db_pruning_;
   app()->getFinalChain()->block_finalized_.subscribe(
       [this](std::shared_ptr<final_chain::FinalizationResult>) {
         if (live_cleanup_) {
-          clearLightNodeHistory();
+          if (live_cleanup_in_progress_) {
+            return;
+          }
+          live_cleanup_in_progress_ = true;
+          clearLightNodeHistory(true);
+          live_cleanup_in_progress_ = false;
         }
       },
       cleanup_pool_);
@@ -61,7 +67,7 @@ uint64_t Light::getCleanupPeriod(uint64_t dag_period, std::optional<uint64_t> pr
   return std::min(dag_period - history_, *proposal_period);
 }
 
-void Light::clearLightNodeHistory() {
+void Light::clearLightNodeHistory(bool live_cleanup) {
   const auto dag_manager = app()->getDagManager();
   const auto db = app()->getDB();
 
@@ -70,6 +76,11 @@ void Light::clearLightNodeHistory() {
   const auto max_levels_per_period = dag_manager->getMaxLevelsPerPeriod();
   bool dag_expiry_level_condition = dag_expiry_level > max_levels_per_period + 1;
   if (dag_period > history_ && dag_expiry_level_condition) {
+    if (!live_cleanup) {
+      LOG(log_nf_) << "Clear light node history: dag_period=" << dag_period << ", dag_expiry_level=" << dag_expiry_level
+                   << ", max_levels_per_period=" << max_levels_per_period
+                   << ", dag_expiry_level_condition=" << dag_expiry_level_condition << ", history_=" << history_;
+    }
     const auto proposal_period = db->getProposalPeriodForDagLevel(dag_expiry_level - max_levels_per_period - 1);
     assert(proposal_period);
 
@@ -81,34 +92,41 @@ void Light::clearLightNodeHistory() {
       dag_level_to_keep = dag_expiry_level - max_levels_per_period;
     }
 
-    clearHistory(end, dag_level_to_keep, dag_period);
+    clearHistory(end, dag_level_to_keep, live_cleanup);
+    if (!live_cleanup) {
+      LOG(log_nf_) << "Clear light node history completed";
+    }
   }
 }
 
-void Light::clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, PbftPeriod last_block_number) {
-  LOG(log_dg_) << "Clear light node history: end_period=" << end_period << ", dag_level_to_keep=" << dag_level_to_keep
-               << ", last_block_number=" << last_block_number;
+void Light::clearNonBlockData(PbftPeriod start, PbftPeriod end, bool live_cleanup) {
   auto db = app()->getDB();
-  auto it = db->getColumnIterator(DbStorage::Columns::period_data);
-  // Find the first non-deleted period
-  it->SeekToFirst();
-  if (!it->Valid()) {
+  auto length = end - start;
+  if (!live_cleanup && length > 2 * periods_to_keep_non_block_data_) {
+    recreateNonBlockData(end);
     return;
   }
 
-  uint64_t start_period;
-  memcpy(&start_period, it->key().data(), sizeof(uint64_t));
-  if (start_period >= end_period) {
-    return;
+  auto batch = db->createWriteBatch();
+  for (PbftPeriod period = start; period < end; period++) {
+    auto period_data = db->getPeriodData(period);
+    if (!period_data.has_value()) {
+      break;
+    }
+    for (auto t : period_data->transactions) {
+      db->remove(batch, DbStorage::Columns::trx_period, t->getHash());
+      db->remove(batch, DbStorage::Columns::final_chain_receipt_by_trx_hash, t->getHash());
+    }
+    for (auto d : period_data->dag_blocks) {
+      db->remove(batch, DbStorage::Columns::dag_block_period, d->getHash());
+    }
+    db->remove(batch, DbStorage::Columns::pbft_block_period, period_data->pbft_blk->getBlockHash());
   }
+  db->commitWriteBatch(batch);
+}
 
-  db->DeleteRange(DbStorage::Columns::period_data, start_period, end_period);
-  db->DeleteRange(DbStorage::Columns::pillar_block, start_period, end_period);
-  db->DeleteRange(DbStorage::Columns::final_chain_receipt_by_period, start_period, end_period);
-  db->CompactRange(DbStorage::Columns::period_data, start_period, end_period);
-  db->CompactRange(DbStorage::Columns::pillar_block, start_period, end_period);
-  db->CompactRange(DbStorage::Columns::final_chain_receipt_by_period, start_period, end_period);
-
+void Light::recreateNonBlockData(PbftPeriod last_block_number) {
+  auto db = app()->getDB();
   std::unordered_set<trx_hash_t> trxs;
   std::unordered_set<blk_hash_t> dag_blocks;
   std::unordered_set<blk_hash_t> pbft_blocks;
@@ -131,24 +149,53 @@ void Light::clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, Pbft
   db->clearColumnHistory(trxs, DbStorage::Columns::final_chain_receipt_by_trx_hash);
   db->clearColumnHistory(dag_blocks, DbStorage::Columns::dag_block_period);
   db->clearColumnHistory(pbft_blocks, DbStorage::Columns::pbft_block_period);
+}
+
+void Light::clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, bool live_cleanup) {
+  auto db = app()->getDB();
+  auto it = db->getColumnIterator(DbStorage::Columns::period_data);
+  // Find the first non-deleted period
+  it->SeekToFirst();
+  if (!it->Valid()) {
+    return;
+  }
+
+  uint64_t start_period;
+  memcpy(&start_period, it->key().data(), sizeof(uint64_t));
+  if (start_period >= end_period) {
+    return;
+  }
+  clearNonBlockData(start_period, end_period, live_cleanup);
+
+  db->DeleteRange(DbStorage::Columns::period_data, start_period, end_period);
+  db->DeleteRange(DbStorage::Columns::pillar_block, start_period, end_period);
+  db->DeleteRange(DbStorage::Columns::final_chain_receipt_by_period, start_period, end_period);
+  db->CompactRange(DbStorage::Columns::period_data, start_period, end_period);
+  db->CompactRange(DbStorage::Columns::pillar_block, start_period, end_period);
+  db->CompactRange(DbStorage::Columns::final_chain_receipt_by_period, start_period, end_period);
 
   it = db->getColumnIterator(DbStorage::Columns::dag_blocks_level);
   it->SeekToFirst();
   if (!it->Valid()) {
     return;
   }
-
   uint64_t start_level;
   memcpy(&start_level, it->key().data(), sizeof(uint64_t));
-  db->DeleteRange(DbStorage::Columns::dag_blocks_level, start_level, dag_level_to_keep - 1);
-  db->CompactRange(DbStorage::Columns::dag_blocks_level, start_level, dag_level_to_keep - 1);
-  LOG(log_nf_) << "Clear light node history completed";
+
+  uint64_t dag_level_end = dag_level_to_keep - 1;
+  // Validate range before operations
+  if (start_level >= dag_level_end) {
+    return;
+  }
+
+  db->DeleteRange(DbStorage::Columns::dag_blocks_level, start_level, dag_level_end);
+  db->CompactRange(DbStorage::Columns::dag_blocks_level, start_level, dag_level_end);
 }
 
 void Light::pruneStateDb() {
   const auto kPruneBlocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
   // prune state db only if we have more than 2*kPruneBlocksToKeep blocks
-  const auto kPruneStateDbThreshold = 1.5 * kPruneBlocksToKeep;
+  const uint64_t kPruneStateDbThreshold = 1.5 * kPruneBlocksToKeep;
   auto last_blk_num = app()->getFinalChain()->lastBlockNumber();
   if (last_blk_num > kPruneStateDbThreshold) {
     auto prune_block_num = last_blk_num - kPruneStateDbThreshold;
@@ -157,7 +204,7 @@ void Light::pruneStateDb() {
       LOG(log_nf_) << "Prune was done recently, skip state db pruning";
       return;
     }
-    LOG(log_nf_) << "Pruning state db, this might take several minutes";
+    LOG(log_nf_) << "Pruning state db " << prune_block_num << ", this might take several minutes";
     app()->getFinalChain()->prune(prune_block_num);
     LOG(log_nf_) << "Pruning state db complete";
   }
