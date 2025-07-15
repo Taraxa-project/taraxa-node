@@ -433,7 +433,7 @@ void DbStorage::checkStatus(rocksdb::Status const& status) {
   }
 
   throw DbException("Db error. Status code: " + std::to_string(status.code()) +
-                    " SubCode: " + std::to_string(status.subcode()) + " Message:" + status.ToString());
+                    "SubCode: " + std::to_string(status.subcode()) + " Message: " + status.ToString());
 }
 
 Batch DbStorage::createWriteBatch() { return Batch(); }

@@ -32,10 +32,9 @@ class Light : public Plugin {
 
   uint64_t getCleanupPeriod(uint64_t dag_period, std::optional<uint64_t> proposal_period) const;
 
-  static constexpr uint64_t periods_to_keep_non_block_data_ = 1000;
+  static constexpr uint64_t kPeriodsToKeepNonBlockData = 1000;
   std::shared_ptr<util::ThreadPool> cleanup_pool_ = std::make_shared<util::ThreadPool>(1);
   uint64_t& history_;
-  uint64_t min_light_node_history_ = 0;
   bool state_db_pruning_;
   bool live_cleanup_;
   std::atomic<bool> live_cleanup_in_progress_ = false;
