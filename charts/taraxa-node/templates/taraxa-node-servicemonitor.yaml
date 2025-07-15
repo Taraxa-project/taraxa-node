@@ -22,8 +22,16 @@ spec:
     - honorLabels: true
       path: /metrics
       port: metrics
+{{- if .Values.node.serviceMonitor.metricRelabelings.node }}
+      metricRelabelings:
+{{- .Values.node.serviceMonitor.metricRelabelings.node | toYaml | nindent 8 }}
+{{- end }}
     - honorLabels: true
       path: /metrics
       port: metrics-indexer
+{{- if .Values.node.serviceMonitor.metricRelabelings.indexer }}
+      metricRelabelings:
+{{- .Values.node.serviceMonitor.metricRelabelings.indexer | toYaml | nindent 8 }}
+{{- end }}
 {{- end }}
 {{- end }}
