@@ -1500,14 +1500,14 @@ PbftStateRootValidation PbftManager::validateFinalChainHash(const std::shared_pt
   const auto period = pbft_block->getPeriod();
   const auto &pbft_block_hash = pbft_block->getBlockHash();
 
-  auto prev_final_chain_hash = final_chain_->finalChainHash(period);
-  if (!prev_final_chain_hash) {
+  auto expected_final_chain_hash = final_chain_->finalChainHash(period);
+  if (!expected_final_chain_hash) {
     logger_->warn("Block {} could not be validated as we are behind", pbft_block_hash);
     return PbftStateRootValidation::Missing;
   }
-  if (pbft_block->getFinalChainHash() != prev_final_chain_hash) {
-    logger_->error("Block {} hash {} state root {} isn't matching actual {}", period, pbft_block_hash,
-                   pbft_block->getFinalChainHash(), prev_final_chain_hash.value());
+  if (pbft_block->getFinalChainHash() != expected_final_chain_hash) {
+    logger_->error("Block {} hash {} final chain hash {} isn't matching actual", period, pbft_block_hash,
+                   pbft_block->getFinalChainHash());
     return PbftStateRootValidation::Invalid;
   }
 
@@ -2187,7 +2187,7 @@ bool PbftManager::validatePbftBlockPillarVotes(const PeriodData &period_data) co
           "Invalid sync pillar vote {}, vote period {}, vote pillar block hash {}, current pillar block hash: {}, "
           "current pillar block period {}, full data: {}",
           vote->getHash(), vote->getPeriod(), vote->getBlockHash(), current_pillar_block->getHash(),
-          current_pillar_block->getPeriod(), current_pillar_block->getJson().asString());
+          current_pillar_block->getPeriod(), current_pillar_block->getJson().toStyledString());
       return false;
     }
 

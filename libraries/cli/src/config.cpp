@@ -44,6 +44,9 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
   if (cli_options_.count(PLUGINS)) {
     plugins_ = cli_options_[PLUGINS].as<std::vector<std::string>>();
   }
+  if (cli_options_[LIGHT].as<bool>()) {
+    plugins_.emplace_back("light");
+  }
 
   std::vector<std::string> command;
   if (cli_options_.count(COMMAND)) {
@@ -162,9 +165,6 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     if (cli_options_.count(LOG_CHANNELS_APPEND)) {
       log_channels_append = cli_options_[LOG_CHANNELS_APPEND].as<std::vector<std::string>>();
     }
-    config_json = tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
-                                        boot_nodes_append, log_channels_append);
-
     std::string node_secret;
     if (cli_options_.count(NODE_SECRET)) {
       node_secret = cli_options_[NODE_SECRET].as<std::string>();
@@ -177,16 +177,26 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     auto& first_wallet_json = wallets_jsons.front();
     first_wallet_json = tools::overrideWallet(first_wallet_json, node_secret, vrf_secret);
 
-    config_json["is_light_node"] = cli_options_[LIGHT].as<bool>();
     // Create data directory
     if (!data_dir.empty() && !fs::exists(data_dir)) {
       fs::create_directories(data_dir);
     }
 
+    // Check that it is not empty, to not create chain config with just overwritten files
+    if (!genesis_json.isNull()) {
+      auto default_genesis_json = tools::getGenesis((Config::ChainIdType)genesis_json["chain_id"].asUInt64());
+      // override hardforks data with one from default json
+      genesis_json["hardforks"] = default_genesis_json["hardforks"];
+      util::writeJsonToFile(genesis, genesis_json);
+    }
+
+    config_json = tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
+                                        boot_nodes_append, log_channels_append);
+    config_json["is_light_node"] = cli_options_[LIGHT].as<bool>();
     {
       ConfigUpdater updater{chain_id};
       updater.UpdateConfig(config_json);
-      write_config_and_wallet_files();
+      util::writeJsonToFile(config, config_json);
     }
 
     // Load config
@@ -197,7 +207,7 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
       genesis_json = enc_json(node_config_.genesis);
-      write_config_and_wallet_files();
+      util::writeJsonToFile(genesis, genesis_json);
     }
 
     // Validate config values
@@ -217,7 +227,6 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     }
     node_config_.db_config.db_revert_to_period = cli_options_[REVERT_TO_PERIOD].as<uint64_t>();
     node_config_.db_config.rebuild_db = cli_options_[REBUILD_DB].as<bool>();
-    node_config_.db_config.prune_state_db = cli_options_[PRUNE_STATE_DB].as<bool>();
     node_config_.db_config.rebuild_db_period = cli_options_[REBUILD_DB_PERIOD].as<uint64_t>();
     node_config_.db_config.migrate_only = cli_options_[MIGRATE_ONLY].as<bool>();
     node_config_.db_config.migrate_receipts_by_period = cli_options_[MIGRATE_RECEIPTS_BY_PERIOD].as<bool>();
@@ -273,7 +282,7 @@ bpo::options_description Config::makeNodeOptions(const std::string& available_pl
 
   auto plugins_desc = "List of plugins to activate separated by space: " + available_plugins +
                       " (default: " + std::accumulate(plugins_.begin(), plugins_.end(), std::string()) + ")";
-  node_command_options.add_options()(PLUGINS, bpo::value<std::vector<std::string>>()->multitoken(),
+  node_command_options.add_options()(PLUGINS, bpo::value<std::vector<std::string>>()->multitoken()->composing(),
                                      plugins_desc.c_str());
   node_command_options.add_options()(WALLET, bpo::value<std::vector<std::string>>(&wallets)->multitoken(),
                                      "JSON wallet file(s) (default: \"~/.taraxa/wallet.json\")");
@@ -336,7 +345,6 @@ bpo::options_description Config::makeNodeOptions(const std::string& available_pl
   node_command_options.add_options()(REVERT_TO_PERIOD, bpo::value<uint64_t>()->default_value(0),
                                      "Revert db/state to specified "
                                      "period (specify period)");
-  node_command_options.add_options()(PRUNE_STATE_DB, bpo::bool_switch()->default_value(false), "Prune state_db");
   // migration related options
   node_command_options.add_options()(MIGRATE_ONLY, bpo::bool_switch()->default_value(false),
                                      "Only migrate DB, it will NOT run a node");

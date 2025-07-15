@@ -18,6 +18,7 @@ class VoteManager;
 class PbftChain;
 class DagBlockProposer;
 class GasPricer;
+class Plugin;
 
 namespace final_chain {
 class FinalChain;
@@ -37,6 +38,7 @@ class AppBase {
   virtual ~AppBase() = default;
 
   virtual const FullNodeConfig &getConfig() const = 0;
+  virtual FullNodeConfig &getMutableConfig() = 0;
   virtual std::shared_ptr<Network> getNetwork() const = 0;
   virtual std::shared_ptr<TransactionManager> getTransactionManager() const = 0;
   virtual std::shared_ptr<DagManager> getDagManager() const = 0;
@@ -55,6 +57,8 @@ class AppBase {
   vrf_wrapper::vrf_sk_t getVrfSecretKey() const { return conf_.getFirstWallet().vrf_secret; }
 
   virtual std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const = 0;
+
+  virtual std::shared_ptr<Plugin> getPlugin(const std::string &name) const = 0;
 
   bool isStarted() const { return started_; }
 

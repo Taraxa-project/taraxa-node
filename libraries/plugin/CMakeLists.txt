@@ -17,3 +17,4 @@ install(TARGETS plugin
 )
 
 add_subdirectory(rpc)
+add_subdirectory(light)
