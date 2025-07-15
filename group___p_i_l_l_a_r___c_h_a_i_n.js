@@ -81,7 +81,7 @@ var group___p_i_l_l_a_r___c_h_a_i_n =
       [ "mutex_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a8a1188c8d8ec755d68ab90132dbd2444", null ],
       [ "network_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a289c3b9928d5c227910aec76e1a82a49", null ],
       [ "pillar_block_finalized_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a1af268d9589f43825f96f6e60082711e", null ],
-      [ "pillar_block_finalized_emitter_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a492825a8a85d688587d2df474a9d55cf", null ],
+      [ "pillar_block_finalized_emitter_", "group___p_i_l_l_a_r___c_h_a_i_n.html#a99efcbb3e1b960ca3015151e9ffa744b", null ],
       [ "pillar_votes_", "group___p_i_l_l_a_r___c_h_a_i_n.html#acbdfa0994b21b41ba126b99ac331a153", null ]
     ] ]
 ];

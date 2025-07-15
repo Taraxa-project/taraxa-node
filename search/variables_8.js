@@ -14,10 +14,12 @@ var searchData=
   ['height_5fto_5fsync_11',['height_to_sync',['../namespacetaraxa_1_1network_1_1tarcap.html#a406e1b77628fcfa0e7396fcc005b8785',1,'taraxa::network::tarcap::GetPbftSyncPacket']]],
   ['help_12',['HELP',['../namespacetaraxa_1_1cli.html#a1f5be19df7467eb444db3136fcf70713',1,'taraxa::cli']]],
   ['highest_5fblock_13',['highest_block',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a8d904d39294192ba000300f708f4f9d1',1,'taraxa::net::rpc::eth::SyncStatus']]],
-  ['host_14',['host',['../namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89',1,'dev::p2p::PeerSessionInfo']]],
-  ['host_5f_15',['host_',['../classtaraxa_1_1_network.html#a9a17fef921508b0eedf68da85406660a',1,'taraxa::Network::host_'],['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4cb1c53c949cceb37f64e472058c1493',1,'taraxa::network::tarcap::PeersState::host_']]],
-  ['host_5fctx_5f_16',['host_ctx_',['../structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a9db3c189417d47cb18ba72c2626b3849',1,'dev::p2p::RLPXHandshake']]],
-  ['http_5fport_17',['http_port',['../structtaraxa_1_1_connection_config.html#ab8db9e9bd678b3fc0e9873870162c442',1,'taraxa::ConnectionConfig']]],
-  ['httpconnection_18',['HttpConnection',['../classtaraxa_1_1net_1_1_http_server.html#a0b9aed8652f5316c2d4c04eabe3d1c0c',1,'taraxa::net::HttpServer']]],
-  ['httphandler_19',['HttpHandler',['../classtaraxa_1_1net_1_1_http_server.html#a00c15ddc2d81dbe5857c3bbcbef9a68e',1,'taraxa::net::HttpServer']]]
+  ['history_14',['HISTORY',['../namespacetaraxa_1_1plugin.html#ad9371f8b61fdfc2cee941a3373d5db4a',1,'taraxa::plugin']]],
+  ['history_5f_15',['history_',['../classtaraxa_1_1plugin_1_1_light.html#adc8b594d6544b82d7fa864e149bab61c',1,'taraxa::plugin::Light']]],
+  ['host_16',['host',['../namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89',1,'dev::p2p::PeerSessionInfo']]],
+  ['host_5f_17',['host_',['../classtaraxa_1_1_network.html#a9a17fef921508b0eedf68da85406660a',1,'taraxa::Network::host_'],['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4cb1c53c949cceb37f64e472058c1493',1,'taraxa::network::tarcap::PeersState::host_']]],
+  ['host_5fctx_5f_18',['host_ctx_',['../structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a9db3c189417d47cb18ba72c2626b3849',1,'dev::p2p::RLPXHandshake']]],
+  ['http_5fport_19',['http_port',['../structtaraxa_1_1_connection_config.html#ab8db9e9bd678b3fc0e9873870162c442',1,'taraxa::ConnectionConfig']]],
+  ['httpconnection_20',['HttpConnection',['../classtaraxa_1_1net_1_1_http_server.html#a0b9aed8652f5316c2d4c04eabe3d1c0c',1,'taraxa::net::HttpServer']]],
+  ['httphandler_21',['HttpHandler',['../classtaraxa_1_1net_1_1_http_server.html#a00c15ddc2d81dbe5857c3bbcbef9a68e',1,'taraxa::net::HttpServer']]]
 ];

@@ -260,7 +260,7 @@ var searchData=
   ['transaction_2ecpp_257',['transaction.cpp',['../core__libs_2network_2graphql_2src_2transaction_8cpp.html',1,'(Global Namespace)'],['../types_2transaction_2src_2transaction_8cpp.html',1,'(Global Namespace)']]],
   ['transaction_2ehpp_258',['transaction.hpp',['../types_2transaction_2include_2transaction_2transaction_8hpp.html',1,'(Global Namespace)'],['../core__libs_2network_2graphql_2include_2graphql_2transaction_8hpp.html',1,'(Global Namespace)']]],
   ['transaction_5f_259',['transaction_',['../classgraphql_1_1taraxa_1_1_transaction.html#a548eeebd06374697ae07dce6f35f56e5',1,'graphql::taraxa::Transaction']]],
-  ['transaction_5fadded_5f_260',['transaction_added_',['../group___transaction.html#aa5cbbeba5ba91bd6bfea36083cc7517f',1,'taraxa::TransactionManager']]],
+  ['transaction_5fadded_5f_260',['transaction_added_',['../group___transaction.html#aee9d9d929f77c2d300b02dc26c04c458',1,'taraxa::TransactionManager']]],
   ['transaction_5fcount_261',['transaction_count',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a97002d7ccbd968b383fe89ca6f379bc8',1,'taraxa::net::rpc::eth::EthImpl']]],
   ['transaction_5fhashes_5fcache_5f_262',['transaction_hashes_cache_',['../group___final_chain.html#ae53312fbfc4a5c07ae3f6f18005cb278',1,'taraxa::final_chain::FinalChain']]],
   ['transaction_5finterval_5fms_263',['transaction_interval_ms',['../structtaraxa_1_1_network_config.html#a7ec9d38a0edc06c79d979ba9a1439049',1,'taraxa::NetworkConfig']]],

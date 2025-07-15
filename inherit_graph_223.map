@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classtaraxa_1_1_plugin.html" title=" " alt="" coords="5,5,117,31"/>
-<area shape="rect" id="Node000001" href="$classtaraxa_1_1plugin_1_1_rpc.html" title=" " alt="" coords="165,5,309,31"/>
-<area shape="poly" id="edge148_Node000000_Node000001" title=" " alt="" coords="131,15,165,15,165,21,131,21"/>
+<area shape="rect" id="Node000000" href="$classtaraxa_1_1_plugin.html" title=" " alt="" coords="5,31,117,56"/>
+<area shape="rect" id="Node000001" href="$classtaraxa_1_1plugin_1_1_light.html" title=" " alt="" coords="165,5,317,31"/>
+<area shape="poly" id="edge148_Node000000_Node000001" title=" " alt="" coords="131,31,164,26,165,31,132,36"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1plugin_1_1_rpc.html" title=" " alt="" coords="169,55,313,80"/>
+<area shape="poly" id="edge149_Node000000_Node000002" title=" " alt="" coords="131,50,170,55,169,60,131,55"/>
 </map>

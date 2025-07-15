@@ -36,7 +36,7 @@ var searchData=
   ['tp_5fwait_5fduration_5f_33',['tp_wait_duration_',['../classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html#a91e23bb84011e5080476c0d8d1df2633',1,'taraxa::network::tarcap::PacketStats']]],
   ['trace_34',['trace',['../group___final_chain.html#a04f7664ce78f250fd3bf41faca987273',1,'taraxa::state_api::Tracing']]],
   ['transaction_5f_35',['transaction_',['../classgraphql_1_1taraxa_1_1_transaction.html#a548eeebd06374697ae07dce6f35f56e5',1,'graphql::taraxa::Transaction']]],
-  ['transaction_5fadded_5f_36',['transaction_added_',['../group___transaction.html#aa5cbbeba5ba91bd6bfea36083cc7517f',1,'taraxa::TransactionManager']]],
+  ['transaction_5fadded_5f_36',['transaction_added_',['../group___transaction.html#aee9d9d929f77c2d300b02dc26c04c458',1,'taraxa::TransactionManager']]],
   ['transaction_5fhashes_5fcache_5f_37',['transaction_hashes_cache_',['../group___final_chain.html#ae53312fbfc4a5c07ae3f6f18005cb278',1,'taraxa::final_chain::FinalChain']]],
   ['transaction_5finterval_5fms_38',['transaction_interval_ms',['../structtaraxa_1_1_network_config.html#a7ec9d38a0edc06c79d979ba9a1439049',1,'taraxa::NetworkConfig']]],
   ['transaction_5fmanager_5f_39',['transaction_manager_',['../classgraphql_1_1taraxa_1_1_dag_block.html#a62db2b51be5f3c8941927e095d7b9076',1,'graphql::taraxa::DagBlock::transaction_manager_'],['../classgraphql_1_1taraxa_1_1_query.html#a73e8be96f59ae8b02a4ff2007aba9cff',1,'graphql::taraxa::Query::transaction_manager_']]],

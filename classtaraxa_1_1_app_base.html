@@ -185,6 +185,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2c78d99d7e9dabba764d1eaa1eeeedb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf41461dbb703423805288439cf62895" id="r_aaf41461dbb703423805288439cf62895"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#aaf41461dbb703423805288439cf62895">getConfig</a> () const =0</td></tr>
 <tr class="separator:aaf41461dbb703423805288439cf62895"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80dc56b58f39d7657f5da4aea7633f31" id="r_a80dc56b58f39d7657f5da4aea7633f31"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#a80dc56b58f39d7657f5da4aea7633f31">getMutableConfig</a> ()=0</td></tr>
+<tr class="separator:a80dc56b58f39d7657f5da4aea7633f31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb9c13d4abf8782576954a9a7a08db91" id="r_acb9c13d4abf8782576954a9a7a08db91"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#acb9c13d4abf8782576954a9a7a08db91">getNetwork</a> () const =0</td></tr>
 <tr class="separator:acb9c13d4abf8782576954a9a7a08db91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad90217f05944fd45c31448e0276dda88" id="r_ad90217f05944fd45c31448e0276dda88"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#ad90217f05944fd45c31448e0276dda88">getTransactionManager</a> () const =0</td></tr>
@@ -215,6 +217,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a568af32bd5956c4f315b92fefab22258"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cf4c6b155f85eb70fdfa08e1e014dfa" id="r_a6cf4c6b155f85eb70fdfa08e1e014dfa"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; <a class="el" href="group___p_i_l_l_a_r___c_h_a_i_n.html#classtaraxa_1_1pillar__chain_1_1_pillar_chain_manager">pillar_chain::PillarChainManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#a6cf4c6b155f85eb70fdfa08e1e014dfa">getPillarChainManager</a> () const =0</td></tr>
 <tr class="separator:a6cf4c6b155f85eb70fdfa08e1e014dfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ac3159f4f6e1cfd472e6c6819356109" id="r_a9ac3159f4f6e1cfd472e6c6819356109"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_plugin.html">Plugin</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#a9ac3159f4f6e1cfd472e6c6819356109">getPlugin</a> (const std::string &amp;name) const =0</td></tr>
+<tr class="separator:a9ac3159f4f6e1cfd472e6c6819356109"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64454422a1d0f6b26d365a67ffcae842" id="r_a64454422a1d0f6b26d365a67ffcae842"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#a64454422a1d0f6b26d365a67ffcae842">isStarted</a> () const</td></tr>
 <tr class="separator:a64454422a1d0f6b26d365a67ffcae842"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6abe9a6d64f5b58938ae6d900dee748" id="r_af6abe9a6d64f5b58938ae6d900dee748"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app_base.html#af6abe9a6d64f5b58938ae6d900dee748">start</a> ()=0</td></tr>
@@ -495,6 +499,33 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a80dc56b58f39d7657f5da4aea7633f31" name="a80dc56b58f39d7657f5da4aea7633f31"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a80dc56b58f39d7657f5da4aea7633f31">&#9670;&#160;</a></span>getMutableConfig()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp; taraxa::AppBase::getMutableConfig </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1_app.html#ae91e5e0e2b8ffc3dddc4668553b996de">taraxa::App</a>.</p>
+
+</div>
+</div>
 <a id="acb9c13d4abf8782576954a9a7a08db91" name="acb9c13d4abf8782576954a9a7a08db91"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acb9c13d4abf8782576954a9a7a08db91">&#9670;&#160;</a></span>getNetwork()</h2>
 
@@ -600,6 +631,34 @@ Protected Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Implemented in <a class="el" href="classtaraxa_1_1_app.html#a446d2545479cd2636d9db2d918ae58a7">taraxa::App</a>.</p>
+
+</div>
+</div>
+<a id="a9ac3159f4f6e1cfd472e6c6819356109" name="a9ac3159f4f6e1cfd472e6c6819356109"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ac3159f4f6e1cfd472e6c6819356109">&#9670;&#160;</a></span>getPlugin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_plugin.html">Plugin</a> &gt; taraxa::AppBase::getPlugin </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1_app.html#ac45eb89898a8b6a558b90fb13f8821f8">taraxa::App</a>, and <a class="el" href="classtaraxa_1_1_app.html#a612aebdf329ef47f8cdacce27352182c">taraxa::App</a>.</p>
 
 </div>
 </div>
