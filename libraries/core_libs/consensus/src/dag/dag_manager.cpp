@@ -408,6 +408,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
   old_anchor_ = anchor_;
   anchor_ = new_anchor;
   period_ = period;
+  updateFrontier();
 
   logger_->info(
       "Set new period {}"

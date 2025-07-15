@@ -1300,11 +1300,13 @@ TEST_F(FullNodeTest, light_node) {
   cfgs[0].config().max_levels_per_period = 3;
   cfgs[1].config().dag_expiry_limit = 5;
   cfgs[1].config().max_levels_per_period = 3;
-  cfgs[1].enableLightNode(history, false);
+  cfgs[1].enableLightNode(0, false);
   cfgs[1].config().is_light_node = true;
 
   uint64_t nonce = 0;
   auto nodes = launch_nodes(cfgs);
+  // adjust history after the launch to avoid the light node history size check
+  cfgs[1].config().light_node_history = history;
 
   while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
     auto dummy_trx =
@@ -1334,14 +1336,17 @@ TEST_F(FullNodeTest, light_node) {
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
-  auto node_cfgs = make_node_cfgs(2, 1, 10);
-  node_cfgs[1].is_light_node = true;
-  node_cfgs[1].light_node_history = 4;
-  node_cfgs[0].dag_expiry_limit = 15;
-  node_cfgs[0].max_levels_per_period = 3;
-  node_cfgs[1].dag_expiry_limit = 15;
-  node_cfgs[1].max_levels_per_period = 3;
+  auto node_cfgs = make_test_cfgs(make_node_cfgs(2, 1, 10));
+  node_cfgs[1].config().is_light_node = true;
+  node_cfgs[0].config().dag_expiry_limit = 15;
+  node_cfgs[0].config().max_levels_per_period = 3;
+  node_cfgs[1].config().dag_expiry_limit = 15;
+  node_cfgs[1].config().max_levels_per_period = 3;
+  node_cfgs[1].enableLightNode(0, false);
+
   auto nodes = launch_nodes(node_cfgs);
+  node_cfgs[1].config().light_node_history = 4;
+
   uint64_t nonce = 0;
   size_t node1_chain_size = 0, node2_chain_size = 0;
   while (node2_chain_size < 20) {
@@ -1372,7 +1377,7 @@ TEST_F(FullNodeTest, clear_period_data) {
     const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
     if (pbft_block && pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
       auto dag_block = nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash());
-      if (dag_block && (dag_block->getLevel() + node_cfgs[0].dag_expiry_limit >= last_anchor_level)) {
+      if (dag_block && (dag_block->getLevel() + node_cfgs[0].config().dag_expiry_limit >= last_anchor_level)) {
         first_over_limit = i;
         break;
       }

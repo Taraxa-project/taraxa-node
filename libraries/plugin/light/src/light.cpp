@@ -16,6 +16,9 @@ Light::Light(std::shared_ptr<AppBase> app) : Plugin(app), history_(app->getMutab
 void Light::init(const boost::program_options::variables_map &opts) {
   logger_ = logger::Logging::get().CreateChannelLogger("LIGHT");
   const auto &conf = app()->getConfig();
+
+  const auto min_light_node_history_ =
+      (conf.genesis.state.dpos.blocks_per_year * conf.kDefaultLightNodeHistoryDays) / 365;
   if (!opts[HISTORY].empty()) {
     history_ = opts[HISTORY].as<uint64_t>();
     if (history_ < min_light_node_history_) {
@@ -23,7 +26,6 @@ void Light::init(const boost::program_options::variables_map &opts) {
                             " blocks (" + std::to_string(conf.kDefaultLightNodeHistoryDays) + " days)");
     }
   } else {
-    min_light_node_history_ = (conf.genesis.state.dpos.blocks_per_year * conf.kDefaultLightNodeHistoryDays) / 365;
     history_ = min_light_node_history_;
   }
   state_db_pruning_ = !opts[NO_STATE_DB_PRUNING].as<bool>();
@@ -44,7 +46,6 @@ void Light::start() {
   if (state_db_pruning_) {
     pruneStateDb();
   }
-  logger_->error("Light::start, live_cleanup_={}, state_db_pruning_={}", live_cleanup_, state_db_pruning_);
   app()->getFinalChain()->block_finalized_.subscribe(
       [this](std::shared_ptr<final_chain::FinalizationResult>) {
         if (live_cleanup_) {
@@ -59,13 +60,14 @@ void Light::start() {
       cleanup_pool_);
 }
 
-void Light::shutdown() {}
+void Light::shutdown() { cleanup_pool_->stop(); }
 
 uint64_t Light::getCleanupPeriod(uint64_t dag_period, std::optional<uint64_t> proposal_period) const {
   return std::min(dag_period - history_, *proposal_period);
 }
 
 void Light::clearLightNodeHistory(bool live_cleanup) {
+  logger_->error("Clear light node history: live_cleanup={}, history_={}", live_cleanup, history_);
   const auto dag_manager = app()->getDagManager();
   const auto db = app()->getDB();
 
@@ -101,7 +103,7 @@ void Light::clearLightNodeHistory(bool live_cleanup) {
 void Light::clearNonBlockData(PbftPeriod start, PbftPeriod end, bool live_cleanup) {
   auto db = app()->getDB();
   auto length = end - start;
-  if (!live_cleanup && length > 2 * periods_to_keep_non_block_data_) {
+  if (!live_cleanup && length > 2 * kPeriodsToKeepNonBlockData) {
     recreateNonBlockData(end);
     return;
   }
@@ -130,7 +132,7 @@ void Light::recreateNonBlockData(PbftPeriod last_block_number) {
   std::unordered_set<blk_hash_t> dag_blocks;
   std::unordered_set<blk_hash_t> pbft_blocks;
 
-  for (uint64_t period = last_block_number - periods_to_keep_non_block_data_;; period++) {
+  for (uint64_t period = last_block_number - kPeriodsToKeepNonBlockData;; period++) {
     auto period_data = db->getPeriodData(period);
     if (!period_data.has_value()) {
       break;

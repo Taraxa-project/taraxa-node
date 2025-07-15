@@ -208,10 +208,11 @@ class TestConfig : public cli::Config {
   }
   void enableLightNode(uint64_t history = 10, bool live_cleanup = true) {
     cli_options_.insert(std::make_pair("light.no_state_db_pruning", cli::bpo::variable_value(true, false)));
-    std::cout << "enableLightNode::live_cleanup " << live_cleanup << std::endl;
     cli_options_.erase("light.no_live_cleanup");
     cli_options_.insert(std::make_pair("light.no_live_cleanup", cli::bpo::variable_value(!live_cleanup, false)));
-    cli_options_.insert(std::make_pair("light.history", cli::bpo::variable_value(history, false)));
+    if (history > 0) {
+      cli_options_.insert(std::make_pair("light.history", cli::bpo::variable_value(history, false)));
+    }
     plugins_.emplace_back("light");
   }
   FullNodeConfig& config() { return node_config_; }
