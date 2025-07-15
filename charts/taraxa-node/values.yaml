@@ -105,7 +105,7 @@ node:
     cache:
       enabled: false
       serviceName: "erpc"
-      servicePort: 4444
+      servicePort: 4000
     annotationsRpc: {}
     annotationsRpcWS: {}
     annotationsGraphQl: {}
