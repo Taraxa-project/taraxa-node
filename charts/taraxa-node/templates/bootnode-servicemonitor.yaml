@@ -22,5 +22,9 @@ spec:
     - honorLabels: true
       path: /metrics
       port: metrics
+{{- if .Values.bootnode.serviceMonitor.metricRelabelings.node }}
+      metricRelabelings:
+{{- .Values.bootnode.serviceMonitor.metricRelabelings.node | toYaml | nindent 8 }}
+{{- end }}
 {{- end }}
 {{- end }}

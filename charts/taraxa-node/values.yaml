@@ -157,6 +157,9 @@ node:
           protocol: TCP
   serviceMonitor:
     enabled: false
+    metricRelabelings:
+      node: []
+      indexer: []
   resources: {}
   nodeSelector: {}
   persistence:
@@ -233,6 +236,8 @@ bootnode:
         protocol: TCP
   serviceMonitor:
     enabled: false
+    metricRelabelings:
+      node: []
   resources: {}
   nodeSelector: {}
   persistence:
@@ -285,6 +290,8 @@ consensusnode:
         protocol: TCP
   serviceMonitor:
     enabled: false
+    metricRelabelings:
+      node: []
   resources: {}
   nodeSelector: {}
   persistence:
