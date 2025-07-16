@@ -335,7 +335,7 @@ def faucet_worker(tps):
         t = time.strftime('%Y-%m-%d %H:%M:%S', current_time)
 
         try:
-            tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
+            tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
             log_format(
                 'faucet', f'{t} Dripped to {to}, tx_hash: {web3.to_hex(tx_hash)}')
         except Exception as e:
