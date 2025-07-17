@@ -207,7 +207,7 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
       genesis_json = enc_json(node_config_.genesis);
-      util::writeJsonToFile(genesis, genesis_json);
+      write_config_and_wallet_files();
     }
 
     // Validate config values
