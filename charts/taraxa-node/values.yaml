@@ -102,6 +102,10 @@ node:
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
     # ingressClassName: nginx
     enabled: false
+    cache:
+      enabled: false
+      serviceName: "erpc"
+      servicePort: 4000
     annotationsRpc: {}
     annotationsRpcWS: {}
     annotationsGraphQl: {}
@@ -153,6 +157,9 @@ node:
           protocol: TCP
   serviceMonitor:
     enabled: false
+    metricRelabelings:
+      node: []
+      indexer: []
   resources: {}
   nodeSelector: {}
   persistence:
@@ -161,6 +168,9 @@ node:
     size: 30Gi
     storageClass: 
     annotations: {}
+  snapshot:
+    enabled: false
+    url: ""
   indexer:
     enabled: false
     syncQueueLimit: "10"
@@ -226,6 +236,8 @@ bootnode:
         protocol: TCP
   serviceMonitor:
     enabled: false
+    metricRelabelings:
+      node: []
   resources: {}
   nodeSelector: {}
   persistence:
@@ -278,6 +290,8 @@ consensusnode:
         protocol: TCP
   serviceMonitor:
     enabled: false
+    metricRelabelings:
+      node: []
   resources: {}
   nodeSelector: {}
   persistence:
@@ -286,6 +300,9 @@ consensusnode:
     size: 30Gi
     storageClass: 
     annotations: {}
+  snapshot:
+    enabled: false
+    url: ""
 
 consensusnodeLight:
   enabled: false

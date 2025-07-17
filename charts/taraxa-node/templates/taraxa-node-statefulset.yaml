@@ -48,6 +48,22 @@ spec:
         kubernetes.io/change-cause: "Configuration through configmaps."
     spec:
       initContainers:
+        {{- if and .Values.node.snapshot.enabled .Values.node.snapshot.url }}
+        - name: snapshot-init
+          image: alpine:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/entrypoint.sh"]
+          args: ["{{ .Values.node.snapshot.url }}"]
+          volumeMounts:
+            - name: snapshot-init-script
+              mountPath: /bin/entrypoint.sh
+              readOnly: true
+              subPath: entrypoint.sh
+            - name: data
+              mountPath: /root/.taraxa
+          securityContext:
+            runAsUser: 0
+        {{- end }}
         - name: config-adapter
           {{- if and .Values.node.image.repository .Values.node.image.tag }}
           image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
@@ -219,6 +235,12 @@ spec:
           configMap:
             defaultMode: 0700
             name: {{ .Release.Name }}-node-init-script
+        {{- if and .Values.node.snapshot.enabled .Values.node.snapshot.url }}
+        - name: snapshot-init-script
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-snapshot-init-script
+        {{- end }}
         {{- if .Values.slack.enabled }}
         - name: status-requirements
           configMap:
