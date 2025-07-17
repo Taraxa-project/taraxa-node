@@ -155,7 +155,7 @@ struct TransactionClient {
 };
 
 SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& value = 0, uint64_t nonce = 0,
-                                const u256& gas_price = 0);
+                                const u256& gas_price = 1000000000);
 
 SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
                                    const u256& gas_price);
@@ -183,7 +183,8 @@ void wait_for_balances(const std::vector<std::shared_ptr<AppBase>>& nodes, const
                        wait_opts to_wait = {10s, 500ms});
 
 std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
-                                       blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr);
+                                       blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr,
+                                       const WalletConfig& wallet);
 
 std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
                                        blk_hash_t block_hash = blk_hash_t(1));

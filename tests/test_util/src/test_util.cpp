@@ -70,49 +70,53 @@ TransactionClient::Context TransactionClient::process(const std::shared_ptr<Tran
 }
 
 TransactionClient::Context TransactionClient::coinTransfer(const addr_t& to, const val_t& val, bool wait_executed) {
-  return process(std::make_shared<Transaction>(nonce_++, val, 0, TEST_TX_GAS_LIMIT, bytes(), secret_, to),
+  return process(std::make_shared<Transaction>(nonce_++, val, 1000000000, TEST_TX_GAS_LIMIT, bytes(), secret_, to),
                  wait_executed);
 }
 
 SharedTransaction make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
                                 const u256& gas_price) {
-  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
-  auto proof = dev::sign(sender_node_cfg.node_secret, dev::sha3(addr)).asBytes();
+  const auto addr = dev::toAddress(sender_node_cfg.getFirstWallet().node_secret);
+  auto proof = dev::sign(sender_node_cfg.getFirstWallet().node_secret, dev::sha3(addr)).asBytes();
   // We need this for eth compatibility
   proof[64] += 27;
 
-  const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret);
+  const auto vrf_pub_key = vrf_wrapper::getVrfPublicKey(sender_node_cfg.getFirstWallet().vrf_secret);
 
   const auto input = util::EncodingSolidity::packFunctionCall(
       "registerValidator(address,bytes,bytes,uint16,string,string)", addr, proof, vrf_pub_key.asBytes(), 10,
       dev::asBytes("test"), dev::asBytes("test"));
 
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
-                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+                                       sender_node_cfg.getFirstWallet().node_secret, kContractAddress,
+                                       sender_node_cfg.genesis.chain_id);
 }
 
 SharedTransaction make_delegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
                                    const u256& gas_price) {
-  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto addr = dev::toAddress(sender_node_cfg.getFirstWallet().node_secret);
   const auto input = util::EncodingSolidity::packFunctionCall("delegate(address)", addr);
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
-                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+                                       sender_node_cfg.getFirstWallet().node_secret, kContractAddress,
+                                       sender_node_cfg.genesis.chain_id);
 }
 
 SharedTransaction make_undelegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, uint64_t nonce,
                                      const u256& gas_price) {
-  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto addr = dev::toAddress(sender_node_cfg.getFirstWallet().node_secret);
   const auto input = util::EncodingSolidity::packFunctionCall("undelegate(address,uint256)", addr, value);
   return std::make_shared<Transaction>(nonce, 0, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
-                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+                                       sender_node_cfg.getFirstWallet().node_secret, kContractAddress,
+                                       sender_node_cfg.genesis.chain_id);
 }
 
 SharedTransaction make_redelegate_tx(const FullNodeConfig& sender_node_cfg, const u256& value, const Address& to,
                                      uint64_t nonce, const u256& gas_price) {
-  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  const auto addr = dev::toAddress(sender_node_cfg.getFirstWallet().node_secret);
   const auto input = util::EncodingSolidity::packFunctionCall("reDelegate(address,address,uint256)", addr, to, value);
   return std::make_shared<Transaction>(nonce, 0, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
-                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
+                                       sender_node_cfg.getFirstWallet().node_secret, kContractAddress,
+                                       sender_node_cfg.genesis.chain_id);
 }
 
 u256 own_balance(const std::shared_ptr<AppBase>& node) {
@@ -130,7 +134,7 @@ state_api::BalanceMap effective_initial_balances(const state_api::Config& cfg) {
 }
 
 u256 own_effective_genesis_bal(const FullNodeConfig& cfg) {
-  return effective_initial_balances(cfg.genesis.state)[dev::toAddress(dev::Secret(cfg.node_secret))];
+  return effective_initial_balances(cfg.genesis.state)[dev::toAddress(dev::Secret(cfg.getFirstWallet().node_secret))];
 }
 
 std::shared_ptr<PbftBlock> make_simple_pbft_block(const h256& hash, uint64_t period, const secret_t& pk) {
@@ -177,8 +181,9 @@ void wait_for_balances(const std::vector<std::shared_ptr<AppBase>>& nodes, const
 }
 
 std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
-                                       blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr) {
-  auto vote = vote_mgr->generateVote(block_hash, type, period, round, step);
+                                       blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr,
+                                       const WalletConfig& wallet) {
+  auto vote = vote_mgr->generateVote(block_hash, type, period, round, step, wallet);
   vote->calculateWeight(1, 1, 1);
   return vote;
 }
@@ -231,8 +236,9 @@ NodesTest::NodesTest() {
     cfg.network.rpc->address = boost::asio::ip::make_address("127.0.0.1");
     cfg.network.rpc->http_port = 7778 + i;
     cfg.network.rpc->ws_port = 8778 + i;
-    cfg.node_secret = dev::KeyPair::create().secret();
-    cfg.vrf_secret = taraxa::vdf_sortition::getVrfKeyPair().second;
+    cfg.wallets.clear();
+    auto node_secret = dev::KeyPair::create().secret();
+    cfg.wallets.emplace_back(std::move(node_secret), taraxa::vdf_sortition::getVrfKeyPair().second);
     cfg.network.listen_port = 10003 + i;
 
     cfg.genesis.gas_price.minimum_price = 0;
@@ -249,10 +255,12 @@ NodesTest::NodesTest() {
 
     node_cfgs.emplace_back(cfg);
   }
-  node_cfgs.front().node_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd");
-  node_cfgs.front().vrf_secret = vdf_sortition::vrf_sk_t(
-      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c1df1edc9f3367fba550b7971fc2de6c5998d87"
-      "84051c5be69abc9644");
+  node_cfgs.front().wallets.clear();
+  node_cfgs.front().wallets.emplace_back(
+      dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"),
+      vdf_sortition::vrf_sk_t("0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c1df1edc9f3367fba"
+                              "550b7971fc2de6c5998d87"
+                              "84051c5be69abc9644"));
   overwriteFromJsons();
   CleanupDirs();
 }
@@ -316,7 +324,7 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
 
   for (size_t idx = 0; idx < total_count; idx++) {
     const auto& cfg = ret_configs[idx];
-    const auto& node_addr = dev::toAddress(cfg.node_secret);
+    const auto& node_addr = cfg.getFirstWallet().node_addr;
     initial_balances[node_addr] = init_balance;
 
     if (idx >= validators_count) {
@@ -326,7 +334,8 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
     taraxa::state_api::BalanceMap delegations;
     delegations.emplace(node_addr, cfg.genesis.state.dpos.eligibility_balance_threshold);
     initial_validators.emplace_back(taraxa::state_api::ValidatorInfo{
-        node_addr, node_addr, taraxa::vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), 100, "", "", delegations});
+        node_addr, node_addr, taraxa::vrf_wrapper::getVrfPublicKey(cfg.getFirstWallet().vrf_secret), 100, "", "",
+        delegations});
   }
 
   for (size_t idx = 0; idx < total_count; idx++) {
@@ -377,7 +386,7 @@ class TestConfig : public cli::Config {
  public:
   TestConfig(const FullNodeConfig& cfg) : cli::Config() {
     node_configured_ = true;
-    node_config_ = cfg;
+    node_config_ = FullNodeConfig(cfg);
     enableTestRpc();
   }
   void enableTestRpc() {

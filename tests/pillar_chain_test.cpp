@@ -173,8 +173,8 @@ TEST_F(PillarChainTest, votes_count_changes) {
   size_t txs_count = 0;
   for (size_t i = 0; i < validators_count; i++) {
     const auto delegation_value = (i + 1) * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
-    expected_validators_vote_counts_changes[toAddress(node_cfgs[i].node_secret)] = i + 1;
-    const auto trx = make_delegate_tx(node_cfgs[i], delegation_value, 1, 1000);
+    expected_validators_vote_counts_changes[toAddress(node_cfgs[i].getFirstWallet().node_secret)] = i + 1;
+    const auto trx = make_delegate_tx(node_cfgs[i], delegation_value, 1, 1000000000);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
     txs_count++;
   }
@@ -186,8 +186,9 @@ TEST_F(PillarChainTest, votes_count_changes) {
   expected_validators_vote_counts_changes.clear();
   for (size_t i = 0; i < validators_count - 1; i++) {
     const auto undelegation_value = (i + 1) * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
-    expected_validators_vote_counts_changes[toAddress(node_cfgs[i].node_secret)] = dev::s256(i + 1) * -1;
-    const auto trx = make_undelegate_tx(node_cfgs[i], undelegation_value, 2, 1000);
+    expected_validators_vote_counts_changes[toAddress(node_cfgs[i].getFirstWallet().node_secret)] =
+        dev::s256(i + 1) * -1;
+    const auto trx = make_undelegate_tx(node_cfgs[i], undelegation_value, 2, 1000000000);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
     txs_count++;
   }
@@ -196,11 +197,11 @@ TEST_F(PillarChainTest, votes_count_changes) {
   checkPillarBlockData(new_pillar_block_period, expected_validators_vote_counts_changes);
 
   // Redelegate
-  const auto redelegate_to_addr = toAddress(node_cfgs[node_cfgs.size() - 1].node_secret);
+  const auto redelegate_to_addr = toAddress(node_cfgs[node_cfgs.size() - 1].getFirstWallet().node_secret);
   expected_validators_vote_counts_changes.clear();
   expected_validators_vote_counts_changes[redelegate_to_addr] = 0;
   for (size_t i = 0; i < validators_count - 3; i++) {
-    const auto node_addr = toAddress(node_cfgs[i].node_secret);
+    const auto node_addr = toAddress(node_cfgs[i].getFirstWallet().node_secret);
     const auto node_vote_count = nodes[0]->getFinalChain()->dposEligibleVoteCount(new_pillar_block_period, node_addr);
     const auto redelegation_value = node_vote_count * node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
     expected_validators_vote_counts_changes[node_addr] = dev::s256(node_vote_count) * -1;
@@ -502,8 +503,9 @@ TEST_F(PillarChainTest, finalize_root_in_pillar_block) {
   auto node = nodes[0];
 
   uint64_t nonce = 0, trxs_count = node->getDB()->getNumTransactionExecuted();
-  auto deploy_bridge_mock = std::make_shared<Transaction>(
-      nonce++, 0, 1, TEST_TX_GAS_LIMIT, dev::fromHex(bridge_mock_bytecode), node->getConfig().node_secret);
+  auto deploy_bridge_mock =
+      std::make_shared<Transaction>(nonce++, 0, 1000000000, TEST_TX_GAS_LIMIT, dev::fromHex(bridge_mock_bytecode),
+                                    node->getConfig().getFirstWallet().node_secret);
   node->getTransactionManager()->insertTransaction(deploy_bridge_mock);
   trxs_count++;
 

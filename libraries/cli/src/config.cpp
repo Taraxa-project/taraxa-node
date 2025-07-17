@@ -56,16 +56,20 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
   if (command[0] == NODE_COMMAND || command[0] == CONFIG_COMMAND) {
     // Create dir if missing
     auto config_dir = dirNameFromFile(config);
-    auto wallet_dir = dirNameFromFile(wallet);
-    auto genesis_dir = dirNameFromFile(genesis);
     if (!config_dir.empty() && !fs::exists(config_dir)) {
       fs::create_directories(config_dir);
     }
-    if (!wallet_dir.empty() && !fs::exists(wallet_dir)) {
-      fs::create_directories(wallet_dir);
-    }
+
+    auto genesis_dir = dirNameFromFile(genesis);
     if (!genesis_dir.empty() && !fs::exists(genesis_dir)) {
       fs::create_directories(genesis_dir);
+    }
+
+    for (const auto& wallet : wallets) {
+      auto wallet_dir = dirNameFromFile(wallet);
+      if (!wallet_dir.empty() && !fs::exists(wallet_dir)) {
+        fs::create_directories(wallet_dir);
+      }
     }
 
     // Update chain_id
@@ -87,23 +91,43 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
                 << std::endl;
       util::writeJsonToFile(config, tools::getConfig((Config::ChainIdType)chain_id));
     }
+
     if (!fs::exists(genesis)) {
       std::cout << "Genesis file does not exist at: " << genesis << ". New one file will be generated" << std::endl;
       util::writeJsonToFile(genesis, tools::getGenesis((Config::ChainIdType)chain_id));
     }
-    if (!fs::exists(wallet)) {
-      std::cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << std::endl;
-      tools::generateWallet(wallet);
+
+    for (const auto& wallet : wallets) {
+      if (!fs::exists(wallet)) {
+        std::cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << std::endl;
+        tools::generateWallet(wallet);
+      }
     }
 
     Json::Value config_json = util::readJsonFromFile(config);
     Json::Value genesis_json = util::readJsonFromFile(genesis);
-    Json::Value wallet_json = util::readJsonFromFile(wallet);
+    std::vector<Json::Value> wallets_jsons;
+    for (const auto& wallet : wallets) {
+      wallets_jsons.push_back(util::readJsonFromFile(wallet));
+    }
 
     auto write_config_and_wallet_files = [&]() {
-      util::writeJsonToFile(config, config_json);
+      try {
+        util::writeJsonToFile(config, config_json);
+      } catch (const std::exception& e) {
+        std::cerr << "Error writing to config file at path " << config << ": " << e.what() << std::endl;
+      }
       util::writeJsonToFile(genesis, genesis_json);
-      util::writeJsonToFile(wallet, wallet_json);
+
+      assert(wallets_jsons.size() <= wallets.size());
+      size_t idx = 0;
+      for (const auto& wallet_json : wallets_jsons) {
+        try {
+          util::writeJsonToFile(wallets[idx++], wallet_json);
+        } catch (const std::exception& e) {
+          std::cerr << "Error writing wallet file " << wallets[idx - 1] << ": " << e.what() << std::endl;
+        }
+      }
     };
 
     // Check that it is not empty, to not create chain config with just overwritten files
@@ -113,6 +137,7 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
       genesis_json["hardforks"] = default_genesis_json["hardforks"];
       write_config_and_wallet_files();
     }
+
     // Override config values with values from CLI
     if (cli_options_.count(DATA_DIR)) {
       data_dir = cli_options_[DATA_DIR].as<std::string>();
@@ -148,7 +173,9 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     if (cli_options_.count(VRF_SECRET)) {
       vrf_secret = cli_options_[VRF_SECRET].as<std::string>();
     }
-    wallet_json = tools::overrideWallet(wallet_json, node_secret, vrf_secret);
+    // Override only first wallet
+    auto& first_wallet_json = wallets_jsons.front();
+    first_wallet_json = tools::overrideWallet(first_wallet_json, node_secret, vrf_secret);
 
     config_json["is_light_node"] = cli_options_[LIGHT].as<bool>();
     // Create data directory
@@ -163,7 +190,7 @@ void Config::parseCommandLine(int argc, const char* argv[], const std::string& a
     }
 
     // Load config
-    node_config_ = FullNodeConfig(config_json, wallet_json, genesis_json, config);
+    node_config_ = FullNodeConfig(config_json, wallets_jsons, genesis_json, config);
 
     // Save changes permanently if overwrite_config option is set
     // or if running config command
@@ -241,15 +268,15 @@ bpo::options_description Config::makeNodeOptions(const std::string& available_pl
   bpo::options_description node_command_options("NODE COMMAND OPTIONS");
   // Set config file and data directory to default values
   config = tools::getTaraxaDefaultConfigFile();
-  wallet = tools::getTaraxaDefaultWalletFile();
+  wallets = {tools::getTaraxaDefaultWalletFile()};
   genesis = tools::getTaraxaDefaultGenesisFile();
 
   auto plugins_desc = "List of plugins to activate separated by space: " + available_plugins +
                       " (default: " + std::accumulate(plugins_.begin(), plugins_.end(), std::string()) + ")";
   node_command_options.add_options()(PLUGINS, bpo::value<std::vector<std::string>>()->multitoken(),
                                      plugins_desc.c_str());
-  node_command_options.add_options()(WALLET, bpo::value<std::string>(&wallet),
-                                     "JSON wallet file (default: \"~/.taraxa/wallet.json\")");
+  node_command_options.add_options()(WALLET, bpo::value<std::vector<std::string>>(&wallets)->multitoken(),
+                                     "JSON wallet file(s) (default: \"~/.taraxa/wallet.json\")");
   node_command_options.add_options()(CONFIG, bpo::value<std::string>(&config),
                                      "JSON configuration file (default: \"~/.taraxa/config.json\")");
   node_command_options.add_options()(GENESIS, bpo::value<std::string>(&genesis),

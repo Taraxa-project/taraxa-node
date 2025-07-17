@@ -43,8 +43,6 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   std::shared_ptr<GasPricer> getGasPricer() const { return gas_pricer_; }
   std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
 
-  const dev::Address& getAddress() const { return kp_->address(); }
-
   void rebuildDb();
 
   void initialize(const std::filesystem::path& data_dir,
