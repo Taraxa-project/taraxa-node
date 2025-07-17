@@ -1,7 +1,9 @@
 <map id="taraxa::net::WsServer" name="taraxa::net::WsServer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="133,93,295,119"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,188,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,51,198,91,195,95,135,55"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="212,13,451,38"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="304,48,233,95,230,91,301,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="372,70,535,95"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="33,5,216,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,41,348,61,382,67,381,73,348,67,229,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,70,244,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,80,372,80,372,85,258,85"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="45,119,205,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="218,118,348,100,388,93,389,98,348,105,218,124"/>
 </map>

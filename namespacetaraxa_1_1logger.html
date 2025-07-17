@@ -92,6 +92,7 @@ $(document).ready(function(){initNavTree('namespacetaraxa_1_1logger.html',''); i
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">taraxa::logger Namespace Reference</div></div>
 </div><!--header-->
@@ -99,49 +100,215 @@ $(document).ready(function(){initNavTree('namespacetaraxa_1_1logger.html',''); i
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_logging.html">Logging</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html">Config</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a091c4e8c8bbe9fbbf1dc785df3ed5239" id="r_a091c4e8c8bbe9fbbf1dc785df3ed5239"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">Logger</a> = std::shared_ptr&lt; spdlog::logger &gt;</td></tr>
-<tr class="separator:a091c4e8c8bbe9fbbf1dc785df3ed5239"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9acd43b09e6273f2daa1e209d23db989" id="r_a9acd43b09e6273f2daa1e209d23db989"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989">Logger</a> = boost::log::sources::severity_channel_logger_mt&lt;&gt;</td></tr>
+<tr class="separator:a9acd43b09e6273f2daa1e209d23db989"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:aceaf6df58f5b07f6884928392f007d04" id="r_aceaf6df58f5b07f6884928392f007d04"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04">Verbosity</a> { <br />
+&#160;&#160;<a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04a4b39a43108e3d9e4ed99ca5ca126c1d8">Silent</a> = -1
+, <a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc">Error</a> = 0
+, <a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04a737b0fd32fc71a78ba8e7ebd2f0803fd">Warning</a> = 1
+, <a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04a3036c178ffa5cac125360f9e478099b4">Info</a> = 2
+, <br />
+&#160;&#160;<a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04a6c9719bf320a9faad4a3f128280dc4c1">Debug</a> = 3
+, <a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04a70e20badfd3992083cfd6fbf842f46be">Trace</a> = 4
+<br />
+ }</td></tr>
+<tr class="separator:aceaf6df58f5b07f6884928392f007d04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a4e142725030176ed54e53b3fda1eb533" id="r_a4e142725030176ed54e53b3fda1eb533"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_logging_config.html">LoggingConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#a4e142725030176ed54e53b3fda1eb533">CreateDefaultLoggingConfig</a> ()</td></tr>
-<tr class="separator:a4e142725030176ed54e53b3fda1eb533"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65ec35addf583c82df610354d05d8769" id="r_a65ec35addf583c82df610354d05d8769"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989">Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#a65ec35addf583c82df610354d05d8769">createLogger</a> (<a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04">Verbosity</a> verboseLevel, const std::string &amp;channel, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_id)</td></tr>
+<tr class="memdesc:a65ec35addf583c82df610354d05d8769"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates thread-safe severity channel logger.  <br /></td></tr>
+<tr class="separator:a65ec35addf583c82df610354d05d8769"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa10a0f22210c83fe10627ce57b472fd9" id="r_aa10a0f22210c83fe10627ce57b472fd9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1logger_1_1_config.html">Config</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#aa10a0f22210c83fe10627ce57b472fd9">createDefaultLoggingConfig</a> ()</td></tr>
+<tr class="memdesc:aa10a0f22210c83fe10627ce57b472fd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates default logging config.  <br /></td></tr>
+<tr class="separator:aa10a0f22210c83fe10627ce57b472fd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32d1e1885c2d8304b53417ceb5a0da6a" id="r_a32d1e1885c2d8304b53417ceb5a0da6a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#a32d1e1885c2d8304b53417ceb5a0da6a">InitLogging</a> (<a class="el" href="classtaraxa_1_1logger_1_1_config.html">Config</a> &amp;logging_config, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_id)</td></tr>
+<tr class="memdesc:a32d1e1885c2d8304b53417ceb5a0da6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes logging according to the provided logging_config.  <br /></td></tr>
+<tr class="separator:a32d1e1885c2d8304b53417ceb5a0da6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfd338f661318bf300011371d66578da" id="r_abfd338f661318bf300011371d66578da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04">Verbosity</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html#abfd338f661318bf300011371d66578da">stringToVerbosity</a> (std::string _verbosity)</td></tr>
+<tr class="memdesc:abfd338f661318bf300011371d66578da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transforms string verbosity to Verbosity enum.  <br /></td></tr>
+<tr class="separator:abfd338f661318bf300011371d66578da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a id="a091c4e8c8bbe9fbbf1dc785df3ed5239" name="a091c4e8c8bbe9fbbf1dc785df3ed5239"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a091c4e8c8bbe9fbbf1dc785df3ed5239">&#9670;&#160;</a></span>Logger</h2>
+<a id="a9acd43b09e6273f2daa1e209d23db989" name="a9acd43b09e6273f2daa1e209d23db989"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9acd43b09e6273f2daa1e209d23db989">&#9670;&#160;</a></span>Logger</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespacetaraxa_1_1logger.html#a091c4e8c8bbe9fbbf1dc785df3ed5239">taraxa::logger::Logger</a> = typedef std::shared_ptr&lt;spdlog::logger&gt;</td>
+          <td class="memname">using <a class="el" href="namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989">taraxa::logger::Logger</a> = typedef boost::log::sources::severity_channel_logger_mt&lt;&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a4e142725030176ed54e53b3fda1eb533" name="a4e142725030176ed54e53b3fda1eb533"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4e142725030176ed54e53b3fda1eb533">&#9670;&#160;</a></span>CreateDefaultLoggingConfig()</h2>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="aceaf6df58f5b07f6884928392f007d04" name="aceaf6df58f5b07f6884928392f007d04"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aceaf6df58f5b07f6884928392f007d04">&#9670;&#160;</a></span>Verbosity</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structtaraxa_1_1_logging_config.html">LoggingConfig</a> taraxa::logger::CreateDefaultLoggingConfig </td>
+          <td class="memname">enum <a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04">taraxa::logger::Verbosity</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="aceaf6df58f5b07f6884928392f007d04a4b39a43108e3d9e4ed99ca5ca126c1d8" name="aceaf6df58f5b07f6884928392f007d04a4b39a43108e3d9e4ed99ca5ca126c1d8"></a>Silent&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc" name="aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc"></a>Error&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aceaf6df58f5b07f6884928392f007d04a737b0fd32fc71a78ba8e7ebd2f0803fd" name="aceaf6df58f5b07f6884928392f007d04a737b0fd32fc71a78ba8e7ebd2f0803fd"></a>Warning&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aceaf6df58f5b07f6884928392f007d04a3036c178ffa5cac125360f9e478099b4" name="aceaf6df58f5b07f6884928392f007d04a3036c178ffa5cac125360f9e478099b4"></a>Info&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aceaf6df58f5b07f6884928392f007d04a6c9719bf320a9faad4a3f128280dc4c1" name="aceaf6df58f5b07f6884928392f007d04a6c9719bf320a9faad4a3f128280dc4c1"></a>Debug&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="aceaf6df58f5b07f6884928392f007d04a70e20badfd3992083cfd6fbf842f46be" name="aceaf6df58f5b07f6884928392f007d04a70e20badfd3992083cfd6fbf842f46be"></a>Trace&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="aa10a0f22210c83fe10627ce57b472fd9" name="aa10a0f22210c83fe10627ce57b472fd9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa10a0f22210c83fe10627ce57b472fd9">&#9670;&#160;</a></span>createDefaultLoggingConfig()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classtaraxa_1_1logger_1_1_config.html">Config</a> taraxa::logger::createDefaultLoggingConfig </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Creates default logging config. </p>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classtaraxa_1_1logger_1_1_config.html">logger::Config</a> </dd></dl>
+
+</div>
+</div>
+<a id="a65ec35addf583c82df610354d05d8769" name="a65ec35addf583c82df610354d05d8769"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65ec35addf583c82df610354d05d8769">&#9670;&#160;</a></span>createLogger()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989">Logger</a> taraxa::logger::createLogger </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04">Verbosity</a>&#160;</td>
+          <td class="paramname"><em>verboseLevel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>channel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>node_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Creates thread-safe severity channel logger. </p>
+<dl class="section note"><dt>Note</dt><dd>To control logging in terms of where log messages are forwarded(console/file), severity filter etc..., see functions createDefaultLoggingConfig and InitLogging. Usage example:</dd></dl>
+<p>// Creates logging config auto logging_config = <a class="el" href="namespacetaraxa_1_1logger.html#aa10a0f22210c83fe10627ce57b472fd9" title="Creates default logging config.">createDefaultLoggingConfig()</a>; logging_config.verbosity = <a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc">logger::Verbosity::Error</a>; logging_config.channels["SAMPLE_CHANNEL"] = <a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc">logger::Verbosity::Error</a>;</p>
+<p>// Initializes logging according to the provided config InitLogging(logging_config);</p>
+<p>addr_t node_addr;</p>
+<p>// Creates error logger auto logger = createLogger(<a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc">logger::Verbosity::Error</a>, "SAMPLE_CHANNEL", node_addr)</p>
+<p><a class="el" href="_log_8h.html#a159ca84d25a5487d8e81e4438725df19">LOG(logger)</a> &lt;&lt; "sample message";</p>
+<dl class="section note"><dt>Note</dt><dd>see macros LOG_OBJECTS_DEFINE, LOG_OBJECTS_CREATE, LOG </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">verboseLevel</td><td></td></tr>
+    <tr><td class="paramname">_channel</td><td></td></tr>
+    <tr><td class="paramname">node_id</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Logger object </dd></dl>
+
+</div>
+</div>
+<a id="a32d1e1885c2d8304b53417ceb5a0da6a" name="a32d1e1885c2d8304b53417ceb5a0da6a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32d1e1885c2d8304b53417ceb5a0da6a">&#9670;&#160;</a></span>InitLogging()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::logger::InitLogging </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1logger_1_1_config.html">Config</a> &amp;&#160;</td>
+          <td class="paramname"><em>logging_config</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>node_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes logging according to the provided logging_config. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">logging_config</td><td></td></tr>
+    <tr><td class="paramname">node_id</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="abfd338f661318bf300011371d66578da" name="abfd338f661318bf300011371d66578da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abfd338f661318bf300011371d66578da">&#9670;&#160;</a></span>stringToVerbosity()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04">Verbosity</a> taraxa::logger::stringToVerbosity </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>_verbosity</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Transforms string verbosity to Verbosity enum. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_verbosity</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Verbosity enum </dd></dl>
 
 </div>
 </div>

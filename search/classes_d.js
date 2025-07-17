@@ -13,7 +13,7 @@ var searchData=
   ['newblock_10',['NewBlock',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block',1,'taraxa::final_chain']]],
   ['node_11',['Node',['../classdev_1_1p2p_1_1_node.html',1,'dev::p2p']]],
   ['nodebucket_12',['NodeBucket',['../classdev_1_1p2p_1_1_node_table.html#structdev_1_1p2p_1_1_node_table_1_1_node_bucket',1,'dev::p2p::NodeTable']]],
-  ['nodeconfig_13',['NodeConfig',['../structtaraxa_1_1_node_config.html',1,'taraxa']]],
+  ['nodeconfig_13',['NodeConfig',['../namespacetaraxa.html#structtaraxa_1_1_node_config',1,'taraxa']]],
   ['nodedagproposerdata_14',['NodeDagProposerData',['../structtaraxa_1_1_dag_block_proposer_1_1_node_dag_proposer_data.html',1,'taraxa::DagBlockProposer']]],
   ['nodeentry_15',['NodeEntry',['../structdev_1_1p2p_1_1_node_entry.html',1,'dev::p2p']]],
   ['nodeinfo_16',['NodeInfo',['../structdev_1_1p2p_1_1_node_info.html',1,'dev::p2p']]],

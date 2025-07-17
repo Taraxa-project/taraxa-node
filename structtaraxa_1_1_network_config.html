@@ -114,8 +114,6 @@ Collaboration diagram for taraxa::NetworkConfig:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a815929009ed91b397f929e385d5fd10d" id="r_a815929009ed91b397f929e385d5fd10d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a815929009ed91b397f929e385d5fd10d">validate</a> (uint32_t delegation_delay) const</td></tr>
 <tr class="separator:a815929009ed91b397f929e385d5fd10d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa915ecea86803897372859aa5dd2a573" id="r_aa915ecea86803897372859aa5dd2a573"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#aa915ecea86803897372859aa5dd2a573">toString</a> () const</td></tr>
-<tr class="separator:aa915ecea86803897372859aa5dd2a573"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -127,7 +125,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a70e352c495d95d0bbd5dc95a1a82e6c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fca5b8fec5dc8e8d596c957b14a12b9" id="r_a1fca5b8fec5dc8e8d596c957b14a12b9"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a1fca5b8fec5dc8e8d596c957b14a12b9">listen_port</a> = 0</td></tr>
 <tr class="separator:a1fca5b8fec5dc8e8d596c957b14a12b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a544ad7ce2c33b3c1e0174e4b61deb9a7" id="r_a544ad7ce2c33b3c1e0174e4b61deb9a7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structtaraxa_1_1_node_config.html">NodeConfig</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a544ad7ce2c33b3c1e0174e4b61deb9a7">boot_nodes</a></td></tr>
+<tr class="memitem:a544ad7ce2c33b3c1e0174e4b61deb9a7" id="r_a544ad7ce2c33b3c1e0174e4b61deb9a7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a544ad7ce2c33b3c1e0174e4b61deb9a7">boot_nodes</a></td></tr>
 <tr class="separator:a544ad7ce2c33b3c1e0174e4b61deb9a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d2a7adf7856df0eb52bf87bc7932143" id="r_a1d2a7adf7856df0eb52bf87bc7932143"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a1d2a7adf7856df0eb52bf87bc7932143">ideal_peer_count</a> = 10</td></tr>
 <tr class="separator:a1d2a7adf7856df0eb52bf87bc7932143"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -164,23 +162,6 @@ Static Public Attributes</h2></td></tr>
 <tr class="separator:a51247ea862ddf795e2eaf53c189490c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa915ecea86803897372859aa5dd2a573" name="aa915ecea86803897372859aa5dd2a573"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa915ecea86803897372859aa5dd2a573">&#9670;&#160;</a></span>toString()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string taraxa::NetworkConfig::toString </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a815929009ed91b397f929e385d5fd10d" name="a815929009ed91b397f929e385d5fd10d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a815929009ed91b397f929e385d5fd10d">&#9670;&#160;</a></span>validate()</h2>
 
@@ -207,7 +188,7 @@ Static Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="structtaraxa_1_1_node_config.html">NodeConfig</a>&gt; taraxa::NetworkConfig::boot_nodes</td>
+          <td class="memname">std::vector&lt;<a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a>&gt; taraxa::NetworkConfig::boot_nodes</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -490,7 +471,6 @@ Static Public Attributes</h2></td></tr>
 </div>
 <hr/>The documentation for this struct was generated from the following files:<ul>
 <li>libraries/config/include/config/<a class="el" href="config_2include_2config_2network_8hpp_source.html">network.hpp</a></li>
-<li>libraries/config/src/<a class="el" href="config_2src_2config_8cpp.html">config.cpp</a></li>
 <li>libraries/config/src/<a class="el" href="config_2src_2network_8cpp.html">network.cpp</a></li>
 </ul>
 </div><!-- contents -->

@@ -96,9 +96,14 @@ $(document).ready(function(){initNavTree('taraxa-bootnode_2main_8cpp.html',''); 
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="libp2p_2_common_8h_source.html">libp2p/Common.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="_host_8h_source.html">libp2p/Host.h</a>&gt;</code><br />
+<code>#include &lt;boost/core/null_deleter.hpp&gt;</code><br />
+<code>#include &lt;boost/log/attributes/clock.hpp&gt;</code><br />
+<code>#include &lt;boost/log/sources/severity_channel_logger.hpp&gt;</code><br />
+<code>#include &lt;boost/log/utility/exception_handler.hpp&gt;</code><br />
 <code>#include &lt;boost/program_options.hpp&gt;</code><br />
 <code>#include &lt;boost/program_options/options_description.hpp&gt;</code><br />
 <code>#include &lt;condition_variable&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -108,8 +113,6 @@ $(document).ready(function(){initNavTree('taraxa-bootnode_2main_8cpp.html',''); 
 <code>#include &quot;<a class="el" href="thread__pool_8hpp_source.html">common/thread_pool.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="util_8hpp_source.html">common/util.hpp</a>&quot;</code><br />
 <code>#include &quot;config/version.hpp&quot;</code><br />
-<code>#include &quot;<a class="el" href="logging_8hpp_source.html">logger/logging.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="logging__config_8hpp_source.html">logger/logging_config.hpp</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>

@@ -1,6 +1,5 @@
 var structtaraxa_1_1_ddos_protection_config =
 [
-    [ "toString", "structtaraxa_1_1_ddos_protection_config.html#a618005b47de2c2c9bc82f6cc89ccf853", null ],
     [ "validate", "structtaraxa_1_1_ddos_protection_config.html#afebf1c6865de0152e78970a87bc068fd", null ],
     [ "log_packets_stats", "structtaraxa_1_1_ddos_protection_config.html#a7f95401e2a468ced0de219a56e0bdefd", null ],
     [ "max_packets_queue_size", "structtaraxa_1_1_ddos_protection_config.html#a754560f8810f02fd4669b65c1e033620", null ],

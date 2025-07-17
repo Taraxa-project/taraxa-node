@@ -1,6 +1,6 @@
 var classtaraxa_1_1net_1_1_ws_session =
 [
-    [ "WsSession", "classtaraxa_1_1net_1_1_ws_session.html#adcafa57535ded913131263efeccca2b2", null ],
+    [ "WsSession", "classtaraxa_1_1net_1_1_ws_session.html#affee269e7b9e5a39d328a181fc3eb997", null ],
     [ "close", "classtaraxa_1_1net_1_1_ws_session.html#a955653b45ce6279ae2bcab5b0046d73d", null ],
     [ "do_read", "classtaraxa_1_1net_1_1_ws_session.html#a72434d357dad6f1b9446f46110afe6bf", null ],
     [ "do_write", "classtaraxa_1_1net_1_1_ws_session.html#afc6bbc1c34f3135b60ca169d329af18d", null ],
@@ -22,7 +22,6 @@ var classtaraxa_1_1net_1_1_ws_session =
     [ "write", "classtaraxa_1_1net_1_1_ws_session.html#a8a48ac8e39610b60ec928a6bd350836b", null ],
     [ "closed_", "classtaraxa_1_1net_1_1_ws_session.html#a610cdf6736bacbe9a0997d1496d70685", null ],
     [ "ip_", "classtaraxa_1_1net_1_1_ws_session.html#a55724f9bfd335e71adaf975d2fbe793d", null ],
-    [ "logger_", "classtaraxa_1_1net_1_1_ws_session.html#a9724585a5a3cd71b54093498ed393e24", null ],
     [ "read_buffer_", "classtaraxa_1_1net_1_1_ws_session.html#a2a44fe72e3ce54504a70760f549606b8", null ],
     [ "subscription_id_", "classtaraxa_1_1net_1_1_ws_session.html#a338533fe28369c28c6ee7384d0c92770", null ],
     [ "subscriptions_", "classtaraxa_1_1net_1_1_ws_session.html#a824c4281bbdef5714de08c18f9d5186f", null ],

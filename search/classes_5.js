@@ -11,16 +11,5 @@ var searchData=
   ['fixedhash_3c_20crypto_5fvrf_5fproofbytes_20_3e_8',['FixedHash&lt; crypto_vrf_PROOFBYTES &gt;',['../classdev_1_1_fixed_hash.html',1,'dev']]],
   ['fixedhash_3c_20crypto_5fvrf_5fpublickeybytes_20_3e_9',['FixedHash&lt; crypto_vrf_PUBLICKEYBYTES &gt;',['../classdev_1_1_fixed_hash.html',1,'dev']]],
   ['fixedhash_3c_20t_20_3e_10',['FixedHash&lt; T &gt;',['../classdev_1_1_fixed_hash.html',1,'dev']]],
-  ['formatter_3c_20bi_3a_3atcp_3a_3aendpoint_20_3e_11',['formatter&lt; bi::tcp::endpoint &gt;',['../structfmt_1_1formatter_3_01bi_1_1tcp_1_1endpoint_01_4.html',1,'fmt']]],
-  ['formatter_3c_20bi_3a_3audp_3a_3aendpoint_20_3e_12',['formatter&lt; bi::udp::endpoint &gt;',['../structfmt_1_1formatter_3_01bi_1_1udp_1_1endpoint_01_4.html',1,'fmt']]],
-  ['formatter_3c_20boost_3a_3abeast_3a_3ahttp_3a_3arequest_3c_20body_2c_20fields_20_3e_20_3e_13',['formatter&lt; boost::beast::http::request&lt; Body, Fields &gt; &gt;',['../structfmt_1_1formatter_3_01boost_1_1beast_1_1http_1_1request_3_01_body_00_01_fields_01_4_01_4.html',1,'fmt']]],
-  ['formatter_3c_20dev_3a_3ap2p_3a_3aenr_20_3e_14',['formatter&lt; dev::p2p::ENR &gt;',['../structfmt_1_1formatter_3_01dev_1_1p2p_1_1_e_n_r_01_4.html',1,'fmt']]],
-  ['formatter_3c_20dev_3a_3ap2p_3a_3anode_20_3e_15',['formatter&lt; dev::p2p::Node &gt;',['../structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_01_4.html',1,'fmt']]],
-  ['formatter_3c_20dev_3a_3ap2p_3a_3anodeid_20_3e_16',['formatter&lt; dev::p2p::NodeID &gt;',['../structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_i_d_01_4.html',1,'fmt']]],
-  ['formatter_3c_20dev_3a_3ap2p_3a_3anodeipendpoint_20_3e_17',['formatter&lt; dev::p2p::NodeIPEndpoint &gt;',['../structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_i_p_endpoint_01_4.html',1,'fmt']]],
-  ['formatter_3c_20dev_3a_3ap2p_3a_3apeersessioninfo_20_3e_18',['formatter&lt; dev::p2p::PeerSessionInfo &gt;',['../structfmt_1_1formatter_3_01dev_1_1p2p_1_1_peer_session_info_01_4.html',1,'fmt']]],
-  ['formatter_3c_20std_3a_3aatomic_3c_20t_20_3e_20_3e_19',['formatter&lt; std::atomic&lt; T &gt; &gt;',['../structfmt_1_1formatter_3_01std_1_1atomic_3_01_t_01_4_01_4.html',1,'fmt']]],
-  ['formatter_3c_20taraxa_3a_3aaddr_5ft_20_3e_20',['formatter&lt; taraxa::addr_t &gt;',['../structfmt_1_1formatter_3_01taraxa_1_1addr__t_01_4.html',1,'fmt']]],
-  ['formatter_3c_20taraxa_3a_3ablk_5fhash_5ft_20_3e_21',['formatter&lt; taraxa::blk_hash_t &gt;',['../structfmt_1_1formatter_3_01taraxa_1_1blk__hash__t_01_4.html',1,'fmt']]],
-  ['fullnodeconfig_22',['FullNodeConfig',['../structtaraxa_1_1_full_node_config.html',1,'taraxa']]]
+  ['fullnodeconfig_11',['FullNodeConfig',['../structtaraxa_1_1_full_node_config.html',1,'taraxa']]]
 ];

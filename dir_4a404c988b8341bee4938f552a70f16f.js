@@ -1,4 +1,5 @@
 var dir_4a404c988b8341bee4938f552a70f16f =
 [
-    [ "logging.cpp", "logging_8cpp.html", "logging_8cpp" ]
+    [ "logger.cpp", "logger_8cpp.html", "logger_8cpp" ],
+    [ "logger_config.cpp", "logger__config_8cpp.html", "logger__config_8cpp" ]
 ];

@@ -19,7 +19,6 @@ var classdev_1_1p2p_1_1_u_d_p_socket =
     [ "m_socket", "classdev_1_1p2p_1_1_u_d_p_socket.html#a930ccaec797b8a5e9710b33177f5cbd3", null ],
     [ "m_socketError", "classdev_1_1p2p_1_1_u_d_p_socket.html#a0e3c5d3e48efad255da43c8b7d75cba2", null ],
     [ "m_started", "classdev_1_1p2p_1_1_u_d_p_socket.html#af33938c6fb64d3b8ea4412e776824b8a", null ],
-    [ "net_logger_", "classdev_1_1p2p_1_1_u_d_p_socket.html#a1c561fec861eed25a95c88003a97e2a9", null ],
     [ "strand_", "classdev_1_1p2p_1_1_u_d_p_socket.html#a497313165dec24766347f24d9a88d89f", null ],
     [ "x_sendQ", "classdev_1_1p2p_1_1_u_d_p_socket.html#aac17a12e80454ab8c7c9294cd75b45cc", null ],
     [ "x_socketError", "classdev_1_1p2p_1_1_u_d_p_socket.html#af865a62eec061476ddf6327ea9ddc0b0", null ]

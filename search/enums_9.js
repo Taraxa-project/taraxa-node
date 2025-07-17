@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['transactionstatus_0',['TransactionStatus',['../group___transaction.html#gae7551c287ae57b46d56d27de67df61e7',1,'taraxa']]],
-  ['twotplusonevotedblocktype_1',['TwoTPlusOneVotedBlockType',['../namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf',1,'taraxa']]]
+  ['verbosity_0',['verbosity',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491',1,'dev::Verbosity'],['../namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04',1,'taraxa::logger::Verbosity']]],
+  ['verifyblockreturntype_1',['VerifyBlockReturnType',['../group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484',1,'taraxa::DagManager']]]
 ];

@@ -9,5 +9,6 @@ var searchData=
   ['response_6',['Response',['../classtaraxa_1_1net_1_1_http_processor.html#ac4b6c948e63139fc10e47b19b9854a42',1,'taraxa::net::HttpProcessor']]],
   ['rewardsdistributionmap_7',['RewardsDistributionMap',['../structtaraxa_1_1_hardforks_config.html#aede826775ed678c89f33a3f499202cc6',1,'taraxa::HardforksConfig']]],
   ['rlpencoderref_8',['RLPEncoderRef',['../namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32',1,'taraxa::util']]],
-  ['rpcmodules_9',['RPCModules',['../class_server_interface.html#a60efb4c32b2ede4531f31c9b00b84224',1,'ServerInterface']]]
+  ['root_5ft_9',['root_t',['../namespacetaraxa.html#a0826926ee3a622c25c010d9004097ef8',1,'taraxa']]],
+  ['rpcmodules_10',['RPCModules',['../class_server_interface.html#a60efb4c32b2ede4531f31c9b00b84224',1,'ServerInterface']]]
 ];

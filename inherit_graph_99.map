@@ -1,5 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,13,96,38"/>
-<area shape="rect" id="Node000001" href="$structdev_1_1_generic_guard_bool.html" title=" " alt="" coords="144,5,344,45"/>
-<area shape="poly" id="edge51_Node000000_Node000001" title=" " alt="" coords="110,23,144,23,144,28,110,28"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,104,120,129"/>
+<area shape="rect" id="Node000001" href="$classtaraxa_1_1net_1_1_debug_client.html" title=" " alt="" coords="169,5,350,31"/>
+<area shape="poly" id="edge60_Node000000_Node000001" title=" " alt="" coords="87,93,124,65,167,40,197,28,199,33,169,44,127,69,91,97"/>
+<area shape="rect" id="Node000002" href="$classtaraxa_1_1net_1_1_eth_client.html" title=" " alt="" coords="179,55,339,80"/>
+<area shape="poly" id="edge61_Node000000_Node000002" title=" " alt="" coords="126,98,207,77,209,83,128,103"/>
+<area shape="rect" id="Node000003" href="$classtaraxa_1_1net_1_1_net_client.html" title=" " alt="" coords="178,104,341,129"/>
+<area shape="poly" id="edge62_Node000000_Node000003" title=" " alt="" coords="134,114,178,114,178,119,134,119"/>
+<area shape="rect" id="Node000004" href="$classtaraxa_1_1net_1_1_taraxa_client.html" title=" " alt="" coords="168,153,351,179"/>
+<area shape="poly" id="edge63_Node000000_Node000004" title=" " alt="" coords="128,130,209,151,207,156,126,135"/>
+<area shape="rect" id="Node000005" href="$classtaraxa_1_1net_1_1_test_client.html" title=" " alt="" coords="177,203,342,228"/>
+<area shape="poly" id="edge64_Node000000_Node000005" title=" " alt="" coords="91,136,127,163,169,188,202,200,200,205,167,192,124,167,88,141"/>
 </map>

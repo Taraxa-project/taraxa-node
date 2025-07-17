@@ -17,11 +17,12 @@ var searchData=
   ['blocknumber_14',['blockNumber',['../group___final_chain.html#a0e09e9512405a78f5403337c9ec41e0e',1,'taraxa::final_chain::FinalChain']]],
   ['blockreceipts_15',['blockReceipts',['../group___final_chain.html#aba5e896f5165214d37324ae35e797f9d',1,'taraxa::final_chain::FinalChain']]],
   ['blockstats_16',['blockstats',['../classtaraxa_1_1rewards_1_1_block_stats.html#ab67a44f047c05e976f1c03cc2c7c9658',1,'taraxa::rewards::BlockStats::BlockStats()=default'],['../classtaraxa_1_1rewards_1_1_block_stats.html#a5f8c44a08bbe43f250c92d7b842fb27c',1,'taraxa::rewards::BlockStats::BlockStats(const PeriodData &amp;block, const std::vector&lt; gas_t &gt; &amp;trxs_gas_used, uint64_t dpos_vote_count, uint32_t committee_size, const bool aspen_dag_rewards=false)']]],
-  ['bloom_17',['bloom',['../structtaraxa_1_1_log_entry.html#a5439f67f0992f66ebb01fd778b3045de',1,'taraxa::LogEntry::bloom()'],['../structtaraxa_1_1_transaction_receipt.html#ac846b119f527fdd25cc1c1dc61d43557',1,'taraxa::TransactionReceipt::bloom()']]],
+  ['bloom_17',['bloom',['../structtaraxa_1_1_transaction_receipt.html#ac846b119f527fdd25cc1c1dc61d43557',1,'taraxa::TransactionReceipt::bloom()'],['../structtaraxa_1_1_log_entry.html#a5439f67f0992f66ebb01fd778b3045de',1,'taraxa::LogEntry::bloom()']]],
   ['bloompart_18',['bloomPart',['../classdev_1_1_fixed_hash.html#a8227fad585781027896f783d0dc39560',1,'dev::FixedHash']]],
   ['bloompossibilities_19',['bloomPossibilities',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#addd7616e449e6a1be95bb57bbdaa9a7a',1,'taraxa::net::rpc::eth::LogFilter']]],
-  ['broadcastvotes_20',['broadcastVotes',['../group___p_b_f_t.html#acdba3cca85f3438a1acbf4cf3834c135',1,'taraxa::PbftManager']]],
-  ['bucket_5funsafe_21',['bucket_UNSAFE',['../classdev_1_1p2p_1_1_node_table.html#acc79fb500db389c4480534a9c316e8ee',1,'dev::p2p::NodeTable']]],
-  ['bypass_22',['bypass',['../structdev_1_1_stream_out.html#a4381e779a5ec57a947a78cf95de8d59e',1,'dev::StreamOut::bypass()'],['../structdev_1_1_stream_out_3_01uint8__t_01_4.html#a1dba656f28371694dc5cb21b6479a2e2',1,'dev::StreamOut&lt; uint8_t &gt;::bypass()']]],
-  ['bytesrequired_23',['bytesRequired',['../namespacedev.html#a92951aa87f4ab646aabab8967fbd365f',1,'dev']]]
+  ['boost_5flog_5finline_5fglobal_5flogger_5fctor_5fargs_20',['BOOST_LOG_INLINE_GLOBAL_LOGGER_CTOR_ARGS',['../namespacedev.html#a129cce80f255c924473b074e385ac2fd',1,'dev']]],
+  ['broadcastvotes_21',['broadcastVotes',['../group___p_b_f_t.html#acdba3cca85f3438a1acbf4cf3834c135',1,'taraxa::PbftManager']]],
+  ['bucket_5funsafe_22',['bucket_UNSAFE',['../classdev_1_1p2p_1_1_node_table.html#acc79fb500db389c4480534a9c316e8ee',1,'dev::p2p::NodeTable']]],
+  ['bypass_23',['bypass',['../structdev_1_1_stream_out.html#a4381e779a5ec57a947a78cf95de8d59e',1,'dev::StreamOut::bypass()'],['../structdev_1_1_stream_out_3_01uint8__t_01_4.html#a1dba656f28371694dc5cb21b6479a2e2',1,'dev::StreamOut&lt; uint8_t &gt;::bypass()']]],
+  ['bytesrequired_24',['bytesRequired',['../namespacedev.html#a92951aa87f4ab646aabab8967fbd365f',1,'dev']]]
 ];

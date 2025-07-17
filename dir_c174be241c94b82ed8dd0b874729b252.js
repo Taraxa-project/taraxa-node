@@ -11,7 +11,6 @@ var dir_c174be241c94b82ed8dd0b874729b252 =
     [ "init.hpp", "init_8hpp.html", "init_8hpp" ],
     [ "jsoncpp.hpp", "jsoncpp_8hpp.html", "jsoncpp_8hpp" ],
     [ "lazy.hpp", "lazy_8hpp.html", "lazy_8hpp" ],
-    [ "logger_formatters.hpp", "logger__formatters_8hpp.html", "logger__formatters_8hpp" ],
     [ "rpc_utils.hpp", "rpc__utils_8hpp.html", "rpc__utils_8hpp" ],
     [ "thread_pool.hpp", "thread__pool_8hpp.html", "thread__pool_8hpp" ],
     [ "types.hpp", "types_8hpp.html", "types_8hpp" ],

@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1threadpool_1_1_priority_queue =
 [
-    [ "PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a76727995adcc1932d2ccf55d82230f16", null ],
+    [ "PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#aea028c4b8507621fee305685627bcbc0", null ],
     [ "~PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a7bbe5dfb88940ffd38b5ed69a68ce425", null ],
     [ "PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#aba1058f971b34a5acfc6c311dc0f94a3", null ],
     [ "PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a71e11b9817674535b2cd0882093f42b2", null ],
@@ -17,7 +17,6 @@ var classtaraxa_1_1network_1_1threadpool_1_1_priority_queue =
     [ "updateDependenciesStart", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a0e8071cff18aef70506f6862c7305c56", null ],
     [ "act_total_workers_count_", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a7f7719590413767515dd346b3e05d3f6", null ],
     [ "blocked_packets_mask_", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a2aad25e9404035828a59f2098a4b7a22", null ],
-    [ "logger_", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a359d9d497644a5bec3e36f84f323b348", null ],
     [ "MAX_TOTAL_WORKERS_COUNT", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a57f62ec286b61faacaf9865c7b0bb059", null ],
-    [ "packets_queues_", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#a0ecbec9a573bbb98d997c0fd81b56f4b", null ]
+    [ "packets_queues_", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html#acdaf53bc9b3d159c0544a35303de08d8", null ]
 ];

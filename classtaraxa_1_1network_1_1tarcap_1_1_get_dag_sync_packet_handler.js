@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler =
 [
-    [ "GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#aed248c1b093f5495e5987b077b76a7f8", null ],
+    [ "GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#accfbd5f37b9957afdaabb972f5c73864", null ],
     [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a1c4cca7f3c8aa9cb06b573d711985076", null ],
     [ "sendBlocks", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a053aacb1cc9d1b4da4b5ee0f1a3ac554", null ],
     [ "dag_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a400c64b100835afae1884bd462b9830c", null ],

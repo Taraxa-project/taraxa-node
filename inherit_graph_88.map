@@ -1,27 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,234,120,259"/>
-<area shape="rect" id="Node000001" href="$struct_boost_ostream_formatter.html" title=" " alt="" coords="188,5,367,45"/>
-<area shape="poly" id="edge35_Node000000_Node000001" title=" " alt="" coords="69,220,82,183,102,139,130,94,166,55,186,43,189,47,170,59,134,97,107,141,87,185,74,222"/>
-<area shape="rect" id="Node000003" href="$struct_boost_ostream_formatter.html" title=" " alt="" coords="188,69,367,109"/>
-<area shape="poly" id="edge37_Node000000_Node000003" title=" " alt="" coords="76,221,113,169,138,142,167,119,189,107,191,112,169,124,141,146,117,173,80,224"/>
-<area shape="rect" id="Node000005" href="$struct_boost_ostream_formatter.html" title=" " alt="" coords="188,133,367,173"/>
-<area shape="poly" id="edge39_Node000000_Node000005" title=" " alt="" coords="93,224,127,203,167,183,199,171,201,176,169,188,130,208,95,229"/>
-<area shape="rect" id="Node000007" href="$struct_boost_ostream_formatter.html" title=" " alt="" coords="168,197,387,237"/>
-<area shape="poly" id="edge41_Node000000_Node000007" title=" " alt="" coords="133,234,167,230,168,235,134,240"/>
-<area shape="rect" id="Node000009" href="$struct_boost_ostream_formatter.html" title=" " alt="" coords="169,262,386,287"/>
-<area shape="poly" id="edge43_Node000000_Node000009" title=" " alt="" coords="134,253,180,259,179,265,133,258"/>
-<area shape="rect" id="Node000010" href="$structfmt_1_1formatter_3_01std_1_1atomic_3_01_t_01_4_01_4.html" title=" " alt="" coords="202,312,353,352"/>
-<area shape="poly" id="edge44_Node000000_Node000010" title=" " alt="" coords="99,264,169,298,202,309,201,314,167,302,97,268"/>
-<area shape="rect" id="Node000011" href="$structfmt_1_1formatter_3_01taraxa_1_1addr__t_01_4.html" title=" " alt="" coords="191,376,363,416"/>
-<area shape="poly" id="edge45_Node000000_Node000011" title=" " alt="" coords="81,269,118,316,142,341,169,362,192,373,190,378,167,366,139,345,114,320,77,272"/>
-<area shape="rect" id="Node000012" href="$structfmt_1_1formatter_3_01taraxa_1_1blk__hash__t_01_4.html" title=" " alt="" coords="191,440,363,480"/>
-<area shape="poly" id="edge46_Node000000_Node000012" title=" " alt="" coords="74,271,87,306,108,348,135,390,170,426,192,439,190,444,166,430,131,393,103,351,83,308,69,273"/>
-<area shape="rect" id="Node000002" href="$structfmt_1_1formatter_3_01bi_1_1tcp_1_1endpoint_01_4.html" title=" " alt="" coords="454,5,597,45"/>
-<area shape="poly" id="edge36_Node000001_Node000002" title=" " alt="" coords="380,23,454,23,454,28,380,28"/>
-<area shape="rect" id="Node000004" href="$structfmt_1_1formatter_3_01bi_1_1udp_1_1endpoint_01_4.html" title=" " alt="" coords="454,69,597,109"/>
-<area shape="poly" id="edge38_Node000003_Node000004" title=" " alt="" coords="380,87,454,87,454,92,380,92"/>
-<area shape="rect" id="Node000006" href="$structfmt_1_1formatter_3_01dev_1_1p2p_1_1_node_01_4.html" title=" " alt="" coords="448,133,603,173"/>
-<area shape="poly" id="edge40_Node000005_Node000006" title=" " alt="" coords="381,151,448,151,448,156,381,156"/>
-<area shape="rect" id="Node000008" href="$structfmt_1_1formatter_3_01dev_1_1p2p_1_1_peer_session_info_01_4.html" title=" " alt="" coords="435,197,616,237"/>
-<area shape="poly" id="edge42_Node000007_Node000008" title=" " alt="" coords="400,215,435,215,435,220,400,220"/>
+<area shape="rect" id="Node000000" href="$classgraphql_1_1taraxa_1_1_account.html" title=" " alt="" coords="5,5,187,31"/>
 </map>

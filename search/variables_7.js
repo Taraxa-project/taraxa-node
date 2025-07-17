@@ -20,12 +20,11 @@ var searchData=
   ['get_5ftrx_17',['get_trx',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ad14962b6e30bc32340b2bdf502534931',1,'taraxa::net::rpc::eth::EthParams']]],
   ['getter_5ffn_5f_18',['getter_fn_',['../classtaraxa_1_1_map_by_block_cache.html#abff4af9bc60011f77f99175f7e431892',1,'taraxa::MapByBlockCache::getter_fn_'],['../classtaraxa_1_1_value_by_block_cache.html#ac2a63cbf612c374b1a65d0b648404e08',1,'taraxa::ValueByBlockCache::getter_fn_']]],
   ['ghost_5fpath_5fmove_5fback_19',['ghost_path_move_back',['../structtaraxa_1_1_pbft_config.html#a7fdf190fd6017769e372cab5935deecf',1,'taraxa::PbftConfig']]],
-  ['global_5finitialized_5f_20',['global_initialized_',['../classtaraxa_1_1logger_1_1_logging.html#a25da77f3d402d0438576181323828af2',1,'taraxa::logger::Logging']]],
-  ['go_5ffinish_5fstate_5f_21',['go_finish_state_',['../group___p_b_f_t.html#a3e19126cae83075ff10f088e155bc7f8',1,'taraxa::PbftManager']]],
-  ['graph_5f_22',['graph_',['../group___d_a_g.html#a0ea9e01202a61f80b3ed0175515db2bf',1,'taraxa::Dag']]],
-  ['graphql_23',['graphql',['../structtaraxa_1_1_network_config.html#abc6eb505c01d9d4d12afc5950f39f83e',1,'taraxa::NetworkConfig']]],
-  ['graphql_5fhttp_5f_24',['graphql_http_',['../classtaraxa_1_1plugin_1_1_rpc.html#aa44e96a71c6e2501ed0c4c49d5b84d6c',1,'taraxa::plugin::Rpc']]],
-  ['graphql_5fthread_5fpool_5f_25',['graphql_thread_pool_',['../classtaraxa_1_1plugin_1_1_rpc.html#ae0202da176bdbb5aacea09e5358ce35f',1,'taraxa::plugin::Rpc']]],
-  ['graphql_5fws_5f_26',['graphql_ws_',['../classtaraxa_1_1plugin_1_1_rpc.html#a94a2e3438cb98ac8a484309e607beef7',1,'taraxa::plugin::Rpc']]],
-  ['group_5fname_27',['group_name',['../classtaraxa_1_1metrics_1_1_json_rpc_metrics.html#adfac0a41fc98a38e3c4622113f2fd5dd',1,'taraxa::metrics::JsonRpcMetrics::group_name'],['../classtaraxa_1_1metrics_1_1_network_metrics.html#a58b829776161a54ca4e1fbb7705c9536',1,'taraxa::metrics::NetworkMetrics::group_name'],['../classtaraxa_1_1metrics_1_1_pbft_metrics.html#a93cde7b1156ceb4bad2551da1439f2a9',1,'taraxa::metrics::PbftMetrics::group_name'],['../classtaraxa_1_1metrics_1_1_transaction_queue_metrics.html#abcb09e07c70adf094d4ba11842e97200',1,'taraxa::metrics::TransactionQueueMetrics::group_name']]]
+  ['go_5ffinish_5fstate_5f_20',['go_finish_state_',['../group___p_b_f_t.html#a3e19126cae83075ff10f088e155bc7f8',1,'taraxa::PbftManager']]],
+  ['graph_5f_21',['graph_',['../group___d_a_g.html#a0ea9e01202a61f80b3ed0175515db2bf',1,'taraxa::Dag']]],
+  ['graphql_22',['graphql',['../structtaraxa_1_1_network_config.html#abc6eb505c01d9d4d12afc5950f39f83e',1,'taraxa::NetworkConfig']]],
+  ['graphql_5fhttp_5f_23',['graphql_http_',['../classtaraxa_1_1plugin_1_1_rpc.html#aa44e96a71c6e2501ed0c4c49d5b84d6c',1,'taraxa::plugin::Rpc']]],
+  ['graphql_5fthread_5fpool_5f_24',['graphql_thread_pool_',['../classtaraxa_1_1plugin_1_1_rpc.html#ae0202da176bdbb5aacea09e5358ce35f',1,'taraxa::plugin::Rpc']]],
+  ['graphql_5fws_5f_25',['graphql_ws_',['../classtaraxa_1_1plugin_1_1_rpc.html#a94a2e3438cb98ac8a484309e607beef7',1,'taraxa::plugin::Rpc']]],
+  ['group_5fname_26',['group_name',['../classtaraxa_1_1metrics_1_1_json_rpc_metrics.html#adfac0a41fc98a38e3c4622113f2fd5dd',1,'taraxa::metrics::JsonRpcMetrics::group_name'],['../classtaraxa_1_1metrics_1_1_network_metrics.html#a58b829776161a54ca4e1fbb7705c9536',1,'taraxa::metrics::NetworkMetrics::group_name'],['../classtaraxa_1_1metrics_1_1_pbft_metrics.html#a93cde7b1156ceb4bad2551da1439f2a9',1,'taraxa::metrics::PbftMetrics::group_name'],['../classtaraxa_1_1metrics_1_1_transaction_queue_metrics.html#abcb09e07c70adf094d4ba11842e97200',1,'taraxa::metrics::TransactionQueueMetrics::group_name']]]
 ];

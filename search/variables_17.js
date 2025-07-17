@@ -12,7 +12,7 @@ var searchData=
   ['weight_9',['weight',['../group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8',1,'taraxa::edge_label_writer::weight'],['../classtaraxa_1_1pillar__chain_1_1_pillar_votes.html#a94bc2e5004018f8f58b258a2bf7abc09',1,'taraxa::pillar_chain::PillarVotes::WeightVotes::weight']]],
   ['weight_5f_10',['weight_',['../group___vote.html#a67108dc7db5be3e83f7cac577e676955',1,'taraxa::PbftVote']]],
   ['workers_5f_11',['workers_',['../classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#af3aa6e8e03149fa8b54f6bf2093f7cf1',1,'taraxa::network::threadpool::PacketsThreadPool']]],
-  ['workers_5fnum_5f_12',['workers_num_',['../classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#ae1131603ef6ec84a1c83f9c761f9da94',1,'taraxa::network::threadpool::PacketsThreadPool']]],
+  ['workers_5fnum_5f_12',['workers_num_',['../classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html#a5c2919954b5b93d28214fe1ad8703530',1,'taraxa::network::threadpool::PacketsThreadPool']]],
   ['write_5fstrand_5f_13',['write_strand_',['../classtaraxa_1_1net_1_1_ws_session.html#abaaba7e484a516b329e9c21845c56b53',1,'taraxa::net::WsSession']]],
   ['ws_5f_14',['ws_',['../classtaraxa_1_1net_1_1_ws_session.html#a4ac54513fb8ab785257e0b9036d24586',1,'taraxa::net::WsSession']]],
   ['ws_5fport_15',['ws_port',['../structtaraxa_1_1_connection_config.html#af56373e330f688c74f33eb5f5da837d7',1,'taraxa::ConnectionConfig']]],

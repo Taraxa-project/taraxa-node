@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['loggingtype_0',['LoggingType',['../structtaraxa_1_1_logging_config.html#a2d2bf558991df3a130328b7d1dcad49e',1,'taraxa::LoggingConfig']]]
+  ['nodetableeventtype_0',['NodeTableEventType',['../namespacedev_1_1p2p.html#ad922460547e7c7fea21b60dbfae9f8dc',1,'dev::p2p']]]
 ];

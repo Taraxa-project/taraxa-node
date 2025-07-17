@@ -15,7 +15,7 @@ var group___d_a_g_classtaraxa_1_1_dag =
     [ "vertex_period_map_t", "group___d_a_g.html#a262ea0431771b3a8e17b14d4639bb43c", null ],
     [ "vertex_property_t", "group___d_a_g.html#a0114e4a84e7e887892cf3df8eb89b8ca", null ],
     [ "vertex_t", "group___d_a_g.html#aedd4ab062b216be0eec87417a5ccb1ff", null ],
-    [ "Dag", "group___d_a_g.html#ab4dc8cb20eaedf4afb1a7d02bad39505", null ],
+    [ "Dag", "group___d_a_g.html#a7def37042439fa3c713ea8861d40b199", null ],
     [ "~Dag", "group___d_a_g.html#a4fa4e6e26fedaa5e1fc0fdb802c4a69a", null ],
     [ "Dag", "group___d_a_g.html#a6266d656a7eba53bac6fa8dc7e7eb5da", null ],
     [ "Dag", "group___d_a_g.html#a91d4f1eb81776e18f3908374d0eef614", null ],
@@ -32,6 +32,5 @@ var group___d_a_g_classtaraxa_1_1_dag =
     [ "operator=", "group___d_a_g.html#a849ad9e5c804fb23049cc0dcbf81fcbb", null ],
     [ "reachable", "group___d_a_g.html#a28322d856a13e424d0f4aa93a25690f3", null ],
     [ "DagManager", "group___d_a_g.html#a39d3bee9060aaa7149e6d979f1df125e", null ],
-    [ "graph_", "group___d_a_g.html#a0ea9e01202a61f80b3ed0175515db2bf", null ],
-    [ "logger_", "group___d_a_g.html#ab6f667c27e78d35da868bfde9117de67", null ]
+    [ "graph_", "group___d_a_g.html#a0ea9e01202a61f80b3ed0175515db2bf", null ]
 ];
