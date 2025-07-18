@@ -47,7 +47,7 @@ Creates a new subscription for particular events. The node returns a subscriptio
 #### Parameters
 
 1. `String` - The type of event you want to subscribe to (i.e. newHeads, newPendingTransactions).
-3. `Object` - Additional parameters for the subscription if needed
+2. `Object` - Additional parameters for the subscription if needed
 
 #### Returns
 
