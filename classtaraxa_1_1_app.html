@@ -202,6 +202,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afd2954c1236d3da414dcbd87437fe8ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8bcbb198a39bf0b02ae2d75728d367b" id="r_ac8bcbb198a39bf0b02ae2d75728d367b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app.html#ac8bcbb198a39bf0b02ae2d75728d367b">start</a> ()</td></tr>
 <tr class="separator:ac8bcbb198a39bf0b02ae2d75728d367b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae91e5e0e2b8ffc3dddc4668553b996de" id="r_ae91e5e0e2b8ffc3dddc4668553b996de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app.html#ae91e5e0e2b8ffc3dddc4668553b996de">getMutableConfig</a> ()</td></tr>
+<tr class="separator:ae91e5e0e2b8ffc3dddc4668553b996de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bed86f201f2425750680b66e6b8b612" id="r_a3bed86f201f2425750680b66e6b8b612"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app.html#a3bed86f201f2425750680b66e6b8b612">getConfig</a> () const</td></tr>
 <tr class="separator:a3bed86f201f2425750680b66e6b8b612"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a23dfea3971719a8bcc9767d0a29b4609" id="r_a23dfea3971719a8bcc9767d0a29b4609"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_app.html#a23dfea3971719a8bcc9767d0a29b4609">getNetwork</a> () const</td></tr>
@@ -667,6 +669,33 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="ae91e5e0e2b8ffc3dddc4668553b996de" name="ae91e5e0e2b8ffc3dddc4668553b996de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae91e5e0e2b8ffc3dddc4668553b996de">&#9670;&#160;</a></span>getMutableConfig()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp; taraxa::App::getMutableConfig </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classtaraxa_1_1_app_base.html#a80dc56b58f39d7657f5da4aea7633f31">taraxa::AppBase</a>.</p>
+
+</div>
+</div>
 <a id="a23dfea3971719a8bcc9767d0a29b4609" name="a23dfea3971719a8bcc9767d0a29b4609"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a23dfea3971719a8bcc9767d0a29b4609">&#9670;&#160;</a></span>getNetwork()</h2>
 
@@ -780,6 +809,9 @@ Additional Inherited Members</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_plugin.html">Plugin</a> &gt; taraxa::App::getPlugin </td>
@@ -789,7 +821,14 @@ Additional Inherited Members</h2></td></tr>
           <td> const</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
+
+<p>Implements <a class="el" href="classtaraxa_1_1_app_base.html#a9ac3159f4f6e1cfd472e6c6819356109">taraxa::AppBase</a>.</p>
 
 </div>
 </div>
@@ -814,10 +853,12 @@ template&lt;typename PluginType &gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Implements <a class="el" href="classtaraxa_1_1_app_base.html#a9ac3159f4f6e1cfd472e6c6819356109">taraxa::AppBase</a>.</p>
 
 </div>
 </div>

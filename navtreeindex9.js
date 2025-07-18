@@ -1,5 +1,11 @@
 var NAVTREEINDEX9 =
 {
+"classtaraxa_1_1net_1_1_pillar_block_subscription.html#ab3d368a42f786de577ccd82789dc6bb3":[16,0,3,4,25,3],
+"classtaraxa_1_1net_1_1_subscription.html":[16,0,3,4,26],
+"classtaraxa_1_1net_1_1_subscription.html#a1ad2b2fce46e840d7e0a86109539c9d8":[16,0,3,4,26,3],
+"classtaraxa_1_1net_1_1_subscription.html#a3ab65e718f7c1d6a4b5cb10ebe64efe0":[16,0,3,4,26,1],
+"classtaraxa_1_1net_1_1_subscription.html#a6a71f9fc3ea7ed6485542138c5420fe3":[16,0,3,4,26,4],
+"classtaraxa_1_1net_1_1_subscription.html#aa504a43b5c2667e751cbda15100913e7":[16,0,3,4,26,0],
 "classtaraxa_1_1net_1_1_subscription.html#aee40f262c44f9288de68b07fa14eb0dc":[16,0,3,4,26,2],
 "classtaraxa_1_1net_1_1_subscription.html#aefed431a430313ca40f8d6f3d7359fcc":[16,0,3,4,26,5],
 "classtaraxa_1_1net_1_1_subscriptions.html":[16,0,3,4,27],
@@ -243,11 +249,5 @@ var NAVTREEINDEX9 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a162a79b7730688d25a845e4de85396a9":[16,0,3,4,0,0,13,8],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a2b0423ca81110de0466039da8774bd67":[16,0,3,4,0,0,13,14],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a4181190645e50471fa3ae1637e1eda38":[16,0,3,4,0,0,13,11],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a62f08d6c3abf41cbce69b1f7beacffa5":[16,0,3,4,0,0,13,12],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7346d6f445876f918027751a91b9e660":[16,0,3,4,0,0,13,3],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7371930515697ca5ca7bb59d4aa8c433":[16,0,3,4,0,0,13,4],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7771933076a670c7c8021c28a1c19f4c":[16,0,3,4,0,0,13,9],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7795d5fff10a87b89227c53a4c8f541b":[16,0,3,4,0,0,13,10],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a8e2d0ba3b0ca4fa77081d5aaaaa9a84b":[16,0,3,4,0,0,13,13],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a90dacc58edfeb95d91304ed5e48c12e9":[17,0,1,5,1,2,0,6,3,0]
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a62f08d6c3abf41cbce69b1f7beacffa5":[16,0,3,4,0,0,13,12]
 };

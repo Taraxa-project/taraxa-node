@@ -7,7 +7,6 @@ var config_2include_2config_2config_8hpp =
       [ "db_snapshot_each_n_pbft_block", "namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39", null ],
       [ "migrate_only", "namespacetaraxa.html#a274099357513e9346beed7aefafb5a71", null ],
       [ "migrate_receipts_by_period", "namespacetaraxa.html#a838f1f0160a2c0229b42a4ed9226abcf", null ],
-      [ "prune_state_db", "namespacetaraxa.html#abdd62bbac265c8653d3c403952b8175d", null ],
       [ "rebuild_db", "namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce", null ],
       [ "rebuild_db_period", "namespacetaraxa.html#abe73b7f0480b66b1d6f4e9b7b31ac2e1", null ]
     ] ],

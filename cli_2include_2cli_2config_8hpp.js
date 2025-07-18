@@ -24,7 +24,6 @@ var cli_2include_2cli_2config_8hpp =
     [ "OVERWRITE_CONFIG", "cli_2include_2cli_2config_8hpp.html#aaeaa8e37e868e5ce59719cfdef60cd00", null ],
     [ "PLUGINS", "cli_2include_2cli_2config_8hpp.html#a77e4b60bd98790707a189c463e5714d6", null ],
     [ "PORT", "cli_2include_2cli_2config_8hpp.html#a814f61e403c5a1adbed55ad66dc897e9", null ],
-    [ "PRUNE_STATE_DB", "cli_2include_2cli_2config_8hpp.html#abd3252943bd7a738cd118fe8a6a565de", null ],
     [ "PUBLIC_IP", "cli_2include_2cli_2config_8hpp.html#a8ad79461b90cce6bb1a25d393d798a64", null ],
     [ "REBUILD_DB", "cli_2include_2cli_2config_8hpp.html#a3772c6ee5ea355bdf8567e2252c407fb", null ],
     [ "REBUILD_DB_PERIOD", "cli_2include_2cli_2config_8hpp.html#a8816e19cac93d6e565038a60ecdf8549", null ],

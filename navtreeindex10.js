@@ -1,8 +1,14 @@
 var NAVTREEINDEX10 =
 {
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7346d6f445876f918027751a91b9e660":[16,0,3,4,0,0,13,3],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7371930515697ca5ca7bb59d4aa8c433":[16,0,3,4,0,0,13,4],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7771933076a670c7c8021c28a1c19f4c":[16,0,3,4,0,0,13,9],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7795d5fff10a87b89227c53a4c8f541b":[16,0,3,4,0,0,13,10],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a8e2d0ba3b0ca4fa77081d5aaaaa9a84b":[16,0,3,4,0,0,13,13],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a90dacc58edfeb95d91304ed5e48c12e9":[17,0,1,5,1,2,0,6,3,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a90dacc58edfeb95d91304ed5e48c12e9":[16,0,3,4,0,0,13,0,0],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa0eceed2ad9fa81979e15b2e212c186c":[17,0,1,5,1,2,0,6,3,1],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa0eceed2ad9fa81979e15b2e212c186c":[16,0,3,4,0,0,13,0,1],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa0eceed2ad9fa81979e15b2e212c186c":[17,0,1,5,1,2,0,6,3,1],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa29445224d1bf2dd33b911ee05ec2c0f":[16,0,3,4,0,0,13,15],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa39c84e43ff08f5c12487171d8112b67":[16,0,3,4,0,0,13,7],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#abc331f00d30d0e38784dc2d988876777":[16,0,3,4,0,0,13,6],
@@ -10,8 +16,8 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#ac5a4276effe3ab59eef55177ca2f5b63":[16,0,3,4,0,0,13,1],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[16,0,3,4,0,0,13,0,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[17,0,1,5,1,2,0,6,3,2],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[17,0,1,5,1,2,0,6,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[16,0,3,4,0,0,13,0],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[17,0,1,5,1,2,0,6,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html":[16,0,3,4,0,0,12],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a24d7ff724a8db34cb23d5fa8491f13a6":[16,0,3,4,0,0,12,11],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a31b2b25b494ed5a73471dc15ee89f9dc":[16,0,3,4,0,0,12,2],
@@ -243,11 +249,5 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a5abcaffbefa8ef44bca3f45b90efc3be":[16,0,3,5,0,31,11],
 "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a5ca54534bf7c50cb7f7b86a81a13159c":[16,0,3,5,0,31,15],
 "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a70dd4fb7b012f4d931f7f806c8bfff51":[16,0,3,5,0,31,5],
-"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a71914c737a44c35129471b1c34a52923":[16,0,3,5,0,31,6],
-"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a8362797556bb55d2c5aa58583b7652d2":[16,0,3,5,0,31,2],
-"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a91d9b480a64b71cb1f839fdac2ebe464":[16,0,3,5,0,31,0],
-"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a92f3c6d01b50e6a627d6902331e5398b":[16,0,3,5,0,31,13],
-"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a971ddb14adcdec11fe48ace370060b9f":[16,0,3,5,0,31,16],
-"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#aacfd8a71a78a9a0ebffd18f5a7351554":[16,0,3,5,0,31,14],
-"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#ac7448156587d0050497196ede930d62d":[16,0,3,5,0,31,10]
+"classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a71914c737a44c35129471b1c34a52923":[16,0,3,5,0,31,6]
 };

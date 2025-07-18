@@ -269,6 +269,7 @@ var annotated_dup =
         [ "PillarVotes", "classtaraxa_1_1pillar__chain_1_1_pillar_votes.html", "classtaraxa_1_1pillar__chain_1_1_pillar_votes" ]
       ] ],
       [ "plugin", "namespacetaraxa_1_1plugin.html", [
+        [ "Light", "classtaraxa_1_1plugin_1_1_light.html", "classtaraxa_1_1plugin_1_1_light" ],
         [ "Rpc", "classtaraxa_1_1plugin_1_1_rpc.html", "classtaraxa_1_1plugin_1_1_rpc" ]
       ] ],
       [ "rewards", "namespacetaraxa_1_1rewards.html", [

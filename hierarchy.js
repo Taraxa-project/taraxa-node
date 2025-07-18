@@ -344,6 +344,7 @@ var hierarchy =
     [ "taraxa::network::tarcap::PillarVotesBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_pillar_votes_bundle_packet", null ],
     [ "taraxa::net::rpc::eth::placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
     [ "taraxa::Plugin", "classtaraxa_1_1_plugin.html", [
+      [ "taraxa::plugin::Light", "classtaraxa_1_1plugin_1_1_light.html", null ],
       [ "taraxa::plugin::Rpc", "classtaraxa_1_1plugin_1_1_rpc.html", null ]
     ] ],
     [ "taraxa::network::threadpool::PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html", null ],
