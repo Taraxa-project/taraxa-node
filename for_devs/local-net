@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 import click
 import subprocess
 import threading
@@ -300,7 +300,7 @@ def start_workers(binary, consensus_nodes, rpc_nodes, tps, enable_test_rpc):
 def node_worker(binary, worker_name, enable_test_rpc):
     cmd = f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json --genesis ./{data_dir}/genesis-{worker_name}.json'
     if enable_test_rpc:
-        cmd += ' --enable-test-rpc '
+        cmd += ' --rpc.enable-test-rpc '
 
     process = subprocess.Popen(cmd,
                                shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -312,7 +312,7 @@ def faucet_worker(tps):
     time.sleep(10)
     web3 = Web3(Web3.HTTPProvider('http://127.0.0.1:7017'))
     nonce = web3.eth.get_transaction_count(
-        Web3.to_checksum_address(faucet_public_address))
+        Web3.toChecksumAddress(faucet_public_address))
 
     consensus_nodes = list(consensus_nodes_public_addresses.keys())
 
@@ -322,8 +322,8 @@ def faucet_worker(tps):
             0, len(consensus_nodes)-1)]]
         tx = {
             'nonce': nonce,
-            'to': Web3.to_checksum_address(to),
-            'value': web3.to_wei(1, 'gwei'),
+            'to': Web3.toChecksumAddress(to),
+            'value': web3.toWei(1, 'gwei'),
             'gas': 21000,
             'gasPrice': web3.eth.gas_price,
             'chainId': int(chain_id)
@@ -335,9 +335,9 @@ def faucet_worker(tps):
         t = time.strftime('%Y-%m-%d %H:%M:%S', current_time)
 
         try:
-            tx_hash = web3.eth.send_raw_transaction(signed_tx.raw_transaction)
+            tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
             log_format(
-                'faucet', f'{t} Dripped to {to}, tx_hash: {web3.to_hex(tx_hash)}')
+                'faucet', f'{t} Dripped to {to}, tx_hash: {web3.toHex(tx_hash)}')
         except Exception as e:
             log_format('faucet', f'{t} Failed to drip to {to}. Error: {str(e)}')
             pass

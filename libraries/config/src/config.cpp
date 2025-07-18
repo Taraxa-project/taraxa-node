@@ -84,8 +84,6 @@ void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
 
   log_configs = loadLoggingConfigs(root["logging"]);
 
-  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
-  light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, light_node_history);
   report_malicious_behaviour =
       getConfigDataAsUInt(root, {"report_malicious_behaviour"}, true, report_malicious_behaviour);
 }
@@ -111,14 +109,6 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const std::v
 
   propose_dag_gas_limit = getConfigDataAsUInt(root, {"propose_dag_gas_limit"}, true, propose_dag_gas_limit);
   propose_pbft_gas_limit = getConfigDataAsUInt(root, {"propose_pbft_gas_limit"}, true, propose_pbft_gas_limit);
-
-  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
-  const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
-  light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
-  if (light_node_history < min_light_node_history) {
-    throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history) +
-                          " blocks (" + std::to_string(kDefaultLightNodeHistoryDays) + " days)");
-  }
 
   for (const auto &wallet_json : wallets_jsons) {
     dev::Secret node_secret;

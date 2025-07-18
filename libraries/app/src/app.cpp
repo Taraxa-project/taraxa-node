@@ -35,6 +35,14 @@ App::~App() { close(); }
 
 void App::addAvailablePlugin(std::shared_ptr<Plugin> plugin) { available_plugins_[plugin->name()] = plugin; }
 
+std::shared_ptr<Plugin> App::getPlugin(const std::string &name) const {
+  auto it = active_plugins_.find(name);
+  if (it != active_plugins_.end()) {
+    return it->second;
+  }
+  return nullptr;
+}
+
 void App::enablePlugin(const std::string &name) {
   if (available_plugins_[name] == nullptr) {
     throw std::runtime_error("Plugin " + name + " not found");
@@ -199,21 +207,22 @@ void App::start() {
     LOG(log_si_) << "DB migrated successfully, please restart the node without the flag";
     started_ = false;
     return;
-  } else {
-    network_->start();
-    dag_block_proposer_->setNetwork(network_);
-    dag_block_proposer_->start();
   }
+
+  for (auto &plugin : active_plugins_) {
+    LOG(log_nf_) << "Starting plugin " << plugin.first;
+    plugin.second->start();
+  }
+
+  network_->start();
+  dag_block_proposer_->setNetwork(network_);
+  dag_block_proposer_->start();
 
   pbft_mgr_->start();
 
   if (metrics_) {
     setupMetricsUpdaters();
     metrics_->start();
-  }
-  for (auto &plugin : active_plugins_) {
-    LOG(log_nf_) << "Starting plugin " << plugin.first;
-    plugin.second->start();
   }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";

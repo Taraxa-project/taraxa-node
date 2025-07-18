@@ -27,8 +27,8 @@ namespace taraxa::final_chain {
  */
 class FinalChain {
  protected:
-  util::EventEmitter<std::shared_ptr<FinalizationResult>> const block_finalized_emitter_{};
-  util::EventEmitter<uint64_t> const block_applying_emitter_{};
+  util::event::EventEmitter<std::shared_ptr<FinalizationResult>> const block_finalized_emitter_{};
+  util::event::EventEmitter<uint64_t> const block_applying_emitter_{};
 
  public:
   decltype(block_finalized_emitter_)::Subscriber const& block_finalized_ = block_finalized_emitter_;
@@ -316,7 +316,6 @@ class FinalChain {
   std::shared_ptr<DbStorage> db_;
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
-  const bool kLightNode = false;
   const uint32_t kMaxLevelsPerPeriod;
   rewards::Stats rewards_;
 

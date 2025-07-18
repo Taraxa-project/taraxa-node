@@ -25,7 +25,6 @@ static constexpr const char* HELP = "help";
 static constexpr const char* VERSION = "version";
 static constexpr const char* PLUGINS = "plugins";
 static constexpr const char* WALLET = "wallet";
-static constexpr const char* PRUNE_STATE_DB = "prune-state-db";
 
 static constexpr const char* NODE_COMMAND = "node";
 static constexpr const char* ACCOUNT_COMMAND = "account";
@@ -79,6 +78,7 @@ class Config {
 
   bool overwrite_config;
   std::string data_dir;
+
   std::string genesis;
   std::string config;
   std::vector<std::string> wallets;

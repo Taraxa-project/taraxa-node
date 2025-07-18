@@ -51,9 +51,6 @@ DagManager::DagManager(const FullNodeConfig &config, addr_t node_addr, std::shar
     db_->saveProposalPeriodDagLevelsMap(max_levels_per_period_, 0);
   }
   recoverDag();
-  if (config.is_light_node) {
-    clearLightNodeHistory(config.light_node_history);
-  }
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -281,39 +278,6 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
                << blk_orders.size() << " blks" << std::endl;
 
   return blk_orders;
-}
-
-void DagManager::clearLightNodeHistory(uint64_t light_node_history) {
-  bool dag_expiry_level_condition = dag_expiry_level_ > max_levels_per_period_ + 1;
-  bool period_over_history_condition = period_ > light_node_history;
-
-  auto last_block_number = final_chain_->lastBlockNumber();
-  auto earliest_block_to_keep = uint64_t(last_block_number - light_node_history * 1.1);
-  auto block_exists = db_->exist(DbStorage::toSlice(earliest_block_to_keep), DbStorage::Columns::period_data);
-  if (!block_exists) {
-    LOG(log_si_) << "Cleanup was done recently, skipping clearLightNodeHistory";
-    return;
-  }
-
-  if (period_over_history_condition && dag_expiry_level_condition) {
-    const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level_ - max_levels_per_period_ - 1);
-    assert(proposal_period);
-
-    const uint64_t start = 0;
-    // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired dag
-    // blocks
-    const uint64_t end = std::min(period_ - light_node_history, *proposal_period);
-    LOG(log_tr_) << "period_ - light_node_history_ " << period_ - light_node_history;
-    LOG(log_tr_) << "dag_expiry_level - max_levels_per_period_ - 1: " << dag_expiry_level_ - max_levels_per_period_ - 1
-                 << " *proposal_period " << *proposal_period;
-    LOG(log_tr_) << "Delete period history from: " << start << " to " << end;
-    uint64_t dag_level_to_keep = 1;
-    if (dag_expiry_level_ > max_levels_per_period_) {
-      dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
-    }
-
-    db_->clearPeriodDataHistory(end, dag_level_to_keep, last_block_number);
-  }
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod period, vec_blk_t const &dag_order) {

@@ -188,7 +188,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   uint32_t getNonFinalizedBlocksMinDifficulty() const;
 
-  util::Event<DagManager, std::shared_ptr<DagBlock>> const block_verified_{};
+  util::event::Event<DagManager, std::shared_ptr<DagBlock>> const block_verified_{};
 
   /**
    * @brief Retrieves Dag Manager mutex, only to be used when finalizing pbft block
@@ -216,7 +216,14 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    *
    * @return level
    */
-  uint64_t getDagExpiryLevel() { return dag_expiry_level_; }
+  uint64_t getDagExpiryLevel() const { return dag_expiry_level_; }
+
+  /**
+   * @brief Retrieves max levels per period
+   *
+   * @return max levels per period
+   */
+  uint64_t getMaxLevelsPerPeriod() const { return max_levels_per_period_; }
 
   /**
    * @brief Retrieves VDF message from block hash and transactions
@@ -231,12 +238,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @return message
    */
   static dev::bytes getVdfMessage(blk_hash_t const &hash, std::vector<trx_hash_t> const &trx_hashes);
-
-  /**
-   * @brief Clears light node history
-   *
-   */
-  void clearLightNodeHistory(uint64_t light_node_history);
 
  private:
   void recoverDag();

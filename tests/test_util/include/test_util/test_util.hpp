@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "../../gtest.hpp"
+#include "cli/config.hpp"
 #include "common/app_base.hpp"
 #include "config/config.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -191,6 +192,32 @@ std::shared_ptr<PbftVote> genDummyVote(PbftVoteTypes type, PbftPeriod period, Pb
 
 std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<AppBase>>& nodes);
 
+class TestConfig : public cli::Config {
+ public:
+  TestConfig(const FullNodeConfig& cfg) : cli::Config() {
+    node_configured_ = true;
+    node_config_ = FullNodeConfig(cfg);
+    enableTestRpc();
+    if (cfg.is_light_node) {
+      enableLightNode();
+    }
+  }
+  void enableTestRpc() {
+    cli_options_.insert(std::make_pair("rpc.enable-test-rpc", cli::bpo::variable_value(true, false)));
+    cli_options_.insert(std::make_pair("rpc.debug", cli::bpo::variable_value(true, false)));
+  }
+  void enableLightNode(uint64_t history = 10, bool live_cleanup = true) {
+    cli_options_.insert(std::make_pair("light.no_state_db_pruning", cli::bpo::variable_value(true, false)));
+    cli_options_.erase("light.no_live_cleanup");
+    cli_options_.insert(std::make_pair("light.no_live_cleanup", cli::bpo::variable_value(!live_cleanup, false)));
+    if (history > 0) {
+      cli_options_.insert(std::make_pair("light.history", cli::bpo::variable_value(history, false)));
+    }
+    plugins_.emplace_back("light");
+  }
+  FullNodeConfig& config() { return node_config_; }
+};
+
 struct NodesTest : virtual WithDataDir {
   NodesTest();
   virtual ~NodesTest() { CleanupDirs(); }
@@ -203,19 +230,23 @@ struct NodesTest : virtual WithDataDir {
 
   void CleanupDirs();
 
+  std::shared_ptr<AppBase> create_node(TestConfig& cfg, bool start);
   std::shared_ptr<AppBase> create_node(const FullNodeConfig& cfg, bool start);
 
   std::vector<taraxa::FullNodeConfig> make_node_cfgs(size_t total_count, size_t validators_count = 1,
                                                      uint tests_speed = 1, bool enable_rpc_http = false,
                                                      bool enable_rpc_ws = false);
+  std::vector<TestConfig> make_test_cfgs(const std::vector<FullNodeConfig>& cfgs);
 
   bool wait_connect(const std::vector<std::shared_ptr<taraxa::AppBase>>& nodes);
 
   std::vector<std::shared_ptr<AppBase>> create_nodes(uint count, bool start = false);
 
+  std::vector<std::shared_ptr<AppBase>> create_nodes(std::vector<TestConfig>& cfgs, bool start = false);
   std::vector<std::shared_ptr<AppBase>> create_nodes(const std::vector<FullNodeConfig>& cfgs, bool start = false);
 
-  std::vector<std::shared_ptr<AppBase>> launch_nodes(const std::vector<taraxa::FullNodeConfig>& cfgs);
+  std::vector<std::shared_ptr<AppBase>> launch_nodes(std::vector<TestConfig>& cfgs);
+  std::vector<std::shared_ptr<AppBase>> launch_nodes(const std::vector<FullNodeConfig>& cfgs);
 
   std::vector<taraxa::FullNodeConfig> node_cfgs;
 };
