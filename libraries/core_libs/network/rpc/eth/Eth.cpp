@@ -501,11 +501,11 @@ class EthImpl : public Eth, EthParams {
     return ret;
   }
 
-  static optional<EthBlockNumber> parse_blk_num_specific(const string& blk_num_str) {
+  optional<EthBlockNumber> parse_blk_num_specific(const string& blk_num_str) {
     if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str == "safe" || blk_num_str == "finalized") {
       return std::nullopt;
     }
-    return blk_num_str == "earliest" ? 0 : jsToInt(blk_num_str);
+    return blk_num_str == "earliest" ? get_earliest_block() : jsToInt(blk_num_str);
   }
 
   EthBlockNumber parse_blk_num(const string& blk_num_str) {

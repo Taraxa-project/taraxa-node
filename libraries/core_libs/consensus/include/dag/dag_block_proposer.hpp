@@ -33,6 +33,24 @@ class FinalChain;
  */
 class DagBlockProposer {
  public:
+  struct NodeDagProposerData {
+    NodeDagProposerData(const WalletConfig& wallet, const uint16_t max_tries, const uint16_t shard)
+        : wallet(wallet),
+          max_num_tries(max_tries + (wallet.node_addr[0] % (10 * max_tries))),
+          trx_shard(std::stoull(wallet.node_addr.toString().substr(0, 6).c_str(), NULL, 16) % shard) {}
+
+    const WalletConfig wallet;
+
+    // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
+    // This will make stale block be proposed after waiting random interval between 2 and 20 seconds
+    const uint16_t max_num_tries;
+    const uint16_t trx_shard;
+
+    uint16_t num_tries{0};
+    uint64_t last_propose_level{0};
+  };
+
+ public:
   DagBlockProposer(const FullNodeConfig& config, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
                    std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager);
@@ -54,10 +72,11 @@ class DagBlockProposer {
 
   /**
    * @brief Tries to propose new dag block
+   * @param node_dag_proposer_data data for the node proposing the block
    *
    * @return true if successfully proposed, otherwise false
    */
-  bool proposeDagBlock();
+  bool proposeDagBlock(const std::shared_ptr<NodeDagProposerData>& node_dag_proposer_data);
 
   /**
    * @brief Sets network
@@ -89,18 +108,21 @@ class DagBlockProposer {
    * @param trxs transactions to be included in the block
    * @param estimations transactions gas estimation
    * @param vdf vdf with correct difficulty calculation
+   * @param node_secret
    */
   std::shared_ptr<DagBlock> createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
-                                           std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const;
+                                           std::vector<uint64_t>&& estimations, VdfSortition&& vdf,
+                                           const dev::Secret& node_secret) const;
 
   /**
    * @brief Gets transactions to include in the block - sharding not supported yet
    * @param proposal_period proposal period
    * @param weight_limit weight limit
+   * @param node_trx_shard
    * @return transactions and weight estimations
    */
-  std::pair<SharedTransactions, std::vector<uint64_t>> getShardedTrxs(PbftPeriod proposal_period,
-                                                                      uint64_t weight_limit) const;
+  std::pair<SharedTransactions, std::vector<uint64_t>> getShardedTrxs(PbftPeriod proposal_period, uint64_t weight_limit,
+                                                                      const uint16_t node_trx_shard) const;
 
   /**
    * @brief Gets current propose level for provided pivot and tips
@@ -113,35 +135,31 @@ class DagBlockProposer {
   /**
    * @brief Checks if node is valid proposer for provided level
    * @param level level of the new block
+   * @param node_addr
    * @return true if eligible to propose
    */
-  bool isValidDposProposer(PbftPeriod propose_period) const;
+  bool isValidDposProposer(PbftPeriod propose_period, const addr_t& node_addr) const;
 
  private:
-  uint16_t max_num_tries_{20};  // Wait 2000(ms)
-  uint16_t num_tries_{0};
-  uint64_t last_propose_level_{0};
+  const uint16_t max_num_tries_{20};  // Wait 2000(ms)
+                                      //  uint16_t num_tries_{0};
+                                      //  uint64_t last_propose_level_{0};
   util::ThreadPool executor_{1};
 
   std::atomic<uint64_t> proposed_blocks_count_{0};
   std::atomic<bool> stopped_{true};
 
-  const DagBlockProposerConfig bp_config_;
   const uint16_t total_trx_shards_;
-  uint16_t my_trx_shard_;
 
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<std::thread> proposer_worker_;
+  std::vector<std::thread> proposer_workers_;
   std::weak_ptr<Network> network_;
 
-  const addr_t node_addr_;
-  const secret_t node_sk_;
-  const vrf_wrapper::vrf_sk_t vrf_sk_;
-  const vrf_wrapper::vrf_pk_t vrf_pk_;
+  std::vector<std::shared_ptr<NodeDagProposerData>> nodes_dag_proposers_data_;
 
   const uint64_t kDagProposeGasLimit;
   const uint64_t kPbftGasLimit;
@@ -149,6 +167,7 @@ class DagBlockProposer {
 
   const HardforksConfig kHardforks;
   const uint64_t kValidatorMaxVote;
+  const uint64_t kShardProposePeriodInterval = 10;
 
   LOG_OBJECTS_DEFINE
 };

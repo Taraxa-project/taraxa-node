@@ -382,14 +382,14 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   // Verify selection is up to kDagBlockMaxTips and unique proposer has priority
   propose_level = 1;
   period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
-  vdf = vdf_sortition::VdfSortition(vdf_config, node_cfgs[0].vrf_secret,
+  vdf = vdf_sortition::VdfSortition(vdf_config, node_cfgs[0].getFirstWallet().vrf_secret,
                                     VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
 
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
   vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
   auto blk = std::make_shared<DagBlock>(dag_genesis, propose_level, vec_blk_t{}, vec_trx_t{trxs[0]->getHash()}, 100000,
-                                        vdf, node_cfgs[1].node_secret);
+                                        vdf, node_cfgs[1].getFirstWallet().node_secret);
   dag_blocks_hashes.push_back(blk->getHash());
   EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trxs[0]}).first);
 
@@ -417,8 +417,8 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   const size_t count = 5;
   const auto proposal_period = node->getFinalChain()->lastBlockNumber();
   for (size_t i = 0; i <= count; ++i) {
-    auto create_trx = std::make_shared<Transaction>(i + 1, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
-                                                    node->getSecretKey());
+    auto create_trx = std::make_shared<Transaction>(i + 1, 100, 1000000000, 200001,
+                                                    dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx->getHash());

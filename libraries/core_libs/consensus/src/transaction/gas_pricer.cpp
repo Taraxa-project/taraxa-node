@@ -1,15 +1,19 @@
 #include "transaction/gas_pricer.hpp"
 
 #include "storage/storage.hpp"
+#include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
 
-GasPricer::GasPricer(const GenesisConfig& config, bool is_light_node, std::shared_ptr<DbStorage> db)
+GasPricer::GasPricer(const GenesisConfig& config, bool is_light_node, bool is_blocks_gas_pricer,
+                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db)
     : kPercentile(config.gas_price.percentile),
       kMinimumPrice(config.state.hardforks.soleirolia_hf.trx_min_gas_price),
       kIsLightNode(is_light_node),
       latest_price_(kMinimumPrice),
-      price_list_(config.gas_price.blocks) {
+      price_list_(config.gas_price.blocks),
+      kBlocksGasPricer(is_blocks_gas_pricer),
+      trx_mgr_(std::move(trx_mgr)) {
   assert(kPercentile <= 100);
   if (db) {
     init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(db_); });
@@ -21,11 +25,16 @@ GasPricer::~GasPricer() {
 }
 
 u256 GasPricer::bid() const {
-  std::shared_lock lock(mutex_);
-  return std::max(latest_price_, kMinimumPrice);
+  if (kBlocksGasPricer) {
+    std::shared_lock lock(mutex_);
+    return std::max(latest_price_, kMinimumPrice);
+  } else {
+    return std::max(trx_mgr_->getMinGasPriceForBlockInclusion(), kMinimumPrice);
+  }
 }
 
 void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
+  if (!kBlocksGasPricer) return;
   const auto last_blk_num =
       db->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DbStorage::Columns::final_chain_meta);
   if (!last_blk_num || *last_blk_num == 0) return;
@@ -70,7 +79,7 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
 }
 
 void GasPricer::update(const SharedTransactions& trxs) {
-  if (trxs.empty()) return;
+  if (!kBlocksGasPricer || trxs.empty()) return;
 
   if (const auto min_trx =
           *std::min_element(trxs.begin(), trxs.end(),

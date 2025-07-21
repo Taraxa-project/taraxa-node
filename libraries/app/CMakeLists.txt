@@ -12,6 +12,7 @@ target_link_libraries(app PUBLIC
     common
     core_libs
     rpc_plugin
+    light_plugin
 )
 
 install(TARGETS app

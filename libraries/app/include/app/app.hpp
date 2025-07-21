@@ -28,6 +28,7 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   App& operator=(App&&) = delete;
   void init(const cli::Config& cli_conf);
   void start();
+  FullNodeConfig& getMutableConfig() { return conf_; }
   const FullNodeConfig& getConfig() const { return conf_; }
   std::shared_ptr<Network> getNetwork() const { return network_; }
   std::shared_ptr<TransactionManager> getTransactionManager() const { return trx_mgr_; }
@@ -42,8 +43,6 @@ class App : public std::enable_shared_from_this<App>, public AppBase {
   std::shared_ptr<DagBlockProposer> getDagBlockProposer() const { return dag_block_proposer_; }
   std::shared_ptr<GasPricer> getGasPricer() const { return gas_pricer_; }
   std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const { return pillar_chain_mgr_; }
-
-  const dev::Address& getAddress() const { return kp_->address(); }
 
   void rebuildDb();
 

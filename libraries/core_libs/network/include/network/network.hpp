@@ -27,11 +27,11 @@ class PacketHandler;
 class Network {
  public:
   Network(const FullNodeConfig &config, const h256 &genesis_hash, const std::filesystem::path &network_file_path,
-          const dev::KeyPair &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-          std::shared_ptr<SlashingManager> slashing_manager,
-          std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr);
+          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<SlashingManager> slashing_manager,
+          std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr,
+          std::shared_ptr<final_chain::FinalChain> final_chain);
 
   ~Network();
   Network(const Network &) = delete;
@@ -104,9 +104,6 @@ class Network {
  private:
   // Node config
   const FullNodeConfig &kConf;
-
-  // Node public key
-  const dev::Public pub_key_;
 
   // Packets stats per time period
   std::shared_ptr<network::tarcap::TimePeriodPacketsStats> all_packets_stats_;

@@ -23,7 +23,7 @@ class TaraxaConan(ConanFile):
         self.requires("rocksdb/9.10.0")
         self.requires("prometheus-cpp/1.3.0")
         self.requires("jsoncpp/1.9.6")
-        self.requires("mpfr/4.2.1")
+        self.requires("mpfr/4.2.2")
         self.requires("gmp/6.3.0")
         self.requires("rapidjson/1.1.0")
 

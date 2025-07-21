@@ -32,50 +32,44 @@ std::string getConfigDataAsString(const Json::Value &root, const std::vector<std
                                   const std::string &value) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
-    if (ret.isNull()) {
-      return value;
-    } else {
+    if (!ret.isNull()) {
       return ret.asString();
     }
   } catch (Json::Exception &e) {
-    if (optional) {
-      return value;
+    if (!optional) {
+      throw ConfigException(getConfigErr(path) + e.what());
     }
-    throw ConfigException(getConfigErr(path) + e.what());
   }
+  return value;
 }
 
 uint64_t getConfigDataAsUInt(const Json::Value &root, const std::vector<std::string> &path, bool optional,
                              uint32_t value) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
-    if (ret.isNull()) {
-      return value;
-    } else {
+    if (!ret.isNull()) {
       return dev::getUInt(ret);
     }
   } catch (Json::Exception &e) {
-    if (optional) {
-      return value;
+    if (!optional) {
+      throw ConfigException(getConfigErr(path) + e.what());
     }
-    throw ConfigException(getConfigErr(path) + e.what());
   }
+  return value;
 }
 
 bool getConfigDataAsBoolean(const Json::Value &root, const std::vector<std::string> &path, bool optional, bool value) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
-    if (ret.isNull()) {
-      return value;
-    } else {
+    if (!ret.isNull()) {
       return ret.asBool();
     }
   } catch (Json::Exception &e) {
-    if (optional) {
-      return value;
+    if (!optional) {
+      throw ConfigException(getConfigErr(path) + e.what());
     }
-    throw ConfigException(getConfigErr(path) + e.what());
   }
+  return value;
 }
 
 Json::Value getJsonFromFileOrString(const Json::Value &value) {

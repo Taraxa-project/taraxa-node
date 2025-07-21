@@ -19,7 +19,7 @@ TEST_F(RPCTest, eth_estimateGas) {
   eth_rpc_params.final_chain = nodes.front()->getFinalChain();
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
-  const auto from = dev::toHex(dev::toAddress(node_cfg.front().node_secret));
+  const auto from = dev::toHex(dev::toAddress(node_cfg.front().getFirstWallet().node_secret));
   auto check_estimation_is_in_range = [&](const Json::Value& trx, const std::string& e) {
     auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(trx, ""));
     auto expected = dev::jsToInt(e);
@@ -244,7 +244,7 @@ TEST_F(RPCTest, eip_1898) {
   eth_rpc_params.final_chain = nodes.front()->getFinalChain();
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
-  const auto from = dev::toHex(dev::toAddress(node_cfg.front().node_secret));
+  const auto from = dev::toHex(dev::toAddress(node_cfg.front().getFirstWallet().node_secret));
 
   Json::Value zero_block(Json::objectValue);
   zero_block["blockNumber"] = dev::toJS(0);
@@ -257,8 +257,8 @@ TEST_F(RPCTest, eip_1898) {
 
 TEST_F(RPCTest, transaction_json) {
   auto nonce = 0;
-  auto trx = std::make_shared<Transaction>(nonce, 100, 1, 100000, dev::bytes(), dev::KeyPair::create().secret(),
-                                           dev::KeyPair::create().address(), 841);
+  auto trx = std::make_shared<Transaction>(nonce, 100, 1000000000, 100000, dev::bytes(),
+                                           dev::KeyPair::create().secret(), dev::KeyPair::create().address(), 841);
   const auto loc = net::rpc::eth::TransactionLocationWithBlockHash{TransactionLocation{1, 1}, h256(123)};
   const auto json = toJson(*trx, loc);
 

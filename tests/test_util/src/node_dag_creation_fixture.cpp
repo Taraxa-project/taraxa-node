@@ -21,7 +21,7 @@ void NodeDagCreationFixture::makeNodeFromConfig(std::vector<FullNodeConfig> cfgs
   modifyConfig(cfgs.front());
   node = create_nodes(cfgs, start).front();
 
-  auto trx = std::make_shared<Transaction>(nonce, 1000000, 0, TEST_TX_GAS_LIMIT, bytes(), node->getSecretKey(),
+  auto trx = std::make_shared<Transaction>(nonce, 1000000, 1000000000, TEST_TX_GAS_LIMIT, bytes(), node->getSecretKey(),
                                            dummy.address());
   auto [ok, _] = node->getTransactionManager()->insertTransaction(trx);
   ASSERT_TRUE(ok);
@@ -31,16 +31,16 @@ void NodeDagCreationFixture::makeNodeFromConfig(std::vector<FullNodeConfig> cfgs
 uint32_t NodeDagCreationFixture::getInitialDagSize() { return node->getConfig().max_levels_per_period; }
 
 void NodeDagCreationFixture::dummyTransaction() {
-  auto trx =
-      std::make_shared<Transaction>(dummy_nonce, 1, 0, TEST_TX_GAS_LIMIT, bytes(), dummy.secret(), node->getAddress());
+  auto trx = std::make_shared<Transaction>(dummy_nonce, 1, 1000000000, TEST_TX_GAS_LIMIT, bytes(), dummy.secret(),
+                                           node->getAddress());
   auto [ok, m] = node->getTransactionManager()->insertTransaction(trx);
   ASSERT_TRUE(ok);
   dummy_nonce++;
 }
 
 void NodeDagCreationFixture::deployContract() {
-  auto trx = std::make_shared<Transaction>(nonce, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(samples::greeter_contract_code),
-                                           node->getSecretKey());
+  auto trx = std::make_shared<Transaction>(nonce, 0, 1000000000, TEST_TX_GAS_LIMIT,
+                                           dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
   auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx);
   ASSERT_TRUE(ok);
   nonce++;
@@ -76,7 +76,7 @@ SharedTransactions NodeDagCreationFixture::makeTransactions(uint32_t count) {
   auto _nonce = nonce;
   for (auto i = _nonce; i < _nonce + count; ++i) {
     result.emplace_back(
-        std::make_shared<Transaction>(i, 11, 0, TEST_TX_GAS_LIMIT,
+        std::make_shared<Transaction>(i, 11, 1000000000, TEST_TX_GAS_LIMIT,
                                       // setGreeting("Hola")
                                       dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
                                                    "00000000000000200000000000000000000000000000000000000000000"

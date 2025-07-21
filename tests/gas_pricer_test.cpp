@@ -2,28 +2,17 @@
 
 #include <gtest/gtest.h>
 
+#include "config/config.hpp"
+#include "test_util/test_util.hpp"
+
 namespace taraxa::core_tests {
-
-// Do not use NodesTest from "test_util/gtest.hpp" as its functionality is not needed in this test
-struct NodesTest : virtual testing::Test {
-  testing::UnitTest* current_test = ::testing::UnitTest::GetInstance();
-  testing::TestInfo const* current_test_info = current_test->current_test_info();
-
-  NodesTest() = default;
-  virtual ~NodesTest() = default;
-
-  NodesTest(const NodesTest&) = delete;
-  NodesTest(NodesTest&&) = delete;
-  NodesTest& operator=(const NodesTest&) = delete;
-  NodesTest& operator=(NodesTest&&) = delete;
-};
 
 struct GasPricerTest : NodesTest {};
 
 const auto secret = secret_t::random();
 
 TEST_F(GasPricerTest, basic_test) {
-  GasPricer gp(GenesisConfig{});
+  GasPricer gp(GenesisConfig{}, false, true);
   EXPECT_EQ(gp.bid(), 1);
 
   gp.update({std::make_shared<Transaction>(0, 0, 1 /*gas_price*/, 0, bytes(), secret)});
@@ -42,6 +31,22 @@ TEST_F(GasPricerTest, basic_test) {
   EXPECT_EQ(gp.bid(), 3);
 }
 
+TEST_F(GasPricerTest, basic_test_with_trx_pool) {
+  TransactionQueue priority_queue(nullptr);
+  auto trx = std::make_shared<Transaction>(1, 0, 2 /*gas_price*/, 100000, bytes(), secret);
+  priority_queue.insert(std::move(trx), true, 1);
+
+  EXPECT_EQ(priority_queue.getMinGasPriceForBlockInclusion(90000), 3);
+  EXPECT_EQ(priority_queue.getMinGasPriceForBlockInclusion(110000), 1);
+
+  auto trx2 = std::make_shared<Transaction>(2, 0, 3 /*gas_price*/, 200000, bytes(), secret);
+  priority_queue.insert(std::move(trx2), true, 1);
+  EXPECT_EQ(priority_queue.getMinGasPriceForBlockInclusion(190000), 4);
+  EXPECT_EQ(priority_queue.getMinGasPriceForBlockInclusion(210000), 3);
+  EXPECT_EQ(priority_queue.getMinGasPriceForBlockInclusion(290000), 3);
+  EXPECT_EQ(priority_queue.getMinGasPriceForBlockInclusion(310000), 1);
+}
+
 TEST_F(GasPricerTest, random_test) {
   std::srand(std::time(nullptr));
 
@@ -50,7 +55,7 @@ TEST_F(GasPricerTest, random_test) {
   config.gas_price.blocks = 100 + std::rand() % 200;
   config.gas_price.minimum_price = 0;
 
-  GasPricer gp(config);
+  GasPricer gp(config, false, true);
 
   std::vector<size_t> prices;
   prices.reserve(config.gas_price.blocks);

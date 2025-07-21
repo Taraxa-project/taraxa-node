@@ -160,7 +160,6 @@ struct HardforksConfig {
   // Soleirolia hf - increase trx gas minimum price
   //               - limit max trx gas
   SoleiroliaHardforkConfig soleirolia_hf;
-  bool isOnSoleiroliaHardfork(uint64_t block_number) const { return block_number >= soleirolia_hf.block_num; }
 
   HAS_RLP_FIELDS
 };

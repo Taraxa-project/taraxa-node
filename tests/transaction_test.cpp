@@ -23,7 +23,6 @@ auto g_secret = Lazy([] {
   return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                      dev::Secret::ConstructFromStringType::FromHex);
 });
-auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(1, NUM_TRX, g_secret); });
 
 struct TransactionTest : NodesTest {};
@@ -214,7 +213,8 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   final_chain->finalize(std::move(period_data), {dag_blk->getHash()}).get();
 
   // Verify low nonce transaction is detected in verification
-  auto low_nonce_trx = std::make_shared<Transaction>(1, 101, 0, 100000, dev::bytes(), g_secret, addr_t::random());
+  auto low_nonce_trx =
+      std::make_shared<Transaction>(1, 101, 1000000000, 100000, dev::bytes(), g_secret, addr_t::random());
   auto result = trx_mgr.verifyTransaction(low_nonce_trx);
   EXPECT_EQ(result.first, true);
   EXPECT_FALSE(trx_mgr.insertTransaction(low_nonce_trx).first);
@@ -229,8 +229,8 @@ TEST_F(TransactionTest, transaction_low_nonce) {
 
   // Verify insufficient balance transaction is detected in verification
   auto trx_insufficient_balance =
-      std::make_shared<Transaction>(3, final_chain->getAccount(dev::toAddress(g_secret))->balance + 1, 0, 100000,
-                                    dev::bytes(), g_secret, addr_t::random());
+      std::make_shared<Transaction>(3, final_chain->getAccount(dev::toAddress(g_secret))->balance + 1, 1000000000,
+                                    100000, dev::bytes(), g_secret, addr_t::random());
   result = trx_mgr.verifyTransaction(trx_insufficient_balance);
   EXPECT_EQ(result.first, true);
   EXPECT_FALSE(trx_mgr.insertTransaction(trx_insufficient_balance).first);
@@ -473,7 +473,7 @@ SharedTransactions generateRandomOrderTransactions(uint32_t size) {
     kpv.push_back(dev::KeyPair::create());
   }
   for (uint32_t i = 0; i < size; ++i) {
-    trxs.emplace_back(std::make_shared<Transaction>(dist10(rng), 100, 21000 + dist10(rng), 100000, dev::bytes(),
+    trxs.emplace_back(std::make_shared<Transaction>(dist10(rng), 100, 1000000000, 100000, dev::bytes(),
                                                     kpv[dist10(rng)].secret(), addr_t::random()));
   }
   return trxs;
@@ -577,7 +577,7 @@ TEST_F(TransactionTest, priority_queue_ordering_eth_test) {
 
   for (auto start = 0; start < 25; start++) {
     for (auto i = 0; i <= 25; ++i) {
-      trxs.emplace_back(std::make_shared<Transaction>((val_t)(start + i), 100, 21000 + start + i, 100000, dev::bytes(),
+      trxs.emplace_back(std::make_shared<Transaction>((val_t)(start + i), 100, 1000000000, 100000, dev::bytes(),
                                                       kpv[start].secret(), addr_t::random()));
     }
   }
@@ -653,13 +653,13 @@ TEST_F(TransactionTest, zero_gas_price_limit) {
 
   // OK: gas_price == minimum_price
   {
-    auto res = trx_mgr.insertTransaction(make_trx_with_price(0));
+    auto res = trx_mgr.insertTransaction(make_trx_with_price(1000000000));
     ASSERT_TRUE(res.first);
   }
 
   // OK: gas_price > minimum_price
   {
-    auto res = trx_mgr.insertTransaction(make_trx_with_price(1));
+    auto res = trx_mgr.insertTransaction(make_trx_with_price(1000000001));
     ASSERT_TRUE(res.first);
   }
 }
@@ -667,7 +667,7 @@ TEST_F(TransactionTest, zero_gas_price_limit) {
 TEST_F(TransactionTest, gas_price_limiting) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = node_cfgs.front();
-  auto minimum_price = cfg.genesis.gas_price.minimum_price = 10;
+  auto minimum_price = cfg.genesis.state.hardforks.soleirolia_hf.trx_min_gas_price = 10;
   auto final_chain = std::make_shared<final_chain::FinalChain>(db, cfg, addr_t{});
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   auto make_trx_with_price = [](uint64_t price) {

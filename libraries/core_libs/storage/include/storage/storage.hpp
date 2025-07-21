@@ -150,6 +150,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   };
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
+
+  void DeleteRange(const Column& col, uint64_t begin, uint64_t end);
+  void CompactRange(const Column& col, uint64_t begin, uint64_t end);
   rocksdb::ReadOptions read_options_;
 
   rocksdb::WriteOptions async_write_;
@@ -170,6 +173,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::atomic<bool> snapshots_enabled_ = true;
   const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
+  uint64_t earliest_block_number_ = 0;
 
   uint32_t kMajorVersion_;
   bool major_version_changed_ = false;
@@ -224,7 +228,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep, PbftPeriod last_block_number);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PeriodData> getPeriodData(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
@@ -233,6 +236,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   SharedTransactions transactionsFromPeriodDataRlp(PbftPeriod period, const dev::RLP& period_data_rlp) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
   std::vector<std::shared_ptr<PillarVote>> getPeriodPillarVotes(PbftPeriod period) const;
+  uint64_t getEarliestBlockNumber() const;
 
   // Pillar chain
   void savePillarBlock(const std::shared_ptr<pillar_chain::PillarBlock>& pillar_block);
@@ -261,6 +265,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Transaction
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash) const;
+  std::shared_ptr<Transaction> getTransaction(PbftPeriod period, uint32_t position) const;
+
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);
@@ -477,6 +483,32 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   template <typename K>
   void remove(Batch& batch, Column const& col, K const& k) {
     checkStatus(batch.Delete(handle(col), toSlice(k)));
+  }
+
+  template <typename K>
+  void remove(Batch& batch, Column const& col, std::unordered_set<K> const& keys) {
+    for (auto const& k : keys) {
+      checkStatus(batch.Delete(handle(col), toSlice(k)));
+    }
+  }
+
+  template <typename T>
+  void clearColumnHistory(std::unordered_set<T>& to_keep, Column c) {
+    std::map<T, bytes> data_to_keep;
+    for (auto t : to_keep) {
+      auto raw = asBytes(lookup(t, c));
+      if (!raw.empty()) {
+        data_to_keep[t] = raw;
+      }
+    }
+
+    deleteColumnData(c);
+    auto batch = createWriteBatch();
+    for (auto data : data_to_keep) {
+      insert(batch, c, data.first, data.second);
+    }
+    commitWriteBatch(batch);
+    data_to_keep.clear();
   }
 
   void forEach(Column const& col, OnEntry const& f);

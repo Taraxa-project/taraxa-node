@@ -17,7 +17,7 @@ struct PbftChainTest : NodesTest {};
 
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   auto node_cfgs = make_node_cfgs(1);
-  dev::Secret sk(node_cfgs[0].node_secret);
+  dev::Secret sk(node_cfgs[0].getFirstWallet().node_secret);
   // Generate PBFT block sample
   blk_hash_t prev_block_hash(12345);
   blk_hash_t dag_block_hash_as_pivot(45678);

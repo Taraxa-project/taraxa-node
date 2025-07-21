@@ -3,6 +3,7 @@
 #include <functional>
 #include <map>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <unordered_map>
 #include <vector>
@@ -121,13 +122,19 @@ class ValueByBlockCache {
     }
   }
 
+  std::optional<Value> getFromCache(uint64_t block_num) const {
+    std::shared_lock lock(mutex_);
+    auto blk_entry = data_by_block_.find(block_num);
+    if (blk_entry != data_by_block_.end()) {
+      return blk_entry->second;
+    }
+    return {};
+  }
+
   Value get(uint64_t block_num) const {
-    {
-      std::shared_lock lock(mutex_);
-      auto blk_entry = data_by_block_.find(block_num);
-      if (blk_entry != data_by_block_.end()) {
-        return blk_entry->second;
-      }
+    auto blk_entry = getFromCache(block_num);
+    if (blk_entry) {
+      return *blk_entry;
     }
 
     auto value = getter_fn_(block_num);

@@ -62,9 +62,3 @@ class Event : virtual EventEmitter<Payload>, public virtual EventSubscriber<Payl
 };
 
 }  // namespace taraxa::util::event
-
-namespace taraxa::util {
-using event::Event;
-using event::EventEmitter;
-using event::EventSubscriber;
-}  // namespace taraxa::util

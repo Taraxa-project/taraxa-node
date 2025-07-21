@@ -120,7 +120,6 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.unclesHash(), EmptyRLPListSHA3());
     EXPECT_TRUE(!blk_h.state_root.isZero());
     LogBloom expected_block_log_bloom;
-    std::unordered_map<addr_t, u256> expected_balance_changes;
     std::unordered_set<addr_t> all_addrs_w_changed_balance;
     uint64_t cumulative_gas_used_actual = 0;
     for (size_t i = 0; i < trxs.size(); ++i) {
@@ -131,19 +130,15 @@ struct FinalChainTest : WithDataDir {
       }
       EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transactionReceipt(blk_h.number, i)));
       cumulative_gas_used_actual += r.gas_used;
-      if (assume_only_toplevel_transfers && trx->getValue() != 0 && r.status_code == 1) {
+      if (assume_only_toplevel_transfers) {
         const auto& sender = trx->getSender();
-        expected_balances[sender] -= trx->getValue();
         expected_balances[sender] -= r.gas_used * trx->getGasPrice();
-        const auto& receiver = !trx->getReceiver() ? *r.new_contract_address : *trx->getReceiver();
         all_addrs_w_changed_balance.insert(sender);
-        all_addrs_w_changed_balance.insert(receiver);
-        expected_balances[receiver] += trx->getValue();
-        if (SUT->getAccount(sender)->code_size == 0) {
-          expected_balance_changes[sender] = expected_balances[sender];
-        }
-        if (SUT->getAccount(receiver)->code_size == 0) {
-          expected_balance_changes[receiver] = expected_balances[receiver];
+        const auto& receiver = !trx->getReceiver() ? *r.new_contract_address : *trx->getReceiver();
+        if (r.status_code == 1) {
+          expected_balances[sender] -= trx->getValue();
+          all_addrs_w_changed_balance.insert(receiver);
+          expected_balances[receiver] += trx->getValue();
         }
       }
       if (opts.expect_to_fail) {
@@ -213,7 +208,8 @@ TEST_F(FinalChainTest, contract) {
   cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   init();
   auto nonce = 0;
-  auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+  auto trx =
+      std::make_shared<Transaction>(nonce++, 0, 1000000000, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
   auto result = advance({trx});
   auto contract_addr = result->trx_receipts[0].new_contract_address;
   std::cout << "contract_addr " << contract_addr->toString() << std::endl;
@@ -221,7 +217,7 @@ TEST_F(FinalChainTest, contract) {
   auto greet = [&] {
     auto ret = SUT->call({
         addr,
-        0,
+        1000000000,
         contract_addr,
         0,
         0,
@@ -238,7 +234,7 @@ TEST_F(FinalChainTest, contract) {
             "656c6c6f000000000000000000000000000000000000000000000000000000");
   {
     advance({
-        std::make_shared<Transaction>(nonce++, 11, 0, 1000000,
+        std::make_shared<Transaction>(nonce++, 11, 1000000000, 1000000,
                                       // setGreeting("Hola")
                                       dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
                                                    "00000000000000200000000000000000000000000000000000000000000"
@@ -270,29 +266,29 @@ TEST_F(FinalChainTest, coin_transfers) {
 
   constexpr auto TRX_GAS = 100000;
   advance({
-      std::make_shared<Transaction>(1, 13, 0, TRX_GAS, dev::bytes(), keys[0].secret(), keys[1].address()),
-      std::make_shared<Transaction>(1, 11300, 0, TRX_GAS, dev::bytes(), keys[1].secret(), keys[1].address()),
-      std::make_shared<Transaction>(1, 1040, 0, TRX_GAS, dev::bytes(), keys[2].secret(), keys[1].address()),
+      std::make_shared<Transaction>(1, 13, 1000000000, TRX_GAS, dev::bytes(), keys[0].secret(), keys[1].address()),
+      std::make_shared<Transaction>(1, 11300, 1000000000, TRX_GAS, dev::bytes(), keys[1].secret(), keys[1].address()),
+      std::make_shared<Transaction>(1, 1040, 1000000000, TRX_GAS, dev::bytes(), keys[2].secret(), keys[1].address()),
   });
   advance({});
   advance({
-      std::make_shared<Transaction>(1, 0, 0, TRX_GAS, dev::bytes(), keys[3].secret(), keys[1].address()),
-      std::make_shared<Transaction>(1, 131, 0, TRX_GAS, dev::bytes(), keys[4].secret(), keys[1].address()),
+      std::make_shared<Transaction>(1, 0, 1000000000, TRX_GAS, dev::bytes(), keys[3].secret(), keys[1].address()),
+      std::make_shared<Transaction>(1, 131, 1000000000, TRX_GAS, dev::bytes(), keys[4].secret(), keys[1].address()),
   });
   advance({
-      std::make_shared<Transaction>(2, 100441, 0, TRX_GAS, dev::bytes(), keys[0].secret(), keys[1].address()),
-      std::make_shared<Transaction>(2, 2300, 0, TRX_GAS, dev::bytes(), keys[1].secret(), keys[1].address()),
-      std::make_shared<Transaction>(2, 130, 0, TRX_GAS, dev::bytes(), keys[2].secret(), keys[1].address()),
+      std::make_shared<Transaction>(2, 100441, 1000000000, TRX_GAS, dev::bytes(), keys[0].secret(), keys[1].address()),
+      std::make_shared<Transaction>(2, 2300, 1000000000, TRX_GAS, dev::bytes(), keys[1].secret(), keys[1].address()),
+      std::make_shared<Transaction>(2, 130, 1000000000, TRX_GAS, dev::bytes(), keys[2].secret(), keys[1].address()),
   });
   advance({});
   advance({
-      std::make_shared<Transaction>(2, 100431, 0, TRX_GAS, dev::bytes(), keys[3].secret(), keys[1].address()),
-      std::make_shared<Transaction>(2, 13411, 0, TRX_GAS, dev::bytes(), keys[4].secret(), keys[1].address()),
-      std::make_shared<Transaction>(3, 130, 0, TRX_GAS, dev::bytes(), keys[0].secret(), keys[1].address()),
-      std::make_shared<Transaction>(3, 343434, 0, TRX_GAS, dev::bytes(), keys[1].secret(), keys[1].address()),
-      std::make_shared<Transaction>(3, 131313, 0, TRX_GAS, dev::bytes(), keys[2].secret(), keys[1].address()),
-      std::make_shared<Transaction>(3, 143430, 0, TRX_GAS, dev::bytes(), keys[3].secret(), keys[1].address()),
-      std::make_shared<Transaction>(3, 1313145, 0, TRX_GAS, dev::bytes(), keys[4].secret(), keys[1].address()),
+      std::make_shared<Transaction>(2, 100431, 1000000000, TRX_GAS, dev::bytes(), keys[3].secret(), keys[1].address()),
+      std::make_shared<Transaction>(2, 13411, 1000000000, TRX_GAS, dev::bytes(), keys[4].secret(), keys[1].address()),
+      std::make_shared<Transaction>(3, 130, 1000000000, TRX_GAS, dev::bytes(), keys[0].secret(), keys[1].address()),
+      std::make_shared<Transaction>(3, 343434, 1000000000, TRX_GAS, dev::bytes(), keys[1].secret(), keys[1].address()),
+      std::make_shared<Transaction>(3, 131313, 1000000000, TRX_GAS, dev::bytes(), keys[2].secret(), keys[1].address()),
+      std::make_shared<Transaction>(3, 143430, 1000000000, TRX_GAS, dev::bytes(), keys[3].secret(), keys[1].address()),
+      std::make_shared<Transaction>(3, 1313145, 1000000000, TRX_GAS, dev::bytes(), keys[4].secret(), keys[1].address()),
   });
 }
 
@@ -326,13 +322,13 @@ TEST_F(FinalChainTest, nonce_test) {
   const auto& sk = sender_keys.secret();
   const auto receiver_addr = dev::KeyPair::create().address();
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   init();
 
-  auto trx1 = std::make_shared<Transaction>(0, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx2 = std::make_shared<Transaction>(1, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx3 = std::make_shared<Transaction>(2, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx4 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx1 = std::make_shared<Transaction>(0, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx2 = std::make_shared<Transaction>(1, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx3 = std::make_shared<Transaction>(2, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx4 = std::make_shared<Transaction>(3, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
 
   advance({trx1});
   advance({trx2});
@@ -342,13 +338,13 @@ TEST_F(FinalChainTest, nonce_test) {
   ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 4);
 
   // nonce_skipping is enabled, ok
-  auto trx6 = std::make_shared<Transaction>(6, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx6 = std::make_shared<Transaction>(6, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
   advance({trx6});
 
   ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 7);
 
   // nonce is lower, fail
-  auto trx5 = std::make_shared<Transaction>(5, 101, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx5 = std::make_shared<Transaction>(5, 101, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
   advance({trx5}, {false, false, true});
 }
 
@@ -358,13 +354,13 @@ TEST_F(FinalChainTest, nonce_skipping) {
   const auto& sk = sender_keys.secret();
   const auto receiver_addr = dev::KeyPair::create().address();
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   init();
 
-  auto trx1 = std::make_shared<Transaction>(0, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx2 = std::make_shared<Transaction>(1, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx3 = std::make_shared<Transaction>(2, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx4 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx1 = std::make_shared<Transaction>(0, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx2 = std::make_shared<Transaction>(1, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx3 = std::make_shared<Transaction>(2, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx4 = std::make_shared<Transaction>(3, 100, 1000000000, 100000, dev::bytes(), sk, receiver_addr);
 
   advance({trx1});
   ASSERT_EQ(SUT->getAccount(addr)->nonce.convert_to<uint64_t>(), 1);
@@ -389,24 +385,26 @@ TEST_F(FinalChainTest, exec_trx_with_nonce_from_api) {
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   init();
 
   // exec trx with nonce 5 to skip some
   auto nonce = 5;
   {
-    auto trx = std::make_shared<Transaction>(nonce, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto trx =
+        std::make_shared<Transaction>(nonce, 0, 1000000000, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
     auto result = advance({trx});
   }
   // fail second trx with same nonce
   {
-    auto trx = std::make_shared<Transaction>(nonce, 1, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto trx =
+        std::make_shared<Transaction>(nonce, 1, 1000000000, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
     auto result = advance({trx}, {false, false, true});
   }
   auto account = SUT->getAccount(addr);
   ASSERT_EQ(account->nonce, nonce + 1);
-  auto trx =
-      std::make_shared<Transaction>(account->nonce, 1, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+  auto trx = std::make_shared<Transaction>(account->nonce, 1, 1000000000, 1000000,
+                                           dev::fromHex(samples::greeter_contract_code), sk);
   auto result = advance({trx});
 }
 
@@ -437,12 +435,13 @@ TEST_F(FinalChainTest, new_contract_address) {
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   init();
 
   auto nonce = 0;
   {
-    auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto trx =
+        std::make_shared<Transaction>(nonce, 0, 1000000000, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
     auto result = advance({trx});
     auto contract_addr = result->trx_receipts[0].new_contract_address;
     ASSERT_EQ(contract_addr, new_contract_address(trx->getNonce(), addr));
@@ -451,7 +450,8 @@ TEST_F(FinalChainTest, new_contract_address) {
   // skip few transactions, but new contract address should be still correct
   {
     nonce = 5;
-    auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto trx =
+        std::make_shared<Transaction>(nonce, 0, 1000000000, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
     auto result = advance({trx});
     auto contract_addr = result->trx_receipts[0].new_contract_address;
     ASSERT_EQ(contract_addr, new_contract_address(trx->getNonce(), addr));
@@ -460,23 +460,24 @@ TEST_F(FinalChainTest, new_contract_address) {
 
 TEST_F(FinalChainTest, failed_transaction_fee) {
   auto sender_keys = dev::KeyPair::create();
-  auto gas = 30000;
+  const auto gas = 30000;
+  const uint256_t gas_price = 1000000000;
 
   const auto& receiver = dev::KeyPair::create().address();
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances[addr] = gas_price * gas * 4;  //  10 Billion
   init();
-  auto trx1 = std::make_shared<Transaction>(1, 100, 1, gas, dev::bytes(), sk, receiver);
-  auto trx2 = std::make_shared<Transaction>(2, 100, 1, gas, dev::bytes(), sk, receiver);
-  auto trx3 = std::make_shared<Transaction>(3, 100, 1, gas, dev::bytes(), sk, receiver);
-  auto trx2_1 = std::make_shared<Transaction>(2, 101, 1, gas, dev::bytes(), sk, receiver);
+  auto trx1 = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
+  auto trx2 = std::make_shared<Transaction>(2, 100, gas_price, gas, dev::bytes(), sk, receiver);
+  auto trx3 = std::make_shared<Transaction>(3, 100, gas_price, gas, dev::bytes(), sk, receiver);
+  auto trx2_1 = std::make_shared<Transaction>(2, 101, gas_price, gas, dev::bytes(), sk, receiver);
 
   advance({trx1});
   auto blk = SUT->blockHeader(expected_blk_num);
   auto proposer_balance = SUT->getBalance(blk->author);
-  EXPECT_EQ(proposer_balance.first, 21000);
+  EXPECT_EQ(proposer_balance.first, trx1->getGasPrice() * 21000);
   advance({trx2});
   advance({trx3});
 
@@ -493,9 +494,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   {
     // transaction gas is bigger then current account balance. Use closest int as gas used and decrease sender balance
     // by gas_used * gas_price
-    ASSERT_GE(gas, SUT->getAccount(addr)->balance);
+
+    ASSERT_GE(gas * gas_price, SUT->getAccount(addr)->balance);
     auto balance_before = SUT->getAccount(addr)->balance;
-    auto gas_price = 3;
     auto trx4 = std::make_shared<Transaction>(4, 100, gas_price, gas, dev::bytes(), sk, receiver);
     advance({trx4}, {false, false, true});
     auto loc = SUT->transactionLocation(trx4->getHash());
@@ -537,7 +538,8 @@ TEST_F(FinalChainTest, revert_reason) {
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
   auto nonce = 0;
-  auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(test_contract_code), sk);
+  auto trx1 =
+      std::make_shared<Transaction>(nonce++, 0, 1000000000, TEST_TX_GAS_LIMIT, dev::fromHex(test_contract_code), sk);
   auto result = advance({trx1});
   auto test_contract_addr = result->trx_receipts[0].new_contract_address;
   EXPECT_EQ(test_contract_addr, dev::right160(dev::sha3(dev::rlpList(from, 0))));
@@ -556,7 +558,7 @@ TEST_F(FinalChainTest, revert_reason) {
         "00000000000000000000000000000c6172672072657175697265640000000000000000000000000000000000000000\"\n");
 
     auto gas = 100000;
-    auto trx = std::make_shared<Transaction>(2, 0, 1, gas, dev::fromHex(call_data), sk, test_contract_addr);
+    auto trx = std::make_shared<Transaction>(2, 0, 1000000000, gas, dev::fromHex(call_data), sk, test_contract_addr);
     auto result = advance({trx}, {0, 0, 1});
     auto receipt = result->trx_receipts.front();
     ASSERT_EQ(receipt.status_code, 0);  // failed
@@ -617,8 +619,10 @@ TEST_F(FinalChainTest, incorrect_estimation_regress) {
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
   auto nonce = 0;
-  auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(receiver_contract_code), sk);
-  auto trx2 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(sender_contract_code), sk);
+  auto trx1 = std::make_shared<Transaction>(nonce++, 0, 1000000000, TEST_TX_GAS_LIMIT,
+                                            dev::fromHex(receiver_contract_code), sk);
+  auto trx2 =
+      std::make_shared<Transaction>(nonce++, 0, 1000000000, TEST_TX_GAS_LIMIT, dev::fromHex(sender_contract_code), sk);
   auto result = advance({trx1, trx2});
   auto receiver_contract_addr = result->trx_receipts[0].new_contract_address;
   auto sender_contract_addr = result->trx_receipts[1].new_contract_address;
@@ -682,7 +686,8 @@ TEST_F(FinalChainTest, get_logs_multiple_topics) {
 
   auto nonce = 0;
 
-  auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(events_contract_code), sk);
+  auto trx1 =
+      std::make_shared<Transaction>(nonce++, 0, 1000000000, TEST_TX_GAS_LIMIT, dev::fromHex(events_contract_code), sk);
   auto result = advance({trx1});
   auto contract_addr = result->trx_receipts[0].new_contract_address;
 
@@ -693,8 +698,8 @@ TEST_F(FinalChainTest, get_logs_multiple_topics) {
   auto make_call_trx = [&](const std::string& method, const std::vector<uint64_t>& params) {
     auto params_str = std::accumulate(params.begin(), params.end(), std::string(),
                                       [&](const std::string& r, uint64_t p) { return r + to_call_param(p); });
-    return std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(method + params_str), sk,
-                                         contract_addr);
+    return std::make_shared<Transaction>(nonce++, 0, 1000000000, TEST_TX_GAS_LIMIT, dev::fromHex(method + params_str),
+                                         sk, contract_addr);
   };
   auto method1 = "0x110d99ed";
   auto method2 = "0xd6f7f2a1";
@@ -762,11 +767,11 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances[addr] = taraxa::uint256_t("0x204FCE5E3E25026110000000");  //  10 Billion
   cfg.genesis.state.hardforks.magnolia_hf.block_num = 2;
   create_validators();
   init();
-  const auto gas_price = 1;
+  const auto gas_price = 1000000000;
   {
     auto trx = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
 
@@ -789,7 +794,7 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
       const addr_t dpos_contract("0x00000000000000000000000000000000000000FE");
       auto ret = SUT->call({
           addr,
-          0,
+          gas_price,
           dpos_contract,
           0,
           0,
@@ -824,7 +829,8 @@ std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<PbftV
 
   auto input =
       util::EncodingSolidity::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(), vote_b->rlp());
-  return std::make_shared<Transaction>(nonce, 0, 1, 100000, std::move(input), keys.secret(), kSlashingContractAddress);
+  return std::make_shared<Transaction>(nonce, 0, 1000000000, 100000, std::move(input), keys.secret(),
+                                       kSlashingContractAddress);
 }
 
 TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
