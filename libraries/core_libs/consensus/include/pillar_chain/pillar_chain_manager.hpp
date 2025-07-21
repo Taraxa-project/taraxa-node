@@ -30,7 +30,7 @@ namespace taraxa::pillar_chain {
  */
 class PillarChainManager {
  private:
-  const util::EventEmitter<const PillarBlockData&> pillar_block_finalized_emitter_{};
+  const util::event::EventEmitter<const PillarBlockData&> pillar_block_finalized_emitter_{};
 
  public:
   const decltype(pillar_block_finalized_emitter_)::Subscriber& pillar_block_finalized_ =

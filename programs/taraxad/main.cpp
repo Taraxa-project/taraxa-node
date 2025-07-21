@@ -5,6 +5,7 @@
 #include "cli/tools.hpp"
 #include "common/config_exception.hpp"
 #include "common/init.hpp"
+#include "plugin/light.hpp"
 #include "plugin/rpc.hpp"
 
 using namespace taraxa;
@@ -22,6 +23,7 @@ int main(int argc, const char* argv[]) {
 
       cli::Config cli_conf;
       app->registerPlugin<plugin::Rpc>(cli_conf);
+      app->registerPlugin<plugin::Light>(cli_conf);
 
       cli_conf.parseCommandLine(argc, argv, app->registeredPlugins());
 

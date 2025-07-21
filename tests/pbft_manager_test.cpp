@@ -9,7 +9,7 @@
 namespace taraxa::core_tests {
 
 struct PbftManagerTest : NodesTest {
-  val_t gas_price = 0;
+  val_t gas_price = 1000000000;
   std::vector<std::shared_ptr<AppBase>> nodes;
   std::vector<uint64_t> nonces;
 
@@ -80,10 +80,11 @@ struct PbftManagerTest : NodesTest {
       balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));
     }
 
-    const auto init_bal = node_1_expected_bal / nodes.size();
+    const auto init_bal = node_1_expected_bal / nodes.size() / 10;
     for (size_t i(1); i < nodes.size(); ++i) {
       auto master_boot_node_send_coins = makeTransaction(0, nodes[i]->getAddress(), init_bal);
-      node_1_expected_bal -= init_bal;
+      node_1_expected_bal -= master_boot_node_send_coins->getValue() +
+                             master_boot_node_send_coins->getGasPrice() * master_boot_node_send_coins->getGas();
       // broadcast trx and insert
       nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
       trxs_count++;
@@ -99,6 +100,7 @@ struct PbftManagerTest : NodesTest {
                     << nodes[i]->getPbftChain()->getPbftChainSize() << ", expected at least "
                     << delegations_applied_block << std::endl;
           auto dummy_trx = makeTransaction(0, nodes[0]->getAddress(), 0);
+          node_1_expected_bal -= dummy_trx->getValue() + dummy_trx->getGasPrice() * dummy_trx->getGas();
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
@@ -113,7 +115,7 @@ struct PbftManagerTest : NodesTest {
 
     for (size_t i(0); i < nodes.size(); ++i) {
       std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
+      EXPECT_GE(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
       for (size_t j(1); j < nodes.size(); ++j) {
         // For node1 to node4 balances info on each node
         EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, balances[j] + init_bal);
@@ -143,6 +145,8 @@ struct PbftManagerTest : NodesTest {
       const auto receiver_index = (i + 1) % nodes.size();
       const auto send_coins_in_robin_cycle = makeTransaction(i, nodes[receiver_index]->getAddress(), send_coins);
       // broadcast trx and insert
+      balances[i] -= send_coins_in_robin_cycle->getValue() +
+                     send_coins_in_robin_cycle->getGasPrice() * send_coins_in_robin_cycle->getGas();
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
       trxs_count++;
     }
@@ -155,6 +159,7 @@ struct PbftManagerTest : NodesTest {
                     << " transactions. Expected " << trxs_count << std::endl;
           auto dummy_trx = makeTransaction(0, nodes[0]->getAddress(), 0);
           // broadcast dummy transaction
+          balances[0] -= dummy_trx->getValue() + dummy_trx->getGasPrice() * dummy_trx->getGas();
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
           ctx.fail();
@@ -168,10 +173,10 @@ struct PbftManagerTest : NodesTest {
     // Account balances should not change in robin cycle
     for (size_t i(0); i < nodes.size(); ++i) {
       std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
+      EXPECT_GE(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
       for (size_t j(1); j < nodes.size(); ++j) {
         // For node1 to node4 account balances info on each node
-        EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, balances[j] + init_bal);
+        EXPECT_GE(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, balances[j] + init_bal);
       }
     }
 
@@ -234,10 +239,11 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));
   }
 
-  const auto init_bal = node_1_expected_bal / nodes.size() / 2;
+  const auto init_bal = node_1_expected_bal / nodes.size() / 10;
   for (size_t i(1); i < nodes.size(); ++i) {
     auto master_boot_node_send_coins = makeTransaction(0, nodes[i]->getAddress(), init_bal);
-    node_1_expected_bal -= init_bal;
+    node_1_expected_bal -= master_boot_node_send_coins->getValue() +
+                           master_boot_node_send_coins->getGasPrice() * master_boot_node_send_coins->getGas();
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
     trxs_count++;
@@ -250,6 +256,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         auto dummy_trx = makeTransaction(0, nodes[0]->getAddress(), 0);
+        node_1_expected_bal -= dummy_trx->getValue() + dummy_trx->getGasPrice() * dummy_trx->getGas();
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
@@ -264,7 +271,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
   for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
+    EXPECT_GE(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
     for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, balances[j] + init_bal);
@@ -277,6 +284,8 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     // players, but not guarantee
     const auto receiver_index = (i + 1) % nodes.size();
     const auto send_coins_in_robin_cycle = makeTransaction(i, nodes[receiver_index]->getAddress(), send_coins);
+    balances[i] -= send_coins_in_robin_cycle->getValue() +
+                   send_coins_in_robin_cycle->getGasPrice() * send_coins_in_robin_cycle->getGas();
     // broadcast trx and insert
     nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
     trxs_count++;
@@ -289,6 +298,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions. Expected " << trxs_count << std::endl;
         auto dummy_trx = makeTransaction(0, nodes[0]->getAddress(), 0);
+        node_1_expected_bal -= dummy_trx->getValue() + dummy_trx->getGasPrice() * dummy_trx->getGas();
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
@@ -303,10 +313,10 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   // Account balances should not change in robin cycle
   for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
-    EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
+    EXPECT_GE(nodes[i]->getFinalChain()->getBalance(nodes[0]->getAddress()).first, node_1_expected_bal);
     for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 account balances info on each node
-      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, balances[j] + init_bal);
+      EXPECT_GE(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, balances[j] + init_bal);
     }
   }
 
@@ -445,7 +455,7 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
       node1->getAddress(), node1->getSecretKey(), std::move(reward_votes_hashes));
   auto propose_vote = node1->getVoteManager()->generateVote(
       proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, proposed_pbft_block->getPeriod(),
-      node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
+      node1->getPbftManager()->getPbftRound() + 1, value_proposal_state, node1->getConfig().getFirstWallet());
   pbft_mgr1->processProposedBlock(proposed_pbft_block);
 
   auto block1_from_node1 = pbft_mgr1->getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());

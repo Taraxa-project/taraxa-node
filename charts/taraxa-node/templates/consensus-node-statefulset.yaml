@@ -47,6 +47,22 @@ spec:
         kubernetes.io/change-cause: "Configuration through configmaps."
     spec:
       initContainers:
+        {{- if and .Values.consensusnode.snapshot.enabled .Values.consensusnode.snapshot.url }}
+        - name: snapshot-init
+          image: alpine:latest
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/entrypoint.sh"]
+          args: ["{{ .Values.consensusnode.snapshot.url }}"]
+          volumeMounts:
+            - name: snapshot-init-script
+              mountPath: /bin/entrypoint.sh
+              readOnly: true
+              subPath: entrypoint.sh
+            - name: data
+              mountPath: /root/.taraxa
+          securityContext:
+            runAsUser: 0
+        {{- end }}
         {{ if .Values.explorer.enabled }}
         - name: wait-for-explorer
           image: dwdraju/alpine-curl-jq:latest
@@ -190,6 +206,12 @@ spec:
           configMap:
             defaultMode: 0700
             name: {{ .Release.Name }}-consensus-node-init-script
+        {{- if and .Values.consensusnode.snapshot.enabled .Values.consensusnode.snapshot.url }}
+        - name: snapshot-init-script
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-snapshot-init-script
+        {{- end }}
         {{ if .Values.explorer.enabled }}
         - name: explorer-check
           configMap:
