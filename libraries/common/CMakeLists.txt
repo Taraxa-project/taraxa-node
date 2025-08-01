@@ -24,16 +24,16 @@ set(SOURCES
     src/rpc_utils.cpp
 )
 
-add_library(common ${SOURCES} ${HEADERS})
-target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(common PUBLIC
+add_library(taraxa_common ${SOURCES} ${HEADERS})
+target_include_directories(taraxa_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(taraxa_common PUBLIC
     devcore
     taraxa-vrf
     openssl::openssl
     JsonCpp::JsonCpp
 )
 
-install(TARGETS common
+install(TARGETS taraxa_common
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

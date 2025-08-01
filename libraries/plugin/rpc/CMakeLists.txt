@@ -9,7 +9,7 @@ set(SOURCES
 add_library(rpc_plugin ${SOURCES} ${HEADERS})
 target_include_directories(rpc_plugin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(rpc_plugin PUBLIC
-    common
+    taraxa_common
     core_libs
     plugin
 )

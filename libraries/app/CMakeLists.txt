@@ -9,7 +9,7 @@ set(SOURCES
 add_library(app ${SOURCES} ${HEADERS})
 target_include_directories(app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(app PUBLIC
-    common
+    taraxa_common
     core_libs
     rpc_plugin
     light_plugin

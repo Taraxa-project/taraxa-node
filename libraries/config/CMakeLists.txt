@@ -28,7 +28,7 @@ add_library(config ${SOURCES} ${HEADERS})
 target_include_directories(config PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(config PUBLIC dag_block)
 
-install(TARGETS common
+install(TARGETS taraxa_common
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )

@@ -8,7 +8,7 @@ set(SOURCES
 add_library(plugin INTERFACE ${HEADERS})
 target_include_directories(plugin INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(plugin INTERFACE
-    common
+    taraxa_common
 )
 
 install(TARGETS plugin

@@ -83,13 +83,26 @@ add_make_target(vrf libsodium.a "${VRF_AUTOTOOLS_CMD} && ${CMAKE_MAKE_PROGRAM} &
 
 # Add taraxa-evm
 set(EVM_BUILD_DIR ${BUILD_DIR_PREFIX}/taraxa-evm)
+
+
+# liboqs
+include(${PROJECT_SOURCE_DIR}/CMakeModules/liboqs.cmake)
+
+
+
+
+set(OQS_INCLUDE_DIR ${BUILD_DIR_PREFIX}/_deps/liboqs-build/include)
+    set(OQS_LIB_DIR ${OQS_INCLUDE_DIR}/../lib)
+    # message(FATAL_ERROR "OQS_INCLUDE_DIR: ${OQS_INCLUDE_DIR}"
+    #  "OQS_LIB_DIR: ${OQS_LIB_DIR}"    )
+
 ## add include of libs
 find_package(RocksDB REQUIRED)
 if(TARGET RocksDB::rocksdb)
-    set(EVM_BUILD_INCLUDE -I${RocksDB_INCLUDE_DIRS})
+    set(EVM_BUILD_INCLUDE -I${RocksDB_INCLUDE_DIRS} -I${OQS_INCLUDE_DIR})
     set(ROCKSDB_LIB_DIR ${RocksDB_INCLUDE_DIRS}/../lib)
     set(LZ4_LIB_DIR ${LZ4_INCLUDE_DIR}/../lib)
-    set(EVM_BUILD_LD -L${ROCKSDB_LIB_DIR} -lrocksdb -L${LZ4_LIB_DIR} -llz4)
+    set(EVM_BUILD_LD -L${ROCKSDB_LIB_DIR} -lrocksdb -L${LZ4_LIB_DIR} -llz4 -L${OQS_LIB_DIR} -loqs)
 else()
     message(FATAL_ERROR "RocksDB::rocksdb target not found")
 endif()
@@ -136,7 +149,7 @@ add_custom_command(
     COMMENT "Building taraxa-evm library")
 
 add_custom_target(taraxa_evm_build DEPENDS ${EVM_BUILD_DIR}/lib/${EVM_LIBRARY_NAME})
-add_dependencies(taraxa_evm_build RocksDB::rocksdb)
+add_dependencies(taraxa_evm_build RocksDB::rocksdb oqs)
 
 add_library(taraxa-evm INTERFACE)
 add_dependencies(taraxa-evm taraxa_evm_build)

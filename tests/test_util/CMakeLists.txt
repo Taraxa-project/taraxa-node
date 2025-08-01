@@ -15,7 +15,7 @@ add_library(test_util ${SOURCES} ${HEADERS})
 target_include_directories(test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(test_util PUBLIC app core_libs gtest::gtest)
 
-install(TARGETS common
+install(TARGETS taraxa_common
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
