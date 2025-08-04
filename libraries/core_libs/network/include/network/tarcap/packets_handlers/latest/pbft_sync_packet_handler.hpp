@@ -23,9 +23,6 @@ class PbftSyncPacketHandler : public ISyncPacketHandler {
   virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
-  virtual PeriodData decodePeriodData(const dev::RLP& period_data_rlp) const;
-  virtual std::vector<std::shared_ptr<PbftVote>> decodeVotesBundle(const dev::RLP& votes_bundle_rlp) const;
-
   void pbftSyncComplete();
   void delayedPbftSync(uint32_t counter);
 

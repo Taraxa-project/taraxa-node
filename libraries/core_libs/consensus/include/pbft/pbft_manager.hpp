@@ -120,6 +120,12 @@ class PbftManager {
   void initialState();
 
   /**
+   * @brief If node receives 2t+1 cert votes for some valid block and pushes it to the chain, advance period to + 1.
+   * @return true if PBFT period advanced, otherwise false
+   */
+  bool advancePeriod();
+
+  /**
    * @brief Get a DAG block period number
    * @param hash DAG block hash
    * @return true with DAG block period number if the DAG block has been finalized. Otherwise return false
@@ -212,18 +218,23 @@ class PbftManager {
 
   /**
    * @brief Push synced period data in syncing queue
-   * @param block synced period data from peer
-   * @param current_block_cert_votes cert votes for PeriodData pbft block period
-   * @param node_id peer node ID
+   * @param queue data - period data, cert_votes and node id
    */
-  void periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
-                           std::vector<std::shared_ptr<PbftVote>> &&current_block_cert_votes);
+  void periodDataQueuePush(PeriodDataQueue::QueueData &&queue_data);
 
   /**
    * @brief Get last pbft block hash from queue or if queue empty, from chain
    * @return last block hash
    */
   blk_hash_t lastPbftBlockHashFromQueueOrChain();
+
+  /**
+   * @brief Get second last pbft block hash from queue or if queue empty, from chain
+   * @param new_block_period
+   *
+   * @return second last block hash
+   */
+  blk_hash_t secondLastPbftBlockHashFromQueueOrChain(PbftPeriod new_block_period);
 
   /**
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
@@ -340,12 +351,6 @@ class PbftManager {
    * @return true if PBFT round advanced, otherwise false
    */
   bool advanceRound();
-
-  /**
-   * @brief If node receives 2t+1 cert votes for some valid block and pushes it to the chain, advance period to + 1.
-   * @return true if PBFT period advanced, otherwise false
-   */
-  bool advancePeriod();
 
   /**
    * @brief Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain
@@ -559,9 +564,9 @@ class PbftManager {
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
-   * @return period data with cert votes for the current period
+   * @return queue data - period data with cert votes for the current period
    */
-  std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<PbftVote>>>> processPeriodData();
+  std::optional<PeriodDataQueue::QueueData> processPeriodData();
 
   /**
    * @brief Validates PBFT block cert votes

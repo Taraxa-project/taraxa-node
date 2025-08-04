@@ -155,7 +155,7 @@ class PbftBlock {
   uint64_t timestamp_;
   addr_t beneficiary_;
   sig_t signature_;
-  std::vector<vote_hash_t> reward_votes_;  // Cert votes in previous period
+  std::vector<vote_hash_t> reward_votes_;  // Cert votes in <period_-2> period
   std::optional<PbftBlockExtraData> extra_data_;
 };
 std::ostream& operator<<(std::ostream& strm, const PbftBlock& pbft_blk);

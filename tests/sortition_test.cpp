@@ -8,53 +8,56 @@ namespace taraxa::core_tests {
 
 struct SortitionTest : NodesTest {
   std::vector<FullNodeConfig> node_cfgs = make_node_cfgs(1);
+
+  vec_trx_t generateTrxHashes(size_t count) {
+    vec_trx_t res;
+    for (size_t i = 0; i < count; ++i) {
+      res.push_back(dev::h256(i));
+    }
+    return res;
+  }
+
+  PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks_count = 5,
+                         blk_hash_t anchor_hash = blk_hash_t(1)) {
+    // produced transactions count should be equal to or multiple of this value to produce block with accurate enough
+    // efficiency
+    const size_t kTrxCount = 100 * kOnePercent;
+    PeriodData b;
+    std::vector<vote_hash_t> reward_votes_hashes;
+    b.pbft_blk =
+        std::make_shared<PbftBlock>(kNullBlockHash, anchor_hash, kNullBlockHash, kNullBlockHash, period, addr_t(0),
+                                    dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+
+    PbftPeriod reward_votes_period_offset =
+        node_cfgs.front().genesis.state.hardforks.isOnFragariaHardfork(period) ? 2 : 1;
+    if (period > reward_votes_period_offset) {
+      b.reward_votes_ = {genDummyVote(PbftVoteTypes::cert_vote, b.pbft_blk->getPeriod() - reward_votes_period_offset, 1,
+                                      3, b.pbft_blk->getBlockHash())};
+    }
+
+    size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
+    auto trx_hashes = generateTrxHashes(effective_transactions);
+    auto trx_per_block = effective_transactions / dag_blocks_count;
+
+    for (uint32_t i = 0; i < trx_hashes.size(); ++i) {
+      b.transactions.push_back(std::make_shared<Transaction>());
+    }
+
+    for (size_t i = 0; i < dag_blocks_count; ++i) {
+      vec_trx_t trxs{trx_hashes.begin() + i * trx_per_block, trx_hashes.begin() + (i + 1) * trx_per_block};
+      b.dag_blocks.push_back(std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trxs, secret_t{}));
+    };
+
+    size_t issued_overlap_count = 0;
+    while (issued_overlap_count != kTrxCount - effective_transactions) {
+      size_t overlap = std::min(kTrxCount - effective_transactions - issued_overlap_count, trx_hashes.size());
+      issued_overlap_count += overlap;
+      vec_trx_t trxs{trx_hashes.begin(), trx_hashes.begin() + overlap};
+      b.dag_blocks.push_back(std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trxs, secret_t{}));
+    }
+    return b;
+  }
 };
-
-vec_trx_t generateTrxHashes(size_t count) {
-  vec_trx_t res;
-  for (size_t i = 0; i < count; ++i) {
-    res.push_back(dev::h256(i));
-  }
-  return res;
-}
-
-PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks_count = 5,
-                       blk_hash_t anchor_hash = blk_hash_t(1)) {
-  // produced transactions count should be equal to or multiple of this value to produce block with accurate enough
-  // efficiency
-  const size_t kTrxCount = 100 * kOnePercent;
-  PeriodData b;
-  std::vector<vote_hash_t> reward_votes_hashes;
-  b.pbft_blk = std::make_shared<PbftBlock>(kNullBlockHash, anchor_hash, kNullBlockHash, kNullBlockHash, period,
-                                           addr_t(0), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
-
-  if (period > 1) {
-    b.previous_block_cert_votes = {
-        genDummyVote(PbftVoteTypes::cert_vote, b.pbft_blk->getPeriod() - 1, 1, 3, b.pbft_blk->getBlockHash())};
-  }
-
-  size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
-  auto trx_hashes = generateTrxHashes(effective_transactions);
-  auto trx_per_block = effective_transactions / dag_blocks_count;
-
-  for (uint32_t i = 0; i < trx_hashes.size(); ++i) {
-    b.transactions.push_back(std::make_shared<Transaction>());
-  }
-
-  for (size_t i = 0; i < dag_blocks_count; ++i) {
-    vec_trx_t trxs{trx_hashes.begin() + i * trx_per_block, trx_hashes.begin() + (i + 1) * trx_per_block};
-    b.dag_blocks.push_back(std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trxs, secret_t{}));
-  };
-
-  size_t issued_overlap_count = 0;
-  while (issued_overlap_count != kTrxCount - effective_transactions) {
-    size_t overlap = std::min(kTrxCount - effective_transactions - issued_overlap_count, trx_hashes.size());
-    issued_overlap_count += overlap;
-    vec_trx_t trxs{trx_hashes.begin(), trx_hashes.begin() + overlap};
-    b.dag_blocks.push_back(std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trxs, secret_t{}));
-  }
-  return b;
-}
 
 TEST_F(SortitionTest, vrf_lower_overflow) {
   VrfParams vrf;

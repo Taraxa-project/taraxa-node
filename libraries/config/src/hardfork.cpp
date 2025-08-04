@@ -199,6 +199,17 @@ void dec_json(const Json::Value& json, CactiHardforkConfig& obj) {
 RLP_FIELDS_DEFINE(CactiHardforkConfig, block_num, lambda_min, lambda_max, lambda_default, lambda_change_interval,
                   lambda_change, block_propagation_min, block_propagation_max)
 
+Json::Value enc_json(const FragariaHardforkConfig& obj) {
+  Json::Value json(Json::objectValue);
+  json["block_num"] = dev::toJS(obj.block_num);
+  return json;
+}
+
+void dec_json(const Json::Value& json, FragariaHardforkConfig& obj) {
+  obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
+}
+RLP_FIELDS_DEFINE(FragariaHardforkConfig, block_num)
+
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
@@ -222,6 +233,7 @@ Json::Value enc_json(const HardforksConfig& obj) {
   json["cornus_hf"] = enc_json(obj.cornus_hf);
   json["soleirolia_hf"] = enc_json(obj.soleirolia_hf);
   json["cacti_hf"] = enc_json(obj.cacti_hf);
+  json["fragaria_hf"] = enc_json(obj.fragaria_hf);
 
   return json;
 }
@@ -256,9 +268,10 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   dec_json(json["cornus_hf"], obj.cornus_hf);
   dec_json(json["soleirolia_hf"], obj.soleirolia_hf);
   dec_json(json["cacti_hf"], obj.cacti_hf);
+  dec_json(json["fragaria_hf"], obj.fragaria_hf);
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
                   phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf, soleirolia_hf,
-                  cacti_hf)
+                  cacti_hf, fragaria_hf)
 }  // namespace taraxa

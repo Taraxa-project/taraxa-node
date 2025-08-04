@@ -26,15 +26,17 @@ class PillarVote;
 class PeriodData {
  public:
   PeriodData() = default;
-  PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
-             const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes,
+  PeriodData(std::shared_ptr<PbftBlock> pbft_blk, const std::vector<std::shared_ptr<PbftVote>>& reward_votes,
              std::optional<std::vector<std::shared_ptr<PillarVote>>>&& pillar_votes = {});
   explicit PeriodData(const dev::RLP& all_rlp);
   explicit PeriodData(const bytes& all_rlp);
 
   std::shared_ptr<PbftBlock> pbft_blk;
-  std::vector<std::shared_ptr<PbftVote>> previous_block_cert_votes;  // These votes are the cert votes of previous block
-                                                                     // which match reward votes in current pbft block
+
+  // Pre fragaria hf: previous block cert votes are used as reward votes
+  // Post fragaria hf: second previous block cert votes are used as reward votes
+  std::vector<std::shared_ptr<PbftVote>> reward_votes_;
+
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   SharedTransactions transactions;
 

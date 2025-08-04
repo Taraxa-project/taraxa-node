@@ -1154,22 +1154,33 @@ std::vector<std::shared_ptr<PbftVote>> DbStorage::getAllTwoTPlusOneVotes() {
   return votes;
 }
 
-void DbStorage::removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Batch& write_batch) {
-  for (const auto& v : votes) {
-    remove(write_batch, Columns::extra_reward_votes, v.asBytes());
+void DbStorage::replaceTwoTPlusOneCertVotes(const std::vector<std::shared_ptr<PbftVote>>& votes, Batch& write_batch) {
+  auto previous_last_block_votes =
+      lookup(static_cast<uint8_t>(CertVotesType::LastBlock), Columns::two_t_plus_one_cert_votes);
+  remove(write_batch, Columns::two_t_plus_one_cert_votes, static_cast<uint8_t>(CertVotesType::LastBlock));
+
+  dev::RLPStream s(votes.size());
+  for (const auto& vote : votes) {
+    s.appendRaw(vote->rlp(true, true));
   }
+
+  insert(write_batch, Columns::two_t_plus_one_cert_votes, static_cast<uint8_t>(CertVotesType::SecondLastBlock),
+         previous_last_block_votes);
+  insert(write_batch, Columns::two_t_plus_one_cert_votes, static_cast<uint8_t>(CertVotesType::LastBlock), s.out());
 }
 
-void DbStorage::saveExtraRewardVote(const std::shared_ptr<PbftVote>& vote) {
-  insert(Columns::extra_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
-}
-
-std::vector<std::shared_ptr<PbftVote>> DbStorage::getRewardVotes() {
+std::vector<std::shared_ptr<PbftVote>> DbStorage::getTwoTPlusOneCertVotes(CertVotesType type) {
   std::vector<std::shared_ptr<PbftVote>> votes;
 
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::extra_reward_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<PbftVote>(asBytes(it->value().ToString())));
+  auto votes_raw = lookup(static_cast<uint8_t>(type), Columns::two_t_plus_one_cert_votes);
+  if (votes_raw.empty()) {
+    return votes;
+  }
+
+  auto votes_rlp = dev::RLP(votes_raw);
+  votes.reserve(votes_rlp.size());
+  for (const auto vote_rlp : votes_rlp) {
+    votes.emplace_back(std::make_shared<PbftVote>(vote_rlp));
   }
 
   return votes;

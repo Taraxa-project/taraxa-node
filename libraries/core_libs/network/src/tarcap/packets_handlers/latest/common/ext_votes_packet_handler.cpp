@@ -32,14 +32,13 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<PbftVote> &vote,
   }
 
   if (vote_mgr_->voteInVerifiedMap(vote)) {
-    LOG(this->log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue";
+    LOG(log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue";
     return false;
   }
 
   // Validate vote's period, round and step min/max values
   if (const auto vote_valid = validateVotePeriodRoundStep(vote, peer, validate_max_round_step); !vote_valid.first) {
-    LOG(this->log_wr_) << "Vote period/round/step " << vote->getHash()
-                       << " validation failed. Err: " << vote_valid.second;
+    LOG(log_wr_) << "Vote period/round/step " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
     return false;
   }
 
@@ -53,12 +52,12 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<PbftVote> &vote,
 
   // Validate vote's signature, vrf, etc...
   if (const auto vote_valid = vote_mgr_->validateVote(vote); !vote_valid.first) {
-    LOG(this->log_wr_) << "Vote " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
+    LOG(log_wr_) << "Vote " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
     return false;
   }
 
   if (!vote_mgr_->addVerifiedVote(vote)) {
-    LOG(this->log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue(race condition)";
+    LOG(log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue(race condition)";
     return false;
   }
 
@@ -84,9 +83,10 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
   };
 
   // Period validation
-  // vote->getPeriod() == current_pbft_period - 1 && cert_vote -> potential reward vote
-  if (vote->getPeriod() < current_pbft_period - 1 ||
-      (vote->getPeriod() == current_pbft_period - 1 && vote->getType() != PbftVoteTypes::cert_vote)) {
+  auto reward_votes_period_offset = vote_mgr_->getRewardVotesPeriodOffset(vote->getPeriod());
+  if ((vote->getType() != PbftVoteTypes::cert_vote && vote->getPeriod() < current_pbft_period) ||
+      (vote->getType() == PbftVoteTypes::cert_vote &&
+       vote->getPeriod() + reward_votes_period_offset < current_pbft_period /* potential reward vote */)) {
     return {false, "Invalid period(too small): " + genErrMsg(vote)};
   } else if (this->kConf.network.ddos_protection.vote_accepting_periods &&
              vote->getPeriod() - 1 > current_pbft_period + this->kConf.network.ddos_protection.vote_accepting_periods) {
@@ -178,8 +178,10 @@ bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<PbftVote> &
              vote->getType() == PbftVoteTypes::next_vote) {
     // Previous round next vote
     return true;
-  } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-    // Previous period cert vote - potential reward vote
+  } else if (vote->getType() == PbftVoteTypes::cert_vote &&
+             vote->getPeriod() + vote_mgr_->getRewardVotesPeriodOffset(current_pbft_period) >= current_pbft_period &&
+             vote->getPeriod() < current_pbft_period) {
+    // Potential reward vote
     return true;
   }
 

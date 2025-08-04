@@ -115,10 +115,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(cert_voted_block_in_round);  // Cert voted block + round -> node voted for this block
     COLUMN(proposed_pbft_blocks);       // Proposed pbft blocks
     COLUMN(pbft_head);
-    COLUMN(latest_round_own_votes);             // own votes of any type for the latest round
-    COLUMN(latest_round_two_t_plus_one_votes);  // 2t+1 votes bundles of any type for the latest round
-    COLUMN(extra_reward_votes);                 // extra reward votes on top of 2t+1 cert votes bundle from
-                                                // latest_round_two_t_plus_one_votes
+    COLUMN(latest_round_own_votes);  // own votes of any type for the latest round
+    COLUMN(
+        latest_round_two_t_plus_one_votes);  // 2t+1 votes bundles of any type (except cert votes) for the latest round
+    COLUMN(two_t_plus_one_cert_votes);       // 2t+1 cert votes bundles for last and second last period
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
@@ -344,10 +344,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
                                       const std::vector<std::shared_ptr<PbftVote>>& votes, Batch& write_batch);
   std::vector<std::shared_ptr<PbftVote>> getAllTwoTPlusOneVotes();
 
-  // Reward votes - cert votes for the latest finalized block
-  void removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Batch& write_batch);
-  void saveExtraRewardVote(const std::shared_ptr<PbftVote>& vote);
-  std::vector<std::shared_ptr<PbftVote>> getRewardVotes();
+  // 2t+1 cert votes bundle for last & second last finalized block
+  enum class CertVotesType { LastBlock, SecondLastBlock };
+  void replaceTwoTPlusOneCertVotes(const std::vector<std::shared_ptr<PbftVote>>& votes, Batch& write_batch);
+  std::vector<std::shared_ptr<PbftVote>> getTwoTPlusOneCertVotes(CertVotesType type);
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);

@@ -44,7 +44,8 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 
   // Process received pbft blocks
   // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
-  const bool pbft_chain_synced = packet.current_block_cert_votes_bundle.has_value();
+  // TODO: check if pbft_chain_synced usage didn't change after fragaria hf
+  const bool pbft_chain_synced = packet.last_block && packet.current_block_cert_votes_bundle.has_value();
   const auto pbft_blk_hash = packet.period_data.pbft_blk->getBlockHash();
 
   std::string received_dag_blocks_str;  // This is just log related stuff
@@ -84,7 +85,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
     }
 
     // Check cert vote matches if final synced block
-    if (pbft_chain_synced) {
+    if (packet.current_block_cert_votes_bundle.has_value()) {
       for (auto const &vote : packet.current_block_cert_votes_bundle->votes) {
         if (vote->getBlockHash() != pbft_blk_hash) {
           LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of " << pbft_blk_hash
@@ -95,13 +96,16 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       }
     }
 
-    // Check votes match the hash of previous block in the queue
-    auto last_pbft_block_hash = pbft_mgr_->lastPbftBlockHashFromQueueOrChain();
-    // Check cert vote matches
-    for (auto const &vote : packet.period_data.previous_block_cert_votes) {
-      if (vote->getBlockHash() != last_pbft_block_hash) {
-        LOG(log_er_) << "Invalid cert votes block hash " << vote->getBlockHash() << " instead of "
-                     << last_pbft_block_hash << " from peer " << peer->getId().abridged() << " received, stop syncing.";
+    auto required_block_hash = kConf.genesis.state.hardforks.isOnFragariaHardfork(pbft_block_period)
+                                   ? pbft_mgr_->secondLastPbftBlockHashFromQueueOrChain(pbft_block_period)
+                                   : pbft_mgr_->lastPbftBlockHashFromQueueOrChain();
+    for (auto const &vote : packet.period_data.reward_votes_) {
+      if (vote->getBlockHash() != required_block_hash) {
+        LOG(log_er_) << "Pbft block " << packet.period_data.pbft_blk->getBlockHash() << ", period "
+                     << packet.period_data.pbft_blk->getPeriod() << ". Invalid reward vote block hash "
+                     << vote->getBlockHash() << " instead of " << required_block_hash << " from peer "
+                     << peer->getId().abridged() << " received, stop syncing.";
+
         peers_state_->handleMaliciousSyncPeer(peer->getId());
         return;
       }
@@ -136,7 +140,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
     // This is special case when queue is empty and we can not say for sure that all votes that are part of this block
     // have been verified before
     if (pbft_mgr_->periodDataQueueEmpty()) {
-      for (const auto &v : packet.period_data.previous_block_cert_votes) {
+      for (const auto &v : packet.period_data.reward_votes_) {
         if (auto vote_is_valid = vote_mgr_->validateVote(v); vote_is_valid.first == false) {
           LOG(log_er_) << "Invalid reward votes in block " << packet.period_data.pbft_blk->getBlockHash()
                        << " from peer " << peer->getId().abridged()
@@ -150,11 +154,12 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
 
       // And now we need to replace it with verified votes
       if (auto votes = vote_mgr_->checkRewardVotes(packet.period_data.pbft_blk, true); votes.first) {
-        packet.period_data.previous_block_cert_votes = std::move(votes.second);
+        packet.period_data.reward_votes_ = std::move(votes.second);
       } else {
         // checkRewardVotes could fail because we just cert voted this block and moved to next period,
         // in that case we are probably fully synced
-        if (pbft_block_period <= vote_mgr_->getRewardVotesPbftBlockPeriod()) {
+        // TODO: check related to fragaria hf
+        if (pbft_block_period <= vote_mgr_->getRewardVotesPeriod(packet.period_data.pbft_blk->getPeriod())) {
           pbft_syncing_state_->setPbftSyncing(false);
           return;
         }
@@ -166,14 +171,14 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       }
     }
 
-    LOG(log_tr_) << "Synced PBFT block hash " << pbft_blk_hash << " with "
-                 << packet.period_data.previous_block_cert_votes.size() << " cert votes";
-    LOG(log_tr_) << "Synced PBFT block " << packet.period_data;
+    LOG(log_tr_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << packet.period_data.reward_votes_.size()
+                 << " reward votes";
     std::vector<std::shared_ptr<PbftVote>> current_block_cert_votes;
-    if (pbft_chain_synced) {
+    if (packet.current_block_cert_votes_bundle.has_value()) {
       current_block_cert_votes = std::move(packet.current_block_cert_votes_bundle->votes);
     }
-    pbft_mgr_->periodDataQueuePush(std::move(packet.period_data), peer->getId(), std::move(current_block_cert_votes));
+
+    pbft_mgr_->periodDataQueuePush({peer->getId(), std::move(packet.period_data), std::move(current_block_cert_votes)});
   }
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
@@ -205,15 +210,6 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       }
     }
   }
-}
-
-PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_rlp) const {
-  return PeriodData(period_data_rlp);
-}
-
-std::vector<std::shared_ptr<PbftVote>> PbftSyncPacketHandler::decodeVotesBundle(
-    const dev::RLP &votes_bundle_rlp) const {
-  return decodePbftVotesBundleRlp(votes_bundle_rlp);
 }
 
 void PbftSyncPacketHandler::pbftSyncComplete() {

@@ -8,20 +8,17 @@ namespace taraxa {
 
 using namespace std;
 
-PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
-                       const std::vector<std::shared_ptr<PbftVote>>& previous_block_cert_votes,
+PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk, const std::vector<std::shared_ptr<PbftVote>>& reward_votes,
                        std::optional<std::vector<std::shared_ptr<PillarVote>>>&& pillar_votes)
-    : pbft_blk(std::move(pbft_blk)),
-      previous_block_cert_votes(previous_block_cert_votes),
-      pillar_votes_(std::move(pillar_votes)) {}
+    : pbft_blk(std::move(pbft_blk)), reward_votes_(reward_votes), pillar_votes_(std::move(pillar_votes)) {}
 
 PeriodData::PeriodData(const dev::RLP& rlp) {
   auto it = rlp.begin();
   pbft_blk = std::make_shared<PbftBlock>(*it++);
 
   const auto votes_bundle_rlp = *it++;
-  if (pbft_blk->getPeriod() > 1) [[likely]] {
-    previous_block_cert_votes = decodePbftVotesBundleRlp(votes_bundle_rlp);
+  if (votes_bundle_rlp.itemCount()) [[likely]] {
+    reward_votes_ = decodePbftVotesBundleRlp(votes_bundle_rlp);
   }
 
   const auto block_bundle_rlp = *it++;
@@ -44,10 +41,10 @@ bytes PeriodData::rlp() const {
   dev::RLPStream s(kRlpSize);
   s.appendRaw(pbft_blk->rlp(true));
 
-  if (pbft_blk->getPeriod() > 1) [[likely]] {
-    s.appendRaw(encodePbftVotesBundleRlp(previous_block_cert_votes));
-  } else {
+  if (reward_votes_.empty()) [[likely]] {
     s.append("");
+  } else {
+    s.appendRaw(encodePbftVotesBundleRlp(reward_votes_));
   }
 
   if (dag_blocks.empty()) {
@@ -73,7 +70,7 @@ void PeriodData::clear() {
   pbft_blk.reset();
   dag_blocks.clear();
   transactions.clear();
-  previous_block_cert_votes.clear();
+  reward_votes_.clear();
   pillar_votes_.reset();
 }
 
@@ -82,7 +79,7 @@ void PeriodData::rlp(::taraxa::util::RLPDecoderRef encoding) { *this = PeriodDat
 void PeriodData::rlp(::taraxa::util::RLPEncoderRef encoding) const { encoding.appendRaw(rlp()); }
 
 std::ostream& operator<<(std::ostream& strm, PeriodData const& b) {
-  strm << "[PeriodData] : " << b.pbft_blk << " , num of votes " << b.previous_block_cert_votes.size() << std::endl;
+  strm << "[PeriodData] : " << b.pbft_blk << " , num of votes " << b.reward_votes_.size() << std::endl;
   return strm;
 }
 

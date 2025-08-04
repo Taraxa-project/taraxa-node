@@ -524,6 +524,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
+  auto pbft_mgr1 = node1->getPbftManager();
 
   auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
@@ -555,7 +556,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   PbftBlock pbft_block1(prev_block_hash, blk1->getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {}, {});
   std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(node1->getVoteManager()->generateVote(
+  votes_for_pbft_blk1.emplace_back(node1->getVoteManager()->generateVoteWithWeight(
       pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3, node1->getConfig().getFirstWallet()));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
@@ -567,9 +568,14 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period_data1.transactions.push_back(g_signed_trx_samples[1]);
 
   db1->savePeriodData(period_data1, batch);
+  node1->getVoteManager()->addVerifiedVote(votes_for_pbft_blk1[0]);
+  db1->replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType::CertVotedBlock, votes_for_pbft_blk1, batch);
+  node1->getVoteManager()->replaceTwoTPlusOneCertVotesInfo(pbft_block1.getPeriod(), 1, pbft_block1.getBlockHash());
+
   // Update period_pbft_block in DB
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash(), pbft_block1.getPivotDagBlockHash());
+  pbft_mgr1->advancePeriod();
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
@@ -619,7 +625,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   std::cout << "B1 " << pbft_block2.getBlockHash() << std::endl;
 
-  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
+  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), {});
   period_data2.dag_blocks.push_back(blk2);
   period_data2.transactions.push_back(g_signed_trx_samples[2]);
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
@@ -627,10 +633,11 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->savePeriodData(period_data2, batch);
   node1->getVoteManager()->addVerifiedVote(votes_for_pbft_blk2[0]);
   db1->replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType::CertVotedBlock, votes_for_pbft_blk2, batch);
-  node1->getVoteManager()->resetRewardVotes(2, 1, 3, pbft_block2.getBlockHash(), batch);
+  node1->getVoteManager()->replaceTwoTPlusOneCertVotesInfo(pbft_block2.getPeriod(), 1, pbft_block2.getBlockHash());
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());
+  pbft_mgr1->advancePeriod();
   // Update PBFT chain head block
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
@@ -712,8 +719,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   period_data1.transactions.push_back(g_signed_trx_samples[1]);
 
   db1->savePeriodData(period_data1, batch);
+
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash(), pbft_block1.getPivotDagBlockHash());
+  node1->getPbftManager()->advancePeriod();
+  node1->getVoteManager()->replaceTwoTPlusOneCertVotesInfo(pbft_block1.getPeriod(), 1, pbft_block1.getBlockHash());
+
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
@@ -752,7 +763,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   pbft_block2_cert_vote->calculateWeight(1, 1, 1);
   node1->getVoteManager()->addVerifiedVote(pbft_block2_cert_vote);
 
-  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), {pbft_block1_cert_vote});
+  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), {});
   period_data2.dag_blocks.push_back(blk2);
   period_data2.transactions.push_back(g_signed_trx_samples[2]);
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
@@ -760,12 +771,14 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());
+  node1->getPbftManager()->advancePeriod();
+
   // Update PBFT chain head block
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
 
-  node1->getVoteManager()->resetRewardVotes(pbft_block2.getPeriod(), 1, 3, pbft_block2.getBlockHash(), batch);
+  node1->getVoteManager()->replaceTwoTPlusOneCertVotesInfo(pbft_block2.getPeriod(), 1, pbft_block2.getBlockHash());
 
   db1->commitWriteBatch(batch);
 

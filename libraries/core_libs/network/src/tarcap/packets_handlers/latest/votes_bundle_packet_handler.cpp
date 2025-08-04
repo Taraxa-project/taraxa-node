@@ -31,7 +31,7 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   const auto &reference_vote = packet.votes_bundle.votes.front();
   const auto votes_bundle_votes_type = reference_vote->getType();
 
-  // Votes sync bundles are allowed to cotain only votes bundles of the same type, period, round and step so if first
+  // Votes sync bundles are allowed to contain only votes bundles of the same type, period, round and step so if first
   // vote is irrelevant, all of them are
   if (!isPbftRelevantVote(packet.votes_bundle.votes[0])) {
     LOG(log_wr_) << "Drop votes sync bundle as it is irrelevant for current pbft state. Votes (period, round, step) = ("

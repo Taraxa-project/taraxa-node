@@ -4,6 +4,7 @@
 #include <shared_mutex>
 #include <string>
 
+#include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 
@@ -23,7 +24,7 @@ struct Transaction;
  */
 class PbftChain {
  public:
-  explicit PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db);
+  explicit PbftChain(const FullNodeConfig& config, addr_t node_addr, std::shared_ptr<DbStorage> db);
 
   /**
    * @brief Get PBFT chain head hash
@@ -48,6 +49,12 @@ class PbftChain {
    * @return last PBFT block hash
    */
   blk_hash_t getLastPbftBlockHash() const;
+
+  /**
+   * @brief Get second last PBFT block hash
+   * @return second last PBFT block hash & it's period
+   */
+  std::pair<PbftPeriod, blk_hash_t> getSecondLastPbftBlockHash() const;
 
   /**
    * @brief Get last non null PBFT block anchor
@@ -100,11 +107,15 @@ class PbftChain {
  private:
   mutable std::shared_mutex chain_head_access_;
 
+  const FullNodeConfig kConfig;
+
   blk_hash_t head_hash_;             // PBFT head hash
   PbftPeriod size_;                  // PBFT chain size, includes both executed and unexecuted PBFT blocks
   PbftPeriod non_empty_size_;        // PBFT chain size excluding blocks with null anchor, includes both executed and
                                      // unexecuted PBFT blocks
   blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet
+  std::pair<PbftPeriod, blk_hash_t>
+      second_last_pbft_block_hash_;                // second last PBFT block hash + it's period in PBFT chain
   blk_hash_t last_non_null_pbft_dag_anchor_hash_;  // last dag block anchor which is not null
 
   std::shared_ptr<DbStorage> db_ = nullptr;

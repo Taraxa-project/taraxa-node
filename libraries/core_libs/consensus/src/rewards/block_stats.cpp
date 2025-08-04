@@ -71,14 +71,14 @@ void BlockStats::processStats(const PeriodData& block, const bool aspen_dag_rewa
   // total unique transactions count should be always equal to transactions count in block
   assert(fee_by_trx_hash_.size() == block.transactions.size());
 
-  validators_stats_.reserve(std::max(block.dag_blocks.size(), block.previous_block_cert_votes.size()));
+  validators_stats_.reserve(std::max(block.dag_blocks.size(), block.reward_votes_.size()));
   if (aspen_dag_rewards) {
     processDagBlocksAspen(block);
   } else {
     processDagBlocks(block);
   }
 
-  for (const auto& vote : block.previous_block_cert_votes) {
+  for (const auto& vote : block.reward_votes_) {
     addVote(vote);
   }
 }

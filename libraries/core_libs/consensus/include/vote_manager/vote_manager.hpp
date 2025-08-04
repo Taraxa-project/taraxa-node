@@ -29,6 +29,13 @@ class TaraxaPeer;
  */
 class VoteManager {
  public:
+  struct PbftBlockInfo {
+    blk_hash_t block_hash;
+    PbftPeriod period;
+    PbftRound round;
+  };
+
+ public:
   VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
               std::shared_ptr<SlashingManager> slashing_manager);
@@ -100,15 +107,14 @@ class VoteManager {
   std::optional<PbftRound> determineNewRound(PbftPeriod current_pbft_period, PbftRound current_pbft_round);
 
   /**
-   * @brief Replace current reward votes with new period, round & block hash based on vote
+   * @brief Replace last & second last block 2t+1 cert votes
    *
    * @param period
    * @param round
    * @param step
    * @param block_hash
-   * @param batch
    */
-  void resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep step, const blk_hash_t& block_hash, Batch& batch);
+  void replaceTwoTPlusOneCertVotesInfo(PbftPeriod period, PbftRound round, const blk_hash_t& block_hash);
 
   /**
    * @brief Check reward votes for specified pbft block
@@ -123,16 +129,32 @@ class VoteManager {
   /**
    * @brief Get reward votes with the round during which was the previous block pushed
    *
+   * @param current_period
    * @return vector of reward votes
    */
-  std::vector<std::shared_ptr<PbftVote>> getRewardVotes();
+  std::vector<std::shared_ptr<PbftVote>> getRewardVotes(PbftPeriod current_period);
+
+  /**
+   * @brief Get last or second last block cert votes with corresponding period
+   *
+   * @param period
+   * @return vector of cert votes
+   */
+  std::vector<std::shared_ptr<PbftVote>> getLatestCertVotes(PbftPeriod period);
 
   /**
    * @brief Get current reward votes pbft block period
    *
+   * @param pbft_period
    * @return period
    */
-  PbftPeriod getRewardVotesPbftBlockPeriod();
+  PbftPeriod getRewardVotesPeriod(PbftPeriod pbft_period);
+
+  /**
+   * @param pbft_period - current pbft period
+   * @return reward votes period offset relative to current pbgt period.
+   */
+  PbftPeriod getRewardVotesPeriodOffset(PbftPeriod pbft_period) const;
 
   /**
    * @brief Saves own verified vote into memory and db
@@ -257,7 +279,7 @@ class VoteManager {
    * @param vote
    * @return true if vote is valid potential reward vote
    */
-  bool isValidRewardVote(const std::shared_ptr<PbftVote>& vote) const;
+  bool isPotentialRewardVote(const std::shared_ptr<PbftVote>& vote) const;
 
   /**
    * @brief Inserts unique vote
@@ -275,7 +297,7 @@ class VoteManager {
   uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
 
  private:
-  const PbftConfig& kPbftConfig;
+  const FullNodeConfig& kConfig;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
@@ -293,12 +315,10 @@ class VoteManager {
   std::map<PbftPeriod, std::map<PbftRound, VerifiedVotes>> verified_votes_;
   mutable std::shared_mutex verified_votes_access_;
 
-  // Reward votes related info
-  blk_hash_t reward_votes_block_hash_;
-  PbftRound reward_votes_period_;
-  PbftRound reward_votes_round_;
-  std::vector<vote_hash_t> extra_reward_votes_;
-  mutable std::shared_mutex reward_votes_info_mutex_;
+  // Last & second last pbft block info based on pbft manager
+  PbftBlockInfo last_pbft_block_;
+  PbftBlockInfo second_last_pbft_block_;
+  mutable std::shared_mutex pbft_block_info_mutex_;
 
   // Own votes generated during current period & round
   std::vector<std::shared_ptr<PbftVote>> own_verified_votes_;

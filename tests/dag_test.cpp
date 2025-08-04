@@ -133,7 +133,7 @@ TEST_F(DagTest, genesis_get_pivot) {
 TEST_F(DagTest, compute_epoch) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
-  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(node_cfgs[0], addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
   node_cfgs[0].genesis.pbft.gas_limit = 100000;
   auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
@@ -236,7 +236,7 @@ TEST_F(DagTest, dag_expiry) {
   const uint32_t EXPIRY_LIMIT = 3;
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
-  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(node_cfgs[0], addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
   node_cfgs[0].max_levels_per_period = 3;
   node_cfgs[0].dag_expiry_limit = EXPIRY_LIMIT;
@@ -325,7 +325,7 @@ TEST_F(DagTest, dag_expiry) {
 
 TEST_F(DagTest, receive_block_in_order) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(node_cfgs[0], addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
   node_cfgs[0].genesis.pbft.gas_limit = 100000;
@@ -358,7 +358,7 @@ TEST_F(DagTest, receive_block_in_order) {
 // sure block order are the same
 TEST_F(DagTest, compute_epoch_2) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(node_cfgs[0], addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
   node_cfgs[0].genesis.pbft.gas_limit = 100000;
@@ -452,7 +452,7 @@ TEST_F(DagTest, compute_epoch_2) {
 TEST_F(DagTest, get_latest_pivot_tips) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
-  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(node_cfgs[0], addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
   node_cfgs[0].genesis.pbft.gas_limit = 100000;
   auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
@@ -482,7 +482,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
 TEST_F(DagTest, initial_pivot) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
-  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(node_cfgs[0], addr_t(), db_ptr);
   node_cfgs[0].genesis.pbft.gas_limit = 100000;
   auto mgr = std::make_shared<DagManager>(node_cfgs[0], addr_t(), trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 

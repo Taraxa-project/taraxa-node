@@ -114,6 +114,13 @@ struct CactiHardforkConfig {
 Json::Value enc_json(const CactiHardforkConfig& obj);
 void dec_json(const Json::Value& json, CactiHardforkConfig& obj);
 
+struct FragariaHardforkConfig {
+  uint64_t block_num = 0;
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const FragariaHardforkConfig& obj);
+void dec_json(const Json::Value& json, FragariaHardforkConfig& obj);
+
 // Keeping it for next HF
 // struct BambooRedelegation {
 //   taraxa::addr_t validator;
@@ -182,9 +189,13 @@ struct HardforksConfig {
   //               - limit max trx gas
   SoleiroliaHardforkConfig soleirolia_hf;
 
-  // Cacti hardfork
+  // Cacti hardfork - dynamic lambda
   CactiHardforkConfig cacti_hf;
   bool isOnCactiHardfork(uint64_t block_number) const { return block_number >= cacti_hf.block_num; }
+
+  // Fragaria hardfork - optional skipping of proposing step
+  FragariaHardforkConfig fragaria_hf;
+  bool isOnFragariaHardfork(uint64_t block_number) const { return block_number >= fragaria_hf.block_num; }
 
   HAS_RLP_FIELDS
 };

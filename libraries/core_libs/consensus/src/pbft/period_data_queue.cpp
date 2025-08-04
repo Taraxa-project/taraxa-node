@@ -6,6 +6,8 @@
 
 namespace taraxa {
 
+PeriodDataQueue::PeriodDataQueue(const FullNodeConfig& conf) : kConfig(conf) {}
+
 uint64_t PeriodDataQueue::getPeriod() const {
   std::shared_lock lock(queue_access_);
   return period_;
@@ -13,12 +15,27 @@ uint64_t PeriodDataQueue::getPeriod() const {
 
 size_t PeriodDataQueue::size() const {
   std::shared_lock lock(queue_access_);
-  // Each period data requires cert votes from the next block or from the last_block_cert_votes_ if it is the last
+  if (queue_.empty()) {
+    return 0;
+  }
+
+  size_t size = queue_.size();
+
+  // Each period data requires cert votes from the next block or from the cert_votes if it is the last
   // block, a block is counted only if it has cert votes as well
-  if (last_block_cert_votes_.size() || queue_.size() == 0)
-    return queue_.size();
-  else
-    return queue_.size() - 1;
+  if (queue_.back().cert_votes.empty()) {
+    size--;
+  }
+
+  if (size > 1) {
+    auto& second_last_item = queue_[size - 2];
+    if (kConfig.genesis.state.hardforks.isOnFragariaHardfork(second_last_item.period_data.pbft_blk->getPeriod()) &&
+        second_last_item.cert_votes.empty()) {
+      size--;
+    }
+  }
+
+  return size;
 }
 
 bool PeriodDataQueue::empty() const {
@@ -30,12 +47,11 @@ void PeriodDataQueue::clear() {
   std::unique_lock lock(queue_access_);
   period_ = 0;
   queue_.clear();
-  last_block_cert_votes_.clear();
+  last_popped_data_.reset();
 }
 
-bool PeriodDataQueue::push(PeriodData &&period_data, const dev::p2p::NodeID &node_id, uint64_t max_pbft_size,
-                           std::vector<std::shared_ptr<PbftVote>> &&cert_votes) {
-  const auto period = period_data.pbft_blk->getPeriod();
+bool PeriodDataQueue::push(QueueData&& queue_data, uint64_t max_pbft_size) {
+  const auto period = queue_data.period_data.pbft_blk->getPeriod();
   std::unique_lock lock(queue_access_);
 
   // It needs to be block after the last block in the queue or max_pbft_size + 1 or max_pbft_size + 2 since it is
@@ -43,39 +59,71 @@ bool PeriodDataQueue::push(PeriodData &&period_data, const dev::p2p::NodeID &nod
   if (period != std::max(period_, max_pbft_size) + 1 && (queue_.empty() && period != max_pbft_size + 2)) {
     return false;
   }
-  if (max_pbft_size > period_ && !queue_.empty()) queue_.clear();
+
+  if (max_pbft_size > period_ && !queue_.empty()) {
+    queue_.clear();
+  }
+
   period_ = period;
-  queue_.emplace_back(std::move(period_data), node_id);
-  last_block_cert_votes_ = std::move(cert_votes);
+  queue_.emplace_back(std::move(queue_data));
+
   return true;
 }
 
-std::tuple<PeriodData, std::vector<std::shared_ptr<PbftVote>>, dev::p2p::NodeID> PeriodDataQueue::pop() {
+std::optional<PeriodDataQueue::QueueData> PeriodDataQueue::pop() {
   std::unique_lock lock(queue_access_);
-  auto block = std::move(queue_.front());
-  queue_.pop_front();
-  if (queue_.size() > 0)
-    return {block.first, queue_.front().first.previous_block_cert_votes, block.second};
-  else {
-    // if queue is empty set period to zero and move last_block_cert_votes_
-    period_ = 0;
-    auto cert_votes = std::move(last_block_cert_votes_);
-    last_block_cert_votes_.clear();
-    return {block.first, std::move(cert_votes), block.second};
+  auto queue_data = queue_.front();
+  last_popped_data_ = {queue_data.period_data.pbft_blk->getBlockHash(), queue_data.period_data.pbft_blk->getPeriod()};
+
+  if (!queue_data.cert_votes.empty()) {
+    queue_.pop_front();
+    // if queue is empty set period to zero
+    if (queue_.empty()) {
+      period_ = 0;
+    }
+
+    return std::move(queue_data);
   }
+
+  size_t cert_votes_queue_data_idx =
+      (kConfig.genesis.state.hardforks.isOnFragariaHardfork(queue_data.period_data.pbft_blk->getPeriod()) ? 2 : 1);
+  if (queue_.size() <= cert_votes_queue_data_idx) {
+    // This should almost never happen
+    return std::nullopt;
+  }
+
+  queue_data.cert_votes = queue_[cert_votes_queue_data_idx].period_data.reward_votes_;
+  queue_.pop_front();
+
+  return std::move(queue_data);
 }
 
 std::shared_ptr<PbftBlock> PeriodDataQueue::lastPbftBlock() const {
   std::shared_lock lock(queue_access_);
-  if (queue_.size() > 0) {
-    return queue_.back().first.pbft_blk;
+  if (!queue_.empty()) {
+    return queue_.back().period_data.pbft_blk;
   }
+
   return nullptr;
+}
+
+std::shared_ptr<PbftBlock> PeriodDataQueue::secondLastPbftBlock() const {
+  std::shared_lock lock(queue_access_);
+  if (queue_.size() > 1) {
+    return (queue_.end() - 2)->period_data.pbft_blk;
+  }
+
+  return nullptr;
+}
+
+std::optional<std::pair<blk_hash_t, PbftPeriod>> PeriodDataQueue::getLastPoppedData() const {
+  std::shared_lock lock(queue_access_);
+  return last_popped_data_;
 }
 
 void PeriodDataQueue::cleanOldData(uint64_t period) {
   std::unique_lock lock(queue_access_);
-  while (queue_.size() > 0 && queue_.front().first.pbft_blk->getPeriod() < period) {
+  while (queue_.size() > 0 && queue_.front().period_data.pbft_blk->getPeriod() < period) {
     queue_.pop_front();
   }
 }

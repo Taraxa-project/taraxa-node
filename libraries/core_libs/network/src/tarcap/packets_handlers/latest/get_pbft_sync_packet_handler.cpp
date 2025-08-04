@@ -55,7 +55,8 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
   size_t blocks_to_transfer = 0;
   auto pbft_chain_synced = false;
   const auto total_period_data_size = my_chain_size - packet.height_to_sync + 1;
-  if (total_period_data_size <= kConf.network.sync_level_size) {
+  if (total_period_data_size <=
+      kConf.network.sync_level_size + 1 /* +1 because we are sending cert votes for last 2 blocks */) {
     blocks_to_transfer = total_period_data_size;
     pbft_chain_synced = true;
   } else {
@@ -98,6 +99,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
 
   for (auto block_period = from_period; block_period < from_period + blocks_to_transfer; block_period++) {
     bool last_block = (block_period == from_period + blocks_to_transfer - 1);
+    bool second_last_block = (block_period == from_period + blocks_to_transfer - 2);
     auto period_data = db_->getPeriodDataRaw(block_period);
     if (period_data.empty()) {
       // This can happen when switching from light node to full node setting
@@ -107,22 +109,18 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
 
     std::shared_ptr<PbftSyncPacketRaw> pbft_sync_packet;
 
-    if (pbft_chain_synced && last_block) {
-      // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      auto reward_votes = vote_mgr_->getRewardVotes();
-      assert(!reward_votes.empty());
-      // It is possible that the node pushed another block to the chain in the meantime
-      if (reward_votes[0]->getPeriod() == block_period) {
+    if (pbft_chain_synced && (last_block || second_last_block)) {
+      auto cert_votes = vote_mgr_->getLatestCertVotes(block_period);
+      if (!cert_votes.empty()) {
         pbft_sync_packet = std::make_shared<PbftSyncPacketRaw>(last_block, std::move(period_data),
-                                                               OptimizedPbftVotesBundle{std::move(reward_votes)});
-      } else {
+                                                               OptimizedPbftVotesBundle{std::move(cert_votes)});
+      } else {  // It is possible that the node pushed another block to the chain in the meantime
         pbft_sync_packet = std::make_shared<PbftSyncPacketRaw>(last_block, std::move(period_data));
       }
     } else {
       pbft_sync_packet = std::make_shared<PbftSyncPacketRaw>(last_block, std::move(period_data));
     }
 
-    LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::kPbftSyncPacket, encodePacketRlp(pbft_sync_packet));
     if (pbft_chain_synced && last_block) {
       peer->syncing_ = false;

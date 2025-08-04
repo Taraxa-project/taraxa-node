@@ -19,7 +19,6 @@ VotePacketHandler::VotePacketHandler(const FullNodeConfig &conf, std::shared_ptr
 void VotePacketHandler::process(const threadpool::PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   // Decode packet rlp into packet object
   auto packet = decodePacketRlp<VotePacket>(packet_data.rlp_);
-
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   if (packet.optional_data.has_value()) {

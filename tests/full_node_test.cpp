@@ -33,306 +33,6 @@ auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 
 struct FullNodeTest : NodesTest {};
 
-TEST_F(FullNodeTest, db_test) {
-  auto db_ptr = std::make_shared<DbStorage>(data_dir);
-  auto &db = *db_ptr;
-  auto blk1 = std::make_shared<DagBlock>(blk_hash_t(1), 1, vec_blk_t{}, vec_trx_t{trx_hash_t(1), trx_hash_t(2)},
-                                         sig_t(777), blk_hash_t(0xB1), addr_t(999));
-  auto blk2 = std::make_shared<DagBlock>(blk_hash_t(1), 1, vec_blk_t{}, vec_trx_t{trx_hash_t(3), trx_hash_t(4)},
-                                         sig_t(777), blk_hash_t(0xB2), addr_t(999));
-  auto blk3 = std::make_shared<DagBlock>(blk_hash_t(0xB1), 2, vec_blk_t{}, vec_trx_t{trx_hash_t(5)}, sig_t(777),
-                                         blk_hash_t(0xB6), addr_t(999));
-  // DAG
-  db.saveDagBlock(blk1);
-  db.saveDagBlock(blk2);
-  db.saveDagBlock(blk3);
-  EXPECT_EQ(*blk1, *db.getDagBlock(blk1->getHash()));
-  EXPECT_EQ(*blk2, *db.getDagBlock(blk2->getHash()));
-  EXPECT_EQ(*blk3, *db.getDagBlock(blk3->getHash()));
-  std::set<blk_hash_t> s1, s2;
-  s1.emplace(blk1->getHash());
-  s1.emplace(blk2->getHash());
-  s2.emplace(blk3->getHash());
-  EXPECT_EQ(db.getBlocksByLevel(1), s1);
-  EXPECT_EQ(db.getBlocksByLevel(2), s2);
-
-  // Transaction
-  auto batch = db.createWriteBatch();
-  db.addTransactionToBatch(*g_trx_signed_samples[0], batch);
-  db.addTransactionToBatch(*g_trx_signed_samples[1], batch);
-  db.addTransactionToBatch(*g_trx_signed_samples[2], batch);
-  db.addTransactionToBatch(*g_trx_signed_samples[3], batch);
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0]->getHash()));
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1]->getHash()));
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[2]->getHash()));
-  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[3]->getHash()));
-  ASSERT_EQ(dev::toHex(g_trx_signed_samples[0]->rlp()),
-            dev::toHex(db.getTransaction(g_trx_signed_samples[0]->getHash())->rlp()));
-  ASSERT_EQ(*g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1]->getHash()));
-  ASSERT_EQ(*g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2]->getHash()));
-  ASSERT_EQ(*g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3]->getHash()));
-
-  // PBFT manager round and step
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), 1);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), 1);
-  uint64_t pbft_round = 30;
-  size_t pbft_step = 31;
-  db.savePbftMgrField(PbftMgrField::Round, pbft_round);
-  db.savePbftMgrField(PbftMgrField::Step, pbft_step);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
-  pbft_round = 90;
-  pbft_step = 91;
-  batch = db.createWriteBatch();
-  db.addPbftMgrFieldToBatch(PbftMgrField::Round, pbft_round, batch);
-  db.addPbftMgrFieldToBatch(PbftMgrField::Step, pbft_step, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
-
-  // PBFT manager status
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
-  db.savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
-  db.savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
-  db.savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
-  db.savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
-  batch = db.createWriteBatch();
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedBlock, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
-
-  // PBFT cert voted block in round
-  EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
-
-  auto cert_voted_block_in_round = make_simple_pbft_block(blk_hash_t(1), 1);
-  db.saveCertVotedBlockInRound(1, cert_voted_block_in_round);
-  auto cert_voted_block_in_round_db = db.getCertVotedBlockInRound();
-  EXPECT_EQ(cert_voted_block_in_round_db->second->rlp(true), cert_voted_block_in_round->rlp(true));
-  EXPECT_EQ(cert_voted_block_in_round_db->first, 1);
-
-  batch = db.createWriteBatch();
-  db.removeCertVotedBlockInRound(batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
-
-  // pbft_blocks and cert votes
-  EXPECT_FALSE(db.pbftBlockInDb(kNullBlockHash));
-  EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(1)));
-  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
-  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
-  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
-  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
-
-  // Certified votes
-  std::vector<std::shared_ptr<PbftVote>> cert_votes;
-  for (auto i = 0; i < 3; i++) {
-    cert_votes.emplace_back(genDummyVote(PbftVoteTypes::cert_vote, 2, 2, 3, blk_hash_t(1)));
-  }
-
-  // Pillar votes
-  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
-  const auto vote1 = pillar_votes.emplace_back(
-      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
-  const auto vote2 = pillar_votes.emplace_back(
-      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
-
-  std::vector<std::shared_ptr<PbftVote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
-  PeriodData period_data1(pbft_block1, cert_votes, pillar_votes);
-  PeriodData period_data2(pbft_block2, votes);
-  PeriodData period_data3(pbft_block3, votes);
-  PeriodData period_data4(pbft_block4, votes);
-
-  batch = db.createWriteBatch();
-  db.savePeriodData(period_data1, batch);
-  db.savePeriodData(period_data2, batch);
-  db.savePeriodData(period_data3, batch);
-  db.savePeriodData(period_data4, batch);
-
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block1->getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block2->getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block3->getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block4->getBlockHash()));
-  EXPECT_EQ(db.getPbftBlock(pbft_block1->getBlockHash())->rlp(false), pbft_block1->rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block2->getBlockHash())->rlp(false), pbft_block2->rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
-
-  auto cert_votes_from_db = db.getPeriodCertVotes(pbft_block1->getPeriod());
-  auto pillar_votes_from_db = db.getPeriodPillarVotes(pbft_block1->getPeriod());
-  PeriodData period_data1_from_db(pbft_block1, cert_votes_from_db, pillar_votes_from_db);
-  EXPECT_EQ(period_data1.rlp(), period_data1_from_db.rlp());
-  EXPECT_TRUE(period_data1_from_db.pillar_votes_.has_value());
-  EXPECT_EQ(pillar_votes.size(), period_data1_from_db.pillar_votes_->size());
-  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
-    EXPECT_EQ(pillar_votes[idx]->getHash(), period_data1_from_db.pillar_votes_.operator*()[idx]->getHash());
-  }
-
-  // pbft_blocks (head)
-  PbftChain pbft_chain(addr_t(), db_ptr);
-  db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
-  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
-  batch = db.createWriteBatch();
-  pbft_chain.updatePbftChain(blk_hash_t(123), blk_hash_t(1));
-  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
-  batch = db.createWriteBatch();
-  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
-
-  // status
-  db.saveStatusField(StatusDbField::TrxCount, 5);
-  db.saveStatusField(StatusDbField::ExecutedBlkCount, 6);
-  EXPECT_EQ(db.getStatusField(StatusDbField::TrxCount), 5);
-  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 6);
-  batch = db.createWriteBatch();
-  db.addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, 10, batch);
-  db.addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, 20, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
-  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
-
-  // Own verified votes
-  EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
-  std::vector<std::shared_ptr<PbftVote>> verified_votes;
-  for (auto i = 0; i < 3; i++) {
-    const auto vote = genDummyVote(PbftVoteTypes::soft_vote, i, i, 2);
-    verified_votes.push_back(vote);
-    db.saveOwnVerifiedVote(vote);
-  }
-  const auto db_own_verified_votes = db.getOwnVerifiedVotes();
-  EXPECT_EQ(db_own_verified_votes.size(), verified_votes.size());
-  for (size_t i = 0; i < db_own_verified_votes.size(); i++) {
-    EXPECT_EQ(db_own_verified_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
-  }
-
-  batch = db.createWriteBatch();
-  db.clearOwnVerifiedVotes(batch, verified_votes);
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
-
-  // 2t+1 votes bundles for the latest round
-  EXPECT_TRUE(db.getAllTwoTPlusOneVotes().empty());
-  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::SoftVotedBlock, verified_votes);
-  const auto db_two_t_plus_one_votes = db.getAllTwoTPlusOneVotes();
-  EXPECT_EQ(db_two_t_plus_one_votes.size(), verified_votes.size());
-  for (size_t i = 0; i < db_two_t_plus_one_votes.size(); i++) {
-    EXPECT_EQ(db_two_t_plus_one_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
-  }
-
-  // Save new votes for different TwoTPlusOneVotedBlockType
-  const auto cert_vote = genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3);
-  verified_votes.push_back(cert_vote);
-  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::CertVotedBlock, {cert_vote});
-
-  const auto next_vote = genDummyVote(PbftVoteTypes::next_vote, 1, 1, 4);
-  verified_votes.push_back(next_vote);
-  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedBlock, {next_vote});
-
-  const auto next_null_vote = genDummyVote(PbftVoteTypes::next_vote, 1, 1, 5);
-  verified_votes.push_back(next_null_vote);
-  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedNullBlock, {next_null_vote});
-  EXPECT_EQ(db.getAllTwoTPlusOneVotes().size(), verified_votes.size());
-
-  // Replace cert votes, size of all votes should not change
-  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::CertVotedBlock, {cert_vote});
-
-  const auto new_db_two_t_plus_one_votes = db.getAllTwoTPlusOneVotes();
-  EXPECT_EQ(new_db_two_t_plus_one_votes.size(), verified_votes.size());
-  for (size_t i = 0; i < db_two_t_plus_one_votes.size(); i++) {
-    EXPECT_EQ(new_db_two_t_plus_one_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
-  }
-
-  // Reward votes - cert votes for the latest finalized block
-  std::unordered_map<vote_hash_t, std::shared_ptr<PbftVote>> verified_votes_map;
-  for (const auto &vote : verified_votes) {
-    verified_votes_map[vote->getHash()] = vote;
-  }
-
-  EXPECT_TRUE(db.getRewardVotes().empty());
-  for (auto v : verified_votes) db.saveExtraRewardVote(v);
-
-  const auto db_reward_votes = db.getRewardVotes();
-  EXPECT_EQ(db_reward_votes.size(), verified_votes_map.size());
-  for (const auto &db_vote : db_reward_votes) {
-    EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
-  }
-
-  const auto new_reward_vote = genDummyVote(PbftVoteTypes::cert_vote, 10, 10, 3);
-  verified_votes_map[new_reward_vote->getHash()] = new_reward_vote;
-  db.saveExtraRewardVote(new_reward_vote);
-
-  const auto new_db_reward_votes = db.getRewardVotes();
-  EXPECT_EQ(new_db_reward_votes.size(), verified_votes_map.size());
-  for (const auto &db_vote : new_db_reward_votes) {
-    EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
-  }
-
-  batch = db.createWriteBatch();
-
-  std::vector<vote_hash_t> verified_votes_hashes, new_db_reward_votes_hashes;
-  for (const auto &v : verified_votes) verified_votes_hashes.emplace_back(v->getHash());
-  for (const auto &v : new_db_reward_votes) new_db_reward_votes_hashes.emplace_back(v->getHash());
-  db.removeExtraRewardVotes(verified_votes_hashes, batch);
-  db.removeExtraRewardVotes(new_db_reward_votes_hashes, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.getRewardVotes().empty());
-
-  // period_pbft_block
-  batch = db.createWriteBatch();
-  db.addPbftBlockPeriodToBatch(3, blk_hash_t(1), batch);
-  db.addPbftBlockPeriodToBatch(4, blk_hash_t(2), batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(1)).second, 3);
-  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(2)).second, 4);
-
-  // dag_block_period
-  batch = db.createWriteBatch();
-  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, 2, batch);
-  db.addDagBlockPeriodToBatch(blk_hash_t(2), 3, 4, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(1, db.getDagBlockPeriod(blk_hash_t(1))->first);
-  EXPECT_EQ(2, db.getDagBlockPeriod(blk_hash_t(1))->second);
-  EXPECT_EQ(3, db.getDagBlockPeriod(blk_hash_t(2))->first);
-  EXPECT_EQ(4, db.getDagBlockPeriod(blk_hash_t(2))->second);
-
-  // DPOS proposal period DAG levels map
-  db.saveProposalPeriodDagLevelsMap(100, 0);
-  db.saveProposalPeriodDagLevelsMap(103, 1);
-  db.saveProposalPeriodDagLevelsMap(106, 3);
-  EXPECT_TRUE(db.getProposalPeriodForDagLevel(5));
-  EXPECT_TRUE(db.getProposalPeriodForDagLevel(100));
-  EXPECT_EQ(*db.getProposalPeriodForDagLevel(5), 0);
-  EXPECT_EQ(*db.getProposalPeriodForDagLevel(100), 0);
-
-  EXPECT_TRUE(db.getProposalPeriodForDagLevel(101));
-  EXPECT_TRUE(db.getProposalPeriodForDagLevel(103));
-  EXPECT_EQ(*db.getProposalPeriodForDagLevel(101), 1);
-  EXPECT_EQ(*db.getProposalPeriodForDagLevel(103), 1);
-
-  EXPECT_TRUE(db.getProposalPeriodForDagLevel(105));
-  EXPECT_TRUE(db.getProposalPeriodForDagLevel(106));
-  EXPECT_EQ(*db.getProposalPeriodForDagLevel(105), 3);
-  EXPECT_EQ(*db.getProposalPeriodForDagLevel(106), 3);
-  EXPECT_FALSE(db.getProposalPeriodForDagLevel(107));
-}
-
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
@@ -670,6 +370,644 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   prune_node->getFinalChain()->prune(min_blocks_to_prune);
   context.assert_balances_synced();
 }
+
+TEST_F(FullNodeTest, db_test) {
+  auto db_ptr = std::make_shared<DbStorage>(data_dir);
+  auto &db = *db_ptr;
+  auto blk1 = std::make_shared<DagBlock>(blk_hash_t(1), 1, vec_blk_t{}, vec_trx_t{trx_hash_t(1), trx_hash_t(2)},
+                                         sig_t(777), blk_hash_t(0xB1), addr_t(999));
+  auto blk2 = std::make_shared<DagBlock>(blk_hash_t(1), 1, vec_blk_t{}, vec_trx_t{trx_hash_t(3), trx_hash_t(4)},
+                                         sig_t(777), blk_hash_t(0xB2), addr_t(999));
+  auto blk3 = std::make_shared<DagBlock>(blk_hash_t(0xB1), 2, vec_blk_t{}, vec_trx_t{trx_hash_t(5)}, sig_t(777),
+                                         blk_hash_t(0xB6), addr_t(999));
+  // DAG
+  db.saveDagBlock(blk1);
+  db.saveDagBlock(blk2);
+  db.saveDagBlock(blk3);
+  EXPECT_EQ(*blk1, *db.getDagBlock(blk1->getHash()));
+  EXPECT_EQ(*blk2, *db.getDagBlock(blk2->getHash()));
+  EXPECT_EQ(*blk3, *db.getDagBlock(blk3->getHash()));
+  std::set<blk_hash_t> s1, s2;
+  s1.emplace(blk1->getHash());
+  s1.emplace(blk2->getHash());
+  s2.emplace(blk3->getHash());
+  EXPECT_EQ(db.getBlocksByLevel(1), s1);
+  EXPECT_EQ(db.getBlocksByLevel(2), s2);
+
+  // Transaction
+  auto batch = db.createWriteBatch();
+  db.addTransactionToBatch(*g_trx_signed_samples[0], batch);
+  db.addTransactionToBatch(*g_trx_signed_samples[1], batch);
+  db.addTransactionToBatch(*g_trx_signed_samples[2], batch);
+  db.addTransactionToBatch(*g_trx_signed_samples[3], batch);
+  db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[0]->getHash()));
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1]->getHash()));
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[2]->getHash()));
+  EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[3]->getHash()));
+  ASSERT_EQ(dev::toHex(g_trx_signed_samples[0]->rlp()),
+            dev::toHex(db.getTransaction(g_trx_signed_samples[0]->getHash())->rlp()));
+  ASSERT_EQ(*g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1]->getHash()));
+  ASSERT_EQ(*g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2]->getHash()));
+  ASSERT_EQ(*g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3]->getHash()));
+
+  // PBFT manager round and step
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), 1);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), 1);
+  uint64_t pbft_round = 30;
+  size_t pbft_step = 31;
+  db.savePbftMgrField(PbftMgrField::Round, pbft_round);
+  db.savePbftMgrField(PbftMgrField::Step, pbft_step);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
+  pbft_round = 90;
+  pbft_step = 91;
+  batch = db.createWriteBatch();
+  db.addPbftMgrFieldToBatch(PbftMgrField::Round, pbft_round, batch);
+  db.addPbftMgrFieldToBatch(PbftMgrField::Step, pbft_step, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
+
+  // PBFT manager status
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
+  db.savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
+  db.savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
+  db.savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
+  db.savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
+  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
+  batch = db.createWriteBatch();
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedBlock, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
+  db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
+  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
+
+  // PBFT cert voted block in round
+  EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
+
+  auto cert_voted_block_in_round = make_simple_pbft_block(blk_hash_t(1), 1);
+  db.saveCertVotedBlockInRound(1, cert_voted_block_in_round);
+  auto cert_voted_block_in_round_db = db.getCertVotedBlockInRound();
+  EXPECT_EQ(cert_voted_block_in_round_db->second->rlp(true), cert_voted_block_in_round->rlp(true));
+  EXPECT_EQ(cert_voted_block_in_round_db->first, 1);
+
+  batch = db.createWriteBatch();
+  db.removeCertVotedBlockInRound(batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
+
+  // pbft_blocks and cert votes
+  EXPECT_FALSE(db.pbftBlockInDb(kNullBlockHash));
+  EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(1)));
+  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
+  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
+  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
+  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
+
+  // Certified votes
+  std::vector<std::shared_ptr<PbftVote>> cert_votes;
+  for (auto i = 0; i < 3; i++) {
+    cert_votes.emplace_back(genDummyVote(PbftVoteTypes::cert_vote, 2, 2, 3, blk_hash_t(1)));
+  }
+
+  // Pillar votes
+  std::vector<std::shared_ptr<PillarVote>> pillar_votes;
+  const auto vote1 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
+  const auto vote2 = pillar_votes.emplace_back(
+      std::make_shared<PillarVote>(secret_t::random(), pbft_block1->getPeriod(), blk_hash_t(123)));
+
+  std::vector<std::shared_ptr<PbftVote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
+  PeriodData period_data1(pbft_block1, cert_votes, pillar_votes);
+  PeriodData period_data2(pbft_block2, votes);
+  PeriodData period_data3(pbft_block3, votes);
+  PeriodData period_data4(pbft_block4, votes);
+
+  batch = db.createWriteBatch();
+  db.savePeriodData(period_data1, batch);
+  db.savePeriodData(period_data2, batch);
+  db.savePeriodData(period_data3, batch);
+  db.savePeriodData(period_data4, batch);
+
+  db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block1->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block2->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block3->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block4->getBlockHash()));
+  EXPECT_EQ(db.getPbftBlock(pbft_block1->getBlockHash())->rlp(false), pbft_block1->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block2->getBlockHash())->rlp(false), pbft_block2->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
+
+  auto cert_votes_from_db = db.getPeriodCertVotes(pbft_block1->getPeriod());
+  auto pillar_votes_from_db = db.getPeriodPillarVotes(pbft_block1->getPeriod());
+  PeriodData period_data1_from_db(pbft_block1, cert_votes_from_db, pillar_votes_from_db);
+  EXPECT_EQ(period_data1.rlp(), period_data1_from_db.rlp());
+  EXPECT_TRUE(period_data1_from_db.pillar_votes_.has_value());
+  EXPECT_EQ(pillar_votes.size(), period_data1_from_db.pillar_votes_->size());
+  for (size_t idx = 0; idx < pillar_votes.size(); idx++) {
+    EXPECT_EQ(pillar_votes[idx]->getHash(), period_data1_from_db.pillar_votes_.operator*()[idx]->getHash());
+  }
+
+  // pbft_blocks (head)
+  PbftChain pbft_chain({} /* default config */, addr_t(), db_ptr);
+  db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
+  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
+  batch = db.createWriteBatch();
+  pbft_chain.updatePbftChain(blk_hash_t(123), blk_hash_t(1));
+  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
+  batch = db.createWriteBatch();
+  db.addPbftHeadToBatch(pbft_chain.getHeadHash(), pbft_chain.getJsonStr(), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
+
+  // status
+  db.saveStatusField(StatusDbField::TrxCount, 5);
+  db.saveStatusField(StatusDbField::ExecutedBlkCount, 6);
+  EXPECT_EQ(db.getStatusField(StatusDbField::TrxCount), 5);
+  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 6);
+  batch = db.createWriteBatch();
+  db.addStatusFieldToBatch(StatusDbField::ExecutedBlkCount, 10, batch);
+  db.addStatusFieldToBatch(StatusDbField::ExecutedTrxCount, 20, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
+  EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
+
+  // Own verified votes
+  EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
+  std::vector<std::shared_ptr<PbftVote>> verified_votes;
+  for (auto i = 0; i < 3; i++) {
+    const auto vote = genDummyVote(PbftVoteTypes::soft_vote, i, i, 2);
+    verified_votes.push_back(vote);
+    db.saveOwnVerifiedVote(vote);
+  }
+  const auto db_own_verified_votes = db.getOwnVerifiedVotes();
+  EXPECT_EQ(db_own_verified_votes.size(), verified_votes.size());
+  for (size_t i = 0; i < db_own_verified_votes.size(); i++) {
+    EXPECT_EQ(db_own_verified_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
+  }
+
+  batch = db.createWriteBatch();
+  db.clearOwnVerifiedVotes(batch, verified_votes);
+  db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
+
+  // 2t+1 votes bundles for the latest round
+  EXPECT_TRUE(db.getAllTwoTPlusOneVotes().empty());
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::SoftVotedBlock, verified_votes);
+  const auto db_two_t_plus_one_votes = db.getAllTwoTPlusOneVotes();
+  EXPECT_EQ(db_two_t_plus_one_votes.size(), verified_votes.size());
+  for (size_t i = 0; i < db_two_t_plus_one_votes.size(); i++) {
+    EXPECT_EQ(db_two_t_plus_one_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
+  }
+
+  // Save new votes for different TwoTPlusOneVotedBlockType
+  const auto cert_vote = genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3);
+  verified_votes.push_back(cert_vote);
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::CertVotedBlock, {cert_vote});
+
+  const auto next_vote = genDummyVote(PbftVoteTypes::next_vote, 1, 1, 4);
+  verified_votes.push_back(next_vote);
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedBlock, {next_vote});
+
+  const auto next_null_vote = genDummyVote(PbftVoteTypes::next_vote, 1, 1, 5);
+  verified_votes.push_back(next_null_vote);
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedNullBlock, {next_null_vote});
+  EXPECT_EQ(db.getAllTwoTPlusOneVotes().size(), verified_votes.size());
+
+  // Replace cert votes, size of all votes should not change
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::CertVotedBlock, {cert_vote});
+
+  const auto new_db_two_t_plus_one_votes = db.getAllTwoTPlusOneVotes();
+  EXPECT_EQ(new_db_two_t_plus_one_votes.size(), verified_votes.size());
+  for (size_t i = 0; i < db_two_t_plus_one_votes.size(); i++) {
+    EXPECT_EQ(new_db_two_t_plus_one_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
+  }
+
+  // Reward votes - cert votes for the latest finalized block
+  EXPECT_TRUE(db.getTwoTPlusOneCertVotes(DbStorage::CertVotesType::LastBlock).empty());
+  EXPECT_TRUE(db.getTwoTPlusOneCertVotes(DbStorage::CertVotesType::SecondLastBlock).empty());
+
+  std::vector<std::shared_ptr<PbftVote>> cert_vote_votes1, cert_vote_votes2;
+  for (auto i = 0; i < 20; i += 2) {
+    cert_vote_votes1.push_back(genDummyVote(PbftVoteTypes::cert_vote, 1, i, 3));
+    cert_vote_votes2.push_back(genDummyVote(PbftVoteTypes::cert_vote, 1, i + 1, 3));
+  }
+
+  auto compare_votes = [](const std::vector<std::shared_ptr<PbftVote>> &votes1,
+                          const std::vector<std::shared_ptr<PbftVote>> &votes2) {
+    EXPECT_EQ(votes1.size(), votes2.size());
+    for (size_t idx = 0; idx < votes1.size(); idx++) {
+      EXPECT_EQ(votes1[idx]->rlp(true, true), votes2[idx]->rlp(true, true));
+    }
+  };
+
+  batch = db.createWriteBatch();
+  db.replaceTwoTPlusOneCertVotes(cert_vote_votes1, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.getTwoTPlusOneCertVotes(DbStorage::CertVotesType::SecondLastBlock).empty());
+  compare_votes(cert_vote_votes1, db.getTwoTPlusOneCertVotes(DbStorage::CertVotesType::LastBlock));
+
+  batch = db.createWriteBatch();
+  db.replaceTwoTPlusOneCertVotes(cert_vote_votes2, batch);
+  db.commitWriteBatch(batch);
+  compare_votes(cert_vote_votes1, db.getTwoTPlusOneCertVotes(DbStorage::CertVotesType::SecondLastBlock));
+  compare_votes(cert_vote_votes2, db.getTwoTPlusOneCertVotes(DbStorage::CertVotesType::LastBlock));
+
+  // period_pbft_block
+  batch = db.createWriteBatch();
+  db.addPbftBlockPeriodToBatch(3, blk_hash_t(1), batch);
+  db.addPbftBlockPeriodToBatch(4, blk_hash_t(2), batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(1)).second, 3);
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(2)).second, 4);
+
+  // dag_block_period
+  batch = db.createWriteBatch();
+  db.addDagBlockPeriodToBatch(blk_hash_t(1), 1, 2, batch);
+  db.addDagBlockPeriodToBatch(blk_hash_t(2), 3, 4, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(1, db.getDagBlockPeriod(blk_hash_t(1))->first);
+  EXPECT_EQ(2, db.getDagBlockPeriod(blk_hash_t(1))->second);
+  EXPECT_EQ(3, db.getDagBlockPeriod(blk_hash_t(2))->first);
+  EXPECT_EQ(4, db.getDagBlockPeriod(blk_hash_t(2))->second);
+
+  // DPOS proposal period DAG levels map
+  db.saveProposalPeriodDagLevelsMap(100, 0);
+  db.saveProposalPeriodDagLevelsMap(103, 1);
+  db.saveProposalPeriodDagLevelsMap(106, 3);
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(5));
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(100));
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(5), 0);
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(100), 0);
+
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(101));
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(103));
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(101), 1);
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(103), 1);
+
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(105));
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(106));
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(105), 3);
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(106), 3);
+  EXPECT_FALSE(db.getProposalPeriodForDagLevel(107));
+}
+
+// TEST_F(FullNodeTest, sync_five_nodes) {
+//   using namespace std;
+//
+//   auto node_cfgs = make_node_cfgs(5, 1, 20);
+//   auto nodes = launch_nodes(node_cfgs);
+//
+//   class context {
+//     decltype(nodes) nodes_;
+//     std::vector<TransactionClient> trx_clients;
+//     uint64_t issued_trx_count = 0;
+//     std::unordered_map<addr_t, val_t> expected_balances;
+//     std::shared_mutex m;
+//     std::unordered_set<trx_hash_t> transactions;
+//
+//    public:
+//     context(decltype(nodes_) nodes) : nodes_(nodes) {
+//       for (auto const &node : nodes_) {
+//         trx_clients.emplace_back(node);
+//         expected_balances[node->getAddress()] = node->getFinalChain()->getBalance(node->getAddress()).first;
+//       }
+//     }
+//
+//     void dummy_initial_transfer() { coin_transfer(0, nodes_[0]->getAddress(), 1000000, true); }
+//
+//     auto getIssuedTrxCount() {
+//       shared_lock l(m);
+//       return issued_trx_count;
+//     }
+//
+//     void dummy_transaction() { coin_transfer(0, nodes_[0]->getAddress(), 0, false); }
+//
+//     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
+//       {
+//         unique_lock l(m);
+//         ++issued_trx_count;
+//         expected_balances[to] += amount;
+//         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount + 1000000000 * TEST_TX_GAS_LIMIT;
+//       }
+//       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, verify_executed);
+//       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
+//       {
+//         unique_lock l(m);
+//         transactions.emplace(result.trx->getHash());
+//       }
+//       if (verify_executed)
+//         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
+//       else
+//         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::inserted);
+//     }
+//
+//     void assert_balances_synced() {
+//       shared_lock l(m);
+//       for (auto &[addr, val] : expected_balances) {
+//         for (auto &node : nodes_) {
+//           ASSERT_GE(node->getFinalChain()->getBalance(addr).first, val);
+//         }
+//       }
+//     }
+//
+//     void assert_all_transactions_known() {
+//       for (auto &n : nodes_) {
+//         for (auto &t : transactions) {
+//           auto location = n->getFinalChain()->transactionLocation(t);
+//           ASSERT_EQ(location.has_value(), true);
+//         }
+//       }
+//     }
+//
+//     void assert_all_transactions_success() {
+//       for (auto &n : nodes_) {
+//         for (auto &t : transactions) {
+//           auto loc = n->getFinalChain()->transactionLocation(t);
+//           ASSERT_TRUE(loc.has_value());
+//           auto receipt = n->getFinalChain()->transactionReceipt(loc->period, loc->position);
+//           if (receipt->status_code != 1) {
+//             auto trx = n->getTransactionManager()->getTransaction(t);
+//             std::cout << "failed: " << t.toString() << " sender: " << trx->getSender() << " nonce: " <<
+//             trx->getNonce()
+//                       << " value: " << trx->getValue() << " gas: " << trx->getGas()
+//                       << " gasPrice: " << trx->getGasPrice() << std::endl;
+//           }
+//           ASSERT_EQ(receipt->status_code, 1);
+//         }
+//       }
+//     }
+//
+//     void wait_all_transactions_known(wait_opts const &wait_for = {30s, 500ms}) {
+//       wait(wait_for, [this](auto &ctx) {
+//         for (auto &n : nodes_) {
+//           for (auto &t : transactions) {
+//             if (!n->getFinalChain()->transactionLocation(t)) {
+//               ctx.fail();
+//             }
+//           }
+//         }
+//         dummy_transaction();
+//       });
+//     }
+//
+//   } context(nodes);
+//
+//   std::vector<trx_hash_t> all_transactions;
+//   // transfer some coins to your friends ...
+//   auto init_bal = own_effective_genesis_bal(nodes[0]->getConfig()) / (nodes.size() + 10);
+//
+//   context.dummy_initial_transfer();
+//   {
+//     for (size_t i(1); i < nodes.size(); ++i) {
+//       // we shouldn't wait for transaction execution because it could be in alternative dag
+//       context.coin_transfer(0, nodes[i]->getAddress(), init_bal, false);
+//     }
+//     context.wait_all_transactions_known();
+//   }
+//
+//   std::cout << "Waiting until transactions are executed" << std::endl;
+//   const auto trx_count = context.getIssuedTrxCount();
+//   ASSERT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
+//     for (size_t i = 0; i < nodes.size(); ++i)
+//       WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_count)
+//   });
+//
+//   std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
+//
+//   {
+//     std::vector<std::thread> runners;
+//     for (size_t i(0); i < nodes.size(); ++i) {
+//       // make transactions from different senders in different threads to speed up
+//       runners.emplace_back(std::thread([&, i]() {
+//         auto to = i < nodes.size() - 1 ? nodes[i + 1]->getAddress() : nodes[0]->getAddress();
+//         for (auto _(0); _ < 10; ++_) {
+//           // transactions from 1 sender should be send in series to avoid failing because of dag reordering
+//           context.coin_transfer(i, to, 100, true);
+//         }
+//       }));
+//     }
+//     for (auto &t : runners) {
+//       t.join();
+//     }
+//     context.wait_all_transactions_known();
+//   }
+//   std::cout << "Issued " << context.getIssuedTrxCount() << " transactions" << std::endl;
+//
+//   auto TIMEOUT = SYNC_TIMEOUT;
+//   for (unsigned i = 0; i < TIMEOUT; i++) {
+//     auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
+//     auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
+//     auto num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
+//     auto num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
+//     auto num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
+//
+//     auto num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
+//     auto num_trx2 = nodes[1]->getTransactionManager()->getTransactionCount();
+//     auto num_trx3 = nodes[2]->getTransactionManager()->getTransactionCount();
+//     auto num_trx4 = nodes[3]->getTransactionManager()->getTransactionCount();
+//     auto num_trx5 = nodes[4]->getTransactionManager()->getTransactionCount();
+//
+//     auto issued_trx_count = context.getIssuedTrxCount();
+//
+//     if (num_vertices1 == num_vertices2 && num_vertices2 == num_vertices3 && num_vertices3 == num_vertices4 &&
+//         num_vertices4 == num_vertices5 && num_trx1 == issued_trx_count && num_trx2 == issued_trx_count &&
+//         num_trx3 == issued_trx_count && num_trx4 == issued_trx_count && num_trx5 == issued_trx_count) {
+//       break;
+//     }
+//
+//     if (i % 10 == 0) {
+//       std::cout << "Still waiting for DAG vertices and transaction gossiping to sync ..." << std::endl;
+//       std::cout << " Node 1: Dag size = " << num_vertices1.first << " Trx count = " << num_trx1 << std::endl
+//                 << " Node 2: Dag size = " << num_vertices2.first << " Trx count = " << num_trx2 << std::endl
+//                 << " Node 3: Dag size = " << num_vertices3.first << " Trx count = " << num_trx3 << std::endl
+//                 << " Node 4: Dag size = " << num_vertices4.first << " Trx count = " << num_trx4 << std::endl
+//                 << " Node 5: Dag size = " << num_vertices5.first << " Trx count = " << num_trx5 << std::endl
+//                 << " Issued transaction count = " << issued_trx_count << std::endl;
+//       std::cout << "Send a dummy transaction to coverge DAG" << std::endl;
+//       context.dummy_transaction();
+//     }
+//
+//     taraxa::thisThreadSleepForMilliSeconds(500);
+//   }
+//
+//   ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+//   ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+//   ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+//   ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+//   ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
+//
+//   auto issued_trx_count = context.getIssuedTrxCount();
+//
+//   auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
+//   auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
+//   auto num_vertices3 = nodes[2]->getDagManager()->getNumVerticesInDag();
+//   auto num_vertices4 = nodes[3]->getDagManager()->getNumVerticesInDag();
+//   auto num_vertices5 = nodes[4]->getDagManager()->getNumVerticesInDag();
+//
+//   EXPECT_EQ(num_vertices1, num_vertices2);
+//   EXPECT_EQ(num_vertices2, num_vertices3);
+//   EXPECT_EQ(num_vertices3, num_vertices4);
+//   EXPECT_EQ(num_vertices4, num_vertices5);
+//
+//   ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+//   ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+//   ASSERT_EQ(nodes[2]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+//   ASSERT_EQ(nodes[3]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+//   ASSERT_EQ(nodes[4]->getTransactionManager()->getTransactionCount(), issued_trx_count);
+//
+//   std::cout << "All transactions received ..." << std::endl;
+//
+//   TIMEOUT = SYNC_TIMEOUT * 10;
+//   for (unsigned i = 0; i < TIMEOUT; i++) {
+//     issued_trx_count = context.getIssuedTrxCount();
+//     auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
+//     auto trx_executed2 = nodes[1]->getDB()->getNumTransactionExecuted();
+//     auto trx_executed3 = nodes[2]->getDB()->getNumTransactionExecuted();
+//     auto trx_executed4 = nodes[3]->getDB()->getNumTransactionExecuted();
+//     auto trx_executed5 = nodes[4]->getDB()->getNumTransactionExecuted();
+//     // unique trxs in DAG block
+//     auto trx_packed1 = nodes[0]->getDB()->getNumTransactionInDag();
+//     auto trx_packed2 = nodes[1]->getDB()->getNumTransactionInDag();
+//     auto trx_packed3 = nodes[2]->getDB()->getNumTransactionInDag();
+//     auto trx_packed4 = nodes[3]->getDB()->getNumTransactionInDag();
+//     auto trx_packed5 = nodes[4]->getDB()->getNumTransactionInDag();
+//
+//     if (trx_packed1 < trx_executed1) {
+//       std::cout << "Warning! " << trx_packed1 << " packed transactions is less than " << trx_executed1
+//                 << " executed transactions in node 1" << std::endl;
+//     }
+//
+//     if (trx_executed1 == issued_trx_count && trx_executed2 == issued_trx_count && trx_executed3 == issued_trx_count
+//     &&
+//         trx_executed4 == issued_trx_count && trx_executed5 == issued_trx_count) {
+//       if (trx_packed1 == issued_trx_count && trx_packed2 == issued_trx_count && trx_packed3 == issued_trx_count &&
+//           trx_packed4 == issued_trx_count && trx_packed5 == issued_trx_count) {
+//         break;
+//       } else {
+//         std::cout << "Warning! See all nodes with " << issued_trx_count
+//                   << " executed transactions, "
+//                      "but not all nodes yet see"
+//                   << issued_trx_count << " packed transactions!!!";
+//       }
+//     }
+//     taraxa::thisThreadSleepForMilliSeconds(500);
+//     if (i % 100 == 0) {
+//       if (trx_executed1 != issued_trx_count) {
+//         std::cout << " Node 1: executed blk= " << nodes[0]->getDB()->getNumBlockExecuted()
+//                   << " Dag size: " << nodes[0]->getDagManager()->getNumVerticesInDag().first
+//                   << " executed trx = " << trx_executed1 << "/" << issued_trx_count << std::endl;
+//       }
+//       if (trx_executed2 != issued_trx_count) {
+//         std::cout << " Node 2: executed blk= " << nodes[1]->getDB()->getNumBlockExecuted()
+//                   << " Dag size: " << nodes[1]->getDagManager()->getNumVerticesInDag().first
+//                   << " executed trx = " << trx_executed2 << "/" << issued_trx_count << std::endl;
+//       }
+//       if (trx_executed3 != issued_trx_count) {
+//         std::cout << " Node 3: executed blk= " << nodes[2]->getDB()->getNumBlockExecuted()
+//                   << " Dag size: " << nodes[2]->getDagManager()->getNumVerticesInDag().first
+//                   << " executed trx = " << trx_executed3 << "/" << issued_trx_count << std::endl;
+//       }
+//       if (trx_executed4 != issued_trx_count) {
+//         std::cout << " Node 4: executed blk= " << nodes[3]->getDB()->getNumBlockExecuted()
+//                   << " Dag size: " << nodes[3]->getDagManager()->getNumVerticesInDag().first
+//                   << " executed trx = " << trx_executed4 << "/" << issued_trx_count << std::endl;
+//       }
+//       if (trx_executed5 != issued_trx_count) {
+//         std::cout << " Node 5: executed blk= " << nodes[4]->getDB()->getNumBlockExecuted()
+//                   << " Dag size: " << nodes[4]->getDagManager()->getNumVerticesInDag().first
+//                   << " executed trx = " << trx_executed5 << "/" << issued_trx_count << std::endl;
+//       }
+//     }
+//     if (i == TIMEOUT - 1) {
+//       // last wait
+//       std::cout << "Warning! Syncing maybe failed ..." << std::endl;
+//     }
+//   }
+//
+//   auto k = 0;
+//   for (auto const &node : nodes) {
+//     issued_trx_count = context.getIssuedTrxCount();
+//     k++;
+//     auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first - 1 -
+//     node->getDB()->getNumBlockExecuted(); if (vertices_diff >= nodes.size()                                      //
+//         || node->getDB()->getNumTransactionExecuted() != issued_trx_count  //
+//         || node->getDB()->getNumTransactionInDag() != issued_trx_count) {
+//       std::cout << "Node " << k << " :Number of trx packed = " << node->getDB()->getNumTransactionInDag() <<
+//       std::endl; std::cout << "Node " << k << " :Number of trx executed = " <<
+//       node->getDB()->getNumTransactionExecuted()
+//                 << std::endl;
+//
+//       std::cout << "Node " << k << " :Number of block executed = " << node->getDB()->getNumBlockExecuted() <<
+//       std::endl; auto num_vertices = node->getDagManager()->getNumVerticesInDag(); std::cout << "Node " << k << "
+//       :Number of vertices in Dag = " << num_vertices.first << " , "
+//                 << num_vertices.second << std::endl;
+//       auto dags = getOrderedDagBlocks(node->getDB());
+//       for (size_t i(0); i < dags.size(); ++i) {
+//         auto d = dags[i];
+//         std::cout << i << " " << d << " trx: " << nodes[0]->getDagManager()->getDagBlock(d)->getTrxs().size()
+//                   << std::endl;
+//       }
+//       std::string filename = "debug_dag_" + std::to_string(k);
+//       node->getDagManager()->drawGraph(filename);
+//     }
+//   }
+//
+//   k = 0;
+//   for (auto const &node : nodes) {
+//     k++;
+//     issued_trx_count = context.getIssuedTrxCount();
+//     EXPECT_EQ(node->getDB()->getNumTransactionExecuted(), issued_trx_count)
+//         << " \nNum executed in node " << k << " node " << node << " is : " <<
+//         node->getDB()->getNumTransactionExecuted()
+//         << " \nNum linearized blks: " << getOrderedDagBlocks(node->getDB()).size()
+//         << " \nNum executed blks: " << node->getDB()->getNumBlockExecuted()
+//         << " \nNum vertices in DAG: " << node->getDagManager()->getNumVerticesInDag().first << " "
+//         << node->getDagManager()->getNumVerticesInDag().second << "\n";
+//
+//     auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first - node->getDB()->getNumBlockExecuted();
+//     EXPECT_EQ(node->getDagManager()->getNumVerticesInDag().first, node->getDB()->getNumBlockExecuted());
+//     // diff should be larger than 0 but smaller than number of nodes
+//     // genesis block won't be executed
+//     EXPECT_LT(vertices_diff, nodes.size())
+//         << "Failed in node " << k << "node " << node
+//         << " Number of vertices: " << node->getDagManager()->getNumVerticesInDag().first
+//         << " Number of executed blks: " << node->getDB()->getNumBlockExecuted() << std::endl;
+//     EXPECT_GE(vertices_diff, 0) << "Failed in node " << k << "node " << node
+//                                 << " Number of vertices: " << node->getDagManager()->getNumVerticesInDag().first
+//                                 << " Number of executed blks: " << node->getDB()->getNumBlockExecuted() << std::endl;
+//     EXPECT_EQ(node->getDB()->getNumTransactionInDag(), issued_trx_count);
+//   }
+//
+//   context.assert_all_transactions_success();
+//   context.assert_all_transactions_known();
+//   context.assert_balances_synced();
+//
+//   // Prune state_db of one node
+//   auto prune_node = nodes[nodes.size() - 1];
+//   const uint32_t min_blocks_to_prune = 30;
+//   // This ensures that we never prune blocks that are over proposal period
+//   ASSERT_HAPPENS({40s, 100ms}, [&](auto &ctx) {
+//     WAIT_EXPECT_TRUE(ctx, (prune_node->getPbftChain()->getPbftChainSize() > min_blocks_to_prune +
+//     kMaxLevelsPerPeriod))
+//   });
+//   prune_node->getFinalChain()->prune(min_blocks_to_prune);
+//   context.assert_balances_synced();
+// }
 
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   auto node_cfgs = make_node_cfgs(1);

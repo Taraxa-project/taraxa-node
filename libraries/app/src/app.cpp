@@ -148,7 +148,7 @@ void App::init(const cli::Config &cli_conf) {
     std::terminate();
   }
 
-  pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
+  pbft_chain_ = std::make_shared<PbftChain>(conf_, node_addr, db_);
   dag_mgr_ = std::make_shared<DagManager>(conf_, node_addr, trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_);
   auto slashing_manager = std::make_shared<SlashingManager>(conf_, final_chain_, trx_mgr_, gas_pricer_);
   vote_mgr_ = std::make_shared<VoteManager>(conf_, db_, pbft_chain_, final_chain_, key_manager_, slashing_manager);
@@ -302,7 +302,7 @@ void App::rebuildDb() {
 
   // Read pbft blocks one by one
   PbftPeriod period = 1;
-  std::shared_ptr<PeriodData> period_data, next_period_data;
+  std::shared_ptr<PeriodData> period_data, next_period_data, next_next_period_data;
   std::atomic_bool stop_async = false;
 
   std::future<void> fut = std::async(std::launch::async, [this, &stop_async]() {
@@ -315,36 +315,64 @@ void App::rebuildDb() {
 
   while (true) {
     std::vector<std::shared_ptr<PbftVote>> cert_votes;
-    if (next_period_data != nullptr) {
-      period_data = next_period_data;
-    } else {
-      auto data = old_db_->getPeriodDataRaw(period);
-      if (data.size() == 0) break;
-      period_data = std::make_shared<PeriodData>(std::move(data));
+
+    period_data = next_period_data;
+    next_period_data = next_next_period_data;
+    next_next_period_data = nullptr;
+
+    if (!period_data) {
+      auto raw_data = old_db_->getPeriodDataRaw(period);
+      if (raw_data.empty()) {
+        break;
+      }
+      period_data = std::make_shared<PeriodData>(std::move(raw_data));
     }
-    auto data = old_db_->getPeriodDataRaw(period + 1);
-    if (data.size() == 0) {
-      next_period_data = nullptr;
-      // Latest finalized block cert votes are saved in db as 2t+1 cert votes
-      auto votes = old_db_->getAllTwoTPlusOneVotes();
-      for (auto v : votes) {
-        if (v->getType() == PbftVoteTypes::cert_vote) cert_votes.push_back(v);
+
+    if (!next_period_data) {
+      auto raw_data = old_db_->getPeriodDataRaw(period + 1);
+      if (!raw_data.empty()) {
+        next_period_data = std::make_shared<PeriodData>(std::move(raw_data));
+      }
+    }
+
+    if (!next_next_period_data) {
+      auto raw_data = old_db_->getPeriodDataRaw(period + 2);
+      if (!raw_data.empty()) {
+        next_next_period_data = std::make_shared<PeriodData>(std::move(raw_data));
+      }
+    }
+
+    auto rewards_period_data =
+        conf_.genesis.state.hardforks.isOnFragariaHardfork(period) ? next_next_period_data : next_period_data;
+    if (!rewards_period_data) {
+      // Try second last block cert votes if period matches
+      auto votes = old_db_->getTwoTPlusOneCertVotes(DbStorage::CertVotesType::SecondLastBlock);
+      if (votes.empty() || votes.front()->getPeriod() != period) {
+        // Otherwise try last block cert votes
+        votes = old_db_->getTwoTPlusOneCertVotes(DbStorage::CertVotesType::LastBlock);
+      }
+
+      for (auto &&v : votes) {
+        cert_votes.push_back(std::move(v));
       }
     } else {
-      next_period_data = std::make_shared<PeriodData>(std::move(data));
       // More efficient to get sender(which is expensive) on this thread which is not as busy as the thread that
       // pushes blocks to chain
-      for (auto &t : next_period_data->transactions) t->getSender();
-      cert_votes = next_period_data->previous_block_cert_votes;
+      for (auto &t : rewards_period_data->transactions) {
+        t->getSender();
+      }
+      cert_votes = rewards_period_data->reward_votes_;
     }
 
     LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
                  << " from old DB into syncing queue for processing, final chain size: "
                  << final_chain_->lastBlockNumber();
 
-    pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
+    pbft_mgr_->periodDataQueuePush({dev::p2p::NodeID(), std::move(*period_data), std::move(cert_votes)});
     pbft_mgr_->waitForPeriodFinalization();
+
     period++;
+
     if (period % 100 == 0) {
       while (period - pbft_chain_->getPbftChainSize() > 100) {
         thisThreadSleepForMilliSeconds(1);
@@ -359,8 +387,10 @@ void App::rebuildDb() {
       LOG(log_si_) << "Rebuilding period: " << period;
     }
   }
+
   stop_async = true;
   fut.wait();
+
   // Handles the race case if some blocks are still in the queue
   pbft_mgr_->pushSyncedPbftBlocksIntoChain();
   LOG(log_si_) << "Rebuild completed";

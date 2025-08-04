@@ -8,8 +8,8 @@ using namespace std;
 
 namespace taraxa {
 
-PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
-    : size_(0), non_empty_size_(0), db_(std::move(db)) {
+PbftChain::PbftChain(const FullNodeConfig& config, addr_t node_addr, std::shared_ptr<DbStorage> db)
+    : kConfig(config), size_(0), non_empty_size_(0), db_(std::move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
 
   // Get PBFT head from DB
@@ -28,6 +28,11 @@ PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
   size_ = doc["size"].asUInt64();
   non_empty_size_ = doc["non_empty_size"].asUInt64();
   last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
+  if (kConfig.genesis.state.hardforks.isOnFragariaHardfork(size_)) {
+    second_last_pbft_block_hash_ = {doc["second_last_pbft_block_period"].asUInt64(),
+                                    blk_hash_t(doc["second_last_pbft_block_hash"].asString())};
+  }
+
   // Retrieve last_non_null_pbft_dag_anchor_hash_ from chain
   if (last_pbft_block_hash_) {
     auto prev_pbft_block = getPbftBlockInChain(last_pbft_block_hash_);
@@ -64,6 +69,11 @@ blk_hash_t PbftChain::getLastPbftBlockHash() const {
   return last_pbft_block_hash_;
 }
 
+std::pair<PbftPeriod, blk_hash_t> PbftChain::getSecondLastPbftBlockHash() const {
+  std::shared_lock lock(chain_head_access_);
+  return second_last_pbft_block_hash_;
+}
+
 blk_hash_t PbftChain::getLastNonNullPbftBlockAnchor() const {
   std::shared_lock lock(chain_head_access_);
   return last_non_null_pbft_dag_anchor_hash_;
@@ -84,12 +94,14 @@ PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_ha
 
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t const& anchor_hash) {
   std::scoped_lock lock(chain_head_access_);
-  size_++;
   if (anchor_hash != kNullBlockHash) {
     non_empty_size_++;
     last_non_null_pbft_dag_anchor_hash_ = anchor_hash;
   }
+
+  second_last_pbft_block_hash_ = {size_, last_pbft_block_hash_};
   last_pbft_block_hash_ = pbft_block_hash;
+  size_++;
 }
 
 bool PbftChain::checkPbftBlockValidation(const std::shared_ptr<PbftBlock>& pbft_block) const {
@@ -116,6 +128,11 @@ std::string PbftChain::getJsonStr() const {
   json["size"] = static_cast<Json::Value::UInt64>(size_);
   json["non_empty_size"] = static_cast<Json::Value::UInt64>(non_empty_size_);
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
+  if (kConfig.genesis.state.hardforks.isOnFragariaHardfork(size_)) {
+    json["second_last_pbft_block_period"] = static_cast<Json::Value::UInt64>(second_last_pbft_block_hash_.first);
+    json["second_last_pbft_block_hash"] = second_last_pbft_block_hash_.second.toString();
+  }
+
   return json.toStyledString();
 }
 
@@ -123,13 +140,19 @@ std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash, bool nul
   Json::Value json;
   std::shared_lock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
-  json["size"] = static_cast<Json::Value::UInt64>(size_) + 1;
+  auto size = static_cast<Json::Value::UInt64>(size_) + 1;
+  json["size"] = size;
   auto non_empty_size = non_empty_size_;
   if (!null_anchor) {
     non_empty_size++;
   }
   json["non_empty_size"] = (Json::Value::UInt64)non_empty_size;
   json["last_pbft_block_hash"] = block_hash.toString();
+  if (kConfig.genesis.state.hardforks.isOnFragariaHardfork(size)) {
+    json["second_last_pbft_block_period"] = (Json::Value::UInt64)second_last_pbft_block_hash_.first;
+    json["second_last_pbft_block_hash"] = second_last_pbft_block_hash_.second.toString();
+  }
+
   return json.toStyledString();
 }
 
