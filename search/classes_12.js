@@ -30,7 +30,7 @@ var searchData=
   ['statuspacket_27',['StatusPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet',1,'taraxa::network::tarcap']]],
   ['statuspackethandler_28',['StatusPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html',1,'taraxa::network::tarcap']]],
   ['statustable_29',['StatusTable',['../classtaraxa_1_1_status_table.html',1,'taraxa']]],
-  ['stepvotes_30',['StepVotes',['../namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes',1,'taraxa::VerifiedVotes']]],
+  ['stepvotes_30',['StepVotes',['../namespacetaraxa.html#structtaraxa_1_1_step_votes',1,'taraxa']]],
   ['streamout_31',['StreamOut',['../structdev_1_1_stream_out.html',1,'dev']]],
   ['streamout_3c_20uint8_5ft_20_3e_32',['StreamOut&lt; uint8_t &gt;',['../structdev_1_1_stream_out_3_01uint8__t_01_4.html',1,'dev']]],
   ['subscription_33',['subscription',['../classgraphql_1_1taraxa_1_1_subscription.html',1,'graphql::taraxa::Subscription'],['../classtaraxa_1_1net_1_1_subscription.html',1,'taraxa::net::Subscription']]],

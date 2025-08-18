@@ -1,9 +1,11 @@
 <map id="taraxa::VoteManager" name="taraxa::VoteManager">
-<area shape="rect" id="Node000001" title="VoteManager class manage votes for PBFT consensus." alt="" coords="169,123,327,148"/>
-<area shape="rect" id="Node000002" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="5,13,144,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,45,129,71,165,96,216,120,214,125,163,101,126,75,95,49"/>
-<area shape="rect" id="Node000003" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="168,13,328,38"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="251,52,251,122,245,122,245,52"/>
-<area shape="rect" id="Node000004" href="$class_expiration_cache.html" title=" " alt="" coords="353,5,519,45"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="424,59,410,81,390,101,360,117,328,127,327,122,358,112,386,97,405,78,420,56"/>
+<area shape="rect" id="Node000001" title="VoteManager class manage votes for PBFT consensus." alt="" coords="392,85,551,111"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="19,5,158,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,21,267,33,369,54,409,68,445,83,443,88,407,73,367,59,266,39,171,27"/>
+<area shape="rect" id="Node000003" href="$classtaraxa_1_1_verified_votes.html" title=" " alt="" coords="10,55,167,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,72,392,89,391,94,181,77"/>
+<area shape="rect" id="Node000004" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="9,115,169,140"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="182,130,272,131,368,123,432,108,433,113,368,129,273,136,182,136"/>
+<area shape="rect" id="Node000005" href="$class_expiration_cache.html" title=" " alt="" coords="5,165,172,205"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="185,181,275,172,322,163,367,151,413,131,450,109,453,113,416,136,369,157,323,169,276,177,186,186"/>
 </map>

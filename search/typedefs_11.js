@@ -17,8 +17,9 @@ var searchData=
   ['uint512_5fhash_5ft_14',['uint512_hash_t',['../namespacetaraxa.html#a16fb91a724410e8b1a1174d9dbabec33',1,'taraxa']]],
   ['uint520_5fhash_5ft_15',['uint520_hash_t',['../namespacetaraxa.html#afdbc2bb6877d6ff2055c36afff45899a',1,'taraxa']]],
   ['uniqueguard_16',['UniqueGuard',['../namespacedev.html#a99083fd568ca16016272478b0496fd0b',1,'dev']]],
-  ['unsafestatustable_17',['UnsafeStatusTable',['../classtaraxa_1_1_status_table.html#ac2ece372cbaa20d7b9861c356ac02179',1,'taraxa::StatusTable']]],
-  ['updater_18',['Updater',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7371930515697ca5ca7bb59d4aa8c433',1,'taraxa::net::rpc::eth::WatchGroup']]],
-  ['upgradableguard_19',['UpgradableGuard',['../namespacedev.html#a26a2fe0892bffa02f18f9df85a1b58b7',1,'dev']]],
-  ['upgradeguard_20',['UpgradeGuard',['../namespacedev.html#a3d4556bd215a1598abd2c97664693b54',1,'dev']]]
+  ['uniquevotersmap_17',['UniqueVotersMap',['../namespacetaraxa.html#a444f655fd0b62812634851cb4bac56e7',1,'taraxa']]],
+  ['unsafestatustable_18',['UnsafeStatusTable',['../classtaraxa_1_1_status_table.html#ac2ece372cbaa20d7b9861c356ac02179',1,'taraxa::StatusTable']]],
+  ['updater_19',['Updater',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a7371930515697ca5ca7bb59d4aa8c433',1,'taraxa::net::rpc::eth::WatchGroup']]],
+  ['upgradableguard_20',['UpgradableGuard',['../namespacedev.html#a26a2fe0892bffa02f18f9df85a1b58b7',1,'dev']]],
+  ['upgradeguard_21',['UpgradeGuard',['../namespacedev.html#a3d4556bd215a1598abd2c97664693b54',1,'dev']]]
 ];

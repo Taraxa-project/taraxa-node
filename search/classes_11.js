@@ -15,6 +15,7 @@ var searchData=
   ['rlpxinvalidpacket_12',['RLPXInvalidPacket',['../structdev_1_1p2p_1_1_r_l_p_x_invalid_packet.html',1,'dev::p2p']]],
   ['rlpxpacket_13',['RLPXPacket',['../classdev_1_1p2p_1_1_r_l_p_x_packet.html',1,'dev::p2p']]],
   ['rlpxsocket_14',['RLPXSocket',['../classdev_1_1p2p_1_1_r_l_p_x_socket.html',1,'dev::p2p']]],
-  ['rpc_15',['Rpc',['../classtaraxa_1_1plugin_1_1_rpc.html',1,'taraxa::plugin']]],
-  ['rpcmodule_16',['RPCModule',['../class_server_interface.html#struct_server_interface_1_1_r_p_c_module',1,'ServerInterface']]]
+  ['roundverifiedvotes_15',['RoundVerifiedVotes',['../namespacetaraxa.html#structtaraxa_1_1_round_verified_votes',1,'taraxa']]],
+  ['rpc_16',['Rpc',['../classtaraxa_1_1plugin_1_1_rpc.html',1,'taraxa::plugin']]],
+  ['rpcmodule_17',['RPCModule',['../class_server_interface.html#struct_server_interface_1_1_r_p_c_module',1,'ServerInterface']]]
 ];

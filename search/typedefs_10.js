@@ -9,5 +9,6 @@ var searchData=
   ['transactionreceipts_6',['TransactionReceipts',['../namespacetaraxa.html#a470449328f268875a8eefcb7238693c2',1,'taraxa']]],
   ['transactions_7',['Transactions',['../namespacetaraxa.html#a316d23bc6a64185feb687281f3922f7c',1,'taraxa']]],
   ['trx_5fhash_5ft_8',['trx_hash_t',['../namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314',1,'taraxa']]],
-  ['trx_5fnonce_5ft_9',['trx_nonce_t',['../namespacetaraxa.html#a73873ff077f3a9470e522a373eba9200',1,'taraxa']]]
+  ['trx_5fnonce_5ft_9',['trx_nonce_t',['../namespacetaraxa.html#a73873ff077f3a9470e522a373eba9200',1,'taraxa']]],
+  ['twotvotedblockmap_10',['TwoTVotedBlockMap',['../namespacetaraxa.html#abe18bed52200d616b64b7c24681f4dbb',1,'taraxa']]]
 ];

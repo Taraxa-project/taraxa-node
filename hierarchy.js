@@ -364,6 +364,7 @@ var hierarchy =
     [ "dev::p2p::RLPXFrameInfo", "structdev_1_1p2p_1_1_r_l_p_x_frame_info.html", null ],
     [ "dev::p2p::RLPXPacket", "classdev_1_1p2p_1_1_r_l_p_x_packet.html", null ],
     [ "dev::p2p::RLPXSocket", "classdev_1_1p2p_1_1_r_l_p_x_socket.html", null ],
+    [ "taraxa::RoundVerifiedVotes", "namespacetaraxa.html#structtaraxa_1_1_round_verified_votes", null ],
     [ "ServerInterface< I >::RPCModule", "class_server_interface.html#struct_server_interface_1_1_r_p_c_module", null ],
     [ "std::runtime_error", null, [
       [ "dev::p2p::Network::PortBindException", "structdev_1_1p2p_1_1_network_1_1_port_bind_exception.html", null ],
@@ -430,7 +431,7 @@ var hierarchy =
     [ "taraxa::rewards::Stats", "classtaraxa_1_1rewards_1_1_stats.html", null ],
     [ "taraxa::network::tarcap::StatusPacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_status_packet", null ],
     [ "taraxa::StatusTable< K, V >", "classtaraxa_1_1_status_table.html", null ],
-    [ "taraxa::VerifiedVotes::StepVotes", "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes", null ],
+    [ "taraxa::StepVotes", "namespacetaraxa.html#structtaraxa_1_1_step_votes", null ],
     [ "dev::StreamOut< T >", "structdev_1_1_stream_out.html", null ],
     [ "dev::StreamOut< uint8_t >", "structdev_1_1_stream_out_3_01uint8__t_01_4.html", null ],
     [ "graphql::taraxa::Subscription", "classgraphql_1_1taraxa_1_1_subscription.html", null ],
@@ -502,15 +503,17 @@ var hierarchy =
     [ "taraxa::VdfParams", "namespacetaraxa.html#structtaraxa_1_1_vdf_params", null ],
     [ "dev::vector_ref< _T >", "classdev_1_1vector__ref.html", null ],
     [ "dev::vector_ref<::byte const >", "classdev_1_1vector__ref.html", null ],
-    [ "taraxa::VerifiedVotes", "namespacetaraxa.html#structtaraxa_1_1_verified_votes", null ],
+    [ "taraxa::VerifiedVotes", "classtaraxa_1_1_verified_votes.html", null ],
     [ "taraxa::vertex_label_writer< Property1 >", "group___d_a_g.html#classtaraxa_1_1vertex__label__writer", null ],
     [ "taraxa::Vote", "group___vote.html#classtaraxa_1_1_vote", [
       [ "taraxa::PbftVote", "group___vote.html#classtaraxa_1_1_pbft_vote", null ],
       [ "taraxa::PillarVote", "group___vote.html#classtaraxa_1_1_pillar_vote", null ]
     ] ],
+    [ "taraxa::VotedBlock", "namespacetaraxa.html#structtaraxa_1_1_voted_block", null ],
     [ "taraxa::VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", null ],
     [ "taraxa::network::tarcap::VotePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_vote_packet", null ],
     [ "taraxa::network::tarcap::VotesBundlePacket", "namespacetaraxa_1_1network_1_1tarcap.html#structtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet", null ],
+    [ "taraxa::VotesWithWeight", "namespacetaraxa.html#structtaraxa_1_1_votes_with_weight", null ],
     [ "taraxa::VrfParams", "structtaraxa_1_1_vrf_params.html", null ],
     [ "taraxa::VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", null ],
     [ "taraxa::vrf_wrapper::VrfSortitionBase", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html", [

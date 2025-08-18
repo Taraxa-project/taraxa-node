@@ -26,7 +26,6 @@ var group___vote =
       [ "getTwoTPlusOneVotedBlockVotes", "group___vote.html#ad5f43b82e94d10f047aafdf9cc085687", null ],
       [ "getVerifiedVotes", "group___vote.html#a335adfd26d1dfc49a7baf003d3ed9e90", null ],
       [ "getVerifiedVotesSize", "group___vote.html#add0a1c70fc728cdb3ef074330a129060", null ],
-      [ "insertUniqueVote", "group___vote.html#a9905cef52d50bf1351a172ab3dbf2271", null ],
       [ "isUniqueVote", "group___vote.html#a27d9ac060898710e4ebeed9257a66b72", null ],
       [ "isValidRewardVote", "group___vote.html#ae973c977717f006fae10b7878a4c2fbc", null ],
       [ "operator=", "group___vote.html#ad36dde6b1d32505bebf775a3b285aeb4", null ],
@@ -56,8 +55,7 @@ var group___vote =
       [ "reward_votes_period_", "group___vote.html#aec11b666e3865562a105cfce6d8afd71", null ],
       [ "reward_votes_round_", "group___vote.html#ae62ea14eb028a03f52450b4beacbca62", null ],
       [ "slashing_manager_", "group___vote.html#a82b50afe77651f3db222db39c4658b14", null ],
-      [ "verified_votes_", "group___vote.html#ae2238e11e37f563fcdfe94fb87d22e09", null ],
-      [ "verified_votes_access_", "group___vote.html#a90b43db0bc6fbe231ed10b86ef33255e", null ]
+      [ "verified_votes_", "group___vote.html#ab1a14d656cc01bde1232408e133a1879", null ]
     ] ],
     [ "taraxa::PbftVote", "group___vote.html#classtaraxa_1_1_pbft_vote", [
       [ "vrf_pk_t", "group___vote.html#a05ea2bc5ca184d39a4089cc3f6b86de7", null ],
