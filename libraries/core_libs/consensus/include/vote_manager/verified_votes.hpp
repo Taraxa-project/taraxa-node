@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "common/types.hpp"
+#include "logger/logger.hpp"
 
 namespace taraxa {
 
@@ -49,6 +50,8 @@ using PeriodVerifiedVotesMap = std::map<PbftPeriod, RoundVerifiedVotesMap>;
 
 class VerifiedVotes {
  public:
+  VerifiedVotes(addr_t node_addr) { LOG_OBJECTS_CREATE("VERIFIED_VOTES"); }
+
   uint64_t size() const;
   std::vector<std::shared_ptr<PbftVote>> votes() const;
 
@@ -80,6 +83,8 @@ class VerifiedVotes {
 
   mutable std::shared_mutex verified_votes_access_;
   PeriodVerifiedVotesMap verified_votes_;
+
+  LOG_OBJECTS_DEFINE
 };
 
 }  // namespace taraxa
