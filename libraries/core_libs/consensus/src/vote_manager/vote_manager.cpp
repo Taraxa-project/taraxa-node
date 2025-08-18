@@ -20,6 +20,7 @@ VoteManager::VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage
       final_chain_(std::move(final_chain)),
       key_manager_(std::move(key_manager)),
       slashing_manager_(std::move(slashing_manager)),
+      verified_votes_(dev::toAddress(config.getFirstWallet().node_secret)),
       already_validated_votes_(1000000, 1000) {
   // Use first wallet as default node_addr
   const auto& node_addr = dev::toAddress(config.getFirstWallet().node_secret);
