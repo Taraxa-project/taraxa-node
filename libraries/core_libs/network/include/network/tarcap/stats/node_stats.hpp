@@ -3,6 +3,7 @@
 #include <json/value.h>
 
 #include "common/types.hpp"
+#include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 
@@ -30,7 +31,7 @@ class NodeStats {
             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
             std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-            std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const addr_t& node_addr);
+            std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const FullNodeConfig& config);
 
   void logNodeStats(const std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>>& all_peers,
                     const std::vector<std::string>& nodes);
@@ -57,7 +58,8 @@ class NodeStats {
   uint64_t syncing_duration_seconds{0};
   uint64_t stalled_syncing_duration_seconds{0};
 
-  const std::string kNodeAddress;
+  // List of node addresses running on this node
+  std::string node_addresses_;
 
   LOG_OBJECTS_DEFINE
 };

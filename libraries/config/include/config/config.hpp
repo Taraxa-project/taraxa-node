@@ -13,13 +13,29 @@ struct DBConfig {
   uint32_t db_max_open_files = 0;
   PbftPeriod db_revert_to_period = 0;
   bool rebuild_db = false;
-  bool prune_state_db = false;
   bool migrate_only = false;
   PbftPeriod rebuild_db_period = 0;
   bool migrate_receipts_by_period = false;
 };
-
 void dec_json(Json::Value const &json, DBConfig &db_config);
+
+struct WalletConfig {
+  WalletConfig(dev::Secret &&node_secret, const vrf_wrapper::vrf_sk_t &vrf_secret)
+      : node_secret(std::move(node_secret)),
+        node_pk(dev::toPublic(node_secret)),
+        node_addr(toAddress(node_secret)),
+        vrf_secret(vrf_secret),
+        vrf_pk(vrf_wrapper::getVrfPublicKey(vrf_secret)) {}
+  WalletConfig(const WalletConfig &) = default;
+  WalletConfig(WalletConfig &&) = default;
+
+  const dev::Secret node_secret;
+  const dev::Public node_pk;
+  const addr_t node_addr;
+
+  const vrf_wrapper::vrf_sk_t vrf_secret;
+  const vrf_wrapper::vrf_pk_t vrf_pk;
+};
 
 struct FullNodeConfig {
   static constexpr uint64_t kDefaultLightNodeHistoryDays = 1;
@@ -31,17 +47,23 @@ struct FullNodeConfig {
   // if you have std::string and Json::Value constructor. It was easier
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
-  explicit FullNodeConfig(const Json::Value &file_name_str_or_json_object, const Json::Value &wallet,
-                          const Json::Value &genesis = Json::Value::null, const std::string &config_file_path = "");
+  explicit FullNodeConfig(const Json::Value &file_name_str_or_json_object,
+                          const std::vector<Json::Value> &wallets_jsons, const Json::Value &genesis = Json::Value::null,
+                          const std::string &config_file_path = "");
 
   void overwriteConfigFromJson(const Json::Value &config_json);
   std::vector<logger::Config> loadLoggingConfigs(const Json::Value &logging);
   void InitLogging(const addr_t &node_address);
 
+  /**
+   * @return first (main) wallet from the list of wallets
+   */
+  const WalletConfig &getFirstWallet() const;
+
   std::string json_file_name;
   std::filesystem::file_time_type last_json_update_time;
-  dev::Secret node_secret;
-  vrf_wrapper::vrf_sk_t vrf_secret;
+  // Vector of wallets used by node
+  std::vector<WalletConfig> wallets;
   fs::path data_path;
   fs::path db_path;
   fs::path log_path;
@@ -60,6 +82,9 @@ struct FullNodeConfig {
 
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
+
+  // Use blocks legacy gas pricer, if false gas pricer is based on transaction pool
+  bool blocks_gas_pricer = false;
 
   // Report malicious behaviour like double voting, etc... to slashing/jailing contract
   bool report_malicious_behaviour = false;

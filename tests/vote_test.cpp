@@ -35,7 +35,8 @@ TEST_F(VoteTest, verified_votes) {
   blk_hash_t blockhash(1);
   PbftVoteTypes type = PbftVoteTypes::soft_vote;
   PbftStep step = 2;
-  auto vote = node->getVoteManager()->generateVote(blockhash, type, period, round, step);
+  auto vote =
+      node->getVoteManager()->generateVote(blockhash, type, period, round, step, node->getConfig().getFirstWallet());
   vote->calculateWeight(1, 1, 1);
 
   auto vote_mgr = node->getVoteManager();
@@ -72,7 +73,8 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
   const PbftRound kMaxRound = current_round + 3;
   PbftStep step = 5;
   for (PbftRound round = current_round; round <= kMaxRound; round++) {
-    auto vote = vote_mgr->generateVote(voted_block_hash, type, current_period, round, step);
+    auto vote =
+        vote_mgr->generateVote(voted_block_hash, type, current_period, round, step, node->getConfig().getFirstWallet());
     vote->calculateWeight(3, 3, 3);
     vote_mgr->addVerifiedVote(vote);
   }
@@ -121,7 +123,8 @@ TEST_F(VoteTest, transfer_vote) {
   PbftPeriod period = 1;
   PbftRound round = 1;
   PbftStep step = 1;
-  auto vote = node1->getVoteManager()->generateVote(propose_block_hash, type, period, round, step);
+  auto vote = node1->getVoteManager()->generateVote(propose_block_hash, type, period, round, step,
+                                                    node1->getConfig().getFirstWallet());
 
   nw1->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
       ->sendPbftVote(nw1->getPeer(nw2->getNodeId()), vote, nullptr);
@@ -158,7 +161,8 @@ TEST_F(VoteTest, vote_broadcast) {
   EXPECT_EQ(vote_mgr3->getVerifiedVotesSize(), 0);
 
   // generate a vote far ahead (never exist in PBFT manager)
-  auto vote = vote_mgr1->generateVote(blk_hash_t(1), PbftVoteTypes::soft_vote, period, round, 2);
+  auto vote = vote_mgr1->generateVote(blk_hash_t(1), PbftVoteTypes::soft_vote, period, round, 2,
+                                      node1->getConfig().getFirstWallet());
 
   node1->getNetwork()
       ->getSpecificHandler<network::tarcap::IVotePacketHandler>(network::SubprotocolPacketType::kVotePacket)
@@ -191,7 +195,8 @@ TEST_F(VoteTest, two_t_plus_one_votes) {
   PbftPeriod period = 1;
   PbftRound round = 1;
 
-  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::soft_vote, period, round, 2, blk_hash_t(1), vote_mgr));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::soft_vote, period, round, 2, blk_hash_t(1), vote_mgr,
+                                         node->getConfig().getFirstWallet()));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
@@ -200,7 +205,8 @@ TEST_F(VoteTest, two_t_plus_one_votes) {
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::cert_vote, period, round, 3, blk_hash_t(1), vote_mgr));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::cert_vote, period, round, 3, blk_hash_t(1), vote_mgr,
+                                         node->getConfig().getFirstWallet()));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
   EXPECT_FALSE(
@@ -208,14 +214,16 @@ TEST_F(VoteTest, two_t_plus_one_votes) {
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::next_vote, period, round, 4, blk_hash_t(1), vote_mgr));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::next_vote, period, round, 4, blk_hash_t(1), vote_mgr,
+                                         node->getConfig().getFirstWallet()));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::next_vote, period, round, 5, kNullBlockHash, vote_mgr));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::next_vote, period, round, 5, kNullBlockHash, vote_mgr,
+                                         node->getConfig().getFirstWallet()));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());

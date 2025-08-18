@@ -23,7 +23,6 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
                  {
                      db->stateDbStoragePath().string(),
                  }),
-      kLightNode(config.is_light_node),
       kMaxLevelsPerPeriod(config.max_levels_per_period),
       rewards_(
           config.genesis.pbft.committee_size, config.genesis.state.hardforks, db_,
@@ -93,21 +92,6 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
   }
 
   delegation_delay_ = config.genesis.state.dpos.delegation_delay;
-  const auto kPruneBlocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
-  // prune state db only if we have more than 2*kPruneBlocksToKeep blocks
-  const auto kPruneStateDbThreshold = 1.5 * kPruneBlocksToKeep;
-  if ((config.db_config.prune_state_db || kLightNode) && last_blk_num.has_value() &&
-      *last_blk_num > kPruneStateDbThreshold) {
-    auto prune_block_num = *last_blk_num - kPruneStateDbThreshold;
-    auto prune_block = getBlockHeader(prune_block_num);
-    if (!prune_block) {
-      LOG(log_si_) << "Prune was done recently, skip state db pruning";
-      return;
-    }
-    LOG(log_si_) << "Pruning state db, this might take several minutes";
-    prune(prune_block_num);
-    LOG(log_si_) << "Pruning state db complete";
-  }
 }
 
 void FinalChain::stop() { executor_thread_.join(); }
@@ -295,19 +279,33 @@ void FinalChain::prune(EthBlockNumber blk_n) {
       state_root_to_keep.push_back(block_to_keep->state_root);
       block_to_keep = getBlockHeader(block_to_keep->number + 1);
     }
-    auto block_to_prune = getBlockHeader(last_block_to_keep->number - 1);
+
+    auto state_db_promise = std::make_shared<std::promise<void>>();
+    // execute state_db prune in a separate thread.
+    // We could use executor_thread_ here because finalize won't be called during the pruning
+    auto last_block_number_to_keep = last_block_to_keep->number;
+    boost::asio::post(executor_thread_, [this, state_root_to_keep = std::move(state_root_to_keep),
+                                         last_block_number_to_keep, state_db_promise]() mutable {
+      state_api_.prune(state_root_to_keep, last_block_number_to_keep);
+      state_db_promise->set_value();
+    });
+
+    auto block_to_prune = getBlockHeader(last_block_number_to_keep - 1);
+    auto batch = db_->createWriteBatch();
     while (block_to_prune && block_to_prune->number > 0) {
-      db_->remove(DbStorage::Columns::final_chain_blk_by_number, block_to_prune->number);
-      db_->remove(DbStorage::Columns::final_chain_blk_hash_by_number, block_to_prune->number);
-      db_->remove(DbStorage::Columns::final_chain_blk_number_by_hash, block_to_prune->hash);
+      db_->remove(batch, DbStorage::Columns::final_chain_blk_by_number, block_to_prune->number);
+      db_->remove(batch, DbStorage::Columns::final_chain_blk_hash_by_number, block_to_prune->number);
+      db_->remove(batch, DbStorage::Columns::final_chain_blk_number_by_hash, block_to_prune->hash);
       block_to_prune = getBlockHeader(block_to_prune->number - 1);
     }
+    db_->commitWriteBatch(batch);
 
     db_->compactColumn(DbStorage::Columns::final_chain_blk_by_number);
     db_->compactColumn(DbStorage::Columns::final_chain_blk_hash_by_number);
     db_->compactColumn(DbStorage::Columns::final_chain_blk_number_by_hash);
 
-    state_api_.prune(state_root_to_keep, last_block_to_keep->number);
+    // wait for the state_db prune to finish
+    state_db_promise->get_future().wait();
   }
 }
 

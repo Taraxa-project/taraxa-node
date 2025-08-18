@@ -35,6 +35,14 @@ App::~App() { close(); }
 
 void App::addAvailablePlugin(std::shared_ptr<Plugin> plugin) { available_plugins_[plugin->name()] = plugin; }
 
+std::shared_ptr<Plugin> App::getPlugin(const std::string &name) const {
+  auto it = active_plugins_.find(name);
+  if (it != active_plugins_.end()) {
+    return it->second;
+  }
+  return nullptr;
+}
+
 void App::enablePlugin(const std::string &name) {
   if (available_plugins_[name] == nullptr) {
     throw std::runtime_error("Plugin " + name + " not found");
@@ -46,23 +54,30 @@ bool App::isPluginEnabled(const std::string &name) const { return active_plugins
 
 void App::init(const cli::Config &cli_conf) {
   conf_ = cli_conf.getNodeConfiguration();
-  kp_ = std::make_shared<dev::KeyPair>(conf_.node_secret);
 
   fs::create_directories(conf_.db_path);
   fs::create_directories(conf_.log_path);
 
   // Initialize logging
-  const auto &node_addr = kp_->address();
+  const auto &node_addr = conf_.getFirstWallet().node_addr;
   for (auto &logging : conf_.log_configs) {
     logging.InitLogging(node_addr);
   }
 
   LOG_OBJECTS_CREATE("FULLND");
 
-  LOG(log_si_) << "Node public key: " << EthGreen << kp_->pub().toString() << std::endl
-               << EthReset << "Node address: " << EthRed << node_addr.toString() << std::endl
-               << EthReset << "Node VRF public key: " << EthGreen
-               << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString() << EthReset;
+  std::string node_addresses;
+  std::string node_public_keys;
+  std::string node_vrf_public_keys;
+  std::for_each(conf_.wallets.begin(), conf_.wallets.end(), [&](const WalletConfig &wallet) {
+    node_addresses += wallet.node_addr.toString() + " ";
+    node_public_keys += wallet.node_pk.toString() + " ";
+    node_vrf_public_keys += wallet.vrf_pk.toString() + " ";
+  });
+
+  LOG(log_si_) << "Node public keys: " << EthGreen << "[" << node_public_keys << "]" << std::endl
+               << EthReset << "Node addresses: " << EthRed << "[" << node_addresses << "]" << std::endl
+               << EthReset << "Node VRF public keys: " << EthGreen << "[" << node_vrf_public_keys << "]" << EthReset;
 
   if (!conf_.genesis.dag_genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
@@ -117,9 +132,9 @@ void App::init(const cli::Config &cli_conf) {
   }
 
   final_chain_ = std::make_shared<final_chain::FinalChain>(db_, conf_, node_addr);
-  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, db_);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis, conf_.is_light_node, conf_.blocks_gas_pricer, trx_mgr_, db_);
 
   auto genesis_hash = conf_.genesis.genesisHash();
   auto genesis_hash_from_db = db_->getGenesisHash();
@@ -143,9 +158,9 @@ void App::init(const cli::Config &cli_conf) {
                                             pillar_chain_mgr_);
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(conf_, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_);
 
-  network_ =
-      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), *kp_, db_, pbft_mgr_, pbft_chain_,
-                                vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_);
+  network_ = std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), db_, pbft_mgr_, pbft_chain_,
+                                       vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_mgr_,
+                                       final_chain_);
   auto cli_options = cli_conf.getCliOptions();
   for (auto &plugin : active_plugins_) {
     plugin.second->init(cli_options);
@@ -192,21 +207,22 @@ void App::start() {
     LOG(log_si_) << "DB migrated successfully, please restart the node without the flag";
     started_ = false;
     return;
-  } else {
-    network_->start();
-    dag_block_proposer_->setNetwork(network_);
-    dag_block_proposer_->start();
   }
+
+  for (auto &plugin : active_plugins_) {
+    LOG(log_nf_) << "Starting plugin " << plugin.first;
+    plugin.second->start();
+  }
+
+  network_->start();
+  dag_block_proposer_->setNetwork(network_);
+  dag_block_proposer_->start();
 
   pbft_mgr_->start();
 
   if (metrics_) {
     setupMetricsUpdaters();
     metrics_->start();
-  }
-  for (auto &plugin : active_plugins_) {
-    LOG(log_nf_) << "Starting plugin " << plugin.first;
-    plugin.second->start();
   }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
@@ -218,7 +234,6 @@ void App::scheduleLoggingConfigUpdate() {
     return;
   }
 
-  static auto node_address = dev::KeyPair(conf_.node_secret).address();
   config_update_executor_.post([&]() {
     while (started_ && !stopped_) {
       auto path = std::filesystem::path(conf_.json_file_name);
@@ -234,7 +249,7 @@ void App::scheduleLoggingConfigUpdate() {
       try {
         auto config = getJsonFromFileOrString(conf_.json_file_name);
         conf_.log_configs = conf_.loadLoggingConfigs(config["logging"]);
-        conf_.InitLogging(node_address);
+        conf_.InitLogging(conf_.getFirstWallet().node_addr);
       } catch (const ConfigException &e) {
         std::cerr << "FullNodeConfig: Failed to update logging config: " << e.what() << std::endl;
         continue;

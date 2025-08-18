@@ -217,9 +217,9 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash,
                                                 node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
                                                 node1->getSecretKey(), std::move(reward_votes));
-  auto vote = node1->getVoteManager()->generateVote(pbft_block->getBlockHash(), PbftVoteTypes::propose_vote,
-                                                    pbft_block->getPeriod(),
-                                                    node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
+  auto vote = node1->getVoteManager()->generateVote(
+      pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, pbft_block->getPeriod(),
+      node1->getPbftManager()->getPbftRound() + 1, value_proposal_state, node1->getConfig().getFirstWallet());
 
   auto node1_id = nw1->getNodeId();
   auto node2_id = nw2->getNodeId();
@@ -555,8 +555,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   PbftBlock pbft_block1(prev_block_hash, blk1->getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {}, {});
   std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
+  votes_for_pbft_blk1.emplace_back(node1->getVoteManager()->generateVote(
+      pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3, node1->getConfig().getFirstWallet()));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -610,8 +610,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   PbftBlock pbft_block2(prev_block_hash, blk2->getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {}, {});
   std::vector<std::shared_ptr<PbftVote>> votes_for_pbft_blk2;
-  votes_for_pbft_blk2.emplace_back(
-      node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 1, 3));
+  votes_for_pbft_blk2.emplace_back(node1->getVoteManager()->generateVoteWithWeight(
+      pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 1, 3, node1->getConfig().getFirstWallet()));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -699,8 +699,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block1(prev_block_hash, blk1->getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {}, {});
-  const auto pbft_block1_cert_vote = node1->getVoteManager()->generateVote(
-      pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block1.getPeriod(), 1, 3);
+  const auto pbft_block1_cert_vote =
+      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote,
+                                            pbft_block1.getPeriod(), 1, 3, node1->getConfig().getFirstWallet());
   pbft_block1_cert_vote->calculateWeight(1, 1, 1);
   node1->getVoteManager()->addVerifiedVote(pbft_block1_cert_vote);
 
@@ -745,8 +746,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block2(prev_block_hash, blk2->getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {}, {});
-  const auto pbft_block2_cert_vote = node1->getVoteManager()->generateVote(
-      pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block2.getPeriod(), 1, 3);
+  const auto pbft_block2_cert_vote =
+      node1->getVoteManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote,
+                                            pbft_block2.getPeriod(), 1, 3, node1->getConfig().getFirstWallet());
   pbft_block2_cert_vote->calculateWeight(1, 1, 1);
   node1->getVoteManager()->addVerifiedVote(pbft_block2_cert_vote);
 
@@ -803,11 +805,12 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   pbft_mgr1->setPbftRound(round + 1);
 
   // Gen 2 votes in second finish step(5) for null block hash as well as some specific hash
-  auto null_next_vote = vote_mgr1->generateVote(kNullBlockHash, type, period, round, 5);
+  auto null_next_vote =
+      vote_mgr1->generateVote(kNullBlockHash, type, period, round, 5, node1->getConfig().getFirstWallet());
   null_next_vote->calculateWeight(1, 1, 1);
   vote_mgr1->addVerifiedVote(null_next_vote);
 
-  auto next_vote = vote_mgr1->generateVote(blk_hash_t(1), type, period, round, 5);
+  auto next_vote = vote_mgr1->generateVote(blk_hash_t(1), type, period, round, 5, node1->getConfig().getFirstWallet());
   next_vote->calculateWeight(1, 1, 1);
   vote_mgr1->addVerifiedVote(next_vote);
 
@@ -859,13 +862,16 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
 
   // Add 1 vote to node1 verified votes
   EXPECT_EQ(node1_vote_mgr->getVerifiedVotesSize(), 0);
-  node1_vote_mgr->addVerifiedVote(genDummyVote(type, period, round, step, kNullBlockHash, node1_vote_mgr));
-  node1_vote_mgr->addVerifiedVote(genDummyVote(type, period, round, step, blk_hash_t(1), node1_vote_mgr));
+  node1_vote_mgr->addVerifiedVote(
+      genDummyVote(type, period, round, step, kNullBlockHash, node1_vote_mgr, node1->getConfig().getFirstWallet()));
+  node1_vote_mgr->addVerifiedVote(
+      genDummyVote(type, period, round, step, blk_hash_t(1), node1_vote_mgr, node1->getConfig().getFirstWallet()));
   EXPECT_EQ(node1_vote_mgr->getVerifiedVotesSize(), 2);
 
   // Add 1 vote to node2 verified votes
   EXPECT_EQ(node2_vote_mgr->getVerifiedVotesSize(), 0);
-  node2_vote_mgr->addVerifiedVote(genDummyVote(type, period, round, step, blk_hash_t(1), node2_vote_mgr));
+  node2_vote_mgr->addVerifiedVote(
+      genDummyVote(type, period, round, step, blk_hash_t(1), node2_vote_mgr, node2->getConfig().getFirstWallet()));
   EXPECT_EQ(node2_vote_mgr->getVerifiedVotesSize(), 1);
 
   // Set both node1 and node2 pbft manager round to 2
@@ -1641,7 +1647,7 @@ TEST_F(NetworkTest, node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 1000000000, TEST_TX_GAS_LIMIT, bytes(),
                                                    nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
@@ -1695,7 +1701,7 @@ TEST_F(NetworkTest, node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 1000000000, TEST_TX_GAS_LIMIT, bytes(),
                                                    nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);

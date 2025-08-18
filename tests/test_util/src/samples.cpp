@@ -1,40 +1,11 @@
 #include "test_util/samples.hpp"
 
 namespace taraxa::core_tests::samples {
-bool sendTrx(uint64_t count, unsigned port, dev::Secret secret) {
-  auto pattern = R"(
-      curl --silent -m 10 --output /dev/null -d \
-      '{
-        "jsonrpc": "2.0",
-        "method": "send_coin_transaction",
-        "id": "0",
-        "params": [
-          {
-            "nonce": %d,
-            "value": 0,
-            "gas": "%s",
-            "gas_price": "%s",
-            "receiver": "%s",
-            "secret": "%s"
-          }
-        ]
-      }' 0.0.0.0:%s
-    )";
-  for (uint64_t i = 0; i < count; ++i) {
-    auto retcode = system(
-        fmt(pattern, i + 1, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(), secret.makeInsecure(), port).c_str());
-    if (retcode != 0) {
-      return false;
-    }
-  }
-  return true;
-}
-
 SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, secret_t const& sk, bytes data) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   SharedTransactions trxs;
   for (auto i = start; i <= num; ++i) {
-    trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 100000, data, sk, addr_t::random()));
+    trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 1000000000, 100000, data, sk, addr_t::random()));
   }
   return trxs;
 }

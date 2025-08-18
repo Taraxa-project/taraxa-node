@@ -18,6 +18,7 @@ class VoteManager;
 class PbftChain;
 class DagBlockProposer;
 class GasPricer;
+class Plugin;
 
 namespace final_chain {
 class FinalChain;
@@ -37,6 +38,7 @@ class AppBase {
   virtual ~AppBase() = default;
 
   virtual const FullNodeConfig &getConfig() const = 0;
+  virtual FullNodeConfig &getMutableConfig() = 0;
   virtual std::shared_ptr<Network> getNetwork() const = 0;
   virtual std::shared_ptr<TransactionManager> getTransactionManager() const = 0;
   virtual std::shared_ptr<DagManager> getDagManager() const = 0;
@@ -50,11 +52,13 @@ class AppBase {
   virtual std::shared_ptr<DagBlockProposer> getDagBlockProposer() const = 0;
   virtual std::shared_ptr<GasPricer> getGasPricer() const = 0;
 
-  const dev::Address &getAddress() const { return kp_->address(); }
-  const Secret &getSecretKey() const { return kp_->secret(); }
-  vrf_wrapper::vrf_sk_t getVrfSecretKey() const { return conf_.vrf_secret; }
+  const dev::Address &getAddress() const { return conf_.getFirstWallet().node_addr; }
+  const Secret &getSecretKey() const { return conf_.getFirstWallet().node_secret; }
+  vrf_wrapper::vrf_sk_t getVrfSecretKey() const { return conf_.getFirstWallet().vrf_secret; }
 
   virtual std::shared_ptr<pillar_chain::PillarChainManager> getPillarChainManager() const = 0;
+
+  virtual std::shared_ptr<Plugin> getPlugin(const std::string &name) const = 0;
 
   bool isStarted() const { return started_; }
 
@@ -63,8 +67,6 @@ class AppBase {
  protected:
   // configuration
   FullNodeConfig conf_;
-  // Ethereum key pair
-  std::shared_ptr<dev::KeyPair> kp_;
 
   std::atomic_bool started_ = 0;
   std::atomic_bool stopped_ = true;
