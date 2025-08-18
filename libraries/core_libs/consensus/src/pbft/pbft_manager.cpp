@@ -805,7 +805,7 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
 
     const auto vote = vote_mgr_->generateVoteWithWeight(block_hash, vote_type, period, round, step, wallet.second);
     if (!vote) {
-      LOG(log_er_) << "Failed to generate vote for " << block_hash << ", period " << period << ", round " << round
+      LOG(log_dg_) << "Failed to generate vote for " << block_hash << ", period " << period << ", round " << round
                    << ", step " << step << ", validator " << wallet.second.node_addr;
       continue;
     }
