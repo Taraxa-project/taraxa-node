@@ -231,9 +231,7 @@ std::optional<std::shared_ptr<PbftVote>> VerifiedVotes::insertUniqueVoter(const 
     }
     err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep()
         << ", voter: " << vote->getVoterAddr();
-    // TODO: proper logging
-    // std::cerr << err.str() << std::endl;
-    // LOG(log_er_) << err.str();
+    LOG(log_er_) << err.str();
 
     // Return existing vote
     if (inserted_vote.first->second.second && vote->getHash() != inserted_vote.first->second.second->getHash()) {
@@ -270,15 +268,14 @@ std::optional<VotesWithWeight> VerifiedVotes::insertVotedValue(const std::shared
   }
 
   if (found_voted_value_it->second.votes.contains(vote->getHash())) {
-    // TODO: proper logging
-    // LOG(log_dg_) << "Vote " << vote->getHash() << " is in verified map already";
+    LOG(log_dg_) << "Vote " << vote->getHash() << " is in verified map already";
     return {};
   }
 
   // Add vote hash
   if (!found_voted_value_it->second.votes.insert({vote->getHash(), vote}).second) {
     // This should never happen
-    // LOG(log_dg_) << "Vote " << vote->getHash() << " is in verified map already (race condition)";
+    LOG(log_dg_) << "Vote " << vote->getHash() << " is in verified map already (race condition)";
     assert(false);
     return {};
   }
