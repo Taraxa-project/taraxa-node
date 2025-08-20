@@ -40,21 +40,17 @@ data:
       keys = []
       vrfs = []
 
-      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       keys = [
       {{- range $key, $value := .Values.config.consensusnode.keys }}
       "{{ $value }}",
       {{- end }}
       ]
-      {{- end }}
 
-      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       vrfs = [
       {{- range $key, $value := .Values.config.consensusnode.vrfs }}
       "{{ $value }}",
       {{- end }}
       ]
-      {{- end }}
 
       with open(config) as f:
         data = json.load(f)
@@ -101,9 +97,36 @@ data:
     rm -rf $CONFIG_PATH
 
     echo "Generating config"
-    INDEX=${HOSTNAME##*-}
-    KEY="CONSENSUS_NODE_KEY_${INDEX}"
-    VRF="CONSENSUS_NODE_VRF_${INDEX}"
+    POD_INDEX=${HOSTNAME##*-}
+
+    KEYS_LIST=()
+    VRFS_LIST=()
+
+    # multiwallets
+    {{- if .Values.consensusnode.multiwallets.enabled }}
+
+    IDX=1
+    while true; do
+      KEY_VAR="CONSENSUS_NODE_KEY_${POD_INDEX}_${IDX}"
+      VRF_VAR="CONSENSUS_NODE_VRF_${POD_INDEX}_${IDX}"
+      [ -z "${!KEY_VAR}" ] && break
+      KEYS_LIST+=("${!KEY_VAR}")
+      VRFS_LIST+=("${!VRF_VAR}")
+      IDX=$((IDX+1))
+    done
+
+    # When multiwallets is enabled, require keys to be present in env vars
+    if [ ${#KEYS_LIST[@]} -eq 0 ]; then
+      echo "ERROR: multiwallets enabled but no keys found in environment variables"
+      echo "Expected variables: CONSENSUS_NODE_KEY_${POD_INDEX}_1, CONSENSUS_NODE_VRF_${POD_INDEX}_1, etc."
+      exit 1
+    fi
+
+    # singlewallet
+    {{- else }}
+
+    KEY="CONSENSUS_NODE_KEY_${POD_INDEX}"
+    VRF="CONSENSUS_NODE_VRF_${POD_INDEX}"
 
     KEY="${!KEY}"
     VRF="${!VRF}"
@@ -130,41 +153,51 @@ data:
       fi
     fi
 
-    {{ if .Values.explorer.enabled }}
-    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-    NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-    curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
-    {{- end }}
+    KEYS_LIST=("${KEY}")
+    VRFS_LIST=("${VRF}")
+
     {{- end }}
 
-    taraxad --command config \
-      --chain-id {{ .Values.config.network }} \
-      --node-secret ${KEY} \
-      --vrf-secret ${VRF} \
-      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-      {{- $lbEnabled := .Values.bootnode.loadBalancer.enabled -}}
-      {{- $lbIPs := .Values.bootnode.loadBalancer.addresses -}}
-      {{- range $key, $value := .Values.config.bootnode.addresses }}
-      --boot-nodes {{ if $lbEnabled }}{{ index $lbIPs $key }}{{- else }}{{ include "taraxa-boot-node.fullname" $ }}-{{ $key }}.{{ include "taraxa-boot-node.fullname" $ }}.{{$.Release.Namespace}}{{- end }}:10002/{{ $value }} \
-      {{- end }}
-      {{- end }}
-      {{- if .Values.config.extraArgs }}
-      {{ join " " .Values.config.extraArgs }} \
-      {{- end }}
-      --config $CONFIG_PATH \
-      --genesis $GENESIS_PATH \
-      --wallet $WALLET_PATH \
-      --data-dir $DATA_PATH
+
+    # generate config \ genesis \ wallets
+    for IDX in "${!KEYS_LIST[@]}"; do
+      KEY="${KEYS_LIST[$IDX]}"
+      VRF="${VRFS_LIST[$IDX]}"
+      WALLET_FILE="${WALLET_PATH%.json}_$((IDX+1)).json"
+
+      taraxad --command config \
+        --chain-id {{ .Values.config.network }} \
+        --node-secret ${KEY} \
+        --vrf-secret ${VRF} \
+        {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+        {{- $lbEnabled := .Values.bootnode.loadBalancer.enabled -}}
+        {{- $lbIPs := .Values.bootnode.loadBalancer.addresses -}}
+        {{- range $key, $value := .Values.config.bootnode.addresses }}
+        --boot-nodes {{ if $lbEnabled }}{{ index $lbIPs $key }}{{- else }}{{ include "taraxa-boot-node.fullname" $ }}-{{ $key }}.{{ include "taraxa-boot-node.fullname" $ }}.{{$.Release.Namespace}}{{- end }}:10002/{{ $value }} \
+        {{- end }}
+        {{- end }}
+        {{- if .Values.config.extraArgs }}
+        {{ join " " .Values.config.extraArgs }} \
+        {{- end }}
+        --config $CONFIG_PATH \
+        --genesis $GENESIS_PATH \
+        --wallet $WALLET_FILE \
+        --data-dir $DATA_PATH
+
+    done
 
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     python3 /bin/genconfig.py $GENESIS_PATH > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
-    {{- end }}
-
-    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     {{ if .Values.explorer.enabled }}
+    for KEY in "${KEYS_LIST[@]}"; do
+      NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+      curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
+    done
     export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
     cat $GENESIS_PATH | jq '.initial_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
     {{- end }}
+    {{- else }}
+    echo "Skipping genesis configuration for network {{ .Values.config.network }}"
     {{- end }}
 
     {{- if .Values.config.consensusnode.nodeConfig }}

@@ -249,6 +249,8 @@ bootnode:
 
 consensusnode:
   enabled: true
+  multiwallets:
+    enabled: false
   image: {}
   replicaCount: 1
   probes:
