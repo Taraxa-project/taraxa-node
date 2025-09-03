@@ -184,7 +184,7 @@ var NAVTREEINDEX1 =
 "account_8cpp.html":[17,0,1,5,1,0,1,1],
 "account_8hpp.html":[17,0,1,5,1,0,0,0,1],
 "account_8hpp_source.html":[17,0,1,5,1,0,0,0,1],
-"aleth_2libp2p_2_network_8cpp.html":[17,0,1,0,2,9],
+"aleth_2libp2p_2network_8cpp.html":[17,0,1,0,2,9],
 "annotated.html":[16,0],
 "app_8cpp.html":[17,0,1,1,1,0],
 "app_8hpp.html":[17,0,1,1,0,0,0],
