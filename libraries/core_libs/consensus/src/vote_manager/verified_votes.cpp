@@ -269,6 +269,7 @@ std::optional<VotesWithWeight> VerifiedVotes::insertVotedValue(const std::shared
 
   if (found_voted_value_it->second.votes.contains(vote->getHash())) {
     LOG(log_dg_) << "Vote " << vote->getHash() << " is in verified map already";
+    //LOG(log_er_) << "*** Vote " << vote->getHash() << " is in verified map already";
     return {};
   }
 
@@ -279,6 +280,7 @@ std::optional<VotesWithWeight> VerifiedVotes::insertVotedValue(const std::shared
     assert(false);
     return {};
   }
+
   found_voted_value_it->second.weight += *vote->getWeight();
   return found_voted_value_it->second;
 }

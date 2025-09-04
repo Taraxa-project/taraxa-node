@@ -354,7 +354,7 @@ bool PbftManager::tryPushCertVotesBlock() {
   return true;
 }
 
-bool PbftManager::advancePeriod() {
+void PbftManager::advancePeriod() {
   resetPbftConsensus(1 /* round */);
   broadcast_reward_votes_counter_ = 1;
   rebroadcast_reward_votes_counter_ = 1;
@@ -374,9 +374,6 @@ bool PbftManager::advancePeriod() {
   proposed_blocks_.cleanupProposedPbftBlocksByPeriod(new_period);
 
   LOG(log_nf_) << "Period advanced to: " << new_period << ", round and step reset to 1";
-
-  // Restart while loop...
-  return true;
 }
 
 bool PbftManager::advanceRound() {
@@ -427,8 +424,16 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   round_ = round;
   step_ = 1;
 
-  // TODO: set filtering state in case round == 1 and executed_pbft_block_ and ???
-  state_ = value_proposal_state;
+  // If future voted block was finalized, node can skip propose step as propose vote was already gossiped
+  if (future_voted_block_.has_value() && *future_voted_block_ == pbft_chain_->getLastPbftBlockHash()) {
+    setFilterState_();
+    current_round_start_datetime_ = std::chrono::system_clock::now() - 2 * current_round_lambda_;
+    //LOG(log_er_) << "*** Reset PBFT consensus period " << getPbftPeriod() << ", skip propose step. future_voted_block_ " << *future_voted_block_;
+  } else {
+    state_ = value_proposal_state;
+    current_round_start_datetime_ = std::chrono::system_clock::now();
+    //LOG(log_er_) << "*** Reset PBFT consensus period " << getPbftPeriod() << ", normal mode. future_voted_block_ " << (future_voted_block_.has_value() ? *future_voted_block_ : blk_hash_t{});
+  }
 
   // Update in DB first
   auto batch = db_->createWriteBatch();
@@ -441,6 +446,12 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   if (cert_voted_block_for_round_.has_value()) {
     db_->removeCertVotedBlockInRound(batch);
     cert_voted_block_for_round_.reset();
+  }
+
+  // Reset future voted block in the new upcoming round
+  if (future_voted_block_.has_value()) {
+    // TODO[123]: save and remove this from db
+    future_voted_block_.reset();
   }
 
   // Clear all own votes generated in previous round
@@ -462,8 +473,6 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
 
   // Set current period & round in vote manager
   vote_mgr_->setCurrentPbftPeriodAndRound(period, round);
-
-  current_round_start_datetime_ = std::chrono::system_clock::now();
 }
 
 void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round) {
@@ -964,25 +973,9 @@ void PbftManager::proposeBlock_() {
           .has_value()) {
     LOG(log_nf_) << " 2t+1 next voted kNullBlockHash in previous round " << round - 1;
 
-    // Propose new block
-    if (auto proposed_block_data = proposePbftBlock(); proposed_block_data.has_value()) {
-      // Broadcast reward votes - previous round 2t+1 cert votes
-      if (auto net = network_.lock()) {
-        LOG(log_dg_) << "Broadcast propose block reward votes for block "
-                     << proposed_block_data->pbft_block->getBlockHash()
-                     << ", num of reward votes: " << proposed_block_data->reward_votes.size() << ", period " << period
-                     << ", round " << round;
-        net->gossipVotesBundle(proposed_block_data->reward_votes, false);
-      }
-
-      // Broadcast new propose vote + proposed block
-      gossipNewVote(proposed_block_data->vote, proposed_block_data->pbft_block);
-
-      LOG(log_nf_) << "Placed " << proposed_block_data->vote->getHash() << " propose vote for block "
-                   << proposed_block_data->pbft_block->getBlockHash() << ", vote weight "
-                   << *proposed_block_data->vote->getWeight() << ", period " << period << ", round " << round
-                   << ", step " << step_ << ", validator " << proposed_block_data->vote->getVoterAddr();
-    }
+    // Propose new block and place propose vote
+    proposeAndGossipPbftBlock(period, round, pbft_chain_->getLastPbftBlockHash(),
+                              pbft_chain_->getLastNonNullPbftBlockAnchor());
 
     return;
   } else if (const auto previous_round_next_voted_value =
@@ -1026,7 +1019,7 @@ void PbftManager::identifyBlock_() {
       vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock)
           .has_value()) {
     // Identity leader
-    const auto leader_block_data = identifyLeaderBlock(vote_mgr_->getProposalVotes(period, round));
+    const auto leader_block_data = identifyLeaderBlock(proposed_blocks_, vote_mgr_->getProposalVotes(period, round));
     if (!leader_block_data.has_value()) {
       LOG(log_dg_) << "No leader block identified. Period " << period << ", round " << round;
       return;
@@ -1104,6 +1097,25 @@ void PbftManager::certifyBlock_() {
                        soft_voted_block->getBlockHash(), soft_voted_block)) {
     LOG(log_dg_) << "Failed to generate and place cert vote for " << soft_voted_block->getBlockHash();
     return;
+  }
+
+  // Propose future period block & propose vote based on current 2t+1 soft voted block (pipelining)
+  if (kConfig.genesis.state.hardforks.isOnFragariaHardfork(period) &&
+      round == 1) {  // Trigger pipelining only in first round
+    auto last_non_null_block_anchor = soft_voted_block->getPivotDagBlockHash() == kNullBlockHash
+                                          ? pbft_chain_->getLastNonNullPbftBlockAnchor()
+                                          : soft_voted_block->getPivotDagBlockHash();
+    if (auto proposed_block_data = proposeAndGossipPbftBlock(
+            soft_voted_block->getPeriod() + 1, 1, soft_voted_block->getBlockHash(), last_non_null_block_anchor, true);
+        proposed_block_data.has_value()) {
+      future_voted_block_ = soft_voted_block->getBlockHash();
+      LOG(log_nf_) << "Future block " << proposed_block_data->first << " and propose vote "
+                   << proposed_block_data->second << " with period " << soft_voted_block->getPeriod() + 1 << ", round "
+                   << 1 << " gossiped";
+//      LOG(log_er_) << "*** Future block " << proposed_block_data->first << " and propose vote "
+//                   << proposed_block_data->second << " with period " << soft_voted_block->getPeriod() + 1 << ", round "
+//                   << 1 << " gossiped";
+    }
   }
 
   cert_voted_block_for_round_ = soft_voted_block;
@@ -1228,29 +1240,22 @@ void PbftManager::secondFinish_() {
       elapsedTimeInMs(second_finish_step_start_datetime_) > 2 * (current_round_lambda_ - kPollingIntervalMs);
 }
 
-std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
+std::optional<std::pair<blk_hash_t, vote_hash_t>> PbftManager::genAndGossipPbftBlock(
     PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
     const blk_hash_t &order_hash, const std::optional<PbftBlockExtraData> &extra_data,
     const std::vector<WalletConfig> &eligible_wallets) {
+  std::vector<std::shared_ptr<PbftVote>> reward_votes;
+  std::vector<vote_hash_t> reward_votes_hashes;
+
   // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
   // into chain
-  auto reward_votes = vote_mgr_->getRewardVotes(propose_period);
   if (propose_period > vote_mgr_->getRewardVotesPeriodOffset(propose_period)) [[likely]] {
+    reward_votes = vote_mgr_->getRewardVotes(propose_period);
     assert(!reward_votes.empty());
-    // Pre fragaria hf: reward votes period = block period - 1, post fragaria hf: reward votes period = block period - 2
-    const auto required_reward_votes_period = propose_period - vote_mgr_->getRewardVotesPeriodOffset(propose_period);
 
-    if (reward_votes[0]->getPeriod() != required_reward_votes_period) {
-      LOG(log_er_) << "Reward vote period(" << reward_votes[0]->getPeriod() << ") != required reward votes period ("
-                   << required_reward_votes_period << "), propose period: " << propose_period;
-      assert(false);
-      return {};
-    }
+    std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
+                   [](const auto &v) { return v->getHash(); });
   }
-
-  std::vector<vote_hash_t> reward_votes_hashes;
-  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
-                 [](const auto &v) { return v->getHash(); });
 
   auto final_chain_hash = final_chain_->finalChainHash(propose_period);
   if (!final_chain_hash) {
@@ -1260,42 +1265,75 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
   try {
     std::vector<std::shared_ptr<PbftVote>> propose_votes;
 
+    ProposedBlocks propose_blocks{nullptr};
+
     for (const auto &wallet : eligible_wallets) {
       auto block =
           std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, final_chain_hash.value(), propose_period,
                                       wallet.node_addr, wallet.node_secret, std::move(reward_votes_hashes), extra_data);
 
-      auto propose_vote = vote_mgr_->generateVoteWithWeight(block->getBlockHash(), PbftVoteTypes::propose_vote,
-                                                            propose_period, round_, step_, wallet);
+      auto propose_vote =
+          vote_mgr_->generateVoteWithWeight(block->getBlockHash(), PbftVoteTypes::propose_vote, propose_period, round_,
+                                            static_cast<PbftStep>(PbftVoteTypes::propose_vote), wallet);
       if (!propose_vote) {
         LOG(log_er_) << "Failed to generate propose vote for block " << block->getBlockHash() << ", period "
-                     << propose_period << ", round " << round_ << ", step " << step_ << ", validator "
-                     << wallet.node_addr << " when generating pbft block";
+                     << propose_period << ", round " << round_ << ", step "
+                     << static_cast<PbftStep>(PbftVoteTypes::propose_vote) << ", validator " << wallet.node_addr
+                     << " when generating pbft block";
         continue;
       }
 
-      if (!vote_mgr_->addVerifiedVote(propose_vote)) {
-        LOG(log_er_) << "Unable to save propose vote " << propose_vote->getHash() << " for block "
-                     << block->getBlockHash() << ", period " << propose_period << ", round " << round_ << ", step "
-                     << step_ << ", validator " << wallet.node_addr;
+      if (!vote_mgr_->isUniqueVote(propose_vote).first) {
+        LOG(log_dg_) << "Non unique propose vote " << propose_vote->getHash() << " for block "
+                     << block->getBlockHash() << ", period " << propose_period << ", round " << propose_vote->getRound()
+                     << ", step " << propose_vote->getStep() << ", validator " << wallet.node_addr;
+
+        LOG(log_er_) << "*** Non unique propose vote " << propose_vote->getHash() << " for block "
+                     << block->getBlockHash() << ", period " << propose_period << ", round " << propose_vote->getRound()
+                     << ", step " << propose_vote->getStep() << ", validator " << wallet.node_addr;
         continue;
       }
 
-      proposed_blocks_.pushProposedPbftBlock(block);
+      propose_blocks.pushProposedPbftBlock(block, false);
       propose_votes.push_back(std::move(propose_vote));
     }
 
+
     // Select leader block
-    auto leader_block_data = identifyLeaderBlock(std::move(propose_votes));
+    auto leader_block_data = identifyLeaderBlock(propose_blocks, std::move(propose_votes));
     if (!leader_block_data.has_value()) {
       return {};
     }
 
+    if (!vote_mgr_->addVerifiedVote(leader_block_data->second)) {
+      LOG(log_er_) << "Unable to save propose vote " << leader_block_data->second->getHash() << " for block "
+                   << leader_block_data->second->getBlockHash() << ", period " << propose_period << ", round " << leader_block_data->second->getRound()
+                   << ", step " << leader_block_data->second->getStep() << ", validator " << leader_block_data->second->getVoterAddr();
+      return {};
+    }
+
     // Save own verified vote
+    proposed_blocks_.pushProposedPbftBlock(leader_block_data->first);
     vote_mgr_->saveOwnVerifiedVote(leader_block_data->second);
 
-    return PbftManager::ProposedBlockData{std::move(leader_block_data->first), std::move(reward_votes),
-                                          std::move(leader_block_data->second)};
+    // Broadcast reward votes - previous round 2t+1 cert votes
+    if (auto net = network_.lock(); net && !reward_votes.empty()) {
+      LOG(log_dg_) << "Broadcast propose block reward votes for block " << leader_block_data->first->getBlockHash()
+                   << ", num of reward votes: " << reward_votes.size() << ", period " << propose_period << ", round "
+                   << leader_block_data->second->getRound();
+      net->gossipVotesBundle(reward_votes, false);
+    }
+
+    // Broadcast new propose vote + proposed block
+    gossipNewVote(leader_block_data->second, leader_block_data->first);
+
+    LOG(log_nf_) << "Placed " << leader_block_data->second->getHash() << " propose vote for block "
+                 << leader_block_data->first->getBlockHash() << ", vote weight "
+                 << *leader_block_data->second->getWeight() << ", period " << propose_period << ", round "
+                 << leader_block_data->second->getRound() << ", step " << leader_block_data->second->getStep()
+                 << ", validator " << leader_block_data->second->getVoterAddr();
+
+    return std::make_pair(leader_block_data->first->getBlockHash(), leader_block_data->second->getHash());
   } catch (const std::exception &e) {
     LOG(log_er_) << "Block for period " << propose_period << " could not be proposed " << e.what();
     return {};
@@ -1344,46 +1382,36 @@ std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost
   return ghost[1];
 }
 
-struct ProposedBlockData {
-  std::shared_ptr<PbftBlock> pbft_block;
-  std::vector<std::shared_ptr<PbftVote>> reward_votes;
-  WalletConfig proposer_wallet;
-};
-
-std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
-  // generates propose vote with the same block
-  const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
-
+std::optional<std::pair<blk_hash_t, vote_hash_t>> PbftManager::proposeAndGossipPbftBlock(
+    PbftPeriod period, PbftRound round, const blk_hash_t &last_block_hash, const blk_hash_t &last_dag_anchor,
+    bool future_block) {
   // List of wallets that are eligible to propose pbft block during current period
   std::vector<WalletConfig> eligible_wallets;
-  for (const auto &wallet : eligible_wallets_.getWallets(current_pbft_period)) {
+  // In case of future block, use future period for everything except getting eligible wallets...
+  for (const auto &wallet : eligible_wallets_.getWallets(future_block ? getPbftPeriod() : period)) {
     // Wallet is not dpos eligible - do no try to propose block
     if (!wallet.first) {
       continue;
     }
 
-    if (!vote_mgr_->genAndValidateVrfSortition(current_pbft_period, current_pbft_round, wallet.second)) {
-      LOG(log_dg_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                   << ", validator " << wallet.second.node_addr << ". Invalid vrf sortition";
+    if (!vote_mgr_->genAndValidateVrfSortition(period, round, wallet.second)) {
+      LOG(log_dg_) << "Unable to propose block for period " << period << ", round " << round << ", validator "
+                   << wallet.second.node_addr << ". Invalid vrf sortition";
       continue;
     }
 
     eligible_wallets.push_back(wallet.second);
   }
 
-  auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  auto last_period_dag_anchor_block_hash = pbft_chain_->getLastNonNullPbftBlockAnchor();
-  if (last_period_dag_anchor_block_hash == kNullBlockHash) {
-    last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
-  }
+  const auto &last_period_dag_anchor_block_hash =
+      (last_dag_anchor == kNullBlockHash) ? dag_genesis_block_hash_ : last_dag_anchor;
 
   // Creates pbft block's extra data
   std::optional<PbftBlockExtraData> extra_data;
-  if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(current_pbft_period)) {
-    extra_data = createPbftBlockExtraData(current_pbft_period);
+  if (kGenesisConfig.state.hardforks.ficus_hf.isFicusHardfork(period)) {
+    extra_data = createPbftBlockExtraData(period);
     if (!extra_data.has_value()) {
-      LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                   << ". Empty extra data";
+      LOG(log_er_) << "Unable to propose block for period " << period << ", round " << round << ". Empty extra data";
       return {};
     }
   }
@@ -1393,13 +1421,12 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   // Looks like ghost never empty, at least include the last period dag anchor block
   if (ghost.empty()) {
     LOG(log_dg_) << "GHOST is empty. No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
-                             eligible_wallets);
+    return genAndGossipPbftBlock(period, last_block_hash, kNullBlockHash, kNullBlockHash, extra_data, eligible_wallets);
   }
 
   blk_hash_t dag_block_hash;
   if (ghost.size() <= kGenesisConfig.pbft.dag_blocks_size) {
-    // Move back config_.ghost_path_move_back DAG blocks for DAG sycning
+    // Move back config_.ghost_path_move_back DAG blocks for DAG syncing
     auto ghost_index = (ghost.size() < kGenesisConfig.pbft.ghost_path_move_back + 1)
                            ? 0
                            : (ghost.size() - 1 - kGenesisConfig.pbft.ghost_path_move_back);
@@ -1417,8 +1444,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
   if (dag_block_hash == dag_genesis_block_hash_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
                  << " PBFT propose NULL BLOCK HASH anchor";
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
-                             eligible_wallets);
+    return genAndGossipPbftBlock(period, last_block_hash, kNullBlockHash, kNullBlockHash, extra_data, eligible_wallets);
   }
 
   // Compare with last dag block hash. If they are same, which means no new dag blocks generated since last round. In
@@ -1431,13 +1457,13 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
       LOG(log_dg_) << "Last period DAG anchor block hash " << dag_block_hash
                    << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
       LOG(log_dg_) << "Ghost: " << ghost;
-      return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
-                               eligible_wallets);
+      return genAndGossipPbftBlock(period, last_block_hash, kNullBlockHash, kNullBlockHash, extra_data,
+                                   eligible_wallets);
     }
   }
 
   // get DAG block and transaction order
-  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, current_pbft_period);
+  auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, period);
 
   if (dag_block_order.empty()) {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
@@ -1455,7 +1481,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
     }
     const auto &dag_block_weight = dag_blk->getGasEstimation();
 
-    const auto [dag_gas_limit, pbft_gas_limit] = kGenesisConfig.getGasLimits(current_pbft_period);
+    const auto [dag_gas_limit, pbft_gas_limit] = kGenesisConfig.getGasLimits(period);
     if (total_weight + dag_block_weight > pbft_gas_limit) {
       break;
     }
@@ -1472,15 +1498,15 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::proposePbftBlock() {
     }
 
     dag_block_hash = *closest_anchor;
-    dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, current_pbft_period);
+    dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, period);
   }
   auto order_hash = calculateOrderHash(dag_block_order);
 
-  if (auto proposed_block_data = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash,
-                                                   order_hash, extra_data, eligible_wallets);
+  if (auto proposed_block_data =
+          genAndGossipPbftBlock(period, last_block_hash, dag_block_hash, order_hash, extra_data, eligible_wallets);
       proposed_block_data.has_value()) {
-    LOG(log_nf_) << "Created PBFT block: " << proposed_block_data->pbft_block->getBlockHash()
-                 << ", order hash:" << order_hash << ", DAG order " << dag_block_order;
+    LOG(log_nf_) << "Created PBFT block: " << proposed_block_data->first << ", order hash:" << order_hash
+                 << ", DAG order " << dag_block_order;
     return proposed_block_data;
   }
 
@@ -1520,7 +1546,7 @@ h256 PbftManager::getProposal(const std::shared_ptr<PbftVote> &vote) const {
   return lowest_hash;
 }
 
-std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> PbftManager::identifyLeaderBlock(
+std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> PbftManager::identifyLeaderBlock(const ProposedBlocks& propose_blocks,
     std::vector<std::shared_ptr<PbftVote>> &&propose_votes) {
   if (propose_votes.empty()) {
     return {};
@@ -1547,20 +1573,22 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> 
       continue;
     }
 
-    auto leader_block = getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
-    if (!leader_block) {
+    auto leader_block = propose_blocks.getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
+    if (!leader_block.has_value()) {
       LOG(log_er_) << "Unable to get proposed block " << proposed_block_hash;
       continue;
     }
 
-    if (leader_block->getPivotDagBlockHash() == kNullBlockHash) {
+
+    // TODO[123]: should we do some validation here ???
+    if (leader_block->first->getPivotDagBlockHash() == kNullBlockHash) {
       if (!empty_leader_block_data.has_value()) {
-        empty_leader_block_data = std::make_pair(leader_block, leader_vote.second);
+        empty_leader_block_data = std::make_pair(leader_block->first, leader_vote.second);
       }
       continue;
     }
 
-    return std::make_pair(leader_block, leader_vote.second);
+    return std::make_pair(leader_block->first, leader_vote.second);
   }
 
   // no eligible leader
@@ -1649,6 +1677,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   // Validates pbft_block's previous block hash against pbft chain
   if (!pbft_chain_->checkPbftBlockValidation(pbft_block)) {
+    LOG(log_er_) << "Failed previous block validation";
     return false;
   }
 
@@ -2098,7 +2127,7 @@ std::optional<PeriodDataQueue::QueueData> PbftManager::processPeriodData() {
   // pbft_chain_->findPbftBlockInChain(pbft_block_hash) and it's cert votes were not verified here, they are part of
   // vote_manager so we need to replace them as they are not verified period_data structure
   if (!queue_data->period_data.reward_votes_.empty() && !queue_data->period_data.reward_votes_.front()->getWeight()) {
-    LOG(log_er_) << "Replace reward votes, block " << queue_data->period_data.pbft_blk->getBlockHash()
+    LOG(log_dg_) << "Replace reward votes, block " << queue_data->period_data.pbft_blk->getBlockHash()
                  << ", block period " << queue_data->period_data.pbft_blk->getPeriod() << ", orig rewards period "
                  << queue_data->period_data.reward_votes_.front()->getPeriod() << ", new rewards period "
                  << reward_votes.second.front()->getPeriod();

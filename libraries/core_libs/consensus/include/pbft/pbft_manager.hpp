@@ -74,12 +74,6 @@ class PbftManager {
     std::vector<std::pair<bool /* dpos eligibility flag */, WalletConfig>> wallets_;
   };
 
-  struct ProposedBlockData {
-    std::shared_ptr<PbftBlock> pbft_block;
-    std::vector<std::shared_ptr<PbftVote>> reward_votes;
-    std::shared_ptr<PbftVote> vote;
-  };
-
   using time_point = std::chrono::system_clock::time_point;
 
  public:
@@ -121,9 +115,8 @@ class PbftManager {
 
   /**
    * @brief If node receives 2t+1 cert votes for some valid block and pushes it to the chain, advance period to + 1.
-   * @return true if PBFT period advanced, otherwise false
    */
-  bool advancePeriod();
+  void advancePeriod();
 
   /**
    * @brief Get a DAG block period number
@@ -170,19 +163,19 @@ class PbftManager {
   void setPbftStep(PbftStep pbft_step);
 
   /**
-   * @brief Generate PBFT block, push into unverified queue, and broadcast to peers
+   * @brief Generate and gossip PBFT block
    * @param propose_period
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
    * @param extra_data optional extra_data
    * @param eligible_wallets list of eligible wallets to generate pbft lock for propose_period
-   * @return optional<ProposedBlockData>
+   * @return optional<pair<blk_hash_t, vote_hash_t>>
    */
-  std::optional<ProposedBlockData> generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
-                                                     const blk_hash_t &anchor_hash, const blk_hash_t &order_hash,
-                                                     const std::optional<PbftBlockExtraData> &extra_data,
-                                                     const std::vector<WalletConfig> &eligible_wallets);
+  std::optional<std::pair<blk_hash_t, vote_hash_t>> genAndGossipPbftBlock(
+      PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+      const blk_hash_t &order_hash, const std::optional<PbftBlockExtraData> &extra_data,
+      const std::vector<WalletConfig> &eligible_wallets);
 
   /**
    * @brief Get current total DPOS votes count
@@ -469,10 +462,20 @@ class PbftManager {
   void gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
-   * @brief Propose a new PBFT block
-   * @return optional<ProposedBlockData> in case new block was proposed, otherwise empty optional
+   * @brief Propose and gossip a new PBFT block
+   *
+   * @param period
+   * @param round
+   * @param last_block_hash
+   * @param last_dag_anchor
+   * @param future_block
+   *
+   * @return std::pair<blk_hash_t, vote_hash_t> in case new block was proposed, otherwise empty optional
    */
-  std::optional<ProposedBlockData> proposePbftBlock();
+  std::optional<std::pair<blk_hash_t, vote_hash_t>> proposeAndGossipPbftBlock(PbftPeriod period, PbftRound round,
+                                                                              const blk_hash_t &last_block_hash,
+                                                                              const blk_hash_t &last_dag_anchor,
+                                                                              bool future_block = false);
 
   /**
    * @brief Creates pbft block extra data
@@ -485,11 +488,12 @@ class PbftManager {
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
+   * @param propose_blocks
    * @param propose_votes
    * @return shared_ptr to leader identified leader block + propose vote
    */
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> identifyLeaderBlock(
-      std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
+      const ProposedBlocks& propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -654,6 +658,9 @@ class PbftManager {
 
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
+
+  // Block that node future voted as finalized
+  std::optional<blk_hash_t> future_voted_block_{};
 
   // All broadcasted votes created by a node in current round - just for summary logging purposes
   std::map<blk_hash_t, std::vector<PbftStep>> current_round_broadcasted_votes_;

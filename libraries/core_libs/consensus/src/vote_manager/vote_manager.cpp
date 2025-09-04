@@ -148,7 +148,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<PbftVote>& vote) {
 
   {
     if (auto existing_vote = verified_votes_.insertUniqueVoter(vote); existing_vote) {
-      LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
+      LOG(log_er_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
       // Create double voting proof
       slashing_manager_->submitDoubleVotingProof(vote, *existing_vote);
       return false;
@@ -434,7 +434,7 @@ bool VoteManager::isPotentialRewardVote(const std::shared_ptr<PbftVote>& vote) c
   }
 
   // Since fragaria hardfork, rewards votes period is offset by -2 periods instead of -1. All cert votes with period
-  // -1 and -2 and matching hashed are potential reward votes, not just those with -2 period
+  // -1 and -2 and matching hashes are potential reward votes, not just those with -2 period
   if (vote->getPeriod() == last_pbft_block_info.period) {
     return validateVote(last_pbft_block_info, vote);
   } else if (vote->getPeriod() == second_last_pbft_block_info.period &&
@@ -504,9 +504,11 @@ std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkReward
                                   : last_pbft_block_;
   }
 
-  const auto& round_votes = verified_votes_.getRoundVotes(pbft_block_info_rewards.period, pbft_block_info_rewards.round);
+  const auto& round_votes =
+      verified_votes_.getRoundVotes(pbft_block_info_rewards.period, pbft_block_info_rewards.round);
   if (!round_votes) {
-    LOG(log_er_) << "checkRewardVotes missing period " << pbft_block_info_rewards.period << " or round " << pbft_block_info_rewards.round;
+    LOG(log_er_) << "checkRewardVotes missing period " << pbft_block_info_rewards.period << " or round "
+                 << pbft_block_info_rewards.round;
     assert(false);
     return {false, {}};
   }
@@ -515,8 +517,7 @@ std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkReward
 
   // Most of the time we should get the reward votes based on pbft_block_info_rewards.period_ and
   // pbft_block_info_rewards.round_
-  auto reward_votes =
-      getRewardVotes(*round_votes, reward_votes_hashes, pbft_block_info_rewards.block_hash, copy_votes);
+  auto reward_votes = getRewardVotes(*round_votes, reward_votes_hashes, pbft_block_info_rewards.block_hash, copy_votes);
   if (reward_votes.first) [[likely]] {
     return {true, std::move(reward_votes.second)};
   }
@@ -555,13 +556,27 @@ std::pair<bool, std::vector<std::shared_ptr<PbftVote>>> VoteManager::checkReward
   return {false, {}};
 }
 
-std::vector<std::shared_ptr<PbftVote>> VoteManager::getRewardVotes(PbftPeriod current_period) {
+std::vector<std::shared_ptr<PbftVote>> VoteManager::getRewardVotes(PbftPeriod block_period) {
+  const auto reward_votes_period_offset = getRewardVotesPeriodOffset(block_period);
+  if (block_period <= reward_votes_period_offset) {
+    return {};
+  }
+
+  const auto reward_votes_period = block_period - reward_votes_period_offset;
+
   PbftBlockInfo pbft_block_info_rewards;
   {
     std::shared_lock reward_votes_info_lock(pbft_block_info_mutex_);
-    pbft_block_info_rewards = kConfig.genesis.state.hardforks.isOnFragariaHardfork(current_period)
-                                  ? second_last_pbft_block_
-                                  : last_pbft_block_;
+    if (reward_votes_period == second_last_pbft_block_.period) {
+      pbft_block_info_rewards = second_last_pbft_block_;
+    } else if (reward_votes_period == last_pbft_block_.period) {
+      pbft_block_info_rewards = last_pbft_block_;
+    } else {
+      LOG(log_er_) << "No reward votes for block with period " << block_period << ", reward votes period "
+                   << reward_votes_period << ", last pbft block period " << last_pbft_block_.period
+                   << ", second last pbft block period " << second_last_pbft_block_.period;
+      return {};
+    }
   }
 
   auto reward_votes = getTwoTPlusOneVotedBlockVotes(pbft_block_info_rewards.period, pbft_block_info_rewards.round,

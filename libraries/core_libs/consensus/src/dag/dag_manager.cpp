@@ -256,7 +256,7 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
   std::shared_lock lock(mutex_);
   std::vector<blk_hash_t> blk_orders;
 
-  if (period != period_ + 1) {
+  if (period != period_ + 1 && false /* TODO[123]: remove */) {
     LOG(log_wr_) << "getDagBlockOrder called with period " << period << ". Expected period " << period_ + 1;
     return {};
   }

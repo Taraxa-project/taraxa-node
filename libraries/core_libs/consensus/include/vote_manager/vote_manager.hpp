@@ -129,10 +129,10 @@ class VoteManager {
   /**
    * @brief Get reward votes with the round during which was the previous block pushed
    *
-   * @param current_period
+   * @param block_period
    * @return vector of reward votes
    */
-  std::vector<std::shared_ptr<PbftVote>> getRewardVotes(PbftPeriod current_period);
+  std::vector<std::shared_ptr<PbftVote>> getRewardVotes(PbftPeriod block_period);
 
   /**
    * @brief Get last or second last block cert votes with corresponding period

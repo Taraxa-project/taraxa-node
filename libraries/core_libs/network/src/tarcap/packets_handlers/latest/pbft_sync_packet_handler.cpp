@@ -158,7 +158,8 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       } else {
         // checkRewardVotes could fail because we just cert voted this block and moved to next period,
         // in that case we are probably fully synced
-        // TODO: check related to fragaria hf
+        // TODO: !!! check related to fragaria hf, should be called getCurrentRewardVotesPeriod and no period sent as
+        // arg ???
         if (pbft_block_period <= vote_mgr_->getRewardVotesPeriod(packet.period_data.pbft_blk->getPeriod())) {
           pbft_syncing_state_->setPbftSyncing(false);
           return;

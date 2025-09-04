@@ -106,7 +106,7 @@ void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t co
 
 bool PbftChain::checkPbftBlockValidation(const std::shared_ptr<PbftBlock>& pbft_block) const {
   if (getPbftChainSize() + 1 != pbft_block->getPeriod()) {
-    LOG(log_er_) << "Pbft validation failed. PBFT chain size " << getPbftChainSize()
+    LOG(log_dg_) << "Pbft validation failed. PBFT chain size " << getPbftChainSize()
                  << ". Pbft block period: " << pbft_block->getPeriod() << " for block " << pbft_block->getBlockHash();
     return false;
   }
