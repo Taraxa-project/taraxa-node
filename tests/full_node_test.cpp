@@ -966,9 +966,7 @@ TEST_F(FullNodeTest, persist_counter) {
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
   // Create and destroy to create network. So next time will be loaded from file
-  {
-    auto nodes = launch_nodes(node_cfgs);
-  }
+  { auto nodes = launch_nodes(node_cfgs); }
   {
     auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 

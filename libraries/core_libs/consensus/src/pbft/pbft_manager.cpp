@@ -962,7 +962,7 @@ void PbftManager::identifyBlock_() {
       vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock)
           .has_value()) {
     // Identity leader
-    const auto leader_block_data = identifyLeaderBlock(vote_mgr_->getProposalVotes(period, round));
+    const auto leader_block_data = identifyLeaderBlock(proposed_blocks_, vote_mgr_->getProposalVotes(period, round));
     if (!leader_block_data.has_value()) {
       LOG(log_dg_) << "No leader block identified. Period " << period << ", round " << round;
       return;
@@ -1190,6 +1190,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
     return {};
   }
   try {
+    ProposedBlocks propose_blocks{nullptr};
     std::vector<std::shared_ptr<PbftVote>> propose_votes;
 
     for (const auto &wallet : eligible_wallets) {
@@ -1206,24 +1207,33 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
         continue;
       }
 
-      if (!vote_mgr_->addVerifiedVote(propose_vote)) {
-        LOG(log_er_) << "Unable to save propose vote " << propose_vote->getHash() << " for block "
-                     << block->getBlockHash() << ", period " << propose_period << ", round " << round_ << ", step "
-                     << step_ << ", validator " << wallet.node_addr;
+      if (!vote_mgr_->isUniqueVote(propose_vote).first) {
+        LOG(log_er_) << "Non unique propose vote " << propose_vote->getHash() << " for block " << block->getBlockHash()
+                     << ", period " << propose_period << ", round " << propose_vote->getRound() << ", step "
+                     << propose_vote->getStep() << ", validator " << wallet.node_addr;
         continue;
       }
 
-      proposed_blocks_.pushProposedPbftBlock(block);
+      propose_blocks.pushProposedPbftBlock(block, false);
       propose_votes.push_back(std::move(propose_vote));
     }
 
     // Select leader block
-    auto leader_block_data = identifyLeaderBlock(std::move(propose_votes));
+    auto leader_block_data = identifyLeaderBlock(propose_blocks, std::move(propose_votes));
     if (!leader_block_data.has_value()) {
       return {};
     }
 
+    if (!vote_mgr_->addVerifiedVote(leader_block_data->second)) {
+      LOG(log_er_) << "Unable to save propose vote " << leader_block_data->second->getHash() << " for block "
+                   << leader_block_data->second->getBlockHash() << ", period " << propose_period << ", round "
+                   << leader_block_data->second->getRound() << ", step " << leader_block_data->second->getStep()
+                   << ", validator " << leader_block_data->second->getVoterAddr();
+      return {};
+    }
+
     // Save own verified vote
+    proposed_blocks_.pushProposedPbftBlock(leader_block_data->first);
     vote_mgr_->saveOwnVerifiedVote(leader_block_data->second);
 
     return PbftManager::ProposedBlockData{std::move(leader_block_data->first), std::move(reward_votes),
@@ -1453,7 +1463,7 @@ h256 PbftManager::getProposal(const std::shared_ptr<PbftVote> &vote) const {
 }
 
 std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> PbftManager::identifyLeaderBlock(
-    std::vector<std::shared_ptr<PbftVote>> &&propose_votes) {
+    const ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes) {
   if (propose_votes.empty()) {
     return {};
   }
@@ -1479,20 +1489,21 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> 
       continue;
     }
 
-    auto leader_block = getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
-    if (!leader_block) {
+    auto leader_block = propose_blocks.getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
+    if (!leader_block.has_value()) {
       LOG(log_er_) << "Unable to get proposed block " << proposed_block_hash;
       continue;
     }
 
-    if (leader_block->getPivotDagBlockHash() == kNullBlockHash) {
+    if (leader_block->first->getPivotDagBlockHash() == kNullBlockHash) {
       if (!empty_leader_block_data.has_value()) {
-        empty_leader_block_data = std::make_pair(leader_block, leader_vote.second);
+        empty_leader_block_data = std::make_pair(leader_block->first, leader_vote.second);
       }
+
       continue;
     }
 
-    return std::make_pair(leader_block, leader_vote.second);
+    return std::make_pair(leader_block->first, leader_vote.second);
   }
 
   // no eligible leader
