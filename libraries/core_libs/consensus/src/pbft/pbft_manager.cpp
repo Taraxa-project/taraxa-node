@@ -797,6 +797,8 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
   }
 
   bool success = false;
+  std::vector<std::shared_ptr<PbftVote>> valid_votes;
+  uint64_t valid_votes_weight = 0;
   for (const auto &wallet : eligible_wallets_.getWallets(period)) {
     // Wallet is not dpos eligible - do no vote
     if (!wallet.first) {
@@ -816,14 +818,24 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
       continue;
     }
 
-    gossipNewVote(vote, pbft_block);
+    // Propose votes are sent as single packets so it is gossiped together with pbft block
+    if (vote_type == PbftVoteTypes::propose_vote) {
+      gossipNewOwnVote(vote, pbft_block);
+
+      LOG(log_nf_) << "Placed and sent " << vote->getHash() << " vote for block " << block_hash << ", vote weight "
+                   << *vote->getWeight() << ", period " << period << ", round " << round << ", step " << step
+                   << ", validator " << wallet.second.node_addr;
+    } else {
+      valid_votes_weight += *vote->getWeight();
+      valid_votes.push_back(std::move(vote));
+
+      LOG(log_nf_) << "Placed " << vote->getHash() << " vote for block " << block_hash << ", vote weight "
+                   << *vote->getWeight() << ", period " << period << ", round " << round << ", step " << step
+                   << ", validator " << wallet.second.node_addr << " as part of votes bundle";
+    }
 
     // Save own verified vote
     vote_mgr_->saveOwnVerifiedVote(vote);
-
-    LOG(log_nf_) << "Placed " << vote->getHash() << " vote for block " << block_hash << ", vote weight "
-                 << *vote->getWeight() << ", period " << period << ", round " << round << ", step " << step
-                 << ", validator " << wallet.second.node_addr;
 
     if (place_pillar_vote_for_block.has_value()) {
       const auto pillar_vote = pillar_chain_mgr_->genAndPlacePillarVote(period, *place_pillar_vote_for_block,
@@ -833,6 +845,14 @@ bool PbftManager::genAndPlaceVote(PbftVoteTypes vote_type, PbftPeriod period, Pb
       }
     }
     success = true;
+  }
+
+  // Gossip all generated votes in single packet
+  if (!valid_votes.empty()) {
+    gossipNewOwnVotesBundle(valid_votes);
+    LOG(log_nf_) << "Votes bundle with " << valid_votes.size() << " votes with overall weight " << valid_votes_weight
+                 << " for block " << block_hash << ", period " << period << ", round " << round << ", step " << step
+                 << " sent";
   }
 
   return success;
@@ -866,7 +886,8 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
   return true;
 }
 
-void PbftManager::gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block) {
+void PbftManager::gossipNewOwnVote(const std::shared_ptr<PbftVote> &vote,
+                                   const std::shared_ptr<PbftBlock> &voted_block) {
   gossipVote(vote, voted_block);
 
   auto found_voted_block_it = current_round_broadcasted_votes_.find(vote->getBlockHash());
@@ -877,12 +898,32 @@ void PbftManager::gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std
   found_voted_block_it->second.emplace_back(vote->getStep());
 }
 
+void PbftManager::gossipNewOwnVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes) {
+  auto net = network_.lock();
+  if (!net) {
+    LOG(log_er_) << "Could not obtain net - cannot gossip new own votes bundle";
+    // assert(false);
+    return;
+  }
+
+  net->gossipVotesBundle(votes);
+
+  for (const auto &vote : votes) {
+    auto found_voted_block_it = current_round_broadcasted_votes_.find(vote->getBlockHash());
+    if (found_voted_block_it == current_round_broadcasted_votes_.end()) {
+      found_voted_block_it = current_round_broadcasted_votes_.insert({vote->getBlockHash(), {}}).first;
+    }
+
+    found_voted_block_it->second.emplace_back(vote->getStep());
+  }
+}
+
 void PbftManager::gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block) {
   assert(!voted_block || vote->getBlockHash() == voted_block->getBlockHash());
 
   auto net = network_.lock();
   if (!net) {
-    LOG(log_er_) << "Could not obtain net - cannot gossip new vote";
+    LOG(log_er_) << "Could not obtain net - cannot gossip new own vote";
     // assert(false);
     return;
   }
@@ -912,7 +953,7 @@ void PbftManager::proposeBlock_() {
       }
 
       // Broadcast new propose vote + proposed block
-      gossipNewVote(proposed_block_data->vote, proposed_block_data->pbft_block);
+      gossipNewOwnVote(proposed_block_data->vote, proposed_block_data->pbft_block);
 
       LOG(log_nf_) << "Placed " << proposed_block_data->vote->getHash() << " propose vote for block "
                    << proposed_block_data->pbft_block->getBlockHash() << ", vote weight "

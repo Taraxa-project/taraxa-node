@@ -461,12 +461,19 @@ class PbftManager {
                               std::vector<std::shared_ptr<PbftVote>> &&reward_votes);
 
   /**
-   * @brief Gossips newly generated vote to the other peers
+   * @brief Gossips newly generated own vote to the other peers
    *
    * @param vote
    * @param voted_block
    */
-  void gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+  void gossipNewOwnVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+
+  /**
+   * @brief Gossips newly generated own votes bundle to the other peers
+   *
+   * @param votes
+   */
+  void gossipNewOwnVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes);
 
   /**
    * @brief Propose a new PBFT block
