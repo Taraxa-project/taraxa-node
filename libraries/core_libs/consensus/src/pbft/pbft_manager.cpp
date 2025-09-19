@@ -1044,6 +1044,25 @@ void PbftManager::certifyBlock_() {
   go_finish_state_ = elapsed_time_in_round > 4 * lambda_ - kPollingIntervalMs;
   if (go_finish_state_) {
     LOG(log_dg_) << "Step 3 expired, will go to step 4 in period " << period << ", round " << round;
+
+    uint64_t votes_weight = 0;
+    std::string debug_msg;
+    auto soft_votes = vote_mgr_->getStepVotes(period, round, 2 /* soft voting step */);
+    for (const auto &block_soft_votes : soft_votes.votes) {
+      votes_weight += block_soft_votes.second.first;
+      debug_msg += "Block " + block_soft_votes.first.abridged() + "(votes weight " +
+                   std::to_string(block_soft_votes.second.first) + ") -> [";
+
+      for (const auto &vote : block_soft_votes.second.second) {
+        debug_msg += vote.first.abridged() + "(voter " + vote.second->getVoterAddr().abridged() + "), ";
+      }
+
+      debug_msg += "]\n";
+    }
+    debug_msg += "all votes weight " + std::to_string(votes_weight) + ", 2t+1 threshold " +
+                 std::to_string(vote_mgr_->getPbftTwoTPlusOne(period - 1, PbftVoteTypes::soft_vote).value());
+    LOG(log_dg_) << debug_msg;
+
     return;
   }
 
