@@ -1237,7 +1237,7 @@ std::optional<PbftManager::ProposedBlockData> PbftManager::generatePbftBlock(
     for (const auto &wallet : eligible_wallets) {
       auto block =
           std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, final_chain_hash.value(), propose_period,
-                                      wallet.node_addr, wallet.node_secret, std::move(reward_votes_hashes), extra_data);
+                                      wallet.node_addr, wallet.node_secret, reward_votes_hashes, extra_data);
 
       auto propose_vote = vote_mgr_->generateVoteWithWeight(block->getBlockHash(), PbftVoteTypes::propose_vote,
                                                             propose_period, round_, step_, wallet);

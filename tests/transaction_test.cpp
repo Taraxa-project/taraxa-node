@@ -200,9 +200,8 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   auto dag_blk = std::make_shared<DagBlock>(blk_hash_t{}, level_t{}, vec_blk_t{}, trx_hashes, secret_t::random());
   db->saveDagBlock(dag_blk);
   std::vector<vote_hash_t> reward_votes_hashes;
-  auto pbft_block =
-      std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, 1, addr_t::random(),
-                                  dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+  auto pbft_block = std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, 1,
+                                                addr_t::random(), dev::KeyPair::create().secret(), reward_votes_hashes);
   PeriodData period_data(pbft_block, {});
   period_data.dag_blocks.push_back(dag_blk);
   SharedTransactions trxs{trx_1, trx_2};
@@ -289,7 +288,7 @@ TEST_F(TransactionTest, transaction_concurrency) {
     period_data.transactions = {g_signed_trx_samples[i]};
     std::vector<vote_hash_t> rw;
     period_data.pbft_blk = std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash,
-                                                       1, addr_t(0), dev::KeyPair::create().secret(), std::move(rw));
+                                                       1, addr_t(0), dev::KeyPair::create().secret(), rw);
     trx_mgr.updateFinalizedTransactionsStatus(period_data);
   }
 

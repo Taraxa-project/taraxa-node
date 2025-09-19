@@ -218,9 +218,8 @@ TEST_F(RewardsStatsTest, feeRewards) {
                                             VdfSortition{}, dag_proposer.secret());
   db->saveDagBlock(dag_blk);
   std::vector<vote_hash_t> reward_votes_hashes;
-  auto pbft_block =
-      std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, period,
-                                  addr_t::random(), pbft_proposer.secret(), std::move(reward_votes_hashes));
+  auto pbft_block = std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, period,
+                                                addr_t::random(), pbft_proposer.secret(), reward_votes_hashes);
 
   PeriodData period_data(pbft_block, empty_votes);
   period_data.dag_blocks.push_back(dag_blk);

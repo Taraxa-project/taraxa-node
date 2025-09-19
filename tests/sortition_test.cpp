@@ -26,7 +26,7 @@ PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks
   PeriodData b;
   std::vector<vote_hash_t> reward_votes_hashes;
   b.pbft_blk = std::make_shared<PbftBlock>(kNullBlockHash, anchor_hash, kNullBlockHash, kNullBlockHash, period,
-                                           addr_t(0), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+                                           addr_t(0), dev::KeyPair::create().secret(), reward_votes_hashes);
 
   if (period > 1) {
     b.previous_block_cert_votes = {
