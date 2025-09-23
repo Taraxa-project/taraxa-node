@@ -452,7 +452,7 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
                  [](const auto &v) { return v->getHash(); });
   auto proposed_pbft_block = std::make_shared<PbftBlock>(
       prev_block_hash, kNullBlockHash, kNullBlockHash, kNullBlockHash, node1->getPbftManager()->getPbftPeriod(),
-      node1->getAddress(), node1->getSecretKey(), std::move(reward_votes_hashes));
+      node1->getAddress(), node1->getSecretKey(), reward_votes_hashes);
   auto propose_vote = node1->getVoteManager()->generateVote(
       proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, proposed_pbft_block->getPeriod(),
       node1->getPbftManager()->getPbftRound() + 1, value_proposal_state, node1->getConfig().getFirstWallet());
@@ -697,9 +697,8 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   for (PbftPeriod period = 1; period <= max_period; period++) {
     for (uint32_t i = 1; i <= blocks_per_period; i++) {
       std::vector<vote_hash_t> reward_votes_hashes;
-      auto block =
-          std::make_shared<PbftBlock>(blk_hash_t(i), kNullBlockHash, kNullBlockHash, kNullBlockHash, period, addr_t(),
-                                      dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+      auto block = std::make_shared<PbftBlock>(blk_hash_t(i), kNullBlockHash, kNullBlockHash, kNullBlockHash, period,
+                                               addr_t(), dev::KeyPair::create().secret(), reward_votes_hashes);
       blocks.insert({block->getBlockHash(), block});
     }
   }

@@ -216,7 +216,7 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   std::vector<vote_hash_t> reward_votes{};
   auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash,
                                                 node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
-                                                node1->getSecretKey(), std::move(reward_votes));
+                                                node1->getSecretKey(), reward_votes);
   auto vote = node1->getVoteManager()->generateVote(
       pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, pbft_block->getPeriod(),
       node1->getPbftManager()->getPbftRound() + 1, value_proposal_state, node1->getConfig().getFirstWallet());

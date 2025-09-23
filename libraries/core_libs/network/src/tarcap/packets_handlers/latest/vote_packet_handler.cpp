@@ -23,7 +23,9 @@ void VotePacketHandler::process(const threadpool::PacketData &packet_data, const
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   if (packet.optional_data.has_value()) {
-    LOG(log_dg_) << "Received PBFT vote " << packet.vote->getHash() << " with PBFT block "
+    LOG(log_dg_) << "Received vote " << packet.vote->getHash().abridged() << ", period " << packet.vote->getPeriod()
+                 << ", round " << packet.vote->getRound() << ", step " << packet.vote->getStep() << ", voter "
+                 << packet.vote->getVoterAddr() << " with PBFT block "
                  << packet.optional_data->pbft_block->getBlockHash();
 
     // Update peer's max chain size
@@ -31,7 +33,9 @@ void VotePacketHandler::process(const threadpool::PacketData &packet_data, const
       peer->pbft_chain_size_ = packet.optional_data->peer_chain_size;
     }
   } else {
-    LOG(log_dg_) << "Received PBFT vote " << packet.vote->getHash();
+    LOG(log_dg_) << "Received vote " << packet.vote->getHash().abridged() << ", period " << packet.vote->getPeriod()
+                 << ", round " << packet.vote->getRound() << ", step " << packet.vote->getStep() << ", voter "
+                 << packet.vote->getVoterAddr();
   }
 
   const auto vote_hash = packet.vote->getHash();

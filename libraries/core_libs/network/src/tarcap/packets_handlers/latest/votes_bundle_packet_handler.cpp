@@ -31,7 +31,7 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   const auto &reference_vote = packet.votes_bundle.votes.front();
   const auto votes_bundle_votes_type = reference_vote->getType();
 
-  // Votes sync bundles are allowed to cotain only votes bundles of the same type, period, round and step so if first
+  // Votes sync bundles are allowed to contain only votes bundles of the same type, period, round and step so if first
   // vote is irrelevant, all of them are
   if (!isPbftRelevantVote(packet.votes_bundle.votes[0])) {
     LOG(log_wr_) << "Drop votes sync bundle as it is irrelevant for current pbft state. Votes (period, round, step) = ("
@@ -66,7 +66,9 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
       continue;
     }
 
-    LOG(log_dg_) << "Received sync vote " << vote->getHash().abridged();
+    LOG(log_dg_) << "Received vote " << vote->getHash().abridged() << ", period " << vote->getPeriod() << ", round "
+                 << vote->getRound() << ", step " << vote->getStep() << ", voter " << vote->getVoterAddr()
+                 << " as part of votes bundle";
 
     if (!processVote(vote, nullptr, peer, check_max_round_step)) {
       continue;
@@ -76,8 +78,8 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   }
 
   LOG(log_nf_) << "Received " << packet.votes_bundle.votes.size() << " (processed " << processed_votes_count
-               << " ) sync votes from peer " << peer->getId() << " node current round " << current_pbft_round
-               << ", peer pbft round " << reference_vote->getRound();
+               << " ) sync votes from peer " << peer->getId() << ". Votes period " << reference_vote->getPeriod()
+               << ", round " << reference_vote->getRound() << ", step " << reference_vote->getStep();
 
   onNewPbftVotesBundle(packet.votes_bundle.votes, false, peer->getId());
 }

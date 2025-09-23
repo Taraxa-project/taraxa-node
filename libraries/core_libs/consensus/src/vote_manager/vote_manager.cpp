@@ -1057,4 +1057,24 @@ std::vector<std::shared_ptr<PbftVote>> VoteManager::getTwoTPlusOneVotedBlockVote
   return votes;
 }
 
+VerifiedVotes::StepVotes VoteManager::getStepVotes(PbftPeriod period, PbftRound round, PbftStep step) const {
+  std::shared_lock lock(verified_votes_access_);
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
+    return {};
+  }
+
+  const auto found_round_it = found_period_it->second.find(round);
+  if (found_round_it == found_period_it->second.end()) {
+    return {};
+  }
+
+  const auto found_step_it = found_round_it->second.step_votes.find(step);
+  if (found_step_it == found_round_it->second.step_votes.end()) {
+    return {};
+  }
+
+  return found_step_it->second;
+}
+
 }  // namespace taraxa
