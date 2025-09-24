@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"receipt_8hpp.html#a4b670f2e836d5f09f21e4f006bc89339":[17,0,1,9,2,0,0,0,5],
+"receipt_8hpp.html#ab8dd786f8cdf44c7618d74f5f59ee962":[17,0,1,9,2,0,0,0,3],
 "receipt_8hpp_source.html":[17,0,1,9,2,0,0,0],
 "rewards__stats_8cpp.html":[17,0,1,5,0,1,5,1],
 "rewards__stats_8hpp.html":[17,0,1,5,0,0,5,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "structdev_1_1p2p_1_1_host.html#a24453cf74468379aef451da129e60c5f":[16,0,0,1,9,10],
 "structdev_1_1p2p_1_1_host.html#a25003fb227d136001b5986c6f1bc35bd":[16,0,0,1,9,59],
 "structdev_1_1p2p_1_1_host.html#a259850f8f85afdeeb763336d638a0b55":[16,0,0,1,9,53],
-"structdev_1_1p2p_1_1_host.html#a27a644813bf1d1261b431de5a2bf8ca2":[16,0,0,1,9,57],
-"structdev_1_1p2p_1_1_host.html#a28def719762dcd876de26abf88a54623":[16,0,0,1,9,80],
-"structdev_1_1p2p_1_1_host.html#a2a5364b0c6d1c7fd2793f15774e084a4":[16,0,0,1,9,11]
+"structdev_1_1p2p_1_1_host.html#a27a644813bf1d1261b431de5a2bf8ca2":[16,0,0,1,9,57]
 };

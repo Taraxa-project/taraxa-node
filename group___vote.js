@@ -22,6 +22,7 @@ var group___vote =
       [ "getProposalVotes", "group___vote.html#aa4f7b65d5d5bbc219db6f742c7b4f5b6", null ],
       [ "getRewardVotes", "group___vote.html#ad40bafbf3da70a115394e48b7e27e4ed", null ],
       [ "getRewardVotesPbftBlockPeriod", "group___vote.html#ae2c88c3b1906d31f0a970f0839aab4e4", null ],
+      [ "getStepVotes", "group___vote.html#ac88cbb057981650e21a806905c05f5a0", null ],
       [ "getTwoTPlusOneVotedBlock", "group___vote.html#aea53d03917d914a3b0fd84c368b13252", null ],
       [ "getTwoTPlusOneVotedBlockVotes", "group___vote.html#ad5f43b82e94d10f047aafdf9cc085687", null ],
       [ "getVerifiedVotes", "group___vote.html#a335adfd26d1dfc49a7baf003d3ed9e90", null ],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX21 =
 {
+"md_doc_2coding__practices.html#autotoc_md49":[3,0,1],
+"md_doc_2coding__practices.html#autotoc_md56":[3,0,2],
 "md_doc_2coding__practices.html#autotoc_md61":[3,0,3],
 "md_doc_2coding__practices.html#autotoc_md70":[3,0,4],
 "md_doc_2coding__practices.html#autotoc_md75":[3,0,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX21 =
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction_receipt":[17,0,1,5,1,2,0,0,3],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status":[17,0,1,5,1,2,0,0,6],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton":[17,0,1,5,1,2,0,0,5],
-"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config":[17,0,1,5,1,2,0,6,0],
-"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t":[17,0,1,5,1,2,0,6,1],
-"namespacetaraxa_1_1network.html":[14,5,0]
+"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config":[17,0,1,5,1,2,0,6,0]
 };

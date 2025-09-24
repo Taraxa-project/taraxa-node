@@ -1,5 +1,7 @@
 var NAVTREEINDEX26 =
 {
+"structtaraxa_1_1_sortition_config.html#af70ade9835d1a270ed6ad46a7c4d7acb":[16,0,3,68,2],
+"structtaraxa_1_1_sortition_params.html":[16,0,3,69],
 "structtaraxa_1_1_sortition_params.html#a129576d7f651469103f9dd44afa07670":[16,0,3,69,0],
 "structtaraxa_1_1_sortition_params.html#a218857cf708ac8c97ac001b273946aae":[16,0,3,69,2],
 "structtaraxa_1_1_sortition_params.html#a604bfb13d74b15dd90e8af1d6a2447f8":[16,0,3,69,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX26 =
 "to_hex_prefixed-example.html":[18,1],
 "todo.html":[13],
 "tools_8cpp.html":[17,0,1,2,1,2],
-"tools_8cpp.html#a0155ee84696d6d8fbc532b317e9d7964":[17,0,1,2,1,2,1],
-"tools_8cpp.html#a25e9e4b11942e2f228683bfc8df9f365":[17,0,1,2,1,2,3],
-"tools_8cpp.html#a27887c82e6f5ab3508065eb49bbd4b8a":[17,0,1,2,1,2,2]
+"tools_8cpp.html#a0155ee84696d6d8fbc532b317e9d7964":[17,0,1,2,1,2,1]
 };

@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#aad2e212c8c83f09b981221d5e734bdaa":[16,0,0,1,32,12],
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ab5bdb2745c15522703057b3c20d5e71c":[16,0,0,1,32,33],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ac0fb8f70c07ba38bc4b91286f796f59f":[16,0,0,1,32,30],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ac76770dc15a8b13538d5b4a376557509":[16,0,0,1,32,31],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ad35a5d169c8f62a6049d6b5ed8f56514":[16,0,0,1,32,15],
@@ -247,7 +249,5 @@ var NAVTREEINDEX25 =
 "structtaraxa_1_1_sortition_config.html#a5b572169901503ef219b58736d255e53":[16,0,3,68,5],
 "structtaraxa_1_1_sortition_config.html#a98af6a7bbf1de9529f98cf0209b80501":[16,0,3,68,4],
 "structtaraxa_1_1_sortition_config.html#aeca7d919b3af86702956c766c8a19be6":[16,0,3,68,0],
-"structtaraxa_1_1_sortition_config.html#af1a6900d2e7b470611b2f050d073eea0":[16,0,3,68,3],
-"structtaraxa_1_1_sortition_config.html#af70ade9835d1a270ed6ad46a7c4d7acb":[16,0,3,68,2],
-"structtaraxa_1_1_sortition_params.html":[16,0,3,69]
+"structtaraxa_1_1_sortition_config.html#af1a6900d2e7b470611b2f050d073eea0":[16,0,3,68,3]
 };
