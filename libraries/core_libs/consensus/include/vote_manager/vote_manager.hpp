@@ -233,6 +233,16 @@ class VoteManager {
                                                                        TwoTPlusOneVotedBlockType type) const;
 
   /**
+   * Get all step votes for specific period, round and step
+   *
+   * @param period
+   * @param round
+   * @param step
+   * @return
+   */
+  VerifiedVotes::StepVotes getStepVotes(PbftPeriod period, PbftRound round, PbftStep step) const;
+
+  /**
    * @brief Sets current pbft period & round. It also checks if we dont already have 2t+1 vote bundles(pf any type) for
    *                the provided period & round and if so, it saves these bundles into db
    *

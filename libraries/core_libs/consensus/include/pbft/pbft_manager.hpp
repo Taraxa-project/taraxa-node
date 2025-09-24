@@ -461,12 +461,19 @@ class PbftManager {
                               std::vector<std::shared_ptr<PbftVote>> &&reward_votes);
 
   /**
-   * @brief Gossips newly generated vote to the other peers
+   * @brief Gossips newly generated own vote to the other peers
    *
    * @param vote
    * @param voted_block
    */
-  void gossipNewVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+  void gossipNewOwnVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+
+  /**
+   * @brief Gossips newly generated own votes bundle to the other peers
+   *
+   * @param votes
+   */
+  void gossipNewOwnVotesBundle(const std::vector<std::shared_ptr<PbftVote>> &votes);
 
   /**
    * @brief Propose a new PBFT block
@@ -485,11 +492,12 @@ class PbftManager {
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
+   * @param propose_blocks
    * @param propose_votes
    * @return shared_ptr to leader identified leader block + propose vote
    */
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> identifyLeaderBlock(
-      std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
+      const ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
