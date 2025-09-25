@@ -140,6 +140,8 @@ spec:
             - 'ws://localhost:8777'
             - -sync_queue_limit
             - {{ .Values.node.indexer.syncQueueLimit | quote }}
+          resources:
+            {{- toYaml .Values.node.indexer.resources | nindent 12 }}
           volumeMounts:
             - name: indexer-data
               mountPath: /data
