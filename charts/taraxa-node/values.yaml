@@ -200,6 +200,7 @@ node:
       storageClass: 
       annotations: {}
       mountPoint: /data
+    resources: {}
 
 bootnode:
   enabled: true
