@@ -47,15 +47,15 @@ namespace std {
         }
 
         static char_type* move(char_type* s1, const char_type* s2, size_t n) {
-            return static_cast<char_type*>(memmove(s1, s2, n));
+            return static_cast<char_type*>(memmove(s1, s2, n * sizeof(char_type)));
         }
 
         static char_type* copy(char_type* s1, const char_type* s2, size_t n) {
-            return static_cast<char_type*>(memcpy(s1, s2, n));
+            return static_cast<char_type*>(memcpy(s1, s2, n * sizeof(char_type)));
         }
 
         static char_type* assign(char_type* s, size_t n, char_type a) {
-            return static_cast<char_type*>(memset(s, a, n));
+            return static_cast<char_type*>(memset(s, a, n * sizeof(char_type)));
         }
 
         static constexpr int_type not_eof(int_type c) noexcept {
