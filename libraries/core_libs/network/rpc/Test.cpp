@@ -90,15 +90,15 @@ Json::Value Test::send_coin_transactions(const Json::Value &param1) {
 Json::Value Test::tps_test() {
   Json::Value res;
   new std::thread([this]() {
-    auto node = full_node_.lock();
+    auto node = app_.lock();
 
     // Test parameters:
     // Total number of transactions:
     uint64_t trx_count = 400000;
     // Nonce manually increased for every test - it should be max nonce of all of the account below
-    static std::atomic<uint64_t> nonce = 1000000;
+    static std::atomic<uint64_t> nonce = 200000;
     // Transactions per second to send transactions
-    uint32_t tps = 1000;
+    uint32_t tps = 5000;
     // Maximum size of transaction pool, if it goes over this number sending transactions are paused
     uint32_t max_pool_size = 80000;
 
@@ -139,9 +139,9 @@ Json::Value Test::tps_test() {
 
     std::vector<std::shared_ptr<Transaction>> trxs;
     for (uint64_t i = 0; i < trx_count; i++) {
-      trxs.emplace_back(std::make_shared<Transaction>(++nonce, 10, 1, 21000, bytes(), keys[(i % keys.size())].secret(),
+      trxs.emplace_back(std::make_shared<Transaction>(++nonce, 10, 1000000000, 21000, bytes(), keys[(i % keys.size())].secret(),
                                                       addr_t(100000000l + (i % 2000)), 843));
-      if (i % 10000 == 0) {
+      if (i % 10000 == 0 && i > 0) {
         std::cout << "Transactions created: " << i << std::endl;
       }
     }
@@ -156,7 +156,7 @@ Json::Value Test::tps_test() {
       if (i < trx_count - 1) {
         auto res = node->getTransactionManager()->insertTransaction(trxs[i]);
         if (!res.first) std::cout << res.second << std::endl;
-        // Sleep if transactions are created faster than tps or if pool size os over max
+        // Sleep if transactions are created faster than tps or if pool size is over max
         while (ee * tps < i || node->getTransactionManager()->getTransactionPoolSize() > max_pool_size) {
           thisThreadSleepForMilliSeconds(1);
           ee = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - now).count();
