@@ -129,29 +129,9 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
   const auto trx_hash = trx->getHash();
   auto trx_copy = trx;
   
-  auto trxstatus = insertValidatedTransaction(std::move(trx_copy), false);
-
-  if (trxstatus == TransactionStatus::Inserted) {
+  if (insertValidatedTransaction(std::move(trx_copy), false) == TransactionStatus::Inserted) {
     return {true, ""};
   } else {
-    //std::cout << "trxstatus = " << trxstatus << std::endl;
-    switch (trxstatus) {
-      case TransactionStatus::Inserted: 
-        std::cout << "Transaction not inserted...status inserted???" << std::endl;
-        break;
-      case TransactionStatus::InsertedNonProposable:
-        std::cout << "Transaction not inserted...non proposable" << std::endl;
-        break;
-      case TransactionStatus::Known: 
-        std::cout << "Transaction not inserted...known" << std::endl;
-        break;
-      case TransactionStatus::Overflow:
-        std::cout << "Transaction not inserted...overflow" << std::endl;
-        break;
-      default:
-        std::cout << "Transaction not inserted, unknown trxstatus..." << std::endl;
-    }
-
     const auto location = db_->getTransactionLocation(trx_hash);
     if (location) {
       return {false, "Transaction already finalized in period" + std::to_string(location->period)};
