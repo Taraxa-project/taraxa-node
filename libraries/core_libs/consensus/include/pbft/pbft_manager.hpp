@@ -314,8 +314,10 @@ class PbftManager {
    *
    * @param vote
    * @param voted_block
+   * @param rebroadcast
    */
-  void gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
+  void gossipVote(const std::shared_ptr<PbftVote> &vote, const std::shared_ptr<PbftBlock> &voted_block,
+                  bool rebroadcast = false);
 
   /**
    * @param period
