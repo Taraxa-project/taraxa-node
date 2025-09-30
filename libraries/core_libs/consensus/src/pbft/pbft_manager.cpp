@@ -609,16 +609,37 @@ void PbftManager::broadcastVotes() {
     }
   };
 
-  // (Re)broadcast 2t+1 soft/reward/previous round next votes + all own votes
-  auto broadcastVotes = [this, &net, &gossipVotes](bool rebroadcast) {
+  // (Re)broadcast reward votes + all own pbft and pillar votes
+  auto stuckPeriodBroadcastVotes = [this, &net, &gossipVotes](bool rebroadcast) {
     auto [round, period] = getPbftRoundAndPeriod();
+
+    gossipVotes(vote_mgr_->getRewardVotes(), "Reward votes", rebroadcast);
+
+    // Broadcast own pbft votes - send votes by one as they have different type, period, round, step
+    if (const auto &own_votes = vote_mgr_->getOwnVerifiedVotes(); !own_votes.empty()) {
+      for (const auto &vote : own_votes) {
+        net->gossipVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()), rebroadcast);
+      }
+
+      LOG(log_dg_) << "Broadcast own votes for period " << period << ", round " << round << ", rebroadcast "
+                   << rebroadcast;
+    }
+
+    // Broadcast own pillar vote
+    if (const auto &own_pillar_vote = db_->getOwnPillarBlockVote(); own_pillar_vote) {
+      net->gossipPillarBlockVote(own_pillar_vote, rebroadcast);
+    }
+  };
+
+  // (Re)broadcast 2t+1 soft/reward/previous round next votes + all own votes
+  auto stuckRoundBroadcastVotes = [this, &gossipVotes, &stuckPeriodBroadcastVotes](bool rebroadcast) {
+    auto [round, period] = getPbftRoundAndPeriod();
+
+    stuckPeriodBroadcastVotes(rebroadcast);
 
     // Broadcast 2t+1 soft votes
     gossipVotes(vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock),
                 "2t+1 soft votes", rebroadcast);
-
-    // Broadcast reward votes - previous round 2t+1 cert votes
-    gossipVotes(vote_mgr_->getRewardVotes(), "2t+1 propose reward votes", rebroadcast);
 
     // Broadcast previous round 2t+1 next votes
     if (round > 1) {
@@ -629,20 +650,6 @@ void PbftManager::broadcastVotes() {
           vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock),
           "2t+1 next null votes", rebroadcast);
     }
-
-    // Broadcast own votes - send votes by one as they have different type, period, round, step
-    if (const auto &own_votes = vote_mgr_->getOwnVerifiedVotes(); !own_votes.empty()) {
-      for (const auto &vote : own_votes) {
-        net->gossipVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()), rebroadcast);
-      }
-
-      LOG(log_dg_) << "Broadcast own votes for period " << period << ", round " << round;
-    }
-
-    // Broadcast own pillar vote
-    if (const auto &own_pillar_vote = db_->getOwnPillarBlockVote(); own_pillar_vote) {
-      net->gossipPillarBlockVote(own_pillar_vote, rebroadcast);
-    }
   };
 
   const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
@@ -650,31 +657,23 @@ void PbftManager::broadcastVotes() {
 
   if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
     // Stalled in the same round for kRebroadcastVotesLambdaTime * kMinLambda time -> rebroadcast votes
-    broadcastVotes(true);
+    stuckRoundBroadcastVotes(true);
     rebroadcast_votes_counter_++;
     // If there was a rebroadcast no need to do next broadcast either
     broadcast_votes_counter_++;
   } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
     // Stalled in the same round for kBroadcastVotesLambdaTime * kMinLambda time -> broadcast votes
-    broadcastVotes(false);
+    stuckRoundBroadcastVotes(false);
     broadcast_votes_counter_++;
   } else if (period_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_reward_votes_counter_) {
     // Stalled in the same period for kRebroadcastVotesLambdaTime * kMinLambda time -> rebroadcast reward votes
-    gossipVotes(vote_mgr_->getRewardVotes(), "2t+1 propose reward votes", true);
-    // Broadcast own pillar vote
-    if (const auto &own_pillar_vote = db_->getOwnPillarBlockVote(); own_pillar_vote) {
-      net->gossipPillarBlockVote(own_pillar_vote, true);
-    }
+    stuckPeriodBroadcastVotes(true);
     rebroadcast_reward_votes_counter_++;
     // If there was a rebroadcast no need to do next broadcast either
     broadcast_reward_votes_counter_++;
   } else if (period_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_reward_votes_counter_) {
     // Stalled in the same period for kBroadcastVotesLambdaTime * kMinLambda time -> broadcast reward votes
-    gossipVotes(vote_mgr_->getRewardVotes(), "2t+1 propose reward votes", false);
-    // Broadcast own pillar vote
-    if (const auto &own_pillar_vote = db_->getOwnPillarBlockVote(); own_pillar_vote) {
-      net->gossipPillarBlockVote(own_pillar_vote, false);
-    }
+    stuckPeriodBroadcastVotes(false);
     broadcast_reward_votes_counter_++;
   }
 }
