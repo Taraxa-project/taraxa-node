@@ -3,7 +3,6 @@
 #include <execinfo.h>
 #include <json/json.h>
 #include <libdevcore/RLP.h>
-#include "char_traits.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
@@ -17,6 +16,8 @@
 #include <streambuf>
 #include <string>
 #include <unordered_set>
+
+#include "char_traits.hpp"
 
 namespace taraxa {
 
