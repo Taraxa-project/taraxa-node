@@ -240,7 +240,7 @@ class VoteManager {
    * @param step
    * @return
    */
-  VerifiedVotes::StepVotes getStepVotes(PbftPeriod period, PbftRound round, PbftStep step) const;
+  StepVotes getStepVotes(PbftPeriod period, PbftRound round, PbftStep step) const;
 
   /**
    * @brief Sets current pbft period & round. It also checks if we dont already have 2t+1 vote bundles(pf any type) for

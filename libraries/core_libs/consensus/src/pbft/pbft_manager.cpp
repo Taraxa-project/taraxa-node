@@ -1056,11 +1056,11 @@ void PbftManager::certifyBlock_() {
     std::string debug_msg;
     auto soft_votes = vote_mgr_->getStepVotes(period, round, 2 /* soft voting step */);
     for (const auto &block_soft_votes : soft_votes.votes) {
-      votes_weight += block_soft_votes.second.first;
+      votes_weight += block_soft_votes.second.weight;
       debug_msg += "Block " + block_soft_votes.first.abridged() + "(votes weight " +
-                   std::to_string(block_soft_votes.second.first) + ") -> [";
+                   std::to_string(block_soft_votes.second.weight) + ") -> [";
 
-      for (const auto &vote : block_soft_votes.second.second) {
+      for (const auto &vote : block_soft_votes.second.votes) {
         debug_msg += vote.first.abridged() + "(voter " + vote.second->getVoterAddr().abridged() + "), ";
       }
 
