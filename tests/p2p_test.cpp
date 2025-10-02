@@ -138,8 +138,12 @@ TEST_F(P2PTest, multiple_capabilities) {
   };
 
   // At least 1 common tarcap version - connection should be established
-  { test_tarcaps({1}, {1}); }
-  { test_tarcaps({1, 2, 3}, {3, 4, 5}); }
+  {
+    test_tarcaps({1}, {1});
+  }
+  {
+    test_tarcaps({1, 2, 3}, {3, 4, 5});
+  }
 
   // No common tarcap version, connection should not be established
   {
