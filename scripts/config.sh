@@ -18,7 +18,7 @@ fi
 PROFILE_PATH=$(conan profile path clang)
 sed "${SED_CMD}" "s|cppstd=.*|cppstd=20|" "$PROFILE_PATH"
 sed "${SED_CMD}" "s|compiler=.*|compiler=clang|" "$PROFILE_PATH"
-sed "${SED_CMD}" "s|compiler.version=.*|compiler.version=18|" "$PROFILE_PATH"
+sed "${SED_CMD}" "s|compiler.version=.*|compiler.version=${LLVM_VERSION}|" "$PROFILE_PATH"
 sed "${SED_CMD}" "s/build_type=.*/build_type=${CMAKE_BUILD_TYPE}/" "$PROFILE_PATH"
 
 if [ -z "$LLVM_VERSION" ]; then
@@ -29,6 +29,8 @@ fi
 if [ "$(uname)" == "Darwin" ]; then
     export CC=/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/clang
     export CXX=/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/clang++
+    export LDFLAGS="-L/opt/homebrew/opt/llvm@${LLVM_VERSION}/lib/unwind ${LDFLAGS}"
+    export CPPFLAGS="-I/opt/homebrew/opt/llvm@${LLVM_VERSION}/include ${CPPFLAGS}"
 else
     export CC=clang-${LLVM_VERSION}
     export CXX=clang++-${LLVM_VERSION}

@@ -77,7 +77,11 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const
     return {block_stats};
   }
 
-  blocks_stats_.emplace(current_period, std::move(block_stats));
+  // Overwrite any existing cached stats for this period. This matters on recovery
+  // when DB-loaded stats may exist already (e.g., crash after saving partial stats),
+  // and we reprocess the same period again. Using assignment ensures the latest
+  // recomputation is used for the eventual %frequency distribution.
+  blocks_stats_[current_period] = std::move(block_stats);
   // Blocks between distribution. Process and save for future processing
   if (current_period % frequency != 0) {
     // Save to db, so in case of restart data could be just loaded for the period

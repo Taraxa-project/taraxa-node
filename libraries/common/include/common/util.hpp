@@ -17,6 +17,8 @@
 #include <string>
 #include <unordered_set>
 
+#include "char_traits.hpp"
+
 namespace taraxa {
 
 /**
