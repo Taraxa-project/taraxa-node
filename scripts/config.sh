@@ -15,16 +15,16 @@ if [ $? -ne 0 ]; then
     conan profile detect --name clang
 fi
 
+if [ -z "$LLVM_VERSION" ]; then
+    echo "LLVM_VERSION is not specified. Defaulting to 18"
+    export LLVM_VERSION=18
+fi
+
 PROFILE_PATH=$(conan profile path clang)
 sed "${SED_CMD}" "s|cppstd=.*|cppstd=20|" "$PROFILE_PATH"
 sed "${SED_CMD}" "s|compiler=.*|compiler=clang|" "$PROFILE_PATH"
 sed "${SED_CMD}" "s|compiler.version=.*|compiler.version=${LLVM_VERSION}|" "$PROFILE_PATH"
 sed "${SED_CMD}" "s/build_type=.*/build_type=${CMAKE_BUILD_TYPE}/" "$PROFILE_PATH"
-
-if [ -z "$LLVM_VERSION" ]; then
-    echo "LLVM_VERSION is not specified. Defaulting to 18"
-    export LLVM_VERSION=18
-fi
 
 if [ "$(uname)" == "Darwin" ]; then
     export CC=/opt/homebrew/opt/llvm@${LLVM_VERSION}/bin/clang
