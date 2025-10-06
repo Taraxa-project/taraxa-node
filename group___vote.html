@@ -281,8 +281,8 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="separator:aea53d03917d914a3b0fd84c368b13252"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5f43b82e94d10f047aafdf9cc085687" id="r_ad5f43b82e94d10f047aafdf9cc085687"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ad5f43b82e94d10f047aafdf9cc085687">getTwoTPlusOneVotedBlockVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> type) const</td></tr>
 <tr class="separator:ad5f43b82e94d10f047aafdf9cc085687"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac88cbb057981650e21a806905c05f5a0" id="r_ac88cbb057981650e21a806905c05f5a0"><td class="memItemLeft" align="right" valign="top">VerifiedVotes::StepVotes&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ac88cbb057981650e21a806905c05f5a0">getStepVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> step) const</td></tr>
-<tr class="separator:ac88cbb057981650e21a806905c05f5a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26a6b29387611b3fc214979e9faa3f74" id="r_a26a6b29387611b3fc214979e9faa3f74"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_step_votes">StepVotes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a26a6b29387611b3fc214979e9faa3f74">getStepVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> step) const</td></tr>
+<tr class="separator:a26a6b29387611b3fc214979e9faa3f74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad3b0005eb4bf67641018be3db3e1962" id="r_aad3b0005eb4bf67641018be3db3e1962"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#aad3b0005eb4bf67641018be3db3e1962">setCurrentPbftPeriodAndRound</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> pbft_period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> pbft_round)</td></tr>
 <tr class="memdesc:aad3b0005eb4bf67641018be3db3e1962"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets current pbft period &amp; round. It also checks if we dont already have 2t+1 vote bundles(pf any type) for the provided period &amp; round and if so, it saves these bundles into db.  <br /></td></tr>
 <tr class="separator:aad3b0005eb4bf67641018be3db3e1962"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1015,14 +1015,14 @@ Collaboration diagram for taraxa::VoteManager:</div>
 
 </div>
 </div>
-<a id="ac88cbb057981650e21a806905c05f5a0" name="ac88cbb057981650e21a806905c05f5a0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac88cbb057981650e21a806905c05f5a0">&#9670;&#160;</a></span>getStepVotes()</h2>
+<a id="a26a6b29387611b3fc214979e9faa3f74" name="a26a6b29387611b3fc214979e9faa3f74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26a6b29387611b3fc214979e9faa3f74">&#9670;&#160;</a></span>getStepVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">VerifiedVotes::StepVotes taraxa::VoteManager::getStepVotes </td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_step_votes">StepVotes</a> taraxa::VoteManager::getStepVotes </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em>, </td>

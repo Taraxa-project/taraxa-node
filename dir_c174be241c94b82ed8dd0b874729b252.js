@@ -1,6 +1,7 @@
 var dir_c174be241c94b82ed8dd0b874729b252 =
 [
     [ "app_base.hpp", "app__base_8hpp.html", "app__base_8hpp" ],
+    [ "char_traits.hpp", "char__traits_8hpp.html", "char__traits_8hpp" ],
     [ "config_exception.hpp", "config__exception_8hpp.html", "config__exception_8hpp" ],
     [ "constants.hpp", "constants_8hpp.html", "constants_8hpp" ],
     [ "default_construct_copyable_movable.hpp", "default__construct__copyable__movable_8hpp.html", "default__construct__copyable__movable_8hpp" ],

@@ -32,7 +32,7 @@ var searchData=
   ['matches_29',['matches',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a57c2c00225640e6cdfffeb2975dea9c5',1,'taraxa::net::rpc::eth::LogFilter']]],
   ['maxworkerscountreached_30',['maxWorkersCountReached',['../classtaraxa_1_1network_1_1threadpool_1_1_packets_queue.html#a97c0184bba4e046c63ef5105b43662f1',1,'taraxa::network::threadpool::PacketsQueue']]],
   ['mergejsons_31',['mergeJsons',['../namespacetaraxa_1_1util.html#abe79f016ab8be22f3558d5df295d82fe',1,'taraxa::util']]],
-  ['messagecount_32',['messagecount',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae7b9a80aedd5f191c43f554a34531b98',1,'taraxa::network::tarcap::TaraxaCapability::messageCount()'],['../classdev_1_1p2p_1_1_capability_face.html#a63fb6c4600ec3d9430cf432cce62fb9f',1,'dev::p2p::CapabilityFace::messageCount()']]],
+  ['messagecount_32',['messagecount',['../classdev_1_1p2p_1_1_capability_face.html#a63fb6c4600ec3d9430cf432cce62fb9f',1,'dev::p2p::CapabilityFace::messageCount()'],['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae7b9a80aedd5f191c43f554a34531b98',1,'taraxa::network::tarcap::TaraxaCapability::messageCount()']]],
   ['methods_33',['methods',['../class_server_interface.html#ae5fba4201c582c6e19b5043fedefe612',1,'ServerInterface']]],
   ['metricsgroup_34',['MetricsGroup',['../classtaraxa_1_1metrics_1_1_metrics_group.html#a9b5809304e8d961f2faaeb1ce7ead784',1,'taraxa::metrics::MetricsGroup']]],
   ['metricsservice_35',['MetricsService',['../classtaraxa_1_1metrics_1_1_metrics_service.html#af00ea8ceac750a7e9d2737ac4c625ec7',1,'taraxa::metrics::MetricsService']]],
@@ -40,5 +40,6 @@ var searchData=
   ['mixhash_37',['mixHash',['../group___final_chain.html#a26a51a08153acc6d8d3dd18a1b5f2c47',1,'taraxa::final_chain::BlockHeader']]],
   ['modularserver_38',['modularserver',['../class_modular_server.html#ac8163e6745ca706bc97b439246510e8f',1,'ModularServer::ModularServer()'],['../class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html#ab99e1ea1349b9d194ec942e58cc2eb81',1,'ModularServer&lt; I, Is... &gt;::ModularServer()']]],
   ['modules_39',['modules',['../class_modular_server.html#a78fc6f0b521b102f9eb43c458507ab32',1,'ModularServer']]],
-  ['mutation_40',['mutation',['../classgraphql_1_1taraxa_1_1_mutation.html#aeb25ab8e67381670827cff37b672f525',1,'graphql::taraxa::Mutation::Mutation()=default'],['../classgraphql_1_1taraxa_1_1_mutation.html#a6183b9d23b9683d9dcbc2ee547df40f7',1,'graphql::taraxa::Mutation::Mutation(std::shared_ptr&lt;::taraxa::TransactionManager &gt; trx_manager) noexcept']]]
+  ['move_40',['move',['../structstd_1_1char__traits_3_01unsigned_01char_01_4.html#a04a8cc2b8f095cab49bdd0de19a8afd1',1,'std::char_traits&lt; unsigned char &gt;']]],
+  ['mutation_41',['mutation',['../classgraphql_1_1taraxa_1_1_mutation.html#aeb25ab8e67381670827cff37b672f525',1,'graphql::taraxa::Mutation::Mutation()=default'],['../classgraphql_1_1taraxa_1_1_mutation.html#a6183b9d23b9683d9dcbc2ee547df40f7',1,'graphql::taraxa::Mutation::Mutation(std::shared_ptr&lt;::taraxa::TransactionManager &gt; trx_manager) noexcept']]]
 ];

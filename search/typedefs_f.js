@@ -17,11 +17,12 @@ var searchData=
   ['signfunction_14',['SignFunction',['../classdev_1_1p2p_1_1_e_n_r.html#a4792f3acf6c41638933f1fdfce4446c1',1,'dev::p2p::ENR']]],
   ['slice_15',['Slice',['../namespacetaraxa.html#aa54de5a6140b27c17434850ecdb84cd1',1,'taraxa']]],
   ['sourcetostatementmap_16',['SourceToStatementMap',['../classdev_1_1p2p_1_1_endpoint_tracker.html#a093cb77b5735941efaaefb4ba3a901e0',1,'dev::p2p::EndpointTracker']]],
-  ['stepvotesmap_17',['StepVotesMap',['../namespacetaraxa.html#a554b9b9008d34ed03b036908c9a43298',1,'taraxa']]],
-  ['stream_18',['stream',['../namespacetaraxa.html#a0ffaff533811a02bbfdf1c2fdccbc912',1,'taraxa']]],
-  ['strictness_19',['Strictness',['../classdev_1_1_r_l_p.html#aa0727843a4996f7e317adc8f1f966938',1,'dev::RLP']]],
-  ['stringhashmap_20',['StringHashMap',['../namespacedev.html#aba28f92dc104d0a2740ff60368fca356',1,'dev']]],
-  ['stringmap_21',['StringMap',['../namespacedev.html#a56292d3ef8a3b34440c4fe08bf6bec06',1,'dev']]],
-  ['strings_22',['strings',['../namespacedev.html#a1ecb62ed1ea07295d94e230ba9788430',1,'dev']]],
-  ['subscriber_23',['Subscriber',['../structtaraxa_1_1util_1_1event_1_1_event_emitter.html#a00b6e699cbae7f2e22d2cd2f02ebc4e6',1,'taraxa::util::event::EventEmitter']]]
+  ['state_5ftype_17',['state_type',['../structstd_1_1char__traits_3_01unsigned_01char_01_4.html#a64de96db0dfb0a5a01abec3afe933eb7',1,'std::char_traits&lt; unsigned char &gt;']]],
+  ['stepvotesmap_18',['StepVotesMap',['../namespacetaraxa.html#a554b9b9008d34ed03b036908c9a43298',1,'taraxa']]],
+  ['stream_19',['stream',['../namespacetaraxa.html#a0ffaff533811a02bbfdf1c2fdccbc912',1,'taraxa']]],
+  ['strictness_20',['Strictness',['../classdev_1_1_r_l_p.html#aa0727843a4996f7e317adc8f1f966938',1,'dev::RLP']]],
+  ['stringhashmap_21',['StringHashMap',['../namespacedev.html#aba28f92dc104d0a2740ff60368fca356',1,'dev']]],
+  ['stringmap_22',['StringMap',['../namespacedev.html#a56292d3ef8a3b34440c4fe08bf6bec06',1,'dev']]],
+  ['strings_23',['strings',['../namespacedev.html#a1ecb62ed1ea07295d94e230ba9788430',1,'dev']]],
+  ['subscriber_24',['Subscriber',['../structtaraxa_1_1util_1_1event_1_1_event_emitter.html#a00b6e699cbae7f2e22d2cd2f02ebc4e6',1,'taraxa::util::event::EventEmitter']]]
 ];

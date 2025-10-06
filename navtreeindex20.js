@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"libp2p_2_common_8cpp.html#af3329a55454571923278f8ad2e2385fe":[17,0,1,0,2,1,12],
+"libp2p_2_common_8h.html":[17,0,1,0,2,2],
 "libp2p_2_common_8h.html#a0331fd836972ccd099d8fb5c0387d931":[17,0,1,0,2,2,27],
 "libp2p_2_common_8h.html#a0922f523dc8487ddfeb1667ef6f5c72a":[17,0,1,0,2,2,30],
 "libp2p_2_common_8h.html#a0ab8a939e4445ca462831a92d76428e9":[17,0,1,0,2,2,14],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "md_doc_2coding__practices.html#autotoc_md170":[3,0,23],
 "md_doc_2coding__practices.html#autotoc_md174":[3,0,24],
 "md_doc_2coding__practices.html#autotoc_md180":[3,0,25],
-"md_doc_2coding__practices.html#autotoc_md187":[3,0,26],
-"md_doc_2coding__practices.html#autotoc_md44":[3,0],
-"md_doc_2coding__practices.html#autotoc_md45":[3,0,0]
+"md_doc_2coding__practices.html#autotoc_md187":[3,0,26]
 };

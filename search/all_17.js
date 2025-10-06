@@ -43,7 +43,7 @@ var searchData=
   ['lazy_2ehpp_40',['lazy.hpp',['../lazy_8hpp.html',1,'']]],
   ['lazyval_41',['LazyVal',['../namespacetaraxa_1_1util_1_1lazy.html#accbb2a1c395a6aa4043db51c276b2fc1',1,'taraxa::util::lazy']]],
   ['le_42',['le',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a6245d9c2f492bcad12bba3312e0348f8',1,'taraxa::net::rpc::eth::LocalisedLogEntry']]],
-  ['length_43',['length',['../structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#a11444ae2638e32a4c64d1e643c064103',1,'dev::p2p::RLPXFrameInfo::length'],['../classdev_1_1_r_l_p.html#adde430732d6ab8b033057049a252aaf1',1,'dev::RLP::length() const']]],
+  ['length_43',['length',['../structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#a11444ae2638e32a4c64d1e643c064103',1,'dev::p2p::RLPXFrameInfo::length'],['../classdev_1_1_r_l_p.html#adde430732d6ab8b033057049a252aaf1',1,'dev::RLP::length()'],['../structstd_1_1char__traits_3_01unsigned_01char_01_4.html#a36ea9cf8eb3ef72df665584c348b4d9d',1,'std::char_traits&lt; unsigned char &gt;::length()']]],
   ['lengthsize_44',['lengthSize',['../classdev_1_1_r_l_p.html#a5ef11fa0a90305048db33f13c29df2a0',1,'dev::RLP']]],
   ['level_5f_45',['level_',['../classtaraxa_1_1_dag_block.html#aaee09bd218986780c1d6b838802231de',1,'taraxa::DagBlock']]],
   ['level_5ft_46',['level_t',['../namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526',1,'taraxa']]],
@@ -78,7 +78,7 @@ var searchData=
   ['locally_20including_20passed_20to_20algorithms_75',['&lt;a name=&quot;referencecapture&quot;&gt;&lt;/a&gt; 15. Prefer capturing by reference in lambdas that will be used locally, including passed to algorithms',['../md_doc_2coding__practices.html#autotoc_md117',1,'']]],
   ['location_5f_76',['location_',['../classgraphql_1_1taraxa_1_1_transaction.html#a81d29754e6d2dbed1c82105de01c107d',1,'graphql::taraxa::Transaction']]],
   ['locus_77',['locus',['../classdev_1_1p2p_1_1_u_d_p_datagram.html#a07e614388d036fce114e9fa84dc68718',1,'dev::p2p::UDPDatagram']]],
-  ['log_78',['log',['../_log_8h.html#a159ca84d25a5487d8e81e4438725df19',1,'LOG:&#160;Log.h'],['../logger_8hpp.html#a159ca84d25a5487d8e81e4438725df19',1,'LOG:&#160;logger.hpp'],['../classgraphql_1_1taraxa_1_1_log.html#a7362ba477e0ca7f6f3fe916e11c60f9b',1,'graphql::taraxa::Log::Log()'],['../classgraphql_1_1taraxa_1_1_log.html',1,'graphql::taraxa::Log']]],
+  ['log_78',['log',['../logger_8hpp.html#a159ca84d25a5487d8e81e4438725df19',1,'LOG:&#160;logger.hpp'],['../_log_8h.html#a159ca84d25a5487d8e81e4438725df19',1,'LOG:&#160;Log.h'],['../classgraphql_1_1taraxa_1_1_log.html',1,'graphql::taraxa::Log'],['../classgraphql_1_1taraxa_1_1_log.html#a7362ba477e0ca7f6f3fe916e11c60f9b',1,'graphql::taraxa::Log::Log()']]],
   ['log_2ecpp_79',['log.cpp',['../log_8cpp.html',1,'']]],
   ['log_2eh_80',['Log.h',['../_log_8h.html',1,'']]],
   ['log_2ehpp_81',['log.hpp',['../log_8hpp.html',1,'']]],
@@ -99,7 +99,7 @@ var searchData=
   ['logblooms_96',['LogBlooms',['../namespacetaraxa.html#a276fff4b5b12a29b296f5514fcd1330e',1,'taraxa']]],
   ['logentries_97',['LogEntries',['../namespacetaraxa.html#a4b670f2e836d5f09f21e4f006bc89339',1,'taraxa']]],
   ['logentry_98',['LogEntry',['../structtaraxa_1_1_log_entry.html',1,'taraxa']]],
-  ['logfilter_99',['logfilter',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a37c3a70b29f7b44a4d8fe666414eb742',1,'taraxa::net::rpc::eth::LogFilter::LogFilter()'],['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html',1,'taraxa::net::rpc::eth::LogFilter']]],
+  ['logfilter_99',['logfilter',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html',1,'taraxa::net::rpc::eth::LogFilter'],['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a37c3a70b29f7b44a4d8fe666414eb742',1,'taraxa::net::rpc::eth::LogFilter::LogFilter()']]],
   ['logfilter_2ecpp_100',['LogFilter.cpp',['../_log_filter_8cpp.html',1,'']]],
   ['logfilter_2ehpp_101',['LogFilter.hpp',['../_log_filter_8hpp.html',1,'']]],
   ['logger_102',['logger',['../namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948',1,'dev::Logger'],['../namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989',1,'taraxa::logger::Logger']]],
@@ -110,7 +110,7 @@ var searchData=
   ['logging_5finitialized_5f_107',['logging_initialized_',['../classtaraxa_1_1logger_1_1_config.html#abedaf7c26b641822e5f4868b41423073',1,'taraxa::logger::Config']]],
   ['lognodestats_108',['logNodeStats',['../classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac0b8c8d9f9f39420e545d3ca6cfa75f5',1,'taraxa::network::tarcap::NodeStats']]],
   ['logrecord_109',['LogRecord',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record',1,'taraxa::state_api']]],
-  ['logs_110',['logs',['../md_doc_2_r_p_c.html#autotoc_md270',1,'logs'],['../subscriptions_8hpp.html#ac4bb1f6dea914dce7c2649a3bd1c30a6af7eb37afaee9d012bd717d6ac7b87b0e',1,'LOGS:&#160;subscriptions.hpp'],['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#aeb19a0c91d9b3f39936dcbb097ccd138a8da0004c4e246548486bfb9e1a4f3731',1,'taraxa::net::rpc::eth::logs'],['../structtaraxa_1_1_transaction_receipt.html#a5ec660f6986252870159003b92b0d4ed',1,'taraxa::TransactionReceipt::logs'],['../group___final_chain.html#a438cc43e9b33f0ee87d15294a59861e5',1,'taraxa::state_api::ExecutionResult::logs']]],
+  ['logs_110',['logs',['../subscriptions_8hpp.html#ac4bb1f6dea914dce7c2649a3bd1c30a6af7eb37afaee9d012bd717d6ac7b87b0e',1,'LOGS:&#160;subscriptions.hpp'],['../md_doc_2_r_p_c.html#autotoc_md270',1,'logs'],['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#aeb19a0c91d9b3f39936dcbb097ccd138a8da0004c4e246548486bfb9e1a4f3731',1,'taraxa::net::rpc::eth::logs'],['../structtaraxa_1_1_transaction_receipt.html#a5ec660f6986252870159003b92b0d4ed',1,'taraxa::TransactionReceipt::logs'],['../group___final_chain.html#a438cc43e9b33f0ee87d15294a59861e5',1,'taraxa::state_api::ExecutionResult::logs']]],
   ['logs_5f_111',['logs_',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#accffe3c20d02450d1e190c4cb451fa33',1,'taraxa::net::rpc::eth::Watches']]],
   ['logssubscription_112',['logssubscription',['../classtaraxa_1_1net_1_1_logs_subscription.html',1,'taraxa::net::LogsSubscription'],['../classtaraxa_1_1net_1_1_logs_subscription.html#afef42b90f57f686711d682f0dd0b9511',1,'taraxa::net::LogsSubscription::LogsSubscription()']]],
   ['long_20term_20feature_20branches_113',['Long-term Feature branches',['../md_doc_2git__practices.html#autotoc_md210',1,'']]],
@@ -120,5 +120,6 @@ var searchData=
   ['loopbackfinishstate_5f_117',['loopBackFinishState_',['../group___p_b_f_t.html#afcaa3b3656d18f6a1bc5bb36761aa079',1,'taraxa::PbftManager']]],
   ['low_118',['Low',['../classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0a31dd6fdc064b3ea668b651b96c1e900c',1,'taraxa::network::threadpool::PacketData']]],
   ['lru_5f_119',['lru_',['../classtaraxa_1_1_status_table.html#a6678fe7127e7b08a3598df5cb6e2fa2b',1,'taraxa::StatusTable']]],
-  ['lz4compress_120',['LZ4compress',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#aca4f2f0acf5448c9337dfc0d49c9d2d7',1,'dev::p2p::RLPXFrameCoder']]]
+  ['lt_120',['lt',['../structstd_1_1char__traits_3_01unsigned_01char_01_4.html#a40281d387edd10cfc02640bf516ff6ec',1,'std::char_traits&lt; unsigned char &gt;']]],
+  ['lz4compress_121',['LZ4compress',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#aca4f2f0acf5448c9337dfc0d49c9d2d7',1,'dev::p2p::RLPXFrameCoder']]]
 ];

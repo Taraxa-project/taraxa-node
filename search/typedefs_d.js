@@ -8,7 +8,8 @@ var searchData=
   ['peersmap_5',['PeersMap',['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ad316f57c3fa0f1271d24a5a266d885f5',1,'taraxa::network::tarcap::PeersState']]],
   ['periodverifiedvotesmap_6',['PeriodVerifiedVotesMap',['../namespacetaraxa.html#aa707b48fd3358187d8f5a02e05eae9f4',1,'taraxa']]],
   ['perpacketstatsmap_7',['PerPacketStatsMap',['../classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#a41dd05d69b450de577bfb2ca6cf7cb7b',1,'taraxa::network::tarcap::PacketsStats']]],
-  ['public_8',['Public',['../namespacedev.html#a33b08ec2e2db2674c10581cc2677054d',1,'dev']]],
-  ['public_5ft_9',['public_t',['../namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57',1,'taraxa']]],
-  ['publiccompressed_10',['PublicCompressed',['../namespacedev.html#a0266517d70437660a08b9f6166572eb3',1,'dev']]]
+  ['pos_5ftype_8',['pos_type',['../structstd_1_1char__traits_3_01unsigned_01char_01_4.html#a786b3ae7e187bee26b23e2e93a7e98ca',1,'std::char_traits&lt; unsigned char &gt;']]],
+  ['public_9',['Public',['../namespacedev.html#a33b08ec2e2db2674c10581cc2677054d',1,'dev']]],
+  ['public_5ft_10',['public_t',['../namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57',1,'taraxa']]],
+  ['publiccompressed_11',['PublicCompressed',['../namespacedev.html#a0266517d70437660a08b9f6166572eb3',1,'dev']]]
 ];

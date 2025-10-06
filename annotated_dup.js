@@ -109,6 +109,7 @@ var annotated_dup =
       ] ]
     ] ],
     [ "std", "namespacestd.html", [
+      [ "char_traits< unsigned char >", "structstd_1_1char__traits_3_01unsigned_01char_01_4.html", "structstd_1_1char__traits_3_01unsigned_01char_01_4" ],
       [ "hash< bi::address >", "structstd_1_1hash_3_01bi_1_1address_01_4.html", "structstd_1_1hash_3_01bi_1_1address_01_4" ],
       [ "hash< dev::h128 >", "structstd_1_1hash_3_01dev_1_1h128_01_4.html", null ],
       [ "hash< dev::h160 >", "structstd_1_1hash_3_01dev_1_1h160_01_4.html", null ],

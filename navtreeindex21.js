@@ -1,5 +1,7 @@
 var NAVTREEINDEX21 =
 {
+"md_doc_2coding__practices.html#autotoc_md44":[3,0],
+"md_doc_2coding__practices.html#autotoc_md45":[3,0,0],
 "md_doc_2coding__practices.html#autotoc_md49":[3,0,1],
 "md_doc_2coding__practices.html#autotoc_md56":[3,0,2],
 "md_doc_2coding__practices.html#autotoc_md61":[3,0,3],
@@ -109,8 +111,8 @@ var NAVTREEINDEX21 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[17,0,1,0,2,23,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[17,0,1,0,2,2,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[17,0,1,0,2,23,0],
-"namespacemembers.html":[15,0],
 "namespacemembers.html":[15,0,0],
+"namespacemembers.html":[15,0],
 "namespacemembers_a.html":[15,0,1],
 "namespacemembers_b.html":[15,0,2],
 "namespacemembers_c.html":[15,0,3],
@@ -119,8 +121,8 @@ var NAVTREEINDEX21 =
 "namespacemembers_enum.html":[15,4],
 "namespacemembers_eval.html":[15,5],
 "namespacemembers_f.html":[15,0,6],
-"namespacemembers_func.html":[15,1,0],
 "namespacemembers_func.html":[15,1],
+"namespacemembers_func.html":[15,1,0],
 "namespacemembers_func_a.html":[15,1,1],
 "namespacemembers_func_b.html":[15,1,2],
 "namespacemembers_func_c.html":[15,1,3],
@@ -221,8 +223,8 @@ var NAVTREEINDEX21 =
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[17,0,1,10,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_voted_block":[17,0,1,5,0,0,8,0,0],
 "namespacetaraxa.html#structtaraxa_1_1_votes_with_weight":[17,0,1,5,0,0,8,0,1],
-"namespacetaraxa_1_1final__chain.html":[14,4,0],
 "namespacetaraxa_1_1final__chain.html":[14,0,0],
+"namespacetaraxa_1_1final__chain.html":[14,4,0],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[17,0,1,5,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[17,0,1,5,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[17,0,1,5,1,2,0,6,0,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX21 =
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_log_entry":[17,0,1,5,1,2,0,0,4],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction":[17,0,1,5,1,2,0,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction_receipt":[17,0,1,5,1,2,0,0,3],
-"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status":[17,0,1,5,1,2,0,0,6],
-"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton":[17,0,1,5,1,2,0,0,5],
-"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_config":[17,0,1,5,1,2,0,6,0]
+"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status":[17,0,1,5,1,2,0,0,6]
 };

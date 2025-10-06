@@ -65,6 +65,7 @@ var hierarchy =
     [ "dev::p2p::CapabilityFace", "classdev_1_1p2p_1_1_capability_face.html", [
       [ "taraxa::network::tarcap::TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html", null ]
     ] ],
+    [ "std::char_traits< unsigned char >", "structstd_1_1char__traits_3_01unsigned_01char_01_4.html", null ],
     [ "jsonrpc::Client", null, [
       [ "taraxa::net::DebugClient", "classtaraxa_1_1net_1_1_debug_client.html", null ],
       [ "taraxa::net::EthClient", "classtaraxa_1_1net_1_1_eth_client.html", null ],

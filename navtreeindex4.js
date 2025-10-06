@@ -1,5 +1,7 @@
 var NAVTREEINDEX4 =
 {
+"classdev_1_1p2p_1_1_node_table.html#ab246191ad4fefa9c29808ff63580445e":[16,0,0,1,22,47],
+"classdev_1_1p2p_1_1_node_table.html#ab2f9a2ca450752e1315377a8fd4252ff":[16,0,0,1,22,56],
 "classdev_1_1p2p_1_1_node_table.html#ab60d471754e8f86ec531726860600461":[16,0,0,1,22,31],
 "classdev_1_1p2p_1_1_node_table.html#abb4a04a3067a97ed62e00b208894e0a4":[16,0,0,1,22,27],
 "classdev_1_1p2p_1_1_node_table.html#abdec26d244370b75ffc0f4a678310359":[16,0,0,1,22,46],
@@ -21,8 +23,8 @@ var NAVTREEINDEX4 =
 "classdev_1_1p2p_1_1_node_table.html#afe55ec9227a16c56cd773eadf85be5c7":[16,0,0,1,22,22],
 "classdev_1_1p2p_1_1_node_table.html#afe784e49f8100046c2195745be005286":[16,0,0,1,22,37],
 "classdev_1_1p2p_1_1_node_table.html#afe7c62106d53cd1b582e706ff62764ea":[16,0,0,1,22,82],
-"classdev_1_1p2p_1_1_node_table.html#structdev_1_1p2p_1_1_node_table_1_1_node_bucket":[16,0,0,1,22,0],
 "classdev_1_1p2p_1_1_node_table.html#structdev_1_1p2p_1_1_node_table_1_1_node_bucket":[17,0,1,0,2,12,3],
+"classdev_1_1p2p_1_1_node_table.html#structdev_1_1p2p_1_1_node_table_1_1_node_bucket":[16,0,0,1,22,0],
 "classdev_1_1p2p_1_1_node_table_event_handler.html":[16,0,0,1,23],
 "classdev_1_1p2p_1_1_node_table_event_handler.html#a1ec7e49cbf828dd5cbfcd78b39038b6c":[16,0,0,1,23,4],
 "classdev_1_1p2p_1_1_node_table_event_handler.html#a28436197494c3eb994ff78239edd19bb":[16,0,0,1,23,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX4 =
 "classgraphql_1_1taraxa_1_1_block.html#aad38071c41a1d22744f216911d20fba0":[16,0,1,0,1,5],
 "classgraphql_1_1taraxa_1_1_block.html#acfef67a9d1511dee99f559cad35000c0":[16,0,1,0,1,11],
 "classgraphql_1_1taraxa_1_1_block.html#ad68e31fa27230a47c1a7a64c42ad666f":[16,0,1,0,1,10],
-"classgraphql_1_1taraxa_1_1_block.html#ad6eba1d0fa2d812e2902c5e50f018b73":[16,0,1,0,1,15],
-"classgraphql_1_1taraxa_1_1_block.html#af34bf8cce518dc641bbc1f88fe25fb5c":[16,0,1,0,1,34],
-"classgraphql_1_1taraxa_1_1_block.html#afbbc6de7ac194ddb0467133d534ab457":[16,0,1,0,1,24]
+"classgraphql_1_1taraxa_1_1_block.html#ad6eba1d0fa2d812e2902c5e50f018b73":[16,0,1,0,1,15]
 };
