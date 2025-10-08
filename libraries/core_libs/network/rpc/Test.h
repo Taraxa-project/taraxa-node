@@ -17,7 +17,7 @@ class Test : public TestFace {
   virtual Json::Value get_sortition_change(const Json::Value& param1) override;
   virtual Json::Value send_coin_transaction(const Json::Value& param1) override;
   virtual Json::Value send_coin_transactions(const Json::Value& param1) override;
-  virtual Json::Value tps_test() override;
+  virtual Json::Value tps_test(const Json::Value& param1) override;
   virtual Json::Value get_account_address() override;
   virtual Json::Value get_peer_count() override;
   virtual Json::Value get_node_status() override;
