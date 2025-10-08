@@ -87,32 +87,50 @@ Json::Value Test::send_coin_transactions(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::tps_test() {
+Json::Value Test::tps_test(const Json::Value &param1) {
   Json::Value res;
-  new std::thread([this]() {
+  new std::thread([this, param1]() {
     auto node = app_.lock();
 
     // Test parameters:
     // Total number of transactions:
-    uint64_t trx_count = 400000;
-    // Nonce manually increased for every test - it should be max nonce of all of the account below
-    static std::atomic<uint64_t> nonce = 200000;
+    uint64_t trx_count = param1["tx_count"].asUInt64();  // [100000]
     // Transactions per second to send transactions
-    uint32_t tps = 5000;
+    uint32_t tps = param1["tps"].asUInt64();  // [5000]
     // Maximum size of transaction pool, if it goes over this number sending transactions are paused
     uint32_t max_pool_size = 80000;
 
     // To initially found the 10 account below use:
-    /*curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "2","receiver":"0x3d8432060ea8216aa5d9f22991c1622a6fc68349","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "3","receiver":"0x80946cb9cf31d54f02e242f2ddec5155ff650bca","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "4","receiver":"0x07d784cab6a4d6712d38b8526dd0454baf1766ed","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "5","receiver":"0x0fcd9ef355c4ac9e9ed0aadf0cb1d80615f54691","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "6","receiver":"0xc4a41d5b7eb9bae765f3df6f68b70d378074dfcb","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "7","receiver":"0x0e183139741de724a9c90d0341cf816aa85b5798","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "8","receiver":"0x068b9c19ef242c51fe41949565517a90b5e6a0ff","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "9","receiver":"0xc8142e6bd6200425b401cf1ff58bf5d0d08525bd","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "10","receiver":"0x033df3ebc6de21f46b60373a8ad047c86491b84d","chain_id":"34B"}]}' 0.0.0.0:7777
-      curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value": "22000000000","gas_price": "1","gas": "21000","nonce": "11","receiver":"0xde68e530adc067b82abb683e4fa2ead6bd93e0ff","chain_id":"34B"}]}' 0.0.0.0:7777
+    /*curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret":
+      "","value": "22000000000","gas_price": "1","gas": "21000","nonce":
+      "2","receiver":"0x3d8432060ea8216aa5d9f22991c1622a6fc68349","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "3","receiver":"0x80946cb9cf31d54f02e242f2ddec5155ff650bca","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "4","receiver":"0x07d784cab6a4d6712d38b8526dd0454baf1766ed","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "5","receiver":"0x0fcd9ef355c4ac9e9ed0aadf0cb1d80615f54691","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "6","receiver":"0xc4a41d5b7eb9bae765f3df6f68b70d378074dfcb","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "7","receiver":"0x0e183139741de724a9c90d0341cf816aa85b5798","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "8","receiver":"0x068b9c19ef242c51fe41949565517a90b5e6a0ff","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "9","receiver":"0xc8142e6bd6200425b401cf1ff58bf5d0d08525bd","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "10","receiver":"0x033df3ebc6de21f46b60373a8ad047c86491b84d","chain_id":"34B"}]}' 0.0.0.0:7777 curl -m 10 -s -d
+      '{"jsonrpc": "2.0", "id": "0", "method": "send_coin_transaction", "params": [{"secret": "","value":
+      "22000000000","gas_price": "1","gas": "21000","nonce":
+      "11","receiver":"0xde68e530adc067b82abb683e4fa2ead6bd93e0ff","chain_id":"34B"}]}' 0.0.0.0:7777
     */
 
     std::vector<dev::KeyPair> keys;
@@ -137,10 +155,19 @@ Json::Value Test::tps_test() {
     keys.push_back(dev::KeyPair(dev::Secret("7bfb6597df1742d9f47872ed899c58fc742ef78b55c7a88cf7774e1c0be38911",
                                             dev::Secret::ConstructFromStringType::FromHex)));
 
+    trx_nonce_t max_nonce = 0;
+    for (const auto &key : keys) {
+      const auto acc = node->getFinalChain()->getAccount(key.address());
+      if (acc.has_value() && acc->nonce > max_nonce) {
+        max_nonce = acc->nonce;
+      }
+    }
+
     std::vector<std::shared_ptr<Transaction>> trxs;
     for (uint64_t i = 0; i < trx_count; i++) {
-      trxs.emplace_back(std::make_shared<Transaction>(++nonce, 10, 1000000000, 21000, bytes(), keys[(i % keys.size())].secret(),
-                                                      addr_t(100000000l + (i % 2000)), 843));
+      trxs.emplace_back(std::make_shared<Transaction>(++max_nonce, 1, 1000000000, 21000, bytes(),
+                                                      keys[(i % keys.size())].secret(), addr_t(100000000l + (i % 2000)),
+                                                      node->getConfig().genesis.chain_id));
       if (i % 10000 == 0 && i > 0) {
         std::cout << "Transactions created: " << i << std::endl;
       }
