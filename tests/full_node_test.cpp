@@ -337,6 +337,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs(5, 1, 20);
+  for (auto &cfg : node_cfgs) {
+    cfg.genesis.state.hardforks.cacti_hf.block_num = UINT64_MAX;
+  }
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
