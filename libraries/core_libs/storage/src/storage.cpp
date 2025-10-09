@@ -1275,6 +1275,21 @@ void DbStorage::addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod 
   insert(write_batch, Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
+void DbStorage::saveRoundsCountDynamicLamba(uint32_t rounds_count, Batch& write_batch) {
+  insert(write_batch, Columns::rounds_count_dynamic_lambda, 0, toSlice(rounds_count));
+}
+
+uint32_t DbStorage::getRoundsCountDynamicLambda() {
+  auto rounds_count_bytes = lookup(0, Columns::rounds_count_dynamic_lambda);
+  if (!rounds_count_bytes.empty()) {
+    uint32_t value;
+    memcpy(&value, rounds_count_bytes.data(), sizeof(uint32_t));
+    return value;
+  }
+
+  return 0;
+}
+
 void DbStorage::forEach(Column const& col, OnEntry const& f) {
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(col)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
