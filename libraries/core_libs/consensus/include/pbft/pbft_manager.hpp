@@ -336,11 +336,6 @@ class PbftManager {
   void broadcastVotes();
 
   /**
-   * @brief Reset PBFT step to 1
-   */
-  void resetStep();
-
-  /**
    * @brief If node receives 2t+1 next votes for some block(including kNullBlockHash), advance round to + 1.
    * @return true if PBFT round advanced, otherwise false
    */
@@ -606,6 +601,20 @@ class PbftManager {
    */
   void processPillarBlock(PbftPeriod period);
 
+  /**
+   * @param period
+   * @return pbft deadline time - max time to dinalize the block in provided period
+   */
+  std::chrono::milliseconds getPbftDeadline(PbftPeriod period) const;
+
+  /**
+   * @brief Adjust dynamic lambda
+   *
+   * @param finalized_period period, in which block was finalized
+   * @param finalized_round round, in which block was finalized
+   */
+  void adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round);
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
@@ -629,8 +638,11 @@ class PbftManager {
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks
 
   const std::chrono::milliseconds kMinLambda;         // [ms]
-  std::chrono::milliseconds lambda_{0};               // [ms]
-  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
+  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minute
+
+  uint32_t rounds_count_dynamic_lambda_{0};  // rounds count per cacti_hf.lambda_change_interval blocks
+  uint32_t dynamic_lambda_{0};               // [ms] - dynamic lambda that can be anywhere between <500ms, 1500ms>
+  std::chrono::milliseconds current_round_lambda_{0};  // [ms] - current round lambda
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
