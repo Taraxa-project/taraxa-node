@@ -102,9 +102,9 @@
       "threshold_upper": "0x2710"
     },
     "vdf": {
-      "difficulty_max": 21,
-      "difficulty_min": 16,
-      "difficulty_stale": 22,
+      "difficulty_max": 18,
+      "difficulty_min": 13,
+      "difficulty_stale": 19,
       "lambda_bound": "0x64"
     }
   },
