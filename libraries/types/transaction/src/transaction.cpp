@@ -168,8 +168,8 @@ Json::Value Transaction::toJSON() const {
   res["chainId"] = dev::toJS(getChainID());
 
   const auto &vrs = getVRS();
-  res["r"] = dev::toJS(vrs.r);
-  res["s"] = dev::toJS(vrs.s);
+  res["r"] = dev::toJS(u256(vrs.r));
+  res["s"] = dev::toJS(u256(vrs.s));
   res["v"] = dev::toJS(vrs.v);
   return res;
 }
