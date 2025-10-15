@@ -274,9 +274,18 @@ TEST_F(RPCTest, transaction_json) {
   EXPECT_EQ(json["to"], dev::toJS(*trx->getReceiver()));
   EXPECT_EQ(json["value"], dev::toJS(trx->getValue()));
   EXPECT_EQ(json["v"], dev::toJS(trx->getVRS().v));
-  EXPECT_EQ(json["r"], dev::toJS(trx->getVRS().r));
-  EXPECT_EQ(json["s"], dev::toJS(trx->getVRS().s));
+  EXPECT_EQ(json["r"], dev::toJS(u256(trx->getVRS().r)));
+  EXPECT_EQ(json["s"], dev::toJS(u256(trx->getVRS().s)));
   EXPECT_EQ(json["chainId"], dev::toJS(trx->getChainID()));
+}
+
+TEST_F(RPCTest, u256_h256_serialization) {
+  auto str = std::string("0x09cf8cb3d2b55fcbddc997b8669dd37a84699886ea2e9d7c88217c8443cfa8b0");
+  h256 val(str);
+  EXPECT_EQ(dev::toJS(val), str);
+  // u256 should be serialized without leading 0
+  EXPECT_NE(dev::toJS(dev::u256(val)), str);
+  EXPECT_EQ(dev::toJS(dev::u256(val)).size(), str.size() - 1);
 }
 
 }  // namespace taraxa::core_tests
