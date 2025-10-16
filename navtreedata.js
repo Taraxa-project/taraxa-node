@@ -373,7 +373,7 @@ var NAVTREEINDEX =
 "dir_7b0a5d1507c7f681cbfa1deb5990c6ea.html",
 "group___d_a_g.html#a17a0bbbef6aff32c2275c9915ec8aa8b",
 "group___final_chain.html#a4313bdbcdfe3675d9e3a62e9302fce52",
-"group___p_b_f_t.html#a5c07848027fb2b186ddb512e9e5b9cd8",
+"group___p_b_f_t.html#a59a9a8bd086c2f5ed76c823635475ab2",
 "group___transaction.html#a2fc6a4e7622e903613ac6ce028a9d940",
 "hardfork_8cpp.html#a14157ba246d30ca958cb600e23b4620b",
 "libp2p_2_common_8cpp.html#af3329a55454571923278f8ad2e2385fe",

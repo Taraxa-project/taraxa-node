@@ -918,9 +918,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:ace361f5c9599c1d00af8dc78b8f60856" id="r_ace361f5c9599c1d00af8dc78b8f60856"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ace361f5c9599c1d00af8dc78b8f60856">validatePillarDataInPeriodData</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;period_data) const</td></tr>
 <tr class="memdesc:ace361f5c9599c1d00af8dc78b8f60856"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates pbft block extra data presence + pillar votes presence based on pbft block number and ficus hf block number.  <br /></td></tr>
 <tr class="separator:ace361f5c9599c1d00af8dc78b8f60856"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0e45f4e55f65f51ee86d1d3bddca8fd" id="r_af0e45f4e55f65f51ee86d1d3bddca8fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af0e45f4e55f65f51ee86d1d3bddca8fd">gossipVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;voted_block)</td></tr>
-<tr class="memdesc:af0e45f4e55f65f51ee86d1d3bddca8fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gossips vote to the other peers.  <br /></td></tr>
-<tr class="separator:af0e45f4e55f65f51ee86d1d3bddca8fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c778c4bf887fd0288161071c0d90c17" id="r_a2c778c4bf887fd0288161071c0d90c17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2c778c4bf887fd0288161071c0d90c17">gossipVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_pbft_vote">PbftVote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;voted_block, bool rebroadcast=false)</td></tr>
+<tr class="memdesc:a2c778c4bf887fd0288161071c0d90c17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gossips vote to the other peers.  <br /></td></tr>
+<tr class="separator:a2c778c4bf887fd0288161071c0d90c17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b2cbec633333b3e8f1ad4192789048d" id="r_a7b2cbec633333b3e8f1ad4192789048d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7b2cbec633333b3e8f1ad4192789048d">canParticipateInConsensus</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr) const</td></tr>
 <tr class="separator:a7b2cbec633333b3e8f1ad4192789048d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc7cb600ae53ce21f2f2ed9e1f062bcd" id="r_adc7cb600ae53ce21f2f2ed9e1f062bcd"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#adc7cb600ae53ce21f2f2ed9e1f062bcd">getProposedBlocks</a> () const</td></tr>
@@ -2321,8 +2321,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="af0e45f4e55f65f51ee86d1d3bddca8fd" name="af0e45f4e55f65f51ee86d1d3bddca8fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0e45f4e55f65f51ee86d1d3bddca8fd">&#9670;&#160;</a></span>gossipVote()</h2>
+<a id="a2c778c4bf887fd0288161071c0d90c17" name="a2c778c4bf887fd0288161071c0d90c17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c778c4bf887fd0288161071c0d90c17">&#9670;&#160;</a></span>gossipVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2337,7 +2337,13 @@ Collaboration diagram for taraxa::PbftManager:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>voted_block</em>&#160;</td>
+          <td class="paramname"><em>voted_block</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>rebroadcast</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2352,6 +2358,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <table class="params">
     <tr><td class="paramname">vote</td><td></td></tr>
     <tr><td class="paramname">voted_block</td><td></td></tr>
+    <tr><td class="paramname">rebroadcast</td><td></td></tr>
   </table>
   </dd>
 </dl>

@@ -382,7 +382,7 @@ var searchData=
   ['gossipnewownvote_379',['gossipNewOwnVote',['../group___p_b_f_t.html#aa16bbc8bc28a65c88a59ae82c888368a',1,'taraxa::PbftManager']]],
   ['gossipnewownvotesbundle_380',['gossipNewOwnVotesBundle',['../group___p_b_f_t.html#a51dc827206cec707a9c1e612e4aeba35',1,'taraxa::PbftManager']]],
   ['gossippillarblockvote_381',['gossipPillarBlockVote',['../classtaraxa_1_1_network.html#a8852f1a3ed39d1659cdc4dac65bb8b58',1,'taraxa::Network']]],
-  ['gossipvote_382',['gossipvote',['../classtaraxa_1_1_network.html#ac4e232ede6047f9e6c8b1c083db0a11b',1,'taraxa::Network::gossipVote()'],['../group___p_b_f_t.html#af0e45f4e55f65f51ee86d1d3bddca8fd',1,'taraxa::PbftManager::gossipVote()']]],
+  ['gossipvote_382',['gossipvote',['../classtaraxa_1_1_network.html#ac4e232ede6047f9e6c8b1c083db0a11b',1,'taraxa::Network::gossipVote()'],['../group___p_b_f_t.html#a2c778c4bf887fd0288161071c0d90c17',1,'taraxa::PbftManager::gossipVote()']]],
   ['gossipvotesbundle_383',['gossipVotesBundle',['../classtaraxa_1_1_network.html#a652770d7ca31f4e163a761911c4cccfd',1,'taraxa::Network']]],
   ['graphqlhttpprocessor_384',['GraphQlHttpProcessor',['../classtaraxa_1_1net_1_1_graph_ql_http_processor.html#a17508f1a4cc9decbcb85d6fc20bacffe',1,'taraxa::net::GraphQlHttpProcessor']]]
 ];

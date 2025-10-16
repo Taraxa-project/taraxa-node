@@ -42,7 +42,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "getValidPbftProposedBlock", "group___p_b_f_t.html#a2288a72ad03d8eca1f6325d1cd5bc803", null ],
     [ "gossipNewOwnVote", "group___p_b_f_t.html#aa16bbc8bc28a65c88a59ae82c888368a", null ],
     [ "gossipNewOwnVotesBundle", "group___p_b_f_t.html#a51dc827206cec707a9c1e612e4aeba35", null ],
-    [ "gossipVote", "group___p_b_f_t.html#af0e45f4e55f65f51ee86d1d3bddca8fd", null ],
+    [ "gossipVote", "group___p_b_f_t.html#a2c778c4bf887fd0288161071c0d90c17", null ],
     [ "identifyBlock_", "group___p_b_f_t.html#a4e2dc0b0fdd0e68a9ffac002daa6486d", null ],
     [ "identifyLeaderBlock", "group___p_b_f_t.html#a29b75a08740b484d5f3c1de19009df2a", null ],
     [ "initialState", "group___p_b_f_t.html#adfbf462b602c175ef69942c30c45d5d4", null ],
