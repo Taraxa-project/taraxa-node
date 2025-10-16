@@ -35,7 +35,6 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       kConfig(conf),
       kSyncingThreadPoolSize(std::thread::hardware_concurrency() / 2),
       sync_thread_pool_(std::make_shared<util::ThreadPool>(kSyncingThreadPoolSize)),
-      kMinLambda(conf.genesis.pbft.lambda_ms),
       rounds_count_dynamic_lambda_(0),
       dynamic_lambda_(conf.genesis.state.hardforks.cacti_hf.lambda_max),
       dag_genesis_block_hash_(conf.genesis.dag_genesis_block.getHash()),
@@ -57,7 +56,7 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
 
     current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
   } else {
-    current_round_lambda_ = kMinLambda;
+    current_round_lambda_ = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
   }
 
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
@@ -292,32 +291,40 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
   step_ = pbft_step;
 
   // Increase lambda only for odd steps (second finish steps) after node reached kMaxSteps steps
-  if (step_ > kMaxSteps && step_ % 2) {
+  if (step_ >= kMaxSteps && step_ % 2) {
+    const auto kExponentialDefaultLambda = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
     const auto [round, period] = getPbftRoundAndPeriod();
     const auto network_next_voting_step = vote_mgr_->getNetworkTplusOneNextVotingStep(period, round);
+
+    // Once node starts exponentially backing off lambda, use kExponentialDefaultLambda as base number
+    if (step_ == kMaxSteps) {
+      current_round_lambda_ = kExponentialDefaultLambda;
+    }
 
     // Node is still >= kMaxSteps steps behind the rest (at least 1/3) of the network - keep lambda at the standard
     // value so node can catch up with the rest of the nodes
 
     // To get withing 1 round with the rest of the network - node cannot start exponentially backing off its lambda
-    // exactly when it is kMaxSteps behind the network as it would reach kMaxLambda lambda time before catching up. If
-    // we delay triggering exponential backoff by 4 steps, node should get within 1 round with the network.
-    // !!! Important: This is true only for values kMinLambda = 1500ms and kMaxLambda = 60000 ms
+    // exactly when it is kMaxSteps behind the network as it would reach kMaxExponentialLambda lambda time before
+    // catching up. If we delay triggering exponential backoff by 4 steps, node should get within 1 round with the
+    // network.
+    // !!! Important: This is true only for values kExponentialDefaultLambda = 1500ms and kMaxExponentialLambda = 60000
+    // ms
     if (network_next_voting_step > step_ && network_next_voting_step - step_ >= kMaxSteps - 4 /* hardcoded delay */) {
       // Reset it only if it was already increased compared to default value
-      if (current_round_lambda_ != kMinLambda) {
-        current_round_lambda_ = kMinLambda;
+      if (current_round_lambda_ != kExponentialDefaultLambda) {
+        current_round_lambda_ = kExponentialDefaultLambda;
         LOG(log_nf_) << "Node is " << network_next_voting_step - step_
                      << " steps behind the rest of the network. Reset lambda to the default value "
                      << current_round_lambda_.count() << " [ms]";
       }
-    } else if (current_round_lambda_ < kMaxLambda) {
+    } else if (current_round_lambda_ < kMaxExponentialLambda) {
       // Node is < kMaxSteps steps behind the rest (at least 1/3) of the network - start exponentially backing off
-      // lambda until it reaches kMaxLambdagetNetworkTplusOneNextVotingStep
+      // lambda until it reaches kMaxExponentialLambda
       // Note: We calculate the lambda for a step independently of prior steps in case missed earlier steps.
       current_round_lambda_ *= 2;
-      if (current_round_lambda_ > kMaxLambda) {
-        current_round_lambda_ = kMaxLambda;
+      if (current_round_lambda_ > kMaxExponentialLambda) {
+        current_round_lambda_ = kMaxExponentialLambda;
       }
 
       LOG(log_nf_) << "No round progress - exponentially backing off lambda to " << current_round_lambda_.count()
@@ -416,7 +423,7 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
       current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
     }
   } else {
-    current_round_lambda_ = kMinLambda;
+    current_round_lambda_ = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
   }
 
   LOG(log_nf_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1, lambda "
@@ -464,20 +471,21 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
 }
 
 void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round) {
+  const auto &kCactiHfCfg = kGenesisConfig.state.hardforks.cacti_hf;
   rounds_count_dynamic_lambda_ += finalized_round;
 
   // Decrease dynamic lambda only every N blocks
-  if (kGenesisConfig.state.hardforks.cacti_hf.isDynamicLambdaChangeInterval(finalized_period)) {
+  if (kCactiHfCfg.isDynamicLambdaChangeInterval(finalized_period)) {
     // If it took the same amount of rounds to finish lambda_change_interval blocks, decrease dynamic lambda
-    if (rounds_count_dynamic_lambda_ == kGenesisConfig.state.hardforks.cacti_hf.lambda_change_interval &&
-        dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
-      dynamic_lambda_ -= kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
-      if (dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_min) {
-        dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_min;
+    if (rounds_count_dynamic_lambda_ == kCactiHfCfg.lambda_change_interval &&
+        dynamic_lambda_ > kCactiHfCfg.lambda_min) {
+      dynamic_lambda_ -= kCactiHfCfg.lambda_change;
+      if (dynamic_lambda_ < kCactiHfCfg.lambda_min) {
+        dynamic_lambda_ = kCactiHfCfg.lambda_min;
       }
 
-      LOG(log_nf_) << "Decrease dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change << " to "
-                   << dynamic_lambda_ << ", period " << finalized_period << ", round " << finalized_round;
+      LOG(log_nf_) << "Decrease dynamic_lambda by " << kCactiHfCfg.lambda_change << " to " << dynamic_lambda_
+                   << ", period " << finalized_period << ", round " << finalized_round;
     }
 
     // Reset rounds count
@@ -485,18 +493,18 @@ void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound fin
   }
 
   // Any time block is finalized in round > 1, increase dynamic lambda
-  if (finalized_round > 1 && dynamic_lambda_ < kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
-    dynamic_lambda_ += kGenesisConfig.state.hardforks.cacti_hf.lambda_change;
-    if (dynamic_lambda_ > kGenesisConfig.state.hardforks.cacti_hf.lambda_max) {
-      dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
+  if (finalized_round > 1 && dynamic_lambda_ < kCactiHfCfg.lambda_max) {
+    dynamic_lambda_ += kCactiHfCfg.lambda_change;
+    if (dynamic_lambda_ > kCactiHfCfg.lambda_max) {
+      dynamic_lambda_ = kCactiHfCfg.lambda_max;
     }
 
-    LOG(log_nf_) << "Increase dynamic_lambda by " << kGenesisConfig.state.hardforks.cacti_hf.lambda_change << " to "
-                 << dynamic_lambda_ << ", period " << finalized_period << ", round " << finalized_round;
+    LOG(log_nf_) << "Increase dynamic_lambda by " << kCactiHfCfg.lambda_change << " to " << dynamic_lambda_
+                 << ", period " << finalized_period << ", round " << finalized_round;
   }
 
   auto batch = db_->createWriteBatch();
-  db_->saveRoundsCountDynamicLamba(rounds_count_dynamic_lambda_, batch);
+  db_->saveRoundsCountDynamicLambda(rounds_count_dynamic_lambda_, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrField::Lambda, dynamic_lambda_, batch);
   db_->commitWriteBatch(batch);
 }
@@ -715,24 +723,27 @@ void PbftManager::broadcastVotes() {
   const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
   const auto period_elapsed_time = elapsedTimeInMs(current_period_start_datetime_);
 
-  if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
-    // Stalled in the same round for kRebroadcastVotesLambdaTime * kMinLambda time -> rebroadcast votes
+  if (round_elapsed_time / current_round_lambda_ > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
+    // Stalled in the same round for kRebroadcastVotesLambdaTime * current_round_lambda_ time -> rebroadcast votes
     stuckRoundBroadcastVotes(true);
     rebroadcast_votes_counter_++;
     // If there was a rebroadcast no need to do next broadcast either
     broadcast_votes_counter_++;
-  } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
-    // Stalled in the same round for kBroadcastVotesLambdaTime * kMinLambda time -> broadcast votes
+  } else if (round_elapsed_time / current_round_lambda_ > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
+    // Stalled in the same round for kBroadcastVotesLambdaTime * current_round_lambda_ time -> broadcast votes
     stuckRoundBroadcastVotes(false);
     broadcast_votes_counter_++;
-  } else if (period_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_reward_votes_counter_) {
-    // Stalled in the same period for kRebroadcastVotesLambdaTime * kMinLambda time -> rebroadcast reward votes
+  } else if (period_elapsed_time / current_round_lambda_ >
+             kRebroadcastVotesLambdaTime * rebroadcast_reward_votes_counter_) {
+    // Stalled in the same period for kRebroadcastVotesLambdaTime * current_round_lambda_ time -> rebroadcast reward
+    // votes
     stuckPeriodBroadcastVotes(true);
     rebroadcast_reward_votes_counter_++;
     // If there was a rebroadcast no need to do next broadcast either
     broadcast_reward_votes_counter_++;
-  } else if (period_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_reward_votes_counter_) {
-    // Stalled in the same period for kBroadcastVotesLambdaTime * kMinLambda time -> broadcast reward votes
+  } else if (period_elapsed_time / current_round_lambda_ >
+             kBroadcastVotesLambdaTime * broadcast_reward_votes_counter_) {
+    // Stalled in the same period for kBroadcastVotesLambdaTime * current_round_lambda_ time -> broadcast reward votes
     stuckPeriodBroadcastVotes(false);
     broadcast_reward_votes_counter_++;
   }

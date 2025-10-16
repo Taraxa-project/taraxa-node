@@ -374,7 +374,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod period, Batch& write_batch);
 
   // Rounds count dynamic lambda
-  void saveRoundsCountDynamicLamba(uint32_t rounds_count, Batch& write_batch);
+  void saveRoundsCountDynamicLambda(uint32_t rounds_count, Batch& write_batch);
   uint32_t getRoundsCountDynamicLambda();
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }

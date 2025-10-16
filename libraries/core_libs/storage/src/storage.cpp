@@ -1275,7 +1275,7 @@ void DbStorage::addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod 
   insert(write_batch, Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
-void DbStorage::saveRoundsCountDynamicLamba(uint32_t rounds_count, Batch& write_batch) {
+void DbStorage::saveRoundsCountDynamicLambda(uint32_t rounds_count, Batch& write_batch) {
   insert(write_batch, Columns::rounds_count_dynamic_lambda, 0, toSlice(rounds_count));
 }
 
