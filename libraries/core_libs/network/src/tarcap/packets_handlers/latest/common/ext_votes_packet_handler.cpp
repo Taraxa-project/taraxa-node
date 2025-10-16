@@ -154,7 +154,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
 bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<PbftVote> &vote,
                                                  const std::shared_ptr<PbftBlock> &pbft_block) const {
   if (pbft_block->getPeriod() != vote->getPeriod()) {
-    LOG(this->log_er_) << "Vote " << vote->getHash() << " period " << vote->getPeriod() << " != pbft block block "
+    LOG(this->log_er_) << "Vote " << vote->getHash() << " period " << vote->getPeriod() << " != pbft block period "
                        << pbft_block->getPeriod();
     return false;
   }
