@@ -99,9 +99,13 @@ std::optional<std::vector<std::shared_ptr<object::Log>>> Transaction::getLogs() 
   return logs;
 }
 
-response::Value Transaction::getR() const noexcept { return response::Value(dev::toJS(dev::u256(transaction_->getVRS().r))); }
+response::Value Transaction::getR() const noexcept {
+  return response::Value(dev::toJS(dev::u256(transaction_->getVRS().r)));
+}
 
-response::Value Transaction::getS() const noexcept { return response::Value(dev::toJS(dev::u256(transaction_->getVRS().s))); }
+response::Value Transaction::getS() const noexcept {
+  return response::Value(dev::toJS(dev::u256(transaction_->getVRS().s)));
+}
 
 response::Value Transaction::getV() const noexcept { return response::Value(dev::toJS(transaction_->getVRS().v)); }
 
