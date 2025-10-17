@@ -23,7 +23,7 @@ var classtaraxa_1_1_network =
     [ "operator=", "classtaraxa_1_1_network.html#a47b038604b7e71e98488a0cc2c1b6d10", null ],
     [ "packetQueueOverLimit", "classtaraxa_1_1_network.html#a4475cff47802dad9a95fc7ac0e2b04c2", null ],
     [ "pbft_syncing", "classtaraxa_1_1_network.html#a1e175776bb9c8a12bc3ba8c4da70fde1", null ],
-    [ "registerPeriodicEvents", "classtaraxa_1_1_network.html#a9e200ab1ad2ebb3c0064c887d8d75ac4", null ],
+    [ "registerPeriodicEvents", "classtaraxa_1_1_network.html#aa10633008bacddc0d073880ecafeb28d", null ],
     [ "requestPillarBlockVotesBundle", "classtaraxa_1_1_network.html#a3e1af687f4a39ec0c31cb72746cbe86a", null ],
     [ "resolveHost", "classtaraxa_1_1_network.html#ae9f8d465abc984f8f534a547170799a7", null ],
     [ "setSyncStatePeriod", "classtaraxa_1_1_network.html#af42c6f99348955b2beb1461abbd6d729", null ],

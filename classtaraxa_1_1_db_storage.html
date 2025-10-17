@@ -380,6 +380,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab47b8c737823242ffe4a374cac60b690"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1888e12ce4a4e49c0bd6eb1af0ffe743" id="r_a1888e12ce4a4e49c0bd6eb1af0ffe743"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1888e12ce4a4e49c0bd6eb1af0ffe743">addProposalPeriodDagLevelsMapToBatch</a> (uint64_t level, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a1888e12ce4a4e49c0bd6eb1af0ffe743"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40ac840d5f2ff15d7414f706277a51ad" id="r_a40ac840d5f2ff15d7414f706277a51ad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a40ac840d5f2ff15d7414f706277a51ad">saveRoundsCountDynamicLambda</a> (uint32_t rounds_count, <a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;write_batch)</td></tr>
+<tr class="separator:a40ac840d5f2ff15d7414f706277a51ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76201cd5d34abac9272774f0c8b6d433" id="r_a76201cd5d34abac9272774f0c8b6d433"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a76201cd5d34abac9272774f0c8b6d433">getRoundsCountDynamicLambda</a> ()</td></tr>
+<tr class="separator:a76201cd5d34abac9272774f0c8b6d433"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc2340acad061b1f9698e54c2018e0ea" id="r_abc2340acad061b1f9698e54c2018e0ea"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abc2340acad061b1f9698e54c2018e0ea">hasMinorVersionChanged</a> ()</td></tr>
 <tr class="separator:abc2340acad061b1f9698e54c2018e0ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ade6b6c770cc8cc4b5a99a6eb157be87d" id="r_ade6b6c770cc8cc4b5a99a6eb157be87d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ade6b6c770cc8cc4b5a99a6eb157be87d">hasMajorVersionChanged</a> ()</td></tr>
@@ -2479,6 +2483,23 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="a76201cd5d34abac9272774f0c8b6d433" name="a76201cd5d34abac9272774f0c8b6d433"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76201cd5d34abac9272774f0c8b6d433">&#9670;&#160;</a></span>getRoundsCountDynamicLambda()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t taraxa::DbStorage::getRoundsCountDynamicLambda </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="abcbe399ba3465cdf96c4b612732c81b2" name="abcbe399ba3465cdf96c4b612732c81b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abcbe399ba3465cdf96c4b612732c81b2">&#9670;&#160;</a></span>getStatusField()</h2>
 
@@ -3858,6 +3879,34 @@ template&lt;typename K &gt; </div>
           <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>block</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a40ac840d5f2ff15d7414f706277a51ad" name="a40ac840d5f2ff15d7414f706277a51ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40ac840d5f2ff15d7414f706277a51ad">&#9670;&#160;</a></span>saveRoundsCountDynamicLambda()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::saveRoundsCountDynamicLambda </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>rounds_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a0cd0083754f45af046225376c7cc813a">Batch</a> &amp;&#160;</td>
+          <td class="paramname"><em>write_batch</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

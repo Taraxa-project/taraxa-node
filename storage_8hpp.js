@@ -14,7 +14,8 @@ var storage_8hpp =
     ] ],
     [ "PbftMgrField", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161", [
       [ "Round", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161ab7f41fc1412ad2ee75e9b2635d3b9d5c", null ],
-      [ "Step", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161a48c7c41b72e1d678923ce3571aa65b2d", null ]
+      [ "Step", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161a48c7c41b72e1d678923ce3571aa65b2d", null ],
+      [ "Lambda", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161a04a7da3c5b04cad85da1eebb92315b8b", null ]
     ] ],
     [ "PbftMgrStatus", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8e", [
       [ "ExecutedBlock", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8eaf080f4976d2161c58453ee7ae449bb55", null ],

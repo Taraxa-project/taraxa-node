@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="5,5,193,31"/>
+<area shape="rect" id="Node000000" href="$structtaraxa_1_1_transaction_location.html" title=" " alt="" coords="5,13,207,38"/>
+<area shape="rect" id="Node000001" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html" title=" " alt="" coords="255,5,513,45"/>
+<area shape="poly" id="edge137_Node000000_Node000001" title=" " alt="" coords="220,23,255,23,255,28,220,28"/>
+<area shape="rect" id="Node000002" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html" title=" " alt="" coords="561,5,781,45"/>
+<area shape="poly" id="edge138_Node000001_Node000002" title=" " alt="" coords="527,23,561,23,561,28,527,28"/>
 </map>

@@ -332,6 +332,7 @@ var annotated_dup =
       [ "App", "classtaraxa_1_1_app.html", "classtaraxa_1_1_app" ],
       [ "AppBase", "classtaraxa_1_1_app_base.html", "classtaraxa_1_1_app_base" ],
       [ "AspenHardfork", "namespacetaraxa.html#structtaraxa_1_1_aspen_hardfork", "namespacetaraxa_structtaraxa_1_1_aspen_hardfork_dup" ],
+      [ "CactiHardforkConfig", "structtaraxa_1_1_cacti_hardfork_config.html", "structtaraxa_1_1_cacti_hardfork_config" ],
       [ "ConfigException", "structtaraxa_1_1_config_exception.html", null ],
       [ "ConnectionConfig", "structtaraxa_1_1_connection_config.html", "structtaraxa_1_1_connection_config" ],
       [ "CornusHardforkConfig", "namespacetaraxa.html#structtaraxa_1_1_cornus_hardfork_config", "namespacetaraxa_structtaraxa_1_1_cornus_hardfork_config_dup" ],

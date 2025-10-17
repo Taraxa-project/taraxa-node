@@ -1,5 +1,9 @@
 var NAVTREEINDEX18 =
 {
+"group___transaction.html#a2abcbb9c80d1dc8776bd61b4017f9a80":[14,4,2,5],
+"group___transaction.html#a2d3caf313f51c016ec84786eb9e16f45":[14,4,2,13],
+"group___transaction.html#a2d7f41e217bf4f6084556eb64ba60192":[14,4,2,11],
+"group___transaction.html#a2e376c30fd56652f5c60acbb7f74be7b":[14,4,3,12],
 "group___transaction.html#a2fc6a4e7622e903613ac6ce028a9d940":[14,4,3,15],
 "group___transaction.html#a30842e7297b1138e6b33aa4a97361237":[14,4,3,3],
 "group___transaction.html#a34a49632cb8fa9ae001163fca88605c3":[14,4,2,8],
@@ -245,9 +249,5 @@ var NAVTREEINDEX18 =
 "group___vote.html#gga8a0770e242b649865f15f20a405507cca95aebab4b899f9fad597abfc4d9be96b":[14,5,10,4],
 "group___vote.html#gga8a0770e242b649865f15f20a405507ccac0f90f4138d33e1cf7eac17f81962061":[14,5,10,0],
 "group___vote.html#gga8a0770e242b649865f15f20a405507ccac21763d55850e64ff753fdcd72ef2c45":[14,5,10,1],
-"group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle":[14,5,6],
-"group___vote.html#structtaraxa_1_1_optimized_pillar_votes_bundle":[14,5,7],
-"hardfork_8cpp.html":[17,0,1,4,1,4],
-"hardfork_8cpp.html#a0c10319bd16b5dfdc2cc23cfecd6004c":[17,0,1,4,1,4,9],
-"hardfork_8cpp.html#a0f8a7499f7a4537c48b4523fae22c2d2":[17,0,1,4,1,4,3]
+"group___vote.html#structtaraxa_1_1_optimized_pbft_votes_bundle":[14,5,6]
 };

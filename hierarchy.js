@@ -59,6 +59,7 @@ var hierarchy =
       [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ]
     ] ],
     [ "taraxa::rewards::BlockStats", "classtaraxa_1_1rewards_1_1_block_stats.html", null ],
+    [ "taraxa::CactiHardforkConfig", "structtaraxa_1_1_cacti_hardfork_config.html", null ],
     [ "dev::p2p::Capability", "structdev_1_1p2p_1_1_capability.html", [
       [ "dev::p2p::SessionCapability", "structdev_1_1p2p_1_1_session_capability.html", null ]
     ] ],

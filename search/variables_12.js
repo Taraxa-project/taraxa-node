@@ -30,7 +30,7 @@ var searchData=
   ['result_5fbuf_5fexecution_5fresult_5f_27',['result_buf_execution_result_',['../group___final_chain.html#a2d91b954d8d1169dc8ee9583447cab32',1,'taraxa::state_api::StateAPI']]],
   ['result_5fbuf_5frewards_5fdistribution_5f_28',['result_buf_rewards_distribution_',['../group___final_chain.html#ab97f01ac653897edd3b161552b62802d',1,'taraxa::state_api::StateAPI']]],
   ['revert_5fto_5fperiod_29',['REVERT_TO_PERIOD',['../namespacetaraxa_1_1cli.html#ad2964b0e40bf95e24101ecb95eec1fc2',1,'taraxa::cli']]],
-  ['reward_5fvotes_30',['reward_votes',['../namespacetaraxa.html#a874afb1389086599c2ce2264fc7adb7f',1,'taraxa::ProposedBlockData::reward_votes'],['../group___p_b_f_t.html#a09c3430143d051577080cf2d33d2157e',1,'taraxa::PbftManager::ProposedBlockData::reward_votes']]],
+  ['reward_5fvotes_30',['reward_votes',['../group___p_b_f_t.html#a09c3430143d051577080cf2d33d2157e',1,'taraxa::PbftManager::ProposedBlockData::reward_votes'],['../namespacetaraxa.html#a874afb1389086599c2ce2264fc7adb7f',1,'taraxa::ProposedBlockData::reward_votes']]],
   ['reward_5fvotes_5f_31',['reward_votes_',['../group___p_b_f_t.html#a248fb35d65b886baed84bbb5d623c7c2',1,'taraxa::PbftBlock']]],
   ['reward_5fvotes_5fblock_5fhash_5f_32',['reward_votes_block_hash_',['../group___vote.html#a258bc6006658bc58b212999aa802d9fe',1,'taraxa::VoteManager']]],
   ['reward_5fvotes_5finfo_5fmutex_5f_33',['reward_votes_info_mutex_',['../group___vote.html#a0431bfe5e227da1f109b45a3dfabba51',1,'taraxa::VoteManager']]],
@@ -46,6 +46,7 @@ var searchData=
   ['rlpnull_43',['RLPNull',['../namespacedev.html#affa24fd5d3a46f390966c600ea1ee954',1,'dev']]],
   ['rotation_5fsize_44',['rotation_size',['../structtaraxa_1_1logger_1_1_config_1_1_output_config.html#a3473ff2f82e2e5bf9307536478b18a3b',1,'taraxa::logger::Config::OutputConfig']]],
   ['round_5f_45',['round_',['../group___vote.html#a3e88615008ad462faa2f1cc73af27638',1,'taraxa::VrfPbftMsg::round_'],['../group___p_b_f_t.html#a14963be109b045b25e2f2096954e4cc5',1,'taraxa::PbftManager::round_']]],
-  ['rpc_46',['rpc',['../structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697',1,'taraxa::NetworkConfig']]],
-  ['rpc_5fthread_5fpool_5f_47',['rpc_thread_pool_',['../classtaraxa_1_1plugin_1_1_rpc.html#af09b9a531beb4c57970f8ca02fe61016',1,'taraxa::plugin::Rpc']]]
+  ['rounds_5fcount_5fdynamic_5flambda_5f_46',['rounds_count_dynamic_lambda_',['../group___p_b_f_t.html#af12cdee8a99d4fa3210a3d1ef3af5164',1,'taraxa::PbftManager']]],
+  ['rpc_47',['rpc',['../structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697',1,'taraxa::NetworkConfig']]],
+  ['rpc_5fthread_5fpool_5f_48',['rpc_thread_pool_',['../classtaraxa_1_1plugin_1_1_rpc.html#af09b9a531beb4c57970f8ca02fe61016',1,'taraxa::plugin::Rpc']]]
 ];
