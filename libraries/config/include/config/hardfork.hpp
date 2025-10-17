@@ -93,6 +93,27 @@ struct SoleiroliaHardforkConfig {
 Json::Value enc_json(const SoleiroliaHardforkConfig& obj);
 void dec_json(const Json::Value& json, SoleiroliaHardforkConfig& obj);
 
+struct CactiHardforkConfig {
+  uint64_t block_num = 0;
+  uint32_t lambda_min = 500;             // [ms] - valid only for round 1
+  uint32_t lambda_max = 1500;            // [ms] - valid only for round 1
+  uint32_t lambda_default = 2000;        // [ms] - used in all rounds > 1
+  uint32_t lambda_change_interval = 10;  // [number of blocks]
+  uint32_t lambda_change = 10;           // [ms]
+  uint32_t block_propagation_min =
+      4000;  // [ms] - how long it takes to propagate block in good network conditions, used in round 1
+  uint32_t block_propagation_max =
+      17000;  // [ms] - how long it takes to propagate block in good network conditions, used in rounds > 1
+
+  bool isDynamicLambdaChangeInterval(uint64_t block_number) const {
+    return block_number > block_num && block_number % lambda_change_interval == 0;
+  }
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const CactiHardforkConfig& obj);
+void dec_json(const Json::Value& json, CactiHardforkConfig& obj);
+
 // Keeping it for next HF
 // struct BambooRedelegation {
 //   taraxa::addr_t validator;
@@ -160,6 +181,10 @@ struct HardforksConfig {
   // Soleirolia hf - increase trx gas minimum price
   //               - limit max trx gas
   SoleiroliaHardforkConfig soleirolia_hf;
+
+  // Cacti hardfork
+  CactiHardforkConfig cacti_hf;
+  bool isOnCactiHardfork(uint64_t block_number) const { return block_number >= cacti_hf.block_num; }
 
   HAS_RLP_FIELDS
 };
