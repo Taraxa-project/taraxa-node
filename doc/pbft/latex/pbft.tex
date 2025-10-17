@@ -26,7 +26,7 @@
     \end{itemize}
 
     \subsection{Protocol Instructions}
-    User $u$ starts period $p$ round 0 when he first sees 2t + 1 cert-votes for some value v and valid block $B_v$. If $u$ sees 2t + 1 next-votes for some value v or $\bot$, then $u$ starts new round $r' + 1$.
+    User $u$ starts period $p$ round 1 when he first sees 2t + 1 cert-votes for some value v and valid block $B_v$. If $u$ sees 2t + 1 next-votes for some value v or $\bot$, then $u$ starts new round $r' + 1$.
 
     Whenever $u$ starts a new period (or a new round), he resets $\text{timer}_u$, used to decide when to vote for each step.
 
@@ -62,7 +62,7 @@
 
         \item[] Step 2: \textbf{Filtering} - When $\text{timer}_u = 2\lambda_r$:
         \begin{itemize}
-            \item[--] If $r = 1$ or if $r > 1$ and $u$ has received received 2t+1 \text{ next-votes for } $\bot$, then $u$ selects the proposal with the minimum credential and soft-votes for it.
+            \item[--] If $r = 1$ or if $r > 1$ and $u$ has received 2t+1 \text{ next-votes for } $\bot$, then $u$ selects the proposal with the minimum credential and soft-votes for it.
             \item[--] Otherwise, if $r > 1$ and $u$ has received 2t+1 \text{ next-votes for some value } v $\neq \bot$, then $u$ soft-votes for v.
         \end{itemize}
 
@@ -83,7 +83,7 @@
             \item[--] If $u$ sees $2t+1$ soft-votes for some value $v \neq \bot$ for round $r$, then $u$ next-votes $v$.
             \item[--] If $(r \geq 2 \text{ and } i \text{ sees } 2t+1 \text{ next-votes for } \bot \text{ for round } r-1 \text{ and } i \text{ has not certified in round } r)$, then $u$ next-votes $\bot$.
         \end{itemize}
-        $\lambda_r$ is exponentially increased in second finish step after reaching step 15, max value is 60000 ms
+        $\lambda_r$ is exponentially increased in each second finish step after reaching step 13, max value is 60000 ms
 
     \end{enumerate}
 

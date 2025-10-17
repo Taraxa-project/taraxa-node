@@ -167,11 +167,11 @@
     },
     "cacti_hf" :
     {
-      "block_num" : -1,
+      "block_num" : 2934000,
       "lambda_min" : 500,
       "lambda_max" : 1500,
       "lambda_default" : 2000,
-      "lambda_change_interval" : 100,
+      "lambda_change_interval" : 300,
       "lambda_change" : 10,
       "block_propagation_min" : 4000,
       "block_propagation_max" : 17000
