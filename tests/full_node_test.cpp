@@ -337,6 +337,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs(5, 1, 20);
+  for (auto &cfg : node_cfgs) {
+    cfg.genesis.state.hardforks.cacti_hf.block_num = UINT64_MAX;
+  }
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
@@ -966,9 +969,7 @@ TEST_F(FullNodeTest, persist_counter) {
 TEST_F(FullNodeTest, save_network_to_file) {
   auto node_cfgs = make_node_cfgs(3);
   // Create and destroy to create network. So next time will be loaded from file
-  {
-    auto nodes = launch_nodes(node_cfgs);
-  }
+  { auto nodes = launch_nodes(node_cfgs); }
   {
     auto nodes = create_nodes({node_cfgs[1], node_cfgs[2]}, true /*start*/);
 
@@ -1509,6 +1510,10 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
 
     auto trx2 = std::make_shared<Transaction>(nonce++, 0, 1000, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
+
+    ASSERT_HAPPENS({2s, 100ms}, [&](auto &ctx) {
+      WAIT_EXPECT_EQ(ctx, node0->getPbftChain()->getPbftChainSize(), node0->getFinalChain()->lastBlockNumber());
+    });
 
     EXPECT_GE(node0->getTransactionManager()
                   ->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize())
