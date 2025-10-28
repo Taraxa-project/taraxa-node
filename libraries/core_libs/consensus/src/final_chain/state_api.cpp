@@ -261,10 +261,10 @@ std::vector<ValidatorStake> StateAPI::dpos_validators_total_stakes(EthBlockNumbe
   return ret;
 }
 
-std::vector<ValidatorVoteCount> StateAPI::dpos_validators_vote_counts(EthBlockNumber blk_num) const {
+std::vector<ValidatorVoteCount> StateAPI::dpos_validators_eligible_vote_counts(EthBlockNumber blk_num) const {
   ErrorHandler err_h;
   std::vector<ValidatorVoteCount> ret;
-  taraxa_evm_state_api_validators_vote_counts(
+  taraxa_evm_state_api_validators_eligible_vote_counts(
       this_c_, blk_num, decoder_cb_c<std::vector<ValidatorVoteCount>, from_rlp>(ret), err_h.cgo_part_);
   err_h.check();
   return ret;
