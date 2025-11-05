@@ -488,7 +488,7 @@ class PbftManager {
    * @return shared_ptr to leader identified leader block + propose vote
    */
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> identifyLeaderBlock(
-      const ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
+      ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -555,11 +555,13 @@ class PbftManager {
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
    *        already validated
    *
+   * @param proposed_blocks
    * @param period
    * @param block_hash
    * @return valid proposed pbft block or nullptr
    */
-  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash);
+  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(ProposedBlocks &proposed_blocks, PbftPeriod period,
+                                                       const blk_hash_t &block_hash);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
