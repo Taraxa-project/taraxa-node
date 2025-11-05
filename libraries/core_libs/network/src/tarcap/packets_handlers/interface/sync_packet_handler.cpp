@@ -14,7 +14,7 @@ ISyncPacketHandler::ISyncPacketHandler(const FullNodeConfig& conf, std::shared_p
                                        const addr_t& node_addr, const std::string& logs_prefix)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
-                              logs_prefix + "STATUS_PH"),
+                              logs_prefix),
       kGenesisHash(kConf.genesis.genesisHash()) {}
 
 void ISyncPacketHandler::startSyncingPbft() {
