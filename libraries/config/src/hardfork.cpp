@@ -196,6 +196,28 @@ void dec_json(const Json::Value& json, CactiHardforkConfig& obj) {
   obj.block_propagation_max = dev::getUInt(json["block_propagation_max"]);
 }
 
+void CactiHardforkConfig::validate(uint32_t rewards_distribution_frequency) const {
+  // Do not validate configuration in case it is disabled or enabled from block 1
+  if (block_num == uint64_t(-1) || block_num <= 1) {
+    return;
+  }
+
+  // No need to validate cacti hf block num in case of rewards distribution frequency == 1
+  if (rewards_distribution_frequency == 1) {
+    return;
+  }
+
+  // cacti_hf.block_num must be equal to rewards_distribution_frequency + 1, otherwise we would have to do a db
+  // migration for DbStorage::Columns::block_rewards_stats db column as cacti hardfork added new item into the rlp saved
+  // in that column. It is cleader every rewards_distribution_frequency blocks, thus if cacti hf block num is + 1, no
+  // migration is needed
+  if (block_num % rewards_distribution_frequency != 1) {
+    throw taraxa::ConfigException("cacti_hf.block_num must be equal to rewards_distribution_frequency + 1");
+  }
+
+  return;
+}
+
 RLP_FIELDS_DEFINE(CactiHardforkConfig, block_num, lambda_min, lambda_max, lambda_default, lambda_change_interval,
                   lambda_change, block_propagation_min, block_propagation_max)
 
@@ -256,6 +278,15 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   dec_json(json["cornus_hf"], obj.cornus_hf);
   dec_json(json["soleirolia_hf"], obj.soleirolia_hf);
   dec_json(json["cacti_hf"], obj.cacti_hf);
+}
+
+uint32_t HardforksConfig::getRewardsDistributionFrequency(uint64_t block) const {
+  const auto& distribution_frequencies = rewards_distribution_frequency;
+  auto itr = distribution_frequencies.upper_bound(block);
+  if (distribution_frequencies.empty() || itr == distribution_frequencies.begin()) {
+    return 1;
+  }
+  return (--itr)->second;
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,

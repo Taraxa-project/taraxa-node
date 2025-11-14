@@ -90,7 +90,8 @@ struct FinalChainTest : WithDataDir {
     db->savePeriodData(period_data, batch);
     db->commitWriteBatch(batch);
 
-    auto result = SUT->finalize(std::move(period_data), {dag_blk->getHash()}).get();
+    auto result =
+        SUT->finalize(std::move(period_data), {dag_blk->getHash()}, cfg.genesis.state.dpos.blocks_per_year).get();
     const auto& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->blockHeader(blk_h.number)));
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->blockHeader()));

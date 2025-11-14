@@ -45,20 +45,6 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
   const auto &node_addr = dev::toAddress(kConfig.getFirstWallet().node_secret);
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(pbft_chain_->getPbftChainSize())) {
-    rounds_count_dynamic_lambda_ = db_->getRoundsCountDynamicLambda();
-
-    dynamic_lambda_ = db_->getPbftMgrField(PbftMgrField::Lambda);
-    // No value saved  == 1
-    if (dynamic_lambda_ == 1) {
-      dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
-    }
-
-    current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
-  } else {
-    current_round_lambda_ = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
-  }
-
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {
     auto period_data = db_->getPeriodData(period);
@@ -79,7 +65,13 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       vote_mgr_->validateVote(v);
     }
 
-    finalize_(std::move(*period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
+    auto lambda = db_->getDynamicLambda(period);
+    if (!lambda.has_value()) {
+      LOG(log_er_) << "DB corrupted - no dynamic lambsa saved for period " << period;
+      assert(false);
+    }
+
+    finalize_(std::move(*period_data), db_->getFinalizedDagBlockHashesByPeriod(period), *lambda, period == curr_period);
   }
 
   PbftPeriod start_period = 1;
@@ -505,7 +497,7 @@ void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound fin
 
   auto batch = db_->createWriteBatch();
   db_->saveRoundsCountDynamicLambda(rounds_count_dynamic_lambda_, batch);
-  db_->addPbftMgrFieldToBatch(PbftMgrField::Lambda, dynamic_lambda_, batch);
+  db_->saveDynamicLambda(finalized_period, dynamic_lambda_, final_chain_->delegationDelay(), batch);
   db_->commitWriteBatch(batch);
 }
 
@@ -537,6 +529,33 @@ void PbftManager::initialState() {
   const auto current_pbft_period = getPbftPeriod();
   const auto current_pbft_round = db_->getPbftMgrField(PbftMgrField::Round);
   auto current_pbft_step = db_->getPbftMgrField(PbftMgrField::Step);
+
+  // Set dynamic lambda
+  const auto chain_size = current_pbft_period - 1;
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(chain_size)) {
+    rounds_count_dynamic_lambda_ = db_->getRoundsCountDynamicLambda();
+
+    if (chain_size >= 1) {
+      auto dynamic_lambda = db_->getDynamicLambda(chain_size);
+      if (!dynamic_lambda.has_value()) {
+        LOG(log_er_) << "DB corrupted: no dynamic lambda saved for period " << chain_size;
+        assert(false);
+      }
+      dynamic_lambda_ = *dynamic_lambda;
+    } else {
+      dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
+    }
+
+    // Use dynamic lambda for round 1
+    if (current_pbft_round == 1) {
+      current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
+    } else {  // otherwise use default lambda
+      current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
+    }
+  } else {
+    current_round_lambda_ = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
+  }
+
   const auto now = std::chrono::system_clock::now();
 
   if (current_pbft_round == 1 && current_pbft_step == 1) {
@@ -1937,7 +1956,7 @@ void PbftManager::reorderTransactions(SharedTransactions &transactions) {
 }
 
 void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
-                            bool synchronous_processing) {
+                            uint32_t blocks_per_year, bool synchronous_processing) {
   std::shared_ptr<DagBlock> anchor_block = nullptr;
 
   if (const auto anchor = period_data.pbft_blk->getPivotDagBlockHash()) {
@@ -1948,8 +1967,8 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
     }
   }
 
-  auto result =
-      final_chain_->finalize(std::move(period_data), std::move(finalized_dag_blk_hashes), std::move(anchor_block));
+  auto result = final_chain_->finalize(std::move(period_data), std::move(finalized_dag_blk_hashes), blocks_per_year,
+                                       std::move(anchor_block));
 
   if (synchronous_processing) {
     result.wait();
@@ -2044,7 +2063,18 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
                << ", round: " << getPbftRound();
 
-  finalize_(std::move(period_data), std::move(dag_blocks_order));
+  uint32_t blocks_per_year{0};
+  // Dynamic lambda was introduced in cacti hardfork -> it affects the number of blocks generated per year, which
+  // affects rewards distribution
+  if (kConfig.genesis.state.hardforks.isOnCactiHardfork(pbft_period)) {
+    blocks_per_year =
+        kConfig.genesis.calcBlocksPerYear(static_cast<uint32_t>(current_round_lambda_.count()),
+                                          400 /* approx time it takes to receive 2t+1 soft and cert votes */);
+  } else {
+    blocks_per_year = kConfig.genesis.state.dpos.blocks_per_year;
+  }
+
+  finalize_(std::move(period_data), std::move(dag_blocks_order), blocks_per_year);
 
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;

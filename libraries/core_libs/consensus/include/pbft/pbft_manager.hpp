@@ -538,9 +538,10 @@ class PbftManager {
    * @brief Final chain executes a finalized PBFT block
    * @param period_data PBFT block, cert votes, DAG blocks, and transactions
    * @param finalized_dag_blk_hashes DAG blocks hashes
+   * @param blocks_per_year - expected number of blocks generated per year based on pbft block dynamic lambda
    * @param synchronous_processing wait for block finalization to finish
    */
-  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
+  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, uint32_t blocks_per_year,
                  bool synchronous_processing = false);
 
   /**

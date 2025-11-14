@@ -91,6 +91,35 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
 
+  // Dynamic lambda
+  const auto delegation_delay = 5;
+  EXPECT_FALSE(db.getDynamicLambda(1).has_value());
+  for (size_t i = 1; i <= delegation_delay * 2; i++) {
+    batch = db.createWriteBatch();
+    db.saveDynamicLambda(i, i * 100, delegation_delay, batch);
+    db.commitWriteBatch(batch);
+    EXPECT_TRUE(db.getDynamicLambda(i).has_value());
+  }
+  // There should always be only last <delegation_delay> dynamic lambdas saved in db
+  for (size_t i = 1; i <= delegation_delay * 2; i++) {
+    const auto dynamic_lambda = db.getDynamicLambda(i);
+    if (i <= delegation_delay) {
+      EXPECT_FALSE(dynamic_lambda.has_value());
+    } else {
+      EXPECT_TRUE(dynamic_lambda.has_value());
+    }
+  }
+
+  EXPECT_EQ(db.getRoundsCountDynamicLambda(), 0);
+  batch = db.createWriteBatch();
+  db.saveRoundsCountDynamicLambda(5, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getRoundsCountDynamicLambda(), 5);
+  batch = db.createWriteBatch();
+  db.saveRoundsCountDynamicLambda(10, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getRoundsCountDynamicLambda(), 10);
+
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));

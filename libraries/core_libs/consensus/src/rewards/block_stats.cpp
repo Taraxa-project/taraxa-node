@@ -6,9 +6,10 @@
 
 namespace taraxa::rewards {
 
-BlockStats::BlockStats(const PeriodData& block, const std::vector<gas_t>& trxs_gas_used, uint64_t dpos_vote_count,
-                       uint32_t committee_size, const bool aspen_dag_reward)
+BlockStats::BlockStats(const PeriodData& block, uint32_t blocks_per_year, const std::vector<gas_t>& trxs_gas_used,
+                       uint64_t dpos_vote_count, uint32_t committee_size, const bool aspen_dag_reward)
     : block_author_(block.pbft_blk->getBeneficiary()),
+      blocks_per_year_(blocks_per_year),
       max_votes_weight_(std::min<uint64_t>(committee_size, dpos_vote_count)) {
   initFeeByTrxHash(block.transactions, trxs_gas_used);
   processStats(block, aspen_dag_reward);
@@ -127,7 +128,7 @@ void BlockStats::processDagBlocksAspen(const PeriodData& block) {
 }
 
 RLP_FIELDS_DEFINE(BlockStats::ValidatorStats, dag_blocks_count_, vote_weight_, fees_rewards_)
-RLP_FIELDS_DEFINE(BlockStats, block_author_, validators_stats_, total_dag_blocks_count_, total_votes_weight_,
-                  max_votes_weight_)
+RLP_FIELDS_DEFINE(BlockStats, block_author_, blocks_per_year_, validators_stats_, total_dag_blocks_count_,
+                  total_votes_weight_, max_votes_weight_)
 
 }  // namespace taraxa::rewards

@@ -209,7 +209,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   auto batch = db->createWriteBatch();
   db->savePeriodData(period_data, batch);
   db->commitWriteBatch(batch);
-  final_chain->finalize(std::move(period_data), {dag_blk->getHash()}).get();
+  final_chain->finalize(std::move(period_data), {dag_blk->getHash()}, cfg.genesis.state.dpos.blocks_per_year).get();
 
   // Verify low nonce transaction is detected in verification
   auto low_nonce_trx =

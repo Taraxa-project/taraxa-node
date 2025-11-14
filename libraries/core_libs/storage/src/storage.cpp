@@ -1275,6 +1275,35 @@ void DbStorage::addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod 
   insert(write_batch, Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
+void DbStorage::saveDynamicLambda(PbftPeriod period, uint32_t dynamic_lambda, PbftPeriod delegation_delay,
+                                  Batch& write_batch) {
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dynamic_lambda)));
+  // Remove dynamic lambda for the oldest period
+  if (it->SeekToFirst(); it->Valid()) {
+    uint32_t oldest_dynamic_lambda_period;
+    memcpy(&oldest_dynamic_lambda_period, it->key().data(), sizeof(uint32_t));
+
+    // Keep only last <delegation_delay> dynamic lambdas in db
+    if (period >= oldest_dynamic_lambda_period + delegation_delay) {
+      remove(write_batch, Columns::dynamic_lambda, it->key());
+    }
+  }
+
+  // Save latest dynamic lambda
+  insert(write_batch, Columns::dynamic_lambda, period, dynamic_lambda);
+}
+
+std::optional<uint32_t> DbStorage::getDynamicLambda(PbftPeriod period) {
+  auto dynamic_lambda_bytes = lookup(period, Columns::dynamic_lambda);
+  if (dynamic_lambda_bytes.empty()) {
+    return {};
+  }
+
+  uint32_t value;
+  memcpy(&value, dynamic_lambda_bytes.data(), sizeof(uint32_t));
+  return value;
+}
+
 void DbStorage::saveRoundsCountDynamicLambda(uint32_t rounds_count, Batch& write_batch) {
   insert(write_batch, Columns::rounds_count_dynamic_lambda, 0, toSlice(rounds_count));
 }

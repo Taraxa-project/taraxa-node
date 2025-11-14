@@ -18,12 +18,13 @@ class BlockStats {
   /**
    * @brief setting block_author_, max_votes_weight_ and calls processStats function
    *
+   * @param blocks_per_year - expected number of blocks generated per year based on pbft block dynamic lambda
    * @param dpos_vote_count - votes count for previous block
    * @param committee_size
    * @param aspen_dag_rewards - aspen dag rewards
    */
-  BlockStats(const PeriodData& block, const std::vector<gas_t>& trxs_gas_used, uint64_t dpos_vote_count,
-             uint32_t committee_size, const bool aspen_dag_rewards = false);
+  BlockStats(const PeriodData& block, uint32_t blocks_per_year, const std::vector<gas_t>& trxs_gas_used,
+             uint64_t dpos_vote_count, uint32_t committee_size, const bool aspen_dag_rewards = false);
 
   HAS_RLP_FIELDS
 
@@ -92,6 +93,10 @@ class BlockStats {
 
   // Pbft block author
   addr_t block_author_;
+
+  // Expected number of blocks generated per year [ms] - this potentially changes with each block since cacti hardfork
+  // and introduction of dynamic lambda
+  uint32_t blocks_per_year_{0};
 
   // Fee by trx : trx hash -> fee
   std::unordered_map<trx_hash_t, u256> fee_by_trx_hash_;
