@@ -1,0 +1,135 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - release/**
+    paths-ignore:
+      - 'doc/**'
+      - '**.md'
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - 'doc/**'
+      - '**.md'
+  workflow_dispatch:
+    inputs:
+      push_to_gcr:
+        description: 'Push image to GCR (for PRs)'
+        required: false
+        default: 'false'
+
+env:
+  REGISTRY: gcr.io
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  IMAGE_NAME: taraxa-node
+  DOCKERFILE: Dockerfile
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-digest: ${{ steps.build-push.outputs.digest }}
+      image-tags: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.ARTIFACT_REGISTRY_SA_KEY }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for GCR
+        run: |
+          gcloud auth configure-docker ${{ env.REGISTRY }}
+
+      - name: Prepare environment variables
+        id: prepare
+        run: |
+          COMMIT_SHA=${{ github.sha }}
+          COMMIT_SHA_SHORT=${COMMIT_SHA:0:8}
+          BRANCH_NAME=${{ github.ref_name }}
+          BUILD_NUMBER=${{ github.run_number }}
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "commit_sha_short=${COMMIT_SHA_SHORT}" >> $GITHUB_OUTPUT
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+
+          # Determine if we should push
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "should_push=true" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.push_to_gcr }}" = "true" ]; then
+            echo "should_push=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_push=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate image tags
+        id: meta
+        run: |
+          REGISTRY_URL="${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}"
+          TAGS=""
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            if [ "${{ steps.prepare.outputs.branch_name }}" = "develop" ]; then
+              TAGS="${REGISTRY_URL}:develop-${{ steps.prepare.outputs.commit_sha_short }}"
+              TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:develop-${{ steps.prepare.outputs.commit_sha }}"
+              TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:develop-latest"
+            elif [ "${{ steps.prepare.outputs.branch_name }}" = "master" ]; then
+              TAGS="${REGISTRY_URL}:master-${{ steps.prepare.outputs.commit_sha_short }}"
+              TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:master-latest"
+            elif [[ "${{ steps.prepare.outputs.branch_name }}" == release/* ]]; then
+              TAGS="${REGISTRY_URL}:release-${{ steps.prepare.outputs.commit_sha_short }}"
+              TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:release-latest"
+            else
+              TAGS="${REGISTRY_URL}:branch-${{ steps.prepare.outputs.branch_name }}-${{ steps.prepare.outputs.commit_sha_short }}"
+            fi
+          elif [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For PRs, only tag if we're actually pushing
+            if [ "${{ steps.prepare.outputs.should_push }}" = "true" ]; then
+              TAGS="${REGISTRY_URL}:pr-${{ steps.prepare.outputs.pr_number }}-${{ steps.prepare.outputs.build_number }}"
+            else
+              # For PR builds that don't push, use a temporary tag
+              TAGS="taraxa-node:${{ steps.prepare.outputs.pr_number }}-${{ steps.prepare.outputs.build_number }}"
+            fi
+          fi
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        id: build-push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          push: ${{ steps.prepare.outputs.should_push == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image build summary
+        run: |
+          echo "## Docker Image Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ steps.prepare.outputs.commit_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ steps.prepare.outputs.branch_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Pushed:** ${{ steps.prepare.outputs.should_push }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Digest:** ${{ steps.build-push.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
