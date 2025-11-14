@@ -18,10 +18,11 @@ class Stats {
   /**
    * @brief processing passed block and returns stats that should be processed at this block
    * @param current_blk block to process
+   * @param blocks_per_year - expected number of blocks generated per year based on pbft block dynamic lambda
    * @return vector<BlockStats> that should be processed at current block
    */
-  std::vector<BlockStats> processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
-                                       Batch& write_batch);
+  std::vector<BlockStats> processStats(const PeriodData& current_blk, uint32_t blocks_per_year,
+                                       const std::vector<gas_t>& trxs_gas_used, Batch& write_batch);
   /**
    * @brief called on start of new rewards interval. clears blocks_stats_ collection
    * and removes all data saved in db column
@@ -33,16 +34,15 @@ class Stats {
    * @brief recover current interval stats from database
    */
   void recoverFromDb(EthBlockNumber last_blk_num);
-  /**
-   * @brief returns rewards distribution frequency for specified period
-   */
-  uint32_t getCurrentDistributionFrequency(uint64_t current_period) const;
+
   /*
    * @brief gets all needed data and makes(processes) BlocksStats
    * @param current_blk block to process
+   * @param blocks_per_year - expected number of blocks generated per year based on pbft block dynamic lambda
    * @return block statistics needed for rewards distribution
    */
-  BlockStats getBlockStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_fees);
+  BlockStats getBlockStats(const PeriodData& current_blk, uint32_t blocks_per_year,
+                           const std::vector<gas_t>& trxs_fees);
   /**
    * @brief saves stats to database to not lose this data in case of node restart
    */

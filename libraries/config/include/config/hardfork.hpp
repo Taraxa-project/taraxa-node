@@ -109,6 +109,8 @@ struct CactiHardforkConfig {
     return block_number > block_num && block_number % lambda_change_interval == 0;
   }
 
+  void validate(uint32_t rewards_distribution_frequency) const;
+
   HAS_RLP_FIELDS
 };
 Json::Value enc_json(const CactiHardforkConfig& obj);
@@ -147,6 +149,10 @@ struct HardforksConfig {
    */
   using RewardsDistributionMap = std::map<uint64_t, uint32_t>;
   RewardsDistributionMap rewards_distribution_frequency;
+  /**
+   * @brief returns rewards distribution frequency for specified period
+   */
+  uint32_t getRewardsDistributionFrequency(uint64_t block) const;
 
   // Magnolia hardfork:
   // 1.fixing premature deletion of validators in dpos contract -> validator is deleted only
