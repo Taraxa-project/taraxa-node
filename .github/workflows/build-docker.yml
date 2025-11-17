@@ -114,5 +114,10 @@ jobs:
           echo "**Commit:** ${{ steps.prepare.outputs.commit_sha }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ steps.prepare.outputs.branch_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
+          # Convert comma-separated tags to markdown list
+          IFS=',' read -ra TAGS <<< "${{ steps.meta.outputs.tags }}"
+          for tag in "${TAGS[@]}"; do
+            echo "- ${tag// /}" >> $GITHUB_STEP_SUMMARY
+          done
           echo "**Image Digest:** ${{ steps.build-push.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
