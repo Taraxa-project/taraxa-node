@@ -5,10 +5,10 @@ on:
     branches:
       - master
       - develop
-      - release/**
     paths-ignore:
       - 'doc/**'
       - '**.md'
+      - 'charts/**'
   pull_request:
     branches:
       - master
@@ -16,16 +16,10 @@ on:
     paths-ignore:
       - 'doc/**'
       - '**.md'
-  workflow_dispatch:
-    inputs:
-      push_to_gcr:
-        description: 'Push image to GCR (for PRs)'
-        required: false
-        default: 'false'
 
 env:
   REGISTRY: gcr.io
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   IMAGE_NAME: taraxa-node
   DOCKERFILE: Dockerfile
 
@@ -71,15 +65,6 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
           echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
 
-          # Determine if we should push
-          if [ "${{ github.event_name }}" = "push" ]; then
-            echo "should_push=true" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.push_to_gcr }}" = "true" ]; then
-            echo "should_push=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_push=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Generate image tags
         id: meta
         run: |
@@ -94,20 +79,9 @@ jobs:
             elif [ "${{ steps.prepare.outputs.branch_name }}" = "master" ]; then
               TAGS="${REGISTRY_URL}:master-${{ steps.prepare.outputs.commit_sha_short }}"
               TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:master-latest"
-            elif [[ "${{ steps.prepare.outputs.branch_name }}" == release/* ]]; then
-              TAGS="${REGISTRY_URL}:release-${{ steps.prepare.outputs.commit_sha_short }}"
-              TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.IMAGE_NAME }}:release-latest"
-            else
-              TAGS="${REGISTRY_URL}:branch-${{ steps.prepare.outputs.branch_name }}-${{ steps.prepare.outputs.commit_sha_short }}"
             fi
-          elif [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            # For PRs, only tag if we're actually pushing
-            if [ "${{ steps.prepare.outputs.should_push }}" = "true" ]; then
-              TAGS="${REGISTRY_URL}:pr-${{ steps.prepare.outputs.pr_number }}-${{ steps.prepare.outputs.build_number }}"
-            else
-              # For PR builds that don't push, use a temporary tag
-              TAGS="taraxa-node:${{ steps.prepare.outputs.pr_number }}-${{ steps.prepare.outputs.build_number }}"
-            fi
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            TAGS="${REGISTRY_URL}:pr-${{ steps.prepare.outputs.pr_number }}-${{ steps.prepare.outputs.build_number }}"
           fi
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
@@ -118,7 +92,7 @@ jobs:
         with:
           context: .
           file: ${{ env.DOCKERFILE }}
-          push: ${{ steps.prepare.outputs.should_push == 'true' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -131,5 +105,4 @@ jobs:
           echo "**Branch:** ${{ steps.prepare.outputs.branch_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Event:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:** ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Pushed:** ${{ steps.prepare.outputs.should_push }}" >> $GITHUB_STEP_SUMMARY
           echo "**Image Digest:** ${{ steps.build-push.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
