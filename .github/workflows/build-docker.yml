@@ -59,9 +59,15 @@ jobs:
         run: |
           COMMIT_SHA=${{ github.sha }}
           COMMIT_SHA_SHORT=${COMMIT_SHA:0:8}
-          BRANCH_NAME=${{ github.ref_name }}
           BUILD_NUMBER=${{ github.run_number }}
           PR_NUMBER=${{ github.event.pull_request.number }}
+
+          # For PRs, use head.ref (the actual branch), for push events use ref_name
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME=${{ github.head.ref }}
+          else
+            BRANCH_NAME=${{ github.ref_name }}
+          fi
 
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "commit_sha_short=${COMMIT_SHA_SHORT}" >> $GITHUB_OUTPUT
