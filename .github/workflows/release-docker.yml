@@ -8,6 +8,7 @@ on:
     paths-ignore:
       - 'doc/**'
       - '**.md'
+      - 'charts/**'
 
 env:
   REGISTRY: docker.io
