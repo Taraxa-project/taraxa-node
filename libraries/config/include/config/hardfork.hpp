@@ -108,7 +108,7 @@ struct CactiHardforkConfig {
       400;  // [ms] - approx how much time it takes to receive 2t+1 soft & cert votes after 2*lambda
 
   bool isDynamicLambdaChangeInterval(uint64_t block_number) const {
-    return block_number > block_num && block_number % lambda_change_interval == 0;
+    return (block_number > block_num && block_number % lambda_change_interval == 0) || lambda_change_interval == 1;
   }
 
   void validate(uint32_t rewards_distribution_frequency) const;

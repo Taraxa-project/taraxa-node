@@ -1283,16 +1283,10 @@ void DbStorage::savePeriodLambda(PbftPeriod period, uint32_t period_lambda, Batc
 std::optional<uint32_t> DbStorage::getPeriodLambda(PbftPeriod period, bool find_closest) {
   if (find_closest) {
     auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_lambda)));
-    for (it->SeekToLast(); it->Valid(); it->Prev()) {
-      uint32_t lambda_period;
-      memcpy(&lambda_period, it->key().data(), sizeof(uint32_t));
-
-      // Return first lambda with lambda_period <= period
-      if (lambda_period <= period) {
-        uint32_t lambda_value;
-        memcpy(&lambda_value, it->value().data(), sizeof(uint32_t));
-        return lambda_value;
-      }
+    if (it->SeekForPrev(toSlice(period)); it->Valid()) {
+      uint32_t lambda_value;
+      memcpy(&lambda_value, it->value().data(), sizeof(uint32_t));
+      return lambda_value;
     }
   } else {
     auto dynamic_lambda_bytes = lookup(period, Columns::period_lambda);
@@ -1321,6 +1315,25 @@ uint32_t DbStorage::getRoundsCountDynamicLambda() {
   }
 
   return 0;
+}
+
+std::unordered_map<PbftPeriod, rewards::BlockStats> DbStorage::getBlocksRewardsStats() const {
+  std::unordered_map<PbftPeriod, rewards::BlockStats> rewards_stats;
+
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::block_rewards_stats)));
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    PbftPeriod period;
+    memcpy(&period, it->key().data(), sizeof(PbftPeriod));
+    rewards_stats[period] = util::rlp_dec<rewards::BlockStats>(dev::RLP(it->value().ToString()));
+  }
+
+  return rewards_stats;
+}
+
+void DbStorage::saveBlockRewardsStats(uint64_t period, const rewards::BlockStats& stats, Batch& write_batch) {
+  dev::RLPStream encoding;
+  stats.rlp(encoding);
+  insert(write_batch, DbStorage::Columns::block_rewards_stats, period, encoding.out());
 }
 
 void DbStorage::forEach(Column const& col, OnEntry const& f) {

@@ -43,10 +43,6 @@ class Stats {
    */
   BlockStats getBlockStats(const PeriodData& current_blk, uint32_t blocks_per_year,
                            const std::vector<gas_t>& trxs_fees);
-  /**
-   * @brief saves stats to database to not lose this data in case of node restart
-   */
-  void saveBlockStats(uint64_t number, const BlockStats& stats, Batch& write_batch);
 
   const uint32_t kCommitteeSize;
   const HardforksConfig kHardforksConfig;

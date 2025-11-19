@@ -32,7 +32,6 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
       pillar_chain_mgr_(std::move(pillar_chain_mgr)),
-      kConfig(conf),
       kSyncingThreadPoolSize(std::thread::hardware_concurrency() / 2),
       sync_thread_pool_(std::make_shared<util::ThreadPool>(kSyncingThreadPoolSize)),
       rounds_count_dynamic_lambda_(0),
@@ -40,9 +39,9 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       dag_genesis_block_hash_(conf.genesis.dag_genesis_block.getHash()),
       kGenesisConfig(conf.genesis),
       proposed_blocks_(db_),
-      eligible_wallets_(kConfig.wallets) {
+      eligible_wallets_(conf.wallets) {
   // Use first wallet as default node_addr
-  const auto &node_addr = dev::toAddress(kConfig.getFirstWallet().node_secret);
+  const auto &node_addr = dev::toAddress(conf.getFirstWallet().node_secret);
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
@@ -65,24 +64,22 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       vote_mgr_->validateVote(v);
     }
 
-    // TODO[123]: this could be in separate function
     uint32_t blocks_per_year{0};
     // Dynamic lambda was introduced in cacti hardfork -> it affects the number of blocks generated per year, which
     // affects rewards distribution
-    // TODO[123]: write a test to check if period lambda was saved on first cacti hf block
-    if (kConfig.genesis.state.hardforks.isOnCactiHardfork(period)) {
+    if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
       auto period_lambda = db_->getPeriodLambda(period, true);
       if (!period_lambda.has_value()) {
         LOG(log_er_) << "DB corrupted - no dynamic lambda saved for period " << period;
         assert(false);
       }
 
-      blocks_per_year = kConfig.genesis.calcBlocksPerYear(
+      blocks_per_year = kGenesisConfig.calcBlocksPerYear(
           *period_lambda,
-          kConfig.genesis.state.hardforks.cacti_hf
+          kGenesisConfig.state.hardforks.cacti_hf
               .consensus_delay /* approx time it takes to receive 2t+1 soft and cert votes after 2*lambda */);
     } else {
-      blocks_per_year = kConfig.genesis.state.dpos.blocks_per_year;
+      blocks_per_year = kGenesisConfig.state.dpos.blocks_per_year;
     }
 
     finalize_(std::move(*period_data), db_->getFinalizedDagBlockHashesByPeriod(period), blocks_per_year,
@@ -297,7 +294,7 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
 
   // Increase lambda only for odd steps (second finish steps) after node reached kMaxSteps steps
   if (step_ >= kMaxSteps && step_ % 2) {
-    const auto kExponentialDefaultLambda = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
+    const auto kExponentialDefaultLambda = std::chrono::milliseconds(kGenesisConfig.pbft.lambda_ms);
     const auto [round, period] = getPbftRoundAndPeriod();
     const auto network_next_voting_step = vote_mgr_->getNetworkTplusOneNextVotingStep(period, round);
 
@@ -442,7 +439,7 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
       db_->savePeriodLambda(period, new_current_round_lambda, batch);
     }
   } else {
-    new_current_round_lambda = kConfig.genesis.pbft.lambda_ms;
+    new_current_round_lambda = kGenesisConfig.pbft.lambda_ms;
   }
 
   LOG(log_nf_) << "Reset PBFT consensus to: period " << period << ", round " << round << ", step 1, lambda "
@@ -578,7 +575,7 @@ void PbftManager::initialState() {
       current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
     }
   } else {
-    current_round_lambda_ = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
+    current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.pbft.lambda_ms);
   }
 
   const auto now = std::chrono::system_clock::now();
@@ -675,7 +672,7 @@ void PbftManager::setFinishState_() {
   LOG(log_dg_) << "Will go to first finish State";
   state_ = finish_state;
   setPbftStep(step_ + 1);
-  next_step_time_ms_ = getPbftDeadline(getPbftPeriod());
+  next_step_time_ms_ = getPbftDeadline();
 }
 
 void PbftManager::setFinishPollingState_() {
@@ -1166,7 +1163,7 @@ void PbftManager::certifyBlock_() {
   }
 
   const auto elapsed_time_in_round = elapsedTimeInMs(current_round_start_datetime_);
-  go_finish_state_ = elapsed_time_in_round > getPbftDeadline(getPbftPeriod()) - kPollingIntervalMs;
+  go_finish_state_ = elapsed_time_in_round > getPbftDeadline() - kPollingIntervalMs;
   if (go_finish_state_) {
     LOG(log_dg_) << "Step 3 expired, will go to step 4 in period " << period << ", round " << round;
 
@@ -2091,22 +2088,22 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   uint32_t blocks_per_year{0};
   // Dynamic lambda was introduced in cacti hardfork -> it affects the number of blocks generated per year, which
   // affects rewards distribution
-  if (kConfig.genesis.state.hardforks.isOnCactiHardfork(pbft_period)) {
-    blocks_per_year = kConfig.genesis.calcBlocksPerYear(
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(pbft_period)) {
+    blocks_per_year = kGenesisConfig.calcBlocksPerYear(
         static_cast<uint32_t>(current_round_lambda_.count()),
-        kConfig.genesis.state.hardforks.cacti_hf
+        kGenesisConfig.state.hardforks.cacti_hf
             .consensus_delay /* approx time it takes to receive 2t+1 soft and cert votes after 2*lambda */);
+
+    // Adjust dynamic lambda
+    adjustDynamicLambda(pbft_period, sample_cert_vote->getRound());
   } else {
-    blocks_per_year = kConfig.genesis.state.dpos.blocks_per_year;
+    blocks_per_year = kGenesisConfig.state.dpos.blocks_per_year;
   }
 
   finalize_(std::move(period_data), std::move(dag_blocks_order), blocks_per_year);
 
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;
-
-  // Adjust dynamic lambda
-  adjustDynamicLambda(pbft_period, sample_cert_vote->getRound());
 
   // Advance pbft consensus period
   advancePeriod();
@@ -2548,8 +2545,8 @@ const std::vector<std::pair<bool, WalletConfig>> &PbftManager::EligibleWallets::
 
 PbftPeriod PbftManager::EligibleWallets::getWalletsEligiblePeriod() const { return period_; }
 
-std::chrono::milliseconds PbftManager::getPbftDeadline(PbftPeriod period) const {
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
+std::chrono::milliseconds PbftManager::getPbftDeadline() const {
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(getPbftPeriod())) {
     auto block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_min);
     if (getPbftRound() > 1) {
       block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_max);

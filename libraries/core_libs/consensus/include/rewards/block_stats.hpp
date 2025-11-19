@@ -8,7 +8,7 @@
 namespace taraxa::rewards {
 
 /**
- * @class RewardsStats
+ * @class BlockStats
  * @brief RewardsStats contains rewards statistics for single pbft block
  */
 class BlockStats {
@@ -25,6 +25,11 @@ class BlockStats {
    */
   BlockStats(const PeriodData& block, uint32_t blocks_per_year, const std::vector<gas_t>& trxs_gas_used,
              uint64_t dpos_vote_count, uint32_t committee_size, const bool aspen_dag_rewards = false);
+
+  /**
+   * @return blocks per year
+   */
+  uint32_t getBlocksPerYear() const;
 
   HAS_RLP_FIELDS
 
