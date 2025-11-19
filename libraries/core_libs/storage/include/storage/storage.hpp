@@ -15,6 +15,7 @@
 #include "pbft/pbft_block.hpp"
 #include "pbft/period_data.hpp"
 #include "pillar_chain/pillar_block.hpp"
+#include "rewards/block_stats.hpp"
 #include "storage/uint_comparator.hpp"
 #include "transaction/receipt.hpp"
 #include "transaction/transaction.hpp"
@@ -392,6 +393,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Rounds count dynamic lambda
   void saveRoundsCountDynamicLambda(uint32_t rounds_count, Batch& write_batch);
   uint32_t getRoundsCountDynamicLambda();
+
+  // Blocks rewards stats
+  std::unordered_map<PbftPeriod, rewards::BlockStats> getBlocksRewardsStats() const;
+  void saveBlockRewardsStats(uint64_t period, const rewards::BlockStats& stats, Batch& write_batch);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
   bool hasMajorVersionChanged() { return major_version_changed_; }

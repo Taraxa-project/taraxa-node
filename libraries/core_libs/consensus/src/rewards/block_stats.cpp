@@ -15,6 +15,8 @@ BlockStats::BlockStats(const PeriodData& block, uint32_t blocks_per_year, const 
   processStats(block, aspen_dag_reward);
 }
 
+uint32_t BlockStats::getBlocksPerYear() const { return blocks_per_year_; }
+
 void BlockStats::initFeeByTrxHash(const SharedTransactions& transactions, const std::vector<gas_t>& trxs_gas_used) {
   // assert(transactions.size() == trxs_gas_used.size());
 

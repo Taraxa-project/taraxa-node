@@ -206,6 +206,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
   }
 
   auto rewards_stats = rewards_.processStats(new_blk, blocks_per_year, transactions_gas_used, batch);
+  std::cout << "period " << new_blk.pbft_blk->getPeriod() << ", blocks per year " << blocks_per_year << std::endl;
   const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
 
   auto blk_header = appendBlock(batch, *new_blk.pbft_blk, state_root, total_reward, all_transactions, receipts);

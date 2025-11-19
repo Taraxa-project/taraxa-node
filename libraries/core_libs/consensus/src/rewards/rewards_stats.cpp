@@ -19,19 +19,7 @@ void Stats::recoverFromDb(EthBlockNumber lastBlockNumber) {
     clear(lastBlockNumber);
   }
 
-  auto iterator = db_->getColumnIterator(DbStorage::Columns::block_rewards_stats);
-  for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
-    PbftPeriod period;
-    memcpy(&period, iterator->key().data(), sizeof(PbftPeriod));
-    // create a migration
-    blocks_stats_[period] = util::rlp_dec<BlockStats>(dev::RLP(iterator->value().ToString()));
-  }
-}
-
-void Stats::saveBlockStats(uint64_t period, const BlockStats& stats, Batch& write_batch) {
-  dev::RLPStream encoding;
-  stats.rlp(encoding);
-  db_->insert(write_batch, DbStorage::Columns::block_rewards_stats, period, encoding.out());
+  blocks_stats_ = db_->getBlocksRewardsStats();
 }
 
 void Stats::clear(uint64_t current_period) {
@@ -77,7 +65,7 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, uint3
   // Blocks between distribution. Process and save for future processing
   if (current_period % frequency != 0) {
     // Save to db, so in case of restart data could be just loaded for the period
-    saveBlockStats(current_period, blocks_stats_[current_period], write_batch);
+    db_->saveBlockRewardsStats(current_period, blocks_stats_[current_period], write_batch);
     return {};
   }
 

@@ -325,6 +325,11 @@ class PbftManager {
    */
   std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> getProposedBlocks() const;
 
+  /**
+   * @return pbft deadline time - max time to finalize the block in provided period
+   */
+  std::chrono::milliseconds getPbftDeadline() const;
+
  private:
   /**
    * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
@@ -601,12 +606,6 @@ class PbftManager {
   void processPillarBlock(PbftPeriod period);
 
   /**
-   * @param period
-   * @return pbft deadline time - max time to finalize the block in provided period
-   */
-  std::chrono::milliseconds getPbftDeadline(PbftPeriod period) const;
-
-  /**
    * @brief Adjust dynamic lambda
    *
    * @param finalized_period period, in which block was finalized
@@ -630,7 +629,6 @@ class PbftManager {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
-  const FullNodeConfig kConfig;
   const uint32_t kSyncingThreadPoolSize;
   std::shared_ptr<util::ThreadPool>
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks
