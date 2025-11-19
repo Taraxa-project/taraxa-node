@@ -18,8 +18,11 @@ void Light::init(const boost::program_options::variables_map &opts) {
   LOG_OBJECTS_CREATE("light");
   const auto &conf = app()->getConfig();
 
-  const auto min_light_node_history_ =
-      (conf.genesis.state.dpos.blocks_per_year * conf.kDefaultLightNodeHistoryDays) / 365;
+  const auto &cacti_hf = conf.genesis.state.hardforks.cacti_hf;
+  // Since cacti hf introduced dynamic lambda, the number of blocks node has to keep is changins as dynamic lambda
+  // changes. To keep things simple, calculate blocks_per_year for the smallest possible dynamic lambda
+  const auto blocks_per_year = conf.genesis.calcBlocksPerYear(cacti_hf.lambda_min, cacti_hf.consensus_delay);
+  const auto min_light_node_history_ = (blocks_per_year * conf.kDefaultLightNodeHistoryDays) / 365;
   if (!opts[HISTORY].empty()) {
     history_ = opts[HISTORY].as<uint64_t>();
     if (history_ < min_light_node_history_) {
