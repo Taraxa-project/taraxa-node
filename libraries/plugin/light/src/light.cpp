@@ -171,9 +171,11 @@ void Light::clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, bool
   db->DeleteRange(DbStorage::Columns::period_data, start_period, end_period);
   db->DeleteRange(DbStorage::Columns::pillar_block, start_period, end_period);
   db->DeleteRange(DbStorage::Columns::final_chain_receipt_by_period, start_period, end_period);
+  db->DeleteRange(DbStorage::Columns::period_lambda, start_period, end_period);
   db->CompactRange(DbStorage::Columns::period_data, start_period, end_period);
   db->CompactRange(DbStorage::Columns::pillar_block, start_period, end_period);
   db->CompactRange(DbStorage::Columns::final_chain_receipt_by_period, start_period, end_period);
+  db->CompactRange(DbStorage::Columns::period_data, start_period, end_period);
 
   it = db->getColumnIterator(DbStorage::Columns::dag_blocks_level);
   it->SeekToFirst();
