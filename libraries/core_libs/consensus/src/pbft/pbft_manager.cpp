@@ -262,15 +262,12 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
   // wallets eligible period == pbft chain size. This race condition is handled within pbft manager but
   // getCurrentNodeVotesCount() is called externally from standalone thread and in some edge cases we need to wait until
   // period in eligible_wallets_ is updated according to the latest chain size
-  const auto wait_ms = 10;
-  // Wait max 1 second in total
-  // TODO[123]: wait indefinitely
-  for (size_t idx = 0; idx < 1000 / wait_ms; idx++) {
+  while (true) {
     if (eligible_wallets_.getWalletsEligiblePeriod() == pbft_chain_->getPbftChainSize()) {
       break;
     }
 
-    thisThreadSleepForMilliSeconds(wait_ms);
+    thisThreadSleepForMilliSeconds(10);
   }
 
   try {
