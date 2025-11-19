@@ -174,7 +174,8 @@
       "lambda_change_interval" : 300,
       "lambda_change" : 10,
       "block_propagation_min" : 4000,
-      "block_propagation_max" : 17000
+      "block_propagation_max" : 17000,
+      "consensus_delay": 400
     }
   }
 }

@@ -92,22 +92,31 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
 
   // Dynamic lambda
-  const auto delegation_delay = 5;
-  EXPECT_FALSE(db.getDynamicLambda(1).has_value());
-  for (size_t i = 1; i <= delegation_delay * 2; i++) {
-    batch = db.createWriteBatch();
-    db.saveDynamicLambda(i, i * 100, delegation_delay, batch);
-    db.commitWriteBatch(batch);
-    EXPECT_TRUE(db.getDynamicLambda(i).has_value());
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Lambda), 1);
+  db.savePbftMgrField(PbftMgrField::Lambda, 10);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Lambda), 10);
+  batch = db.createWriteBatch();
+  db.addPbftMgrFieldToBatch(PbftMgrField::Lambda, 20, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Lambda), 20);
+
+  batch = db.createWriteBatch();
+  EXPECT_FALSE(db.getPeriodLambda(1, true).has_value());
+  EXPECT_FALSE(db.getPeriodLambda(1, false).has_value());
+  for (size_t i = 5; i <= 15; i += 5) {
+    db.savePeriodLambda(i, i * 10, batch);
   }
-  // There should always be only last <delegation_delay> dynamic lambdas saved in db
-  for (size_t i = 1; i <= delegation_delay * 2; i++) {
-    const auto dynamic_lambda = db.getDynamicLambda(i);
-    if (i <= delegation_delay) {
-      EXPECT_FALSE(dynamic_lambda.has_value());
-    } else {
-      EXPECT_TRUE(dynamic_lambda.has_value());
-    }
+  db.commitWriteBatch(batch);
+
+  for (size_t i = 5; i <= 15; i += 5) {
+    EXPECT_TRUE(db.getPeriodLambda(i, true).has_value());
+    EXPECT_TRUE(db.getPeriodLambda(i, false).has_value());
+    EXPECT_EQ(db.getPeriodLambda(i, true).value(), i * 10);
+    EXPECT_EQ(db.getPeriodLambda(i, false).value(), i * 10);
+
+    EXPECT_FALSE(db.getPeriodLambda(i + 1, false).has_value());
+    EXPECT_TRUE(db.getPeriodLambda(i + 1, true).has_value());
+    EXPECT_EQ(db.getPeriodLambda(i + 1, true).value(), i * 10);
   }
 
   EXPECT_EQ(db.getRoundsCountDynamicLambda(), 0);

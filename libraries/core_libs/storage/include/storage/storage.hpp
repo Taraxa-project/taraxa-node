@@ -40,7 +40,7 @@ enum StatusDbField : uint8_t {
   DbMinorVersion
 };
 
-enum class PbftMgrField : uint8_t { Round = 0, Step };
+enum class PbftMgrField : uint8_t { Round = 0, Step, Lambda };
 
 enum PbftMgrStatus : uint8_t {
   ExecutedBlock = 0,
@@ -144,8 +144,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(period_system_transactions);
     // final chain receipts by period
     COLUMN_W_COMP(final_chain_receipt_by_period, getIntComparator<PbftPeriod>());
-    // Dynamic lambda for past N(delegation delay) periods
-    COLUMN_W_COMP(dynamic_lambda, getIntComparator<PbftPeriod>());
+    // Dynamic lambda used in specific period (only saved if it changed compared to the previous period)
+    COLUMN_W_COMP(period_lambda, getIntComparator<PbftPeriod>());
     // Rounds count (per N blocks) used to determine dynamic lambda
     COLUMN(rounds_count_dynamic_lambda);
 
@@ -376,8 +376,19 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod period, Batch& write_batch);
 
   // Dynamic lambda
-  void saveDynamicLambda(PbftPeriod period, uint32_t dynamic_lambda, PbftPeriod delegation_delay, Batch& write_batch);
-  std::optional<uint32_t> getDynamicLambda(PbftPeriod period);
+  /**
+   * @param period
+   * @param period_lambda lambda used in specified period
+   * @param write_batch
+   */
+  void savePeriodLambda(PbftPeriod period, uint32_t period_lambda, Batch& write_batch);
+  /**
+   * @param period
+   * @param find_closest if true, iterate over lambda changes until valid lambda for specified period is found,
+   * otherwise return empty optional in case no lambda is saved for specified period
+   * @return lambda used in specified period
+   */
+  std::optional<uint32_t> getPeriodLambda(PbftPeriod period, bool find_closest);
   // Rounds count dynamic lambda
   void saveRoundsCountDynamicLambda(uint32_t rounds_count, Batch& write_batch);
   uint32_t getRoundsCountDynamicLambda();

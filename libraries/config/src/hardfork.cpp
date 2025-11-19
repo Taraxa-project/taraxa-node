@@ -182,6 +182,7 @@ Json::Value enc_json(const CactiHardforkConfig& obj) {
   json["lambda_change"] = dev::toJS(obj.lambda_change);
   json["block_propagation_min"] = dev::toJS(obj.block_propagation_min);
   json["block_propagation_max"] = dev::toJS(obj.block_propagation_max);
+  json["consensus_delay"] = dev::toJS(obj.consensus_delay);
   return json;
 }
 
@@ -194,6 +195,7 @@ void dec_json(const Json::Value& json, CactiHardforkConfig& obj) {
   obj.lambda_change = dev::getUInt(json["lambda_change"]);
   obj.block_propagation_min = dev::getUInt(json["block_propagation_min"]);
   obj.block_propagation_max = dev::getUInt(json["block_propagation_max"]);
+  obj.consensus_delay = dev::getUInt(json["consensus_delay"]);
 }
 
 void CactiHardforkConfig::validate(uint32_t rewards_distribution_frequency) const {
@@ -219,7 +221,7 @@ void CactiHardforkConfig::validate(uint32_t rewards_distribution_frequency) cons
 }
 
 RLP_FIELDS_DEFINE(CactiHardforkConfig, block_num, lambda_min, lambda_max, lambda_default, lambda_change_interval,
-                  lambda_change, block_propagation_min, block_propagation_max)
+                  lambda_change, block_propagation_min, block_propagation_max, consensus_delay)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
