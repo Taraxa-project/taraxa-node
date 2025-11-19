@@ -104,6 +104,8 @@ struct CactiHardforkConfig {
       4000;  // [ms] - how long it takes to propagate block in good network conditions, used in round 1
   uint32_t block_propagation_max =
       17000;  // [ms] - how long it takes to propagate block in good network conditions, used in rounds > 1
+  uint32_t consensus_delay =
+      400;  // [ms] - approx how much time it takes to receive 2t+1 soft & cert votes after 2*lambda
 
   bool isDynamicLambdaChangeInterval(uint64_t block_number) const {
     return block_number > block_num && block_number % lambda_change_interval == 0;
