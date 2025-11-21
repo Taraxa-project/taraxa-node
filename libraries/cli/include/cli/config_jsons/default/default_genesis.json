@@ -59,7 +59,17 @@
   "initial_balances": {
     "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
     "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x27e72f1f12813088000000",
-    "fF310642f352E0b6b5266CE492e91D6af1241F41": "0x27e72f1f12813088000000"
+    "fF310642f352E0b6b5266CE492e91D6af1241F41": "0x27e72f1f12813088000000",
+    "0x3d8432060ea8216aa5d9f22991c1622a6fc68349": "0xE3C21BCECCEDA1000000",
+    "0x80946cb9cf31d54f02e242f2ddec5155ff650bca": "0xE3C21BCECCEDA1000000",
+    "0x07d784cab6a4d6712d38b8526dd0454baf1766ed": "0xE3C21BCECCEDA1000000",
+    "0x0fcd9ef355c4ac9e9ed0aadf0cb1d80615f54691": "0xE3C21BCECCEDA1000000",
+    "0xc4a41d5b7eb9bae765f3df6f68b70d378074dfcb": "0xE3C21BCECCEDA1000000",
+    "0x033df3ebc6de21f46b60373a8ad047c86491b84d": "0xE3C21BCECCEDA1000000",
+    "0x0e183139741de724a9c90d0341cf816aa85b5798": "0xE3C21BCECCEDA1000000",
+    "0x068b9c19ef242c51fe41949565517a90b5e6a0ff": "0xE3C21BCECCEDA1000000",
+    "0xc8142e6bd6200425b401cf1ff58bf5d0d08525bd": "0xE3C21BCECCEDA1000000",
+    "0xde68e530adc067b82abb683e4fa2ead6bd93e0ff": "0xE3C21BCECCEDA1000000"
   },
   "gas_price": {
     "blocks": 200,
@@ -92,9 +102,9 @@
       "threshold_upper": "0x2710"
     },
     "vdf": {
-      "difficulty_max": 21,
-      "difficulty_min": 16,
-      "difficulty_stale": 22,
+      "difficulty_max": 18,
+      "difficulty_min": 13,
+      "difficulty_stale": 19,
       "lambda_bound": "0x64"
     }
   },
