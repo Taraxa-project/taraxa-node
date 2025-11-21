@@ -9,6 +9,9 @@ class Manager {
   void registerMigration() {
     migrations_.push_back(std::make_shared<T>(db_));
   }
+
+  void registerMigration(std::shared_ptr<migration::Base> migration) { migrations_.push_back(std::move(migration)); }
+
   void applyAll();
 
   void applyReceiptsByPeriod();

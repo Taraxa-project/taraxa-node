@@ -92,7 +92,7 @@ TEST_F(FullNodeTest, save_period_lambda_cacti_hf) {
   const auto stalled_period = node->getPbftManager()->getPbftPeriod();
   node->getPbftManager()->start();
   EXPECT_HAPPENS({5s, 100ms},
-                 [&](auto &ctx) { WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), stalled_period + 1); });
+                 [&](auto &ctx) { WAIT_EXPECT_GE(ctx, node->getPbftManager()->getPbftPeriod(), stalled_period + 1); });
   const auto stalled_period_lambda = node->getDB()->getPeriodLambda(stalled_period, false);
   // Check if dynamic lambda was decreased each new period
   EXPECT_TRUE(stalled_period_lambda.has_value());
