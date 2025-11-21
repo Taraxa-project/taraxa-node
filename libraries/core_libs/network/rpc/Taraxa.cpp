@@ -259,4 +259,19 @@ Json::Value Taraxa::taraxa_getPillarBlockData(const std::string& pillar_block_pe
   }
 }
 
+std::string Taraxa::taraxa_getPeriodLambda(const std::string& period) {
+  try {
+    auto app = tryGetApp();
+    auto db = app->getDB();
+    auto period_lambda = db->getPeriodLambda(dev::jsToInt(period), false);
+    if (!period_lambda.has_value()) {
+      return {};
+    }
+
+    return toJS(*period_lambda);
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
 }  // namespace taraxa::net

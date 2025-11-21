@@ -32,7 +32,6 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
       pillar_chain_mgr_(std::move(pillar_chain_mgr)),
-      kConfig(conf),
       kSyncingThreadPoolSize(std::thread::hardware_concurrency() / 2),
       sync_thread_pool_(std::make_shared<util::ThreadPool>(kSyncingThreadPoolSize)),
       rounds_count_dynamic_lambda_(0),
@@ -40,24 +39,10 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       dag_genesis_block_hash_(conf.genesis.dag_genesis_block.getHash()),
       kGenesisConfig(conf.genesis),
       proposed_blocks_(db_),
-      eligible_wallets_(kConfig.wallets) {
+      eligible_wallets_(conf.wallets) {
   // Use first wallet as default node_addr
-  const auto &node_addr = dev::toAddress(kConfig.getFirstWallet().node_secret);
+  const auto &node_addr = dev::toAddress(conf.getFirstWallet().node_secret);
   LOG_OBJECTS_CREATE("PBFT_MGR");
-
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(pbft_chain_->getPbftChainSize())) {
-    rounds_count_dynamic_lambda_ = db_->getRoundsCountDynamicLambda();
-
-    dynamic_lambda_ = db_->getPbftMgrField(PbftMgrField::Lambda);
-    // No value saved  == 1
-    if (dynamic_lambda_ == 1) {
-      dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
-    }
-
-    current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
-  } else {
-    current_round_lambda_ = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
-  }
 
   for (auto period = final_chain_->lastBlockNumber() + 1, curr_period = pbft_chain_->getPbftChainSize();
        period <= curr_period; ++period) {
@@ -79,7 +64,26 @@ PbftManager::PbftManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> 
       vote_mgr_->validateVote(v);
     }
 
-    finalize_(std::move(*period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
+    uint32_t blocks_per_year{0};
+    // Dynamic lambda was introduced in cacti hardfork -> it affects the number of blocks generated per year, which
+    // affects rewards distribution
+    if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
+      auto period_lambda = db_->getPeriodLambda(period, true);
+      if (!period_lambda.has_value()) {
+        LOG(log_er_) << "DB corrupted - no dynamic lambda saved for period " << period;
+        assert(false);
+      }
+
+      blocks_per_year = kGenesisConfig.calcBlocksPerYear(
+          *period_lambda,
+          kGenesisConfig.state.hardforks.cacti_hf
+              .consensus_delay /* approx time it takes to receive 2t+1 soft and cert votes after 2*lambda */);
+    } else {
+      blocks_per_year = kGenesisConfig.state.dpos.blocks_per_year;
+    }
+
+    finalize_(std::move(*period_data), db_->getFinalizedDagBlockHashesByPeriod(period), blocks_per_year,
+              period == curr_period);
   }
 
   PbftPeriod start_period = 1;
@@ -255,14 +259,12 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
   // wallets eligible period == pbft chain size. This race condition is handled within pbft manager but
   // getCurrentNodeVotesCount() is called externally from standalone thread and in some edge cases we need to wait until
   // period in eligible_wallets_ is updated according to the latest chain size
-  const auto wait_ms = 10;
-  // Wait max 1 second in total
-  for (size_t idx = 0; idx < 1000 / wait_ms; idx++) {
+  while (true) {
     if (eligible_wallets_.getWalletsEligiblePeriod() == pbft_chain_->getPbftChainSize()) {
       break;
     }
 
-    thisThreadSleepForMilliSeconds(wait_ms);
+    thisThreadSleepForMilliSeconds(10);
   }
 
   try {
@@ -292,7 +294,7 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
 
   // Increase lambda only for odd steps (second finish steps) after node reached kMaxSteps steps
   if (step_ >= kMaxSteps && step_ % 2) {
-    const auto kExponentialDefaultLambda = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
+    const auto kExponentialDefaultLambda = std::chrono::milliseconds(kGenesisConfig.pbft.lambda_ms);
     const auto [round, period] = getPbftRoundAndPeriod();
     const auto network_next_voting_step = vote_mgr_->getNetworkTplusOneNextVotingStep(period, round);
 
@@ -346,7 +348,7 @@ bool PbftManager::tryPushCertVotesBlock() {
   LOG(log_nf_) << "Found enough cert votes for PBFT block " << certified_block_hash << ", period "
                << current_pbft_period << ", round " << current_pbft_round;
 
-  auto pbft_block = getValidPbftProposedBlock(current_pbft_period, certified_block_hash);
+  auto pbft_block = getValidPbftProposedBlock(proposed_blocks_, current_pbft_period, certified_block_hash);
   if (!pbft_block) {
     LOG(log_er_) << "Invalid certified block " << certified_block_hash;
     return false;
@@ -414,28 +416,38 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   broadcast_votes_counter_ = 1;
   rebroadcast_votes_counter_ = 1;
 
-  const auto period = getPbftPeriod();
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
-    // Use dynamic lambda for round 1
-    if (round == 1) {
-      current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
-    } else {  // otherwise use default lambda
-      current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
-    }
-  } else {
-    current_round_lambda_ = std::chrono::milliseconds(kConfig.genesis.pbft.lambda_ms);
-  }
-
-  LOG(log_nf_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1, lambda "
-               << current_round_lambda_ << " [ms]";
-
   // Update current round and reset step to 1
   round_ = round;
   step_ = 1;
   state_ = value_proposal_state;
 
-  // Update in DB first
+  const auto period = getPbftPeriod();
+  uint32_t new_current_round_lambda{0};
   auto batch = db_->createWriteBatch();
+
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
+    // Use dynamic lambda for round 1
+    if (round == 1) {
+      new_current_round_lambda = dynamic_lambda_;
+    } else {  // otherwise use default lambda
+      new_current_round_lambda = kGenesisConfig.state.hardforks.cacti_hf.lambda_default;
+    }
+
+    // Save period lambda to db in case it's value changed or for the first block on cacti hf
+    if (new_current_round_lambda != static_cast<uint32_t>(current_round_lambda_.count()) ||
+        period == kGenesisConfig.state.hardforks.cacti_hf.block_num) {
+      db_->savePeriodLambda(period, new_current_round_lambda, batch);
+    }
+  } else {
+    new_current_round_lambda = kGenesisConfig.pbft.lambda_ms;
+  }
+
+  LOG(log_nf_) << "Reset PBFT consensus to: period " << period << ", round " << round << ", step 1, lambda "
+               << new_current_round_lambda << " [ms]";
+
+  current_round_lambda_ = std::chrono::milliseconds(new_current_round_lambda);
+
+  // Update in DB first
   db_->addPbftMgrFieldToBatch(PbftMgrField::Round, round, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrField::Step, 1, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
@@ -537,6 +549,35 @@ void PbftManager::initialState() {
   const auto current_pbft_period = getPbftPeriod();
   const auto current_pbft_round = db_->getPbftMgrField(PbftMgrField::Round);
   auto current_pbft_step = db_->getPbftMgrField(PbftMgrField::Step);
+
+  // Set dynamic lambda
+  const auto chain_size = current_pbft_period - 1;
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(chain_size)) {
+    rounds_count_dynamic_lambda_ = db_->getRoundsCountDynamicLambda();
+
+    if (chain_size >= 1) {
+      auto dynamic_lambda = db_->getPbftMgrField(PbftMgrField::Lambda);
+      // No value saved  == 1
+      if (dynamic_lambda == 1) {
+        LOG(log_er_) << "DB corrupted: no dynamic lambda saved for period " << chain_size;
+        assert(false);
+      }
+
+      dynamic_lambda_ = dynamic_lambda;
+    } else {
+      dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
+    }
+
+    // Use dynamic lambda for round 1
+    if (current_pbft_round == 1) {
+      current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
+    } else {  // otherwise use default lambda
+      current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
+    }
+  } else {
+    current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.pbft.lambda_ms);
+  }
+
   const auto now = std::chrono::system_clock::now();
 
   if (current_pbft_round == 1 && current_pbft_step == 1) {
@@ -631,7 +672,7 @@ void PbftManager::setFinishState_() {
   LOG(log_dg_) << "Will go to first finish State";
   state_ = finish_state;
   setPbftStep(step_ + 1);
-  next_step_time_ms_ = getPbftDeadline(getPbftPeriod());
+  next_step_time_ms_ = getPbftDeadline();
 }
 
 void PbftManager::setFinishPollingState_() {
@@ -819,8 +860,9 @@ bool PbftManager::stateOperations_() {
   return true;
 }
 
-std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash) {
-  const auto block_data = proposed_blocks_.getPbftProposedBlock(period, block_hash);
+std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(ProposedBlocks &proposed_blocks, PbftPeriod period,
+                                                                  const blk_hash_t &block_hash) {
+  const auto block_data = proposed_blocks.getPbftProposedBlock(period, block_hash);
   if (!block_data.has_value()) {
     LOG(log_er_) << "Unable to find proposed block " << block_hash << ", period " << period;
     return nullptr;
@@ -836,7 +878,7 @@ std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod per
       return nullptr;
     }
 
-    proposed_blocks_.markBlockAsValid(block);
+    proposed_blocks.markBlockAsValid(block);
   }
 
   return block;
@@ -1051,7 +1093,7 @@ void PbftManager::proposeBlock_() {
     // Round greater than 1 and next voted some value that is not null block hash
     const auto &next_voted_block_hash = *previous_round_next_voted_value;
 
-    const auto next_voted_block = getValidPbftProposedBlock(period, next_voted_block_hash);
+    const auto next_voted_block = getValidPbftProposedBlock(proposed_blocks_, period, next_voted_block_hash);
     if (!next_voted_block) {
       // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
       LOG(log_er_) << "Unable to re-propose previous round next voted block " << next_voted_block_hash << ", period "
@@ -1099,7 +1141,7 @@ void PbftManager::identifyBlock_() {
                  vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedBlock);
              previous_round_next_voted_value.has_value()) {
     const auto &next_voted_block_hash = *previous_round_next_voted_value;
-    const auto next_voted_block = getValidPbftProposedBlock(period, next_voted_block_hash);
+    const auto next_voted_block = getValidPbftProposedBlock(proposed_blocks_, period, next_voted_block_hash);
     if (!next_voted_block) {
       // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
       LOG(log_er_) << "Unable to soft-vote previous round next voted block " << next_voted_block_hash << ", period "
@@ -1121,7 +1163,7 @@ void PbftManager::certifyBlock_() {
   }
 
   const auto elapsed_time_in_round = elapsedTimeInMs(current_round_start_datetime_);
-  go_finish_state_ = elapsed_time_in_round > getPbftDeadline(getPbftPeriod()) - kPollingIntervalMs;
+  go_finish_state_ = elapsed_time_in_round > getPbftDeadline() - kPollingIntervalMs;
   if (go_finish_state_) {
     LOG(log_dg_) << "Step 3 expired, will go to step 4 in period " << period << ", round " << round;
 
@@ -1168,7 +1210,7 @@ void PbftManager::certifyBlock_() {
   }
 
   // Get 2t+1 soft voted bock
-  const auto soft_voted_block = getValidPbftProposedBlock(period, *soft_voted_block_hash);
+  const auto soft_voted_block = getValidPbftProposedBlock(proposed_blocks_, period, *soft_voted_block_hash);
   if (soft_voted_block == nullptr) {
     LOG(log_dg_) << "Certify: invalid 2t+1 soft voted block " << *soft_voted_block_hash << ". Period " << period
                  << ",  round " << round;
@@ -1213,7 +1255,7 @@ void PbftManager::firstFinish_() {
     const auto previous_round_next_voted_value =
         vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedBlock);
     if (previous_round_next_voted_value.has_value()) {
-      auto block = getValidPbftProposedBlock(period, *previous_round_next_voted_value);
+      auto block = getValidPbftProposedBlock(proposed_blocks_, period, *previous_round_next_voted_value);
       if (!block) {
         // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
         LOG(log_er_) << "Unable to first finish next-vote starting value " << *previous_round_next_voted_value
@@ -1260,7 +1302,7 @@ void PbftManager::secondFinish_() {
     }
 
     // Get 2t+1 soft voted bock
-    const auto soft_voted_block = getValidPbftProposedBlock(period, *soft_voted_block_hash);
+    const auto soft_voted_block = getValidPbftProposedBlock(proposed_blocks_, period, *soft_voted_block_hash);
     if (soft_voted_block == nullptr) {
       LOG(log_dg_) << "Second finish: invalid 2t+1 soft voted block " << *soft_voted_block_hash << ". Period " << period
                    << ",  round " << round;
@@ -1604,7 +1646,7 @@ h256 PbftManager::getProposal(const std::shared_ptr<PbftVote> &vote) const {
 }
 
 std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> PbftManager::identifyLeaderBlock(
-    const ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes) {
+    ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes) {
   if (propose_votes.empty()) {
     return {};
   }
@@ -1630,21 +1672,21 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> 
       continue;
     }
 
-    auto leader_block = propose_blocks.getPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
-    if (!leader_block.has_value()) {
+    auto leader_block = getValidPbftProposedBlock(propose_blocks, leader_vote.second->getPeriod(), proposed_block_hash);
+    if (!leader_block) {
       LOG(log_er_) << "Unable to get proposed block " << proposed_block_hash;
       continue;
     }
 
-    if (leader_block->first->getPivotDagBlockHash() == kNullBlockHash) {
+    if (leader_block->getPivotDagBlockHash() == kNullBlockHash) {
       if (!empty_leader_block_data.has_value()) {
-        empty_leader_block_data = std::make_pair(leader_block->first, leader_vote.second);
+        empty_leader_block_data = std::make_pair(leader_block, leader_vote.second);
       }
 
       continue;
     }
 
-    return std::make_pair(leader_block->first, leader_vote.second);
+    return std::make_pair(leader_block, leader_vote.second);
   }
 
   // no eligible leader
@@ -1936,7 +1978,7 @@ void PbftManager::reorderTransactions(SharedTransactions &transactions) {
 }
 
 void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
-                            bool synchronous_processing) {
+                            uint32_t blocks_per_year, bool synchronous_processing) {
   std::shared_ptr<DagBlock> anchor_block = nullptr;
 
   if (const auto anchor = period_data.pbft_blk->getPivotDagBlockHash()) {
@@ -1947,8 +1989,8 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
     }
   }
 
-  auto result =
-      final_chain_->finalize(std::move(period_data), std::move(finalized_dag_blk_hashes), std::move(anchor_block));
+  auto result = final_chain_->finalize(std::move(period_data), std::move(finalized_dag_blk_hashes), blocks_per_year,
+                                       std::move(anchor_block));
 
   if (synchronous_processing) {
     result.wait();
@@ -2043,13 +2085,25 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
                << ", round: " << getPbftRound();
 
-  finalize_(std::move(period_data), std::move(dag_blocks_order));
+  uint32_t blocks_per_year{0};
+  // Dynamic lambda was introduced in cacti hardfork -> it affects the number of blocks generated per year, which
+  // affects rewards distribution
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(pbft_period)) {
+    blocks_per_year = kGenesisConfig.calcBlocksPerYear(
+        static_cast<uint32_t>(current_round_lambda_.count()),
+        kGenesisConfig.state.hardforks.cacti_hf
+            .consensus_delay /* approx time it takes to receive 2t+1 soft and cert votes after 2*lambda */);
+
+    // Adjust dynamic lambda
+    adjustDynamicLambda(pbft_period, sample_cert_vote->getRound());
+  } else {
+    blocks_per_year = kGenesisConfig.state.dpos.blocks_per_year;
+  }
+
+  finalize_(std::move(period_data), std::move(dag_blocks_order), blocks_per_year);
 
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;
-
-  // Adjust dynamic lambda
-  adjustDynamicLambda(pbft_period, sample_cert_vote->getRound());
 
   // Advance pbft consensus period
   advancePeriod();
@@ -2491,8 +2545,8 @@ const std::vector<std::pair<bool, WalletConfig>> &PbftManager::EligibleWallets::
 
 PbftPeriod PbftManager::EligibleWallets::getWalletsEligiblePeriod() const { return period_; }
 
-std::chrono::milliseconds PbftManager::getPbftDeadline(PbftPeriod period) const {
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
+std::chrono::milliseconds PbftManager::getPbftDeadline() const {
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(getPbftPeriod())) {
     auto block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_min);
     if (getPbftRound() > 1) {
       block_propagation = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.block_propagation_max);

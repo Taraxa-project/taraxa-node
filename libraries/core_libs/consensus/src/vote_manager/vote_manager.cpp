@@ -38,6 +38,8 @@ VoteManager::VoteManager(const FullNodeConfig& config, std::shared_ptr<DbStorage
       if (set_reward_votes_info && vote->getType() == PbftVoteTypes::cert_vote) {
         if (!rewards_info_already_set) {
           rewards_info_already_set = true;
+
+          std::scoped_lock lock(reward_votes_info_mutex_);
           reward_votes_block_hash_ = vote->getBlockHash();
           reward_votes_period_ = vote->getPeriod();
           reward_votes_round_ = vote->getRound();

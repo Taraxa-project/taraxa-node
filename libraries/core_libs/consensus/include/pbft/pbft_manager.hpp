@@ -325,6 +325,11 @@ class PbftManager {
    */
   std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> getProposedBlocks() const;
 
+  /**
+   * @return pbft deadline time - max time to finalize the block in provided period
+   */
+  std::chrono::milliseconds getPbftDeadline() const;
+
  private:
   /**
    * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
@@ -488,7 +493,7 @@ class PbftManager {
    * @return shared_ptr to leader identified leader block + propose vote
    */
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> identifyLeaderBlock(
-      const ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
+      ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -538,9 +543,10 @@ class PbftManager {
    * @brief Final chain executes a finalized PBFT block
    * @param period_data PBFT block, cert votes, DAG blocks, and transactions
    * @param finalized_dag_blk_hashes DAG blocks hashes
+   * @param blocks_per_year - expected number of blocks generated per year based on pbft block dynamic lambda
    * @param synchronous_processing wait for block finalization to finish
    */
-  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
+  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, uint32_t blocks_per_year,
                  bool synchronous_processing = false);
 
   /**
@@ -555,11 +561,13 @@ class PbftManager {
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
    *        already validated
    *
+   * @param proposed_blocks
    * @param period
    * @param block_hash
    * @return valid proposed pbft block or nullptr
    */
-  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash);
+  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(ProposedBlocks &proposed_blocks, PbftPeriod period,
+                                                       const blk_hash_t &block_hash);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
@@ -598,12 +606,6 @@ class PbftManager {
   void processPillarBlock(PbftPeriod period);
 
   /**
-   * @param period
-   * @return pbft deadline time - max time to finalize the block in provided period
-   */
-  std::chrono::milliseconds getPbftDeadline(PbftPeriod period) const;
-
-  /**
    * @brief Adjust dynamic lambda
    *
    * @param finalized_period period, in which block was finalized
@@ -627,7 +629,6 @@ class PbftManager {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
-  const FullNodeConfig kConfig;
   const uint32_t kSyncingThreadPoolSize;
   std::shared_ptr<util::ThreadPool>
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks

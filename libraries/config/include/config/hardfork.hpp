@@ -104,10 +104,14 @@ struct CactiHardforkConfig {
       4000;  // [ms] - how long it takes to propagate block in good network conditions, used in round 1
   uint32_t block_propagation_max =
       17000;  // [ms] - how long it takes to propagate block in good network conditions, used in rounds > 1
+  uint32_t consensus_delay =
+      400;  // [ms] - approx how much time it takes to receive 2t+1 soft & cert votes after 2*lambda
 
   bool isDynamicLambdaChangeInterval(uint64_t block_number) const {
-    return block_number > block_num && block_number % lambda_change_interval == 0;
+    return (block_number > block_num && block_number % lambda_change_interval == 0) || lambda_change_interval == 1;
   }
+
+  void validate(uint32_t rewards_distribution_frequency) const;
 
   HAS_RLP_FIELDS
 };
@@ -147,6 +151,10 @@ struct HardforksConfig {
    */
   using RewardsDistributionMap = std::map<uint64_t, uint32_t>;
   RewardsDistributionMap rewards_distribution_frequency;
+  /**
+   * @brief returns rewards distribution frequency for specified period
+   */
+  uint32_t getRewardsDistributionFrequency(uint64_t block) const;
 
   // Magnolia hardfork:
   // 1.fixing premature deletion of validators in dpos contract -> validator is deleted only

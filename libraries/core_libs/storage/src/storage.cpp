@@ -1275,6 +1275,33 @@ void DbStorage::addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod 
   insert(write_batch, Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
+void DbStorage::savePeriodLambda(PbftPeriod period, uint32_t period_lambda, Batch& write_batch) {
+  // Save latest dynamic lambda
+  insert(write_batch, Columns::period_lambda, period, period_lambda);
+}
+
+std::optional<uint32_t> DbStorage::getPeriodLambda(PbftPeriod period, bool find_closest) {
+  if (find_closest) {
+    auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_lambda)));
+    if (it->SeekForPrev(toSlice(period)); it->Valid()) {
+      uint32_t lambda_value;
+      memcpy(&lambda_value, it->value().data(), sizeof(uint32_t));
+      return lambda_value;
+    }
+  } else {
+    auto dynamic_lambda_bytes = lookup(period, Columns::period_lambda);
+    if (dynamic_lambda_bytes.empty()) {
+      return {};
+    }
+
+    uint32_t lambda_value;
+    memcpy(&lambda_value, dynamic_lambda_bytes.data(), sizeof(uint32_t));
+    return lambda_value;
+  }
+
+  return {};
+}
+
 void DbStorage::saveRoundsCountDynamicLambda(uint32_t rounds_count, Batch& write_batch) {
   insert(write_batch, Columns::rounds_count_dynamic_lambda, 0, toSlice(rounds_count));
 }
@@ -1288,6 +1315,25 @@ uint32_t DbStorage::getRoundsCountDynamicLambda() {
   }
 
   return 0;
+}
+
+std::unordered_map<PbftPeriod, rewards::BlockStats> DbStorage::getBlocksRewardsStats() const {
+  std::unordered_map<PbftPeriod, rewards::BlockStats> rewards_stats;
+
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::block_rewards_stats)));
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    PbftPeriod period;
+    memcpy(&period, it->key().data(), sizeof(PbftPeriod));
+    rewards_stats[period] = util::rlp_dec<rewards::BlockStats>(dev::RLP(it->value().ToString()));
+  }
+
+  return rewards_stats;
+}
+
+void DbStorage::saveBlockRewardsStats(uint64_t period, const rewards::BlockStats& stats, Batch& write_batch) {
+  dev::RLPStream encoding;
+  stats.rlp(encoding);
+  insert(write_batch, DbStorage::Columns::block_rewards_stats, period, encoding.out());
 }
 
 void DbStorage::forEach(Column const& col, OnEntry const& f) {
