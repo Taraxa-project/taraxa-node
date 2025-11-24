@@ -29,15 +29,14 @@ class OldBlockStats : public rewards::BlockStats {
 // rewards::BlockStats contains new variable "blocks_per_year_", which does not need to be set to sme specific value
 // here
 void BlockStats::migrate(logger::Logger& log) {
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->getColumnIterator(DbStorage::Columns::block_rewards_stats));
+  auto it = db_->getColumnIterator(DbStorage::Columns::block_rewards_stats);
   if (it->SeekToFirst(); it->Valid()) {
-    const auto first_block_stats_rlp = dev::RLP(it->value().ToString());
-    if (first_block_stats_rlp.itemCount() != 5) {
-      LOG(log) << "Block reward data already saved in new format";
+    if (dev::RLP(it->value().ToString()).itemCount() != 5) {
+      LOG(log) << "Block reward stats already saved in new format";
       return;
     }
   } else {
-    LOG(log) << "No block reward data found";
+    LOG(log) << "No block reward stats found";
     return;
   }
 
@@ -50,7 +49,7 @@ void BlockStats::migrate(logger::Logger& log) {
     // cacti hardfork block num and he needs to resync from the snapshot, which was taken before cacti hf. It is not
     // possible to fix such node without resync
     if (kConfig.genesis.state.hardforks.isOnCactiHardfork(period)) {
-      LOG(log) << "Trying to apply block reward data migration introduced in cacti hardfork for the period >= cacti "
+      LOG(log) << "Trying to apply block reward stats migration introduced in cacti hardfork for the period >= cacti "
                   "hardfork block num. "
                   "Need to resync from the snapshot created before cacti hardfork";
       assert(false);
@@ -72,6 +71,8 @@ void BlockStats::migrate(logger::Logger& log) {
   }
   db_->commitWriteBatch(batch_);
   db_->compactColumn(DbStorage::Columns::block_rewards_stats);
+
+  LOG(log) << "Block reward stats migration applied to " << migrated_blocks_stats.size() << " blocks";
 }
 
 }  // namespace taraxa::storage::migration
