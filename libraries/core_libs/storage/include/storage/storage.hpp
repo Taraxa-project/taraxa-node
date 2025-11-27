@@ -433,6 +433,14 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   inline static auto const& toSlice(Slice const& s) { return s; }
 
+  /// Convert rocksdb::Slice to dev::RLP for zero-copy RLP parsing
+  /// The Slice must remain valid for the lifetime of the RLP object
+  /// @param slice The rocksdb::Slice to convert
+  /// @return RLP object that references the Slice's data
+  inline static dev::RLP sliceToRlp(Slice const& slice) {
+    return dev::RLP(reinterpret_cast<::byte const*>(slice.data()), slice.size());
+  }
+
   template <typename T>
   inline static auto toSlices(std::vector<T> const& keys) {
     std::vector<Slice> ret;
