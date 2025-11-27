@@ -1,11 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <fstream>
-#include <map>
 #include <string>
 
-#include "common/lazy.hpp"
 #include "dag/dag_block.hpp"
 #include "test_util/test_util.hpp"
 #include "transaction/transaction.hpp"
