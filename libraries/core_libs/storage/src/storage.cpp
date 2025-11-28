@@ -594,7 +594,7 @@ std::deque<SortitionParamsChange> DbStorage::getLastSortitionParams(size_t count
   auto it =
       std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::sortition_params_change)));
   for (it->SeekToLast(); it->Valid() && changes.size() < count; it->Prev()) {
-    changes.push_front(SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString())));
+    changes.push_front(SortitionParamsChange::from_rlp(sliceToRlp(it->value())));
   }
 
   return changes;
@@ -610,7 +610,7 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(PbftPer
     return {};
   }
 
-  return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
+  return SortitionParamsChange::from_rlp(sliceToRlp(it->value()));
 }
 
 uint64_t DbStorage::getEarliestBlockNumber() const { return earliest_block_number_; }
@@ -671,7 +671,7 @@ std::shared_ptr<pillar_chain::PillarBlock> DbStorage::getLatestPillarBlock() con
     return {};
   }
 
-  return std::make_shared<pillar_chain::PillarBlock>(dev::RLP(it->value().ToString()));
+  return std::make_shared<pillar_chain::PillarBlock>(sliceToRlp(it->value()));
 }
 
 void DbStorage::saveOwnPillarBlockVote(const std::shared_ptr<PillarVote>& vote) {
@@ -715,7 +715,8 @@ void DbStorage::addTransactionLocationToBatch(Batch& write_batch, trx_hash_t con
 std::optional<TransactionLocation> DbStorage::getTransactionLocation(trx_hash_t const& hash) const {
   auto data = lookup(toSlice(hash.asBytes()), Columns::trx_period);
   if (!data.empty()) {
-    return TransactionLocation::fromRlp(dev::RLP(std::move(data)));
+    // Don't use std::move - RLP stores a reference and needs data to stay alive
+    return TransactionLocation::fromRlp(dev::RLP(data));
   }
   return std::nullopt;
 }
@@ -1324,7 +1325,7 @@ std::unordered_map<PbftPeriod, rewards::BlockStats> DbStorage::getBlocksRewardsS
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     PbftPeriod period;
     memcpy(&period, it->key().data(), sizeof(PbftPeriod));
-    rewards_stats[period] = util::rlp_dec<rewards::BlockStats>(dev::RLP(it->value().ToString()));
+    rewards_stats[period] = util::rlp_dec<rewards::BlockStats>(sliceToRlp(it->value()));
   }
 
   return rewards_stats;

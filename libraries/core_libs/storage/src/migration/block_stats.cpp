@@ -31,7 +31,7 @@ class OldBlockStats : public rewards::BlockStats {
 void BlockStats::migrate(logger::Logger& log) {
   auto it = db_->getColumnIterator(DbStorage::Columns::block_rewards_stats);
   if (it->SeekToFirst(); it->Valid()) {
-    if (dev::RLP(it->value().ToString()).itemCount() != 5) {
+    if (DbStorage::sliceToRlp(it->value()).itemCount() != 5) {
       LOG(log) << "Block reward stats already saved in new format";
       return;
     }
@@ -59,7 +59,7 @@ void BlockStats::migrate(logger::Logger& log) {
     // OldBlockStats is derived from rewards::BlockStats with the only difference - different rlp parsing methods
     // Note: Polymorphism via pointers is not used on purpose - OldBlockStats is just "temporary" class for parsing, no
     //       class members or functions should be preserved. OldBlockStats is sliced down to rewards::BlockStats
-    migrated_blocks_stats[period] = util::rlp_dec<OldBlockStats>(dev::RLP(it->value().ToString()));
+    migrated_blocks_stats[period] = util::rlp_dec<OldBlockStats>(DbStorage::sliceToRlp(it->value()));
   }
 
   // Remove old block stats from db
