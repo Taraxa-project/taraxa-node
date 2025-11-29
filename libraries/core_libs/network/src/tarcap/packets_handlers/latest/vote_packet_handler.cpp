@@ -56,11 +56,12 @@ void VotePacketHandler::process(const threadpool::PacketData &packet_data, const
 
   std::shared_ptr<PbftBlock> pbft_block;
   if (packet.optional_data.has_value()) {
-    if (packet.optional_data->pbft_block->getBlockHash() != packet.vote->getBlockHash()) {
+    if (packet.optional_data->pbft_block->getBlockHash() != packet.vote->getBlockHash() || pbft_block->getPeriod() != vote->getPeriod()) {
       std::ostringstream err_msg;
-      err_msg << "Vote " << packet.vote->getHash().abridged() << " voted block "
-              << packet.vote->getBlockHash().abridged() << " != actual block "
-              << packet.optional_data->pbft_block->getBlockHash().abridged();
+      err_msg << "Vote " << packet.vote->getHash().abridged() << ", voted block "
+              << packet.vote->getBlockHash().abridged() << ", vote period " << vote->getPeriod() << " != actual block "
+              << packet.optional_data->pbft_block->getBlockHash().abridged()
+              << ", block period " << pbft_block->getPeriod();
       throw MaliciousPeerException(err_msg.str());
     }
 
