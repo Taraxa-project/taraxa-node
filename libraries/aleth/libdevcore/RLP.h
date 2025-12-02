@@ -75,12 +75,17 @@ class RLP {
   explicit RLP(bytesConstRef _d, Strictness _s = VeryStrict);
 
   /// Construct a node of value given in the bytes.
+  /// WARNING: RLP stores a reference to the bytes' data, not a copy.
+  /// The bytes must remain valid for the lifetime of the RLP object.
   explicit RLP(bytes const& _d, Strictness _s = VeryStrict) : RLP(&_d, _s) {}
 
   /// Construct a node to read RLP data in the bytes given.
   RLP(::byte const* _b, unsigned _s, Strictness _st = VeryStrict) : RLP(bytesConstRef(_b, _s), _st) {}
 
   /// Construct a node to read RLP data in the string.
+  /// WARNING: RLP stores a reference to the string's data, not a copy.
+  /// The string must remain valid for the lifetime of the RLP object.
+  /// Use: auto str = getString(); RLP rlp(str);  // str must outlive rlp
   explicit RLP(std::string const& _s, Strictness _st = VeryStrict)
       : RLP(bytesConstRef(reinterpret_cast<::byte const*>(_s.data()), _s.size()), _st) {}
 
@@ -371,8 +376,13 @@ class RLP {
   size_t actualSize() const;
 
  private:
-  /// Disable construction from rvalue
-  explicit RLP(bytes const&&) {}
+  /// Disable construction from rvalue bytes
+  explicit RLP(bytes const&&) = delete;
+
+  /// Disable construction from rvalue string to prevent lifetime issues
+  /// This catches: const auto rlp = dev::RLP(getString());
+  /// But allows: dev::RLP(getString()).itemCount(); (temporary lifetime extended)
+  explicit RLP(std::string&&) = delete;
 
   /// Throws if is non-canonical data (i.e. single byte done in two bytes that
   /// could be done in one).

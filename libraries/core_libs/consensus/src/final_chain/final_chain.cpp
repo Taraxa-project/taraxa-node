@@ -97,14 +97,16 @@ FinalChain::FinalChain(const std::shared_ptr<DbStorage>& db, const taraxa::FullN
 void FinalChain::stop() { executor_thread_.join(); }
 
 std::future<std::shared_ptr<const FinalizationResult>> FinalChain::finalize(
-    PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes, std::shared_ptr<DagBlock>&& anchor) {
+    PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes, uint32_t blocks_per_year,
+    std::shared_ptr<DagBlock>&& anchor) {
   auto p = std::make_shared<std::promise<std::shared_ptr<const FinalizationResult>>>();
-  boost::asio::post(executor_thread_, [this, new_blk = std::move(new_blk),
-                                       finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
-                                       anchor_block = std::move(anchor), p]() mutable {
-    p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), std::move(anchor_block)));
-    finalized_cv_.notify_one();
-  });
+  boost::asio::post(executor_thread_,
+                    [this, new_blk = std::move(new_blk), finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
+                     anchor_block = std::move(anchor), blocks_per_year, p]() mutable {
+                      p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), blocks_per_year,
+                                             std::move(anchor_block)));
+                      finalized_cv_.notify_one();
+                    });
   return p->get_future();
 }
 
@@ -149,6 +151,7 @@ std::vector<SharedTransaction> FinalChain::makeSystemTransactions(PbftPeriod blk
 
 std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new_blk,
                                                                 std::vector<h256>&& finalized_dag_blk_hashes,
+                                                                uint32_t blocks_per_year,
                                                                 std::shared_ptr<DagBlock>&& anchor) {
   auto batch = db_->createWriteBatch();
 
@@ -202,7 +205,7 @@ std::shared_ptr<const FinalizationResult> FinalChain::finalize_(PeriodData&& new
     });
   }
 
-  auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used, batch);
+  auto rewards_stats = rewards_.processStats(new_blk, blocks_per_year, transactions_gas_used, batch);
   const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
 
   auto blk_header = appendBlock(batch, *new_blk.pbft_blk, state_root, total_reward, all_transactions, receipts);

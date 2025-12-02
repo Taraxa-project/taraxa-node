@@ -33,7 +33,7 @@ struct GenesisConfig {
   void validate() const;
   bytes rlp() const;
   blk_hash_t genesisHash() const;
-  void updateBlocksPerYear();
+  uint32_t calcBlocksPerYear(uint32_t lambda_ms, uint32_t delay_ms) const;
   std::pair<uint64_t, uint64_t> getGasLimits(uint64_t block_number) const;
 };
 

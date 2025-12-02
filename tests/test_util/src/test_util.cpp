@@ -367,6 +367,7 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
       cfg.genesis.state.hardforks.cacti_hf.block_propagation_min /= tests_speed;
       cfg.genesis.state.hardforks.cacti_hf.block_propagation_max /= tests_speed;
       cfg.genesis.state.hardforks.cacti_hf.lambda_change /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.consensus_delay /= tests_speed;
     }
     if (!enable_rpc_http) {
       cfg.network.rpc->http_port = std::nullopt;

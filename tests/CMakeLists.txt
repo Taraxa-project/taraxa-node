@@ -29,6 +29,10 @@ add_executable(dag_test dag_test.cpp)
 target_link_libraries(dag_test test_util)
 add_test(dag_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dag_test)
 
+add_executable(encoding_test encoding_test.cpp)
+target_link_libraries(encoding_test test_util)
+add_test(encoding_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/encoding_test)
+
 add_executable(final_chain_test final_chain_test.cpp)
 target_link_libraries(final_chain_test test_util)
 add_test(final_chain_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/final_chain_test)

@@ -44,3 +44,5 @@ doxygen_docs
 CMakeUserPresets.json
 # default build dir 
 build
+# Virtual Environment (e.g. for python)
+.venv/

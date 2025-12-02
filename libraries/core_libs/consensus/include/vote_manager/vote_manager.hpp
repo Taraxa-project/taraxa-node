@@ -296,9 +296,9 @@ class VoteManager {
   VerifiedVotes verified_votes_;
 
   // Reward votes related info
-  blk_hash_t reward_votes_block_hash_;
-  PbftRound reward_votes_period_;
-  PbftRound reward_votes_round_;
+  blk_hash_t reward_votes_block_hash_{kNullBlockHash};
+  PbftRound reward_votes_period_{0};
+  PbftRound reward_votes_round_{0};
   std::vector<vote_hash_t> extra_reward_votes_;
   mutable std::shared_mutex reward_votes_info_mutex_;
 
