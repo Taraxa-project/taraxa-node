@@ -102,7 +102,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, const s
   addBootNodes(true);
 
   // Register periodic events. Must be called after full init of tarcaps
-  registerPeriodicEvents(trx_mgr);
+  registerPeriodicEvents(pbft_mgr, trx_mgr);
 
   for (uint i = 0; i < tp_.capacity(); ++i) {
     tp_.post_loop({100 + i * 20}, [this] { while (0 < host_->do_work()); });
@@ -160,7 +160,8 @@ uint64_t Network::syncTimeSeconds() const {
 
 void Network::setSyncStatePeriod(PbftPeriod period) { pbft_syncing_state_->setSyncStatePeriod(period); }
 
-void Network::registerPeriodicEvents(std::shared_ptr<TransactionManager> trx_mgr) {
+void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
+                                     std::shared_ptr<TransactionManager> trx_mgr) {
   auto getAllPeers = [this]() {
     std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>> all_peers;
     for (auto &tarcap : tarcaps_) {
@@ -171,6 +172,8 @@ void Network::registerPeriodicEvents(std::shared_ptr<TransactionManager> trx_mgr
 
     return all_peers;
   };
+
+  uint64_t lambda_ms = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
 
   // Send new transactions
   auto sendTxs = [this, trx_mgr = trx_mgr]() {
@@ -190,7 +193,9 @@ void Network::registerPeriodicEvents(std::shared_ptr<TransactionManager> trx_mgr
       status_packet_handler->sendStatusToPeers();
     }
   };
-  periodic_events_tp_.post_loop({4000}, sendStatus);
+
+  const auto send_status_interval = 6 * lambda_ms;
+  periodic_events_tp_.post_loop({send_status_interval}, sendStatus);
 
   // Check nodes connections and refresh boot nodes
   auto checkNodesConnections = [this]() {
@@ -220,6 +225,7 @@ void Network::registerPeriodicEvents(std::shared_ptr<TransactionManager> trx_mgr
       {static_cast<uint64_t>(kConf.network.ddos_protection.packets_stats_time_period_ms.count())}, ddosStats);
 
   // SUMMARY log
+  const auto node_stats_log_interval = 5 * 6 * lambda_ms;
   auto summaryLog = [getAllPeers, node_stats = node_stats_, host = host_]() {
     std::vector<std::string> nodes_addresses;
     auto nodes = host->getNodes();
@@ -235,7 +241,7 @@ void Network::registerPeriodicEvents(std::shared_ptr<TransactionManager> trx_mgr
     }
     node_stats->logNodeStats(getAllPeers(), nodes_addresses);
   };
-  periodic_events_tp_.post_loop({30000}, summaryLog);
+  periodic_events_tp_.post_loop({node_stats_log_interval}, summaryLog);
 }
 
 void Network::addBootNodes(bool initial) {

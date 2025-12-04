@@ -40,7 +40,7 @@ enum StatusDbField : uint8_t {
   DbMinorVersion
 };
 
-enum class PbftMgrField : uint8_t { Round = 0, Step, Lambda };
+enum class PbftMgrField : uint8_t { Round = 0, Step };
 
 enum PbftMgrStatus : uint8_t {
   ExecutedBlock = 0,
@@ -144,8 +144,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(period_system_transactions);
     // final chain receipts by period
     COLUMN_W_COMP(final_chain_receipt_by_period, getIntComparator<PbftPeriod>());
-    // Rounds count (per N blocks) used to determine dynamic lambda
-    COLUMN(rounds_count_dynamic_lambda);
 
 #undef COLUMN
 #undef COLUMN_W_COMP
@@ -372,10 +370,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<uint64_t> getProposalPeriodForDagLevel(uint64_t level);
   void saveProposalPeriodDagLevelsMap(uint64_t level, PbftPeriod period);
   void addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod period, Batch& write_batch);
-
-  // Rounds count dynamic lambda
-  void saveRoundsCountDynamicLambda(uint32_t rounds_count, Batch& write_batch);
-  uint32_t getRoundsCountDynamicLambda();
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
   bool hasMajorVersionChanged() { return major_version_changed_; }

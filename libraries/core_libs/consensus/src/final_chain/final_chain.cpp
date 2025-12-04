@@ -523,8 +523,8 @@ uint256_t FinalChain::dposTotalAmountDelegated(EthBlockNumber blk_num) const {
   return state_api_.dpos_total_amount_delegated(blk_num);
 }
 
-std::vector<state_api::ValidatorVoteCount> FinalChain::dposValidatorsEligibleVoteCounts(EthBlockNumber blk_num) const {
-  return state_api_.dpos_validators_eligible_vote_counts(blk_num);
+std::vector<state_api::ValidatorVoteCount> FinalChain::dposValidatorsVoteCounts(EthBlockNumber blk_num) const {
+  return state_api_.dpos_validators_vote_counts(blk_num);
 }
 
 void FinalChain::waitForFinalized() {

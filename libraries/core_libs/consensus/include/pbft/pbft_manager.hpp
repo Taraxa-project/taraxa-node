@@ -226,6 +226,12 @@ class PbftManager {
   blk_hash_t lastPbftBlockHashFromQueueOrChain();
 
   /**
+   * @brief Get PBFT lambda. PBFT lambda is a timer clock
+   * @return PBFT lambda
+   */
+  std::chrono::milliseconds getPbftInitialLambda() const { return kMinLambda; }
+
+  /**
    * @brief Calculate DAG blocks ordering hash
    * @param dag_block_hashes DAG blocks hashes
    * @return DAG blocks ordering hash
@@ -330,6 +336,11 @@ class PbftManager {
    * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
    */
   void broadcastVotes();
+
+  /**
+   * @brief Reset PBFT step to 1
+   */
+  void resetStep();
 
   /**
    * @brief If node receives 2t+1 next votes for some block(including kNullBlockHash), advance round to + 1.
@@ -597,20 +608,6 @@ class PbftManager {
    */
   void processPillarBlock(PbftPeriod period);
 
-  /**
-   * @param period
-   * @return pbft deadline time - max time to finalize the block in provided period
-   */
-  std::chrono::milliseconds getPbftDeadline(PbftPeriod period) const;
-
-  /**
-   * @brief Adjust dynamic lambda
-   *
-   * @param finalized_period period, in which block was finalized
-   * @param finalized_round round, in which block was finalized
-   */
-  void adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round);
-
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
@@ -627,16 +624,15 @@ class PbftManager {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
+  // TODO: remove kMinLambda, kGenesisConfig as kConfig can be used instead
   const FullNodeConfig kConfig;
   const uint32_t kSyncingThreadPoolSize;
   std::shared_ptr<util::ThreadPool>
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks
 
-  const std::chrono::milliseconds kMaxExponentialLambda{60000};  // [ms], max lambda is 1 minute
-
-  uint32_t rounds_count_dynamic_lambda_{0};  // rounds count per cacti_hf.lambda_change_interval blocks
-  uint32_t dynamic_lambda_{0};               // [ms] - dynamic lambda that can be anywhere between <500ms, 1500ms>
-  std::chrono::milliseconds current_round_lambda_{0};  // [ms] - current round lambda
+  const std::chrono::milliseconds kMinLambda;         // [ms]
+  std::chrono::milliseconds lambda_{0};               // [ms]
+  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;

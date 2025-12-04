@@ -53,7 +53,7 @@ std::shared_ptr<PillarBlock> PillarChainManager::createPillarBlock(
     PbftPeriod period, const std::shared_ptr<const final_chain::BlockHeader>& block_header, const h256& bridge_root,
     const h256& bridge_epoch) {
   blk_hash_t previous_pillar_block_hash{};  // null block hash
-  auto new_vote_counts = final_chain_->dposValidatorsEligibleVoteCounts(period);
+  auto new_vote_counts = final_chain_->dposValidatorsVoteCounts(period);
   std::vector<PillarBlock::ValidatorVoteCountChange> votes_count_changes;
 
   // First ever pillar block

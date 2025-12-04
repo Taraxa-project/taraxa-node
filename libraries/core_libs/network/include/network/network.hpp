@@ -93,9 +93,11 @@ class Network {
    * @brief Register period events, e.g. sending status packet, transaction packet etc...
    *
    * @param config
+   * @param pbft_mgr
    * @param trx_mgr
    */
-  void registerPeriodicEvents(std::shared_ptr<TransactionManager> trx_mgr);
+  void registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
+                              std::shared_ptr<TransactionManager> trx_mgr);
 
   void addBootNodes(bool initial = false);
 
