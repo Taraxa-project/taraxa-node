@@ -33,6 +33,72 @@ auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 
 struct FullNodeTest : NodesTest {};
 
+TEST_F(FullNodeTest, save_period_lambda_cacti_hf) {
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
+  auto &genesis_cfg = node_cfgs.front().genesis;
+  genesis_cfg.state.dpos.yield_percentage = 10;  // Must be set to enable rewards even though it is not used
+
+  auto &hardforks_cfg = genesis_cfg.state.hardforks;
+  hardforks_cfg.cacti_hf.block_num = 2;
+  hardforks_cfg.cacti_hf.lambda_change_interval = 1;  // Change dynamic lambda every period
+  hardforks_cfg.cacti_hf.lambda_change = 10;
+  hardforks_cfg.cacti_hf.lambda_max = 100;
+  hardforks_cfg.cacti_hf.lambda_min = 50;
+  hardforks_cfg.cacti_hf.lambda_default = 200;
+  hardforks_cfg.cacti_hf.block_propagation_min = 200;
+  hardforks_cfg.cacti_hf.block_propagation_max = 250;
+  hardforks_cfg.cacti_hf.consensus_delay = 0;
+
+  const auto progress_blocks = hardforks_cfg.cacti_hf.block_num + 3;
+  hardforks_cfg.rewards_distribution_frequency.clear();
+  hardforks_cfg.rewards_distribution_frequency[1] =
+      progress_blocks + 1;  // Distribute rewards every <progress_blocks + 1> periods
+
+  auto node = launch_nodes(node_cfgs).front();
+  auto node_db = node->getDB();
+
+  EXPECT_HAPPENS({10s, 100ms},
+                 [&](auto &ctx) { WAIT_EXPECT_GE(ctx, node->getPbftChain()->getPbftChainSize(), progress_blocks); });
+  node->getPbftManager()->stop();
+
+  EXPECT_FALSE(node_db->getPeriodLambda(hardforks_cfg.cacti_hf.block_num - 1, false).has_value());
+
+  // Check if dynamic lambda decreases when supposed to
+  const auto rewards_stats = node_db->getBlocksRewardsStats();
+  const auto base_blocks_per_year = rewards_stats.at(hardforks_cfg.cacti_hf.block_num).getBlocksPerYear();
+  auto expected_lambda = hardforks_cfg.cacti_hf.lambda_max;
+  for (auto period = hardforks_cfg.cacti_hf.block_num; period <= progress_blocks; period++) {
+    const auto period_lambda = node->getDB()->getPeriodLambda(period, false);
+    // Check if dynamic lambda was decreased each new period
+    EXPECT_TRUE(period_lambda.has_value());
+    EXPECT_EQ(*period_lambda, expected_lambda);
+    expected_lambda -= hardforks_cfg.cacti_hf.lambda_change;
+
+    // Check if blocks per year was increased each new period. With each new period, base_blocks_per_year is increased
+    // by 100%/(100% - 10%*n)
+    const auto blocks_per_year = rewards_stats.at(period).getBlocksPerYear();
+    const uint32_t expected_blocks_per_year =
+        base_blocks_per_year * (100.0 / (100 - 10 * (period - hardforks_cfg.cacti_hf.block_num)));
+    const auto calc_blocks_per_year =
+        genesis_cfg.calcBlocksPerYear(*period_lambda, hardforks_cfg.cacti_hf.consensus_delay);
+
+    EXPECT_EQ(blocks_per_year, expected_blocks_per_year);
+    EXPECT_EQ(blocks_per_year, calc_blocks_per_year);
+  }
+
+  // Check if dynamic lambda increases when supposed to
+  // Simulate network getting stalled and finalizing some block in round >= 2 by (previously) stopping pbft manager
+  std::this_thread::sleep_for(node->getPbftManager()->getPbftDeadline());
+  const auto stalled_period = node->getPbftManager()->getPbftPeriod();
+  node->getPbftManager()->start();
+  EXPECT_HAPPENS({5s, 100ms},
+                 [&](auto &ctx) { WAIT_EXPECT_GE(ctx, node->getPbftManager()->getPbftPeriod(), stalled_period + 1); });
+  const auto stalled_period_lambda = node->getDB()->getPeriodLambda(stalled_period, false);
+  // Check if dynamic lambda was decreased each new period
+  EXPECT_TRUE(stalled_period_lambda.has_value());
+  EXPECT_EQ(*stalled_period_lambda, hardforks_cfg.cacti_hf.lambda_default);
+}
+
 TEST_F(FullNodeTest, db_test) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir);
   auto &db = *db_ptr;
@@ -90,6 +156,44 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
+
+  // Dynamic lambda
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Lambda), 1);
+  db.savePbftMgrField(PbftMgrField::Lambda, 10);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Lambda), 10);
+  batch = db.createWriteBatch();
+  db.addPbftMgrFieldToBatch(PbftMgrField::Lambda, 20, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Lambda), 20);
+
+  batch = db.createWriteBatch();
+  EXPECT_FALSE(db.getPeriodLambda(1, true).has_value());
+  EXPECT_FALSE(db.getPeriodLambda(1, false).has_value());
+  for (size_t i = 5; i <= 15; i += 5) {
+    db.savePeriodLambda(i, i * 10, batch);
+  }
+  db.commitWriteBatch(batch);
+
+  for (size_t i = 5; i <= 15; i += 5) {
+    EXPECT_TRUE(db.getPeriodLambda(i, true).has_value());
+    EXPECT_TRUE(db.getPeriodLambda(i, false).has_value());
+    EXPECT_EQ(db.getPeriodLambda(i, true).value(), i * 10);
+    EXPECT_EQ(db.getPeriodLambda(i, false).value(), i * 10);
+
+    EXPECT_FALSE(db.getPeriodLambda(i + 1, false).has_value());
+    EXPECT_TRUE(db.getPeriodLambda(i + 1, true).has_value());
+    EXPECT_EQ(db.getPeriodLambda(i + 1, true).value(), i * 10);
+  }
+
+  EXPECT_EQ(db.getRoundsCountDynamicLambda(), 0);
+  batch = db.createWriteBatch();
+  db.saveRoundsCountDynamicLambda(5, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getRoundsCountDynamicLambda(), 5);
+  batch = db.createWriteBatch();
+  db.saveRoundsCountDynamicLambda(10, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getRoundsCountDynamicLambda(), 10);
 
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
@@ -337,6 +441,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs(5, 1, 20);
+  for (auto &cfg : node_cfgs) {
+    cfg.genesis.state.hardforks.cacti_hf.block_num = UINT64_MAX;
+  }
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
@@ -1507,6 +1614,10 @@ TEST_F(FullNodeTest, SoleiroliaHardfork) {
 
     auto trx2 = std::make_shared<Transaction>(nonce++, 0, 1000, 314369, dev::fromHex(call_data), node0->getSecretKey(),
                                               recipe->new_contract_address);
+
+    ASSERT_HAPPENS({2s, 100ms}, [&](auto &ctx) {
+      WAIT_EXPECT_EQ(ctx, node0->getPbftChain()->getPbftChainSize(), node0->getFinalChain()->lastBlockNumber());
+    });
 
     EXPECT_GE(node0->getTransactionManager()
                   ->estimateTransactionGas(trx2, node0->getPbftChain()->getPbftChainSize())

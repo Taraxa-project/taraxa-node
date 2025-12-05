@@ -50,11 +50,13 @@ class FinalChain {
    *
    * @param period_data Full period data with transactions
    * @param finalized_dag_blk_hashes
+   * @param blocks_per_year - expected number of blocks generated per year based on pbft block dynamic lambda
    * @param precommit_ext
    * @return finalization result
    */
   std::future<std::shared_ptr<const FinalizationResult>> finalize(PeriodData&& period_data,
                                                                   std::vector<h256>&& finalized_dag_blk_hashes,
+                                                                  uint32_t blocks_per_year,
                                                                   std::shared_ptr<DagBlock>&& anchor = nullptr);
 
   /**
@@ -247,9 +249,9 @@ class FinalChain {
 
   /**
    * @param blk_num
-   * @return vector of validators vote counts for provided blk_num
+   * @return vector of validators eligible vote counts for provided blk_num
    */
-  std::vector<state_api::ValidatorVoteCount> dposValidatorsVoteCounts(EthBlockNumber blk_num) const;
+  std::vector<state_api::ValidatorVoteCount> dposValidatorsEligibleVoteCounts(EthBlockNumber blk_num) const;
 
   /**
    * @param blk_num
@@ -279,7 +281,7 @@ class FinalChain {
   std::pair<val_t, bool> getBalance(addr_t const& addr) const;
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
-                                                      std::shared_ptr<DagBlock>&& anchor);
+                                                      uint32_t blocks_per_year, std::shared_ptr<DagBlock>&& anchor);
 
   SharedTransactionReceipts blockReceipts(std::optional<EthBlockNumber> n = {}) const;
 

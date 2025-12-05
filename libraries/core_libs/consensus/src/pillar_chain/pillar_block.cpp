@@ -171,8 +171,8 @@ Json::Value PillarBlockData::getJson(bool include_signatures) const {
       const auto compact = dev::CompactSignatureStruct(vote->getVoteSignature());
 
       Json::Value signature;
-      signature["r"] = dev::toJS(compact.r);
-      signature["vs"] = dev::toJS(compact.vs);
+      signature["r"] = dev::toJS(u256(compact.r));
+      signature["vs"] = dev::toJS(u256(compact.vs));
 
       res["signatures"].append(signature);
     }

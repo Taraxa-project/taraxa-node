@@ -22,6 +22,7 @@
 #include "pbft/pbft_manager.hpp"
 #include "pillar_chain/pillar_chain_manager.hpp"
 #include "slashing_manager/slashing_manager.hpp"
+#include "storage/migration/block_stats.hpp"
 #include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -111,7 +112,10 @@ void App::init(const cli::Config &cli_conf) {
     db_->updateDbVersions();
 
     auto migration_manager = storage::migration::Manager(db_);
+    migration_manager.registerMigration(std::make_shared<storage::migration::BlockStats>(db_, conf_));
+
     migration_manager.applyAll();
+
     if (conf_.db_config.migrate_receipts_by_period) {
       migration_manager.applyReceiptsByPeriod();
     }

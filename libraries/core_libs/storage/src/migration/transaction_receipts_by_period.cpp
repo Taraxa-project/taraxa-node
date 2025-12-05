@@ -54,7 +54,7 @@ void TransactionReceiptsByPeriod::migrate(logger::Logger& log) {
     if (period % 10000 == 0) {
       LOG(log) << "Migrating period " << period;
     }
-    const auto transactions = db_->transactionsFromPeriodDataRlp(period, dev::RLP(it->value().ToString()));
+    const auto transactions = db_->transactionsFromPeriodDataRlp(period, DbStorage::sliceToRlp(it->value()));
     if (transactions.empty()) {
       continue;
     }

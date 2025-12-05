@@ -58,7 +58,7 @@ void dec_json(Json::Value const& json, GenesisConfig& obj) {
   dec_json(json, obj.state);
   dec_json(json["gas_price"], obj.gas_price);
   dec_json(json["dag"], obj.dag);
-  obj.updateBlocksPerYear();
+  obj.state.dpos.blocks_per_year = obj.calcBlocksPerYear(obj.pbft.lambda_ms, 700);
 }
 
 GenesisConfig::GenesisConfig() {
@@ -97,20 +97,22 @@ GenesisConfig::GenesisConfig() {
   dpos.vote_eligibility_balance_step = 1000000000;
   dpos.validator_maximum_stake = dev::jsToU256("0x84595161401484A000000");
   dpos.yield_percentage = 20;
-  updateBlocksPerYear();
+  dpos.blocks_per_year = calcBlocksPerYear(pbft.lambda_ms, 700);
 }
 
-void GenesisConfig::updateBlocksPerYear() {
+uint32_t GenesisConfig::calcBlocksPerYear(uint32_t lambda_ms, uint32_t delay_ms) const {
   uint64_t year_ms = 365 * 24 * 60 * 60;
   year_ms *= 1000;
-  // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
-  const uint32_t expected_block_time = 2 * pbft.lambda_ms + 700;
-  state.dpos.blocks_per_year = year_ms / expected_block_time;
+  // we have fixed 2*lambda time for proposing step and adding approx delay it takes to receive 2t+1 soft and cert votes
+  const uint32_t expected_block_time = 2 * lambda_ms + delay_ms;
+  return year_ms / expected_block_time;
 }
 
 void GenesisConfig::validate() const {
   gas_price.validate();
   state.hardforks.ficus_hf.validate(state.dpos.delegation_delay);
+  state.hardforks.cacti_hf.validate(
+      state.hardforks.getRewardsDistributionFrequency(state.hardforks.cacti_hf.block_num));
 }
 
 bytes GenesisConfig::rlp() const {
