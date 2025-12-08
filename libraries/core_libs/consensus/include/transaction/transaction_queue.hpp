@@ -38,7 +38,8 @@ class TransactionQueue {
    * @param last_block_number
    * @return TransactionStatus
    */
-  TransactionStatus insert(std::shared_ptr<Transaction>&& transaction, bool proposable, uint64_t last_block_number = 0);
+  std::pair<TransactionStatus, std::string> insert(std::shared_ptr<Transaction>&& transaction, bool proposable,
+                                                   uint64_t last_block_number = 0);
 
   /**
    * @brief remove transaction from queue

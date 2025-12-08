@@ -1410,7 +1410,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   while (true) {
     auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                              node0->getSecretKey(), addr_t::random());
-    if (node0->getTransactionManager()->insertValidatedTransaction(std::move(trx), true) == TransactionStatus::Overflow)
+    if (node0->getTransactionManager()->insertValidatedTransaction(std::move(trx), true).first == TransactionStatus::Overflow)
       break;
   }
 
