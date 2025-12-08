@@ -613,6 +613,12 @@ class PbftManager {
    */
   void adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round);
 
+  /**
+   * @param round
+   * @return lambda based on specified round
+   */
+  uint32_t getRoundLambda(PbftRound round) const;
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
