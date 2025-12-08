@@ -426,12 +426,7 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   auto batch = db_->createWriteBatch();
 
   if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
-    // Use dynamic lambda for round 1
-    if (round == 1) {
-      new_current_round_lambda = dynamic_lambda_;
-    } else {  // otherwise use default lambda
-      new_current_round_lambda = kGenesisConfig.state.hardforks.cacti_hf.lambda_default;
-    }
+    new_current_round_lambda = getRoundLambda(round);
 
     // Save period lambda to db in case it's value changed or for the first block on cacti hf
     if (new_current_round_lambda != static_cast<uint32_t>(current_round_lambda_.count()) ||
@@ -521,6 +516,15 @@ void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound fin
   db_->commitWriteBatch(batch);
 }
 
+uint32_t PbftManager::getRoundLambda(PbftRound round) const {
+  if (round == 1) {
+    return dynamic_lambda_;
+  }
+
+  // otherwise use default lambda
+  return kGenesisConfig.state.hardforks.cacti_hf.lambda_default;
+}
+
 std::chrono::milliseconds PbftManager::elapsedTimeInMs(const time_point &start_time) {
   return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time);
 }
@@ -568,12 +572,8 @@ void PbftManager::initialState() {
       dynamic_lambda_ = kGenesisConfig.state.hardforks.cacti_hf.lambda_max;
     }
 
-    // Use dynamic lambda for round 1
-    if (current_pbft_round == 1) {
-      current_round_lambda_ = std::chrono::milliseconds(dynamic_lambda_);
-    } else {  // otherwise use default lambda
-      current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.state.hardforks.cacti_hf.lambda_default);
-    }
+    // Note: Init current_round_lambda_ only after dynamic_lambda_ is initialized
+    current_round_lambda_ = std::chrono::milliseconds(getRoundLambda(current_pbft_round));
   } else {
     current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.pbft.lambda_ms);
   }
@@ -2089,8 +2089,13 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   // Dynamic lambda was introduced in cacti hardfork -> it affects the number of blocks generated per year, which
   // affects rewards distribution
   if (kGenesisConfig.state.hardforks.isOnCactiHardfork(pbft_period)) {
+    // Lambda used to calculate blocks_per_year for specific block - depends on cert votes round
+    // Note: do not use current_round_lambda_, it could be different for different nodes due to network partitioning
+    // etc...
+    uint32_t block_lambda = getRoundLambda(sample_cert_vote->getRound());
+
     blocks_per_year = kGenesisConfig.calcBlocksPerYear(
-        static_cast<uint32_t>(current_round_lambda_.count()),
+        block_lambda,
         kGenesisConfig.state.hardforks.cacti_hf
             .consensus_delay /* approx time it takes to receive 2t+1 soft and cert votes after 2*lambda */);
 
