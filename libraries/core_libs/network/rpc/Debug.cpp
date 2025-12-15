@@ -179,9 +179,12 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
       return res;
     }
 
-    const auto votes_period = votes.front()->getPeriod();
+    const auto& front_vote = votes.front();
+    const auto votes_period = front_vote->getPeriod();
+    const auto round = front_vote->getRound();
     const uint64_t total_dpos_votes_count = final_chain->dposEligibleTotalVoteCount(votes_period - 1);
     res["total_votes_count"] = total_dpos_votes_count;
+    res["round"] = round;
     res["votes"] = util::transformToJsonParallel(votes, [&](const auto& vote, auto) {
       vote_manager->validateVote(vote);
       return vote->toJSON();
