@@ -428,9 +428,9 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
     new_current_round_lambda = getRoundLambda(round);
 
-    // Save period lambda to db in case it's value changed or for the first block on cacti hf
+    // Save period lambda to db in case it's value changed or if it was not saved to db yet
     if (new_current_round_lambda != static_cast<uint32_t>(current_round_lambda_.count()) ||
-        period == kGenesisConfig.state.hardforks.cacti_hf.block_num) {
+        !db_->getPeriodLambda(period, true).has_value()) {
       db_->savePeriodLambda(period, new_current_round_lambda, batch);
     }
   } else {
