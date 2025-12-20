@@ -28,7 +28,7 @@ DagManager::DagManager(const FullNodeConfig &config, addr_t node_addr, std::shar
       key_manager_(std::move(key_manager)),
       anchor_(config.genesis.dag_genesis_block.getHash()),
       period_(0),
-      sortition_params_manager_(node_addr, config.genesis.sortition, db_),
+      sortition_params_manager_(node_addr, config, db_),
       dag_config_(config.genesis.dag),
       genesis_block_(std::make_shared<DagBlock>(config.genesis.dag_genesis_block)),
       max_levels_per_period_(config.max_levels_per_period),

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <config/config.hpp>
+
 #include "pbft/period_data.hpp"
 #include "storage/storage.hpp"
 #include "vdf/config.hpp"
@@ -35,7 +37,7 @@ struct SortitionParamsChange {
  */
 class SortitionParamsManager {
  public:
-  SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
+  SortitionParamsManager(const addr_t& node_addr, const FullNodeConfig& config, std::shared_ptr<DbStorage> db);
   SortitionParams getSortitionParams(std::optional<PbftPeriod> for_period = {}) const;
 
   /**
@@ -70,7 +72,8 @@ class SortitionParamsManager {
   const std::deque<SortitionParamsChange>& getParamsChanges() const { return params_changes_; }
 
  protected:
-  SortitionConfig config_;
+  const FullNodeConfig kConfig;
+  SortitionConfig sortition_config_;
   std::shared_ptr<DbStorage> db_;
   std::deque<uint16_t> dag_efficiencies_;
   uint32_t ignored_efficiency_counter_ = 0;
