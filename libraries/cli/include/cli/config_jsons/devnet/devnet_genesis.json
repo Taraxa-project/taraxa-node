@@ -265,7 +265,7 @@
     },
     "vdf": {
       "difficulty_max": 21,
-      "difficulty_min": 13,
+      "difficulty_min": 16,
       "difficulty_stale": 22,
       "lambda_bound": "0x64"
     }
