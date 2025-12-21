@@ -96,6 +96,20 @@ jobs:
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
 
+      - name: Free disk space
+        if: runner.os == 'Linux'
+        run: |
+          df -h /
+          sudo rm -rf /usr/lib/jvm \
+                      /usr/local/.ghcup \
+                      /usr/local/lib/android \
+                      /usr/local/share/powershell \
+                      /usr/share/dotnet \
+                      /usr/share/swift \
+                      "$AGENT_TOOLSDIRECTORY"
+          sudo docker system prune -af || true
+          df -h /
+          
       - name: Build and push Docker image
         id: build-push
         uses: docker/build-push-action@v5
