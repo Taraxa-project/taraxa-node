@@ -17,6 +17,10 @@ on:
       - 'doc/**'
       - '**.md'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: gcr.io
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
