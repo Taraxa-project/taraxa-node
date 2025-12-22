@@ -141,7 +141,8 @@
       "lambda_change" : 10,
       "block_propagation_min" : 4000,
       "block_propagation_max" : 17000,
-      "consensus_delay": 400
+      "consensus_delay": 400,
+      "delegation_locking_period": 10
     }
   }
 }

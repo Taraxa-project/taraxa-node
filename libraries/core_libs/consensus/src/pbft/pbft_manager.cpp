@@ -422,27 +422,17 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   state_ = value_proposal_state;
 
   const auto period = getPbftPeriod();
-  uint32_t new_current_round_lambda{0};
-  auto batch = db_->createWriteBatch();
-
   if (kGenesisConfig.state.hardforks.isOnCactiHardfork(period)) {
-    new_current_round_lambda = getRoundLambda(round);
-
-    // Save period lambda to db in case it's value changed or if it was not saved to db yet
-    if (new_current_round_lambda != static_cast<uint32_t>(current_round_lambda_.count()) ||
-        !db_->getPeriodLambda(period, true).has_value()) {
-      db_->savePeriodLambda(period, new_current_round_lambda, batch);
-    }
+    current_round_lambda_ = std::chrono::milliseconds(getRoundLambda(round));
   } else {
-    new_current_round_lambda = kGenesisConfig.pbft.lambda_ms;
+    current_round_lambda_ = std::chrono::milliseconds(kGenesisConfig.pbft.lambda_ms);
   }
 
   LOG(log_nf_) << "Reset PBFT consensus to: period " << period << ", round " << round << ", step 1, lambda "
-               << new_current_round_lambda << " [ms]";
-
-  current_round_lambda_ = std::chrono::milliseconds(new_current_round_lambda);
+               << current_round_lambda_ << " [ms]";
 
   // Update in DB first
+  auto batch = db_->createWriteBatch();
   db_->addPbftMgrFieldToBatch(PbftMgrField::Round, round, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrField::Step, 1, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
@@ -477,7 +467,7 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   current_round_start_datetime_ = std::chrono::system_clock::now();
 }
 
-void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round) {
+void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round, Batch &write_batch) {
   const auto &kCactiHfCfg = kGenesisConfig.state.hardforks.cacti_hf;
   rounds_count_dynamic_lambda_ += finalized_round;
 
@@ -510,10 +500,8 @@ void PbftManager::adjustDynamicLambda(PbftPeriod finalized_period, PbftRound fin
                  << ", period " << finalized_period << ", round " << finalized_round;
   }
 
-  auto batch = db_->createWriteBatch();
-  db_->saveRoundsCountDynamicLambda(rounds_count_dynamic_lambda_, batch);
-  db_->addPbftMgrFieldToBatch(PbftMgrField::Lambda, dynamic_lambda_, batch);
-  db_->commitWriteBatch(batch);
+  db_->saveRoundsCountDynamicLambda(rounds_count_dynamic_lambda_, write_batch);
+  db_->addPbftMgrFieldToBatch(PbftMgrField::Lambda, dynamic_lambda_, write_batch);
 }
 
 uint32_t PbftManager::getRoundLambda(PbftRound round) const {
@@ -2009,17 +1997,23 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
     return false;
   }
 
-  auto pbft_period = period_data.pbft_blk->getPeriod();
+  assert(cert_votes.empty() == false);
+  const auto sample_cert_vote = cert_votes[0];
+  assert(pbft_block_hash == sample_cert_vote->getBlockHash());
+
+  const auto block_pbft_period = period_data.pbft_blk->getPeriod();
+  const auto block_pbft_round = sample_cert_vote->getRound();
 
   // To finalize the pbft block that includes pillar block hash, pillar block needs to be finalized first
-  if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(pbft_period)) {
+  if (kGenesisConfig.state.hardforks.ficus_hf.isPbftWithPillarBlockPeriod(block_pbft_period)) {
     // Note: presence of pillar block hash in extra data was already validated in validatePbftBlock
     const auto pillar_block_hash = period_data.pbft_blk->getExtraData()->getPillarBlockHash();
 
     // Finalize included pillar block
     auto above_threshold_pillar_votes = pillar_chain_mgr_->finalizePillarBlock(*pillar_block_hash);
     if (above_threshold_pillar_votes.empty()) {
-      LOG(log_er_) << "Cannot push PBFT block " << period_data.pbft_blk->getBlockHash() << ", period " << pbft_period
+      LOG(log_er_) << "Cannot push PBFT block " << period_data.pbft_blk->getBlockHash() << ", period "
+                   << block_pbft_period << ", round " << block_pbft_round
                    << ": Unable to finalize included pillar block " << *pillar_block_hash;
       return false;
     }
@@ -2027,10 +2021,6 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
     // Save pillar votes into period data
     period_data.pillar_votes_ = std::move(above_threshold_pillar_votes);
   }
-
-  assert(cert_votes.empty() == false);
-  const auto sample_cert_vote = cert_votes[0];
-  assert(pbft_block_hash == sample_cert_vote->getBlockHash());
 
   auto null_anchor = period_data.pbft_blk->getPivotDagBlockHash() == kNullBlockHash;
 
@@ -2071,7 +2061,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
     // Set DAG blocks period
     auto const &anchor_hash = period_data.pbft_blk->getPivotDagBlockHash();
-    dag_mgr_->setDagBlockOrder(anchor_hash, pbft_period, dag_blocks_order);
+    dag_mgr_->setDagBlockOrder(anchor_hash, block_pbft_period, dag_blocks_order);
 
     trx_mgr_->updateFinalizedTransactionsStatus(period_data);
 
@@ -2082,17 +2072,24 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   // anchor_dag_block_order_cache_ is valid in one period, clear when period changes
   anchor_dag_block_order_cache_.clear();
 
-  LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
-               << ", round: " << getPbftRound();
+  LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << block_pbft_period
+               << ", round: " << block_pbft_round;
 
   uint32_t blocks_per_year{0};
   // Dynamic lambda was introduced in cacti hardfork -> it affects the number of blocks generated per year, which
   // affects rewards distribution
-  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(pbft_period)) {
-    // Lambda used to calculate blocks_per_year for specific block - depends on cert votes round
-    // Note: do not use current_round_lambda_, it could be different for different nodes due to network partitioning
-    // etc...
-    uint32_t block_lambda = getRoundLambda(sample_cert_vote->getRound());
+  if (kGenesisConfig.state.hardforks.isOnCactiHardfork(block_pbft_period)) {
+    // Lambda used in pbft consensus specifically for period_data.pbft_blk block
+    uint32_t block_lambda = getRoundLambda(block_pbft_round);
+
+    batch = db_->createWriteBatch();
+
+    // Save period lambda to db in case it's value changed or if it was not saved to db yet
+    // ! Important: save period lambds before adjusting dynamic lambda for the next period (adjustDynamicLambda)
+    const auto last_saved_period_lambda = db_->getPeriodLambda(block_pbft_period - 1, true);
+    if (!last_saved_period_lambda.has_value() || *last_saved_period_lambda != block_lambda) {
+      db_->savePeriodLambda(block_pbft_period, block_lambda, batch);
+    }
 
     blocks_per_year = kGenesisConfig.calcBlocksPerYear(
         block_lambda,
@@ -2100,7 +2097,9 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
             .consensus_delay /* approx time it takes to receive 2t+1 soft and cert votes after 2*lambda */);
 
     // Adjust dynamic lambda
-    adjustDynamicLambda(pbft_period, sample_cert_vote->getRound());
+    adjustDynamicLambda(block_pbft_period, sample_cert_vote->getRound(), batch);
+
+    db_->commitWriteBatch(batch);
   } else {
     blocks_per_year = kGenesisConfig.state.dpos.blocks_per_year;
   }
@@ -2115,9 +2114,9 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   // Create new pillar block
   // !!! Important: processPillarBlock must be called only after advancePeriod()
-  if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(pbft_period)) {
-    assert(pbft_period == pbft_chain_->getPbftChainSize());
-    processPillarBlock(pbft_period);
+  if (kGenesisConfig.state.hardforks.ficus_hf.isPillarBlockPeriod(block_pbft_period)) {
+    assert(block_pbft_period == pbft_chain_->getPbftChainSize());
+    processPillarBlock(block_pbft_period);
   }
 
   return true;

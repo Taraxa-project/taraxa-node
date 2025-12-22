@@ -610,8 +610,9 @@ class PbftManager {
    *
    * @param finalized_period period, in which block was finalized
    * @param finalized_round round, in which block was finalized
+   * @param write_batch
    */
-  void adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round);
+  void adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round, Batch &write_batch);
 
   /**
    * @param round
