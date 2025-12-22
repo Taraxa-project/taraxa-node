@@ -10,12 +10,13 @@ on:
       - '**.md'
       - 'charts/**'
   pull_request:
-    branches:
-      - master
-      - develop
     paths-ignore:
       - 'doc/**'
       - '**.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: gcr.io
@@ -24,7 +25,168 @@ env:
   DOCKERFILE: Dockerfile
 
 jobs:
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Free disk space
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h /
+          BEFORE=$(df / | tail -1 | awk '{print $3}')
+
+          sudo rm -rf /usr/lib/jvm \
+                      /usr/local/.ghcup \
+                      /usr/local/lib/android \
+                      /usr/local/share/powershell \
+                      /usr/share/dotnet \
+                      /usr/share/swift \
+                      "$AGENT_TOOLSDIRECTORY"
+          sudo docker system prune -af > /dev/null 2>&1 || true
+
+          echo "=== Disk space after cleanup ==="
+          df -h /
+          AFTER=$(df / | tail -1 | awk '{print $3}')
+
+          # Calculate reclaimed space (values are in KB)
+          BEFORE_KB=$(echo $BEFORE | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          AFTER_KB=$(echo $AFTER | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          RECLAIMED_KB=$((BEFORE_KB - AFTER_KB))
+          RECLAIMED_GB=$(echo "scale=1; $RECLAIMED_KB / 1024 / 1024" | bc)
+          echo "=== Reclaimed: ${RECLAIMED_GB}G ==="
+
+      - name: Build test image (build stage)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          target: build
+          push: false
+          load: true
+          tags: taraxa-node-ctest:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run CTest
+        run: |
+          mkdir -p tmp_docker
+          docker run --ulimit nofile=4096:4096 \
+            --rm -v $PWD/tmp_docker:/tmp \
+            --name taraxa-node-ctest \
+            taraxa-node-ctest:test \
+            sh -c 'cd cmake-docker-build/bin && ctest --output-on-failure'
+
+      - name: Handle core dumps on failure
+        if: failure()
+        run: |
+          if ls tmp_docker/core* 1> /dev/null 2>&1; then
+            sudo chmod 777 tmp_docker/core*
+          fi
+
+      - name: Upload CTest artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctest-artifacts
+          path: tmp_docker/
+          retention-days: 7
+
+      - name: Build final image for SmokeTest
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          push: false
+          load: true
+          tags: taraxa-node:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run SmokeTest
+        run: |
+          # Create network
+          docker network create smoketest
+
+          # Start node
+          docker run -d \
+            --name smoketest \
+            --net smoketest \
+            taraxa-node:test \
+            single
+
+          # Wait for node to start
+          sleep 30
+
+          # Show logs
+          echo "--- Container logs ---"
+          docker logs smoketest
+          echo "--- End logs ---"
+
+          # Test RPC
+          mkdir -p test_build-d
+          http_code=$(docker run --rm -v $PWD/test_build-d:/data \
+            --net smoketest \
+            curlimages/curl:latest \
+            -sS --fail -w '%{http_code}' -o /data/http.out \
+            --url smoketest:7777 \
+            -d '{
+              "jsonrpc": "2.0",
+              "id":"0",
+              "method": "send_coin_transaction",
+              "params":[{
+                "nonce": 0,
+                "value": 0,
+                "gas": 0,
+                "gas_price": 1,
+                "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+              }]
+            }')
+
+          cat test_build-d/http.out || true
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "SmokeTest passed!"
+          else
+            echo "SmokeTest failed with HTTP code: $http_code"
+            exit 1
+          fi
+
+      - name: Save SmokeTest logs on failure
+        if: failure()
+        run: |
+          mkdir -p smoketest-artifacts
+          docker logs smoketest > smoketest-artifacts/container.log 2>&1 || true
+          cp test_build-d/http.out smoketest-artifacts/ || true
+
+      - name: Upload SmokeTest artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoketest-artifacts
+          path: smoketest-artifacts/
+          retention-days: 7
+
+      - name: Cleanup SmokeTest
+        if: always()
+        run: |
+          docker kill smoketest || true
+          docker rm smoketest || true
+          docker network rm smoketest || true
+
   build:
+    needs: [test]
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       image-digest: ${{ steps.build-push.outputs.digest }}
@@ -62,9 +224,9 @@ jobs:
           BUILD_NUMBER=${{ github.run_number }}
           PR_NUMBER=${{ github.event.pull_request.number }}
 
-          # For PRs, use head.ref (the actual branch), for push events use ref_name
+          # For PRs, use head_ref (the actual branch), for push events use ref_name
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH_NAME=${{ github.head.ref }}
+            BRANCH_NAME=${{ github.head_ref }}
           else
             BRANCH_NAME=${{ github.ref_name }}
           fi
@@ -96,6 +258,33 @@ jobs:
 
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
 
+      - name: Free disk space
+        if: runner.os == 'Linux'
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h /
+          BEFORE=$(df / | tail -1 | awk '{print $3}')
+
+          sudo rm -rf /usr/lib/jvm \
+                      /usr/local/.ghcup \
+                      /usr/local/lib/android \
+                      /usr/local/share/powershell \
+                      /usr/share/dotnet \
+                      /usr/share/swift \
+                      "$AGENT_TOOLSDIRECTORY"
+          sudo docker system prune -af > /dev/null 2>&1 || true
+
+          echo "=== Disk space after cleanup ==="
+          df -h /
+          AFTER=$(df / | tail -1 | awk '{print $3}')
+
+          # Calculate reclaimed space (values are in KB)
+          BEFORE_KB=$(echo $BEFORE | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          AFTER_KB=$(echo $AFTER | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          RECLAIMED_KB=$((BEFORE_KB - AFTER_KB))
+          RECLAIMED_GB=$(echo "scale=1; $RECLAIMED_KB / 1024 / 1024" | bc)
+          echo "=== Reclaimed: ${RECLAIMED_GB}G ==="
+          
       - name: Build and push Docker image
         id: build-push
         uses: docker/build-push-action@v5

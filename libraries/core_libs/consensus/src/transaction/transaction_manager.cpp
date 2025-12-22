@@ -128,6 +128,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
 
   const auto trx_hash = trx->getHash();
   auto trx_copy = trx;
+  
   if (insertValidatedTransaction(std::move(trx_copy), false) == TransactionStatus::Inserted) {
     return {true, ""};
   } else {
