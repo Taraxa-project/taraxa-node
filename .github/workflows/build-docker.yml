@@ -40,7 +40,10 @@ jobs:
 
       - name: Free disk space
         run: |
+          echo "=== Disk space before cleanup ==="
           df -h /
+          BEFORE=$(df / | tail -1 | awk '{print $3}')
+
           sudo rm -rf /usr/lib/jvm \
                       /usr/local/.ghcup \
                       /usr/local/lib/android \
@@ -48,8 +51,18 @@ jobs:
                       /usr/share/dotnet \
                       /usr/share/swift \
                       "$AGENT_TOOLSDIRECTORY"
-          sudo docker system prune -af || true
+          sudo docker system prune -af > /dev/null 2>&1 || true
+
+          echo "=== Disk space after cleanup ==="
           df -h /
+          AFTER=$(df / | tail -1 | awk '{print $3}')
+
+          # Calculate reclaimed space (values are in KB)
+          BEFORE_KB=$(echo $BEFORE | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          AFTER_KB=$(echo $AFTER | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          RECLAIMED_KB=$((BEFORE_KB - AFTER_KB))
+          RECLAIMED_GB=$(echo "scale=1; $RECLAIMED_KB / 1024 / 1024" | bc)
+          echo "=== Reclaimed: ${RECLAIMED_GB}G ==="
 
       - name: Build test image (build stage)
         uses: docker/build-push-action@v5
@@ -210,9 +223,9 @@ jobs:
           BUILD_NUMBER=${{ github.run_number }}
           PR_NUMBER=${{ github.event.pull_request.number }}
 
-          # For PRs, use head.ref (the actual branch), for push events use ref_name
+          # For PRs, use head_ref (the actual branch), for push events use ref_name
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BRANCH_NAME=${{ github.head.ref }}
+            BRANCH_NAME=${{ github.head_ref }}
           else
             BRANCH_NAME=${{ github.ref_name }}
           fi
@@ -247,7 +260,10 @@ jobs:
       - name: Free disk space
         if: runner.os == 'Linux'
         run: |
+          echo "=== Disk space before cleanup ==="
           df -h /
+          BEFORE=$(df / | tail -1 | awk '{print $3}')
+
           sudo rm -rf /usr/lib/jvm \
                       /usr/local/.ghcup \
                       /usr/local/lib/android \
@@ -255,8 +271,18 @@ jobs:
                       /usr/share/dotnet \
                       /usr/share/swift \
                       "$AGENT_TOOLSDIRECTORY"
-          sudo docker system prune -af || true
+          sudo docker system prune -af > /dev/null 2>&1 || true
+
+          echo "=== Disk space after cleanup ==="
           df -h /
+          AFTER=$(df / | tail -1 | awk '{print $3}')
+
+          # Calculate reclaimed space (values are in KB)
+          BEFORE_KB=$(echo $BEFORE | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          AFTER_KB=$(echo $AFTER | sed 's/G/*1024*1024/;s/M/*1024/;s/K//' | bc)
+          RECLAIMED_KB=$((BEFORE_KB - AFTER_KB))
+          RECLAIMED_GB=$(echo "scale=1; $RECLAIMED_KB / 1024 / 1024" | bc)
+          echo "=== Reclaimed: ${RECLAIMED_GB}G ==="
           
       - name: Build and push Docker image
         id: build-push
