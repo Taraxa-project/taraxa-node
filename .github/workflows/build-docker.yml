@@ -10,9 +10,6 @@ on:
       - '**.md'
       - 'charts/**'
   pull_request:
-    branches:
-      - master
-      - develop
     paths-ignore:
       - 'doc/**'
       - '**.md'
