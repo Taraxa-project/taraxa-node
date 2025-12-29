@@ -76,12 +76,6 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<PbftPer
     p.vrf = change->vrf_params;
   }
 
-  if (*period /* period > 0 */ && kConfig.genesis.state.hardforks.isOnCactiHardfork(*period)) {
-    auto period_lambda = db_->getPeriodLambda(*period, true);
-    assert(period_lambda.has_value());
-    p.vdf.lambda_bound = *period_lambda;
-  }
-
   return p;
 }
 
