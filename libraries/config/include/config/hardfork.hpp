@@ -107,6 +107,7 @@ struct CactiHardforkConfig {
   uint32_t consensus_delay =
       400;  // [ms] - approx how much time it takes to receive 2t+1 soft & cert votes after 2*lambda
   uint32_t delegation_locking_period = 252000;  // number of blocks
+  uint32_t jail_time = 252000;                  // number of blocks
 
   bool isDynamicLambdaChangeInterval(uint64_t block_number) const {
     return (block_number > block_num && block_number % lambda_change_interval == 0) || lambda_change_interval == 1;
