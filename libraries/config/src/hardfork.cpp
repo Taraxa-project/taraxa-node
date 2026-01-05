@@ -184,6 +184,7 @@ Json::Value enc_json(const CactiHardforkConfig& obj) {
   json["block_propagation_max"] = dev::toJS(obj.block_propagation_max);
   json["consensus_delay"] = dev::toJS(obj.consensus_delay);
   json["delegation_locking_period"] = dev::toJS(obj.delegation_locking_period);
+  json["jail_time"] = dev::toJS(obj.jail_time);
   return json;
 }
 
@@ -198,6 +199,7 @@ void dec_json(const Json::Value& json, CactiHardforkConfig& obj) {
   obj.block_propagation_max = dev::getUInt(json["block_propagation_max"]);
   obj.consensus_delay = dev::getUInt(json["consensus_delay"]);
   obj.delegation_locking_period = dev::getUInt(json["delegation_locking_period"]);
+  obj.jail_time = dev::getUInt(json["jail_time"]);
 }
 
 void CactiHardforkConfig::validate(uint32_t rewards_distribution_frequency) const {
@@ -224,7 +226,7 @@ void CactiHardforkConfig::validate(uint32_t rewards_distribution_frequency) cons
 
 RLP_FIELDS_DEFINE(CactiHardforkConfig, block_num, lambda_min, lambda_max, lambda_default, lambda_change_interval,
                   lambda_change, block_propagation_min, block_propagation_max, consensus_delay,
-                  delegation_locking_period)
+                  delegation_locking_period, jail_time)
 
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
