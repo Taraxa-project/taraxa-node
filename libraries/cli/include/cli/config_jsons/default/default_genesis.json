@@ -143,7 +143,11 @@
       "block_propagation_max" : 17000,
       "consensus_delay": 400,
       "delegation_locking_period": 10,
-      "jail_time": 252000
+      "jail_time": 252000,
+      "dag_efficiency_targets": [
+        4400,
+        4600
+      ]
     }
   }
 }

@@ -541,4 +541,48 @@ TEST_F(SortitionTest, params_restart) {
   }
 }
 
+class SortitionParamsManagerTest : public SortitionParamsManager {
+ public:
+  SortitionParamsManagerTest(const addr_t& node_addr, const FullNodeConfig& config, std::shared_ptr<DbStorage> db)
+      : SortitionParamsManager(node_addr, config, db) {}
+
+  SortitionConfig getSortitionConfig() const { return sortition_config_; }
+};
+
+TEST_F(SortitionTest, dag_efficiency_targets_restart) {
+  auto& cfg = node_cfgs[0].genesis;
+  cfg.state.hardforks.cacti_hf.block_num = 10;
+  cfg.state.hardforks.cacti_hf.dag_efficiency_targets = {39 * kOnePercent, 41 * kOnePercent};
+  auto db = std::make_shared<DbStorage>(data_dir / "db");
+
+  SortitionParamsManagerTest sp({}, node_cfgs[0], db);
+  auto batch = db->createWriteBatch();
+  {
+    sp.pbftBlockPushed(createBlock(1, 75 * kOnePercent), batch, 1);
+    const auto& config = sp.getSortitionConfig();
+    EXPECT_EQ(config.dag_efficiency_targets.first, cfg.sortition.dag_efficiency_targets.first);
+    EXPECT_EQ(config.dag_efficiency_targets.second, cfg.sortition.dag_efficiency_targets.second);
+  }
+  {
+    sp.pbftBlockPushed(createBlock(cfg.state.hardforks.cacti_hf.block_num + 1, 75 * kOnePercent), batch, 1);
+    const auto& config = sp.getSortitionConfig();
+    EXPECT_EQ(config.dag_efficiency_targets.first, cfg.state.hardforks.cacti_hf.dag_efficiency_targets.first);
+    EXPECT_EQ(config.dag_efficiency_targets.second, cfg.state.hardforks.cacti_hf.dag_efficiency_targets.second);
+  }
+
+  {
+    sp.pbftBlockPushed(createBlock(cfg.state.hardforks.cacti_hf.block_num + 2, 75 * kOnePercent), batch, 1);
+    const auto& config = sp.getSortitionConfig();
+    EXPECT_EQ(config.dag_efficiency_targets.first, cfg.state.hardforks.cacti_hf.dag_efficiency_targets.first);
+    EXPECT_EQ(config.dag_efficiency_targets.second, cfg.state.hardforks.cacti_hf.dag_efficiency_targets.second);
+  }
+
+  {
+    sp.pbftBlockPushed(createBlock(cfg.state.hardforks.cacti_hf.block_num + 5, 75 * kOnePercent), batch, 1);
+    const auto& config = sp.getSortitionConfig();
+    EXPECT_EQ(config.dag_efficiency_targets.first, cfg.state.hardforks.cacti_hf.dag_efficiency_targets.first);
+    EXPECT_EQ(config.dag_efficiency_targets.second, cfg.state.hardforks.cacti_hf.dag_efficiency_targets.second);
+  }
+}
+
 }  // namespace taraxa::core_tests

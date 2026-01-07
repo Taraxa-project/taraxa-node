@@ -27,6 +27,12 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   return p;
 }
 
+void SortitionParamsManager::updateDagEfficiencyTargets(uint64_t block_number) {
+  if (kConfig.genesis.state.hardforks.isOnCactiHardfork(block_number)) {
+    sortition_config_.dag_efficiency_targets = kConfig.genesis.state.hardforks.cacti_hf.dag_efficiency_targets;
+  }
+}
+
 SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, const FullNodeConfig& config,
                                                std::shared_ptr<DbStorage> db)
     : kConfig(config), sortition_config_(config.genesis.sortition), db_(std::move(db)) {
@@ -53,7 +59,7 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, const Fu
       break;
     }
 
-    period++;
+    updateDagEfficiencyTargets(period);
     if (period_data->pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
       if (static_cast<int32_t>(ignored_efficiency_counter_) >=
           sortition_config_.changing_interval - sortition_config_.computation_interval) {
@@ -62,6 +68,8 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, const Fu
         ignored_efficiency_counter_++;
       }
     }
+
+    period++;
   }
 }
 
@@ -105,6 +113,10 @@ void SortitionParamsManager::cleanup() {
 
 void SortitionParamsManager::pbftBlockPushed(const PeriodData& block, Batch& batch,
                                              PbftPeriod non_empty_pbft_chain_size) {
+  updateDagEfficiencyTargets(block.pbft_blk->getPeriod());
+  if (block.pbft_blk->getPivotDagBlockHash() == kNullBlockHash) {
+    return;
+  }
   if (sortition_config_.changing_interval == 0) {
     return;
   }

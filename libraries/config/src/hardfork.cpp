@@ -185,6 +185,12 @@ Json::Value enc_json(const CactiHardforkConfig& obj) {
   json["consensus_delay"] = dev::toJS(obj.consensus_delay);
   json["delegation_locking_period"] = dev::toJS(obj.delegation_locking_period);
   json["jail_time"] = dev::toJS(obj.jail_time);
+
+  Json::Value targets(Json::arrayValue);
+  targets.append(obj.dag_efficiency_targets.first);
+  targets.append(obj.dag_efficiency_targets.second);
+  json["dag_efficiency_targets"] = targets;
+
   return json;
 }
 
@@ -200,6 +206,10 @@ void dec_json(const Json::Value& json, CactiHardforkConfig& obj) {
   obj.consensus_delay = dev::getUInt(json["consensus_delay"]);
   obj.delegation_locking_period = dev::getUInt(json["delegation_locking_period"]);
   obj.jail_time = dev::getUInt(json["jail_time"]);
+
+  auto first = json["dag_efficiency_targets"][0].asInt();
+  auto second = json["dag_efficiency_targets"][1].asInt();
+  obj.dag_efficiency_targets = {first, second};
 }
 
 void CactiHardforkConfig::validate(uint32_t rewards_distribution_frequency) const {

@@ -2046,10 +2046,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
                               sample_cert_vote->getBlockHash(), batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
-  if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
-    dag_mgr_->sortitionParamsManager().pbftBlockPushed(period_data, batch,
-                                                       pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
-  }
+  dag_mgr_->sortitionParamsManager().pbftBlockPushed(period_data, batch,
+                                                     pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
   {
     // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager
     // when finalizing pbft block with dag blocks and transactions

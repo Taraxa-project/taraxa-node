@@ -82,6 +82,7 @@ class SortitionParamsManager {
   EfficienciesMap getEfficienciesToUpperRange(uint16_t efficiency, int32_t threshold) const;
   int32_t getNewUpperRange(uint16_t efficiency) const;
   void cleanup();
+  void updateDagEfficiencyTargets(uint64_t block_number);
 
   LOG_OBJECTS_DEFINE
 };

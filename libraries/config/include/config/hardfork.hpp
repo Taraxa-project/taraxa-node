@@ -2,6 +2,7 @@
 
 #include <libdevcore/CommonJS.h>
 
+#include "common/constants.hpp"
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 
@@ -94,7 +95,7 @@ Json::Value enc_json(const SoleiroliaHardforkConfig& obj);
 void dec_json(const Json::Value& json, SoleiroliaHardforkConfig& obj);
 
 struct CactiHardforkConfig {
-  uint64_t block_num = 0;
+  uint64_t block_num = -1;
   uint32_t lambda_min = 500;             // [ms] - valid only for round 1
   uint32_t lambda_max = 1500;            // [ms] - valid only for round 1
   uint32_t lambda_default = 2000;        // [ms] - used in all rounds > 1
@@ -108,6 +109,7 @@ struct CactiHardforkConfig {
       400;  // [ms] - approx how much time it takes to receive 2t+1 soft & cert votes after 2*lambda
   uint32_t delegation_locking_period = 252000;  // number of blocks
   uint32_t jail_time = 252000;                  // number of blocks
+  std::pair<uint16_t, uint16_t> dag_efficiency_targets = {44 * kOnePercent, 46 * kOnePercent};
 
   bool isDynamicLambdaChangeInterval(uint64_t block_number) const {
     return (block_number > block_num && block_number % lambda_change_interval == 0) || lambda_change_interval == 1;
