@@ -226,12 +226,6 @@ class PbftManager {
   blk_hash_t lastPbftBlockHashFromQueueOrChain();
 
   /**
-   * @brief Get PBFT lambda. PBFT lambda is a timer clock
-   * @return PBFT lambda
-   */
-  std::chrono::milliseconds getPbftInitialLambda() const { return kMinLambda; }
-
-  /**
    * @brief Calculate DAG blocks ordering hash
    * @param dag_block_hashes DAG blocks hashes
    * @return DAG blocks ordering hash
@@ -331,16 +325,16 @@ class PbftManager {
    */
   std::map<PbftPeriod, std::vector<std::shared_ptr<PbftBlock>>> getProposedBlocks() const;
 
+  /**
+   * @return pbft deadline time - max time to finalize the block in provided period
+   */
+  std::chrono::milliseconds getPbftDeadline() const;
+
  private:
   /**
    * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
    */
   void broadcastVotes();
-
-  /**
-   * @brief Reset PBFT step to 1
-   */
-  void resetStep();
 
   /**
    * @brief If node receives 2t+1 next votes for some block(including kNullBlockHash), advance round to + 1.
@@ -499,7 +493,7 @@ class PbftManager {
    * @return shared_ptr to leader identified leader block + propose vote
    */
   std::optional<std::pair<std::shared_ptr<PbftBlock>, std::shared_ptr<PbftVote>>> identifyLeaderBlock(
-      const ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
+      ProposedBlocks &propose_blocks, std::vector<std::shared_ptr<PbftVote>> &&propose_votes);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -549,9 +543,10 @@ class PbftManager {
    * @brief Final chain executes a finalized PBFT block
    * @param period_data PBFT block, cert votes, DAG blocks, and transactions
    * @param finalized_dag_blk_hashes DAG blocks hashes
+   * @param blocks_per_year - expected number of blocks generated per year based on pbft block dynamic lambda
    * @param synchronous_processing wait for block finalization to finish
    */
-  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
+  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, uint32_t blocks_per_year,
                  bool synchronous_processing = false);
 
   /**
@@ -566,11 +561,13 @@ class PbftManager {
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
    *        already validated
    *
+   * @param proposed_blocks
    * @param period
    * @param block_hash
    * @return valid proposed pbft block or nullptr
    */
-  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash);
+  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(ProposedBlocks &proposed_blocks, PbftPeriod period,
+                                                       const blk_hash_t &block_hash);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
@@ -608,6 +605,21 @@ class PbftManager {
    */
   void processPillarBlock(PbftPeriod period);
 
+  /**
+   * @brief Adjust dynamic lambda
+   *
+   * @param finalized_period period, in which block was finalized
+   * @param finalized_round round, in which block was finalized
+   * @param write_batch
+   */
+  void adjustDynamicLambda(PbftPeriod finalized_period, PbftRound finalized_round, Batch &write_batch);
+
+  /**
+   * @param round
+   * @return lambda based on specified round
+   */
+  uint32_t getRoundLambda(PbftRound round) const;
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
@@ -624,15 +636,15 @@ class PbftManager {
   std::shared_ptr<final_chain::FinalChain> final_chain_;
   std::shared_ptr<pillar_chain::PillarChainManager> pillar_chain_mgr_;
 
-  // TODO: remove kMinLambda, kGenesisConfig as kConfig can be used instead
-  const FullNodeConfig kConfig;
   const uint32_t kSyncingThreadPoolSize;
   std::shared_ptr<util::ThreadPool>
       sync_thread_pool_;  // Thread pool used for transaction sender retrieval in syncing blocks
 
-  const std::chrono::milliseconds kMinLambda;         // [ms]
-  std::chrono::milliseconds lambda_{0};               // [ms]
-  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
+  const std::chrono::milliseconds kMaxExponentialLambda{60000};  // [ms], max lambda is 1 minute
+
+  uint32_t rounds_count_dynamic_lambda_{0};  // rounds count per cacti_hf.lambda_change_interval blocks
+  uint32_t dynamic_lambda_{0};               // [ms] - dynamic lambda that can be anywhere between <500ms, 1500ms>
+  std::chrono::milliseconds current_round_lambda_{0};  // [ms] - current round lambda
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;

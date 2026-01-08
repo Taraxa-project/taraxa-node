@@ -19,31 +19,11 @@ void Stats::recoverFromDb(EthBlockNumber lastBlockNumber) {
     clear(lastBlockNumber);
   }
 
-  auto iterator = db_->getColumnIterator(DbStorage::Columns::block_rewards_stats);
-  for (iterator->SeekToFirst(); iterator->Valid(); iterator->Next()) {
-    PbftPeriod period;
-    memcpy(&period, iterator->key().data(), sizeof(PbftPeriod));
-    blocks_stats_[period] = util::rlp_dec<BlockStats>(dev::RLP(iterator->value().ToString()));
-  }
-}
-
-void Stats::saveBlockStats(uint64_t period, const BlockStats& stats, Batch& write_batch) {
-  dev::RLPStream encoding;
-  stats.rlp(encoding);
-  db_->insert(write_batch, DbStorage::Columns::block_rewards_stats, period, encoding.out());
-}
-
-uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
-  auto distribution_frequencies = kHardforksConfig.rewards_distribution_frequency;
-  auto itr = distribution_frequencies.upper_bound(current_block);
-  if (distribution_frequencies.empty() || itr == distribution_frequencies.begin()) {
-    return 1;
-  }
-  return (--itr)->second;
+  blocks_stats_ = db_->getBlocksRewardsStats();
 }
 
 void Stats::clear(uint64_t current_period) {
-  const auto frequency = getCurrentDistributionFrequency(current_period);
+  const auto frequency = kHardforksConfig.getRewardsDistributionFrequency(current_period);
   if (frequency > 1 && current_period % frequency == 0) {
     // clear need to be called on vector because it was moved before
     blocks_stats_.clear();
@@ -51,7 +31,7 @@ void Stats::clear(uint64_t current_period) {
   }
 }
 
-BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>& trxs_fees) {
+BlockStats Stats::getBlockStats(const PeriodData& blk, uint32_t blocks_per_year, const std::vector<gas_t>& trxs_fees) {
   uint64_t dpos_vote_count = kCommitteeSize;
 
   // Block zero
@@ -59,18 +39,18 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
     dpos_vote_count = dpos_eligible_total_vote_count_(blk.previous_block_cert_votes[0]->getPeriod() - 1);
   }
   if (blk.pbft_blk->getPeriod() < kHardforksConfig.magnolia_hf.block_num) {
-    return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize};
+    return BlockStats{blk, blocks_per_year, {}, dpos_vote_count, kCommitteeSize};
   }
 
   const auto aspen_hf_part_one = kHardforksConfig.isAspenHardforkPartOne(blk.pbft_blk->getPeriod());
-  return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize, aspen_hf_part_one};
+  return BlockStats{blk, blocks_per_year, trxs_fees, dpos_vote_count, kCommitteeSize, aspen_hf_part_one};
 }
 
-std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
-                                            Batch& write_batch) {
+std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, uint32_t blocks_per_year,
+                                            const std::vector<gas_t>& trxs_gas_used, Batch& write_batch) {
   const auto current_period = current_blk.pbft_blk->getPeriod();
-  const auto frequency = getCurrentDistributionFrequency(current_period);
-  auto block_stats = getBlockStats(current_blk, trxs_gas_used);
+  const auto frequency = kHardforksConfig.getRewardsDistributionFrequency(current_period);
+  auto block_stats = getBlockStats(current_blk, blocks_per_year, trxs_gas_used);
 
   // Distribute rewards every block
   if (frequency == 1) {
@@ -85,7 +65,7 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const
   // Blocks between distribution. Process and save for future processing
   if (current_period % frequency != 0) {
     // Save to db, so in case of restart data could be just loaded for the period
-    saveBlockStats(current_period, blocks_stats_[current_period], write_batch);
+    db_->saveBlockRewardsStats(current_period, blocks_stats_[current_period], write_batch);
     return {};
   }
 

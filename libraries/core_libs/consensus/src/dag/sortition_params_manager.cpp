@@ -1,5 +1,7 @@
 #include "dag/sortition_params_manager.hpp"
 
+#include <config/config.hpp>
+
 namespace taraxa {
 
 SortitionParamsChange::SortitionParamsChange(PbftPeriod period, uint16_t efficiency, const VrfParams& vrf)
@@ -25,22 +27,22 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   return p;
 }
 
-SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf,
+SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, const FullNodeConfig& config,
                                                std::shared_ptr<DbStorage> db)
-    : config_(std::move(sort_conf)), db_(std::move(db)) {
+    : kConfig(config), sortition_config_(config.genesis.sortition), db_(std::move(db)) {
   LOG_OBJECTS_CREATE("SORT_MGR");
   // load cache values from db
-  params_changes_ = db_->getLastSortitionParams(config_.changes_count_for_average);
+  params_changes_ = db_->getLastSortitionParams(sortition_config_.changes_count_for_average);
   if (params_changes_.empty()) {
     // if no changes in db save default vrf params
     auto batch = db_->createWriteBatch();
-    SortitionParamsChange pc{0, config_.targetEfficiency(), config_.vrf};
+    SortitionParamsChange pc{0, sortition_config_.targetEfficiency(), sortition_config_.vrf};
     db_->saveSortitionParamsChange(0, pc, batch);
     db_->commitWriteBatch(batch);
     params_changes_.push_back(pc);
   } else {
     // restore VRF params from last change
-    config_.vrf = params_changes_.back().vrf_params;
+    sortition_config_.vrf = params_changes_.back().vrf_params;
   }
 
   auto period = params_changes_.back().period + 1;
@@ -54,7 +56,7 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     period++;
     if (period_data->pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
       if (static_cast<int32_t>(ignored_efficiency_counter_) >=
-          config_.changing_interval - config_.computation_interval) {
+          sortition_config_.changing_interval - sortition_config_.computation_interval) {
         dag_efficiencies_.push_back(calculateDagEfficiency(*period_data));
       } else {
         ignored_efficiency_counter_++;
@@ -64,11 +66,12 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
 }
 
 SortitionParams SortitionParamsManager::getSortitionParams(std::optional<PbftPeriod> period) const {
-  if (!period || (config_.changing_interval == 0)) {
-    return config_;
+  if (!period.has_value() || (sortition_config_.changing_interval == 0)) {
+    return sortition_config_;
   }
-  SortitionParams p = config_;
-  auto change = db_->getParamsChangeForPeriod(period.value());
+
+  SortitionParams p = sortition_config_;
+  auto change = db_->getParamsChangeForPeriod(*period);
   if (change.has_value()) {
     p.vrf = change->vrf_params;
   }
@@ -95,23 +98,24 @@ uint16_t SortitionParamsManager::averageDagEfficiency() {
 
 void SortitionParamsManager::cleanup() {
   dag_efficiencies_.clear();
-  while (params_changes_.size() > config_.changes_count_for_average) {
+  while (params_changes_.size() > sortition_config_.changes_count_for_average) {
     params_changes_.pop_front();
   }
 }
 
 void SortitionParamsManager::pbftBlockPushed(const PeriodData& block, Batch& batch,
                                              PbftPeriod non_empty_pbft_chain_size) {
-  if (config_.changing_interval == 0) {
+  if (sortition_config_.changing_interval == 0) {
     return;
   }
-  if (static_cast<int32_t>(ignored_efficiency_counter_) >= config_.changing_interval - config_.computation_interval) {
+  if (static_cast<int32_t>(ignored_efficiency_counter_) >=
+      sortition_config_.changing_interval - sortition_config_.computation_interval) {
     const auto dag_efficiency = calculateDagEfficiency(block);
     dag_efficiencies_.push_back(dag_efficiency);
     const auto period = block.pbft_blk->getPeriod();
     LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
-    if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
+    if (non_empty_pbft_chain_size % sortition_config_.changing_interval == 0) {
       const auto params_change = calculateChange(period);
       params_changes_.push_back(params_change);
       db_->saveSortitionParamsChange(period, params_change, batch);
@@ -180,11 +184,12 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
   assert(params_changes_.size() > 0);
 
   const int32_t last_threshold_upper = params_changes_.back().vrf_params.threshold_upper;
-  if (efficiency >= config_.dag_efficiency_targets.first && efficiency <= config_.dag_efficiency_targets.second) {
+  if (efficiency >= sortition_config_.dag_efficiency_targets.first &&
+      efficiency <= sortition_config_.dag_efficiency_targets.second) {
     return last_threshold_upper;
   }
 
-  const auto target_efficiency = config_.targetEfficiency();
+  const auto target_efficiency = sortition_config_.targetEfficiency();
   int32_t threshold_change = getThresholdChange(efficiency, target_efficiency, last_threshold_upper);
   const bool is_over_target_efficiency = efficiency >= target_efficiency;
   // If we are below target the value we are changing threshold by should be negative
@@ -228,11 +233,11 @@ SortitionParamsChange SortitionParamsManager::calculateChange(PbftPeriod period)
     new_upper_range = UINT16_MAX;
   }
 
-  config_.vrf.threshold_upper = new_upper_range;
+  sortition_config_.vrf.threshold_upper = new_upper_range;
   LOG(log_nf_) << "Average interval efficiency: " << average_dag_efficiency / 100. << "%. Changing VRF params on "
-               << period << " period to (" << config_.vrf.threshold_upper << ")";
+               << period << " period to (" << sortition_config_.vrf.threshold_upper << ")";
 
-  return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
+  return SortitionParamsChange{period, average_dag_efficiency, sortition_config_.vrf};
 }
 
 }  // namespace taraxa

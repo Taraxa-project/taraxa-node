@@ -33,6 +33,7 @@ class Taraxa : public TaraxaFace {
   virtual std::string taraxa_totalSupply(const std::string& _period) override;
   virtual Json::Value taraxa_getPillarBlockData(const std::string& pillar_block_period,
                                                 bool include_signatures) override;
+  virtual std::string taraxa_getPeriodLambda(const std::string& period) override;
 
  protected:
   std::weak_ptr<taraxa::AppBase> app_;

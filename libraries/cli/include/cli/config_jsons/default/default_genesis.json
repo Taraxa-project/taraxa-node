@@ -130,6 +130,20 @@
       "block_num": 0,
       "trx_min_gas_price": "0x1",
       "trx_max_gas_limit": "0x1E0A6E0"
+    },
+    "cacti_hf" :
+    {
+      "block_num" : 0,
+      "lambda_min" : 500,
+      "lambda_max" : 1500,
+      "lambda_default" : 2000,
+      "lambda_change_interval" : 10,
+      "lambda_change" : 10,
+      "block_propagation_min" : 4000,
+      "block_propagation_max" : 17000,
+      "consensus_delay": 400,
+      "delegation_locking_period": 10,
+      "jail_time": 252000
     }
   }
 }

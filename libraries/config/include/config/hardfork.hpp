@@ -93,6 +93,33 @@ struct SoleiroliaHardforkConfig {
 Json::Value enc_json(const SoleiroliaHardforkConfig& obj);
 void dec_json(const Json::Value& json, SoleiroliaHardforkConfig& obj);
 
+struct CactiHardforkConfig {
+  uint64_t block_num = 0;
+  uint32_t lambda_min = 500;             // [ms] - valid only for round 1
+  uint32_t lambda_max = 1500;            // [ms] - valid only for round 1
+  uint32_t lambda_default = 2000;        // [ms] - used in all rounds > 1
+  uint32_t lambda_change_interval = 10;  // [number of blocks]
+  uint32_t lambda_change = 10;           // [ms]
+  uint32_t block_propagation_min =
+      4000;  // [ms] - how long it takes to propagate block in good network conditions, used in round 1
+  uint32_t block_propagation_max =
+      17000;  // [ms] - how long it takes to propagate block in good network conditions, used in rounds > 1
+  uint32_t consensus_delay =
+      400;  // [ms] - approx how much time it takes to receive 2t+1 soft & cert votes after 2*lambda
+  uint32_t delegation_locking_period = 252000;  // number of blocks
+  uint32_t jail_time = 252000;                  // number of blocks
+
+  bool isDynamicLambdaChangeInterval(uint64_t block_number) const {
+    return (block_number > block_num && block_number % lambda_change_interval == 0) || lambda_change_interval == 1;
+  }
+
+  void validate(uint32_t rewards_distribution_frequency) const;
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const CactiHardforkConfig& obj);
+void dec_json(const Json::Value& json, CactiHardforkConfig& obj);
+
 // Keeping it for next HF
 // struct BambooRedelegation {
 //   taraxa::addr_t validator;
@@ -126,6 +153,10 @@ struct HardforksConfig {
    */
   using RewardsDistributionMap = std::map<uint64_t, uint32_t>;
   RewardsDistributionMap rewards_distribution_frequency;
+  /**
+   * @brief returns rewards distribution frequency for specified period
+   */
+  uint32_t getRewardsDistributionFrequency(uint64_t block) const;
 
   // Magnolia hardfork:
   // 1.fixing premature deletion of validators in dpos contract -> validator is deleted only
@@ -160,6 +191,10 @@ struct HardforksConfig {
   // Soleirolia hf - increase trx gas minimum price
   //               - limit max trx gas
   SoleiroliaHardforkConfig soleirolia_hf;
+
+  // Cacti hardfork
+  CactiHardforkConfig cacti_hf;
+  bool isOnCactiHardfork(uint64_t block_number) const { return block_number >= cacti_hf.block_num; }
 
   HAS_RLP_FIELDS
 };

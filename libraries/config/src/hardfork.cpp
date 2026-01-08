@@ -172,6 +172,62 @@ void dec_json(const Json::Value& json, SoleiroliaHardforkConfig& obj) {
 
 RLP_FIELDS_DEFINE(SoleiroliaHardforkConfig, block_num, trx_min_gas_price, trx_max_gas_limit)
 
+Json::Value enc_json(const CactiHardforkConfig& obj) {
+  Json::Value json(Json::objectValue);
+  json["block_num"] = dev::toJS(obj.block_num);
+  json["lambda_min"] = dev::toJS(obj.lambda_min);
+  json["lambda_max"] = dev::toJS(obj.lambda_max);
+  json["lambda_default"] = dev::toJS(obj.lambda_default);
+  json["lambda_change_interval"] = dev::toJS(obj.lambda_change_interval);
+  json["lambda_change"] = dev::toJS(obj.lambda_change);
+  json["block_propagation_min"] = dev::toJS(obj.block_propagation_min);
+  json["block_propagation_max"] = dev::toJS(obj.block_propagation_max);
+  json["consensus_delay"] = dev::toJS(obj.consensus_delay);
+  json["delegation_locking_period"] = dev::toJS(obj.delegation_locking_period);
+  json["jail_time"] = dev::toJS(obj.jail_time);
+  return json;
+}
+
+void dec_json(const Json::Value& json, CactiHardforkConfig& obj) {
+  obj.block_num = json["block_num"].isUInt64() ? dev::getUInt(json["block_num"]) : uint64_t(-1);
+  obj.lambda_min = dev::getUInt(json["lambda_min"]);
+  obj.lambda_max = dev::getUInt(json["lambda_max"]);
+  obj.lambda_default = dev::getUInt(json["lambda_default"]);
+  obj.lambda_change_interval = dev::getUInt(json["lambda_change_interval"]);
+  obj.lambda_change = dev::getUInt(json["lambda_change"]);
+  obj.block_propagation_min = dev::getUInt(json["block_propagation_min"]);
+  obj.block_propagation_max = dev::getUInt(json["block_propagation_max"]);
+  obj.consensus_delay = dev::getUInt(json["consensus_delay"]);
+  obj.delegation_locking_period = dev::getUInt(json["delegation_locking_period"]);
+  obj.jail_time = dev::getUInt(json["jail_time"]);
+}
+
+void CactiHardforkConfig::validate(uint32_t rewards_distribution_frequency) const {
+  // Do not validate configuration in case it is disabled or enabled from block 1
+  if (block_num == uint64_t(-1) || block_num <= 1) {
+    return;
+  }
+
+  // No need to validate cacti hf block num in case of rewards distribution frequency == 1
+  if (rewards_distribution_frequency == 1) {
+    return;
+  }
+
+  // cacti_hf.block_num must be equal to rewards_distribution_frequency + 1, otherwise we would have to do a db
+  // migration for DbStorage::Columns::block_rewards_stats db column as cacti hardfork added new item into the rlp saved
+  // in that column. It is cleader every rewards_distribution_frequency blocks, thus if cacti hf block num is + 1, no
+  // migration is needed
+  if (block_num % rewards_distribution_frequency != 1) {
+    throw taraxa::ConfigException("cacti_hf.block_num must be equal to rewards_distribution_frequency + 1");
+  }
+
+  return;
+}
+
+RLP_FIELDS_DEFINE(CactiHardforkConfig, block_num, lambda_min, lambda_max, lambda_default, lambda_change_interval,
+                  lambda_change, block_propagation_min, block_propagation_max, consensus_delay,
+                  delegation_locking_period, jail_time)
+
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
@@ -194,6 +250,7 @@ Json::Value enc_json(const HardforksConfig& obj) {
   // json["bamboo_hf"] = enc_json(obj.bamboo_hf);
   json["cornus_hf"] = enc_json(obj.cornus_hf);
   json["soleirolia_hf"] = enc_json(obj.soleirolia_hf);
+  json["cacti_hf"] = enc_json(obj.cacti_hf);
 
   return json;
 }
@@ -227,8 +284,19 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
   // dec_json(json["bamboo_hf"], obj.bamboo_hf);
   dec_json(json["cornus_hf"], obj.cornus_hf);
   dec_json(json["soleirolia_hf"], obj.soleirolia_hf);
+  dec_json(json["cacti_hf"], obj.cacti_hf);
+}
+
+uint32_t HardforksConfig::getRewardsDistributionFrequency(uint64_t block) const {
+  const auto& distribution_frequencies = rewards_distribution_frequency;
+  auto itr = distribution_frequencies.upper_bound(block);
+  if (distribution_frequencies.empty() || itr == distribution_frequencies.begin()) {
+    return 1;
+  }
+  return (--itr)->second;
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
-                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf, soleirolia_hf)
+                  phalaenopsis_hf_block_num, fix_claim_all_block_num, aspen_hf, ficus_hf, cornus_hf, soleirolia_hf,
+                  cacti_hf)
 }  // namespace taraxa

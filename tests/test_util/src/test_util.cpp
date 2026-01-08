@@ -360,6 +360,16 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
       cfg.genesis.pbft.lambda_ms /= tests_speed;
       cfg.network.transaction_interval_ms /= tests_speed;
       cfg.network.ddos_protection.vote_accepting_rounds *= tests_speed;
+
+      cfg.genesis.state.hardforks.cacti_hf.lambda_min /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.lambda_max /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.lambda_default /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.block_propagation_min /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.block_propagation_max /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.lambda_change /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.consensus_delay /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.delegation_locking_period /= tests_speed;
+      cfg.genesis.state.hardforks.cacti_hf.jail_time /= tests_speed;
     }
     if (!enable_rpc_http) {
       cfg.network.rpc->http_port = std::nullopt;

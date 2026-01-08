@@ -59,6 +59,9 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
         jsonrpc::Procedure("taraxa_getPillarBlockData", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
                            JSON_ANY, "param2", jsonrpc::JSON_BOOLEAN, NULL),
         &taraxa::net::TaraxaFace::taraxa_getPillarBlockDataI);
+    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getPeriodLambda", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING, NULL),
+                           &taraxa::net::TaraxaFace::taraxa_getPeriodLambdaI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response) {
@@ -113,6 +116,10 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     (void)request;
     response = this->taraxa_getPillarBlockData(request[0u].asString(), request[1u].asBool());
   }
+  inline virtual void taraxa_getPeriodLambdaI(const Json::Value &request, Json::Value &response) {
+    (void)request;
+    response = this->taraxa_getPeriodLambda(request[0u].asString());
+  }
 
   virtual std::string taraxa_protocolVersion() = 0;
   virtual Json::Value taraxa_getVersion() = 0;
@@ -128,6 +135,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   virtual std::string taraxa_yield(const std::string &param1) = 0;
   virtual std::string taraxa_totalSupply(const std::string &param1) = 0;
   virtual Json::Value taraxa_getPillarBlockData(const std::string &param1, bool param2) = 0;
+  virtual std::string taraxa_getPeriodLambda(const std::string &param1) = 0;
 };
 
 }  // namespace net

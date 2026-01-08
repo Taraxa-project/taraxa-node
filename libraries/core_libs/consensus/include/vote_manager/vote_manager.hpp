@@ -78,7 +78,7 @@ class VoteManager {
   uint64_t getVerifiedVotesSize() const;
 
   /**
-   * @brief Cleanup votes for previous PBFT periods
+   * @brief Cleanup votes for specified PBFT period
    * @param pbft_period current PBFT period
    */
   void cleanupVotesByPeriod(PbftPeriod pbft_period);
@@ -240,7 +240,7 @@ class VoteManager {
    * @param step
    * @return
    */
-  VerifiedVotes::StepVotes getStepVotes(PbftPeriod period, PbftRound round, PbftStep step) const;
+  StepVotes getStepVotes(PbftPeriod period, PbftRound round, PbftStep step) const;
 
   /**
    * @brief Sets current pbft period & round. It also checks if we dont already have 2t+1 vote bundles(pf any type) for
@@ -270,13 +270,6 @@ class VoteManager {
   bool isValidRewardVote(const std::shared_ptr<PbftVote>& vote) const;
 
   /**
-   * @brief Inserts unique vote
-   * @param vote
-   * @return <true, nullptr> if vote is unique per round & step & voter, otherwise <false, existing vote>
-   */
-  std::pair<bool, std::shared_ptr<PbftVote>> insertUniqueVote(const std::shared_ptr<PbftVote>& vote);
-
-  /**
    * @brief Get PBFT sortition threshold for specific period
    * @param total_dpos_votes_count total votes count
    * @param vote_type vote type
@@ -300,13 +293,12 @@ class VoteManager {
   std::atomic<PbftRound> current_pbft_round_{0};
 
   // Main storage for all verified votes
-  std::map<PbftPeriod, std::map<PbftRound, VerifiedVotes>> verified_votes_;
-  mutable std::shared_mutex verified_votes_access_;
+  VerifiedVotes verified_votes_;
 
   // Reward votes related info
-  blk_hash_t reward_votes_block_hash_;
-  PbftRound reward_votes_period_;
-  PbftRound reward_votes_round_;
+  blk_hash_t reward_votes_block_hash_{kNullBlockHash};
+  PbftRound reward_votes_period_{0};
+  PbftRound reward_votes_round_{0};
   std::vector<vote_hash_t> extra_reward_votes_;
   mutable std::shared_mutex reward_votes_info_mutex_;
 
