@@ -102,7 +102,8 @@ void DagBlockPacketHandler::onNewBlockReceived(
         } else {
           std::ostringstream err_msg;
           err_msg << "DagBlock" << block_hash << " is missing a transaction while in a dag synced state";
-          throw MaliciousPeerException(err_msg.str());
+          // throw MaliciousPeerException(err_msg.str());
+          disconnect(peer->getId(), dev::p2p::UserReason);
         }
       }
       break;
