@@ -19,7 +19,7 @@ void Light::init(const boost::program_options::variables_map &opts) {
   const auto &conf = app()->getConfig();
 
   const auto &cacti_hf = conf.genesis.state.hardforks.cacti_hf;
-  // Since cacti hf introduced dynamic lambda, the number of blocks node has to keep is changins as dynamic lambda
+  // Since cacti hf introduced dynamic lambda, the number of blocks node has to keep is changing as dynamic lambda
   // changes. To keep things simple, calculate blocks_per_year for the smallest possible dynamic lambda
   const auto blocks_per_year = conf.genesis.calcBlocksPerYear(cacti_hf.lambda_min, cacti_hf.consensus_delay);
   const auto min_light_node_history_ = (blocks_per_year * conf.kDefaultLightNodeHistoryDays) / 365;
@@ -178,7 +178,7 @@ void Light::clearHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, bool
   db->CompactRange(DbStorage::Columns::period_data, start_period, end_period);
   db->CompactRange(DbStorage::Columns::pillar_block, start_period, end_period);
   db->CompactRange(DbStorage::Columns::final_chain_receipt_by_period, start_period, end_period);
-  db->CompactRange(DbStorage::Columns::period_data, start_period, end_period);
+  db->CompactRange(DbStorage::Columns::period_lambda, start_period, end_period);
 
   it = db->getColumnIterator(DbStorage::Columns::dag_blocks_level);
   it->SeekToFirst();
