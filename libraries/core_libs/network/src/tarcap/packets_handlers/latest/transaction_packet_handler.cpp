@@ -36,10 +36,10 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   }
 
   size_t unseen_txs_count = 0;
-  size_t data_size = 0;
+  // size_t data_size = 0;
   for (auto &transaction : packet.transactions) {
     const auto tx_hash = transaction->getHash();
-    data_size += transaction->getData().size();
+    // data_size += transaction->getData().size();
     peer->markTransactionAsKnown(tx_hash);
 
     // Skip any transactions that are already known to the trx mgr
@@ -72,12 +72,12 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     }
   }
 
-  // Allow 30% bigger size to support old version, to be removed
-  if (data_size > kMaxTransactionsSizeInPacket * 1.3) {
-    std::ostringstream err_msg;
-    err_msg << "Transactions packet data size over limit " << data_size;
-    throw MaliciousPeerException(err_msg.str());
-  }
+  // // Allow 30% bigger size to support old version, to be removed
+  // if (data_size > kMaxTransactionsSizeInPacket * 1.3) {
+  //   std::ostringstream err_msg;
+  //   err_msg << "Transactions packet data size over limit " << data_size;
+  //   throw MaliciousPeerException(err_msg.str());
+  // }
 
   if (!packet.transactions.empty()) {
     LOG(log_tr_) << "Received TransactionPacket with " << packet.transactions.size() << " transactions";
