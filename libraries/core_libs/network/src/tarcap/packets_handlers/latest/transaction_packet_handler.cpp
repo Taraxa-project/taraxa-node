@@ -38,6 +38,10 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   size_t unseen_txs_count = 0;
   // size_t data_size = 0;
   for (auto &transaction : packet.transactions) {
+    if (isBadSlashingTx(transaction)) {
+      LOG(log_er_) << "Ignore bad slashing trx " << transaction->getHash().hex();
+      continue;
+    }
     const auto tx_hash = transaction->getHash();
     // data_size += transaction->getData().size();
     peer->markTransactionAsKnown(tx_hash);
@@ -48,11 +52,10 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     }
 
     unseen_txs_count++;
-
     const auto [verified, reason] = trx_mgr_->verifyTransaction(transaction);
     if (!verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock transaction " << tx_hash << " validation failed: " << reason;
+      err_msg << "TransactionPacketHandler transaction " << tx_hash << " validation failed: " << reason;
       throw MaliciousPeerException(err_msg.str());
     }
 

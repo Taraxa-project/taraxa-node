@@ -214,4 +214,15 @@ bool Transaction::intrinsicGasCovered() const {
   }
 }
 
+bool isBadSlashingTx(std::shared_ptr<Transaction> trx) {
+  if (trx->getReceiver() != kSlashingContractAddress) {
+    return false;
+  }
+  static const auto kCorrectSlashingInputSize = 516;
+  if (trx->getData().size() == kCorrectSlashingInputSize) {
+    return false;
+  }
+  return true;
+}
+
 }  // namespace taraxa

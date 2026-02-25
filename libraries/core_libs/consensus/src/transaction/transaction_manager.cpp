@@ -81,6 +81,10 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
     return {true, ""};
   }
 
+  if (isBadSlashingTx(trx)) {
+    return {false, "drop bad slashing tx"};
+  }
+
   if (trx->getChainID() != kConf.genesis.chain_id) {
     return {false,
             "chain_id mismatch " + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.genesis.chain_id)};

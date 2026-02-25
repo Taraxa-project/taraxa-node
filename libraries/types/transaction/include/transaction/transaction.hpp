@@ -88,5 +88,6 @@ using TransactionHashes = std::vector<trx_hash_t>;
 
 uint64_t IntrinsicGas(const std::vector<uint8_t> &data, bool is_contract_creation);
 TransactionHashes hashes_from_transactions(const SharedTransactions &transactions);
+bool isBadSlashingTx(std::shared_ptr<Transaction>);
 
 }  // namespace taraxa
