@@ -62,26 +62,6 @@
         "id": "1d356bd6f835c24b5129a822ef9947485e82081b52647c4d8e25de18bea565307b545f6ac2f91d3b4b147fba195a7298cc34d1648294badb58d80462aed5f498",
         "ip": "boot-node-4.mainnet.taraxa.io",
         "port": 10002
-      },
-      {
-        "id": "6b74ad39c4f8b6ccba42bab45958f884eaad63d0515521b0628ee96009824a12efae7e9840a7421ade9ee1e0c875240b1989d5593b636b8ef4aefc3c033ecace",
-        "ip": "boot-node-5.mainnet.taraxa.io",
-        "port": 10002
-      },
-      {
-        "id": "f530a0c5d647ceade734537d00050ab51278f64210327b6c973683cfb0ff33f6393cd0b785bd9e33d9cf5474c6a47754ea92c08da60678ac677a0ba409c90cf3",
-        "ip": "boot-node-6.mainnet.taraxa.io",
-        "port": 10002
-      },
-      {
-        "id": "c8a8bef96f04c91a07da3bf7e8b6d1ac81ef4718aa3d216ef8aab535c4015ff17a8dbfb75d726d7113ca58810028b2615d3551521b4564d0cf4db2fa7be91ed8",
-        "ip": "boot-node-7.mainnet.taraxa.io",
-        "port": 10002
-      },
-      {
-        "id": "630476958941c5e44960793a4fc420ba5450fed6ff296dc7b51773d12cea49f5b9ad6d5836cfd379b9ffa38e3c72661175acbda28829db3855bb29b7ac804bd0",
-        "ip": "boot-node-8.mainnet.taraxa.io",
-        "port": 10002
       }
     ]
   },
