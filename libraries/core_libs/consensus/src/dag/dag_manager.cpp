@@ -474,27 +474,46 @@ void DagManager::recoverDag() {
           break;
         }
 
-        const auto pk = key_manager_->getVrfKey(*propose_period, blk->getSender());
-        if (!pk) {
-          LOG(log_er_) << "DAG block " << blk->getHash() << " with " << blk->getLevel()
-                       << " level is missing VRF key for sender " << blk->getSender();
-          break;
-        }
-        // Verify VDF solution
-        try {
-          uint64_t max_vote_count = 0;
-          const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk->getSender());
-          if (*propose_period < kGenesis.state.hardforks.magnolia_hf.block_num) {
-            max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
-          } else {
-            max_vote_count = kValidatorMaxVote;
+        auto verify_vdf_with_period = [&](PbftPeriod pp) -> bool {
+          const auto pk = key_manager_->getVrfKey(pp, blk->getSender());
+          if (!pk) {
+            return false;
           }
-          blk->verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period),
-                         db_->getPeriodBlockHash(*propose_period), *pk, vote_count, max_vote_count);
-        } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
+          try {
+            uint64_t max_vote_count = 0;
+            const auto vote_count = final_chain_->dposEligibleVoteCount(pp, blk->getSender());
+            if (pp < kGenesis.state.hardforks.magnolia_hf.block_num) {
+              max_vote_count = final_chain_->dposEligibleTotalVoteCount(pp);
+            } else {
+              max_vote_count = kValidatorMaxVote;
+            }
+            blk->verifyVdf(sortition_params_manager_.getSortitionParams(pp), db_->getPeriodBlockHash(pp), *pk,
+                           vote_count, max_vote_count);
+            return true;
+          } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &) {
+            return false;
+          }
+        };
+
+        bool vdf_verified = verify_vdf_with_period(*propose_period);
+
+        // Mainnet stuck at PBFT period 25706950 because a finalized period inserted
+        // proposal_period_levels_map[anchor_level + max_levels_per_period_] exactly at this DAG block level. If
+        // Seek(level) now sees that later period, retry Seek(level + 1), which was the period used by the observed
+        // mainnet block before the collision entry was inserted:
+        // https://gist.github.com/bender-cryptobauer/d70b19a3767d5bcebf33be1d344da881
+        if (!vdf_verified) {
+          auto fallback_period = db_->getProposalPeriodForDagLevel(blk->getLevel() + 1);
+          if (fallback_period.has_value() && *fallback_period != *propose_period) {
+            LOG(log_nf_) << "DAG block " << blk->getHash() << " VDF failed with propose_period " << *propose_period
+                         << ", retrying with fallback period " << *fallback_period;
+            vdf_verified = verify_vdf_with_period(*fallback_period);
+          }
+        }
+
+        if (!vdf_verified) {
           LOG(log_er_) << "DAG block " << blk->getHash() << " with " << blk->getLevel()
-                       << " level failed on VDF verification with pivot hash " << blk->getPivot() << " reason "
-                       << e.what();
+                       << " level failed on VDF verification with pivot hash " << blk->getPivot();
           break;
         }
       }
@@ -614,7 +633,60 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
     trx_hashes_to_query = all_block_trx_hashes;
   }
 
-  // Verify transactions
+  if (blk->getLevel() < dag_expiry_level_) {
+    LOG(log_nf_) << "Dropping old block: " << blk->getHash() << ". Expiry level: " << dag_expiry_level_
+                 << ". Block level: " << blk->getLevel();
+    return {VerifyBlockReturnType::ExpiredBlock, {}};
+  }
+
+  auto verify_vdf_with_period = [&](PbftPeriod pp) -> bool {
+    const auto pk = key_manager_->getVrfKey(pp, blk->getSender());
+    if (!pk) {
+      return false;
+    }
+    try {
+      const auto period_hash = db_->getPeriodBlockHash(pp);
+      uint64_t max_vote_count = 0;
+      const auto vote_count = final_chain_->dposEligibleVoteCount(pp, blk->getSender());
+      if (pp < kGenesis.state.hardforks.magnolia_hf.block_num) {
+        max_vote_count = final_chain_->dposEligibleTotalVoteCount(pp);
+      } else {
+        max_vote_count = kValidatorMaxVote;
+      }
+      blk->verifyVdf(sortition_params_manager_.getSortitionParams(pp), period_hash, *pk, vote_count, max_vote_count);
+      return true;
+    } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &) {
+      return false;
+    }
+  };
+
+  bool vdf_verified = verify_vdf_with_period(*propose_period);
+
+  // Mainnet stuck at PBFT period 25706950 because a finalized period inserted
+  // proposal_period_levels_map[anchor_level + max_levels_per_period_] exactly at this DAG block level. If Seek(level)
+  // now sees that later period, retry Seek(level + 1), which was the period used by the observed mainnet block before
+  // the collision entry was inserted:
+  // https://gist.github.com/bender-cryptobauer/d70b19a3767d5bcebf33be1d344da881
+  if (!vdf_verified) {
+    auto fallback_period = db_->getProposalPeriodForDagLevel(blk->getLevel() + 1);
+    if (fallback_period.has_value() && *fallback_period != *propose_period) {
+      LOG(log_nf_) << "DAG block " << block_hash << " VDF failed with propose_period " << *propose_period
+                   << ", retrying with fallback period " << *fallback_period;
+      if (verify_vdf_with_period(*fallback_period)) {
+        vdf_verified = true;
+        propose_period = fallback_period;
+      }
+    }
+  }
+
+  if (!vdf_verified) {
+    LOG(log_er_) << "DAG block " << block_hash << " with " << blk->getLevel()
+                 << " level failed on VDF verification with pivot hash " << blk->getPivot();
+    LOG(log_er_) << "period from map: " << *propose_period << " current: " << pbft_chain_->getPbftChainSize();
+    return {VerifyBlockReturnType::FailedVdfVerification, {}};
+  }
+
+  // Verify transactions after finalizing the effective proposal period (primary or fallback)
   auto transactions = trx_mgr_->getTransactions(trx_hashes_to_query, *propose_period);
 
   if (transactions.size() < trx_hashes_to_query.size()) {
@@ -626,38 +698,6 @@ std::pair<DagManager::VerifyBlockReturnType, SharedTransactions> DagManager::ver
 
   for (auto t : transactions) {
     all_block_trxs.emplace_back(std::move(t));
-  }
-
-  if (blk->getLevel() < dag_expiry_level_) {
-    LOG(log_nf_) << "Dropping old block: " << blk->getHash() << ". Expiry level: " << dag_expiry_level_
-                 << ". Block level: " << blk->getLevel();
-    return {VerifyBlockReturnType::ExpiredBlock, {}};
-  }
-
-  // Verify VDF solution
-  const auto pk = key_manager_->getVrfKey(*propose_period, blk->getSender());
-  if (!pk) {
-    LOG(log_er_) << "DAG block " << blk->getHash() << " with " << blk->getLevel()
-                 << " level is missing VRF key for sender " << blk->getSender();
-    return {VerifyBlockReturnType::FailedVdfVerification, {}};
-  }
-
-  try {
-    const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
-    uint64_t max_vote_count = 0;
-    const auto vote_count = final_chain_->dposEligibleVoteCount(*propose_period, blk->getSender());
-    if (*propose_period < kGenesis.state.hardforks.magnolia_hf.block_num) {
-      max_vote_count = final_chain_->dposEligibleTotalVoteCount(*propose_period);
-    } else {
-      max_vote_count = kValidatorMaxVote;
-    }
-    blk->verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk, vote_count,
-                   max_vote_count);
-  } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
-    LOG(log_er_) << "DAG block " << block_hash << " with " << blk->getLevel()
-                 << " level failed on VDF verification with pivot hash " << blk->getPivot() << " reason " << e.what();
-    LOG(log_er_) << "period from map: " << *propose_period << " current: " << pbft_chain_->getPbftChainSize();
-    return {VerifyBlockReturnType::FailedVdfVerification, {}};
   }
 
   auto dag_block_sender = blk->getSender();

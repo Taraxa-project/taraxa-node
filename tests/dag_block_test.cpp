@@ -202,6 +202,59 @@ TEST_F(DagBlockMgrTest, proposal_period) {
   EXPECT_FALSE(proposal_period);
 }
 
+TEST_F(DagBlockMgrTest, verify_block_uses_fallback_period_for_transaction_lookup) {
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
+  node_cfgs[0].genesis.state.dpos.delegation_delay = 1;
+  node_cfgs[0].genesis.state.dpos.delegation_locking_period = 1;
+  auto node = launch_nodes(node_cfgs).front();
+
+  TransactionClient tx_client(node);
+  auto tx_ctx = tx_client.coinTransfer(KeyPair::create().address(), 1, true);
+  ASSERT_EQ(tx_ctx.stage, TransactionClient::TransactionStage::executed);
+  auto tx = tx_ctx.trx;
+  const auto tx_hash = tx->getHash();
+  const auto tx_location = node->getDB()->getTransactionLocation(tx_hash);
+  ASSERT_TRUE(tx_location.has_value());
+
+  const auto fallback_period = PbftPeriod(0);
+  ASSERT_HAPPENS({30s, 200ms}, [&](auto& ctx) {
+    const auto current_period = node->getFinalChain()->lastBlockNumber();
+    if (ctx.fail_if(current_period <= tx_location->period + 3)) {
+      return;
+    }
+
+    const auto trxs_at_current_period = node->getTransactionManager()->getTransactions(vec_trx_t{tx_hash}, current_period);
+    const auto trxs_at_fallback_period =
+        node->getTransactionManager()->getTransactions(vec_trx_t{tx_hash}, fallback_period);
+    WAIT_EXPECT_EQ(ctx, trxs_at_current_period.size(), 0);
+    WAIT_EXPECT_EQ(ctx, trxs_at_fallback_period.size(), 1);
+  });
+
+  const auto dag_mgr = node->getDagManager();
+  const auto db = node->getDB();
+  const auto level = dag_mgr->getMaxLevel() + 1;
+  const auto current_period = node->getFinalChain()->lastBlockNumber();
+
+  db->saveProposalPeriodDagLevelsMap(level, current_period);
+  db->saveProposalPeriodDagLevelsMap(level + 1, fallback_period);
+  ASSERT_EQ(*db->getProposalPeriodForDagLevel(level), current_period);
+  ASSERT_EQ(*db->getProposalPeriodForDagLevel(level + 1), fallback_period);
+
+  auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().genesis.sortition);
+  const auto period_block_hash = db->getPeriodBlockHash(fallback_period);
+  vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(level, period_block_hash), 1, 1);
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {tx});
+  vdf.computeVdfSolution(vdf_config, vdf_msg, false);
+
+  const auto gas_estimation = node->getTransactionManager()->estimateTransactionGas(tx, fallback_period).gas_used;
+  auto blk = std::make_shared<DagBlock>(dag_genesis, level, vec_blk_t{}, vec_trx_t{tx_hash}, gas_estimation, vdf,
+                                        node->getSecretKey());
+
+  EXPECT_EQ(dag_mgr->verifyBlock(std::move(blk)).first, DagManager::VerifyBlockReturnType::Verified);
+}
+
 TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   auto node = create_nodes(1).front();
   auto db = node->getDB();
